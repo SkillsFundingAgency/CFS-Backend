@@ -16,6 +16,7 @@ namespace Allocations.Models.Framework
             DatasetTypes = new Dictionary<string, Type>();
             foreach (var type in datasetTypes)
             {
+                Console.WriteLine($"Adding {type}");
                 DatasetTypes.Add(type.GetCustomAttribute<DatasetAttribute>().DatasetName, type);
             }
             
@@ -51,7 +52,16 @@ namespace Allocations.Models.Framework
         {
             if (DatasetTypes.ContainsKey(datasetName))
             {
-                return Activator.CreateInstance(DatasetTypes[datasetName]);
+                try
+                {
+                    var type = DatasetTypes[datasetName];
+                    Console.WriteLine($"Creating {type}");
+                    return Activator.CreateInstance(type);
+                }
+                catch (ReflectionTypeLoadException e)
+                {
+                    throw new Exception(e.Message);
+                }
             }
             throw new NotImplementedException($"{datasetName} is not defined");
         }
