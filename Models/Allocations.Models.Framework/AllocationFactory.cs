@@ -60,7 +60,7 @@ namespace Allocations.Models.Framework
                 }
                 catch (ReflectionTypeLoadException e)
                 {
-                    throw new Exception(e.Message);
+                    throw new Exception(string.Join(", ", e.LoaderExceptions.Select(x => x.Message)));
                 }
             }
             throw new NotImplementedException($"{datasetName} is not defined");
