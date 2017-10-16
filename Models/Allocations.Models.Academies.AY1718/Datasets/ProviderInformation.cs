@@ -1,7 +1,7 @@
 ﻿using System;
 using Allocations.Models.Framework;
 
-namespace Academies.AY1718.Datasets
+namespace AY1718.CSharp.Datasets
 {
     [Dataset("SBS1718", "APT Provider Information")]
     public class AptProviderInformation : ProviderDataset

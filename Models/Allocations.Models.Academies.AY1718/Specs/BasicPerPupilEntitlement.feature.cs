@@ -10,7 +10,7 @@
 // ------------------------------------------------------------------------------
 #region Designer generated code
 #pragma warning disable
-namespace Allocations.Models.Academies.AY1718.Specs
+namespace AY1718.CSharp.Specs
 {
     using TechTalk.SpecFlow;
     

@@ -1,8 +1,8 @@
 ﻿using System;
-using Academies.AY1718.Datasets;
 using Allocations.Models.Framework;
+using AY1718.CSharp.Datasets;
 
-namespace Academies.AY1718.Allocations
+namespace AY1718.CSharp.Allocations
 {
 
     [Allocation("SBS1718")]

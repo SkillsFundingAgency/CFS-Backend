@@ -77,9 +77,9 @@
       <Project>{E6F1A404-839B-4766-B2AE-8BD8047B0B5D}</Project>
       <Name>Allocations.Respository</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Models\Allocations.Models.Academies.AY1718\Allocations.Models.Academies.AY1718.csproj">
+    <ProjectReference Include="..\..\Models\Allocations.Models.Academies.AY1718\AY1718.CSharp.csproj">
       <Project>{23874365-0F52-42AC-9083-30639D922F26}</Project>
-      <Name>Allocations.Models.Academies.AY1718</Name>
+      <Name>AY1718.CSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Models\Allocations.Models.Framework\Allocations.Models.Framework.csproj">
       <Project>{BBCBEFEF-A2CD-411F-8EB6-B305AB261767}</Project>
