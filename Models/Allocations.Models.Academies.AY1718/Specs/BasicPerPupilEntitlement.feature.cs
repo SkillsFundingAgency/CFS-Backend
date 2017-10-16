@@ -127,58 +127,36 @@ this.FeatureBackground();
  testRunner.And("I have the following \'APT Basic Entitlement\' provider dataset:", ((string)(null)), table3, "And ");
 #line hidden
             TechTalk.SpecFlow.Table table4 = new TechTalk.SpecFlow.Table(new string[] {
-                        "Local Authority",
-                        "Phase",
-                        "Local Authority"});
-            table4.AddRow(new string[] {
-                        "Northumberland",
-                        "Primary",
-                        "1243"});
-#line 22
- testRunner.And("I have the following \'APT Local Authority\' provider dataset:", ((string)(null)), table4, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table5 = new TechTalk.SpecFlow.Table(new string[] {
-                        "URN",
-                        "Phase",
-                        "Local Authority"});
-            table5.AddRow(new string[] {
-                        "10027549",
-                        "2807.00",
-                        "1243"});
-#line 26
- testRunner.And("I have the following \'Census Weights\' provider dataset:", ((string)(null)), table5, "And ");
-#line hidden
-            TechTalk.SpecFlow.Table table6 = new TechTalk.SpecFlow.Table(new string[] {
                         "URN",
                         "NOR",
                         "NOR Primary",
                         "NOR Y1ToY2",
                         "NOR Y3ToY6"});
-            table6.AddRow(new string[] {
+            table4.AddRow(new string[] {
                         "10027549",
                         "2807",
                         "1243",
                         "",
                         ""});
-#line 30
- testRunner.And("I have the following \'Census Number Counts\' provider dataset:", ((string)(null)), table6, "And ");
-#line 34
+#line 22
+ testRunner.And("I have the following \'Census Number Counts\' provider dataset:", ((string)(null)), table4, "And ");
+#line 26
  testRunner.When("I calculate the allocations for the provider", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line hidden
-            TechTalk.SpecFlow.Table table7 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table5 = new TechTalk.SpecFlow.Table(new string[] {
                         "UKPRN",
                         "P004_PriRate",
                         "P005_PriBESubtotal",
                         "P006_NSEN_PriBE",
                         "P006a_NSEN_PriBE_Percent"});
-            table7.AddRow(new string[] {
+            table5.AddRow(new string[] {
                         "10027549",
                         "2807.00",
                         "3489101.00",
                         "0.00",
                         "0.00"});
-#line 36
- testRunner.Then("the allocation statement should be:", ((string)(null)), table7, "Then ");
+#line 28
+ testRunner.Then("the allocation statement should be:", ((string)(null)), table5, "Then ");
 #line hidden
             this.ScenarioCleanup();
         }

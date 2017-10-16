@@ -19,14 +19,6 @@ Scenario: Basic Entitlement Primary Rates
 	| URN      |  Primary Amount Per Pupil | Primary Amount | Primary Notional SEN |
 	| 10027549 |  2807.00                  | 0.00           | 0.00                 |
 
-	And I have the following 'APT Local Authority' provider dataset:
-	| Local Authority | Phase   | Local Authority |
-	| Northumberland  | Primary| 1243            |
-
-	And I have the following 'Census Weights' provider dataset:
-	| URN      | Phase | Local Authority |
-	| 10027549 | 2807.00    | 1243            |
-
 	And I have the following 'Census Number Counts' provider dataset:
 	| URN      | NOR  | NOR Primary | NOR Y1ToY2 | NOR Y3ToY6 |
 	| 10027549 | 2807 | 1243        |            |            |
