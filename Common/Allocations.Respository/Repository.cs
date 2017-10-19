@@ -26,6 +26,8 @@ namespace Allocations.Respository
             var endpoint = new Uri(ConfigurationManager.AppSettings["DocumentDB.Endpoint"]);
             var key = ConfigurationManager.AppSettings["DocumentDB.Key"];
 
+            
+
 
             _documentClient = new DocumentClient(endpoint, key);
 
