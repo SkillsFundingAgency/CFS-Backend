@@ -1,15 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Allocations.Models.Budgets;
 using Allocations.Models.Framework;
-using Allocations.Respository;
+using Allocations.Repository;
 using AY1718.CSharp.Datasets;
 using Newtonsoft.Json;
 using OfficeOpenXml.FormulaParsing.Excel.Functions;
+using Allocations.Models.Datasets;
+using Allocations.Models.Results;
 
 namespace EndToEndDemo
 {
@@ -22,6 +26,8 @@ namespace EndToEndDemo
             ColumnName = columnName;
         }
     }
+
+
     public class AptSourceRecord
     {
         [SourceColumn("Provider Information.URN_9079")]
@@ -70,6 +76,8 @@ namespace EndToEndDemo
         {
             Task.Run(async () =>
             {
+                await GenerateBudgetModel();
+
                 await GetSourceDataAsync();
 
                 await GenerateAllocations();
@@ -81,36 +89,78 @@ namespace EndToEndDemo
 
     private static async Task GenerateAllocations()
         {
-            using (var repository = new Repository("datasets"))
+            var databaseName = ConfigurationManager.AppSettings["DocumentDB.DatabaseName"];
+
+            var endpoint = new Uri(ConfigurationManager.AppSettings["DocumentDB.Endpoint"]);
+            var key = ConfigurationManager.AppSettings["DocumentDB.Key"];
+            using (var repository = new Repository<ProviderSourceDataset>(endpoint, key, databaseName, "datasets"))
             {
                 var modelName = "SBS1718";
-                var urns = repository.GetProviderUrns(modelName);
 
-                foreach (var urn in urns)
+
+                var datasetsByUrn = repository.Query().ToArray().GroupBy(x => x.ProviderUrn);
+            
+                foreach (var urn in datasetsByUrn)
                 {
-                    var datasets = repository.GetProviderDatasets(modelName, urn).ToArray();
+                     var typedDatasets = new List<object>();
 
-                    var typedDatasets = new List<object>();
-                    foreach (var dataset in datasets)
+                    foreach (var dataset in urn)
                     {
                         var type = AllocationFactory.GetDatasetType(dataset.DatasetName);
+                        var datasetAsJson = repository.QueryAsJson($"SELECT * FROM ds WHERE ds.id='{dataset.Id}' AND ds.deleted = false").First();
 
 
-                        object blah = JsonConvert.DeserializeObject(dataset.Json, type);
+                        object blah = JsonConvert.DeserializeObject(datasetAsJson, type);
                         typedDatasets.Add(blah);
                     }
 
                     var model =
                         AllocationFactory.CreateAllocationModel(modelName);
 
-                    var providerAllocations = model.Execute(modelName, urn, typedDatasets.ToArray());
-                    using (var allocationRepository = new Repository("allocations"))
+                    var budgetDefinition = GetBudget();
+
+                    var calculationResults = model.Execute(modelName, urn.Key, typedDatasets.ToArray());
+                    
+                    var providerAllocations = calculationResults.ToDictionary(x => x.ProductName);
+                    using (var allocationRepository = new Repository<ProviderResult>(endpoint, key, databaseName, "results"))
                     {
-                        foreach (var providerAllocation in providerAllocations)
+                        var result = new ProviderResult
                         {
-                            await allocationRepository.UpsertAsync(providerAllocation);
+                            Provider = new Reference(urn.Key, urn.Key),
+                            Budget = new Reference(budgetDefinition.Id, budgetDefinition.Name)
+                        };
+                        var productResults = new List<ProductResult>();
+                        foreach (var fundingPolicy in budgetDefinition.FundingPolicies)
+                        {
+                            foreach (var allocationLine in fundingPolicy.AllocationLines)
+                            {
+                                foreach (var productFolder in allocationLine.ProductFolders)
+                                {
+                                    foreach (var product in productFolder.Products)
+                                    {
+                                        var productResult = new ProductResult
+                                        {
+                                            FundingPolicy = new Reference(fundingPolicy.Id, fundingPolicy.Name),
+                                            AllocationLine = new Reference(allocationLine.Id, allocationLine.Name),
+                                            ProductFolder = new Reference(productFolder.Id, productFolder.Name),
+                                            Product = product
+
+                                        };
+                                        if (providerAllocations.ContainsKey(product.Name))
+                                        {
+                                            productResult.Value = providerAllocations[product.Name].Value;
+                                        }
+                                        productResults.Add(productResult);
+                                    }
+                                }
+                            }
                         }
+                        result.ProductResults = productResults.ToArray();
+                        await allocationRepository.CreateAsync(result);
                     }
+
+
+
                 }
             }
         }
@@ -122,7 +172,11 @@ namespace EndToEndDemo
         private static async Task GetSourceDataAsync()
         {
             var reader = new ExcelReader();
-            using (var repository = new Repository("datasets"))
+            var databaseName = ConfigurationManager.AppSettings["DocumentDB.DatabaseName"];
+
+            var endpoint = new Uri(ConfigurationManager.AppSettings["DocumentDB.Endpoint"]);
+            var key = ConfigurationManager.AppSettings["DocumentDB.Key"];
+            using (var repository = new Repository<ProviderSourceDataset>(endpoint, key, databaseName, "datasets"))
             {
                 var aptSourceRecords =
                     reader.Read<AptSourceRecord>(@"SourceData\Export APT.XLSX").ToArray();
@@ -134,24 +188,27 @@ namespace EndToEndDemo
                 {
                     var providerInformation = new AptProviderInformation
                     {
-                        ModelName = typeof(AptProviderInformation).GetCustomAttribute<DatasetAttribute>().ModelName,
+                        BudgetId = typeof(AptProviderInformation).GetCustomAttribute<DatasetAttribute>().ModelName,
                         DatasetName = typeof(AptProviderInformation).GetCustomAttribute<DatasetAttribute>().DatasetName,
-                        URN = aptSourceRecord.URN,
-                        DateOpened = aptSourceRecord.DateOpened,
-                        LocalAuthority = aptSourceRecord.LocalAuthority,
-                        ProviderName = aptSourceRecord.ProviderName,
-                        UPIN = aptSourceRecord.UPIN
+                        ProviderUrn = aptSourceRecord.URN,
+                            DateOpened = aptSourceRecord.DateOpened,
+                            LocalAuthority = aptSourceRecord.LocalAuthority,
+                            ProviderName = aptSourceRecord.ProviderName,
+                            UPIN = aptSourceRecord.UPIN
                     };
-                    await repository.UpsertAsync(providerInformation);
+                    await repository.CreateAsync(providerInformation);
 
                     var basicEntitlement = new AptBasicEntitlement
                     {
-                        ModelName = typeof(AptBasicEntitlement).GetCustomAttribute<DatasetAttribute>().ModelName,
+                        BudgetId = typeof(AptBasicEntitlement).GetCustomAttribute<DatasetAttribute>().ModelName,
                         DatasetName = typeof(AptBasicEntitlement).GetCustomAttribute<DatasetAttribute>().DatasetName,
-                        URN = aptSourceRecord.URN,
-                        PrimaryAmount = aptSourceRecord.PrimaryAmount,
-                        PrimaryAmountPerPupil = aptSourceRecord.PrimaryAmountPerPupil,
-                        PrimaryNotionalSEN = aptSourceRecord.PrimaryNotionalSEN
+                        ProviderUrn = aptSourceRecord.URN,
+
+                            PrimaryAmount = aptSourceRecord.PrimaryAmount,
+                            PrimaryAmountPerPupil = aptSourceRecord.PrimaryAmountPerPupil,
+                            PrimaryNotionalSEN = aptSourceRecord.PrimaryNotionalSEN
+                        
+
                     };
                     await repository.UpsertAsync(basicEntitlement);
 
@@ -160,10 +217,13 @@ namespace EndToEndDemo
                 {
                     var censusNumberCount = new CensusNumberCounts
                     {
-                        ModelName = typeof(CensusNumberCounts).GetCustomAttribute<DatasetAttribute>().ModelName,
+                        BudgetId = typeof(CensusNumberCounts).GetCustomAttribute<DatasetAttribute>().ModelName,
                         DatasetName = typeof(CensusNumberCounts).GetCustomAttribute<DatasetAttribute>().DatasetName,
-                        URN = numberCountSourceRecord.URN,
-                        NORPrimary =numberCountSourceRecord.NumberOnRollPrimary
+                        ProviderUrn = numberCountSourceRecord.URN,
+
+                            NORPrimary = numberCountSourceRecord.NumberOnRollPrimary
+
+
                     };
                     await repository.UpsertAsync(censusNumberCount);
 
@@ -172,5 +232,66 @@ namespace EndToEndDemo
 
 
         }
+
+
+        private static async Task GenerateBudgetModel()
+        {
+            var databaseName = ConfigurationManager.AppSettings["DocumentDB.DatabaseName"];
+
+            var endpoint = new Uri(ConfigurationManager.AppSettings["DocumentDB.Endpoint"]);
+            var key = ConfigurationManager.AppSettings["DocumentDB.Key"];
+            using (var repository = new Repository<Budget>(endpoint, key, databaseName, "definitions"))
+            {
+                await repository.CreateAsync(GetBudget());
+            }
+
+
+        }
+
+        private static Budget GetBudget()
+        {
+            return new Budget
+            {
+                Name = "GAG1718",
+                AcademicYear = "2017-2018",
+                FundingStream = "General Annual Grant",
+                FundingPolicies = new[]
+                {
+                    new FundingPolicy
+                    {
+
+                        Name = "School Block Share",
+                        AllocationLines = new []
+                        {
+                            new AllocationLine
+                            {
+                                Name =  "Pupil Led Factors",
+                                ProductFolders = new[]
+                                {
+                                    new ProductFolder
+                                    {
+                                        Name = "Primary",
+                                        Products = new[]
+                                        {
+                                            new Product
+                                            {
+                                                Name = "P004_PriRate",
+                                                Description = ""
+                                            },
+                                            new Product {Name = "P005_PriBESubtotal"},
+                                            new Product {Name = "P006a_NSEN_PriBE_Percent"},
+                                            new Product {Name = "P006_NSEN_PriBE"},
+                                        }
+                                    },
+                                }
+                            }
+                        }
+
+                    }
+                }
+            };
+        }
     }
+
+
 }

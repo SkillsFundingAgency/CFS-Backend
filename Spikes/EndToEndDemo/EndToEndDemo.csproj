@@ -39,12 +39,12 @@
       <HintPath>..\..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -73,13 +73,25 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\Allocations.Respository\Allocations.Respository.csproj">
-      <Project>{E6F1A404-839B-4766-B2AE-8BD8047B0B5D}</Project>
-      <Name>Allocations.Respository</Name>
+    <ProjectReference Include="..\..\Common\Allocations.Repository\Allocations.Repository.csproj">
+      <Project>{B5906EC0-FFF9-4DBD-99AC-1465CEAAF5E7}</Project>
+      <Name>Allocations.Repository</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Models\Allocations.Models.Budgets\Allocations.Models.Budgets.csproj">
+      <Project>{E5326D88-227D-45D1-8C10-1189207A8F69}</Project>
+      <Name>Allocations.Models.Budgets</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Models\Allocations.Models.Datasets\Allocations.Models.Datasets.csproj">
+      <Project>{2CE61A40-609A-4DFD-835A-16FF6306203E}</Project>
+      <Name>Allocations.Models.Datasets</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Models\Allocations.Models.Framework\Allocations.Models.Framework.csproj">
       <Project>{BBCBEFEF-A2CD-411F-8EB6-B305AB261767}</Project>
       <Name>Allocations.Models.Framework</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Models\Allocations.Models.Results\Allocations.Models.Results.csproj">
+      <Project>{3C0FF3CF-91E7-4749-9B38-E122E3E6B8E5}</Project>
+      <Name>Allocations.Models.Results</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Models\AY1718.CSharp\AY1718.CSharp.csproj">
       <Project>{23874365-0F52-42AC-9083-30639D922F26}</Project>

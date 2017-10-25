@@ -43,7 +43,6 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="TechTalk.SpecFlow, Version=2.2.0.0, Culture=neutral, PublicKeyToken=0778194805d6db41, processorArchitecture=MSIL">
       <HintPath>..\..\packages\SpecFlow.2.2.1\lib\net45\TechTalk.SpecFlow.dll</HintPath>
@@ -84,6 +83,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Common\Allocations.Repository\Allocations.Repository.csproj">
+      <Project>{B5906EC0-FFF9-4DBD-99AC-1465CEAAF5E7}</Project>
+      <Name>Allocations.Repository</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Allocations.Models.Datasets\Allocations.Models.Datasets.csproj">
+      <Project>{2CE61A40-609A-4DFD-835A-16FF6306203E}</Project>
+      <Name>Allocations.Models.Datasets</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Allocations.Models.Framework\Allocations.Models.Framework.csproj">
       <Project>{BBCBEFEF-A2CD-411F-8EB6-B305AB261767}</Project>
       <Name>Allocations.Models.Framework</Name>
