@@ -5,15 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.DocumentDB" Version="1.13.2" />
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="1.6.0" />
     <PackageReference Include="Microsoft.Azure.Search" Version="3.0.4" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Microsoft.Azure.Documents.Client">
-      <HintPath>..\..\..\..\..\.nuget\packages\microsoft.azure.documentdb\1.13.2\lib\net45\Microsoft.Azure.Documents.Client.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>
