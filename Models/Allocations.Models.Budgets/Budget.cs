@@ -21,5 +21,38 @@ namespace Allocations.Models.Budgets
         [JsonProperty("fundingPolicies")]
         public FundingPolicy[] FundingPolicies { get; set; }
 
+        [JsonProperty("datasetDefinitions")]
+        public DatasetDefinition[] DatasetDefinitions { get; set; }
+
     }
+
+
+    public class DatasetDefinition
+    {
+        [JsonProperty("id")]
+        public string Id => Name.ToSlug();
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("fieldDefinitions")]
+        public DatasetFieldDefinition[] FieldDefinitions { get; set; }
+    }
+
+    public class DatasetFieldDefinition
+    {
+        [JsonProperty("id")]
+        public string Id => Name.ToSlug();
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("longName")]
+        public string LongName { get; set; }
+
+        [JsonProperty("type")]
+        public TypeCode Type { get; set; }
+    }
+
 }
+

@@ -5,11 +5,11 @@ using System.Reflection;
 
 namespace Allocations.Models.Framework
 {
-    public static class AllocationFactory
+    public class AllocationFactory
     {
-        static AllocationFactory()
+        public AllocationFactory(Assembly assembly)
         {
-            var concreteClassTypes = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes())
+            var concreteClassTypes = assembly.GetTypes()
                 .Where(x => x.IsClass && !x.IsAbstract).ToArray();
 
             var datasetTypes = concreteClassTypes.Where(x => x.CustomAttributes.Any(attr => attr.AttributeType == typeof(DatasetAttribute)));
@@ -36,10 +36,10 @@ namespace Allocations.Models.Framework
 
         }
 
-        private static Dictionary<string, Type> DatasetTypes { get; set; }
-        private static Dictionary<string, AllocationModel> AllocationTypes { get; set; }
+        private Dictionary<string, Type> DatasetTypes { get; set; }
+        private Dictionary<string, AllocationModel> AllocationTypes { get; set; }
 
-        public static Type GetDatasetType(string datasetName)
+        public Type GetDatasetType(string datasetName)
         {
             if (DatasetTypes.ContainsKey(datasetName))
             {
@@ -48,7 +48,7 @@ namespace Allocations.Models.Framework
             throw new NotImplementedException($"{datasetName} is not defined");
         }
 
-        public static object CreateDataset(string datasetName)
+        public object CreateDataset(string datasetName)
         {
             if (DatasetTypes.ContainsKey(datasetName))
             {
@@ -66,7 +66,7 @@ namespace Allocations.Models.Framework
             throw new NotImplementedException($"{datasetName} is not defined");
         }
 
-        public static AllocationModel CreateAllocationModel(string modelName)
+        public AllocationModel CreateAllocationModel(string modelName)
         {
             if (!AllocationTypes.ContainsKey(modelName)) throw new NotImplementedException($"{modelName} is not defined");
 
