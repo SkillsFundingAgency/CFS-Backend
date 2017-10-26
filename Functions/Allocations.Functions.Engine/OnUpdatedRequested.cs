@@ -10,7 +10,7 @@ namespace Allocations.Functions.Engine
     public static class OnUpdatedRequested
     {
         [FunctionName("OnUpdatedRequested")]
-        public static async Task Run([CosmosDBTrigger("allocations", "AllocationRequests", ConnectionStringSetting = "ConnectionString", LeaseCollectionName = "AllocationRequestsLeases", CreateLeaseCollectionIfNotExists = true)]IReadOnlyList<Document> input, TraceWriter log)
+        public static async Task Run([CosmosDBTrigger("allocations", "AllocationRequests", ConnectionStringSetting = "CosmosDBConnectionString", LeaseCollectionName = "AllocationRequestsLeases", CreateLeaseCollectionIfNotExists = true)]IReadOnlyList<Document> input, TraceWriter log)
         {
             log.Verbose("Document count " + input.Count);
             log.Verbose("First document Id " + input[0].Id);
