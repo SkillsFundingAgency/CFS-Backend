@@ -13,5 +13,7 @@ namespace Allocations.Models.Budgets
         public string Name { get; set; }
         [JsonProperty("description")]
         public string Description { get; set; }
+        [JsonProperty("featureFile")]
+        public string FeatureFile { get; set; }
     }
 }

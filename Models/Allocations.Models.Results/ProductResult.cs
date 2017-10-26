@@ -13,6 +13,9 @@ namespace Allocations.Models.Results
         [JsonProperty("provider")]
         public Reference Provider { get; set; }
 
+        [JsonProperty("sourceDatasets")]
+        public object[] SourceDatasets { get; set; }
+
         [JsonProperty("products")]
         public ProductResult[] ProductResults { get; set; }
     }

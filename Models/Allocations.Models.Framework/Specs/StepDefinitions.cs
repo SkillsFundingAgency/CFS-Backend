@@ -30,11 +30,11 @@ namespace Allocations.Models.Framework.Specs
         [Given(@"I have the following '(.*)' provider dataset:")]
         public void GivenIHaveTheFollowingProviderDataset(string datasetName, Table table)
         {
-            var dataset = AllocationFactory.CreateDataset(datasetName); ;
+            //var dataset = AllocationFactory.CreateDataset(datasetName); ;
             
-            table.FillInstance(dataset);
+            //table.FillInstance(dataset);
 
-            TestContext.Datasets.Add(datasetName, dataset);
+            //TestContext.Datasets.Add(datasetName, dataset);
 
         }
         
@@ -47,8 +47,8 @@ namespace Allocations.Models.Framework.Specs
         [When(@"I calculate the allocations for the provider")]
         public void WhenICalculateTheAllocationsForTheProvider()
         {
-            var model =
-                AllocationFactory.CreateAllocationModel(TestContext.ModelName);
+            //var model =
+            //    AllocationFactory.CreateAllocationModel(TestContext.ModelName);
 
             foreach (var dataset in TestContext.Datasets)// group by URN
             {

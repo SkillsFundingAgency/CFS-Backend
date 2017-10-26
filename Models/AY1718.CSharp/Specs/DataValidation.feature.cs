@@ -1,0 +1,2 @@
+﻿#error (11:1): Feature file already contains a scenario with name 'Only Primary providers should have Primary Rate'
+#error (25:1): Feature file already contains a scenario with name 'New Openers should not use NOR'

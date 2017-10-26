@@ -6,6 +6,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Allocations.Engine;
+using Allocations.Gherkin;
+using Allocations.Gherkin.Vocab;
 using Allocations.Models.Budgets;
 using Allocations.Models.Framework;
 using Allocations.Repository;
@@ -14,6 +17,7 @@ using Newtonsoft.Json;
 using OfficeOpenXml.FormulaParsing.Excel.Functions;
 using Allocations.Models.Datasets;
 using Allocations.Models.Results;
+using AY1718.CSharp.Allocations;
 
 namespace EndToEndDemo
 {
@@ -99,14 +103,14 @@ namespace EndToEndDemo
 
 
                 var datasetsByUrn = repository.Query().ToArray().GroupBy(x => x.ProviderUrn);
-            
+                var allocationFactory = new AllocationFactory(typeof(SBSPrimary).Assembly);
                 foreach (var urn in datasetsByUrn)
                 {
                      var typedDatasets = new List<object>();
 
                     foreach (var dataset in urn)
                     {
-                        var type = AllocationFactory.GetDatasetType(dataset.DatasetName);
+                        var type = allocationFactory.GetDatasetType(dataset.DatasetName);
                         var datasetAsJson = repository.QueryAsJson($"SELECT * FROM ds WHERE ds.id='{dataset.Id}' AND ds.deleted = false").First();
 
 
@@ -115,9 +119,12 @@ namespace EndToEndDemo
                     }
 
                     var model =
-                        AllocationFactory.CreateAllocationModel(modelName);
+                        allocationFactory.CreateAllocationModel(modelName);
 
                     var budgetDefinition = GetBudget();
+
+                    var gherkinValidator = new GherkinValidator(new ProductGherkinVocabulary());
+
 
                     var calculationResults = model.Execute(modelName, urn.Key, typedDatasets.ToArray());
                     
@@ -127,7 +134,8 @@ namespace EndToEndDemo
                         var result = new ProviderResult
                         {
                             Provider = new Reference(urn.Key, urn.Key),
-                            Budget = new Reference(budgetDefinition.Id, budgetDefinition.Name)
+                            Budget = new Reference(budgetDefinition.Id, budgetDefinition.Name),
+                            SourceDatasets = typedDatasets.ToArray()
                         };
                         var productResults = new List<ProductResult>();
                         foreach (var fundingPolicy in budgetDefinition.FundingPolicies)
@@ -149,6 +157,11 @@ namespace EndToEndDemo
                                         if (providerAllocations.ContainsKey(product.Name))
                                         {
                                             productResult.Value = providerAllocations[product.Name].Value;
+                                        }
+
+                                        if (product.FeatureFile != null)
+                                        {
+                                            var errors = gherkinValidator.Validate(GetBudget(), product.FeatureFile).ToArray();
                                         }
                                         productResults.Add(productResult);
                                     }
@@ -276,7 +289,20 @@ namespace EndToEndDemo
                                             new Product
                                             {
                                                 Name = "P004_PriRate",
-                                                Description = ""
+                                                Description = "",
+                                                FeatureFile = "Feature: P004_PriRate/n/n" +
+                                                "@mytag\r\n" +
+                                                "Scenario: Only Primary providers should have Primary Rate\r\n" +
+                                                "Given 'Phase' in 'APT Provider Information' is equal to 'Primary'\r\n" +
+                                                "And 'PrimaryNOR' in 'APT Provider Information' is greater than 0\r\n" +
+                                                "Then 'P004_PriRate' should be greater than 0\r\n\r\n" +
+                                                "Scenario: Only Primary providers should have Primary Rate\r\n" +
+                                                "Given 'Phase' in 'APT Provider Information' is not 'Primary'\r\n" +
+                                                "Then 'P004_PriRate' should be 0\r\n\r\n" +
+                                                "Scenario: Primary Rate should be greater than 2000\r\n" +
+                                                "Given 'Phase' in 'APT Provider Information' is 'Primary'\r\n" +
+                                                "And 'PrimaryNOR' in 'APT Provider Information' is greater than 0\r\n" +
+                                                "Then 'P004_PriRate' should be greater than or equal to 2000"
                                             },
                                             new Product {Name = "P005_PriBESubtotal"},
                                             new Product {Name = "P006a_NSEN_PriBE_Percent"},
@@ -288,6 +314,86 @@ namespace EndToEndDemo
                         }
 
                     }
+                },
+                DatasetDefinitions = new[]
+                {
+                    new DatasetDefinition
+                    {
+                        Name = "APT Provider Information",
+                        FieldDefinitions = new []
+                        {
+                            new DatasetFieldDefinition
+                            {
+                                Name = "UPIN",
+                                Type = TypeCode.String
+                            },
+                            new DatasetFieldDefinition
+                            {
+                                Name = "ProviderName",
+                                LongName = "Provider Name",
+                                Type = TypeCode.String
+                            },
+                            new DatasetFieldDefinition
+                            {
+                                Name = "DateOpened",
+                                LongName = "Date Opened",
+                                Type = TypeCode.DateTime
+                            },
+                            new DatasetFieldDefinition
+                            {
+                                Name = "LocalAuthority",
+                                LongName = "Local Authority",
+                                Type = TypeCode.DateTime
+                            },
+                            new DatasetFieldDefinition
+                            {
+                                Name = "Phase",
+                                LongName = "Phase",
+                                Type = TypeCode.DateTime
+                            }
+                        }
+                    },
+
+                    new DatasetDefinition
+                    {
+                        Name = "APT Basic Entitlement",
+                        FieldDefinitions = new []
+                        {
+                            new DatasetFieldDefinition
+                            {
+                                Name = "PrimaryAmountPerPupil",
+                                LongName = "Primary Amount Per Pupil",
+                                Type = TypeCode.Decimal
+                            },
+                            new DatasetFieldDefinition
+                            {
+                                Name = "PrimaryAmount",
+                                LongName = "Primary Amount",
+                                Type = TypeCode.Decimal
+                            },
+                            new DatasetFieldDefinition
+                            {
+                                Name = "PrimaryNotionalSEN",
+                                LongName = "Primary Notional SEN",
+                                Type = TypeCode.Decimal
+                            },
+                        }
+                    },
+
+                    new DatasetDefinition
+                    {
+                        Name = "Census Number Counts",
+                        FieldDefinitions = new []
+                        {
+                            new DatasetFieldDefinition
+                            {
+                                Name = "NOR Primary",
+                                LongName = "NOR Primary",
+                                Type = TypeCode.Int32
+                            }
+                        }
+                    },
+
                 }
             };
         }
