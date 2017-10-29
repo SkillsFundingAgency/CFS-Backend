@@ -40,9 +40,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Engine", "Engine", "{A41AD4
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Allocations.Engine", "Engine\Allocations.Engine\Allocations.Engine.csproj", "{9E59231C-75C5-4600-9B02-52E279C23B9A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allocations.Functions.Specs", "Functions\Allocations.Functions.Specs\Allocations.Functions.Specs.csproj", "{8AD02380-06D8-4CC0-B9FC-FAA985A2CE7F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Allocations.Functions.Specs", "Functions\Allocations.Functions.Specs\Allocations.Functions.Specs.csproj", "{8AD02380-06D8-4CC0-B9FC-FAA985A2CE7F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allocations.Functions.Results", "Functions\Allocations.Functions.Results\Allocations.Functions.Results.csproj", "{DD800469-A354-419D-9034-775AD5897AF8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Allocations.Functions.Results", "Functions\Allocations.Functions.Results\Allocations.Functions.Results.csproj", "{DD800469-A354-419D-9034-775AD5897AF8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
