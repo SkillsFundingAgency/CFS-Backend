@@ -61,11 +61,5 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Allocations.Models.Budgets\Allocations.Models.Budgets.csproj">
-      <Project>{E5326D88-227D-45D1-8C10-1189207A8F69}</Project>
-      <Name>Allocations.Models.Budgets</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

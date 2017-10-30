@@ -5,7 +5,13 @@
   <ItemGroup>    
     <PackageReference Include="Microsoft.Azure.Search" Version="3.0.4" />    
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.6" />    
+    <PackageReference Include="Microsoft.NETCore.Platforms" Version="2.0.0" />    
+    <PackageReference Include="NETStandard.Library" Version="2.0.1" />    
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\Allocations.Repository\Allocations.Repository.csproj" />
+    <ProjectReference Include="..\..\Models\Allocations.Models\Allocations.Models.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
