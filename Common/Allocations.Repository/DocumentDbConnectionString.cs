@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Azure.Documents.Client;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Allocations.Repository
 {
@@ -60,6 +62,12 @@ namespace Allocations.Repository
                 documentClient = null;
                 return false;
             }
+
+            var jsonSettings = new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented,
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            };
 
             documentClient = new DocumentClient(new Uri(settings[AccountEndpointKey]), settings[AccountKeyKey]);
             return true;

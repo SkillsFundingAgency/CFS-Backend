@@ -51,10 +51,6 @@ namespace EndToEndDemo
 
     private static async Task GenerateAllocations()
         {
-            var databaseName = ConfigurationManager.AppSettings["DocumentDB.DatabaseName"];
-
-            var endpoint = new Uri(ConfigurationManager.AppSettings["DocumentDB.Endpoint"]);
-            var key = ConfigurationManager.AppSettings["DocumentDB.Key"];
             using (var repository = new Repository<ProviderSourceDataset>("datasets"))
             {
                 var modelName = "SBS1718";
