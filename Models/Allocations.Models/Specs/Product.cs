@@ -1,8 +1,6 @@
-﻿using System;
-using Allocations.Repository;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
-namespace Allocations.Models.Budgets
+namespace Allocations.Models.Specs
 {
 
     public class Product

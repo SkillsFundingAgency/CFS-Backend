@@ -1,5 +1,4 @@
 ﻿using System;
-using Allocations.Repository;
 using Newtonsoft.Json;
 
 namespace Allocations.Models.Datasets

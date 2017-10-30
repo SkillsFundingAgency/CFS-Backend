@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using Gherkin;
 using Gherkin.Ast;
 
-namespace Allocations.Gherkin
+namespace Allocations.Services.TestRunner
 {
     public class GherkinExecutor
     {

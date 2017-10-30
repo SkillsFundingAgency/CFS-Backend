@@ -1,5 +1,4 @@
 ﻿using System;
-using Allocations.Repository;
 using Microsoft.Azure.Search;
 using Newtonsoft.Json;
 

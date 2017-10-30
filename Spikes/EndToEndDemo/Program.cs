@@ -7,18 +7,17 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Allocation.Models;
-using Allocations.Engine;
-using Allocations.Gherkin;
-using Allocations.Gherkin.Vocab;
-using Allocations.Models.Budgets;
+using Allocations.Models;
 using Allocations.Models.Framework;
 using Allocations.Repository;
 using AY1718.CSharp.Datasets;
 using Newtonsoft.Json;
 using Allocations.Models.Datasets;
 using Allocations.Models.Results;
+using Allocations.Models.Specs;
 using Allocations.Services.DataImporter;
+using Allocations.Services.TestRunner;
+using Allocations.Services.TestRunner.Vocab;
 using AY1718.CSharp.Allocations;
 
 namespace EndToEndDemo

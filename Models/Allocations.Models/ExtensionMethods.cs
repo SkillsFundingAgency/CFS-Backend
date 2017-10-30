@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Allocations.Repository
+namespace Allocations.Models
 {
     public static class ExtensionMethods
     {

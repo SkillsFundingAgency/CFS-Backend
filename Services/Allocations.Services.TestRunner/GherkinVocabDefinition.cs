@@ -1,8 +1,7 @@
 ﻿using System.Linq;
-using Allocations.Engine;
 using Gherkin.Ast;
 
-namespace Allocations.Gherkin
+namespace Allocations.Services.TestRunner
 {
     public abstract class GherkinVocabDefinition
     {

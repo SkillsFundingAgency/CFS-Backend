@@ -2,7 +2,7 @@
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
-namespace Allocations.Repository
+namespace Allocations.Models
 {
     [DataContract]
     public abstract class DocumentEntity

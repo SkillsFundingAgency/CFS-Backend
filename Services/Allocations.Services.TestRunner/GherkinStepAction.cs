@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
-using Allocations.Gherkin;
-using Allocations.Models.Budgets;
 using Allocations.Models.Results;
+using Allocations.Models.Specs;
 using Gherkin.Ast;
 
-namespace Allocations.Engine
+namespace Allocations.Services.TestRunner
 {
     public abstract class GherkinStepAction
     {

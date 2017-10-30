@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Allocations.Gherkin;
 using Gherkin.Ast;
 
-namespace Allocations.Engine
+namespace Allocations.Services.TestRunner
 {
     public class GherkinResult
     {

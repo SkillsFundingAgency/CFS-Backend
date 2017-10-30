@@ -1,6 +1,4 @@
-﻿using Allocation.Models;
-using Allocations.Models.Budgets;
-using Allocations.Repository;
+﻿using Allocations.Models.Specs;
 using Newtonsoft.Json;
 
 namespace Allocations.Models.Results

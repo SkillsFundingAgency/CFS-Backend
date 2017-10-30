@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Allocations.Gherkin.Vocab.Product;
+﻿using Allocations.Services.TestRunner.Vocab.Product;
 
-namespace Allocations.Gherkin.Vocab
+namespace Allocations.Services.TestRunner.Vocab
 {
     public class ProductGherkinVocabulary : GherkinVocabDefinition
     {

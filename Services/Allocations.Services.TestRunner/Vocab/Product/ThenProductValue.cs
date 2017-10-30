@@ -1,10 +1,9 @@
 using System.Linq;
-using Allocations.Engine;
-using Allocations.Models.Budgets;
 using Allocations.Models.Results;
+using Allocations.Models.Specs;
 using Gherkin.Ast;
 
-namespace Allocations.Gherkin.Vocab.Product
+namespace Allocations.Services.TestRunner.Vocab.Product
 {
     public class ThenProductValue : GherkinStepAction
     {

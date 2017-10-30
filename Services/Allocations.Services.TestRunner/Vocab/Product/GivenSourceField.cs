@@ -1,11 +1,9 @@
-﻿using System;
-using System.Linq;
-using Allocations.Engine;
-using Allocations.Models.Budgets;
+﻿using System.Linq;
 using Allocations.Models.Results;
+using Allocations.Models.Specs;
 using Gherkin.Ast;
 
-namespace Allocations.Gherkin.Vocab.Product
+namespace Allocations.Services.TestRunner.Vocab.Product
 {
 
     //And 'PrimaryNOR' in 'APT Provider Information' is greater than 0

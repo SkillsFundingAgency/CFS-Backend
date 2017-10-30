@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Allocations.Gherkin;
-using Allocations.Models.Budgets;
+using Allocations.Models.Specs;
 using Gherkin;
 using Gherkin.Ast;
 
-namespace Allocations.Engine
+namespace Allocations.Services.TestRunner
 {
     public class GherkinValidator
     {

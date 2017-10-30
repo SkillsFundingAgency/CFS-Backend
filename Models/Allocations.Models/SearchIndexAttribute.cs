@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Allocations.Repository
+namespace Allocations.Models
 {
     public class SearchIndexAttribute : Attribute
     {

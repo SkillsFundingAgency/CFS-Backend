@@ -1,6 +1,6 @@
 ﻿using Gherkin.Ast;
 
-namespace Allocations.Gherkin
+namespace Allocations.Services.TestRunner
 {
     public class GherkinError
     {
