@@ -53,7 +53,7 @@ namespace Allocations.Functions.Engine
                     var model =
                         allocationFactory.CreateAllocationModel(modelName);
 
-                    var budgetDefinition = GetBudget();
+                    var budgetDefinition = await GetBudget();
 
                     var gherkinValidator = new GherkinValidator(new ProductGherkinVocabulary());
 
@@ -93,7 +93,7 @@ namespace Allocations.Functions.Engine
 
                                         if (product.FeatureFile != null)
                                         {
-                                            var errors = gherkinValidator.Validate(GetBudget(), product.FeatureFile).ToArray();
+                                            var errors = gherkinValidator.Validate(budgetDefinition, product.FeatureFile).ToArray();
                                         }
                                         productResults.Add(productResult);
                                     }
@@ -110,11 +110,11 @@ namespace Allocations.Functions.Engine
             }
         }
 
-        private static Budget GetBudget()
+        private static async Task<Budget> GetBudget()
         {
             using (var repository = new Repository<Budget>("specs"))
             {
-                return repository.Read().FirstOrDefault();
+                return await repository.ReadAsync("budget-gag1718");
             }
         }
     }
