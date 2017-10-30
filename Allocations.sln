@@ -13,8 +13,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allocations.Models.Framewor
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{49BE3153-121F-4DD5-BEDD-ED4D8E0BDEF7}"
 	ProjectSection(SolutionItems) = preProject
-		allocations-backend-azure.json = allocations-backend-azure.json
-		allocations-frontend-azure.json = allocations-frontend-azure.json
 		Readme.md = Readme.md
 	EndProjectSection
 EndProject
