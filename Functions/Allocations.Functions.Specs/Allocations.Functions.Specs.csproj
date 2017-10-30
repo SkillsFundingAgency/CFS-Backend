@@ -9,8 +9,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\Allocations.Repository.FullFramework\Allocations.Repository.FullFramework.csproj" />
-    <ProjectReference Include="..\..\Models\Allocations.Models.Budgets\Allocations.Models.Budgets.csproj" />
+    <ProjectReference Include="..\..\Common\Allocations.Repository\Allocations.Repository.csproj" />
+    <ProjectReference Include="..\..\Models\Allocations.Models\Allocations.Models.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />

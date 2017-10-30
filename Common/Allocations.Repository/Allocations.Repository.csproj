@@ -7,8 +7,8 @@
     <ProjectGuid>{CAF743CF-A061-4B51-91FF-4253596B91E5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Allocations.Repository.FullFramework</RootNamespace>
-    <AssemblyName>Allocations.Repository.FullFramework</AssemblyName>
+    <RootNamespace>Allocations.Repository</RootNamespace>
+    <AssemblyName>Allocations.Repository</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -168,9 +168,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Models\Allocation.Models\Allocation.Models.csproj">
-      <Project>{B8EEFA76-9405-4E69-B9D9-70B1A35C990E}</Project>
-      <Name>Allocation.Models</Name>
+    <ProjectReference Include="..\..\Models\Allocations.Models\Allocations.Models.csproj">
+      <Project>{ec4c6287-dd06-4926-b496-eaaa75b9c895}</Project>
+      <Name>Allocations.Models</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -11,11 +11,11 @@
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\Allocations.Repository.FullFramework\Allocations.Repository.FullFramework.csproj" />
-    <ProjectReference Include="..\..\Engine\Allocations.Engine\Allocations.Engine.csproj" />
-    <ProjectReference Include="..\..\Models\Allocations.Models.Datasets\Allocations.Models.Datasets.csproj" />
+    <ProjectReference Include="..\..\Common\Allocations.Repository\Allocations.Repository.csproj" />
     <ProjectReference Include="..\..\Models\Allocations.Models.Framework\Allocations.Models.Framework.csproj" />
+    <ProjectReference Include="..\..\Models\Allocations.Models\Allocations.Models.csproj" />
     <ProjectReference Include="..\..\Models\AY1718.CSharp\AY1718.CSharp.csproj" />
+    <ProjectReference Include="..\..\Services\Allocations.Services.TestRunner\Allocations.Services.TestRunner.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />

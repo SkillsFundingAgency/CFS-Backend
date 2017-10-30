@@ -86,17 +86,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Allocation.Models\Allocation.Models.csproj">
-      <Project>{B8EEFA76-9405-4E69-B9D9-70B1A35C990E}</Project>
-      <Name>Allocation.Models</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Allocations.Models.Datasets\Allocations.Models.Datasets.csproj">
-      <Project>{2CE61A40-609A-4DFD-835A-16FF6306203E}</Project>
-      <Name>Allocations.Models.Datasets</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Allocations.Models.Framework\Allocations.Models.Framework.csproj">
       <Project>{BBCBEFEF-A2CD-411F-8EB6-B305AB261767}</Project>
       <Name>Allocations.Models.Framework</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Allocations.Models\Allocations.Models.csproj">
+      <Project>{EC4C6287-DD06-4926-B496-EAAA75B9C895}</Project>
+      <Name>Allocations.Models</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

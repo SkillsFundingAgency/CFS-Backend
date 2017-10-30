@@ -1,22 +1,8 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.Azure.Documents;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
-using Microsoft.Azure.Documents.Client;
 using System.Collections.Generic;
-using System.Configuration;
-using Allocation.Models;
-using Allocations.Engine;
-using Allocations.Gherkin.Vocab;
-using Allocations.Models.Budgets;
-using Allocations.Models.Datasets;
-using Allocations.Models.Framework;
-using Allocations.Models.Results;
-using Allocations.Repository;
-using AY1718.CSharp.Allocations;
-using Microsoft.Azure.Documents;
-using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace Allocations.Functions.Engine
 {
