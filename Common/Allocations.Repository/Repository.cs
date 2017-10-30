@@ -24,13 +24,13 @@ namespace Allocations.Repository
 
         public Repository(string collectionName)
         {
-            var databaseName = ConfigurationManager.AppSettings["DocumentDB.DatabaseName"];
-            var endpoint = new Uri(ConfigurationManager.AppSettings["DocumentDB.Endpoint"]);
-            var key = ConfigurationManager.AppSettings["DocumentDB.Key"];
+            var connectionString = ConfigurationManager.AppSettings["CosmosDBConnectionString"];
+
+            var databaseName = "allocations";
 
             _collectionName = collectionName;
             _databaseName = databaseName;
-            _documentClient = new DocumentClient(endpoint, key);
+            _documentClient = DocumentDbConnectionString.Parse(connectionString); ;
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_databaseName, _collectionName);
 
         }
