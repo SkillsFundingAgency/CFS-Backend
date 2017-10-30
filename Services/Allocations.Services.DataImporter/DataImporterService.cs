@@ -91,9 +91,9 @@ namespace Allocations.Services.DataImporter
 
 
 
-                switch (name)
+                switch (name.ToLowerInvariant())
                 {
-                    case "Export APT.XLSX":
+                    case "export apt.xlsx":
                         var aptSourceRecords =
                             reader.Read<AptSourceRecord>(stream).ToArray();
 
@@ -111,7 +111,7 @@ namespace Allocations.Services.DataImporter
                                 ProviderName = aptSourceRecord.ProviderName,
                                 UPIN = aptSourceRecord.UPIN
                             };
-                            await repository.UpsertAsync(providerInformation);
+                            await repository.CreateAsync(providerInformation);
 
                             var basicEntitlement = new AptBasicEntitlement
                             {
@@ -126,11 +126,11 @@ namespace Allocations.Services.DataImporter
 
 
                             };
-                            await repository.UpsertAsync(basicEntitlement);
+                            await repository.CreateAsync(basicEntitlement);
 
                         }
                         break;
-                    case "Number Counts Export.XLSX":
+                    case "number counts export.xlsx":
                         var numberCountSourceRecords =
                             reader.Read<NumberCountSourceRecord>(stream).ToArray();
 
@@ -148,7 +148,7 @@ namespace Allocations.Services.DataImporter
 
 
                             };
-                            await repository.UpsertAsync(censusNumberCount);
+                            await repository.CreateAsync(censusNumberCount);
 
                         }
                         break;
