@@ -3,10 +3,16 @@
     <TargetFramework>net461</TargetFramework>
   </PropertyGroup>
   <ItemGroup>    
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.2" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.2" />    
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\Allocations.Repository.FullFramework\Allocations.Repository.FullFramework.csproj" />
+    <ProjectReference Include="..\..\Models\Allocations.Models.Budgets\Allocations.Models.Budgets.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

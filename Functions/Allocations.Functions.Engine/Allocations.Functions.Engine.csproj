@@ -5,10 +5,19 @@
   <ItemGroup>    
     <PackageReference Include="Microsoft.Azure.DocumentDB" Version="1.13.2" />    
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DocumentDB" Version="1.1.0-beta4" />    
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.6" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.6" />    
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\Allocations.Repository.FullFramework\Allocations.Repository.FullFramework.csproj" />
+    <ProjectReference Include="..\..\Engine\Allocations.Engine\Allocations.Engine.csproj" />
+    <ProjectReference Include="..\..\Models\Allocations.Models.Datasets\Allocations.Models.Datasets.csproj" />
+    <ProjectReference Include="..\..\Models\Allocations.Models.Framework\Allocations.Models.Framework.csproj" />
+    <ProjectReference Include="..\..\Models\AY1718.CSharp\AY1718.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

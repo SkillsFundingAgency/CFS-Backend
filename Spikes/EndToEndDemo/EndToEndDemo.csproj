@@ -32,9 +32,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EPPlus, Version=4.1.1.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\EPPlus.4.1.1\lib\net40\EPPlus.dll</HintPath>
-    </Reference>
     <Reference Include="Gherkin, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Gherkin.5.0.0\lib\netstandard1.5\Gherkin.dll</HintPath>
     </Reference>
@@ -121,8 +118,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EppLusExtensions.cs" />
-    <Compile Include="ExcelReader.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -146,13 +141,17 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\Allocations.Repository\Allocations.Repository.csproj">
-      <Project>{B5906EC0-FFF9-4DBD-99AC-1465CEAAF5E7}</Project>
-      <Name>Allocations.Repository</Name>
+    <ProjectReference Include="..\..\Common\Allocations.Repository.FullFramework\Allocations.Repository.FullFramework.csproj">
+      <Project>{caf743cf-a061-4b51-91ff-4253596b91e5}</Project>
+      <Name>Allocations.Repository.FullFramework</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Engine\Allocations.Engine\Allocations.Engine.csproj">
       <Project>{9E59231C-75C5-4600-9B02-52E279C23B9A}</Project>
       <Name>Allocations.Engine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Models\Allocation.Models\Allocation.Models.csproj">
+      <Project>{B8EEFA76-9405-4E69-B9D9-70B1A35C990E}</Project>
+      <Name>Allocation.Models</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Models\Allocations.Models.Budgets\Allocations.Models.Budgets.csproj">
       <Project>{E5326D88-227D-45D1-8C10-1189207A8F69}</Project>
@@ -173,6 +172,10 @@
     <ProjectReference Include="..\..\Models\AY1718.CSharp\AY1718.CSharp.csproj">
       <Project>{23874365-0F52-42AC-9083-30639D922F26}</Project>
       <Name>AY1718.CSharp</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Services\Allocations.Services.DataImporter\Allocations.Services.DataImporter.csproj">
+      <Project>{74FB279B-4DBD-43F9-82B3-3BDCEBF7F590}</Project>
+      <Name>Allocations.Services.DataImporter</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

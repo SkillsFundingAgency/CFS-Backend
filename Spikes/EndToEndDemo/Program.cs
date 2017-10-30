@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Allocation.Models;
 using Allocations.Engine;
 using Allocations.Gherkin;
 using Allocations.Gherkin.Vocab;
@@ -14,75 +16,32 @@ using Allocations.Models.Framework;
 using Allocations.Repository;
 using AY1718.CSharp.Datasets;
 using Newtonsoft.Json;
-using OfficeOpenXml.FormulaParsing.Excel.Functions;
 using Allocations.Models.Datasets;
 using Allocations.Models.Results;
+using Allocations.Services.DataImporter;
 using AY1718.CSharp.Allocations;
 
 namespace EndToEndDemo
 {
-    public class SourceColumnAttribute : Attribute
-    {
-        public string ColumnName { get; }
-
-        public SourceColumnAttribute(string columnName)
-        {
-            ColumnName = columnName;
-        }
-    }
-
-
-    public class AptSourceRecord
-    {
-        [SourceColumn("Provider Information.URN_9079")]
-        public string URN { get; set; }
-        [SourceColumn("Provider Information.UPIN_9068")]
-        public string UPIN { get; set; }
-        [SourceColumn("Provider Information.Provider Name_9070")]
-        public string ProviderName { get; set; }
-        [SourceColumn("Provider Information.Date Opened_9077")]
-        public DateTimeOffset DateOpened { get; set; }
-        [SourceColumn("Provider Information.Local Authority_9426")]
-        public string LocalAuthority { get; set; }
-
-        [SourceColumn("APT New ISB dataset.Basic Entitlement Primary_71855")]
-        public decimal PrimaryAmount { get; set; }
-        [SourceColumn("APT New ISB dataset.15-16 Post MFG per pupil Budget_71961")]
-        public decimal PrimaryAmountPerPupil { get; set; }
-        [SourceColumn("APT New ISB dataset.Notional SEN Budget_71939")]
-        public decimal PrimaryNotionalSEN { get; set; }
-
-        //[SourceColumn("APT Inputs and Adjustments.NOR_71991")]
-        //public decimal NumberOnRoll { get; set; }
-
-        //[SourceColumn("APT Inputs and Adjustments.NOR Primary_71993")]
-        //public decimal NumberOnRollPrimary { get; set; }
-
-
-    }
-
-
-    public class NumberCountSourceRecord
-    {
-        [SourceColumn("Provider Information.URN_9079")]
-        public string URN { get; set; }
-        [SourceColumn("Census Number Counts.NOR_70999")]
-        public int NumberOnRoll { get; set; }
-        [SourceColumn("Census Number Counts.NOR Primary_71001")]
-        public int NumberOnRollPrimary { get; set; }
- 
-
-    }
 
     class Program
     {
         static void Main(string[] args)
         {
+            var importer = new DataImporterService(); 
             Task.Run(async () =>
             {
                 await GenerateBudgetModel();
 
-                await GetSourceDataAsync();
+
+                foreach (var file in Directory.GetFiles("SourceData"))
+                {
+                    using (var stream = new FileStream(file, FileMode.Open))
+                    {
+                        await importer.GetSourceDataAsync(Path.GetFileName(file), stream);
+                    }
+                }
+
 
                 await GenerateAllocations();
             }
@@ -97,7 +56,7 @@ namespace EndToEndDemo
 
             var endpoint = new Uri(ConfigurationManager.AppSettings["DocumentDB.Endpoint"]);
             var key = ConfigurationManager.AppSettings["DocumentDB.Key"];
-            using (var repository = new Repository<ProviderSourceDataset>(endpoint, key, databaseName, "datasets"))
+            using (var repository = new Repository<ProviderSourceDataset>("datasets"))
             {
                 var modelName = "SBS1718";
 
@@ -129,7 +88,7 @@ namespace EndToEndDemo
                     var calculationResults = model.Execute(modelName, urn.Key, typedDatasets.ToArray());
                     
                     var providerAllocations = calculationResults.ToDictionary(x => x.ProductName);
-                    using (var allocationRepository = new Repository<ProviderResult>(endpoint, key, databaseName, "results"))
+                    using (var allocationRepository = new Repository<ProviderResult>("results"))
                     {
                         var result = new ProviderResult
                         {
@@ -178,82 +137,13 @@ namespace EndToEndDemo
             }
         }
 
-
-
-
-
-        private static async Task GetSourceDataAsync()
-        {
-            var reader = new ExcelReader();
-            var databaseName = ConfigurationManager.AppSettings["DocumentDB.DatabaseName"];
-
-            var endpoint = new Uri(ConfigurationManager.AppSettings["DocumentDB.Endpoint"]);
-            var key = ConfigurationManager.AppSettings["DocumentDB.Key"];
-            using (var repository = new Repository<ProviderSourceDataset>(endpoint, key, databaseName, "datasets"))
-            {
-                var aptSourceRecords =
-                    reader.Read<AptSourceRecord>(@"SourceData\Export APT.XLSX").ToArray();
-
-                var numberCountSourceRecords =
-                    reader.Read<NumberCountSourceRecord>(@"SourceData\Number Counts Export.XLSX").ToArray();
-
-                foreach (var aptSourceRecord in aptSourceRecords)
-                {
-                    var providerInformation = new AptProviderInformation
-                    {
-                        BudgetId = typeof(AptProviderInformation).GetCustomAttribute<DatasetAttribute>().ModelName,
-                        DatasetName = typeof(AptProviderInformation).GetCustomAttribute<DatasetAttribute>().DatasetName,
-                        ProviderUrn = aptSourceRecord.URN,
-                            DateOpened = aptSourceRecord.DateOpened,
-                            LocalAuthority = aptSourceRecord.LocalAuthority,
-                            ProviderName = aptSourceRecord.ProviderName,
-                            UPIN = aptSourceRecord.UPIN
-                    };
-                    await repository.CreateAsync(providerInformation);
-
-                    var basicEntitlement = new AptBasicEntitlement
-                    {
-                        BudgetId = typeof(AptBasicEntitlement).GetCustomAttribute<DatasetAttribute>().ModelName,
-                        DatasetName = typeof(AptBasicEntitlement).GetCustomAttribute<DatasetAttribute>().DatasetName,
-                        ProviderUrn = aptSourceRecord.URN,
-
-                            PrimaryAmount = aptSourceRecord.PrimaryAmount,
-                            PrimaryAmountPerPupil = aptSourceRecord.PrimaryAmountPerPupil,
-                            PrimaryNotionalSEN = aptSourceRecord.PrimaryNotionalSEN
-                        
-
-                    };
-                    await repository.UpsertAsync(basicEntitlement);
-
-                }
-                foreach (var numberCountSourceRecord in numberCountSourceRecords)
-                {
-                    var censusNumberCount = new CensusNumberCounts
-                    {
-                        BudgetId = typeof(CensusNumberCounts).GetCustomAttribute<DatasetAttribute>().ModelName,
-                        DatasetName = typeof(CensusNumberCounts).GetCustomAttribute<DatasetAttribute>().DatasetName,
-                        ProviderUrn = numberCountSourceRecord.URN,
-
-                            NORPrimary = numberCountSourceRecord.NumberOnRollPrimary
-
-
-                    };
-                    await repository.UpsertAsync(censusNumberCount);
-
-                }
-            }
-
-
-        }
-
-
         private static async Task GenerateBudgetModel()
         {
             var databaseName = ConfigurationManager.AppSettings["DocumentDB.DatabaseName"];
 
             var endpoint = new Uri(ConfigurationManager.AppSettings["DocumentDB.Endpoint"]);
             var key = ConfigurationManager.AppSettings["DocumentDB.Key"];
-            using (var repository = new Repository<Budget>(endpoint, key, databaseName, "definitions"))
+            using (var repository = new Repository<Budget>("specs"))
             {
                 await repository.CreateAsync(GetBudget());
             }
