@@ -23,10 +23,7 @@ namespace Allocations.Functions.Specs
                 return req.CreateResponse(HttpStatusCode.BadRequest, "Please ensure budget is passed in the request body");
             }
 
-            var databaseName = ConfigurationManager.AppSettings["DocumentDB.DatabaseName"];
-            var endpoint = new Uri(ConfigurationManager.AppSettings["DocumentDB.Endpoint"]);
-            var key = ConfigurationManager.AppSettings["DocumentDB.Key"];
-            using (var repository = new Repository<Budget>("definitions"))
+            using (var repository = new Repository<Budget>("specs"))
             {
                 await repository.CreateAsync(budget);
             }
