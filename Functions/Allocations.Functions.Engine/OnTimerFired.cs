@@ -34,7 +34,7 @@ namespace Allocations.Functions.Engine
                 var modelName = "SBS1718";
 
 
-                var datasetsByUrn = repository.Query().ToArray().GroupBy(x => x.ProviderUrn);
+                var datasetsByUrn = repository.Query().ToArray().GroupBy(x => x.ProviderUrn).ToArray();
                 var allocationFactory = new AllocationFactory(typeof(SBSPrimary).Assembly);
                 foreach (var urn in datasetsByUrn)
                 {

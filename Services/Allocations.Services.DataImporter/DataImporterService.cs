@@ -111,7 +111,7 @@ namespace Allocations.Services.DataImporter
                                 ProviderName = aptSourceRecord.ProviderName,
                                 UPIN = aptSourceRecord.UPIN
                             };
-                            await repository.CreateAsync(providerInformation);
+                            await repository.UpsertAsync(providerInformation);
 
                             var basicEntitlement = new AptBasicEntitlement
                             {
