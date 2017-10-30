@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using OfficeOpenXml;
 
-namespace EndToEndDemo
+namespace Allocations.Services.DataImporter
 {
     public static class EppLusExtensions
     {

@@ -83,9 +83,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\Allocations.Repository\Allocations.Repository.csproj">
-      <Project>{B5906EC0-FFF9-4DBD-99AC-1465CEAAF5E7}</Project>
-      <Name>Allocations.Repository</Name>
+    <ProjectReference Include="..\Allocation.Models\Allocation.Models.csproj">
+      <Project>{B8EEFA76-9405-4E69-B9D9-70B1A35C990E}</Project>
+      <Name>Allocation.Models</Name>
     </ProjectReference>
     <ProjectReference Include="..\Allocations.Models.Datasets\Allocations.Models.Datasets.csproj">
       <Project>{2CE61A40-609A-4DFD-835A-16FF6306203E}</Project>

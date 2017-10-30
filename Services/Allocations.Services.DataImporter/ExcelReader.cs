@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using OfficeOpenXml;
 
-namespace EndToEndDemo
+namespace Allocations.Services.DataImporter
 {
     public class ExcelReader
     {
@@ -16,6 +16,14 @@ namespace EndToEndDemo
 
                 return workSheet.ConvertSheetToObjects<TTarget>();
             }
+        }
+
+        public IEnumerable<TTarget> Read<TTarget>(Stream stream) where TTarget : new()
+        {
+            ExcelPackage excel = new ExcelPackage(stream);
+            var workSheet = excel.Workbook.Worksheets.First();
+
+            return workSheet.ConvertSheetToObjects<TTarget>();
         }
     }
 }
