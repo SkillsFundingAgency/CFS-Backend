@@ -85,7 +85,7 @@ namespace Allocations.Repository
                 Name = attribute.IndexerForType.Name.ToLowerInvariant(),
                 Type = DataSourceType.DocumentDb,
                 Credentials = new DataSourceCredentials($"{_documentDbConnectionString}Database={attribute.DatabaseName}"),
-                Container = new DataContainer { Name = attribute.CollectionName, Query = query },
+                Container = new DataContainer { Name = attribute.CollectionName, Query = query ?? attribute.IndexerQuery },
                 DataChangeDetectionPolicy =
                     new HighWaterMarkChangeDetectionPolicy { HighWaterMarkColumnName = "_ts" },
                 DataDeletionDetectionPolicy =
@@ -93,7 +93,8 @@ namespace Allocations.Repository
                     {
                         SoftDeleteColumnName = "deleted",
                         SoftDeleteMarkerValue = "true"
-                    }
+                    },
+               
 
             };
             try

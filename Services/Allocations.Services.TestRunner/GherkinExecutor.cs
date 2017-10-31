@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
+using Allocations.Models.Results;
+using Allocations.Models.Specs;
 using Gherkin;
 using Gherkin.Ast;
 
@@ -9,12 +11,28 @@ namespace Allocations.Services.TestRunner
 {
     public class GherkinExecutor
     {
-        public void HasPassed(TextReader textReader)
+        private readonly GherkinVocabDefinition _vocab;
+        private readonly Parser _parser;
+
+        public GherkinExecutor(GherkinVocabDefinition vocab)
         {
-            var parser = new Parser();
+            _vocab = vocab;
+            _parser = new Parser();
+        }
 
-            var doc = parser.Parse(textReader);
+        public IEnumerable<GherkinScenarioResult> Execute(ProductResult budget, string gherkin)
+        {
+            var doc = _parser.Parse(new StringReader(gherkin));
 
+            foreach (var scenario in doc.Feature.Children)
+            {
+                yield return new GherkinScenarioResult{Feature = doc.Feature.Name, ScenarioName  = scenario.Name, ScenarioDescription = scenario.Description};
+            }
+        }
+
+
+        private IEnumerable<GherkinResult> Validate(Budget budget, GherkinDocument doc)
+        {
             var background = doc.Feature.Children.FirstOrDefault(x => x.Keyword == "Background");
 
             foreach (var scenario in doc.Feature.Children.Where(x => x.Keyword == "Scenario"))
@@ -29,26 +47,26 @@ namespace Allocations.Services.TestRunner
 
                 foreach (var step in scenario.Steps)
                 {
-                    var regex = "I have the following '(.*)' provider dataset:";
-                    if (Regex.IsMatch(step.Text, regex))
+                    var action = _vocab.GetAction(step);
+                    if (action != null)
                     {
-                        var match = Regex.Match(step.Text, regex);
-                        var argumentStrings = match.Groups.Cast<Group>().Skip(1).Select(g => g.Value);
-                        var table = step.Argument as DataTable;
-                        if (table?.Rows != null)
+                        var result = action.Validate(budget, step);
+                        if (!result.Abort)
                         {
-                            foreach (var row in table.Rows)
-                            {
-
-                            }
+                            yield return result;
                         }
-                        Console.WriteLine(step.Text);
+                        else
+                        {
+                            break;
+                        }
                     }
-                    Console.WriteLine(step.Text);
+                    else
+                    {
+                        yield return new GherkinResult("Does not match defined syntax", step.Location);
+                        // not valid does not match vocab
+                    }
                 }
             }
-
         }
-
     }
 }

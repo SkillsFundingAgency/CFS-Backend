@@ -11,7 +11,7 @@ namespace Allocations.Services.TestRunner
     public class GherkinValidator
     {
         private readonly GherkinVocabDefinition _vocab;
-        private Parser _parser;
+        private readonly Parser _parser;
 
         public GherkinValidator(GherkinVocabDefinition vocab)
         {

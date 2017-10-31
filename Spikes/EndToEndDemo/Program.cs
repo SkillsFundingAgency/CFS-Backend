@@ -78,6 +78,7 @@ namespace EndToEndDemo
                     var budgetDefinition = GetBudget();
 
                     var gherkinValidator = new GherkinValidator(new ProductGherkinVocabulary());
+                    var gherkinExecutor = new GherkinExecutor(new ProductGherkinVocabulary());
 
 
                     var calculationResults = model.Execute(modelName, urn.Key, typedDatasets.ToArray());
@@ -92,6 +93,13 @@ namespace EndToEndDemo
                             SourceDatasets = typedDatasets.ToArray()
                         };
                         var productResults = new List<ProductResult>();
+                        var testResult = new ProviderTestResult
+                        {
+                            Provider = new Reference(urn.Key, urn.Key),
+                            Budget = new Reference(budgetDefinition.Id, budgetDefinition.Name)
+                           
+                        };
+                        var scenarioResults = new List<ProductTestScenarioResult>();
                         foreach (var fundingPolicy in budgetDefinition.FundingPolicies)
                         {
                             foreach (var allocationLine in fundingPolicy.AllocationLines)
@@ -115,7 +123,24 @@ namespace EndToEndDemo
 
                                         if (product.FeatureFile != null)
                                         {
-                                            var errors = gherkinValidator.Validate(GetBudget(), product.FeatureFile).ToArray();
+                                            var validationErrors = gherkinValidator.Validate(GetBudget(), product.FeatureFile).ToArray();
+
+                                            var executeResults =
+                                                gherkinExecutor.Execute(productResult, product.FeatureFile);
+
+                                            foreach (var executeResult in executeResults)
+                                            {
+                                                scenarioResults.Add(new ProductTestScenarioResult
+                                                {
+                                                    FundingPolicy = new Reference(fundingPolicy.Id, fundingPolicy.Name),
+                                                    AllocationLine = new Reference(allocationLine.Id, allocationLine.Name),
+                                                    ProductFolder = new Reference(productFolder.Id, productFolder.Name),
+                                                    Product = product,
+                                                    ScenarioName = executeResult.ScenarioName,
+                                                    ScenarioDescription = executeResult.ScenarioDescription,
+                                                    TestResult = executeResult.HasErrors ? TestResult.Failed : TestResult.Passed
+                                                });
+                                            }
                                         }
                                         productResults.Add(productResult);
                                     }
@@ -123,6 +148,11 @@ namespace EndToEndDemo
                             }
                         }
                         result.ProductResults = productResults.ToArray();
+                        testResult.ScenarioResults = scenarioResults.ToArray();
+                        using (var testResultRepository = new Repository<ProviderTestResult>("results"))
+                        {
+                            await testResultRepository.CreateAsync(testResult);
+                        }
                         await allocationRepository.CreateAsync(result);
                     }
 
@@ -134,10 +164,6 @@ namespace EndToEndDemo
 
         private static async Task GenerateBudgetModel()
         {
-            var databaseName = ConfigurationManager.AppSettings["DocumentDB.DatabaseName"];
-
-            var endpoint = new Uri(ConfigurationManager.AppSettings["DocumentDB.Endpoint"]);
-            var key = ConfigurationManager.AppSettings["DocumentDB.Key"];
             using (var repository = new Repository<Budget>("specs"))
             {
                 await repository.CreateAsync(GetBudget());
