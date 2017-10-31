@@ -40,6 +40,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allocations.Services.TestRu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allocations.Repository", "Common\Allocations.Repository\Allocations.Repository.csproj", "{CAF743CF-A061-4B51-91FF-4253596B91E5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allocations.Boostrapper", "Common\Allocations.Bootstrapper\Allocations.Boostrapper\Allocations.Boostrapper.csproj", "{7C519EF0-58FE-4313-870D-E3ABD41F629D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -90,6 +92,10 @@ Global
 		{CAF743CF-A061-4B51-91FF-4253596B91E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CAF743CF-A061-4B51-91FF-4253596B91E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CAF743CF-A061-4B51-91FF-4253596B91E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C519EF0-58FE-4313-870D-E3ABD41F629D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C519EF0-58FE-4313-870D-E3ABD41F629D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C519EF0-58FE-4313-870D-E3ABD41F629D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C519EF0-58FE-4313-870D-E3ABD41F629D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -106,6 +112,7 @@ Global
 		{EC4C6287-DD06-4926-B496-EAAA75B9C895} = {539AB1D8-B007-4CB6-8355-918D498486E2}
 		{E1FD553D-9D2C-4DCA-BD3B-4A261CB57FDF} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
 		{CAF743CF-A061-4B51-91FF-4253596B91E5} = {05B79C3B-E1CD-4A38-A21E-9127CAB0B636}
+		{7C519EF0-58FE-4313-870D-E3ABD41F629D} = {05B79C3B-E1CD-4A38-A21E-9127CAB0B636}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2FA36A0A-CA20-41CF-9BC2-FA6545720009}
