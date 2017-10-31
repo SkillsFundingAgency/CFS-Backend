@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Allocations.Models.Results;
-using Allocations.Models.Specs;
 using Allocations.Repository;
 using CommandLine;
 

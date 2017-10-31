@@ -11,8 +11,7 @@ using Newtonsoft.Json;
 
 namespace Allocations.Repository
 {
-//var searchInitializer = new Search.SearchInitializer(result.Value.SearchServiceName, result.Value.SearchPrimaryKey, result.Value.DocumentDbConnectionString);
-//await searchInitializer.Initialise(typeof(ProductTestScenarioResultIndex));
+
     public class SearchInitializer
     {
         private readonly SearchServiceClient _searchServiceClient;
@@ -68,19 +67,19 @@ namespace Allocations.Repository
         {
             try
             {
-                //Logger.Trace($"Creating Index '${definition.Name}'");
+                Console.WriteLine($"Creating Index '${definition.Name}'");
                 var index = await _searchServiceClient.Indexes.CreateOrUpdateAsync(definition);
-                //Logger.Info($"Created Index '${index.Name}'");
+                Console.WriteLine($"Created Index '${index.Name}'");
             }
             catch (Exception e)
             {
-                //Logger.Error(e, $"Error Creating Index '{definition.Name}'");
+                Console.WriteLine($"Error Creating Index '{definition.Name}'");
             }
         }
 
         public async Task InitialiseIndexer(Type indexType, SearchIndexAttribute attribute, string query = null)
         {
-            var dataSourceDefinition = new DataSource
+           var dataSourceDefinition = new DataSource
             {
                 Name = attribute.IndexerForType.Name.ToLowerInvariant(),
                 Type = DataSourceType.DocumentDb,
@@ -99,13 +98,13 @@ namespace Allocations.Repository
             };
             try
             {
-              //  Logger.Trace($"Creating Search DataSource '${dataSourceDefinition.Name}'");
+                Console.WriteLine($"Creating Search DataSource '${dataSourceDefinition.Name}'");
                 var dataSource = await _searchServiceClient.DataSources.CreateOrUpdateAsync(dataSourceDefinition);
-                //Logger.Info($"Created Search DataSource '${dataSource.Name}'");
+                Console.WriteLine($"Created Search DataSource '${dataSource.Name}'");
             }
             catch (Exception e)
             {
-                //Logger.Error(e, $"Error Creating Search DataSource '{dataSourceDefinition.Name}'");
+                Console.WriteLine($"Error Creating Search DataSource '{dataSourceDefinition.Name}'");
             }
 
 
@@ -121,13 +120,13 @@ namespace Allocations.Repository
 
             try
             {
-               // Logger.Trace($"Creating Indexer '${definition.Name}'");
+                Console.WriteLine($"Creating Indexer '${definition.Name}'");
                 var indexer = await _searchServiceClient.Indexers.CreateOrUpdateAsync(definition);
-                //Logger.Info($"Created Indexer '${indexer.Name}'");
+                Console.WriteLine($"Created Indexer '${indexer.Name}'");
             }
             catch (Exception e)
             {
-                //Logger.Error(e, $"Error Creating Indexer '{definition.Name}'");
+                Console.WriteLine($"Error Creating Indexer '{definition.Name}'");
             }
         }
 
