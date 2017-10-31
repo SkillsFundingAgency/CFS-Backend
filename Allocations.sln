@@ -40,7 +40,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allocations.Services.TestRu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allocations.Repository", "Common\Allocations.Repository\Allocations.Repository.csproj", "{CAF743CF-A061-4B51-91FF-4253596B91E5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allocations.Boostrapper", "Common\Allocations.Bootstrapper\Allocations.Boostrapper\Allocations.Boostrapper.csproj", "{7C519EF0-58FE-4313-870D-E3ABD41F629D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allocations.Boostrapper", "Common\Allocations.Bootstrapper\Allocations.Boostrapper.csproj", "{7C519EF0-58FE-4313-870D-E3ABD41F629D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
