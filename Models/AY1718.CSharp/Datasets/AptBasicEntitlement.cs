@@ -12,6 +12,9 @@ namespace AY1718.CSharp.Datasets
         [JsonProperty("primaryAmountPerPupil")]
         public decimal PrimaryAmountPerPupil { get; set; }
 
+        /// <summary>
+        /// This is the primary amount
+        /// </summary>
         [Description("Primary Amount")]
         [JsonProperty("primaryAmount")]
         public decimal PrimaryAmount { get; set; }

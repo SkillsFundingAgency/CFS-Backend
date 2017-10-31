@@ -159,6 +159,10 @@
       <Project>{23874365-0F52-42AC-9083-30639D922F26}</Project>
       <Name>AY1718.CSharp</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Services\Allocations.Services.Calculator\Allocations.Services.Calculator.csproj">
+      <Project>{406DBFC9-A5F9-4A89-87CE-A0334A2CFE47}</Project>
+      <Name>Allocations.Services.Calculator</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Services\Allocations.Services.DataImporter\Allocations.Services.DataImporter.csproj">
       <Project>{74FB279B-4DBD-43F9-82B3-3BDCEBF7F590}</Project>
       <Name>Allocations.Services.DataImporter</Name>

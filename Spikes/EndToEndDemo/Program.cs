@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using Allocations.Models.Datasets;
 using Allocations.Models.Results;
 using Allocations.Models.Specs;
+using Allocations.Services.Calculator;
 using Allocations.Services.DataImporter;
 using Allocations.Services.TestRunner;
 using Allocations.Services.TestRunner.Vocab;
@@ -27,6 +28,16 @@ namespace EndToEndDemo
     {
         static void Main(string[] args)
         {
+            var b = GetBudget();
+
+            var roslyn = new RoslynDatasetAssemblyFactory();
+            var assembly = roslyn.Test(b);
+
+            foreach (var t in assembly.GetTypes())
+            {
+                
+            }
+
             var importer = new DataImporterService(); 
             Task.Run(async () =>
             {
