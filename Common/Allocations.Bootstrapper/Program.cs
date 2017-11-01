@@ -8,7 +8,7 @@ namespace Allocations.Boostrapper
 {
     class Options
     {
-        [Option("cosmosDBConnectingnString", HelpText = @"Azure Document DB connection string")]
+        [Option("cosmosDBConnectionString", HelpText = @"Azure Document DB connection string")]
         public string CosmosDBConnectionString { get; set; }
 
         [Option("searchServiceName", Required = true, HelpText = "Azure search service name (just the name, not the full endpoint)")]
