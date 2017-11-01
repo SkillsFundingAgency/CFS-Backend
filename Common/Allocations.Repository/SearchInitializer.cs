@@ -11,7 +11,6 @@ using Newtonsoft.Json;
 
 namespace Allocations.Repository
 {
-
     public class SearchInitializer
     {
         private readonly SearchServiceClient _searchServiceClient;
@@ -77,14 +76,14 @@ namespace Allocations.Repository
             }
         }
 
-        public async Task InitialiseIndexer(Type indexType, SearchIndexAttribute attribute, string query = null)
+        public async Task InitialiseIndexer(Type indexType, SearchIndexAttribute attribute)
         {
            var dataSourceDefinition = new DataSource
             {
                 Name = attribute.IndexerForType.Name.ToLowerInvariant(),
                 Type = DataSourceType.DocumentDb,
                 Credentials = new DataSourceCredentials($"{_documentDbConnectionString}Database={attribute.DatabaseName}"),
-                Container = new DataContainer { Name = attribute.CollectionName, Query = query ?? attribute.IndexerQuery },
+                Container = new DataContainer { Name = attribute.CollectionName, Query = attribute.IndexerQuery },
                 DataChangeDetectionPolicy =
                     new HighWaterMarkChangeDetectionPolicy { HighWaterMarkColumnName = "_ts" },
                 DataDeletionDetectionPolicy =
