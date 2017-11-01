@@ -54,7 +54,15 @@ namespace Allocations.Functions.Results
                 }).ToArray()
             };
 
-            return req.CreateResponse(HttpStatusCode.OK, JsonConvert.SerializeObject(response, new JsonSerializerSettings{ ContractResolver = new CamelCasePropertyNamesContractResolver(), Formatting = Formatting.Indented}));
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(response,
+                    new JsonSerializerSettings
+                    {
+                        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                        Formatting = Formatting.Indented
+                    }), System.Text.Encoding.UTF8, "application/json")
+            };
         }
 
 
