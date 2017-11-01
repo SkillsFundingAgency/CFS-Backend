@@ -53,11 +53,11 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Models\Allocations.Models\Allocations.Models.csproj">
+    <ProjectReference Include="..\..\Models\Allocations.Models\Allocations.Models.csproj">
       <Project>{EC4C6287-DD06-4926-B496-EAAA75B9C895}</Project>
       <Name>Allocations.Models</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Allocations.Repository\Allocations.Repository.csproj">
+    <ProjectReference Include="..\Allocations.Repository\Allocations.Repository.csproj">
       <Project>{caf743cf-a061-4b51-91ff-4253596b91e5}</Project>
       <Name>Allocations.Repository</Name>
     </ProjectReference>
