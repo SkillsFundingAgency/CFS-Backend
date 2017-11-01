@@ -8,7 +8,7 @@ namespace Allocations.Boostrapper
 {
     class Options
     {
-        [Option("cosmosDBConnectionString", HelpText = @"Azure Document DB connection string")]
+        [Option("cosmosDBConnectionString", Required = true, HelpText = @"Azure Document DB connection string")]
         public string CosmosDBConnectionString { get; set; }
 
         [Option("searchServiceName", Required = true, HelpText = "Azure search service name (just the name, not the full endpoint)")]
@@ -20,18 +20,29 @@ namespace Allocations.Boostrapper
     class Program
     {
         static int Main(string[] args)
-        {
+        { 
+            
             var result = Parser.Default.ParseArguments<Options>(args);
             Console.WriteLine($"Started with {args}");
             try
             {
                  Task.Run(async () =>
                 {
+                    try
+                    {
+                        var searchInitializer = new SearchInitializer(result.Value.SearchServiceName,
+                            result.Value.SearchPrimaryKey, result.Value.CosmosDBConnectionString);
+
+                        await searchInitializer.Initialise(typeof(ProductTestScenarioResultIndex));
+                    }
+                    catch (Exception e)
+                    {
+                        
+                        Console.WriteLine(e);
+                        throw;
+                    }
 
 
-                    var searchInitializer = new SearchInitializer(result.Value.SearchServiceName,
-                        result.Value.SearchPrimaryKey, result.Value.CosmosDBConnectionString);
-                    await searchInitializer.Initialise(typeof(ProductTestScenarioResultIndex));
 
                 }).Wait();
                 Console.WriteLine("Completed successfully");
