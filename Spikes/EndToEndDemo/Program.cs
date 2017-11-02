@@ -30,13 +30,7 @@ namespace EndToEndDemo
         {
             var b = GetBudget();
 
-            var roslyn = new RoslynDatasetAssemblyFactory();
-            var assembly = roslyn.Test(b);
 
-            foreach (var t in assembly.GetTypes())
-            {
-                
-            }
 
             var importer = new DataImporterService(); 
             Task.Run(async () =>
@@ -64,11 +58,10 @@ namespace EndToEndDemo
         {
             using (var repository = new Repository<ProviderSourceDataset>("datasets"))
             {
-                var modelName = "SBS1718";
-
-
+                
+                var budgetDefinition = GetBudget();
                 var datasetsByUrn = repository.Query().ToArray().GroupBy(x => x.ProviderUrn);
-                var allocationFactory = new AllocationFactory(typeof(SBSPrimary).Assembly);
+                var allocationFactory = new AllocationFactory(budgetDefinition);
                 foreach (var urn in datasetsByUrn)
                 {
                      var typedDatasets = new List<object>();
@@ -84,16 +77,16 @@ namespace EndToEndDemo
                     }
 
                     var model =
-                        allocationFactory.CreateAllocationModel(modelName);
+                        allocationFactory.CreateAllocationModel(budgetDefinition.Name);
 
-                    var budgetDefinition = GetBudget();
+   
+                    var calculationResults = model.Execute(budgetDefinition.Name, urn.Key, typedDatasets.ToArray());
+                    
+                    var providerAllocations = calculationResults.ToDictionary(x => x.ProductName);
 
                     var gherkinValidator = new GherkinValidator(new ProductGherkinVocabulary());
 
 
-                    var calculationResults = model.Execute(modelName, urn.Key, typedDatasets.ToArray());
-                    
-                    var providerAllocations = calculationResults.ToDictionary(x => x.ProductName);
                     using (var allocationRepository = new Repository<ProviderResult>("results"))
                     {
                         var result = new ProviderResult
@@ -145,10 +138,6 @@ namespace EndToEndDemo
 
         private static async Task GenerateBudgetModel()
         {
-            var databaseName = ConfigurationManager.AppSettings["DocumentDB.DatabaseName"];
-
-            var endpoint = new Uri(ConfigurationManager.AppSettings["DocumentDB.Endpoint"]);
-            var key = ConfigurationManager.AppSettings["DocumentDB.Key"];
             using (var repository = new Repository<Budget>("specs"))
             {
                 await repository.CreateAsync(GetBudget());
@@ -198,11 +187,83 @@ namespace EndToEndDemo
                                                 "Scenario: Primary Rate should be greater than 2000\r\n" +
                                                 "Given 'Phase' in 'APT Provider Information' is 'Primary'\r\n" +
                                                 "And 'PrimaryNOR' in 'APT Provider Information' is greater than 0\r\n" +
-                                                "Then 'P004_PriRate' should be greater than or equal to 2000"
+                                                "Then 'P004_PriRate' should be greater than or equal to 2000",
+                                                Calculation = new ProductCalculation
+                                                {
+                                                    CalculationType = CalculationType.CSharp,
+                                                    SourceCode = @"
+     public partial class PupilLedFactors
+    {
+        public CalculationResult P004_PriRate()
+        {
+            return new CalculationResult(""P004_PriRate"", APTBasicEntitlement.PrimaryAmountPerPupil);
+
+        }
+    }
+
+"
+                                                }
                                             },
-                                            new Product {Name = "P005_PriBESubtotal"},
-                                            new Product {Name = "P006a_NSEN_PriBE_Percent"},
-                                            new Product {Name = "P006_NSEN_PriBE"},
+                                            new Product
+                                            {
+                                                Name = "P005_PriBESubtotal",
+                                                Calculation = new ProductCalculation
+                                                {
+                                                    CalculationType = CalculationType.CSharp,
+                                                    SourceCode = @"
+     public partial class PupilLedFactors
+    {
+        private static readonly DateTime April2018CutOff = new DateTime(2018, 4, 1);
+
+        public CalculationResult P005_PriBESubtotal()
+        {
+            if (APTProviderInformation.DateOpened > April2018CutOff)
+            {
+                return new CalculationResult(""P005_PriBESubtotal"", APTBasicEntitlement.PrimaryAmount);
+            }
+
+            return new CalculationResult(""P005_PriBESubtotal"", P004_PriRate().Value * CensusNumberCounts.NORPrimary);
+        }
+    }
+                                                    "
+                                                }
+                                            },
+                                            new Product
+                                            {
+                                                Name = "P006a_NSEN_PriBE_Percent",
+                                                Calculation = new ProductCalculation
+                                                {
+                                                    CalculationType = CalculationType.CSharp,
+                                                    SourceCode = @"
+     public partial class PupilLedFactors
+    {
+
+        public CalculationResult P006a_NSEN_PriBE_Percent()
+        {
+            return new CalculationResult(""P006a_NSEN_PriBE_Percent"", APTBasicEntitlement.PrimaryNotionalSEN);
+        }
+    }
+                                                    "
+                                                }
+                                            },
+                                            new Product
+                                            {
+                                                Name = "P006_NSEN_PriBE",
+                                                Calculation = new ProductCalculation
+                                                {
+                                                    CalculationType = CalculationType.CSharp,
+                                                    SourceCode = @"
+     public partial class PupilLedFactors
+    {
+        public CalculationResult P006_NSEN_PriBE()
+        {
+            return new CalculationResult(""P006_NSEN_PriBE"", P006a_NSEN_PriBE_Percent().Value * P005_PriBESubtotal().Value);
+        }
+
+    }
+                                                    "
+                                                }
+                                            },
                                         }
                                     },
                                 }
@@ -239,13 +300,13 @@ namespace EndToEndDemo
                             {
                                 Name = "LocalAuthority",
                                 LongName = "Local Authority",
-                                Type = TypeCode.DateTime
+                                Type = TypeCode.String
                             },
                             new DatasetFieldDefinition
                             {
                                 Name = "Phase",
                                 LongName = "Phase",
-                                Type = TypeCode.DateTime
+                                Type = TypeCode.String
                             }
                         }
                     },

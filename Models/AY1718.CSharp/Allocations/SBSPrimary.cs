@@ -17,7 +17,6 @@ namespace AY1718.CSharp.Allocations
 
     public partial class SBSPrimary
     {
-
         public CalculationResult P004_PriRate()
         {
             return new CalculationResult("P004_PriRate", AptBasicEntitlement.PrimaryAmountPerPupil);
@@ -47,7 +46,10 @@ namespace AY1718.CSharp.Allocations
         {
             return new CalculationResult("P006a_NSEN_PriBE_Percent", AptBasicEntitlement.PrimaryNotionalSEN);
         }
+    }
 
+    public partial class SBSPrimary
+    {
         public CalculationResult P006_NSEN_PriBE()
         {
             return new CalculationResult("P006_NSEN_PriBE", P006a_NSEN_PriBE_Percent().Value * P005_PriBESubtotal().Value);

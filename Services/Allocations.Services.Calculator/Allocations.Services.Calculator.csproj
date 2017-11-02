@@ -150,6 +150,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AllocationFactory.cs" />
     <Compile Include="CSharpTypeGenerator.cs" />
     <Compile Include="ProductFolderTypeGenerator.cs" />
     <Compile Include="DatasetTypeGenerator.cs" />

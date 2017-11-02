@@ -20,9 +20,6 @@ namespace Allocations.Services.DataImporter
         public async Task GetSourceDataAsync()
         {
             var reader = new ExcelReader();
-            var databaseName = ConfigurationManager.AppSettings["DocumentDB.DatabaseName"];
-            var endpoint = new Uri(ConfigurationManager.AppSettings["DocumentDB.Endpoint"]);
-            var key = ConfigurationManager.AppSettings["DocumentDB.Key"];
 
             using (var repository = new Repository<ProviderSourceDataset>("datasets"))
             {

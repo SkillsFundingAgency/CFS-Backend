@@ -15,7 +15,7 @@ namespace Allocations.Services.Calculator
     {
 
 
-        public CompilationUnitSyntax Test(Budget budget, Assembly datasetAssembly)
+        public CompilationUnitSyntax GenerateCalcs(Budget budget)
         {
             return CompilationUnit()
                 .WithUsings(StandardUsings())
@@ -32,62 +32,87 @@ namespace Allocations.Services.Calculator
             {
 
             
-            yield return ClassDeclaration(Identifier(fundingPolicy.Name))
 
-                .WithModifiers(
-                    TokenList(
-                        Token(SyntaxKind.PublicKeyword),
-                        Token(SyntaxKind.PartialKeyword)))
-                .WithMembers(
-                    List<MemberDeclarationSyntax>(budget.DatasetDefinitions.Select(GetMembers)
-                    ));
 
             foreach (var allocationLine in fundingPolicy.AllocationLines)
             {
                 yield return ClassDeclaration(Identifier(allocationLine.Name))
-
+                    .WithAttributeLists(
+                        ClassAttributes(budget.Name))
                     .WithModifiers(
                         TokenList(
                             Token(SyntaxKind.PublicKeyword),
                             Token(SyntaxKind.PartialKeyword)))
                     .WithMembers(
-                        List(GetMethods(allocationLine)));
+                        List<MemberDeclarationSyntax>(budget.DatasetDefinitions.Select(GetMembers)
+                        ));
+
+                    foreach (var partialClass in GetProductPartials(allocationLine))
+                {
+                    yield return partialClass;
+                }
             }
         }
     }
 
-        private static IEnumerable<MemberDeclarationSyntax> GetMethods(AllocationLine allocationLine)
+        private static ClassDeclarationSyntax GetCustomPartialClass(Product product)
+        {
+            if (product.Calculation?.SourceCode != null)
+            {
+                var tree = ParseSyntaxTree(product.Calculation.SourceCode);
+
+                var partialClass = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>()
+                    .FirstOrDefault();
+
+                return partialClass;
+            }
+            return null;
+        }
+
+        private static IEnumerable<ClassDeclarationSyntax> GetProductPartials(AllocationLine allocationLine)
         {
             foreach (var productFolder in allocationLine.ProductFolders)
             {
-
-
                 foreach (var product in productFolder.Products)
                 {
-                    //if(product.calc) = xxx;
-                    //else
+                    var partialClass = GetCustomPartialClass(product);
+                    if (partialClass == null)
                     {
-                        yield return MethodDeclaration(
-                                IdentifierName("CalculationResult"),
-                                Identifier(Identifier(product.Name)))
+                        partialClass = ClassDeclaration(Identifier(allocationLine.Name))
+
                             .WithModifiers(
                                 TokenList(
-                                    Token(SyntaxKind.PublicKeyword)))
-                            .WithBody(
-                                Block(
-                                    SingletonList<StatementSyntax>(
-                                        ThrowStatement(
-                                            ObjectCreationExpression(
-                                                    IdentifierName("NotImplementedException"))
-                                                .WithArgumentList(
-                                                    ArgumentList(
-                                                        SingletonSeparatedList(
-                                                            Argument(
-                                                                LiteralExpression(
-                                                                    SyntaxKind.StringLiteralExpression,
-                                                                    Literal(
-                                                                        $"{product.Name} is not implemented"))))))))));
+                                    Token(SyntaxKind.PublicKeyword),
+                                    Token(SyntaxKind.PartialKeyword)))
+                            .WithMembers(
+                                SingletonList<MemberDeclarationSyntax>(MethodDeclaration(
+                                        IdentifierName("CalculationResult"),
+                                        Identifier(Identifier(product.Name)))
+                                    .WithModifiers(
+                                        TokenList(
+                                            Token(SyntaxKind.PublicKeyword)))
+                                    .WithBody(
+                                        Block(
+                                            SingletonList<StatementSyntax>(
+                                                ThrowStatement(
+                                                    ObjectCreationExpression(
+                                                            IdentifierName("NotImplementedException"))
+                                                        .WithArgumentList(
+                                                            ArgumentList(
+                                                                SingletonSeparatedList(
+                                                                    Argument(
+                                                                        LiteralExpression(
+                                                                            SyntaxKind.StringLiteralExpression,
+                                                                            Literal(
+                                                                                $"{product.Name} is not implemented"))))))))))
+                            ));
+
+
+ 
                     }
+                    yield return partialClass;
+
+                  
                 }
             }
         }
@@ -95,7 +120,7 @@ namespace Allocations.Services.Calculator
         private static PropertyDeclarationSyntax GetMembers(DatasetDefinition datasetDefinition)
         {
             return PropertyDeclaration(
-                    IdentifierName(Identifier(datasetDefinition.Name)), Identifier(Identifier(datasetDefinition.Name)))
+                    IdentifierName(Identifier(datasetDefinition.Name)), Identifier(datasetDefinition.Name))
                 //.WithAttributeLists(
                 //    List(PropertyAttributes(fieldDefinition.LongName, CSharpTypeGenerator.IdentifierCamelCase(fieldDefinition.Name))))
                 .WithModifiers(
@@ -120,20 +145,20 @@ namespace Allocations.Services.Calculator
 
         private static IEnumerable<AttributeListSyntax> PropertyAttributes(string description, string jsonIdentifier)
         {
-            if (!string.IsNullOrWhiteSpace(description))
-            {
-                yield return AttributeList(
-                    SingletonSeparatedList(
-                        Attribute(
-                                IdentifierName("Description"))
-                            .WithArgumentList(
-                                AttributeArgumentList(
-                                    SingletonSeparatedList(
-                                        AttributeArgument(
-                                            LiteralExpression(
-                                                SyntaxKind.StringLiteralExpression,
-                                                Literal(description))))))));
-            }
+            //if (!string.IsNullOrWhiteSpace(description))
+            //{
+            //    yield return AttributeList(
+            //        SingletonSeparatedList(
+            //            Attribute(
+            //                    IdentifierName("Description"))
+            //                .WithArgumentList(
+            //                    AttributeArgumentList(
+            //                        SingletonSeparatedList(
+            //                            AttributeArgument(
+            //                                LiteralExpression(
+            //                                    SyntaxKind.StringLiteralExpression,
+            //                                    Literal(description))))))));
+            //}
 
             yield return AttributeList(
                 SingletonSeparatedList(
@@ -149,13 +174,13 @@ namespace Allocations.Services.Calculator
 
         }
 
-        private static SyntaxList<AttributeListSyntax> ClassAttributes(string modelName, string description)
+        private static SyntaxList<AttributeListSyntax> ClassAttributes(string modelName)
         {
             return SingletonList(
                 AttributeList(
                     SingletonSeparatedList(
                         Attribute(
-                                IdentifierName("Dataset"))
+                                IdentifierName("Allocation"))
                             .WithArgumentList(
                                 AttributeArgumentList(
                                     SeparatedList<AttributeArgumentSyntax>(
@@ -164,12 +189,7 @@ namespace Allocations.Services.Calculator
                                             AttributeArgument(
                                                 LiteralExpression(
                                                     SyntaxKind.StringLiteralExpression,
-                                                    Literal(modelName))),
-                                            Token(SyntaxKind.CommaToken),
-                                            AttributeArgument(
-                                                LiteralExpression(
-                                                    SyntaxKind.StringLiteralExpression,
-                                                    Literal(description)))
+                                                    Literal(modelName)))
                                         }))))));
         }
     }

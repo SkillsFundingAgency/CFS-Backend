@@ -12,7 +12,7 @@ namespace Allocations.Services.Calculator
     {
         protected static string Identifier(string value)
         {
-            string className = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value);
+            string className = value;
             bool isValid = CodeDomProvider.CreateProvider("C#").IsValidIdentifier(className);
 
             if (!isValid)
@@ -95,6 +95,8 @@ namespace Allocations.Services.Calculator
         {
             return SyntaxFactory.List(
                 new[]{
+                    SyntaxFactory.UsingDirective(
+                        SyntaxFactory.IdentifierName("System")),
                     SyntaxFactory.UsingDirective(
                         SyntaxFactory.QualifiedName(
                             SyntaxFactory.IdentifierName("System"),

@@ -10,14 +10,13 @@ using Allocations.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Newtonsoft.Json;
-using SyntaxFactory = Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Allocations.Services.Calculator
 {
-    public  class RoslynDatasetAssemblyFactory
+    public class BudgetAssemblyGenerator
     {
 
-       public Assembly Test(Budget budget)
+        public Assembly GenerateAssembly(Budget budget)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -25,6 +24,13 @@ namespace Allocations.Services.Calculator
             var datacon = new DatasetTypeGenerator();
 
             var datasetSyntaxTrees = budget.DatasetDefinitions.Select(x => datacon.Test(budget, x).SyntaxTree);
+
+            var calc = new ProductFolderTypeGenerator();
+
+            var calcSyntaxTree = calc.GenerateCalcs(budget).SyntaxTree;
+
+            File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{budget.Name}.datasets.cs"), string.Join(Environment.NewLine, datasetSyntaxTrees.Select(x => x.ToString())));
+            File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{budget.Name}.cs"), calcSyntaxTree.ToString());
 
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
@@ -35,14 +41,15 @@ namespace Allocations.Services.Calculator
                 AssemblyMetadata.CreateFromFile(typeof(CalculationResult).Assembly.Location).GetReference(),
                 AssemblyMetadata.CreateFromFile(typeof(RequiredAttribute).Assembly.Location).GetReference(),
                 AssemblyMetadata.CreateFromFile(typeof(JsonPropertyAttribute).Assembly.Location).GetReference(),
-
+                //AssemblyMetadata.CreateFromStream(datasetAssembly).GetReference(),
             };
 
 
-            var compilation = CSharpCompilation.Create("datsets.dll")
-                                    .WithOptions(options)
-                                    .AddSyntaxTrees(datasetSyntaxTrees)
-                                    .AddReferences(references);
+            var compilation = CSharpCompilation.Create($"calcs.dll")
+                .WithOptions(options)
+                .AddSyntaxTrees(datasetSyntaxTrees)
+                .AddSyntaxTrees(calcSyntaxTree)
+                .AddReferences(references);
 
             var diagnostics = compilation.GetDiagnostics();
             sb.AppendLine("Output:");
@@ -62,38 +69,6 @@ namespace Allocations.Services.Calculator
                 ms.Read(data, 0, data.Length);
                 return Assembly.Load(data);
             }
-
-
-
-            
-
-//            Results.Text = sb.ToString();
-
-//            if (diagnostics.Length == 0)
-//            {
-//                try
-//                {
-//                    AsmHelper _asmHelper = null;
-//#if DEBUG
-//                    var _assembly = CSScript.LoadCode(userinput, null, true, null);
-//#else  
-//                    var  _assembly = CSScript.LoadCode(userinput, null);
-//#endif
-//                    _asmHelper = new AsmHelper(_assembly);
-
-//                    var methodName = "GetProductResults";
-
-//                    var CsharpResults = _asmHelper.Invoke(string.Format("*.{0}", methodName));
-
-//                    sb.Append("Results: " + CsharpResults);
-
-//                    Results.Text = sb.ToString();
-//                }
-//                catch (Exception ex)
-//                {
-//                    Results.Text = ex.ToString();
-//                }
-//            }
         }
     }
 }

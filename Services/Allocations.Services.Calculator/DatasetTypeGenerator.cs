@@ -70,20 +70,20 @@ namespace Allocations.Services.Calculator
 
         private static IEnumerable<AttributeListSyntax> PropertyAttributes(string description, string jsonIdentifier)
         {
-            if (!string.IsNullOrWhiteSpace(description))
-            {
-                yield return AttributeList(
-                    SingletonSeparatedList(
-                        Attribute(
-                                IdentifierName("Description"))
-                            .WithArgumentList(
-                                AttributeArgumentList(
-                                    SingletonSeparatedList(
-                                        AttributeArgument(
-                                            LiteralExpression(
-                                                SyntaxKind.StringLiteralExpression,
-                                                Literal(description))))))));
-            }
+            //if (!string.IsNullOrWhiteSpace(description))
+            //{
+            //    yield return AttributeList(
+            //        SingletonSeparatedList(
+            //            Attribute(
+            //                    IdentifierName("Description"))
+            //                .WithArgumentList(
+            //                    AttributeArgumentList(
+            //                        SingletonSeparatedList(
+            //                            AttributeArgument(
+            //                                LiteralExpression(
+            //                                    SyntaxKind.StringLiteralExpression,
+            //                                    Literal(description))))))));
+            //}
 
             yield return AttributeList(
                 SingletonSeparatedList(

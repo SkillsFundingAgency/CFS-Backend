@@ -47,7 +47,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AllocationAttribute.cs" />
-    <Compile Include="AllocationFactory.cs" />
     <Compile Include="AllocationModel.cs" />
     <Compile Include="CalculationResult.cs" />
     <Compile Include="DatasetAttribute.cs" />
@@ -58,6 +57,12 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Allocations.Models\Allocations.Models.csproj">
+      <Project>{EC4C6287-DD06-4926-B496-EAAA75B9C895}</Project>
+      <Name>Allocations.Models</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

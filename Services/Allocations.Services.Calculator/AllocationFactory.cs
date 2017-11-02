@@ -2,26 +2,28 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Allocations.Models.Specs;
+using Allocations.Services.Calculator;
 
 namespace Allocations.Models.Framework
 {
     public class AllocationFactory
     {
-        public AllocationFactory(Assembly assembly)
+        private readonly BudgetAssemblyGenerator _datasetTypeGenerator = new BudgetAssemblyGenerator();
+        private readonly ProductFolderTypeGenerator _productFolderTypeGenerator = new ProductFolderTypeGenerator();
+        public AllocationFactory(Budget budget)
         {
-            var concreteClassTypes = assembly.GetTypes()
-                .Where(x => x.IsClass && !x.IsAbstract).ToArray();
-
-            var datasetTypes = concreteClassTypes.Where(x => x.CustomAttributes.Any(attr => attr.AttributeType == typeof(DatasetAttribute)));
+            var budgetAssembly = _datasetTypeGenerator.GenerateAssembly(budget);
+            var datasetTypes = budgetAssembly.GetTypes().Where(x => x.CustomAttributes.Any(attr => attr.AttributeType == typeof(DatasetAttribute)));
             DatasetTypes = new Dictionary<string, Type>();
             foreach (var type in datasetTypes)
             {
                 Console.WriteLine($"Adding {type}");
                 DatasetTypes.Add(type.GetCustomAttribute<DatasetAttribute>().DatasetName, type);
             }
-            
 
-            var allocationTypes = concreteClassTypes.Where(x => x.CustomAttributes.Any(attr => attr.AttributeType == typeof(AllocationAttribute)));
+
+            var allocationTypes = budgetAssembly.GetTypes().Where(x => x.CustomAttributes.Any(attr => attr.AttributeType == typeof(AllocationAttribute)));
             AllocationTypes = new Dictionary<string, AllocationModel>();
             foreach (var type in allocationTypes)
             {

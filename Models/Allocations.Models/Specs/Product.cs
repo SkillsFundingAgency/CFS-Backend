@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.ComponentModel;
+using Newtonsoft.Json;
 
 namespace Allocations.Models.Specs
 {
@@ -13,5 +14,22 @@ namespace Allocations.Models.Specs
         public string Description { get; set; }
         [JsonProperty("featureFile")]
         public string FeatureFile { get; set; }
+        [JsonProperty("calculation")]
+        public ProductCalculation Calculation { get; set; }
+    }
+
+    //[] Move to budget/folder??
+    public enum CalculationType
+    {
+        VisualBasic,
+        CSharp
+    }
+
+    public class ProductCalculation
+    {
+        [JsonProperty("description")]
+        public CalculationType CalculationType { get; set; }
+        [JsonProperty("sourceCode")]
+        public string SourceCode { get; set; }
     }
 }
