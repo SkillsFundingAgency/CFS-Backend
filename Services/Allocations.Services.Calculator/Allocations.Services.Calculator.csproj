@@ -151,11 +151,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AllocationFactory.cs" />
+    <Compile Include="AllocationModel.cs" />
     <Compile Include="CSharpTypeGenerator.cs" />
-    <Compile Include="ProductFolderTypeGenerator.cs" />
+    <Compile Include="ProductTypeGenerator.cs" />
     <Compile Include="DatasetTypeGenerator.cs" />
-    <Compile Include="Roslyn - Copy.cs" />
-    <Compile Include="Roslyn.cs" />
+    <Compile Include="BudgetAssemblyGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -167,10 +167,6 @@
     <Analyzer Include="..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Models\Allocations.Models.Framework\Allocations.Models.Framework.csproj">
-      <Project>{BBCBEFEF-A2CD-411F-8EB6-B305AB261767}</Project>
-      <Name>Allocations.Models.Framework</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Models\Allocations.Models\Allocations.Models.csproj">
       <Project>{EC4C6287-DD06-4926-B496-EAAA75B9C895}</Project>
       <Name>Allocations.Models</Name>

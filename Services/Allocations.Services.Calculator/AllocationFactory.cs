@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Allocations.Models;
 using Allocations.Models.Specs;
-using Allocations.Services.Calculator;
 
-namespace Allocations.Models.Framework
+namespace Allocations.Services.Calculator
 {
     public class AllocationFactory
     {
         private readonly BudgetAssemblyGenerator _datasetTypeGenerator = new BudgetAssemblyGenerator();
-        private readonly ProductFolderTypeGenerator _productFolderTypeGenerator = new ProductFolderTypeGenerator();
+        private readonly ProductTypeGenerator _productTypeGenerator = new ProductTypeGenerator();
         public AllocationFactory(Budget budget)
         {
             var budgetAssembly = _datasetTypeGenerator.GenerateAssembly(budget);

@@ -1,18 +1,60 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Allocations.Models;
 using Allocations.Models.Datasets;
-using Allocations.Models.Framework;
 using Allocations.Repository;
-using AY1718.CSharp.Datasets;
+using Newtonsoft.Json;
 
 namespace Allocations.Services.DataImporter
 {
+    [Dataset("budget-gag1718", "APT Basic Entitlement")]
+    public class AptBasicEntitlement : ProviderSourceDataset
+    {
+        [Description("Primary Amount Per Pupil")]
+        [JsonProperty("primaryAmountPerPupil")]
+        public decimal PrimaryAmountPerPupil { get; set; }
+
+        /// <summary>
+        /// This is the primary amount
+        /// </summary>
+        [Description("Primary Amount")]
+        [JsonProperty("primaryAmount")]
+        public decimal PrimaryAmount { get; set; }
+
+        [Description("Primary Notional SEN")]
+        [JsonProperty("primaryNotionalSEN")]
+        public decimal PrimaryNotionalSEN { get; set; }
+    }
+
+    [Dataset("budget-gag1718", "Census Number Counts")]
+    public class CensusNumberCounts : ProviderSourceDataset
+    {
+        [Description("NOR Primary")]
+        [JsonProperty("norPrimary")]
+        public int NORPrimary { get; set; }
+
+    }
+
+    [Dataset("budget-gag1718", "APT Provider Information")]
+    public class AptProviderInformation : ProviderSourceDataset
+    {
+        [JsonProperty("UPin")]
+        public string UPIN { get; set; }
+        [JsonProperty("providerName")]
+        public string ProviderName { get; set; }
+        [JsonProperty("dateOpened")]
+        public DateTimeOffset DateOpened { get; set; }
+        [JsonProperty("localAuthority")]
+        public string LocalAuthority { get; set; }
+
+    }
 
     public class DataImporterService
     {

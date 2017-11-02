@@ -1,4 +1,4 @@
-﻿namespace Allocations.Models.Framework
+﻿namespace Allocations.Models
 {
     public class CalculationResult
     {

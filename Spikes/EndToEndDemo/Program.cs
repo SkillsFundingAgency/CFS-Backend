@@ -8,9 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Allocations.Models;
-using Allocations.Models.Framework;
 using Allocations.Repository;
-using AY1718.CSharp.Datasets;
 using Newtonsoft.Json;
 using Allocations.Models.Datasets;
 using Allocations.Models.Results;
@@ -19,7 +17,6 @@ using Allocations.Services.Calculator;
 using Allocations.Services.DataImporter;
 using Allocations.Services.TestRunner;
 using Allocations.Services.TestRunner.Vocab;
-using AY1718.CSharp.Allocations;
 
 namespace EndToEndDemo
 {

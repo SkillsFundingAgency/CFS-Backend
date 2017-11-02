@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Allocations.Models.Framework
+namespace Allocations.Models
 {
     public class DatasetAttribute : Attribute
     {

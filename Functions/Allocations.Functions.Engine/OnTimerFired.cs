@@ -4,13 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Allocations.Models;
 using Allocations.Models.Datasets;
-using Allocations.Models.Framework;
 using Allocations.Models.Results;
 using Allocations.Models.Specs;
 using Allocations.Repository;
+using Allocations.Services.Calculator;
 using Allocations.Services.TestRunner;
 using Allocations.Services.TestRunner.Vocab;
-using AY1718.CSharp.Allocations;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
@@ -30,11 +29,10 @@ namespace Allocations.Functions.Engine
         {
             using (var repository = new Repository<ProviderSourceDataset>("datasets"))
             {
-                var modelName = "SBS1718";
 
-
+                var budgetDefinition = await GetBudget();
                 var datasetsByUrn = repository.Query().ToArray().GroupBy(x => x.ProviderUrn);
-                var allocationFactory = new AllocationFactory(typeof(SBSPrimary).Assembly);
+                var allocationFactory = new AllocationFactory(budgetDefinition);
                 foreach (var urn in datasetsByUrn)
                 {
                     var typedDatasets = new List<object>();
@@ -50,17 +48,17 @@ namespace Allocations.Functions.Engine
                     }
 
                     var model =
-                        allocationFactory.CreateAllocationModel(modelName);
+                        allocationFactory.CreateAllocationModel(budgetDefinition.Name);
 
-                    var budgetDefinition = await GetBudget();
+
+                    var calculationResults = model.Execute(budgetDefinition.Name, urn.Key, typedDatasets.ToArray());
+
+                    var providerAllocations = calculationResults.ToDictionary(x => x.ProductName);
 
                     var gherkinValidator = new GherkinValidator(new ProductGherkinVocabulary());
                     var gherkinExecutor = new GherkinExecutor(new ProductGherkinVocabulary());
 
 
-                    var calculationResults = model.Execute(modelName, urn.Key, typedDatasets.ToArray());
-
-                    var providerAllocations = calculationResults.ToDictionary(x => x.ProductName);
                     using (var allocationRepository = new Repository<ProviderResult>("results"))
                     {
                         var result = new ProviderResult
@@ -138,6 +136,7 @@ namespace Allocations.Functions.Engine
                 }
             }
         }
+
 
         private static async Task<Budget> GetBudget()
         {

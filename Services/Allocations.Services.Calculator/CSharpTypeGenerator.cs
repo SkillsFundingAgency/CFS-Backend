@@ -109,10 +109,8 @@ namespace Allocations.Services.Calculator
                             SyntaxFactory.IdentifierName("Datasets"))),
                     SyntaxFactory.UsingDirective(
                         SyntaxFactory.QualifiedName(
-                            SyntaxFactory.QualifiedName(
                                 SyntaxFactory.IdentifierName("Allocations"),
-                                SyntaxFactory.IdentifierName("Models")),
-                            SyntaxFactory.IdentifierName("Framework"))),
+                            SyntaxFactory.IdentifierName("Models"))),
                     SyntaxFactory.UsingDirective(
                         SyntaxFactory.QualifiedName(
                             SyntaxFactory.IdentifierName("Newtonsoft"),

@@ -11,10 +11,8 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Allocations.Services.Calculator
 {
-    public class ProductFolderTypeGenerator : CSharpTypeGenerator
+    public class ProductTypeGenerator : CSharpTypeGenerator
     {
-
-
         public CompilationUnitSyntax GenerateCalcs(Budget budget)
         {
             return CompilationUnit()
@@ -121,9 +119,7 @@ namespace Allocations.Services.Calculator
         {
             return PropertyDeclaration(
                     IdentifierName(Identifier(datasetDefinition.Name)), Identifier(datasetDefinition.Name))
-                //.WithAttributeLists(
-                //    List(PropertyAttributes(fieldDefinition.LongName, CSharpTypeGenerator.IdentifierCamelCase(fieldDefinition.Name))))
-                .WithModifiers(
+                 .WithModifiers(
                     TokenList(
                         Token(SyntaxKind.PublicKeyword)))
                 .WithAccessorList(
@@ -140,38 +136,6 @@ namespace Allocations.Services.Calculator
                                     .WithSemicolonToken(
                                         Token(SyntaxKind.SemicolonToken))
                             })));
-        }
-
-
-        private static IEnumerable<AttributeListSyntax> PropertyAttributes(string description, string jsonIdentifier)
-        {
-            //if (!string.IsNullOrWhiteSpace(description))
-            //{
-            //    yield return AttributeList(
-            //        SingletonSeparatedList(
-            //            Attribute(
-            //                    IdentifierName("Description"))
-            //                .WithArgumentList(
-            //                    AttributeArgumentList(
-            //                        SingletonSeparatedList(
-            //                            AttributeArgument(
-            //                                LiteralExpression(
-            //                                    SyntaxKind.StringLiteralExpression,
-            //                                    Literal(description))))))));
-            //}
-
-            yield return AttributeList(
-                SingletonSeparatedList(
-                    Attribute(
-                            IdentifierName("JsonProperty"))
-                        .WithArgumentList(
-                            AttributeArgumentList(
-                                SingletonSeparatedList(
-                                    AttributeArgument(
-                                        LiteralExpression(
-                                            SyntaxKind.StringLiteralExpression,
-                                            Literal(jsonIdentifier))))))));
-
         }
 
         private static SyntaxList<AttributeListSyntax> ClassAttributes(string modelName)

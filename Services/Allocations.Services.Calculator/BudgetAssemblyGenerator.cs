@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Allocations.Models;
 using Allocations.Models.Datasets;
-using Allocations.Models.Framework;
 using Allocations.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -25,7 +25,7 @@ namespace Allocations.Services.Calculator
 
             var datasetSyntaxTrees = budget.DatasetDefinitions.Select(x => datacon.Test(budget, x).SyntaxTree);
 
-            var calc = new ProductFolderTypeGenerator();
+            var calc = new ProductTypeGenerator();
 
             var calcSyntaxTree = calc.GenerateCalcs(budget).SyntaxTree;
 
