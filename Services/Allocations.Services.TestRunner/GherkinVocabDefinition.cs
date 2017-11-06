@@ -12,7 +12,7 @@ namespace Allocations.Services.TestRunner
 
         public GherkinStepAction GetAction(Step step)
         {
-            foreach (var stepAction in StepsAction.Where(x => x.Keywords.Contains(step.Keyword.Trim())))
+            foreach (var stepAction in StepsAction)
             {
                 if (stepAction.RegularExpression.IsMatch(step.Text))
                 {

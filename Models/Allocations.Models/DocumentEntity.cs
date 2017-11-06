@@ -7,6 +7,10 @@ namespace Allocations.Models
     [DataContract]
     public abstract class DocumentEntity
     {
+        protected DocumentEntity()
+        {
+            DocumentType = GetType().Name;
+        }
         [JsonProperty("id")]
         public abstract string Id { get; }
 

@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Allocations.Framework")]
+[assembly: AssemblyTitle("Allocations.Services.Calculator")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Allocations.Framework")]
+[assembly: AssemblyProduct("Allocations.Services.Calculator")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("bbcbefef-a2cd-411f-8eb6-b305ab261767")]
+[assembly: Guid("406dbfc9-a5f9-4a89-87ce-a0334a2cfe47")]
 
 // Version information for an assembly consists of the following four values:
 //

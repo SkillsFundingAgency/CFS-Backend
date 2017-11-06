@@ -4,13 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Allocations.Models;
 using Allocations.Models.Datasets;
-using Allocations.Models.Framework;
 using Allocations.Models.Results;
 using Allocations.Models.Specs;
 using Allocations.Repository;
+using Allocations.Services.Calculator;
 using Allocations.Services.TestRunner;
 using Allocations.Services.TestRunner.Vocab;
-using AY1718.CSharp.Allocations;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
@@ -26,22 +25,28 @@ namespace Allocations.Functions.Engine
             await GenerateAllocations();
         }
 
-        private static async Task GenerateAllocations()
+    private static async Task GenerateAllocations()
         {
             using (var repository = new Repository<ProviderSourceDataset>("datasets"))
             {
-                var modelName = "SBS1718";
-
-
+                
+                var budgetDefinition = await GetBudget();
                 var datasetsByUrn = repository.Query().ToArray().GroupBy(x => x.ProviderUrn);
-                var allocationFactory = new AllocationFactory(typeof(SBSPrimary).Assembly);
+                var allocationFactory = new AllocationFactory(budgetDefinition);
                 foreach (var urn in datasetsByUrn)
                 {
-                    var typedDatasets = new List<object>();
+                     var typedDatasets = new List<object>();
 
+                    string providerName = urn.Key;
                     foreach (var dataset in urn)
                     {
                         var type = allocationFactory.GetDatasetType(dataset.DatasetName);
+                        var nameField = type.GetProperty("PoviderName");
+                        if (nameField != null)
+                        {
+                            providerName = nameField.GetValue(dataset)?.ToString();
+                        }
+
                         var datasetAsJson = repository.QueryAsJson($"SELECT * FROM ds WHERE ds.id='{dataset.Id}' AND ds.deleted = false").First();
 
 
@@ -50,22 +55,22 @@ namespace Allocations.Functions.Engine
                     }
 
                     var model =
-                        allocationFactory.CreateAllocationModel(modelName);
+                        allocationFactory.CreateAllocationModel(budgetDefinition.Name);
 
-                    var budgetDefinition = await GetBudget();
+   
+                    var calculationResults = model.Execute(budgetDefinition.Name, urn.Key, typedDatasets.ToArray());
+                    
+                    var providerAllocations = calculationResults.ToDictionary(x => x.ProductName);
 
                     var gherkinValidator = new GherkinValidator(new ProductGherkinVocabulary());
                     var gherkinExecutor = new GherkinExecutor(new ProductGherkinVocabulary());
 
 
-                    var calculationResults = model.Execute(modelName, urn.Key, typedDatasets.ToArray());
-
-                    var providerAllocations = calculationResults.ToDictionary(x => x.ProductName);
                     using (var allocationRepository = new Repository<ProviderResult>("results"))
                     {
                         var result = new ProviderResult
                         {
-                            Provider = new Reference(urn.Key, urn.Key),
+                            Provider = new Reference(urn.Key, providerName),
                             Budget = new Reference(budgetDefinition.Id, budgetDefinition.Name),
                             SourceDatasets = typedDatasets.ToArray()
                         };
@@ -74,7 +79,7 @@ namespace Allocations.Functions.Engine
                         {
                             Provider = new Reference(urn.Key, urn.Key),
                             Budget = new Reference(budgetDefinition.Id, budgetDefinition.Name)
-
+                           
                         };
                         var scenarioResults = new List<ProductTestScenarioResult>();
                         foreach (var fundingPolicy in budgetDefinition.FundingPolicies)
@@ -102,8 +107,9 @@ namespace Allocations.Functions.Engine
                                         {
                                             var validationErrors = gherkinValidator.Validate(budgetDefinition, product.FeatureFile).ToArray();
 
+
                                             var executeResults =
-                                                gherkinExecutor.Execute(productResult, product.FeatureFile);
+                                                gherkinExecutor.Execute(productResult, typedDatasets, product.FeatureFile);
 
                                             foreach (var executeResult in executeResults)
                                             {
@@ -115,7 +121,20 @@ namespace Allocations.Functions.Engine
                                                     Product = product,
                                                     ScenarioName = executeResult.ScenarioName,
                                                     ScenarioDescription = executeResult.ScenarioDescription,
-                                                    TestResult = executeResult.HasErrors ? TestResult.Failed : TestResult.Passed
+                                                    TestResult = 
+                                                        executeResult.StepsExecuted < executeResult.TotalSteps 
+                                                        ? TestResult.Ignored
+                                                        : executeResult.HasErrors 
+                                                            ? TestResult.Failed 
+                                                            : TestResult.Passed ,
+                                                    StepExected = executeResult.StepsExecuted,
+                                                    TotalSteps = executeResult.TotalSteps,
+                                                    DatasetReferences = executeResult.Dependencies.Select(x => new DatasetReference
+                                                    {
+                                                        DatasetName = x.DatasetName,
+                                                        FieldName = x.FieldName,
+                                                        Value = x.Value
+                                                    }).ToArray()
                                                 });
                                             }
                                         }
@@ -138,6 +157,7 @@ namespace Allocations.Functions.Engine
                 }
             }
         }
+
 
         private static async Task<Budget> GetBudget()
         {

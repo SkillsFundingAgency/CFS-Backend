@@ -34,6 +34,9 @@ namespace Allocations.Models.Specs
         [JsonProperty("name")]
         public string Name { get; set; }
 
+        [JsonProperty("description")]
+        public string Description { get; set; }
+
         [JsonProperty("fieldDefinitions")]
         public DatasetFieldDefinition[] FieldDefinitions { get; set; }
     }
@@ -49,8 +52,13 @@ namespace Allocations.Models.Specs
         [JsonProperty("longName")]
         public string LongName { get; set; }
 
+        [JsonProperty("description")]
+        public string Description { get; set; }
+
         [JsonProperty("type")]
         public TypeCode Type { get; set; }
+
+
     }
 
 }

@@ -12,9 +12,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Common\Allocations.Repository\Allocations.Repository.csproj" />
-    <ProjectReference Include="..\..\Models\Allocations.Models.Framework\Allocations.Models.Framework.csproj" />
     <ProjectReference Include="..\..\Models\Allocations.Models\Allocations.Models.csproj" />
-    <ProjectReference Include="..\..\Models\AY1718.CSharp\AY1718.CSharp.csproj" />
+    <ProjectReference Include="..\..\Services\Allocations.Services.Calculator\Allocations.Services.Calculator.csproj" />
     <ProjectReference Include="..\..\Services\Allocations.Services.TestRunner\Allocations.Services.TestRunner.csproj" />
   </ItemGroup>
   <ItemGroup>

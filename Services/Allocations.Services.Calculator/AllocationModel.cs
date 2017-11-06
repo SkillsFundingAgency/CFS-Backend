@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Allocations.Models;
 
-namespace Allocations.Models.Framework
+namespace Allocations.Services.Calculator
 {
     public class AllocationModel
     {
         public string ModelName { get; }
-        internal List<object> AllocationProcessors  = new List<object>();
+        public List<object> AllocationProcessors  = new List<object>();
 
         public AllocationModel(string modelName)
         {
