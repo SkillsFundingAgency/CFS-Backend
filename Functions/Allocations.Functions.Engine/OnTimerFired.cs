@@ -101,7 +101,7 @@ namespace Allocations.Functions.Engine
                                             var validationErrors = gherkinValidator.Validate(budgetDefinition, product.FeatureFile).ToArray();
 
                                             var executeResults =
-                                                gherkinExecutor.Execute(productResult, product.FeatureFile);
+                                                gherkinExecutor.Execute(productResult, typedDatasets, product.FeatureFile);
 
                                             foreach (var executeResult in executeResults)
                                             {

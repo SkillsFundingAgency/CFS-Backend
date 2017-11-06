@@ -53,6 +53,8 @@ namespace Allocations.Services.DataImporter
         public DateTimeOffset DateOpened { get; set; }
         [JsonProperty("localAuthority")]
         public string LocalAuthority { get; set; }
+        [JsonProperty("phase")]
+        public string Phase { get; set; }
 
     }
 
@@ -81,7 +83,9 @@ namespace Allocations.Services.DataImporter
                         DateOpened = aptSourceRecord.DateOpened,
                         LocalAuthority = aptSourceRecord.LocalAuthority,
                         ProviderName = aptSourceRecord.ProviderName,
-                        UPIN = aptSourceRecord.UPIN
+                        UPIN = aptSourceRecord.UPIN,
+                        Phase = aptSourceRecord.Phase,
+                       
                     };
                     await repository.CreateAsync(providerInformation);
 
@@ -94,6 +98,7 @@ namespace Allocations.Services.DataImporter
                         PrimaryAmount = aptSourceRecord.PrimaryAmount,
                         PrimaryAmountPerPupil = aptSourceRecord.PrimaryAmountPerPupil,
                         PrimaryNotionalSEN = aptSourceRecord.PrimaryNotionalSEN
+                       
 
 
                     };
@@ -148,7 +153,9 @@ namespace Allocations.Services.DataImporter
                                 DateOpened = aptSourceRecord.DateOpened,
                                 LocalAuthority = aptSourceRecord.LocalAuthority,
                                 ProviderName = aptSourceRecord.ProviderName,
-                                UPIN = aptSourceRecord.UPIN
+                                UPIN = aptSourceRecord.UPIN,
+                                Phase = aptSourceRecord.Phase
+                                
                             };
                             await repository.CreateAsync(providerInformation);
 

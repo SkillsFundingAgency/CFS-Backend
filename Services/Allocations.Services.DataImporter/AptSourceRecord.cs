@@ -15,6 +15,9 @@ namespace Allocations.Services.DataImporter
         [SourceColumn("Provider Information.Local Authority_9426")]
         public string LocalAuthority { get; set; }
 
+        [SourceColumn("APT Adjusted Factors dataset.Phase_71703")]
+        public string Phase { get; set; }
+
         [SourceColumn("APT New ISB dataset.Basic Entitlement Primary_71855")]
         public decimal PrimaryAmount { get; set; }
         [SourceColumn("APT New ISB dataset.15-16 Post MFG per pupil Budget_71961")]
@@ -22,11 +25,11 @@ namespace Allocations.Services.DataImporter
         [SourceColumn("APT New ISB dataset.Notional SEN Budget_71939")]
         public decimal PrimaryNotionalSEN { get; set; }
 
-        //[SourceColumn("APT Inputs and Adjustments.NOR_71991")]
-        //public decimal NumberOnRoll { get; set; }
+        [SourceColumn("APT Inputs and Adjustments.NOR_71991")]
+        public decimal NumberOnRoll { get; set; }
 
-        //[SourceColumn("APT Inputs and Adjustments.NOR Primary_71993")]
-        //public decimal NumberOnRollPrimary { get; set; }
+        [SourceColumn("APT Inputs and Adjustments.NOR Primary_71993")]
+        public decimal NumberOnRollPrimary { get; set; }
 
 
     }

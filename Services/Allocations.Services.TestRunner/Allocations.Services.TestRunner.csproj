@@ -50,9 +50,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="Dependency.cs" />
     <Compile Include="GherkinError.cs" />
     <Compile Include="GherkinResult.cs" />
+    <Compile Include="GherkinScenarioResult.cs" />
     <Compile Include="GherkinStepAction.cs" />
     <Compile Include="GherkinExecutor.cs" />
     <Compile Include="GherkinValidator.cs" />

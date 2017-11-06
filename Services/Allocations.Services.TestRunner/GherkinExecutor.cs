@@ -20,13 +20,49 @@ namespace Allocations.Services.TestRunner
             _parser = new Parser();
         }
 
-        public IEnumerable<GherkinScenarioResult> Execute(ProductResult budget, string gherkin)
+        public IEnumerable<GherkinScenarioResult> Execute(ProductResult productResult, List<object> datasets, string gherkin)
         {
             var doc = _parser.Parse(new StringReader(gherkin));
 
-            foreach (var scenario in doc.Feature.Children)
+            foreach (var scenario in doc.Feature.Children.Where(x => x.Keyword == "Scenario"))
             {
-                yield return new GherkinScenarioResult{Feature = doc.Feature.Name, ScenarioName  = scenario.Name, ScenarioDescription = scenario.Description};
+                var scenarioResult = new GherkinScenarioResult { Feature = doc.Feature.Name, ScenarioName = scenario.Name, ScenarioDescription = scenario.Description };
+                var steps = scenario.Steps.ToArray();
+                scenarioResult.TotalSteps = steps.Length;
+                scenarioResult.StepsExecuted = 0;
+                foreach (var step in scenario.Steps)
+                {
+                    var action = _vocab.GetAction(step);
+                    if (action != null)
+                    {
+                        var result = action.Execute(productResult, datasets, step);
+                        if (result.Dependencies.Any())
+                        {
+                            foreach (var resultDependency in result.Dependencies)
+                            {
+                                if (!scenarioResult.Dependencies.Contains(resultDependency))
+                                {
+                                    scenarioResult.Dependencies.Add(resultDependency);
+                                }
+                            }
+                        }
+                        if (result.HasErrors)
+                        {
+                            scenarioResult.Errors.AddRange(result.Errors);
+                        }
+                        if (result.Abort)
+                        {
+                            break;
+                        }
+                        scenarioResult.StepsExecuted++;
+                    }
+                    else
+                    {
+                        scenarioResult.Errors.Add(new GherkinError("Does not match defined syntax", step.Location));
+                    }
+                }
+
+                yield return scenarioResult;
             }
         }
 

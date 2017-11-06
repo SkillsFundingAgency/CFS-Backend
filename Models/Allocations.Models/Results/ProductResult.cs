@@ -57,7 +57,18 @@ namespace Allocations.Models.Results
     {
         Inconclusive,
         Failed,
-        Passed
+        Passed,
+        Ignored
+    }
+
+    public class DatasetReference 
+    {
+        [JsonProperty("datasetName")]
+        public string DatasetName { get; set; }
+        [JsonProperty("fieldName")]
+        public string FieldName { get; set; }
+        [JsonProperty("value")]
+        public string Value { get; set; }
     }
 
     public class ProductTestScenarioResult
@@ -86,6 +97,12 @@ namespace Allocations.Models.Results
 
         [JsonProperty("tags")]
         public string[] Tags { get; set; }
+        [JsonProperty("stepsExecuted")]
+        public int StepExected { get; set; }
+        [JsonProperty("totalSteps")]
+        public int TotalSteps { get; set; }
+        [JsonProperty("datasetReferences")]
+        public DatasetReference[] DatasetReferences { get; set; }
     }
 
 }
