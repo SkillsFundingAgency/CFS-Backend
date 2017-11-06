@@ -25,21 +25,28 @@ namespace Allocations.Functions.Engine
             await GenerateAllocations();
         }
 
-        private static async Task GenerateAllocations()
+    private static async Task GenerateAllocations()
         {
             using (var repository = new Repository<ProviderSourceDataset>("datasets"))
             {
-
+                
                 var budgetDefinition = await GetBudget();
                 var datasetsByUrn = repository.Query().ToArray().GroupBy(x => x.ProviderUrn);
                 var allocationFactory = new AllocationFactory(budgetDefinition);
                 foreach (var urn in datasetsByUrn)
                 {
-                    var typedDatasets = new List<object>();
+                     var typedDatasets = new List<object>();
 
+                    string providerName = urn.Key;
                     foreach (var dataset in urn)
                     {
                         var type = allocationFactory.GetDatasetType(dataset.DatasetName);
+                        var nameField = type.GetProperty("PoviderName");
+                        if (nameField != null)
+                        {
+                            providerName = nameField.GetValue(dataset)?.ToString();
+                        }
+
                         var datasetAsJson = repository.QueryAsJson($"SELECT * FROM ds WHERE ds.id='{dataset.Id}' AND ds.deleted = false").First();
 
 
@@ -50,9 +57,9 @@ namespace Allocations.Functions.Engine
                     var model =
                         allocationFactory.CreateAllocationModel(budgetDefinition.Name);
 
-
+   
                     var calculationResults = model.Execute(budgetDefinition.Name, urn.Key, typedDatasets.ToArray());
-
+                    
                     var providerAllocations = calculationResults.ToDictionary(x => x.ProductName);
 
                     var gherkinValidator = new GherkinValidator(new ProductGherkinVocabulary());
@@ -63,7 +70,7 @@ namespace Allocations.Functions.Engine
                     {
                         var result = new ProviderResult
                         {
-                            Provider = new Reference(urn.Key, urn.Key),
+                            Provider = new Reference(urn.Key, providerName),
                             Budget = new Reference(budgetDefinition.Id, budgetDefinition.Name),
                             SourceDatasets = typedDatasets.ToArray()
                         };
@@ -72,7 +79,7 @@ namespace Allocations.Functions.Engine
                         {
                             Provider = new Reference(urn.Key, urn.Key),
                             Budget = new Reference(budgetDefinition.Id, budgetDefinition.Name)
-
+                           
                         };
                         var scenarioResults = new List<ProductTestScenarioResult>();
                         foreach (var fundingPolicy in budgetDefinition.FundingPolicies)
@@ -100,6 +107,7 @@ namespace Allocations.Functions.Engine
                                         {
                                             var validationErrors = gherkinValidator.Validate(budgetDefinition, product.FeatureFile).ToArray();
 
+
                                             var executeResults =
                                                 gherkinExecutor.Execute(productResult, typedDatasets, product.FeatureFile);
 
@@ -113,7 +121,20 @@ namespace Allocations.Functions.Engine
                                                     Product = product,
                                                     ScenarioName = executeResult.ScenarioName,
                                                     ScenarioDescription = executeResult.ScenarioDescription,
-                                                    TestResult = executeResult.HasErrors ? TestResult.Failed : TestResult.Passed
+                                                    TestResult = 
+                                                        executeResult.StepsExecuted < executeResult.TotalSteps 
+                                                        ? TestResult.Ignored
+                                                        : executeResult.HasErrors 
+                                                            ? TestResult.Failed 
+                                                            : TestResult.Passed ,
+                                                    StepExected = executeResult.StepsExecuted,
+                                                    TotalSteps = executeResult.TotalSteps,
+                                                    DatasetReferences = executeResult.Dependencies.Select(x => new DatasetReference
+                                                    {
+                                                        DatasetName = x.DatasetName,
+                                                        FieldName = x.FieldName,
+                                                        Value = x.Value
+                                                    }).ToArray()
                                                 });
                                             }
                                         }
