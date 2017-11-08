@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
@@ -13,62 +14,65 @@ using Newtonsoft.Json;
 
 namespace Allocations.Services.Calculator
 {
-    public class BudgetAssemblyGenerator
+    public static class BudgetCompiler
     {
 
-        public Assembly GenerateAssembly(Budget budget)
+        public static BudgetCompilerOutput GenerateAssembly(Budget budget)
         {
             StringBuilder sb = new StringBuilder();
 
 
-            var datacon = new DatasetTypeGenerator();
+            var datasetTypeGenerator = new DatasetTypeGenerator();
+            var productTypeGenerator = new ProductTypeGenerator();
 
-            var datasetSyntaxTrees = budget.DatasetDefinitions.Select(x => datacon.Test(budget, x).SyntaxTree);
-
-            var calc = new ProductTypeGenerator();
-
-            var calcSyntaxTree = calc.GenerateCalcs(budget).SyntaxTree;
-
-            File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{budget.Name}.datasets.cs"), string.Join(Environment.NewLine, datasetSyntaxTrees.Select(x => x.ToString())));
-            File.WriteAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{budget.Name}.cs"), calcSyntaxTree.ToString());
+            var datasetSyntaxTrees = budget.DatasetDefinitions.Select(x => datasetTypeGenerator.Test(budget, x).SyntaxTree);
+            var calcSyntaxTree = productTypeGenerator.GenerateCalcs(budget).SyntaxTree;
 
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
-            var references = new[]
-            {
+            MetadataReference[] references = {
                 AssemblyMetadata.CreateFromFile(typeof(object).Assembly.Location).GetReference(),
                 AssemblyMetadata.CreateFromFile(typeof(ProviderSourceDataset).Assembly.Location).GetReference(),
                 AssemblyMetadata.CreateFromFile(typeof(CalculationResult).Assembly.Location).GetReference(),
                 AssemblyMetadata.CreateFromFile(typeof(RequiredAttribute).Assembly.Location).GetReference(),
                 AssemblyMetadata.CreateFromFile(typeof(JsonPropertyAttribute).Assembly.Location).GetReference(),
-                //AssemblyMetadata.CreateFromStream(datasetAssembly).GetReference(),
             };
 
 
-            var compilation = CSharpCompilation.Create($"calcs.dll")
+            var compilation = CSharpCompilation.Create($"budget.dll")
                 .WithOptions(options)
                 .AddSyntaxTrees(datasetSyntaxTrees)
                 .AddSyntaxTrees(calcSyntaxTree)
                 .AddReferences(references);
 
-            var diagnostics = compilation.GetDiagnostics();
-            sb.AppendLine("Output:");
 
-            foreach (var diagnostic in diagnostics)
+            var compilerOutput = new BudgetCompilerOutput
             {
-                sb.AppendLine(diagnostic.ToString());
-            }
+                Budget = budget,
+                DatasetSourceCode = datasetSyntaxTrees.ToString(),
+                CalculationSourceCode = calcSyntaxTree.ToString()
+            };
+
 
             using (var ms = new MemoryStream())
             {
                 var result = compilation.Emit(ms);
+                compilerOutput.Success = result.Success;
+                compilerOutput.CompilerMessages = result.Diagnostics.Select(x => new CompilerMessage{Message = x.GetMessage(), Severity = (Severity) x.Severity}).ToList();
+                if (compilerOutput.Success)
+                {
+                    ms.Seek(0L, SeekOrigin.Begin);
 
-                ms.Seek(0L, SeekOrigin.Begin);
+                    byte[] data = new byte[ms.Length];
+                    ms.Read(data, 0, data.Length);
+                    compilerOutput.Assembly = Assembly.Load(data);
+                }
+                
 
-                byte[] data = new byte[ms.Length];
-                ms.Read(data, 0, data.Length);
-                return Assembly.Load(data);
+
             }
+
+            return compilerOutput;
         }
     }
 }

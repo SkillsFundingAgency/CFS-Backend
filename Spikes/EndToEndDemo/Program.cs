@@ -43,146 +43,19 @@ namespace EndToEndDemo
                     }
                 }
 
+                var budgetDefinition = await GetBudget();
 
-                await GenerateAllocations();
+                var compilerOutput = BudgetCompiler.GenerateAssembly(budgetDefinition);
+
+                var calc = new CalculationEngine(compilerOutput);
+                await calc.GenerateAllocations();
+
             }
 
             // Do any async anything you need here without worry
         ). GetAwaiter().GetResult();
     }
 
-    private static async Task GenerateAllocations()
-        {
-            using (var repository = new Repository<ProviderSourceDataset>("datasets"))
-            {
-                
-                var budgetDefinition = await GetBudget();
-                var datasetsByUrn = repository.Query().ToArray().GroupBy(x => x.ProviderUrn);
-                var allocationFactory = new AllocationFactory(budgetDefinition);
-                foreach (var urn in datasetsByUrn)
-                {
-                     var typedDatasets = new List<object>();
-
-                    string providerName = urn.Key;
-                    foreach (var dataset in urn)
-                    {
-                        var type = allocationFactory.GetDatasetType(dataset.DatasetName);
-                        var nameField = type.GetProperty("PoviderName");
-                        if (nameField != null)
-                        {
-                            providerName = nameField.GetValue(dataset)?.ToString();
-                        }
-
-                        var datasetAsJson = repository.QueryAsJson($"SELECT * FROM ds WHERE ds.id='{dataset.Id}' AND ds.deleted = false").First();
-
-
-                        object blah = JsonConvert.DeserializeObject(datasetAsJson, type);
-                        typedDatasets.Add(blah);
-                    }
-
-                    var model =
-                        allocationFactory.CreateAllocationModel(budgetDefinition.Name);
-
-   
-                    var calculationResults = model.Execute(budgetDefinition.Name, urn.Key, typedDatasets.ToArray());
-                    
-                    var providerAllocations = calculationResults.ToDictionary(x => x.ProductName);
-
-                    var gherkinValidator = new GherkinValidator(new ProductGherkinVocabulary());
-                    var gherkinExecutor = new GherkinExecutor(new ProductGherkinVocabulary());
-
-
-                    using (var allocationRepository = new Repository<ProviderResult>("results"))
-                    {
-                        var result = new ProviderResult
-                        {
-                            Provider = new Reference(urn.Key, providerName),
-                            Budget = new Reference(budgetDefinition.Id, budgetDefinition.Name),
-                            SourceDatasets = typedDatasets.ToArray()
-                        };
-                        var productResults = new List<ProductResult>();
-                        var testResult = new ProviderTestResult
-                        {
-                            Provider = new Reference(urn.Key, urn.Key),
-                            Budget = new Reference(budgetDefinition.Id, budgetDefinition.Name)
-                           
-                        };
-                        var scenarioResults = new List<ProductTestScenarioResult>();
-                        foreach (var fundingPolicy in budgetDefinition.FundingPolicies)
-                        {
-                            foreach (var allocationLine in fundingPolicy.AllocationLines)
-                            {
-                                foreach (var productFolder in allocationLine.ProductFolders)
-                                {
-                                    foreach (var product in productFolder.Products)
-                                    {
-                                        var productResult = new ProductResult
-                                        {
-                                            FundingPolicy = new Reference(fundingPolicy.Id, fundingPolicy.Name),
-                                            AllocationLine = new Reference(allocationLine.Id, allocationLine.Name),
-                                            ProductFolder = new Reference(productFolder.Id, productFolder.Name),
-                                            Product = product
-
-                                        };
-                                        if (providerAllocations.ContainsKey(product.Name))
-                                        {
-                                            productResult.Value = providerAllocations[product.Name].Value;
-                                        }
-
-                                        if (product.FeatureFile != null)
-                                        {
-                                            var validationErrors = gherkinValidator.Validate(budgetDefinition, product.FeatureFile).ToArray();
-
-
-                                            var executeResults =
-                                                gherkinExecutor.Execute(productResult, typedDatasets, product.FeatureFile);
-
-                                            foreach (var executeResult in executeResults)
-                                            {
-                                                scenarioResults.Add(new ProductTestScenarioResult
-                                                {
-                                                    FundingPolicy = new Reference(fundingPolicy.Id, fundingPolicy.Name),
-                                                    AllocationLine = new Reference(allocationLine.Id, allocationLine.Name),
-                                                    ProductFolder = new Reference(productFolder.Id, productFolder.Name),
-                                                    Product = product,
-                                                    ScenarioName = executeResult.ScenarioName,
-                                                    ScenarioDescription = executeResult.ScenarioDescription,
-                                                    TestResult = 
-                                                        executeResult.StepsExecuted < executeResult.TotalSteps 
-                                                        ? TestResult.Ignored
-                                                        : executeResult.HasErrors 
-                                                            ? TestResult.Failed 
-                                                            : TestResult.Passed ,
-                                                    StepExected = executeResult.StepsExecuted,
-                                                    TotalSteps = executeResult.TotalSteps,
-                                                    DatasetReferences = executeResult.Dependencies.Select(x => new DatasetReference
-                                                    {
-                                                        DatasetName = x.DatasetName,
-                                                        FieldName = x.FieldName,
-                                                        Value = x.Value
-                                                    }).ToArray()
-                                                });
-                                            }
-                                        }
-                                        productResults.Add(productResult);
-                                    }
-                                }
-                            }
-                        }
-                        result.ProductResults = productResults.ToArray();
-                        testResult.ScenarioResults = scenarioResults.ToArray();
-                        using (var testResultRepository = new Repository<ProviderTestResult>("results"))
-                        {
-                            await testResultRepository.CreateAsync(testResult);
-                        }
-                        await allocationRepository.CreateAsync(result);
-                    }
-
-
-
-                }
-            }
-        }
 
         private static async Task GenerateBudgetModel()
         {
@@ -222,8 +95,8 @@ namespace EndToEndDemo
                                             new Product
                                             {
                                                 Name = "P004_PriRate",
-                                                Description = "",
-                                                FeatureFile = "Feature: P004_PriRate/n/n" +
+                                                Description = "This is obtained from the \'1617\' APT Proforma Dataset - Basic Entitlement Primary Amount Per Pupil",
+                                                FeatureFile = "Feature: P004_PriRate\r\n" +
                                                 "@mytag\r\n" +
                                                 "Scenario: Only Primary providers should have Primary Rate\r\n" +
                                                 "Given 'Phase' in 'APT Provider Information' is equal to 'Primary'\r\n" +
@@ -236,6 +109,12 @@ namespace EndToEndDemo
                                                 "Given 'Phase' in 'APT Provider Information' is 'Primary'\r\n" +
                                                 "And 'NORPrimary' in 'Census Number Counts' is greater than '0'\r\n" +
                                                 "Then the result should be greater than or equal to 2000",
+                                                TestProviders = new []
+                                                {
+                                                    new Reference("140002", "The Blyth Academy"),
+                                                    new Reference("138257", "Cramlington Village Primary School")
+                                                },
+
                                                 Calculation = new ProductCalculation
                                                 {
                                                     CalculationType = CalculationType.CSharp,
@@ -255,6 +134,28 @@ namespace EndToEndDemo
                                             new Product
                                             {
                                                 Name = "P005_PriBESubtotal",
+                                                FeatureFile = "Feature: P004_PriRate\r\n" +
+                                                              "@mytag\r\n" +
+                                                              "Scenario: Only Primary providers should have Primary Rate\r\n" +
+                                                              "Given 'Phase' in 'APT Provider Information' is equal to 'Primary'\r\n" +
+                                                              "And 'NORPrimary' in 'Census Number Counts' is greater than '0'\r\n" +
+                                                              "Then the result should be greater than 0\r\n\r\n" +
+                                                              "Scenario: Only Primary providers should have Primary Rate\r\n" +
+                                                              "Given 'Phase' in 'APT Provider Information' is not 'Primary'\r\n" +
+                                                              "Then the result should be greater than '0'\r\n\r\n" +
+                                                              "Scenario: Primary Rate should be greater than 2000\r\n" +
+                                                              "Given 'Phase' in 'APT Provider Information' is 'Primary'\r\n" +
+                                                              "And 'NORPrimary' in 'Census Number Counts' is greater than '0'\r\n" +
+                                                              "Then the result should be greater than or equal to 2000",
+                                                TestProviders = new []
+                                                {
+                                                    new Reference("140002", "The Blyth Academy"),
+                                                    new Reference("138257", "Cramlington Village Primary School")
+                                                },
+
+
+
+
                                                 Calculation = new ProductCalculation
                                                 {
                                                     CalculationType = CalculationType.CSharp,

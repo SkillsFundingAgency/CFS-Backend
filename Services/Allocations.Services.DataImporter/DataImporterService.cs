@@ -47,8 +47,6 @@ namespace Allocations.Services.DataImporter
     {
         [JsonProperty("UPin")]
         public string UPIN { get; set; }
-        [JsonProperty("providerName")]
-        public string ProviderName { get; set; }
         [JsonProperty("dateOpened")]
         public DateTimeOffset DateOpened { get; set; }
         [JsonProperty("localAuthority")]

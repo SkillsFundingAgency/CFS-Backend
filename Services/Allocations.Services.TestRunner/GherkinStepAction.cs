@@ -39,6 +39,8 @@ namespace Allocations.Services.TestRunner
             var expected = expectedValue as IComparable;
             var actual = actualValue as IComparable;
 
+            if (expected != null && actual == null) return false;
+
             switch (logic.Trim().ToLowerInvariant())
             {
                 case "equal to":

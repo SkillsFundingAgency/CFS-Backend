@@ -1,0 +1,128 @@
+﻿@using Microsoft.CodeAnalysis
+@model AuthoringPrototype.Controllers.BuildProductViewModel
+@{
+    ViewBag.Title = Model.Product.Name;
+}
+
+
+<div class="row">
+    <div class="col-md-12">
+        <h1>@Model.Product.Name</h1>
+        <p>@Model.Product.Description</p>
+        
+        <form method="get">
+            @Html.HiddenFor(x => x.Product.Id)
+
+            @if (Model.Product.Calculation != null)
+            {
+                <h3>Calcuation</h3>
+                @Model.Product.Calculation.CalculationType.ToString()
+                <textarea name="calculation" class="form-control" rows="15">@Html.Raw(Model.Product.Calculation.SourceCode)</textarea>
+            }
+            
+            <a role="button" data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                @if (Model.CompilerOutput.Success)
+                {
+                    <span>Build succeeded</span>
+                }
+                else
+                {
+                    <span>Build failed</span>
+                }
+            </a>
+
+            <div class="collapse" id="collapseExample">
+                <table class="table table-condensed">
+
+
+                    @foreach (var diagostic in Model.CompilerOutput.Diagnostics.Where(x => x.Severity != DiagnosticSeverity.Hidden))
+                    {
+                        <tr>
+                            <td>@diagostic.Severity</td>
+                            <td>@diagostic.ToString()</td>
+                        </tr>
+                    
+                    }
+
+                </table>
+            </div>
+            
+
+            <h3>Test Results</h3>
+            
+            @{
+                var testStats = Model.TestResults.SelectMany(x => x.ScenarioResults).GroupBy(x => x.TestResult);
+
+                foreach (var stat in testStats)
+                {
+                    <span>@stat.Key</span> @stat.Count()
+                }
+            }
+            
+            @foreach (var testResult in Model.TestResults)
+            {
+                <h4>@testResult.Provider.Name</h4>
+                <table class="table table-condensed">
+
+
+                    @foreach (var scenarioResult in testResult.ScenarioResults)
+                    {
+                        <tr>
+                            <td>@scenarioResult.TestResult</td>
+                            <td>@scenarioResult.Product.Name</td>
+                            <td>@scenarioResult.ProductValue.ToString()</td>
+                            <td>@scenarioResult.ScenarioName</td>
+                            <td>@scenarioResult.StepExected/@scenarioResult.TotalSteps </td>
+                            @{
+                                var first = scenarioResult.DatasetReferences?.FirstOrDefault();
+                                if (first != null)
+                                {
+                                    <td>@first.DatasetName</td>
+                                    <td>@first.FieldName</td>
+                                    <td>@first.Value</td>
+                                }
+                                else
+                                {
+                                    <td colspan="3"></td>
+                                }
+                            }
+                            
+                        </tr>
+
+
+                                var others = scenarioResult.DatasetReferences?.Skip(1);
+                        if (others != null)
+                        {
+                            foreach (var other in others)
+                            {
+                                <td colspan="5"></td>
+                                <td>@other.DatasetName</td>
+                                <td>@other.FieldName</td>
+                                <td>@other.Value</td>
+                            }
+                        }
+
+                         
+                    
+                    }
+                    
+
+
+                </table>
+            }
+            <button type="submit" class="btn btn-default">Build</button>
+        </form>
+    </div>
+  
+</div>
+
+@section scripts
+{
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.9/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script>
+        var editor = ace.edit("editor");
+        editor.
+        editor.setTheme("ace/theme/twilight");
+    </script>
+}

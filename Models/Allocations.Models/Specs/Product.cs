@@ -16,6 +16,8 @@ namespace Allocations.Models.Specs
         public string FeatureFile { get; set; }
         [JsonProperty("calculation")]
         public ProductCalculation Calculation { get; set; }
+        [JsonProperty("testProviders")]
+        public Reference[] TestProviders { get; set; }
     }
 
     //[] Move to budget/folder??
