@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="gherkin" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Allocations.Models.Budgets\Allocations.Models.Budgets.csproj" />
+    <ProjectReference Include="..\Allocations.Models.Results\Allocations.Models.Results.csproj" />
+  </ItemGroup>
+
+</Project>
