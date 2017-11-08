@@ -5,24 +5,7 @@ using Newtonsoft.Json;
 
 namespace Allocations.Models.Results
 {
-    [SearchIndex(IndexerForType = typeof(ProductTestScenarioResult),
-        CollectionName = "results",
-        DatabaseName = "allocations",
-        IndexerQuery = @"
-            SELECT  tr.id, 
-                    tr._ts,
-                    tr.budget.id as budgetId,
-                    tr.provider.id as providerId,
-                    sr.fundingPolicy.id as fundingPolicyId,
-                    sr.fundingPolicy.name as fundingPolicyName,
-                    sr.scenarioName,
-                    sr.testResult
-            FROM tr
-            JOIN sr IN tr.scenarioResults
-            WHERE tr.documentType = 'ProviderTestResult'
-            AND tr._ts > @HighWaterMark
-        ")]
-    public class ProductTestScenarioResultIndex
+    public class ProviderResultIndex
     {
         [Key]
         [IsSearchable]
@@ -42,14 +25,14 @@ namespace Allocations.Models.Results
         [JsonProperty("providerId")]
         public string ProviderId { get; set; }
 
-        [IsFacetable]
-        [JsonProperty("fundingPolicyId")]
-        public string FundingPolicyId { get; set; }
+        [IsSearchable]
+        [JsonProperty("providerName")]
+        public string ProviderName { get; set; }
 
         [IsSearchable]
-        [IsFacetable]
-        [JsonProperty("fundingPolicyName")]
-        public string FundingPolicyName { get; set; }
+        [JsonProperty("localAuthority")]
+        public string LocalAuthority { get; set; }
+
 
         [IsSearchable]
         [IsFacetable]

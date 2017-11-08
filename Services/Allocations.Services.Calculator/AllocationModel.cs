@@ -8,15 +8,10 @@ namespace Allocations.Services.Calculator
 {
     public class AllocationModel
     {
-        public string ModelName { get; }
         public List<object> AllocationProcessors  = new List<object>();
 
-        public AllocationModel(string modelName)
-        {
-            ModelName = modelName;
-        }
 
-        public IEnumerable<CalculationResult> Execute(string modelName, string urn, object[] datasets)
+        public IEnumerable<CalculationResult> Execute(string modelName, object[] datasets)
         {
             foreach (var allocation in AllocationProcessors)
             {
@@ -37,35 +32,39 @@ namespace Allocations.Services.Calculator
                 {
                     object result = null;
 
-
-
-
-
                     ParameterInfo[] parameters = executeMethod.GetParameters();
 
-
+                    Exception exception= null;
                     if (parameters.Length == 0)
                     {
-                        result = executeMethod.Invoke(allocation, null);
+                        try
+                        {
+                            result = executeMethod.Invoke(allocation, null);
+                        }
+                        catch (Exception e)
+                        {
+                            exception = e;
+                        }
+
+                    }
+
+                    if (exception != null)
+                    {
+                      //  yield return new CalculationResult(exception);
                     }
                     else
                     {
-                        object[] parametersArray = new object[parameters.Length];
-                        for (var i = 0; i < parametersArray.Length; i++)
+
+                        var returnType = executeMethod.ReturnType;
+                        if (returnType.IsAssignableFrom(typeof(CalculationResult)))
                         {
-                            var parameterInfo = parameters[i];
-                            var dataset = datasets.FirstOrDefault(x => x.GetType() == parameterInfo.ParameterType);
-                            parametersArray[i] = dataset;
+                            var allocationResult = Convert.ChangeType(result, returnType) as CalculationResult;
+                            yield return allocationResult;
                         }
-                        result = executeMethod.Invoke(allocation, parametersArray);
                     }
 
-                    var returnType = executeMethod.ReturnType;
-                    if (returnType.IsAssignableFrom(typeof(CalculationResult)))
-                    {
-                        var allocationResult = Convert.ChangeType(result, returnType) as CalculationResult;
-                        yield return allocationResult;
-                    }
+
+
                 }
 
                 var getters = allocationType.GetProperties().Where(x => x.CanRead).ToArray();
@@ -79,8 +78,6 @@ namespace Allocations.Services.Calculator
 
 
             }
-       
-
 
         }
     }

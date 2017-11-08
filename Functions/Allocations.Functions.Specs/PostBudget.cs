@@ -1,4 +1,3 @@
-using System;
 using System.Configuration;
 using System.Net;
 using System.Net.Http;
@@ -11,16 +10,18 @@ using Allocations.Repository;
 
 namespace Allocations.Functions.Specs
 {
-    public static class PostBudget
+    public static partial class PostBudget
     {
         [FunctionName("PostBudget")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "post")]HttpRequestMessage req, TraceWriter log)
+        public static async Task<HttpResponseMessage> Run(
+            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestMessage req, TraceWriter log)
         {
             var budget = await req.Content.ReadAsAsync<Budget>();
 
             if (budget == null)
             {
-                return req.CreateResponse(HttpStatusCode.BadRequest, "Please ensure budget is passed in the request body");
+                return req.CreateResponse(HttpStatusCode.BadRequest,
+                    "Please ensure budget is passed in the request body");
             }
 
             using (var repository = new Repository<Budget>("specs"))

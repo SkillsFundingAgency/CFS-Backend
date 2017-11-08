@@ -1,4 +1,6 @@
-﻿namespace Allocations.Models
+﻿using System;
+
+namespace Allocations.Models
 {
     public class CalculationResult
     {
@@ -8,7 +10,14 @@
             Value = value;
         }
 
+        public CalculationResult(Exception exception)
+        {
+            Exception = exception;
+        }
+
         public string ProductName { get; }
         public decimal Value { get; }
+
+        public Exception Exception { get; }
     }
 }

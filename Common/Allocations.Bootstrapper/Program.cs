@@ -34,6 +34,7 @@ namespace Allocations.Boostrapper
                             result.Value.SearchPrimaryKey, result.Value.CosmosDBConnectionString);
 
                         await searchInitializer.Initialise(typeof(ProductTestScenarioResultIndex));
+                        await searchInitializer.Initialise(typeof(ProviderResultIndex));
                     }
                     catch (Exception e)
                     {
