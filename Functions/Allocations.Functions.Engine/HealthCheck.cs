@@ -14,7 +14,7 @@ namespace Allocations.Functions.Engine
 {
     public static class HealthCheck
     {
-        [FunctionName("HealthCheck")]
+        [FunctionName("health-check")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
         {
             var versionNumber = typeof(Budget).Assembly.GetName().Version;
