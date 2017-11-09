@@ -26,7 +26,7 @@ namespace Allocations.Functions.Results
             SearchIndexClient = searchServiceClient.Indexes.GetClient((typeof(ProductTestScenarioResultIndex).Name.ToLowerInvariant()));
         }
 
-        [FunctionName("GetProductTestResults")]
+        [FunctionName("product-tests")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
         {
             log.Info("C# HTTP trigger function processed a request.");

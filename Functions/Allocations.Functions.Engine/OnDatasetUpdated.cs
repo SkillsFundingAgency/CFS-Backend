@@ -8,7 +8,7 @@ namespace Allocations.Functions.Engine
 {
     public static class OnDatasetUpdated
     {
-        [FunctionName("OnDatasetUpdated")]
+        [FunctionName("on-dataset-updated")]
         public static async Task Run(
             [CosmosDBTrigger(
             "allocations", 

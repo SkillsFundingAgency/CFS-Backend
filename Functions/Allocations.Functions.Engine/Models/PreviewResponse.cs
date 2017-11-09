@@ -3,7 +3,7 @@ using Allocations.Models.Results;
 using Allocations.Models.Specs;
 using Allocations.Services.Calculator;
 
-namespace Allocations.Functions.Engine
+namespace Allocations.Functions.Engine.Models
 {
     public class PreviewResponse
     {
