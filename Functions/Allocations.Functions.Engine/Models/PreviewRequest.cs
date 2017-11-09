@@ -1,4 +1,4 @@
-namespace Allocations.Functions.Engine
+namespace Allocations.Functions.Engine.Models
 {
 
     public class PreviewRequest

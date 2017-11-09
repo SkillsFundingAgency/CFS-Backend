@@ -18,7 +18,7 @@ namespace Allocations.Functions.Engine
 {
     public static class OnTimerFired
     {
-        [FunctionName("OnTimerFired")]
+        [FunctionName("on-timer-fired")]
         public static async Task Run([TimerTrigger("0 */5 * * * *")]TimerInfo myTimer, TraceWriter log)
         {
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");

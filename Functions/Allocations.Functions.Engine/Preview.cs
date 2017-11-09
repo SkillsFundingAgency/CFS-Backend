@@ -2,6 +2,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Allocations.Functions.Engine.Models;
 using Allocations.Models;
 using Allocations.Models.Specs;
 using Allocations.Repository;
@@ -14,33 +15,10 @@ using Newtonsoft.Json.Serialization;
 
 namespace Allocations.Functions.Engine
 {
-    public static class PostPreview
+    public static class Preview
     {
-        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
-        {
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            Formatting = Formatting.Indented
 
-        };
-
-        private static Product GetProduct(string id, Budget budget)
-        {
-            Product product = null;
-            foreach (var fundingPolicy in budget.FundingPolicies)
-            {
-                foreach (var allocationLine in fundingPolicy.AllocationLines)
-                {
-                    foreach (var productFolder in allocationLine.ProductFolders)
-                    {
-                        product = productFolder.Products.FirstOrDefault(x => x.Id == id);
-                    }
-                }
-            }
-            return product;
-        }
-
-
-        [FunctionName("PostPreview")]
+        [FunctionName("preview")]
         public static async Task<HttpResponseMessage> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestMessage req, TraceWriter log)
         {
@@ -89,5 +67,30 @@ namespace Allocations.Functions.Engine
                 };
             }
         }
+
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            Formatting = Formatting.Indented
+
+        };
+
+        private static Product GetProduct(string id, Budget budget)
+        {
+            Product product = null;
+            foreach (var fundingPolicy in budget.FundingPolicies)
+            {
+                foreach (var allocationLine in fundingPolicy.AllocationLines)
+                {
+                    foreach (var productFolder in allocationLine.ProductFolders)
+                    {
+                        product = productFolder.Products.FirstOrDefault(x => x.Id == id);
+                    }
+                }
+            }
+            return product;
+        }
+
+
     }
 }
