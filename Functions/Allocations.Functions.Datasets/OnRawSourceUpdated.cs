@@ -8,7 +8,7 @@ namespace Allocations.Functions.Datasets
 {
     public static class OnRawSourceUpdated
     {
-        [FunctionName("OnRawSourceUpdated")]
+        [FunctionName("on-raw-source-updated")]
         public static async Task Run([BlobTrigger("raw-datasets/{name}", Connection = "DatasetStorage")]Stream blob, string name, TraceWriter log)
         {
             

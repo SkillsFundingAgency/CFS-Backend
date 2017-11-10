@@ -119,14 +119,12 @@ namespace EndToEndDemo
                                                 {
                                                     CalculationType = CalculationType.CSharp,
                                                     SourceCode = @"
-     public partial class PupilLedFactors
-    {
-        public CalculationResult P004_PriRate()
+
+        public decimal P004_PriRate()
         {
-            return new CalculationResult(""P004_PriRate"", APTBasicEntitlement.PrimaryAmountPerPupil);
+            return APTBasicEntitlement.PrimaryAmountPerPupil;
 
         }
-    }
 
 "
                                                 }
@@ -160,20 +158,18 @@ namespace EndToEndDemo
                                                 {
                                                     CalculationType = CalculationType.CSharp,
                                                     SourceCode = @"
-     public partial class PupilLedFactors
-    {
-        private static readonly DateTime April2018CutOff = new DateTime(2018, 4, 1);
-
-        public CalculationResult P005_PriBESubtotal()
+ 
+        public decimal P005_PriBESubtotal()
         {
+             DateTime April2018CutOff = new DateTime(2018, 4, 1);
+
             if (APTProviderInformation.DateOpened > April2018CutOff)
             {
-                return new CalculationResult(""P005_PriBESubtotal"", APTBasicEntitlement.PrimaryAmount);
+                return APTBasicEntitlement.PrimaryAmount;
             }
 
-            return new CalculationResult(""P005_PriBESubtotal"", P004_PriRate().Value * CensusNumberCounts.NORPrimary);
+            return P004_PriRate() * CensusNumberCounts.NORPrimary;
         }
-    }
                                                     "
                                                 }
                                             },
@@ -184,14 +180,10 @@ namespace EndToEndDemo
                                                 {
                                                     CalculationType = CalculationType.CSharp,
                                                     SourceCode = @"
-     public partial class PupilLedFactors
-    {
-
-        public CalculationResult P006a_NSEN_PriBE_Percent()
+        public decimal P006a_NSEN_PriBE_Percent()
         {
-            return new CalculationResult(""P006a_NSEN_PriBE_Percent"", APTBasicEntitlement.PrimaryNotionalSEN);
+            return APTBasicEntitlement.PrimaryNotionalSEN;
         }
-    }
                                                     "
                                                 }
                                             },
@@ -202,14 +194,10 @@ namespace EndToEndDemo
                                                 {
                                                     CalculationType = CalculationType.CSharp,
                                                     SourceCode = @"
-     public partial class PupilLedFactors
-    {
-        public CalculationResult P006_NSEN_PriBE()
+        public decimal P006_NSEN_PriBE()
         {
-            return new CalculationResult(""P006_NSEN_PriBE"", P006a_NSEN_PriBE_Percent().Value * P005_PriBESubtotal().Value);
+            return P006a_NSEN_PriBE_Percent() * P005_PriBESubtotal();
         }
-
-    }
                                                     "
                                                 }
                                             },
@@ -231,12 +219,6 @@ namespace EndToEndDemo
                             new DatasetFieldDefinition
                             {
                                 Name = "UPIN",
-                                Type = TypeCode.String
-                            },
-                            new DatasetFieldDefinition
-                            {
-                                Name = "ProviderName",
-                                LongName = "Provider Name",
                                 Type = TypeCode.String
                             },
                             new DatasetFieldDefinition

@@ -14,7 +14,6 @@ using Newtonsoft.Json;
 
 namespace Allocations.Services.DataImporter
 {
-    [Dataset("budget-gag1718", "APT Basic Entitlement")]
     public class AptBasicEntitlement : ProviderSourceDataset
     {
         [Description("Primary Amount Per Pupil")]
@@ -33,7 +32,6 @@ namespace Allocations.Services.DataImporter
         public decimal PrimaryNotionalSEN { get; set; }
     }
 
-    [Dataset("budget-gag1718", "Census Number Counts")]
     public class CensusNumberCounts : ProviderSourceDataset
     {
         [Description("NOR Primary")]
@@ -42,7 +40,6 @@ namespace Allocations.Services.DataImporter
 
     }
 
-    [Dataset("budget-gag1718", "APT Provider Information")]
     public class AptProviderInformation : ProviderSourceDataset
     {
         [JsonProperty("UPin")]
@@ -75,8 +72,8 @@ namespace Allocations.Services.DataImporter
                 {
                     var providerInformation = new AptProviderInformation
                     {
-                        BudgetId = typeof(AptProviderInformation).GetCustomAttribute<DatasetAttribute>().ModelName,
-                        DatasetName = typeof(AptProviderInformation).GetCustomAttribute<DatasetAttribute>().DatasetName,
+                        BudgetId = "budget-gag1718",
+                        DatasetName = "APT Provider Information",
                         ProviderUrn = aptSourceRecord.URN,
                         DateOpened = aptSourceRecord.DateOpened,
                         LocalAuthority = aptSourceRecord.LocalAuthority,
@@ -89,8 +86,8 @@ namespace Allocations.Services.DataImporter
 
                     var basicEntitlement = new AptBasicEntitlement
                     {
-                        BudgetId = typeof(AptBasicEntitlement).GetCustomAttribute<DatasetAttribute>().ModelName,
-                        DatasetName = typeof(AptBasicEntitlement).GetCustomAttribute<DatasetAttribute>().DatasetName,
+                        BudgetId = "budget-gag1718",
+                        DatasetName = "APT Basic Entitlement",
                         ProviderUrn = aptSourceRecord.URN,
 
                         PrimaryAmount = aptSourceRecord.PrimaryAmount,
@@ -107,8 +104,8 @@ namespace Allocations.Services.DataImporter
                 {
                     var censusNumberCount = new CensusNumberCounts
                     {
-                        BudgetId = typeof(CensusNumberCounts).GetCustomAttribute<DatasetAttribute>().ModelName,
-                        DatasetName = typeof(CensusNumberCounts).GetCustomAttribute<DatasetAttribute>().DatasetName,
+                        BudgetId = "budget-gag1718",
+                        DatasetName = "Census Number Counts",
                         ProviderUrn = numberCountSourceRecord.URN,
 
                         NORPrimary = numberCountSourceRecord.NumberOnRollPrimary
@@ -143,10 +140,8 @@ namespace Allocations.Services.DataImporter
                         {
                             var providerInformation = new AptProviderInformation
                             {
-                                BudgetId = typeof(AptProviderInformation).GetCustomAttribute<DatasetAttribute>()
-                                    .ModelName,
-                                DatasetName =
-                                    typeof(AptProviderInformation).GetCustomAttribute<DatasetAttribute>().DatasetName,
+                                BudgetId = "budget-gag1718",
+                                DatasetName = "APT Provider Information",
                                 ProviderUrn = aptSourceRecord.URN,
                                 DateOpened = aptSourceRecord.DateOpened,
                                 LocalAuthority = aptSourceRecord.LocalAuthority,
@@ -159,9 +154,8 @@ namespace Allocations.Services.DataImporter
 
                             var basicEntitlement = new AptBasicEntitlement
                             {
-                                BudgetId = typeof(AptBasicEntitlement).GetCustomAttribute<DatasetAttribute>().ModelName,
-                                DatasetName =
-                                    typeof(AptBasicEntitlement).GetCustomAttribute<DatasetAttribute>().DatasetName,
+                                BudgetId = "budget-gag1718",
+                                DatasetName = "APT Basic Entitlement",
                                 ProviderUrn = aptSourceRecord.URN,
 
                                 PrimaryAmount = aptSourceRecord.PrimaryAmount,
@@ -183,9 +177,8 @@ namespace Allocations.Services.DataImporter
                         {
                             var censusNumberCount = new CensusNumberCounts
                             {
-                                BudgetId = typeof(CensusNumberCounts).GetCustomAttribute<DatasetAttribute>().ModelName,
-                                DatasetName =
-                                    typeof(CensusNumberCounts).GetCustomAttribute<DatasetAttribute>().DatasetName,
+                                BudgetId = "budget-gag1718",
+                                DatasetName = "Census Number Counts",
                                 ProviderUrn = numberCountSourceRecord.URN,
 
                                 NORPrimary = numberCountSourceRecord.NumberOnRollPrimary

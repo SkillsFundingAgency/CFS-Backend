@@ -22,7 +22,7 @@ namespace Allocations.Services.Calculator
         public bool Success { get; set; }
         public Budget Budget { get; set; }
         public List<CompilerMessage> CompilerMessages { get; set; }
-        public string DatasetSourceCode { get; set; }
+        public string[] DatasetSourceCode { get; set; }
         public string CalculationSourceCode { get; set; }
     }
 

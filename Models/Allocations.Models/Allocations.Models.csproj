@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Allocations.Models</RootNamespace>
-    <AssemblyName>Allocations.Models1</AssemblyName>
+    <AssemblyName>Allocations.Models</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -57,9 +57,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AllocationAttribute.cs" />
     <Compile Include="CalculationResult.cs" />
-    <Compile Include="DatasetAttribute.cs" />
     <Compile Include="Datasets\ProviderSourceDataset.cs" />
     <Compile Include="DocumentEntity.cs" />
     <Compile Include="ExtensionMethods.cs" />
