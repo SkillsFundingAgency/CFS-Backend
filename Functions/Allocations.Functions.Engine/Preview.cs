@@ -20,7 +20,7 @@ namespace Allocations.Functions.Engine
 
         [FunctionName("preview")]
         public static async Task<HttpResponseMessage> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestMessage req, TraceWriter log)
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestMessage req, TraceWriter log, ExecutionContext context)
         {
             using (var budgetRepository = new Repository<Budget>("specs"))
             {

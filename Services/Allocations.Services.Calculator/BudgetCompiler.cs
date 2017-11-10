@@ -19,9 +19,6 @@ namespace Allocations.Services.Calculator
 
         public static BudgetCompilerOutput GenerateAssembly(Budget budget)
         {
-            StringBuilder sb = new StringBuilder();
-
-
             var datasetTypeGenerator = new DatasetTypeGenerator();
             var productTypeGenerator = new ProductTypeGenerator();
 
@@ -32,14 +29,12 @@ namespace Allocations.Services.Calculator
 
             MetadataReference[] references = {
                 AssemblyMetadata.CreateFromFile(typeof(object).Assembly.Location).GetReference(),
-                AssemblyMetadata.CreateFromFile(typeof(ProviderSourceDataset).Assembly.Location).GetReference(),
-                AssemblyMetadata.CreateFromFile(typeof(CalculationResult).Assembly.Location).GetReference(),
                 AssemblyMetadata.CreateFromFile(typeof(RequiredAttribute).Assembly.Location).GetReference(),
                 AssemblyMetadata.CreateFromFile(typeof(JsonPropertyAttribute).Assembly.Location).GetReference(),
             };
 
 
-            var compilation = CSharpCompilation.Create($"budget.dll")
+            var compilation = CSharpCompilation.Create("budget")
                 .WithOptions(options)
                 .AddSyntaxTrees(datasetSyntaxTrees)
                 .AddSyntaxTrees(calcSyntaxTree)
@@ -49,7 +44,7 @@ namespace Allocations.Services.Calculator
             var compilerOutput = new BudgetCompilerOutput
             {
                 Budget = budget,
-                DatasetSourceCode = datasetSyntaxTrees.ToString(),
+                DatasetSourceCode = datasetSyntaxTrees.Select(x => x.ToString()).ToArray(),
                 CalculationSourceCode = calcSyntaxTree.ToString()
             };
 

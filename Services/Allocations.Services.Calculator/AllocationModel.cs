@@ -26,11 +26,10 @@ namespace Allocations.Services.Calculator
                     }
                 }
 
-                var executeMethods = allocationType.GetMethods()
-                    .Where(x => x.ReturnType.IsAssignableFrom(typeof(CalculationResult)));
+                var executeMethods = allocationType.GetMethods().Where(x => x.ReturnType == typeof(decimal));
                 foreach (var executeMethod in executeMethods)
                 {
-                    object result = null;
+                    decimal result = decimal.Zero;
 
                     ParameterInfo[] parameters = executeMethod.GetParameters();
 
@@ -39,7 +38,7 @@ namespace Allocations.Services.Calculator
                     {
                         try
                         {
-                            result = executeMethod.Invoke(allocation, null);
+                            result = (decimal) executeMethod.Invoke(allocation, null);
                         }
                         catch (Exception e)
                         {
@@ -54,31 +53,18 @@ namespace Allocations.Services.Calculator
                     }
                     else
                     {
-
-                        var returnType = executeMethod.ReturnType;
-                        if (returnType.IsAssignableFrom(typeof(CalculationResult)))
-                        {
-                            var allocationResult = Convert.ChangeType(result, returnType) as CalculationResult;
-                            yield return allocationResult;
-                        }
+                        yield return new CalculationResult(executeMethod.Name, result);
                     }
 
 
 
                 }
 
-                var getters = allocationType.GetProperties().Where(x => x.CanRead).ToArray();
-
-                foreach (var getter in getters.Where(x =>
-                    x.PropertyType.IsAssignableFrom(typeof(CalculationResult))))
-                {
-                    var allocationResult = getter.GetValue(allocation) as CalculationResult;
-                    yield return allocationResult;
-                }
-
 
             }
 
         }
+
+
     }
 }

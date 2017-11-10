@@ -28,7 +28,7 @@ namespace Allocations.Services.Calculator
             using (var repository = new Repository<ProviderSourceDataset>("datasets"))
             {
 
-                var datasetsByUrn = repository.Query().ToArray().GroupBy(x => x.ProviderUrn);
+                var datasetsByUrn = repository.Query().Where(x => x.BudgetId == _compilerOutput.Budget.Id).ToArray().GroupBy(x => x.ProviderUrn);
 
                 foreach (var urn in datasetsByUrn)
                 {
@@ -122,9 +122,10 @@ namespace Allocations.Services.Calculator
                                 ProductFolder = new Reference(productFolder.Id, productFolder.Name),
                                 Product = product
                             };
-                            if (providerAllocations.ContainsKey(product.Name))
+                            var productIdentifier = CSharpTypeGenerator.Identifier(product.Name);
+                            if (providerAllocations.ContainsKey(productIdentifier))
                             {
-                                productResult.Value = providerAllocations[product.Name].Value;
+                                productResult.Value = providerAllocations[productIdentifier].Value;
                             }
 
                             productResults.Add(productResult);

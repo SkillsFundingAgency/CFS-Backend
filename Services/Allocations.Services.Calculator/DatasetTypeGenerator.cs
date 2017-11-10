@@ -23,24 +23,62 @@ namespace Allocations.Services.Calculator
                 .WithUsings(StandardUsings())
                 .WithMembers(
                     SingletonList<MemberDeclarationSyntax>(
-                        ClassDeclaration(Identifier(datasetDefinition.Name))
-                            .WithAttributeLists(
-                                ClassAttributes(budget.Name, datasetDefinition.Name))
+                        ClassDeclaration(Identifier($"{datasetDefinition.Name}Dataset"))
+                            //.WithAttributeLists(
+                            //    ClassAttributes(budget.Name, datasetDefinition.Name))
                             .WithModifiers(
                                 TokenList(
                                     Token(SyntaxKind.PublicKeyword)))
-                            .WithBaseList(
-                                BaseList(
-                                    SingletonSeparatedList<BaseTypeSyntax>(
-                                        SimpleBaseType(
-                                            IdentifierName("ProviderSourceDataset")))))
                             .WithMembers(
-                                List<MemberDeclarationSyntax>(datasetDefinition.FieldDefinitions.Select(GetMember)
+                                List<MemberDeclarationSyntax>(GetMembers(datasetDefinition)
                                     ))))
                 .NormalizeWhitespace();
         }
 
-        private static PropertyDeclarationSyntax GetMember(DatasetFieldDefinition fieldDefinition)
+        private static IEnumerable<MemberDeclarationSyntax> GetMembers(DatasetDefinition datasetDefinition)
+        {
+            yield return CreateStaticDefinitionName(datasetDefinition);
+            foreach (var memberDeclarationSyntax in GetStandardFields()) yield return memberDeclarationSyntax;
+            foreach (var member in datasetDefinition.FieldDefinitions.Select(GetMember))
+            {
+                yield return member;
+            }
+        }
+
+        private static IEnumerable<MemberDeclarationSyntax> GetStandardFields()
+        {
+            yield return GetMember(new DatasetFieldDefinition {Type = TypeCode.String, Name = "Id"});
+            yield return GetMember(new DatasetFieldDefinition {Type = TypeCode.String, Name = "BudgetId"});
+            yield return GetMember(new DatasetFieldDefinition {Type = TypeCode.String, Name = "ProviderUrn"});
+            yield return GetMember(new DatasetFieldDefinition {Type = TypeCode.String, Name = "ProviderName"});
+            yield return GetMember(new DatasetFieldDefinition {Type = TypeCode.String, Name = "DatasetName"});
+        }
+
+        private static MemberDeclarationSyntax CreateStaticDefinitionName(DatasetDefinition datasetDefinition)
+        {
+            return FieldDeclaration(
+                    VariableDeclaration(
+                            PredefinedType(
+                                Token(SyntaxKind.StringKeyword)))
+                        .WithVariables(
+                            SingletonSeparatedList(
+                                VariableDeclarator(
+                                        Identifier("DatasetDefinitionName"))
+                                    .WithInitializer(
+                                        EqualsValueClause(
+                                            LiteralExpression(
+                                                SyntaxKind.StringLiteralExpression,
+                                                Literal(datasetDefinition.Name)))))))
+                .WithModifiers(
+                    TokenList(
+                        new[]
+                        {
+                            Token(SyntaxKind.PublicKeyword),
+                            Token(SyntaxKind.StaticKeyword)
+                        }));
+        }
+
+        private static MemberDeclarationSyntax GetMember(DatasetFieldDefinition fieldDefinition)
         {
             var propertyType = GetType(fieldDefinition.Type);
             return PropertyDeclaration(
@@ -99,28 +137,5 @@ namespace Allocations.Services.Calculator
 
         }
 
-        private static SyntaxList<AttributeListSyntax> ClassAttributes(string modelName, string description)
-        {
-            return SingletonList(
-                AttributeList(
-                    SingletonSeparatedList(
-                        Attribute(
-                                IdentifierName("Dataset"))
-                            .WithArgumentList(
-                                AttributeArgumentList(
-                                    SeparatedList<AttributeArgumentSyntax>(
-                                        new SyntaxNodeOrToken[]
-                                        {
-                                            AttributeArgument(
-                                                LiteralExpression(
-                                                    SyntaxKind.StringLiteralExpression,
-                                                    Literal(modelName))),
-                                            Token(SyntaxKind.CommaToken),
-                                            AttributeArgument(
-                                                LiteralExpression(
-                                                    SyntaxKind.StringLiteralExpression,
-                                                    Literal(description)))
-                                        }))))));
-        }
     }
 }

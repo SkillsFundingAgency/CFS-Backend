@@ -28,41 +28,36 @@ namespace Allocations.Services.Calculator
         {
             foreach (var fundingPolicy in budget.FundingPolicies)
             {
-
-            
-
-
-            foreach (var allocationLine in fundingPolicy.AllocationLines)
-            {
-                yield return ClassDeclaration(Identifier(allocationLine.Name))
-                    .WithAttributeLists(
-                        ClassAttributes(budget.Name))
-                    .WithModifiers(
-                        TokenList(
-                            Token(SyntaxKind.PublicKeyword),
-                            Token(SyntaxKind.PartialKeyword)))
-                    .WithMembers(
-                        List<MemberDeclarationSyntax>(budget.DatasetDefinitions.Select(GetMembers)
-                        ));
-
-                    foreach (var partialClass in GetProductPartials(allocationLine))
+                foreach (var allocationLine in fundingPolicy.AllocationLines)
                 {
-                    yield return partialClass;
+                    yield return ClassDeclaration(Identifier("ProductCalculations"))
+                        .WithModifiers(
+                            TokenList(
+                                Token(SyntaxKind.PublicKeyword),
+                                Token(SyntaxKind.PartialKeyword)))
+                        .WithMembers(
+                            List<MemberDeclarationSyntax>(budget.DatasetDefinitions.Select(GetMembers)
+                            ));
+
+                        foreach (var partialClass in GetProductPartials(allocationLine))
+                    {
+                        yield return partialClass;
+                    }
                 }
             }
         }
-    }
 
-        private static ClassDeclarationSyntax GetCustomPartialClass(Product product)
+        private static MethodDeclarationSyntax GetMethod(Product product)
         {
             if (product.Calculation?.SourceCode != null)
             {
                 var tree = ParseSyntaxTree(product.Calculation.SourceCode);
 
-                var partialClass = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>()
+                var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>()
                     .FirstOrDefault();
 
-                return partialClass;
+
+                return method;
             }
             return null;
         }
@@ -73,10 +68,17 @@ namespace Allocations.Services.Calculator
             {
                 foreach (var product in productFolder.Products)
                 {
-                    var partialClass = GetCustomPartialClass(product);
+                    var partialClass = ClassDeclaration(Identifier("ProductCalculations"))
+
+                        .WithModifiers(
+                            TokenList(
+                                Token(SyntaxKind.PublicKeyword),
+                                Token(SyntaxKind.PartialKeyword)))
+                        .WithMembers(
+                            SingletonList<MemberDeclarationSyntax>(GetMethod(product)));
                     if (partialClass == null)
                     {
-                        partialClass = ClassDeclaration(Identifier(allocationLine.Name))
+                        partialClass = ClassDeclaration(Identifier("ProductCalculations"))
 
                             .WithModifiers(
                                 TokenList(
@@ -84,7 +86,7 @@ namespace Allocations.Services.Calculator
                                     Token(SyntaxKind.PartialKeyword)))
                             .WithMembers(
                                 SingletonList<MemberDeclarationSyntax>(MethodDeclaration(
-                                        IdentifierName("CalculationResult"),
+                                        PredefinedType(Token(SyntaxKind.DecimalKeyword)),
                                         Identifier(Identifier(product.Name)))
                                     .WithModifiers(
                                         TokenList(
@@ -118,7 +120,7 @@ namespace Allocations.Services.Calculator
         private static PropertyDeclarationSyntax GetMembers(DatasetDefinition datasetDefinition)
         {
             return PropertyDeclaration(
-                    IdentifierName(Identifier(datasetDefinition.Name)), Identifier(datasetDefinition.Name))
+                    IdentifierName(Identifier($"{datasetDefinition.Name}Dataset")), Identifier(datasetDefinition.Name))
                  .WithModifiers(
                     TokenList(
                         Token(SyntaxKind.PublicKeyword)))

@@ -11,19 +11,20 @@ namespace Allocations.Services.Calculator
 
         private Dictionary<string, Type> DatasetTypes { get; }
         private AllocationModel AllocationModel { get; }
-
+        
         public AllocationFactory(Assembly budgetAssembly)
         {
 
-            var datasetTypes = budgetAssembly.GetTypes().Where(x => x.CustomAttributes.Any(attr => attr.AttributeType == typeof(DatasetAttribute)));
+            var datasetTypes = budgetAssembly.GetTypes().Where(x => x.GetFields().Any(p => p.IsStatic && p.Name == "DatasetDefinitionName"));
             DatasetTypes = new Dictionary<string, Type>();
             foreach (var type in datasetTypes)
             {
-                DatasetTypes.Add(type.GetCustomAttribute<DatasetAttribute>().DatasetName, type);
+                var field = type.GetField("DatasetDefinitionName");
+                var definitionName = field.GetValue(null).ToString();
+                DatasetTypes.Add(definitionName, type);
             }
 
-
-            var allocationTypes = budgetAssembly.GetTypes().Where(x => x.CustomAttributes.Any(attr => attr.AttributeType == typeof(AllocationAttribute)));
+            var allocationTypes = budgetAssembly.GetTypes().Where(x => x.IsClass && x.Name == "ProductCalculations");
             AllocationModel = new AllocationModel();
             foreach (var type in allocationTypes)
             {
