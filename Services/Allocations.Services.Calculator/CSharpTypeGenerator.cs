@@ -10,7 +10,7 @@ namespace Allocations.Services.Calculator
 {
     public abstract class CSharpTypeGenerator
     {
-        protected static string Identifier(string value)
+        public static string Identifier(string value)
         {
             string className = value;
             bool isValid = CodeDomProvider.CreateProvider("C#").IsValidIdentifier(className);
@@ -31,13 +31,13 @@ namespace Allocations.Services.Calculator
             return className.Replace(" ", String.Empty);
         }
 
-        protected static string IdentifierCamelCase(string value)
+        public static string IdentifierCamelCase(string value)
         {
             var titleCase = Identifier(value);
             return Char.ToLowerInvariant(titleCase[0]) + titleCase.Substring(1);
         }
 
-        protected static TypeSyntax GetType(TypeCode type)
+        public static TypeSyntax GetType(TypeCode type)
         {
             TypeSyntax propertyType;
             switch (type)
@@ -101,16 +101,6 @@ namespace Allocations.Services.Calculator
                         SyntaxFactory.QualifiedName(
                             SyntaxFactory.IdentifierName("System"),
                             SyntaxFactory.IdentifierName("ComponentModel"))),
-                    SyntaxFactory.UsingDirective(
-                        SyntaxFactory.QualifiedName(
-                            SyntaxFactory.QualifiedName(
-                                SyntaxFactory.IdentifierName("Allocations"),
-                                SyntaxFactory.IdentifierName("Models")),
-                            SyntaxFactory.IdentifierName("Datasets"))),
-                    SyntaxFactory.UsingDirective(
-                        SyntaxFactory.QualifiedName(
-                                SyntaxFactory.IdentifierName("Allocations"),
-                            SyntaxFactory.IdentifierName("Models"))),
                     SyntaxFactory.UsingDirective(
                         SyntaxFactory.QualifiedName(
                             SyntaxFactory.IdentifierName("Newtonsoft"),

@@ -67,7 +67,9 @@ namespace Allocations.Services.TestRunner
             var datasetsByType = new Dictionary<string, object>();
             foreach (var dataset in datasets)
             {
-                datasetsByType.Add(dataset.GetType().GetCustomAttribute<DatasetAttribute>().DatasetName, dataset);
+                var field = dataset.GetType().GetField("DatasetDefinitionName");
+                var definitionName = field.GetValue(null).ToString();
+                datasetsByType.Add(definitionName, dataset);
             }
 
             if (datasetsByType.TryGetValue(datasetName, out var selectedDataset))
