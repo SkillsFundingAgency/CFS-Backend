@@ -74,9 +74,12 @@
     <Compile Include="SearchIndexAttribute.cs" />
     <Compile Include="Specs\AllocationLine.cs" />
     <Compile Include="Specs\Budget.cs" />
+    <Compile Include="Specs\DatasetDefinition.cs" />
+    <Compile Include="Specs\DatasetFieldDefinition.cs" />
     <Compile Include="Specs\FundingPolicy.cs" />
     <Compile Include="Specs\Product.cs" />
     <Compile Include="Specs\ProductFolder.cs" />
+    <Compile Include="Specs\TargetLanguage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

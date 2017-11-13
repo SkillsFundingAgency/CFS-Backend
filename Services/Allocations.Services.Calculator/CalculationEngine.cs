@@ -5,6 +5,7 @@ using Allocations.Models;
 using Allocations.Models.Datasets;
 using Allocations.Models.Results;
 using Allocations.Repository;
+using Allocations.Services.Compiler;
 using Allocations.Services.TestRunner;
 using Allocations.Services.TestRunner.Vocab;
 using Newtonsoft.Json;
@@ -123,7 +124,7 @@ namespace Allocations.Services.Calculator
                                 ProductFolder = new Reference(productFolder.Id, productFolder.Name),
                                 Product = product
                             };
-                            var productIdentifier = CSharpTypeGenerator.Identifier(product.Name);
+                            var productIdentifier = BudgetCompiler.GetIdentitier(product.Name, _compilerOutput.Budget.TargetLanguage);
                             if (providerAllocations.ContainsKey(productIdentifier))
                             {
                                 productResult.Value = providerAllocations[productIdentifier].Value;

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Allocations.Models.Specs;
 using Allocations.Repository;
 using Allocations.Services.Calculator;
+using Allocations.Services.Compiler;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 

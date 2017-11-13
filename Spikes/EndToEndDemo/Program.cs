@@ -14,6 +14,7 @@ using Allocations.Models.Datasets;
 using Allocations.Models.Results;
 using Allocations.Models.Specs;
 using Allocations.Services.Calculator;
+using Allocations.Services.Compiler;
 using Allocations.Services.DataImporter;
 using Allocations.Services.TestRunner;
 using Allocations.Services.TestRunner.Vocab;

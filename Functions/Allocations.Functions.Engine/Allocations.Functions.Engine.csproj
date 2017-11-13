@@ -14,6 +14,7 @@
     <ProjectReference Include="..\..\Common\Allocations.Repository\Allocations.Repository.csproj" />
     <ProjectReference Include="..\..\Models\Allocations.Models\Allocations.Models.csproj" />
     <ProjectReference Include="..\..\Services\Allocations.Services.Calculator\Allocations.Services.Calculator.csproj" />
+    <ProjectReference Include="..\..\Services\Allocations.Services.Compiler\Allocations.Services.Compiler.csproj" />
     <ProjectReference Include="..\..\Services\Allocations.Services.TestRunner\Allocations.Services.TestRunner.csproj" />
   </ItemGroup>
   <ItemGroup>

@@ -5,11 +5,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{406DBFC9-A5F9-4A89-87CE-A0334A2CFE47}</ProjectGuid>
+    <ProjectGuid>{DFD4D355-AD02-4F14-9D44-94C138895598}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Allocations.Services.Calculator</RootNamespace>
-    <AssemblyName>Allocations.Services.Calculator</AssemblyName>
+    <RootNamespace>Allocations.Services.Compiler</RootNamespace>
+    <AssemblyName>Allocations.Services.Compiler</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -69,7 +69,6 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Composition.AttributedModel, Version=1.0.31.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Composition.AttributedModel.1.0.31\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
     </Reference>
@@ -118,8 +117,8 @@
     <Reference Include="System.Security.Cryptography.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Security.Cryptography.Primitives.4.3.0\lib\net46\System.Security.Cryptography.Primitives.dll</HintPath>
     </Reference>
-    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Security.Cryptography.X509Certificates.4.3.1\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
+    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Security.Cryptography.X509Certificates.4.3.0\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
     </Reference>
     <Reference Include="System.Text.Encoding.CodePages, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Text.Encoding.CodePages.4.3.0\lib\net46\System.Text.Encoding.CodePages.dll</HintPath>
@@ -150,10 +149,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AllocationFactory.cs" />
-    <Compile Include="AllocationModel.cs" />
-    <Compile Include="CalculationEngine.cs" />
+    <Compile Include="BudgetCompiler.cs" />
+    <Compile Include="CSharp\CSharpBudgetCompiler.cs" />
+    <Compile Include="BudgetCompilerOutput.cs" />
+    <Compile Include="CompilerMessage.cs" />
+    <Compile Include="CSharp\CSharpTypeGenerator.cs" />
+    <Compile Include="CSharp\DatasetTypeGenerator.cs" />
+    <Compile Include="ICompiler.cs" />
+    <Compile Include="CSharp\ProductTypeGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Severity.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -164,21 +169,9 @@
     <Analyzer Include="..\..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Common\Allocations.Repository\Allocations.Repository.csproj">
-      <Project>{CAF743CF-A061-4B51-91FF-4253596B91E5}</Project>
-      <Name>Allocations.Repository</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Models\Allocations.Models\Allocations.Models.csproj">
       <Project>{EC4C6287-DD06-4926-B496-EAAA75B9C895}</Project>
       <Name>Allocations.Models</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Allocations.Services.Compiler\Allocations.Services.Compiler.csproj">
-      <Project>{DFD4D355-AD02-4F14-9D44-94C138895598}</Project>
-      <Name>Allocations.Services.Compiler</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Allocations.Services.TestRunner\Allocations.Services.TestRunner.csproj">
-      <Project>{E1FD553D-9D2C-4DCA-BD3B-4A261CB57FDF}</Project>
-      <Name>Allocations.Services.TestRunner</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

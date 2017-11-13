@@ -155,6 +155,10 @@
       <Project>{406DBFC9-A5F9-4A89-87CE-A0334A2CFE47}</Project>
       <Name>Allocations.Services.Calculator</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Services\Allocations.Services.Compiler\Allocations.Services.Compiler.csproj">
+      <Project>{DFD4D355-AD02-4F14-9D44-94C138895598}</Project>
+      <Name>Allocations.Services.Compiler</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Services\Allocations.Services.DataImporter\Allocations.Services.DataImporter.csproj">
       <Project>{74FB279B-4DBD-43F9-82B3-3BDCEBF7F590}</Project>
       <Name>Allocations.Services.DataImporter</Name>

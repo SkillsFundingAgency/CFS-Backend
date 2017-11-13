@@ -1,20 +1,13 @@
-﻿using System;
-using System.Collections.Immutable;
-using System.ComponentModel.DataAnnotations;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using Allocations.Models;
-using Allocations.Models.Datasets;
 using Allocations.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Newtonsoft.Json;
 
-namespace Allocations.Services.Calculator
+namespace Allocations.Services.Compiler.CSharp
 {
-    public static class BudgetCompiler
+    public static class CSharpBudgetCompiler
     {
 
         public static BudgetCompilerOutput GenerateAssembly(Budget budget)
@@ -58,7 +51,11 @@ namespace Allocations.Services.Calculator
 
                     byte[] data = new byte[ms.Length];
                     ms.Read(data, 0, data.Length);
+
+
                     compilerOutput.Assembly = Assembly.Load(data);
+
+                    File.WriteAllBytes(@"C:\Users\matt\Downloads\ILSpy_Master_2.4.0.1963_Binaries\xx.dll", data);
                 }
                 
 
