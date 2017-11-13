@@ -96,14 +96,6 @@ namespace Allocations.Services.Compiler.CSharp
                 new[]{
                     SyntaxFactory.UsingDirective(
                         SyntaxFactory.IdentifierName("System")),
-                    //SyntaxFactory.UsingDirective(
-                    //    SyntaxFactory.QualifiedName(
-                    //        SyntaxFactory.IdentifierName("System"),
-                    //        SyntaxFactory.IdentifierName("ComponentModel"))),
-                    //SyntaxFactory.UsingDirective(
-                    //    SyntaxFactory.QualifiedName(
-                    //        SyntaxFactory.IdentifierName("Newtonsoft"),
-                    //        SyntaxFactory.IdentifierName("Json")))
                     });
         }
 

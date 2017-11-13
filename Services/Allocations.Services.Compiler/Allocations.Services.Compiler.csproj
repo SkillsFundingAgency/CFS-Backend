@@ -150,9 +150,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BudgetCompiler.cs" />
-    <Compile Include="CSharp\CSharpBudgetCompiler.cs" />
+    <Compile Include="BaseCompiler.cs" />
     <Compile Include="BudgetCompilerOutput.cs" />
     <Compile Include="CompilerMessage.cs" />
+    <Compile Include="CSharp\CSharpCompiler.cs" />
     <Compile Include="CSharp\CSharpTypeGenerator.cs" />
     <Compile Include="CSharp\DatasetTypeGenerator.cs" />
     <Compile Include="ICompiler.cs" />
