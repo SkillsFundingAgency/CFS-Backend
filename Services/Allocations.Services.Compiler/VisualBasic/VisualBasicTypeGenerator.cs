@@ -12,7 +12,7 @@ namespace Allocations.Services.Compiler.VisualBasic
         public static string Identifier(string value)
         {
             string className = value;
-            bool isValid = CodeDomProvider.CreateProvider("C#").IsValidIdentifier(className);
+            bool isValid = CodeDomProvider.CreateProvider("VisualBasic").IsValidIdentifier(className);
 
             if (!isValid)
             {
