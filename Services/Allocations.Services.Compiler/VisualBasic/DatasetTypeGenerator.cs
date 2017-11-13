@@ -3,31 +3,41 @@ using System.Collections.Generic;
 using System.Linq;
 using Allocations.Models.Specs;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
-namespace Allocations.Services.Compiler.CSharp
+
+namespace Allocations.Services.Compiler.VisualBasic
 {
 
-    public class DatasetTypeGenerator : CSharpTypeGenerator
+    public class DatasetTypeGenerator : VisualBasicTypeGenerator
     {
         public CompilationUnitSyntax GenerateDataset(Budget budget, DatasetDefinition datasetDefinition)
         {
             return SyntaxFactory.CompilationUnit()
-                .WithUsings(StandardUsings())
+                .WithImports(StandardImports())
                 .WithMembers(
-                    SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
-                        SyntaxFactory.ClassDeclaration(Identifier($"{datasetDefinition.Name}Dataset"))
-                            .WithModifiers(
-                                SyntaxFactory.TokenList(
-                                    SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                            .WithMembers(
-                                SyntaxFactory.List<MemberDeclarationSyntax>(GetMembers(datasetDefinition)
-                                    ))))
+                    SyntaxFactory.SingletonList<StatementSyntax>(
+                        SyntaxFactory.ClassBlock(
+                                SyntaxFactory.ClassStatement(
+                                        Identifier($"{datasetDefinition.Name}Dataset")
+                                    )
+                                    .WithModifiers(
+                                        SyntaxFactory.TokenList(
+                                            SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
+                                new SyntaxList<InheritsStatementSyntax>(), 
+                                new SyntaxList<ImplementsStatementSyntax>(), 
+                                new SyntaxList<StatementSyntax>(GetMembers(datasetDefinition)),
+                                SyntaxFactory.EndClassStatement()
+                            )
+                                    ))
                 .NormalizeWhitespace();
+
         }
 
-        private static IEnumerable<MemberDeclarationSyntax> GetMembers(DatasetDefinition datasetDefinition)
+
+
+        private static IEnumerable<StatementSyntax> GetMembers(DatasetDefinition datasetDefinition)
         {
             yield return CreateStaticDefinitionName(datasetDefinition);
             foreach (var memberDeclarationSyntax in GetStandardFields()) yield return memberDeclarationSyntax;
@@ -70,10 +80,10 @@ namespace Allocations.Services.Compiler.CSharp
                         }));
         }
 
-        private static MemberDeclarationSyntax GetMember(DatasetFieldDefinition fieldDefinition)
+        private static StatementSyntax GetMember(DatasetFieldDefinition fieldDefinition)
         {
             var propertyType = GetType(fieldDefinition.Type);
-            return SyntaxFactory.PropertyDeclaration(
+            return SyntaxFactory.PropertyBlock()(
                     propertyType,
                     Identifier(Identifier(fieldDefinition.Name)))
                 .WithModifiers(
