@@ -88,13 +88,10 @@ namespace Allocations.Services.Compiler.VisualBasic
 
         protected static SyntaxList<ImportsStatementSyntax> StandardImports()
         {
-            return SyntaxFactory.List(
-                new[]
-                {
-                    SyntaxFactory.ImportsStatement(
-                        new SeparatedSyntaxList<ImportsClauseSyntax> {SyntaxFactory.SimpleImportsClause(SyntaxFactory.IdentifierName("System"))}
-                    )
-                });
+            var imports = SyntaxFactory.SingletonList(
+                SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System")))));
+            var str = imports.ToFullString();
+            return imports;
         }
 
         //protected static SyntaxList<ImportsStatementSyntax> StandardUsings()

@@ -14,7 +14,7 @@ namespace Allocations.Services.Compiler.VisualBasic
             return SyntaxFactory.CompilationUnit()
                 .WithImports(StandardImports())
                 .WithMembers(
-                    SyntaxFactory.List<StatementSyntax>(
+                    SyntaxFactory.List(
                         Classes(budget)
                     ))
                 .NormalizeWhitespace();
@@ -32,7 +32,7 @@ namespace Allocations.Services.Compiler.VisualBasic
                             )
                             .WithModifiers(
                                 SyntaxFactory.TokenList(
-                                    SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
+                                    SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.PartialKeyword))),
                         new SyntaxList<InheritsStatementSyntax>(),
                         new SyntaxList<ImplementsStatementSyntax>(),
                         SyntaxFactory.List(budget.DatasetDefinitions.Select(GetMembers)),
@@ -78,7 +78,7 @@ namespace Allocations.Services.Compiler.VisualBasic
                                 )
                                 .WithModifiers(
                                     SyntaxFactory.TokenList(
-                                        SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
+                                        SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.PartialKeyword))),
                             new SyntaxList<InheritsStatementSyntax>(),
                             new SyntaxList<ImplementsStatementSyntax>(),
                             SyntaxFactory.SingletonList(method),
@@ -93,16 +93,10 @@ namespace Allocations.Services.Compiler.VisualBasic
 
         private static StatementSyntax GetMembers(DatasetDefinition datasetDefinition)
         {
-            return SyntaxFactory.PropertyBlock(
-                SyntaxFactory.PropertyStatement(Identifier($"{datasetDefinition.Name}Dataset"))
-                    .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                    .WithAsClause(SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(Identifier(datasetDefinition.Name)))),
-                new SyntaxList<AccessorBlockSyntax>()
-                {
-                    SyntaxFactory.GetAccessorBlock(SyntaxFactory.GetAccessorStatement()),
-                    SyntaxFactory.SetAccessorBlock(SyntaxFactory.SetAccessorStatement())
-                },
-                SyntaxFactory.EndPropertyStatement());
+            return SyntaxFactory.PropertyStatement(Identifier(datasetDefinition.Name))
+                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                .WithAsClause(
+                    SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(Identifier($"{datasetDefinition.Name}Dataset"))));
         }
 
     }

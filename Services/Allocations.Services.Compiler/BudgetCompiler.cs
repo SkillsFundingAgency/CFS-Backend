@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Allocations.Models.Specs;
 using Allocations.Services.Compiler.CSharp;
+using Allocations.Services.Compiler.VisualBasic;
 
 namespace Allocations.Services.Compiler
 {
@@ -12,6 +13,7 @@ namespace Allocations.Services.Compiler
         static BudgetCompiler()
         {
             Compilers.Add(TargetLanguage.CSharp, new CSharpCompiler());
+            Compilers.Add(TargetLanguage.VisualBasic, new VisualBasicCompiler());
         }
         public static BudgetCompilerOutput GenerateAssembly(Budget budget)
         {

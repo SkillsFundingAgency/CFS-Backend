@@ -73,8 +73,10 @@ namespace EndToEndDemo
             return new Budget
             {
                 Name = "GAG1718",
+                TargetLanguage = TargetLanguage.VisualBasic,
                 AcademicYear = "2017-2018",
                 FundingStream = "General Annual Grant",
+
                 FundingPolicies = new[]
                 {
                     new FundingPolicy
@@ -120,13 +122,9 @@ namespace EndToEndDemo
                                                 {
                                                     CalculationType = CalculationType.CSharp,
                                                     SourceCode = @"
-
-        public decimal P004_PriRate()
-        {
-            return APTBasicEntitlement.PrimaryAmountPerPupil;
-
-        }
-
+Public Function P004_PriRate() As Decimal
+	Return Me.APTBasicEntitlement.PrimaryAmountPerPupil
+End Function
 "
                                                 }
                                             },
@@ -159,18 +157,17 @@ namespace EndToEndDemo
                                                 {
                                                     CalculationType = CalculationType.CSharp,
                                                     SourceCode = @"
- 
-        public decimal P005_PriBESubtotal()
-        {
-             DateTime April2018CutOff = new DateTime(2018, 4, 1);
-
-            if (APTProviderInformation.DateOpened > April2018CutOff)
-            {
-                return APTBasicEntitlement.PrimaryAmount;
-            }
-
-            return P004_PriRate() * CensusNumberCounts.NORPrimary;
-        }
+Public Function P005_PriBESubtotal() As Decimal
+	Dim t As DateTime = New DateTime(2018, 4, 1)
+	Dim flag As Boolean = Me.APTProviderInformation.DateOpened > t
+	Dim result As Decimal
+	If flag Then
+		result = Me.APTBasicEntitlement.PrimaryAmount
+	Else
+		result = Me.P004_PriRate() * Me.CensusNumberCounts.NORPrimary
+	End If
+	Return result
+End Function
                                                     "
                                                 }
                                             },
@@ -181,10 +178,9 @@ namespace EndToEndDemo
                                                 {
                                                     CalculationType = CalculationType.CSharp,
                                                     SourceCode = @"
-        public decimal P006a_NSEN_PriBE_Percent()
-        {
-            return APTBasicEntitlement.PrimaryNotionalSEN;
-        }
+Public Function P006a_NSEN_PriBE_Percent() As Decimal
+	Return Me.APTBasicEntitlement.PrimaryNotionalSEN
+End Function
                                                     "
                                                 }
                                             },
@@ -195,10 +191,9 @@ namespace EndToEndDemo
                                                 {
                                                     CalculationType = CalculationType.CSharp,
                                                     SourceCode = @"
-        public decimal P006_NSEN_PriBE()
-        {
-            return P006a_NSEN_PriBE_Percent() * P005_PriBESubtotal();
-        }
+Public Function P006_NSEN_PriBE() As Decimal
+	Return Me.P006a_NSEN_PriBE_Percent() * Me.P005_PriBESubtotal()
+End Function
                                                     "
                                                 }
                                             },
