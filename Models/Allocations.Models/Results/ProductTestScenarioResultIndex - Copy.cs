@@ -18,7 +18,7 @@ namespace Allocations.Models.Results
                     sr.fundingPolicy.name as fundingPolicyName,
                     sr.productFolder.Id as productFolderId,
                     sr.productFolder.Name as productFolderName,
-                    sr.allocationLine.Name as fundingPolicyName,
+                    sr.allocationLine.Name as allocationLineName,
                     sr.scenarioName,
                     sr.testResult
             FROM tr
