@@ -2,12 +2,12 @@
 using System.CodeDom.Compiler;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
-namespace Allocations.Services.Compiler.CSharp
+namespace Allocations.Services.Compiler.VisualBasic
 {
-    public abstract class CSharpTypeGenerator
+    public abstract class VisualBasicTypeGenerator
     {
         public static string Identifier(string value)
         {
@@ -42,7 +42,7 @@ namespace Allocations.Services.Compiler.CSharp
             switch (type)
             {
                 case TypeCode.Boolean:
-                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword));
+                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BooleanKeyword));
                     break;
                 case TypeCode.Char:
                     propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.CharKeyword));
@@ -60,19 +60,15 @@ namespace Allocations.Services.Compiler.CSharp
                     propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.UShortKeyword));
                     break;
                 case TypeCode.Int32:
-                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword));
-                    break;
                 case TypeCode.UInt32:
-                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.UIntKeyword));
+                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntegerKeyword));
                     break;
                 case TypeCode.Int64:
-                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.LongKeyword));
-                    break;
                 case TypeCode.UInt64:
                     propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ULongKeyword));
                     break;
                 case TypeCode.Single:
-                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.FloatKeyword));
+                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.SingleKeyword));
                     break;
                 case TypeCode.Double:
                     propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword));
@@ -90,14 +86,25 @@ namespace Allocations.Services.Compiler.CSharp
             return propertyType;
         }
 
-        protected static SyntaxList<UsingDirectiveSyntax> StandardUsings()
+        protected static SyntaxList<ImportsStatementSyntax> StandardImports()
         {
             return SyntaxFactory.List(
-                new[]{
-                    SyntaxFactory.UsingDirective(
-                        SyntaxFactory.IdentifierName("System")),
-                    });
+                new[]
+                {
+                    SyntaxFactory.ImportsStatement(
+                        new SeparatedSyntaxList<ImportsClauseSyntax> {SyntaxFactory.SimpleImportsClause(SyntaxFactory.IdentifierName("System"))}
+                    )
+                });
         }
+
+        //protected static SyntaxList<ImportsStatementSyntax> StandardUsings()
+        //{
+        //    return SyntaxFactory.List(
+        //        new[]{
+        //            SyntaxFactory.SimpleImportsClause(
+        //                SyntaxFactory.IdentifierName("System")),
+        //            });
+        //}
 
     }
 }

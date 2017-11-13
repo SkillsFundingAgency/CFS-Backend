@@ -3,7 +3,7 @@ using System.Reflection;
 using Allocations.Models.Specs;
 using Microsoft.CodeAnalysis;
 
-namespace Allocations.Services.Compiler.CSharp
+namespace Allocations.Services.Compiler
 {
 
     public abstract class BaseCompiler : ICompiler
