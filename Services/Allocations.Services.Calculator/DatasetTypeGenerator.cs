@@ -24,8 +24,6 @@ namespace Allocations.Services.Calculator
                 .WithMembers(
                     SingletonList<MemberDeclarationSyntax>(
                         ClassDeclaration(Identifier($"{datasetDefinition.Name}Dataset"))
-                            //.WithAttributeLists(
-                            //    ClassAttributes(budget.Name, datasetDefinition.Name))
                             .WithModifiers(
                                 TokenList(
                                     Token(SyntaxKind.PublicKeyword)))
@@ -84,8 +82,6 @@ namespace Allocations.Services.Calculator
             return PropertyDeclaration(
                     propertyType,
                     Identifier(Identifier(fieldDefinition.Name)))
-                .WithAttributeLists(
-                    List(PropertyAttributes(fieldDefinition.LongName, IdentifierCamelCase(fieldDefinition.Name))))
                 .WithModifiers(
                     TokenList(
                         Token(SyntaxKind.PublicKeyword)))
@@ -103,38 +99,6 @@ namespace Allocations.Services.Calculator
                                     .WithSemicolonToken(
                                         Token(SyntaxKind.SemicolonToken))
                             })));
-        }
-
-
-        private static IEnumerable<AttributeListSyntax> PropertyAttributes(string description, string jsonIdentifier)
-        {
-            //if (!string.IsNullOrWhiteSpace(description))
-            //{
-            //    yield return AttributeList(
-            //        SingletonSeparatedList(
-            //            Attribute(
-            //                    IdentifierName("Description"))
-            //                .WithArgumentList(
-            //                    AttributeArgumentList(
-            //                        SingletonSeparatedList(
-            //                            AttributeArgument(
-            //                                LiteralExpression(
-            //                                    SyntaxKind.StringLiteralExpression,
-            //                                    Literal(description))))))));
-            //}
-
-            yield return AttributeList(
-                SingletonSeparatedList(
-                    Attribute(
-                            IdentifierName("JsonProperty"))
-                        .WithArgumentList(
-                            AttributeArgumentList(
-                                SingletonSeparatedList(
-                                    AttributeArgument(
-                                        LiteralExpression(
-                                            SyntaxKind.StringLiteralExpression,
-                                            Literal(jsonIdentifier))))))));
-
         }
 
     }
