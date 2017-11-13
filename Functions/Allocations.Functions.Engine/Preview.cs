@@ -45,10 +45,11 @@ namespace Allocations.Functions.Engine
                     CompilerOutput = compilerOutput
                 };
 
-                var calc = new CalculationEngine(compilerOutput);
 
                 if (compilerOutput.Success)
                 {
+                    var calc = new CalculationEngine(compilerOutput);
+
                     foreach (var testProvider in product.TestProviders ?? new Reference[0])
                     {
                         var typedDatasets = await calc.GetProviderDatasets(testProvider, request.BudgetId);
