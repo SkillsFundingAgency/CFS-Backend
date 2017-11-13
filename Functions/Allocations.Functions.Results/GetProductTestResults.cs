@@ -36,16 +36,13 @@ namespace Allocations.Functions.Results
                 .FirstOrDefault(q => String.Compare(q.Key, "searchTerm", StringComparison.OrdinalIgnoreCase) == 0)
                 .Value;
 
-
-            
             var azureSearchResult = await SearchIndexClient.Documents.SearchAsync<ProductTestScenarioResultIndex>(searchTerm, new SearchParameters { IncludeTotalResultCount = true });
-
 
             var response = new SearchResults<ProductTestScenarioResultIndex>
             {
                 SearchTerm = searchTerm,
                 TotalCount = azureSearchResult.Count,
-                
+
                 Results = azureSearchResult.Results.Select(x => new Repository.SearchResult<ProductTestScenarioResultIndex>
                 {
                     HitHighLights = x.Highlights,
