@@ -74,12 +74,12 @@ namespace Allocations.Services.Calculator
             }
         }
 
-        public async Task<List<object>> GetProviderDatasets(Reference provider)
+        public async Task<List<object>> GetProviderDatasets(Reference provider, string budgetId)
         {
             var typedDatasets = new List<object>();
             using (var repository = new Repository<ProviderSourceDataset>("datasets"))
             {
-                var datasetsAsJson = repository.QueryAsJson($"SELECT * FROM ds WHERE ds.providerUrn='{provider.Id}' AND ds.deleted = false").ToList();
+                var datasetsAsJson = repository.QueryAsJson($"SELECT * FROM ds WHERE ds.budgetId='{budgetId}' AND ds.providerUrn='{provider.Id}' AND ds.deleted = false").ToList();
 
                 foreach (var datasetAsJson in datasetsAsJson)
                 {

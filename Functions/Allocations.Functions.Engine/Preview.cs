@@ -51,7 +51,7 @@ namespace Allocations.Functions.Engine
                 {
                     foreach (var testProvider in product.TestProviders ?? new Reference[0])
                     {
-                        var typedDatasets = await calc.GetProviderDatasets(testProvider);
+                        var typedDatasets = await calc.GetProviderDatasets(testProvider, request.BudgetId);
 
 
                         var providerResult = calc.CalculateProviderProducts(testProvider, typedDatasets);
