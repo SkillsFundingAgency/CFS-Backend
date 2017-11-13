@@ -58,7 +58,7 @@ namespace Allocations.Services.Compiler.VisualBasic
 
         private static StatementSyntax CreateStaticDefinitionName(DatasetDefinition datasetDefinition)
         {
-            var token = SyntaxFactory.Literal(Identifier(datasetDefinition.Name));
+            var token = SyntaxFactory.Literal(datasetDefinition.Name);
             var variable = SyntaxFactory.VariableDeclarator(
                 SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ModifiedIdentifier("DatasetDefinitionName")));
             variable = variable.WithAsClause(
