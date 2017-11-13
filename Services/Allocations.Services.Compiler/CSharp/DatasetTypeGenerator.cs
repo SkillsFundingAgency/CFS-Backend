@@ -1,34 +1,28 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Data;
-using System.Globalization;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Allocations.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-
-namespace Allocations.Services.Calculator
+namespace Allocations.Services.Compiler.CSharp
 {
 
     public class DatasetTypeGenerator : CSharpTypeGenerator
     {
         public CompilationUnitSyntax Test(Budget budget, DatasetDefinition datasetDefinition)
         {
-            return CompilationUnit()
+            return SyntaxFactory.CompilationUnit()
                 .WithUsings(StandardUsings())
                 .WithMembers(
-                    SingletonList<MemberDeclarationSyntax>(
-                        ClassDeclaration(Identifier($"{datasetDefinition.Name}Dataset"))
+                    SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                        SyntaxFactory.ClassDeclaration(Identifier($"{datasetDefinition.Name}Dataset"))
                             .WithModifiers(
-                                TokenList(
-                                    Token(SyntaxKind.PublicKeyword)))
+                                SyntaxFactory.TokenList(
+                                    SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
                             .WithMembers(
-                                List<MemberDeclarationSyntax>(GetMembers(datasetDefinition)
+                                SyntaxFactory.List<MemberDeclarationSyntax>(GetMembers(datasetDefinition)
                                     ))))
                 .NormalizeWhitespace();
         }
@@ -54,50 +48,50 @@ namespace Allocations.Services.Calculator
 
         private static MemberDeclarationSyntax CreateStaticDefinitionName(DatasetDefinition datasetDefinition)
         {
-            return FieldDeclaration(
-                    VariableDeclaration(
-                            PredefinedType(
-                                Token(SyntaxKind.StringKeyword)))
+            return SyntaxFactory.FieldDeclaration(
+                    SyntaxFactory.VariableDeclaration(
+                            SyntaxFactory.PredefinedType(
+                                SyntaxFactory.Token(SyntaxKind.StringKeyword)))
                         .WithVariables(
-                            SingletonSeparatedList(
-                                VariableDeclarator(
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.VariableDeclarator(
                                         Identifier("DatasetDefinitionName"))
                                     .WithInitializer(
-                                        EqualsValueClause(
-                                            LiteralExpression(
+                                        SyntaxFactory.EqualsValueClause(
+                                            SyntaxFactory.LiteralExpression(
                                                 SyntaxKind.StringLiteralExpression,
-                                                Literal(datasetDefinition.Name)))))))
+                                                SyntaxFactory.Literal(datasetDefinition.Name)))))))
                 .WithModifiers(
-                    TokenList(
+                    SyntaxFactory.TokenList(
                         new[]
                         {
-                            Token(SyntaxKind.PublicKeyword),
-                            Token(SyntaxKind.StaticKeyword)
+                            SyntaxFactory.Token(SyntaxKind.PublicKeyword),
+                            SyntaxFactory.Token(SyntaxKind.StaticKeyword)
                         }));
         }
 
         private static MemberDeclarationSyntax GetMember(DatasetFieldDefinition fieldDefinition)
         {
             var propertyType = GetType(fieldDefinition.Type);
-            return PropertyDeclaration(
+            return SyntaxFactory.PropertyDeclaration(
                     propertyType,
                     Identifier(Identifier(fieldDefinition.Name)))
                 .WithModifiers(
-                    TokenList(
-                        Token(SyntaxKind.PublicKeyword)))
+                    SyntaxFactory.TokenList(
+                        SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
                 .WithAccessorList(
-                    AccessorList(
-                        List(
+                    SyntaxFactory.AccessorList(
+                        SyntaxFactory.List(
                             new[]
                             {
-                                AccessorDeclaration(
+                                SyntaxFactory.AccessorDeclaration(
                                         SyntaxKind.GetAccessorDeclaration)
                                     .WithSemicolonToken(
-                                        Token(SyntaxKind.SemicolonToken)),
-                                AccessorDeclaration(
+                                        SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                                SyntaxFactory.AccessorDeclaration(
                                         SyntaxKind.SetAccessorDeclaration)
                                     .WithSemicolonToken(
-                                        Token(SyntaxKind.SemicolonToken))
+                                        SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                             })));
         }
 

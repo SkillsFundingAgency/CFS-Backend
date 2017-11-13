@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Allocations.Models.Results;
 using Allocations.Models.Specs;
 using Allocations.Services.Calculator;
+using Allocations.Services.Compiler;
 
 namespace Allocations.Functions.Engine.Models
 {

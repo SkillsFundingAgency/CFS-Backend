@@ -1,9 +1,7 @@
-﻿using System;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace Allocations.Models.Specs
 {
-
     public class Budget : DocumentEntity
     {
         public override string Id => $"{DocumentType}-{Name}".ToSlug();
@@ -23,43 +21,9 @@ namespace Allocations.Models.Specs
         [JsonProperty("datasetDefinitions")]
         public DatasetDefinition[] DatasetDefinitions { get; set; }
 
-    }
-
-
-    public class DatasetDefinition
-    {
-        [JsonProperty("id")]
-        public string Id => Name.ToSlug();
-
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("description")]
-        public string Description { get; set; }
-
-        [JsonProperty("fieldDefinitions")]
-        public DatasetFieldDefinition[] FieldDefinitions { get; set; }
-    }
-
-    public class DatasetFieldDefinition
-    {
-        [JsonProperty("id")]
-        public string Id => Name.ToSlug();
-
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("longName")]
-        public string LongName { get; set; }
-
-        [JsonProperty("description")]
-        public string Description { get; set; }
-
-        [JsonProperty("type")]
-        public TypeCode Type { get; set; }
-
+        [JsonProperty("targetLanguage")]
+        public TargetLanguage TargetLanguage { get; set; }
 
     }
-
 }
 

@@ -1,12 +1,11 @@
 ﻿using System;
 using System.CodeDom.Compiler;
-using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Allocations.Services.Calculator
+namespace Allocations.Services.Compiler.CSharp
 {
     public abstract class CSharpTypeGenerator
     {
@@ -97,14 +96,6 @@ namespace Allocations.Services.Calculator
                 new[]{
                     SyntaxFactory.UsingDirective(
                         SyntaxFactory.IdentifierName("System")),
-                    //SyntaxFactory.UsingDirective(
-                    //    SyntaxFactory.QualifiedName(
-                    //        SyntaxFactory.IdentifierName("System"),
-                    //        SyntaxFactory.IdentifierName("ComponentModel"))),
-                    //SyntaxFactory.UsingDirective(
-                    //    SyntaxFactory.QualifiedName(
-                    //        SyntaxFactory.IdentifierName("Newtonsoft"),
-                    //        SyntaxFactory.IdentifierName("Json")))
                     });
         }
 

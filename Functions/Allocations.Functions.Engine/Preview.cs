@@ -7,6 +7,7 @@ using Allocations.Models;
 using Allocations.Models.Specs;
 using Allocations.Repository;
 using Allocations.Services.Calculator;
+using Allocations.Services.Compiler;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
