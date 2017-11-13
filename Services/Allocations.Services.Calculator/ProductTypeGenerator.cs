@@ -140,23 +140,5 @@ namespace Allocations.Services.Calculator
                             })));
         }
 
-        private static SyntaxList<AttributeListSyntax> ClassAttributes(string modelName)
-        {
-            return SingletonList(
-                AttributeList(
-                    SingletonSeparatedList(
-                        Attribute(
-                                IdentifierName("Allocation"))
-                            .WithArgumentList(
-                                AttributeArgumentList(
-                                    SeparatedList<AttributeArgumentSyntax>(
-                                        new SyntaxNodeOrToken[]
-                                        {
-                                            AttributeArgument(
-                                                LiteralExpression(
-                                                    SyntaxKind.StringLiteralExpression,
-                                                    Literal(modelName)))
-                                        }))))));
-        }
     }
 }

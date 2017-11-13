@@ -28,9 +28,7 @@ namespace Allocations.Services.Calculator
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
             MetadataReference[] references = {
-                AssemblyMetadata.CreateFromFile(typeof(object).Assembly.Location).GetReference(),
-                AssemblyMetadata.CreateFromFile(typeof(RequiredAttribute).Assembly.Location).GetReference(),
-                AssemblyMetadata.CreateFromFile(typeof(JsonPropertyAttribute).Assembly.Location).GetReference(),
+                AssemblyMetadata.CreateFromFile(typeof(object).Assembly.Location).GetReference()
             };
 
 

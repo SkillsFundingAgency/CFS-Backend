@@ -8,6 +8,7 @@ using Allocations.Repository;
 using Allocations.Services.TestRunner;
 using Allocations.Services.TestRunner.Vocab;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Allocations.Services.Calculator
 {
@@ -49,7 +50,7 @@ namespace Allocations.Services.Calculator
                         var datasetAsJson = repository.QueryAsJson($"SELECT * FROM ds WHERE ds.id='{dataset.Id}' AND ds.deleted = false").First();
 
 
-                        object blah = JsonConvert.DeserializeObject(datasetAsJson, type);
+                        object blah = JsonConvert.DeserializeObject(datasetAsJson, type, new JsonSerializerSettings{ContractResolver = new CamelCasePropertyNamesContractResolver()});
                         typedDatasets.Add(blah);
                     }
 
