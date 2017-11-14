@@ -238,20 +238,55 @@ namespace EndToEndDemo
                                             {
                                                 Name = "P004_PriRate",
                                                 Description = "This is obtained from the \'1617\' APT Proforma Dataset - Basic Entitlement Primary Amount Per Pupil",
-                                                FeatureFile = "Feature: P004_PriRate\r\n" +
-                                                "@mytag\r\n" +
-                                                "Scenario: Only Primary providers should have Primary Rate\r\n" +
-                                                "Given 'Phase' in 'APT Provider Information' is equal to 'Primary'\r\n" +
-                                                "And 'NORPrimary' in 'Census Number Counts' is greater than '0'\r\n" +
-                                                "Then the result should be greater than 0\r\n\r\n" +
-                                                "Scenario: Only Primary providers should have Primary Rate\r\n" +
-                                                "Given 'Phase' in 'APT Provider Information' is not 'Primary'\r\n" +
-                                                "Then the result should be greater than '0'\r\n\r\n" +
-                                                "Scenario: Primary Rate should be greater than 2000\r\n" +
-                                                "Given 'Phase' in 'APT Provider Information' is 'Primary'\r\n" +
-                                                "And 'NORPrimary' in 'Census Number Counts' is greater than '0'\r\n" +
-                                                "Then the result should be greater than or equal to 2000",
-                                                TestProviders = new []
+                                                TestScenarios = new List<ProductTestScenario>
+                                                {
+                                                    new ProductTestScenario
+                                                    {
+                                                        Name = "Only Primary providers should have Primary Rate",
+                                                        GivenSteps = new List<GivenStep>
+                                                        {
+                                                            new GivenStep("APT Provider Information", "Phase", ComparisonOperator.EqualTo, "Primary"),
+                                                            new GivenStep("Census Number Counts", "NORPrimary", ComparisonOperator.GreaterThan, "0"),
+                                                            new GivenStep("APT Provider Information", "Phase", ComparisonOperator.EqualTo, "Primary"),
+
+                                                        },
+                                                        ThenSteps = new List<ThenStep>
+                                                        {
+                                                            new ThenStep(ComparisonOperator.GreaterThan, "0")
+                                                        }
+                                                    },
+
+                                                    new ProductTestScenario
+                                                    {
+                                                        Name = "Non-Primary providers should not have Primary Rate",
+                                                        GivenSteps = new List<GivenStep>
+                                                        {
+                                                            new GivenStep("APT Provider Information", "Phase", ComparisonOperator.NotEqualTo, "Primary")
+                                                        },
+                                                        ThenSteps = new List<ThenStep>
+                                                        {
+                                                            new ThenStep(ComparisonOperator.EqualTo, "2000")
+                                                        }
+                                                    },
+
+                                                    new ProductTestScenario
+                                                    {
+                                                        Name = "Non-Primary providers should not have Primary Rate",
+                                                        GivenSteps = new List<GivenStep>
+                                                        {
+                                                            new GivenStep("APT Provider Information", "Phase", ComparisonOperator.EqualTo, "Primary"),
+                                                            new GivenStep("Census Number Counts", "NORPrimary", ComparisonOperator.GreaterThan, "0"),
+                                                            new GivenStep("APT Provider Information", "Phase", ComparisonOperator.EqualTo, "Primary"),
+
+                                                        },
+                                                        ThenSteps = new List<ThenStep>
+                                                        {
+                                                            new ThenStep(ComparisonOperator.GreaterThan, "0")
+                                                        }
+                                                    }
+                                                },
+
+                                                TestProviders = new List<Reference>
                                                 {
                                                     new Reference("140002", "The Blyth Academy"),
                                                     new Reference("138257", "Cramlington Village Primary School")
@@ -259,7 +294,6 @@ namespace EndToEndDemo
 
                                                 Calculation = new ProductCalculation
                                                 {
-                                                    CalculationType = CalculationType.CSharp,
                                                     SourceCode = @"
 	Return Me.APTBasicEntitlement.PrimaryAmountPerPupil
 "
@@ -268,20 +302,55 @@ namespace EndToEndDemo
                                             new Product
                                             {
                                                 Name = "P005_PriBESubtotal",
-                                                FeatureFile = "Feature: P004_PriRate\r\n" +
-                                                              "@mytag\r\n" +
-                                                              "Scenario: Only Primary providers should have Primary Rate\r\n" +
-                                                              "Given 'Phase' in 'APT Provider Information' is equal to 'Primary'\r\n" +
-                                                              "And 'NORPrimary' in 'Census Number Counts' is greater than '0'\r\n" +
-                                                              "Then the result should be greater than 0\r\n\r\n" +
-                                                              "Scenario: Only Primary providers should have Primary Rate\r\n" +
-                                                              "Given 'Phase' in 'APT Provider Information' is not 'Primary'\r\n" +
-                                                              "Then the result should be greater than '0'\r\n\r\n" +
-                                                              "Scenario: Primary Rate should be greater than 2000\r\n" +
-                                                              "Given 'Phase' in 'APT Provider Information' is 'Primary'\r\n" +
-                                                              "And 'NORPrimary' in 'Census Number Counts' is greater than '0'\r\n" +
-                                                              "Then the result should be greater than or equal to 2000",
-                                                TestProviders = new []
+                                                TestScenarios = new List<ProductTestScenario>
+                                                {
+                                                    new ProductTestScenario
+                                                    {
+                                                        Name = "Only Primary providers should have Primary Rate",
+                                                        GivenSteps = new List<GivenStep>
+                                                        {
+                                                            new GivenStep("APT Provider Information", "Phase", ComparisonOperator.EqualTo, "Primary"),
+                                                            new GivenStep("Census Number Counts", "NORPrimary", ComparisonOperator.GreaterThan, "0"),
+                                                            new GivenStep("APT Provider Information", "Phase", ComparisonOperator.EqualTo, "Primary"),
+
+                                                        },
+                                                        ThenSteps = new List<ThenStep>
+                                                        {
+                                                            new ThenStep(ComparisonOperator.GreaterThan, "0")
+                                                        }
+                                                    },
+
+                                                    new ProductTestScenario
+                                                    {
+                                                        Name = "Non-Primary providers should not have Primary Rate",
+                                                        GivenSteps = new List<GivenStep>
+                                                        {
+                                                            new GivenStep("APT Provider Information", "Phase", ComparisonOperator.NotEqualTo, "Primary")
+                                                        },
+                                                        ThenSteps = new List<ThenStep>
+                                                        {
+                                                            new ThenStep(ComparisonOperator.EqualTo, "2000")
+                                                        }
+                                                    },
+
+                                                    new ProductTestScenario
+                                                    {
+                                                        Name = "Non-Primary providers should not have Primary Rate",
+                                                        GivenSteps = new List<GivenStep>
+                                                        {
+                                                            new GivenStep("APT Provider Information", "Phase", ComparisonOperator.EqualTo, "Primary"),
+                                                            new GivenStep("Census Number Counts", "NORPrimary", ComparisonOperator.GreaterThan, "0"),
+                                                            new GivenStep("APT Provider Information", "Phase", ComparisonOperator.EqualTo, "Primary"),
+
+                                                        },
+                                                        ThenSteps = new List<ThenStep>
+                                                        {
+                                                            new ThenStep(ComparisonOperator.GreaterThan, "0")
+                                                        }
+                                                    }
+                                                },
+
+                                                TestProviders = new List<Reference>
                                                 {
                                                     new Reference("140002", "The Blyth Academy"),
                                                     new Reference("138257", "Cramlington Village Primary School")
@@ -292,7 +361,6 @@ namespace EndToEndDemo
 
                                                 Calculation = new ProductCalculation
                                                 {
-                                                    CalculationType = CalculationType.CSharp,
                                                     SourceCode = @"
 	Dim t As DateTime = New DateTime(2018, 4, 1)
 	Dim flag As Boolean = Me.APTProviderInformation.DateOpened > t
@@ -311,7 +379,6 @@ namespace EndToEndDemo
                                                 Name = "P006a_NSEN_PriBE_Percent",
                                                 Calculation = new ProductCalculation
                                                 {
-                                                    CalculationType = CalculationType.CSharp,
                                                     SourceCode = @"
 	Return Me.APTBasicEntitlement.PrimaryNotionalSEN
                                                     "
@@ -322,7 +389,6 @@ namespace EndToEndDemo
                                                 Name = "P006_NSEN_PriBE",
                                                 Calculation = new ProductCalculation
                                                 {
-                                                    CalculationType = CalculationType.CSharp,
                                                     SourceCode = @"
 	Return Me.P006a_NSEN_PriBE_Percent() * Me.P005_PriBESubtotal()
                                                     "

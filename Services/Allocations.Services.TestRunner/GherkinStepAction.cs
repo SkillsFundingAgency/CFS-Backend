@@ -1,59 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using Allocations.Models;
 using Allocations.Models.Results;
 using Allocations.Models.Specs;
-using Gherkin.Ast;
 
 namespace Allocations.Services.TestRunner
 {
     public abstract class GherkinStepAction
     {
-        protected GherkinStepAction(string regularExpression, params string[] keywords)
-        {
-            Keywords = keywords;
-            RegularExpression = new Regex(regularExpression);
-        }
 
-        public Regex RegularExpression { get; }
-
-        public string[] Keywords { get; }
-
-        protected IEnumerable<string> GetInlineArguments(Step step)
-        {
-            var group = RegularExpression.Match(step.Text).Groups;
-            for (var i = 1; i < group.Count; i++)
-            {
-                yield return group[i].Value;
-            }
-        }
-
-        public abstract GherkinResult Validate(Budget budget, Step step);
-
-        public abstract GherkinResult Execute(ProductResult productResult, List<object> datasets, Step step);
-
-        protected bool TestLogic(object expectedValue, object actualValue, string logic)
+        public abstract GherkinResult Execute(ProductResult productResult, List<object> datasets, TestStep step);
+        protected bool TestLogic(object expectedValue, object actualValue, ComparisonOperator logic)
         {
             var expected = expectedValue as IComparable;
             var actual = actualValue as IComparable;
 
             if (expected != null && actual == null) return false;
 
-            switch (logic.Trim().ToLowerInvariant())
+            switch (logic)
             {
-                case "equal to":
+                case ComparisonOperator.EqualTo:
                     return actual.CompareTo(expected)  == 0;
-                case "not equal to":
+                case ComparisonOperator.NotEqualTo:
                     return actual.CompareTo(expected) != 0;
-                case "greater than":                 
+                case ComparisonOperator.GreaterThan:                 
                     return actual.CompareTo(expectedValue) > 0;
-                case "greater than or equal to":
+                case ComparisonOperator.GreaterThanOrEqualTo:
                     return actual.CompareTo(expectedValue) >= 0;
-                case "less than":
+                case ComparisonOperator.LessThan:
                     return actual.CompareTo(expectedValue) < 0;
-                case "less than or equal to":
+                case ComparisonOperator.LessThanOrEqualTo:
                     return actual.CompareTo(expectedValue) <= 0;
                 default: return false;
             }
@@ -85,5 +60,6 @@ namespace Allocations.Services.TestRunner
             return actualValue;
         }
 
+        public abstract bool IsMatch(TestStepType stepType);
     }
 }
