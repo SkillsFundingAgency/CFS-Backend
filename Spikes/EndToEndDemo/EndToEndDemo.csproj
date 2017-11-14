@@ -140,6 +140,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Common\Allocations.Bootstrapper\Allocations.Boostrapper.csproj">
+      <Project>{7C519EF0-58FE-4313-870D-E3ABD41F629D}</Project>
+      <Name>Allocations.Boostrapper</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Common\Allocations.Repository\Allocations.Repository.csproj">
       <Project>{caf743cf-a061-4b51-91ff-4253596b91e5}</Project>
       <Name>Allocations.Repository</Name>
