@@ -47,9 +47,9 @@ namespace Allocations.Boostrapper
                     }
 
                     Console.WriteLine("Seed budget");
-                    using (var repo = new Repository<Budget>("specs"))
+                    using (var repo = new Repository<Budget>("specs", result.Value.CosmosDBConnectionString))
                     {
-                        await repo.CreateAsync(GetBudget());
+                        await repo.CreateAsync(SeedData.GetBudget());
                     }
 
 
@@ -67,7 +67,13 @@ namespace Allocations.Boostrapper
 
         }
 
-        private static Budget GetBudget()
+
+
+    }
+
+    public class SeedData
+    {
+        public static Budget GetBudget()
         {
             return new Budget
             {

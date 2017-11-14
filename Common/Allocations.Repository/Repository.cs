@@ -22,9 +22,9 @@ namespace Allocations.Repository
         private readonly string _documentType = typeof(T).Name;
 
 
-        public Repository(string collectionName)
+        public Repository(string collectionName, string connectionStringOverride = null)
         {
-            var connectionString = ConfigurationManager.AppSettings["CosmosDBConnectionString"];
+            var connectionString = connectionStringOverride ?? ConfigurationManager.AppSettings["CosmosDBConnectionString"];
 
             var databaseName = "allocations";
 
