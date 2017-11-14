@@ -28,7 +28,7 @@ namespace Allocations.Services.Compiler.CSharp
             var compilerOutput = new BudgetCompilerOutput
             {
                 Budget = budget,
-                DatasetSourceCode = datasetSyntaxTrees.Select(x => x.ToString()).ToArray(),
+      //          DatasetSourceCode = datasetSyntaxTrees.Select(x => x.ToString()).ToArray(),
                 CalculationSourceCode = calcSyntaxTree.ToString()
             };
 
