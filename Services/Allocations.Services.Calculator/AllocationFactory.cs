@@ -33,6 +33,11 @@ namespace Allocations.Services.Calculator
 
         }
 
+        public IEnumerable<string> GetDatasetTypeNames()
+        {
+            return DatasetTypes.Keys;
+        }
+
 
         public Type GetDatasetType(string datasetName)
         {

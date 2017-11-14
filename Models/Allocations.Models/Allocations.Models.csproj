@@ -58,6 +58,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CalculationResult.cs" />
+    <Compile Include="Datasets\AggregateDataset.cs" />
+    <Compile Include="Datasets\AggregateField.cs" />
     <Compile Include="Datasets\ProviderSourceDataset.cs" />
     <Compile Include="DocumentEntity.cs" />
     <Compile Include="ExtensionMethods.cs" />
