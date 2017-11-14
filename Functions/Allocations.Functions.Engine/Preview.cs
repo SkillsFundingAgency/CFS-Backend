@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -50,7 +51,7 @@ namespace Allocations.Functions.Engine
                 {
                     var calc = new CalculationEngine(compilerOutput);
 
-                    foreach (var testProvider in product.TestProviders ?? new Reference[0])
+                    foreach (var testProvider in product.TestProviders ?? new List<Reference>())
                     {
                         var typedDatasets = await calc.GetProviderDatasets(testProvider, request.BudgetId);
 

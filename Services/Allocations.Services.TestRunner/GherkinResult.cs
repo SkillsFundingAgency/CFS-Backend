@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Allocations.Models.Results;
-using Gherkin.Ast;
 
 namespace Allocations.Services.TestRunner
 {
@@ -13,16 +11,16 @@ namespace Allocations.Services.TestRunner
             Dependencies = new List<Dependency>();
         }
 
-        public GherkinResult(string errorMessage, Location location)
+        public GherkinResult(string errorMessage)
         {
             Errors = new List<GherkinError>();
             Dependencies = new List<Dependency>();
-            AddError(errorMessage, location);
+            AddError(errorMessage);
         }
 
-        public void AddError(string errorMessage, Location location)
+        public void AddError(string errorMessage)
         {
-            Errors.Add(new GherkinError(errorMessage, location));
+            Errors.Add(new GherkinError(errorMessage));
         }
 
         public bool HasErrors => Errors != null && Errors.Any();

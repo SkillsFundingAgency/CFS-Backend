@@ -30,7 +30,7 @@ namespace Allocations.Services.Calculator
             using (var repository = new Repository<ProviderSourceDataset>("datasets"))
             {
 
-                var datasetsByUrn = repository.Query().Where(x => x.DatasetName == "ProviderSourceDataset" && x.BudgetId == _compilerOutput.Budget.Id).ToArray().GroupBy(x => x.ProviderUrn);
+                var datasetsByUrn = repository.Query().Where(x => x.DocumentType == "ProviderSourceDataset" && x.BudgetId == _compilerOutput.Budget.Id).ToArray().GroupBy(x => x.ProviderUrn);
 
                 foreach (var urn in datasetsByUrn)
                 {
@@ -42,7 +42,7 @@ namespace Allocations.Services.Calculator
                     {
                        
                         var type = _allocationFactory.GetDatasetType(dataset.DatasetName);
-                        var nameField = type.GetProperty("PoviderName");
+                        var nameField = typeof(ProviderSourceDataset).GetProperty("ProviderName");
                         if (nameField != null)
                         {
                             providerName = nameField.GetValue(dataset)?.ToString();
@@ -141,7 +141,6 @@ namespace Allocations.Services.Calculator
 
         public ProviderTestResult RunProviderTests(Reference provider, List<object> typedDatasets, ProviderResult providerResult)
         {
-            var gherkinValidator = new GherkinValidator(new ProductGherkinVocabulary());
             var gherkinExecutor = new GherkinExecutor(new ProductGherkinVocabulary());
 
             var testResult = new ProviderTestResult
@@ -153,13 +152,10 @@ namespace Allocations.Services.Calculator
             foreach (var productResult in providerResult.ProductResults)
             {
 
-                if (productResult.Product.FeatureFile != null)
+                if (productResult.Product.TestScenarios != null)
                 {
-                    var validationErrors =
-                        gherkinValidator.Validate(_compilerOutput.Budget, productResult.Product.FeatureFile).ToArray();
-
                     var gherkinScenarioResults =
-                        gherkinExecutor.Execute(productResult, typedDatasets, productResult.Product.FeatureFile);
+                        gherkinExecutor.Execute(productResult, typedDatasets, productResult.Product.TestScenarios);
 
                     foreach (var executeResult in gherkinScenarioResults)
                     {
@@ -170,8 +166,7 @@ namespace Allocations.Services.Calculator
                             ProductFolder = productResult.ProductFolder,
                             Product = productResult.Product,
                             ProductValue = productResult.Value,
-                            ScenarioName = executeResult.ScenarioName,
-                            ScenarioDescription = executeResult.ScenarioDescription,
+                            Scenario = executeResult.Scenario,
                             TestResult =
                                 executeResult.StepsExecuted < executeResult.TotalSteps
                                     ? TestResult.Ignored
