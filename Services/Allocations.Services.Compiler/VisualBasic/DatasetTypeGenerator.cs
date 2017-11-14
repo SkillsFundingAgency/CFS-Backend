@@ -12,25 +12,28 @@ namespace Allocations.Services.Compiler.VisualBasic
 
     public class DatasetTypeGenerator : VisualBasicTypeGenerator
     {
-        public CompilationUnitSyntax GenerateDataset(Budget budget, DatasetDefinition datasetDefinition)
+        public CompilationUnitSyntax GenerateDatasets(Budget budget)
         {
+
+            var classes = budget.DatasetDefinitions.Select(x => SyntaxFactory.ClassBlock(
+                SyntaxFactory.ClassStatement(
+                        Identifier($"{x.Name}Dataset")
+                    )
+                    .WithModifiers(
+                        SyntaxFactory.TokenList(
+                            SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
+                new SyntaxList<InheritsStatementSyntax>(),
+                new SyntaxList<ImplementsStatementSyntax>(),
+                SyntaxFactory.List(GetMembers(x)),
+                SyntaxFactory.EndClassStatement()
+
+
+            ));
+
             return SyntaxFactory.CompilationUnit()
                 .WithImports(StandardImports())
                 .WithMembers(
-                    SyntaxFactory.SingletonList<StatementSyntax>(
-                        SyntaxFactory.ClassBlock(
-                                SyntaxFactory.ClassStatement(
-                                        Identifier($"{datasetDefinition.Name}Dataset")
-                                    )
-                                    .WithModifiers(
-                                        SyntaxFactory.TokenList(
-                                            SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
-                                new SyntaxList<InheritsStatementSyntax>(), 
-                                new SyntaxList<ImplementsStatementSyntax>(), 
-                                SyntaxFactory.List(GetMembers(datasetDefinition)),
-                                SyntaxFactory.EndClassStatement()
-                            )
-                                    ))
+                    SyntaxFactory.List<StatementSyntax>(classes))
                 .NormalizeWhitespace();
 
         }

@@ -122,9 +122,7 @@ namespace EndToEndDemo
                                                 {
                                                     CalculationType = CalculationType.CSharp,
                                                     SourceCode = @"
-Public Function P004_PriRate() As Decimal
 	Return Me.APTBasicEntitlement.PrimaryAmountPerPupil
-End Function
 "
                                                 }
                                             },
@@ -157,7 +155,6 @@ End Function
                                                 {
                                                     CalculationType = CalculationType.CSharp,
                                                     SourceCode = @"
-Public Function P005_PriBESubtotal() As Decimal
 	Dim t As DateTime = New DateTime(2018, 4, 1)
 	Dim flag As Boolean = Me.APTProviderInformation.DateOpened > t
 	Dim result As Decimal
@@ -167,7 +164,6 @@ Public Function P005_PriBESubtotal() As Decimal
 		result = Me.P004_PriRate() * Me.CensusNumberCounts.NORPrimary
 	End If
 	Return result
-End Function
                                                     "
                                                 }
                                             },
@@ -178,9 +174,7 @@ End Function
                                                 {
                                                     CalculationType = CalculationType.CSharp,
                                                     SourceCode = @"
-Public Function P006a_NSEN_PriBE_Percent() As Decimal
 	Return Me.APTBasicEntitlement.PrimaryNotionalSEN
-End Function
                                                     "
                                                 }
                                             },
@@ -191,9 +185,7 @@ End Function
                                                 {
                                                     CalculationType = CalculationType.CSharp,
                                                     SourceCode = @"
-Public Function P006_NSEN_PriBE() As Decimal
 	Return Me.P006a_NSEN_PriBE_Percent() * Me.P005_PriBESubtotal()
-End Function
                                                     "
                                                 }
                                             },

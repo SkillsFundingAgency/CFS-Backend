@@ -42,6 +42,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allocations.Services.Calcul
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Allocations.Services.Compiler", "Services\Allocations.Services.Compiler\Allocations.Services.Compiler.csproj", "{DFD4D355-AD02-4F14-9D44-94C138895598}"
 EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "VBScratchpad", "Spikes\VBScratchpad\VBScratchpad.vbproj", "{929F9015-E4A3-4284-88D7-7F1733A8F69B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -96,6 +98,10 @@ Global
 		{DFD4D355-AD02-4F14-9D44-94C138895598}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DFD4D355-AD02-4F14-9D44-94C138895598}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DFD4D355-AD02-4F14-9D44-94C138895598}.Release|Any CPU.Build.0 = Release|Any CPU
+		{929F9015-E4A3-4284-88D7-7F1733A8F69B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{929F9015-E4A3-4284-88D7-7F1733A8F69B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{929F9015-E4A3-4284-88D7-7F1733A8F69B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{929F9015-E4A3-4284-88D7-7F1733A8F69B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -113,6 +119,7 @@ Global
 		{7C519EF0-58FE-4313-870D-E3ABD41F629D} = {05B79C3B-E1CD-4A38-A21E-9127CAB0B636}
 		{406DBFC9-A5F9-4A89-87CE-A0334A2CFE47} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
 		{DFD4D355-AD02-4F14-9D44-94C138895598} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
+		{929F9015-E4A3-4284-88D7-7F1733A8F69B} = {9E576324-96E4-4582-B5DB-00B0F77D18CB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2FA36A0A-CA20-41CF-9BC2-FA6545720009}

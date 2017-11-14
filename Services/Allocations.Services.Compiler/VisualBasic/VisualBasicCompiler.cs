@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Allocations.Models.Specs;
@@ -13,15 +15,17 @@ namespace Allocations.Services.Compiler.VisualBasic
             var datasetTypeGenerator = new DatasetTypeGenerator();
             var productTypeGenerator = new ProductTypeGenerator();
 
-            var datasetSyntaxTrees = budget.DatasetDefinitions.Select(x => datasetTypeGenerator.GenerateDataset(budget, x).SyntaxTree).ToArray();
+            var datasetSyntaxTrees = datasetTypeGenerator.GenerateDatasets(budget).SyntaxTree;
             var calcSyntaxTree = productTypeGenerator.GenerateCalcs(budget).SyntaxTree;
 
              var compilerOutput = new BudgetCompilerOutput
             {
                 Budget = budget,
-                DatasetSourceCode = datasetSyntaxTrees.Select(x => x.ToString()).ToArray(),
+                DatasetSourceCode = datasetSyntaxTrees.ToString(),
                 CalculationSourceCode = calcSyntaxTree.ToString()
             };
+
+            Console.WriteLine(compilerOutput.CalculationSourceCode);
 
             var options = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
