@@ -47,11 +47,17 @@ namespace Allocations.Boostrapper
                     }
 
                     Console.WriteLine("Seed budget");
-                    using (var repo = new Repository<Budget>("specs", result.Value.CosmosDBConnectionString))
+                    try
                     {
-                        await repo.CreateAsync(SeedData.GetBudget());
+                        using (var repo = new Repository<Budget>("specs", result.Value.CosmosDBConnectionString))
+                        {
+                            await repo.CreateAsync(SeedData.GetBudget());
+                        }
                     }
-
+                    catch (Exception e)
+                    {
+                        Console.Write(e.ToString());
+                    }
 
                 }).Wait();
                 Console.WriteLine("Completed successfully");
