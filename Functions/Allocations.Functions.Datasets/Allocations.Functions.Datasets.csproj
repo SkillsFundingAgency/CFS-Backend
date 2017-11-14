@@ -8,6 +8,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Services\Allocations.Services.Calculator\Allocations.Services.Calculator.csproj" />
     <ProjectReference Include="..\..\Services\Allocations.Services.DataImporter\Allocations.Services.DataImporter.csproj" />
   </ItemGroup>
   <ItemGroup>

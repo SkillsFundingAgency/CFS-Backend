@@ -11,7 +11,7 @@ namespace Allocations.Services.DataImporter
         [SourceColumn("Provider Information.Provider Name_9070")]
         public string ProviderName { get; set; }
         [SourceColumn("Provider Information.Date Opened_9077")]
-        public DateTimeOffset DateOpened { get; set; }
+        public DateTime DateOpened { get; set; }
         [SourceColumn("Provider Information.Local Authority_9426")]
         public string LocalAuthority { get; set; }
 

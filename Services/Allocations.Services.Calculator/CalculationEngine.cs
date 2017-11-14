@@ -30,7 +30,7 @@ namespace Allocations.Services.Calculator
             using (var repository = new Repository<ProviderSourceDataset>("datasets"))
             {
 
-                var datasetsByUrn = repository.Query().Where(x => x.BudgetId == _compilerOutput.Budget.Id).ToArray().GroupBy(x => x.ProviderUrn);
+                var datasetsByUrn = repository.Query().Where(x => x.DatasetName == "ProviderSourceDataset" && x.BudgetId == _compilerOutput.Budget.Id).ToArray().GroupBy(x => x.ProviderUrn);
 
                 foreach (var urn in datasetsByUrn)
                 {
