@@ -21,58 +21,93 @@ namespace Allocations.Functions.Results
         [FunctionName("budgets")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]HttpRequestMessage req, TraceWriter log)
         {
-            using (var budgetRepository = new Repository<Budget>("specs"))
+            using (var budgetRepository = new Repository<Allocations.Models.Specs.Budget>("specs"))
             {
+                var test = budgetRepository.Query().ToList();
                 var budgets = budgetRepository.Query().ToList().Select(x => new BudgetSummary
                 {
                     Budget = new Reference(x.Id, x.Name),
-                    FundingPolicies = x.FundingPolicies.Select(fp => new FundingPolicySummary
-                {
-                    FundingPolicy = new Reference(fp.Id, fp.Name),            
-                }).ToArray()}).ToList();
-                
+                    FundingPolicies = x.FundingPolicies.Select(fp => new Models.FundingPolicy(fp.Id, fp.Name, fp.AllocationLines.Select(al => new Models.AllocationLine(al.Id, al.Name)).ToArray())).ToList().ToArray()
+                }).ToArray();
+
                 using (var resultsRepository = new Repository<ProviderResult>("results"))
                 {
                     using (var testResultsRepository = new Repository<ProviderTestResult>("results"))
                     {
-                        var providerResults = resultsRepository.Query().ToList().Where(x => x.ProductResults != null).SelectMany(x => x.ProductResults).GroupBy(x => x.FundingPolicy.Id).ToDictionary(x => x.Key);
+                        var asda = resultsRepository.Query().ToList();
+                        var providerAllocationLineResults = resultsRepository.Query().ToList().Where(x => x.ProductResults != null).SelectMany(x => x.ProductResults).GroupBy(x => x.AllocationLine.Id).ToDictionary(x => x.Key);
+                        var providerPolicyResults = resultsRepository.Query().ToList().Where(x => x.ProductResults != null).SelectMany(x => x.ProductResults).GroupBy(x => x.FundingPolicy.Id).ToDictionary(x => x.Key);
                         foreach (var budgetSummary in budgets)
                         {
                             foreach (var fundingPolicy in budgetSummary.FundingPolicies)
                             {
-                                if (providerResults.ContainsKey(fundingPolicy.FundingPolicy.Id))
+                                foreach (var allocationLine in fundingPolicy.AllocationLines)
                                 {
-                                    fundingPolicy.TotalAmount = providerResults[fundingPolicy.FundingPolicy.Id].Sum(x => x.Value.Value);
+                                    if (providerAllocationLineResults.ContainsKey(allocationLine.Id))
+                                    {
+                                        allocationLine.TotalAmount = providerAllocationLineResults[allocationLine.Id].Sum(x => x.Value.Value);
+                                    }
                                 }
+                                //if (providerPolicyResults.ContainsKey(fundingPolicy.Id)) uncomment this for the project
+                                //{
+                                fundingPolicy.TotalAmount = fundingPolicy.AllocationLines.Sum(x => x.TotalAmount);
+                                //}
                             }
 
                             budgetSummary.TotalAmount = budgetSummary.FundingPolicies.Sum(x => x.TotalAmount);
                         }
 
-
+                        var providerTestResult1s = testResultsRepository.Query().ToList().Where(x => x.ScenarioResults != null).SelectMany(x => x.ScenarioResults).GroupBy(x => x.AllocationLine.Id).ToDictionary(x => x.Key);
                         var providerTestResults = testResultsRepository.Query().ToList().Where(x => x.ScenarioResults != null).SelectMany(x => x.ScenarioResults).GroupBy(x => x.FundingPolicy.Id).ToDictionary(x => x.Key);
                         foreach (var budgetSummary in budgets)
                         {
                             foreach (var fundingPolicy in budgetSummary.FundingPolicies)
                             {
-
-                                if (providerTestResults.ContainsKey(fundingPolicy.FundingPolicy.Id))
+                                foreach (var allocationLine in fundingPolicy.AllocationLines)
+                                {
+                                    if (providerTestResult1s.ContainsKey(allocationLine.Id))
+                                    {
+                                        allocationLine.TestSummary = new TestSummary
+                                        {
+                                            Passed = providerTestResult1s[allocationLine.Id]
+                                           .Count(x => x.TestResult == TestResult.Passed),
+                                            Failed = providerTestResult1s[allocationLine.Id]
+                                           .Count(x => x.TestResult == TestResult.Failed),
+                                        };
+                                    }
+                                    else
+                                    {
+                                        allocationLine.TestSummary = new TestSummary
+                                        {
+                                            Passed = 0,
+                                            Failed = 0,
+                                        };
+                                    }
+                                }
+                                if (providerTestResults.ContainsKey(fundingPolicy.Id))
                                 {
                                     fundingPolicy.TestSummary = new TestSummary
                                     {
-                                        Passed = providerTestResults[fundingPolicy.FundingPolicy.Id]
+                                        Passed = providerTestResults[fundingPolicy.Id]
                                             .Count(x => x.TestResult == TestResult.Passed),
-                                        Failed = providerTestResults[fundingPolicy.FundingPolicy.Id]
+                                        Failed = providerTestResults[fundingPolicy.Id]
                                             .Count(x => x.TestResult == TestResult.Failed),
                                     };
                                 }
-
+                                else
+                                {
+                                    fundingPolicy.TestSummary = new TestSummary
+                                    {
+                                        Passed = 0,
+                                        Failed = 0,
+                                    };
+                                }
                                 budgetSummary.TestSummary = new TestSummary
                                 {
                                     Passed = budgetSummary.FundingPolicies.Where(x => x.TestSummary != null)
-                                        .Sum(x => x.TestSummary.Passed),
+                                    .Sum(x => x.TestSummary.Passed),
                                     Failed = budgetSummary.FundingPolicies.Where(x => x.TestSummary != null)
-                                        .Sum(x => x.TestSummary.Failed),
+                                    .Sum(x => x.TestSummary.Failed),
                                 };
                             }
                         }

@@ -13,8 +13,12 @@ namespace Allocations.Models.Results
                     tr._ts,
                     tr.budget.id as budgetId,
                     tr.provider.id as providerId,
+                    tr.budget.name as budgetName,
                     sr.fundingPolicy.id as fundingPolicyId,
                     sr.fundingPolicy.name as fundingPolicyName,
+                    sr.productFolder.Id as productFolderId,
+                    sr.productFolder.Name as productFolderName,
+                    sr.allocationLine.Name as allocationLineName,
                     sr.scenarioName,
                     sr.testResult
             FROM tr
@@ -53,15 +57,22 @@ namespace Allocations.Models.Results
 
         [IsSearchable]
         [IsFacetable]
+        [JsonProperty("allocationLineName")]
+        public string AllocationLineName { get; set; }
+
+        [IsSearchable]
+        [IsFacetable]
         [JsonProperty("testresult")]
         public string TestResult { get; set; }
 
-        //[IsSearchable]
-        //[JsonProperty("productFolder")]
-        //public string ProductFolder { get; set; }
-        //[IsSearchable]
-        //[JsonProperty("product")]
-        //public string Product { get; set; }
+        [IsSearchable]
+        [IsFacetable]
+        [JsonProperty("productFolderId")]
+        public string ProductFolderId { get; set; }
+        [IsSearchable]
+        [IsFacetable]
+        [JsonProperty("productFolderName")]
+        public string ProductFolderName { get; set; }
 
         //[JsonProperty("lastFailedDate")]
         //[IsFilterable]
