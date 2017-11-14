@@ -39,11 +39,11 @@ namespace Allocations.Services.Compiler.CSharp
 
         private static IEnumerable<MemberDeclarationSyntax> GetStandardFields()
         {
-            yield return GetMember(new DatasetFieldDefinition {Type = TypeCode.String, Name = "Id"});
-            yield return GetMember(new DatasetFieldDefinition {Type = TypeCode.String, Name = "BudgetId"});
-            yield return GetMember(new DatasetFieldDefinition {Type = TypeCode.String, Name = "ProviderUrn"});
-            yield return GetMember(new DatasetFieldDefinition {Type = TypeCode.String, Name = "ProviderName"});
-            yield return GetMember(new DatasetFieldDefinition {Type = TypeCode.String, Name = "DatasetName"});
+            yield return GetMember(new DatasetFieldDefinition {Type = FieldType.String, Name = "Id"});
+            yield return GetMember(new DatasetFieldDefinition {Type = FieldType.String, Name = "BudgetId"});
+            yield return GetMember(new DatasetFieldDefinition {Type = FieldType.String, Name = "ProviderUrn"});
+            yield return GetMember(new DatasetFieldDefinition {Type = FieldType.String, Name = "ProviderName"});
+            yield return GetMember(new DatasetFieldDefinition {Type = FieldType.String, Name = "DatasetName"});
         }
 
         private static MemberDeclarationSyntax CreateStaticDefinitionName(DatasetDefinition datasetDefinition)

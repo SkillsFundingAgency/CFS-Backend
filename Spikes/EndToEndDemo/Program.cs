@@ -207,25 +207,25 @@ namespace EndToEndDemo
                             new DatasetFieldDefinition
                             {
                                 Name = "UPIN",
-                                Type = TypeCode.String
+                                Type = FieldType.String
                             },
                             new DatasetFieldDefinition
                             {
                                 Name = "DateOpened",
                                 LongName = "Date Opened",
-                                Type = TypeCode.DateTime
+                                Type = FieldType.DateTime
                             },
                             new DatasetFieldDefinition
                             {
                                 Name = "LocalAuthority",
                                 LongName = "Local Authority",
-                                Type = TypeCode.String
+                                Type = FieldType.String
                             },
                             new DatasetFieldDefinition
                             {
                                 Name = "Phase",
                                 LongName = "Phase",
-                                Type = TypeCode.String
+                                Type = FieldType.String
                             }
                         }
                     },
@@ -239,19 +239,19 @@ namespace EndToEndDemo
                             {
                                 Name = "PrimaryAmountPerPupil",
                                 LongName = "Primary Amount Per Pupil",
-                                Type = TypeCode.Decimal
+                                Type = FieldType.Decimal
                             },
                             new DatasetFieldDefinition
                             {
                                 Name = "PrimaryAmount",
                                 LongName = "Primary Amount",
-                                Type = TypeCode.Decimal
+                                Type = FieldType.Decimal
                             },
                             new DatasetFieldDefinition
                             {
                                 Name = "PrimaryNotionalSEN",
                                 LongName = "Primary Notional SEN",
-                                Type = TypeCode.Decimal
+                                Type = FieldType.Decimal
                             },
                         }
                     },
@@ -265,7 +265,7 @@ namespace EndToEndDemo
                             {
                                 Name = "NOR Primary",
                                 LongName = "NOR Primary",
-                                Type = TypeCode.Int32
+                                Type = FieldType.Integer
                             }
                         }
                     },

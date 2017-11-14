@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Text.RegularExpressions;
+using Allocations.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
@@ -36,47 +37,27 @@ namespace Allocations.Services.Compiler.VisualBasic
             return Char.ToLowerInvariant(titleCase[0]) + titleCase.Substring(1);
         }
 
-        public static TypeSyntax GetType(TypeCode type)
+        public static TypeSyntax GetType(FieldType type)
         {
             TypeSyntax propertyType;
             switch (type)
             {
-                case TypeCode.Boolean:
+                case FieldType.Boolean:
                     propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BooleanKeyword));
                     break;
-                case TypeCode.Char:
+                case FieldType.Char:
                     propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.CharKeyword));
                     break;
-                case TypeCode.SByte:
-                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.SByteKeyword));
-                    break;
-                case TypeCode.Byte:
-                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ByKeyword));
-                    break;
-                case TypeCode.Int16:
-                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ShortKeyword));
-                    break;
-                case TypeCode.UInt16:
-                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.UShortKeyword));
-                    break;
-                case TypeCode.Int32:
-                case TypeCode.UInt32:
-                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntegerKeyword));
-                    break;
-                case TypeCode.Int64:
-                case TypeCode.UInt64:
+                case FieldType.Integer:
                     propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ULongKeyword));
                     break;
-                case TypeCode.Single:
-                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.SingleKeyword));
-                    break;
-                case TypeCode.Double:
+                case FieldType.Float:
                     propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword));
                     break;
-                case TypeCode.Decimal:
+                case FieldType.Decimal:
                     propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DecimalKeyword));
                     break;
-                case TypeCode.DateTime:
+                case FieldType.DateTime:
                     propertyType = SyntaxFactory.IdentifierName("DateTime");
                     break;
                 default:

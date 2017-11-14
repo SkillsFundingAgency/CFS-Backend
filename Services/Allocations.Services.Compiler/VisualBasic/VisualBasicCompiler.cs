@@ -25,8 +25,6 @@ namespace Allocations.Services.Compiler.VisualBasic
                 CalculationSourceCode = calcSyntaxTree.ToString()
             };
 
-            Console.WriteLine(compilerOutput.CalculationSourceCode);
-
             var options = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
 
