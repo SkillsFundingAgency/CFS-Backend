@@ -38,6 +38,12 @@ namespace Allocations.Functions.Engine
                     product.Calculation = new ProductCalculation {SourceCode = request.Calculation};
                 }
 
+                if (request.TestScenario != null)
+                {
+                    // If we are given a scenario then remove everything else
+                    product.TestScenarios = new List<ProductTestScenario>{ request.TestScenario};
+                }
+
                 var compilerOutput = BudgetCompiler.GenerateAssembly(budget);
 
                 var viewModel = new PreviewResponse()
