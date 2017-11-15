@@ -19,8 +19,6 @@ namespace Allocations.Functions.Engine
             IReadOnlyList<Document> input,
             TraceWriter log)
         {
-
-
             log.Verbose("Document count " + input?.Count);
             log.Verbose("First document Id " + input?[0]?.Id);
         }
