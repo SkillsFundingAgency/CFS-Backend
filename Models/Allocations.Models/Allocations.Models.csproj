@@ -63,6 +63,7 @@
     <Compile Include="Datasets\ProviderSourceDataset.cs" />
     <Compile Include="DocumentEntity.cs" />
     <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="ModelExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reference.cs" />
     <Compile Include="Results\DatasetReference.cs" />

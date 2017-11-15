@@ -30,7 +30,7 @@ namespace Allocations.Functions.Engine
 
                 var request = JsonConvert.DeserializeObject<PreviewRequest>(json, SerializerSettings);
                 var budget = await budgetRepository.ReadAsync(request.BudgetId);
-                var product = GetProduct(request.ProductId, budget);
+                var product = budget.GetProduct(request.ProductId);
                 if (product == null) return new HttpResponseMessage(HttpStatusCode.NotFound);
 
                 if (!string.IsNullOrWhiteSpace(request.Calculation))
@@ -84,21 +84,7 @@ namespace Allocations.Functions.Engine
 
         };
 
-        private static Product GetProduct(string id, Budget budget)
-        {
-            Product product = null;
-            foreach (var fundingPolicy in budget.FundingPolicies)
-            {
-                foreach (var allocationLine in fundingPolicy.AllocationLines)
-                {
-                    foreach (var productFolder in allocationLine.ProductFolders)
-                    {
-                        product = productFolder.Products.FirstOrDefault(x => x.Id == id);
-                    }
-                }
-            }
-            return product;
-        }
+
 
 
     }

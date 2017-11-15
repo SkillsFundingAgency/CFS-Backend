@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
 
 namespace Allocations.Models.Specs
 {
@@ -16,10 +18,10 @@ namespace Allocations.Models.Specs
         public string FundingStream { get; set; }
 
         [JsonProperty("fundingPolicies")]
-        public FundingPolicy[] FundingPolicies { get; set; }
+        public List<FundingPolicy> FundingPolicies { get; set; }
 
         [JsonProperty("datasetDefinitions")]
-        public DatasetDefinition[] DatasetDefinitions { get; set; }
+        public List<DatasetDefinition> DatasetDefinitions { get; set; }
 
         [JsonProperty("targetLanguage")]
         public TargetLanguage TargetLanguage { get; set; }

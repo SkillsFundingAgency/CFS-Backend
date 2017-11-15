@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Allocations.Models.Specs
 {
@@ -10,6 +11,6 @@ namespace Allocations.Models.Specs
         public string Name { get; set; }
 
         [JsonProperty("allocationLines")]
-        public AllocationLine[] AllocationLines { get; set; }
+        public List<AllocationLine> AllocationLines { get; set; }
     }
 }
