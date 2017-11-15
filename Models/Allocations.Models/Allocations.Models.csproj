@@ -68,8 +68,8 @@
     <Compile Include="Results\DatasetReference.cs" />
     <Compile Include="Results\ProductResult.cs" />
     <Compile Include="Results\ProductTestScenarioResult.cs" />
-    <Compile Include="Results\ProductTestScenarioResultIndex - Copy.cs" />
     <Compile Include="Results\ProductTestScenarioResultIndex.cs" />
+    <Compile Include="Results\ProviderResultIndex.cs" />
     <Compile Include="Results\ProviderResult.cs" />
     <Compile Include="Results\ProviderTestResult.cs" />
     <Compile Include="Results\TestResult.cs" />
