@@ -5,7 +5,28 @@ using Newtonsoft.Json;
 
 namespace Allocations.Models.Results
 {
-    public class ProviderResultIndex
+    [SearchIndex(IndexerForType = typeof(ProductTestScenarioResult),
+        CollectionName = "results",
+        DatabaseName = "allocations",
+        IndexerQuery = @"
+            SELECT  tr.id, 
+                    tr._ts,
+                    tr.budget.id as budgetId,
+                    tr.provider.id as providerId,
+                    tr.budget.name as budgetName,
+                    sr.fundingPolicy.id as fundingPolicyId,
+                    sr.fundingPolicy.name as fundingPolicyName,
+                    sr.productFolder.Id as productFolderId,
+                    sr.productFolder.Name as productFolderName,
+                    sr.allocationLine.Name as allocationLineName,
+                    sr.scenarioName,
+                    sr.testResult
+            FROM tr
+            JOIN sr IN tr.scenarioResults
+            WHERE tr.documentType = 'ProviderTestResult'
+            AND tr._ts > @HighWaterMark
+        ")]
+    public class ProductTestScenarioResultIndex
     {
         [Key]
         [IsSearchable]
@@ -25,26 +46,33 @@ namespace Allocations.Models.Results
         [JsonProperty("providerId")]
         public string ProviderId { get; set; }
 
-        [IsSearchable]
-        [JsonProperty("providerName")]
-        public string ProviderName { get; set; }
+        [IsFacetable]
+        [JsonProperty("fundingPolicyId")]
+        public string FundingPolicyId { get; set; }
 
         [IsSearchable]
-        [JsonProperty("localAuthority")]
-        public string LocalAuthority { get; set; }
+        [IsFacetable]
+        [JsonProperty("fundingPolicyName")]
+        public string FundingPolicyName { get; set; }
 
+        [IsSearchable]
+        [IsFacetable]
+        [JsonProperty("allocationLineName")]
+        public string AllocationLineName { get; set; }
 
         [IsSearchable]
         [IsFacetable]
         [JsonProperty("testresult")]
         public string TestResult { get; set; }
 
-        //[IsSearchable]
-        //[JsonProperty("productFolder")]
-        //public string ProductFolder { get; set; }
-        //[IsSearchable]
-        //[JsonProperty("product")]
-        //public string Product { get; set; }
+        [IsSearchable]
+        [IsFacetable]
+        [JsonProperty("productFolderId")]
+        public string ProductFolderId { get; set; }
+        [IsSearchable]
+        [IsFacetable]
+        [JsonProperty("productFolderName")]
+        public string ProductFolderName { get; set; }
 
         //[JsonProperty("lastFailedDate")]
         //[IsFilterable]
