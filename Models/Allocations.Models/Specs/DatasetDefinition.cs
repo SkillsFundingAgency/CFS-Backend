@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Allocations.Models.Specs
 {
@@ -14,6 +15,6 @@ namespace Allocations.Models.Specs
         public string Description { get; set; }
 
         [JsonProperty("fieldDefinitions")]
-        public DatasetFieldDefinition[] FieldDefinitions { get; set; }
+        public List<DatasetFieldDefinition> FieldDefinitions { get; set; }
     }
 }

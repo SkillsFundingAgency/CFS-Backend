@@ -88,23 +88,23 @@ namespace Allocations.Boostrapper
                 AcademicYear = "2017-2018",
                 FundingStream = "General Annual Grant",
 
-                FundingPolicies = new[]
+                FundingPolicies = new List<FundingPolicy>
                 {
                     new FundingPolicy
                     {
 
                         Name = "School Block Share",
-                        AllocationLines = new []
+                        AllocationLines = new List<AllocationLine>
                         {
                             new AllocationLine
                             {
                                 Name =  "Pupil Led Factors",
-                                ProductFolders = new[]
+                                ProductFolders = new List<ProductFolder>
                                 {
                                     new ProductFolder
                                     {
                                         Name = "Primary",
-                                        Products = new[]
+                                        Products = new List<Product>
                                         {
                                             new Product
                                             {
@@ -274,12 +274,12 @@ namespace Allocations.Boostrapper
 
                     }
                 },
-                DatasetDefinitions = new[]
+                DatasetDefinitions = new List<DatasetDefinition>
                 {
                     new DatasetDefinition
                     {
                         Name = "APT Provider Information",
-                        FieldDefinitions = new []
+                        FieldDefinitions = new List<DatasetFieldDefinition>
                         {
                             new DatasetFieldDefinition
                             {
@@ -310,7 +310,7 @@ namespace Allocations.Boostrapper
                     new DatasetDefinition
                     {
                         Name = "APT Basic Entitlement",
-                        FieldDefinitions = new []
+                        FieldDefinitions = new List<DatasetFieldDefinition>
                         {
                             new DatasetFieldDefinition
                             {
@@ -336,7 +336,7 @@ namespace Allocations.Boostrapper
                     new DatasetDefinition
                     {
                         Name = "Census Number Counts",
-                        FieldDefinitions = new []
+                        FieldDefinitions = new List<DatasetFieldDefinition>
                         {
                             new DatasetFieldDefinition
                             {

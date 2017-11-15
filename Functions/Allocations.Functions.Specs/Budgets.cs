@@ -66,7 +66,9 @@ namespace Allocations.Functions.Specs
 
         private static async Task<HttpResponseMessage> OnPost(HttpRequestMessage req)
         {
-            var budget = await req.Content.ReadAsAsync<Budget>();
+            var json = await req.Content.ReadAsStringAsync();
+
+            var budget = JsonConvert.DeserializeObject<Budget>(json, SerializerSettings);
 
             if (budget == null)
             {
