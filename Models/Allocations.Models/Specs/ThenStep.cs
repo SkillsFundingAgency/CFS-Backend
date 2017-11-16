@@ -8,6 +8,12 @@ namespace Allocations.Models.Specs
         {
 
         }
+
+        public ThenStep(TestStepType testType)
+        {
+            StepType = testType;
+        }
+
         public ThenStep(ComparisonOperator @operator, string value)
         {
             StepType = TestStepType.ThenProductValue;
@@ -15,9 +21,13 @@ namespace Allocations.Models.Specs
             Value = value;
         }
 
-        [JsonProperty("operator")]
-        public ComparisonOperator Operator { get; set; }
-        [JsonProperty("value")]
-        public string Value { get; set; }
+        public ThenStep(string dataset, string field, ComparisonOperator @operator, string value)
+        {
+            StepType = TestStepType.ThenSourceField;
+            Dataset = dataset;
+            Field = field;
+            Operator = @operator;
+            Value = value;
+        }
     }
 }

@@ -41,7 +41,7 @@ namespace Allocations.Services.Compiler.VisualBasic
             }
             foreach (var fundingPolicy in budget.FundingPolicies)
             {
-                foreach (var allocationLine in fundingPolicy.AllocationLines)
+                foreach (var allocationLine in fundingPolicy.AllocationLines ?? new List<AllocationLine>())
                 {
                     foreach (var partialClass in GetMethods(allocationLine))
                     {
@@ -65,6 +65,7 @@ namespace Allocations.Services.Compiler.VisualBasic
             var builder = new StringBuilder();
             builder.AppendLine($"Public Function {Identifier(product.Name)} As Decimal");
             builder.Append(product.Calculation.SourceCode ?? "Throw new NotImplementedException(\"{product.Name} is not implemented\")");
+            builder.AppendLine();
             builder.AppendLine("End Function");
             builder.AppendLine();
             var tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
@@ -76,27 +77,12 @@ namespace Allocations.Services.Compiler.VisualBasic
 
         private static IEnumerable<StatementSyntax> GetMethods(AllocationLine allocationLine)
         {
-            foreach (var productFolder in allocationLine.ProductFolders)
+            foreach (var productFolder in allocationLine.ProductFolders ?? new List<ProductFolder>())
             {
-                foreach (var product in productFolder.Products)
+                foreach (var product in productFolder.Products ?? new List<Product>())
                 {
                     var method = GetMethod(product);
                     yield return method;
-                    //if (method != null)
-                    //{
-                    //    var partialClass = SyntaxFactory.MethodBlock(SyntaxKind.FunctionBlock,
-                    //        SyntaxFactory.FunctionStatement(Identifier(Identifier(product.Name)))
-                    //            .WithModifiers(
-                    //                SyntaxFactory.TokenList(
-                    //                    SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                    //            .WithAsClause(
-                    //                SyntaxFactory.SimpleAsClause(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DecimalKeyword)))),
-                    //        SyntaxFactory.List(GetMethodStatements(product)),
-                    //        SyntaxFactory.EndFunctionStatement()
-                    //    );
-
-                    //    yield return partialClass;
-                    //}
                 }
             }
         }

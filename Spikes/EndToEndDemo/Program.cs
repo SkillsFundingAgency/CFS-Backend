@@ -46,14 +46,27 @@ namespace EndToEndDemo
                     }
                 }
 
-                var budgetDefinition = SeedData.GetBudget();
+                var budgetDefinition = SeedData.CreateGeneralAnnualGrant();
 
                 var compilerOutput = BudgetCompiler.GenerateAssembly(budgetDefinition);
 
+                if (compilerOutput.Success)
+                {
+                    var calc = new CalculationEngine(compilerOutput);
+                    await calc.GenerateAllocations();
+                }
+                else
+                {
+                    foreach (var compilerMessage in compilerOutput.CompilerMessages)
+                    {
+                        Console.WriteLine(compilerMessage.Message);
+                    }
+                    Console.ReadKey();
+                }
+
                 await StoreAggregates(budgetDefinition, new AllocationFactory(compilerOutput.Assembly));
 
-                var calc = new CalculationEngine(compilerOutput);
-                await calc.GenerateAllocations();
+
 
             }
 
@@ -66,7 +79,7 @@ namespace EndToEndDemo
         {
             using (var repository = new Repository<Budget>("specs"))
             {
-                await repository.CreateAsync(SeedData.GetBudget());
+                await repository.CreateAsync(SeedData.CreateGeneralAnnualGrant());
             }
         }
 

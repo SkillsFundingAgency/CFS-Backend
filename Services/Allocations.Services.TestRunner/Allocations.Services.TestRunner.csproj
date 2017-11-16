@@ -56,7 +56,9 @@
     <Compile Include="GherkinVocabDefinition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Vocab\ProductGherkinVocabulary.cs" />
+    <Compile Include="Vocab\Product\ThenSourceField.cs" />
     <Compile Include="Vocab\Product\GivenSourceField.cs" />
+    <Compile Include="Vocab\Product\ThenExceptionNotThrown.cs" />
     <Compile Include="Vocab\Product\ThenProductValue.cs" />
   </ItemGroup>
   <ItemGroup>

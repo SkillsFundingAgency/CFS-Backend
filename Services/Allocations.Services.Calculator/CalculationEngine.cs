@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Allocations.Models;
 using Allocations.Models.Datasets;
 using Allocations.Models.Results;
+using Allocations.Models.Specs;
 using Allocations.Repository;
 using Allocations.Services.Compiler;
 using Allocations.Services.TestRunner;
@@ -111,9 +112,9 @@ namespace Allocations.Services.Calculator
 
             foreach (var fundingPolicy in _compilerOutput.Budget.FundingPolicies)
             {
-                foreach (var allocationLine in fundingPolicy.AllocationLines)
+                foreach (var allocationLine in fundingPolicy.AllocationLines ?? new List<AllocationLine>())
                 {
-                    foreach (var productFolder in allocationLine.ProductFolders)
+                    foreach (var productFolder in allocationLine.ProductFolders ?? new List<ProductFolder>())
                     {
                         foreach (var product in productFolder.Products)
                         {
@@ -127,7 +128,9 @@ namespace Allocations.Services.Calculator
                             var productIdentifier = BudgetCompiler.GetIdentitier(product.Name, _compilerOutput.Budget.TargetLanguage);
                             if (providerAllocations.ContainsKey(productIdentifier))
                             {
-                                productResult.Value = providerAllocations[productIdentifier].Value;
+                                var calculationResult = providerAllocations[productIdentifier];
+                                productResult.Value = calculationResult.Value;
+                                productResult.Exception = calculationResult.Exception;
                             }
 
                             productResults.Add(productResult);
