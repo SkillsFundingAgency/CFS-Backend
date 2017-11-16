@@ -7,6 +7,8 @@ namespace Allocations.Models.Specs
     public enum TestStepType
     {
         GivenSourceField,
-        ThenProductValue
+        ThenProductValue,
+        ThenSourceField,
+        ThenExceptionNotThrown
     }
 }

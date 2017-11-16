@@ -6,5 +6,14 @@ namespace Allocations.Models.Specs
     {
         [JsonProperty("stepType")]
         public TestStepType StepType { get; set; }
+        [JsonProperty("dataset")]
+        public string Dataset { get; set; }
+        [JsonProperty("field")]
+        public string Field { get; set; }
+        [JsonProperty("operator")]
+        public ComparisonOperator Operator { get; set; }
+        [JsonProperty("value")]
+        public string Value { get; set; }
+
     }
 }

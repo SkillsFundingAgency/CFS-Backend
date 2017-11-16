@@ -4,10 +4,15 @@ using Allocations.Models.Specs;
 
 namespace Allocations.Services.TestRunner.Vocab.Product
 {
-    public class ThenProductValue : GherkinStepAction
+    public class ThenExceptionNotThrown : GherkinStepAction
     {
         public override GherkinResult Execute(ProductResult productResult, List<object> datasets, TestStep step)
         {
+            if (productResult.Exception != null)
+            {
+                return new GherkinResult($"{productResult.Exception.GetType().Name} thrown: {productResult.Exception.Message} ");
+
+            }
             var thenStep = step as ThenStep;
             var actualValue = productResult.Value;
             if (decimal.TryParse(thenStep.Value, out var expectedValue))
@@ -27,7 +32,7 @@ namespace Allocations.Services.TestRunner.Vocab.Product
 
         public override bool IsMatch(TestStepType stepType)
         {
-            return stepType == TestStepType.ThenProductValue;
+            return stepType == TestStepType.ThenExceptionNotThrown;
         }
     }
 }
