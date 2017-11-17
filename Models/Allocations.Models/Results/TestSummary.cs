@@ -6,5 +6,7 @@ namespace Allocations.Models.Results
         public int Failed { get; set; }
         public int Covered => Passed + Failed;
         public decimal Coverage { get; set; }
+        public decimal PassedRate { get; set; }
+        public decimal FailedRate { get; set; }
     }
 }

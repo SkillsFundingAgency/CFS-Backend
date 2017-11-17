@@ -112,6 +112,10 @@ namespace Allocations.Functions.Results
                                         };
                                         if (allocationLine.TotalProviders > 0)
                                         {
+                                            allocationLine.TestSummary.PassedRate =
+                                                ((decimal)allocationLine.TestSummary.Passed  / allocationLine.TotalProviders) * 100M;
+                                            allocationLine.TestSummary.FailedRate =
+                                                ((decimal)allocationLine.TestSummary.Passed / allocationLine.TotalProviders) * 100M;
                                             allocationLine.TestSummary.Coverage =
                                                 ((decimal)(allocationLine.TestSummary.Passed + allocationLine.TestSummary.Failed) / allocationLine.TotalProviders) * 100M;
                                         }
@@ -147,6 +151,10 @@ namespace Allocations.Functions.Results
                                     };
                                     if (fundingPolicy.TotalProviders > 0)
                                     {
+                                        fundingPolicy.TestSummary.PassedRate =
+                                            ((decimal)fundingPolicy.TestSummary.Passed / fundingPolicy.TotalProviders) * 100M;
+                                        fundingPolicy.TestSummary.FailedRate =
+                                            ((decimal)fundingPolicy.TestSummary.Passed / fundingPolicy.TotalProviders) * 100M;
                                         fundingPolicy.TestSummary.Coverage =
                                             ((decimal)(fundingPolicy.TestSummary.Passed + fundingPolicy.TestSummary.Failed) / fundingPolicy.TotalProviders) * 100M;
                                     }
