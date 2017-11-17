@@ -174,6 +174,15 @@ namespace Allocations.Functions.Results
                                     Failed = budgetSummary.FundingPolicies.Where(x => x.TestSummary != null)
                                     .Sum(x => x.TestSummary.Failed),
                                 };
+                                if (budgetSummary.TotalProviders > 0)
+                                {
+                                    budgetSummary.TestSummary.PassedRate =
+                                        ((decimal)budgetSummary.TestSummary.Passed / budgetSummary.TotalProviders) * 100M;
+                                    budgetSummary.TestSummary.FailedRate =
+                                        ((decimal)budgetSummary.TestSummary.Failed / budgetSummary.TotalProviders) * 100M;
+                                    budgetSummary.TestSummary.Coverage =
+                                        ((decimal)(budgetSummary.TestSummary.Passed + budgetSummary.TestSummary.Failed) / budgetSummary.TotalProviders) * 100M;
+                                }
                             }
                         }
 
