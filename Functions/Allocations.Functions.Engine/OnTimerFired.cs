@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Allocations.Models.Specs;
 using Allocations.Repository;
@@ -17,22 +19,26 @@ namespace Allocations.Functions.Engine
         {
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
 
-            var budgetDefinition = await GetBudget();
+            var budgets = await GetBudgets();
+            foreach (var budget in budgets)
+            {
 
-            var compilerOutput = BudgetCompiler.GenerateAssembly(budgetDefinition);
+                var compilerOutput = BudgetCompiler.GenerateAssembly(budget);
 
 
-            var calc = new CalculationEngine(compilerOutput);
-            await calc.GenerateAllocations();
+                var calc = new CalculationEngine(compilerOutput);
+                await calc.GenerateAllocations();
+            }
+
 
         }
 
 
-        private static async Task<Budget> GetBudget()
+        private static async Task<List<Budget>> GetBudgets()
         {
             using (var repository = new Repository<Budget>("specs"))
             {
-                return await repository.ReadAsync("budget-gag1718");
+                return repository.Query().ToList();
             }
         }
     }
