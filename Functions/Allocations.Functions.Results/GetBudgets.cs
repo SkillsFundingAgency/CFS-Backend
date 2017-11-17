@@ -1,11 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Runtime.Serialization;
-using System.Threading.Tasks;
 using Allocations.Models.Results;
 using Allocations.Models.Specs;
 using Allocations.Repository;
@@ -21,9 +17,9 @@ namespace Allocations.Functions.Results
     public static class GetBudgets
     {
         [FunctionName("budgets")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]HttpRequestMessage req, TraceWriter log)
+        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)]HttpRequestMessage req, TraceWriter log)
         {
-            using (var budgetRepository = new Repository<Allocations.Models.Specs.Budget>("specs"))
+            using (var budgetRepository = new Repository<Budget>("specs"))
             {
                 var budgets = budgetRepository.Query().ToList();
                 var budgetSummaries = budgets.Select(x => new BudgetSummary
@@ -37,23 +33,23 @@ namespace Allocations.Functions.Results
                     using (var testResultsRepository = new Repository<ProviderTestResult>("results"))
                     {
                         var allocationResults = resultsRepository.Query().ToList().Where(x => x.ProductResults != null).ToArray();
-                         var resultsByAllocationLine = allocationResults.Select(x => new
-                         {
-                             ProductResults = x.ProductResults.Select(pr => new
-                             {
-                                 BudgetId = x.Budget.Id,
-                                 ProviderId = x.Provider.Id,
-                                 AllocationLineId = pr.AllocationLine.Id,
-                                 FundingPolicyId = pr.FundingPolicy.Id,
-                                 Value = pr.Value ?? decimal.Zero
-                             })
-                         }).SelectMany(x => x.ProductResults).GroupBy(x => x.AllocationLineId).ToDictionary(x => x.Key);
-                       // var providerPolicyResults = resultsRepository.Query().ToList().Where(x => x.ProductResults != null).SelectMany(x => x.ProductResults).GroupBy(x => x.FundingPolicy.Id).ToDictionary(x => x.Key);
+                        var resultsByAllocationLine = allocationResults.Select(x => new
+                        {
+                            ProductResults = x.ProductResults.Select(pr => new
+                            {
+                                BudgetId = x.Budget.Id,
+                                ProviderId = x.Provider.Id,
+                                AllocationLineId = pr.AllocationLine.Id,
+                                FundingPolicyId = pr.FundingPolicy.Id,
+                                Value = pr.Value ?? decimal.Zero
+                            })
+                        }).SelectMany(x => x.ProductResults).GroupBy(x => x.AllocationLineId).ToDictionary(x => x.Key);
+                        // var providerPolicyResults = resultsRepository.Query().ToList().Where(x => x.ProductResults != null).SelectMany(x => x.ProductResults).GroupBy(x => x.FundingPolicy.Id).ToDictionary(x => x.Key);
                         foreach (var budgetSummary in budgetSummaries)
                         {
                             foreach (var fundingPolicy in budgetSummary.FundingPolicies)
                             {
-                                foreach (var allocationLine in fundingPolicy.AllocationLines ?? new  List<AllocationLineSummary>())
+                                foreach (var allocationLine in fundingPolicy.AllocationLines ?? new List<AllocationLineSummary>())
                                 {
                                     if (resultsByAllocationLine.TryGetValue(allocationLine.Id, out var allocationLineResults))
                                     {
@@ -61,8 +57,8 @@ namespace Allocations.Functions.Results
                                         allocationLine.TotalAmount = allocationLineResults.Sum(x => x.Value);
                                     }
                                 }
-                                fundingPolicy.TotalProviders = fundingPolicy?.AllocationLines?.Max(x => x.TotalProviders) ?? 0;
-                                fundingPolicy.TotalAmount = fundingPolicy?.AllocationLines?.Sum(x => x.TotalAmount) ?? decimal.Zero;
+                                fundingPolicy.TotalProviders = fundingPolicy.AllocationLines?.Max(x => x.TotalProviders) ?? 0;
+                                fundingPolicy.TotalAmount = fundingPolicy.AllocationLines?.Sum(x => x.TotalAmount) ?? decimal.Zero;
 
                             }
                             budgetSummary.TotalProviders = budgetSummary.FundingPolicies.Max(x => x.TotalProviders);
@@ -84,8 +80,8 @@ namespace Allocations.Functions.Results
                                     Covered = sr.TotalSteps == sr.StepExected
                                 })
                             }).SelectMany(x => x.ScenarioResults).ToArray();
-                        
-                        var resultsByAllocation = scenarioResults.GroupBy(x => new {x.BudgetId, x.AllocationLineId}).ToDictionary(x => x.Key);
+
+                        var resultsByAllocation = scenarioResults.GroupBy(x => new { x.BudgetId, x.AllocationLineId }).ToDictionary(x => x.Key);
                         var resultsByFundingPolicy = scenarioResults.GroupBy(x => new { x.BudgetId, x.FundingPolicyId }).ToDictionary(x => x.Key);
                         //var providerTestResults = scenarioResults.GroupBy(x => x.FundingPolicy.Id).ToDictionary(x => x.Key);
                         foreach (var budgetSummary in budgetSummaries)
@@ -94,20 +90,20 @@ namespace Allocations.Functions.Results
                             {
                                 foreach (var allocationLine in fundingPolicy.AllocationLines ?? new List<AllocationLineSummary>())
                                 {
-  
+
                                     if (resultsByAllocation.TryGetValue(new
-                                        {
-                                            BudgetId = budgetSummary.Budget.Id,
-                                            AllocationLineId = allocationLine.Id
-                                        }, out var allocationTestResults))
+                                    {
+                                        BudgetId = budgetSummary.Budget.Id,
+                                        AllocationLineId = allocationLine.Id
+                                    }, out var allocationTestResults))
                                     {
                                         var byProductAndProvider =
-                                            allocationTestResults.GroupBy(x =>  x.ProviderId)
-                                            .Select(x => new 
+                                            allocationTestResults.GroupBy(x => x.ProviderId)
+                                            .Select(x => new
                                             {
-                                                    Passed = x.All(tr => tr.TestResult == TestResult.Passed),
-                                                    Failed = x.Any(tr => tr.TestResult == TestResult.Failed),
-                                                    Ignored = x.All(tr => tr.TestResult == TestResult.Ignored),
+                                                Passed = x.All(tr => tr.TestResult == TestResult.Passed),
+                                                Failed = x.Any(tr => tr.TestResult == TestResult.Failed),
+                                                Ignored = x.All(tr => tr.TestResult == TestResult.Ignored),
                                             }).ToArray();
                                         allocationLine.TestSummary = new TestSummary
                                         {
@@ -137,7 +133,7 @@ namespace Allocations.Functions.Results
                                 }, out var fundingPolicyResults))
                                 {
                                     var byProductAndProvider =
-                                        fundingPolicyResults.GroupBy(x => new { x.ProviderId})
+                                        fundingPolicyResults.GroupBy(x => new { x.ProviderId })
                                             .Select(x => new
                                             {
                                                 Passed = x.All(tr => tr.TestResult == TestResult.Passed),
