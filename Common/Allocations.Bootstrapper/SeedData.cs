@@ -142,7 +142,7 @@ namespace Allocations.Boostrapper
 
         public static Budget CreateGeneralAnnualGrant()
         {
-            return Budget("budget-gag1718", "General Annual Grant 17-18", "2017-2018", "General Annual Grant")
+            return Budget("gag1718", "General Annual Grant 17-18", "2017-2018", "General Annual Grant")
                 .WithFundingPolicies(
                     FundingPolicy("School Block Share")
                         .WithAllocationLines(
