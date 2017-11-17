@@ -38,15 +38,17 @@ namespace EndToEndDemo
                 await GenerateBudgetModel();
 
 
+
+
+                var budgetDefinition = SeedData.CreateGeneralAnnualGrant();
+
                 foreach (var file in Directory.GetFiles("SourceData"))
                 {
                     using (var stream = new FileStream(file, FileMode.Open))
                     {
-                        await importer.GetSourceDataAsync(Path.GetFileName(file), stream);
+                        await importer.GetSourceDataAsync(Path.GetFileName(file), stream, budgetDefinition.Id);
                     }
                 }
-
-                var budgetDefinition = SeedData.CreateGeneralAnnualGrant();
 
                 var compilerOutput = BudgetCompiler.GenerateAssembly(budgetDefinition);
 
