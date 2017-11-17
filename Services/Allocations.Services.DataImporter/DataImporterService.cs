@@ -89,7 +89,7 @@ namespace Allocations.Services.DataImporter
                         BudgetId = "budget-general-annual-grant-17-18",
                         DatasetName = "APT Basic Entitlement",
                         ProviderUrn = aptSourceRecord.URN,
-
+                        ProviderName = aptSourceRecord.ProviderName,
                         PrimaryAmount = aptSourceRecord.PrimaryAmount,
                         PrimaryAmountPerPupil = aptSourceRecord.PrimaryAmountPerPupil,
                         PrimaryNotionalSEN = aptSourceRecord.PrimaryNotionalSEN
@@ -107,7 +107,7 @@ namespace Allocations.Services.DataImporter
                         BudgetId = "budget-general-annual-grant-17-18",
                         DatasetName = "Census Number Counts",
                         ProviderUrn = numberCountSourceRecord.URN,
-
+                        ProviderName = numberCountSourceRecord.ProviderName,
                         NORPrimary = numberCountSourceRecord.NumberOnRollPrimary
 
 
@@ -157,7 +157,7 @@ namespace Allocations.Services.DataImporter
                                 BudgetId = "budget-general-annual-grant-17-18",
                                 DatasetName = "APT Basic Entitlement",
                                 ProviderUrn = aptSourceRecord.URN,
-
+                                ProviderName = aptSourceRecord.ProviderName,
                                 PrimaryAmount = aptSourceRecord.PrimaryAmount,
                                 PrimaryAmountPerPupil = aptSourceRecord.PrimaryAmountPerPupil,
                                 PrimaryNotionalSEN = aptSourceRecord.PrimaryNotionalSEN
@@ -180,7 +180,7 @@ namespace Allocations.Services.DataImporter
                                 BudgetId = "budget-general-annual-grant-17-18",
                                 DatasetName = "Census Number Counts",
                                 ProviderUrn = numberCountSourceRecord.URN,
-
+                                ProviderName = numberCountSourceRecord.ProviderName,
                                 NORPrimary = numberCountSourceRecord.NumberOnRollPrimary
 
 

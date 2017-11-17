@@ -8,11 +8,11 @@ namespace Allocations.Boostrapper
 {
     public static class SeedData
     {
-        public static Budget Budget(string name, string academicYear, string fundingStream)
+        public static Budget Budget(string acronym, string name, string academicYear, string fundingStream)
         {
             return new Budget
             {
-
+                Acronym = acronym,
                 Name = name,
                 AcademicYear = academicYear,
                 FundingStream = fundingStream,
@@ -142,7 +142,7 @@ namespace Allocations.Boostrapper
 
         public static Budget CreateGeneralAnnualGrant()
         {
-            return Budget("General Annual Grant 17-18", "2017-2018", "General Annual Grant")
+            return Budget("budget-gag1718", "General Annual Grant 17-18", "2017-2018", "General Annual Grant")
                 .WithFundingPolicies(
                     FundingPolicy("School Block Share")
                         .WithAllocationLines(

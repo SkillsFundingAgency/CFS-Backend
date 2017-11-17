@@ -6,10 +6,13 @@ namespace Allocations.Models.Specs
 {
     public class Budget : DocumentEntity
     {
-        public override string Id => $"{DocumentType}-{Name}".ToSlug();
+        public override string Id => $"{DocumentType}-{Acronym}".ToSlug();
 
         [JsonProperty("name")]
         public string Name { get; set; }
+
+        [JsonProperty("acronym")]
+        public string Acronym { get; set; }
 
         [JsonProperty("academicYear")]
         public string AcademicYear { get; set; }
