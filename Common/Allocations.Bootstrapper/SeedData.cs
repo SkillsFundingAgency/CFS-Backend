@@ -179,6 +179,11 @@ namespace Allocations.Boostrapper
                         );
         }
 
+        private static void CreateBudgets()
+        {
+            CreateGeneralAnnualGrant();
+            CreateGeneralAnnualGrant();
+        }
         private static ProductFolder Primary()
         {
             return ProductFolder("Primary")
