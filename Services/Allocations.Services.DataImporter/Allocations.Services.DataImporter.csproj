@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AptLocalAuthorityRecord.cs" />
     <Compile Include="AptSourceRecord.cs" />
     <Compile Include="DataImporterService.cs" />
     <Compile Include="EppLusExtensions.cs" />
