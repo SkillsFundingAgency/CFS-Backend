@@ -72,7 +72,7 @@ namespace Allocations.Functions.Results
                         {
                             foreach (var product in productFolder.Products)
                             {
-                                if (resultsByAllocationLine.TryGetValue(allocationLine.Id,
+                                if (resultsByAllocationLine.TryGetValue(product.Id,
                                     out var allocationLineResults))
                                 {
                                     product.TotalProviders = allocationLineResults.GroupBy(x => x.ProviderId).Count();
