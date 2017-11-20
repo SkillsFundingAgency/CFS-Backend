@@ -101,7 +101,7 @@ namespace Allocations.Functions.Results
                                             allocationTestResults.GroupBy(x => x.ProviderId)
                                             .Select(x => new
                                             {
-                                                Passed = x.All(tr => tr.TestResult == TestResult.Passed),
+                                                Passed = x.Any(tr => tr.TestResult == TestResult.Passed) && !x.Any(tr => tr.TestResult == TestResult.Failed),
                                                 Failed = x.Any(tr => tr.TestResult == TestResult.Failed),
                                                 Ignored = x.All(tr => tr.TestResult == TestResult.Ignored),
                                             }).ToArray();

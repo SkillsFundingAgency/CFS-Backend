@@ -22,8 +22,6 @@ namespace Allocations.Services.DataImporter
         public decimal PrimaryAmount { get; set; }
         [SourceColumn("APT New ISB dataset.15-16 Post MFG per pupil Budget_71961")]
         public decimal PrimaryAmountPerPupil { get; set; }
-        [SourceColumn("APT New ISB dataset.Notional SEN Budget_71939")]
-        public decimal PrimaryNotionalSEN { get; set; }
 
         [SourceColumn("APT Inputs and Adjustments.NOR_71991")]
         public decimal NumberOnRoll { get; set; }

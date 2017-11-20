@@ -168,14 +168,18 @@ namespace Allocations.Boostrapper
                             Dataset("APT Basic Entitlement")
                                 .WithFields(
                                     Field("PrimaryAmountPerPupil", FieldType.Decimal, "Primary Amount Per Pupil"),
-                                    Field("PrimaryAmount", FieldType.Decimal, "Primary Amount"),
-                                    Field("PrimaryNotionalSEN", FieldType.Decimal, "Primary Notional SEN")
+                                    Field("PrimaryAmount", FieldType.Decimal, "Primary Amount")
+                                   
                                 ),
                             Dataset("Census Number Counts")
                                 .WithFields(
                                     Field("NORPrimary", FieldType.Integer, "NOR Primary")
+                                ),
+                            Dataset("APT Local Authority")
+                                .WithFields(
+                                    Field("PrimaryNotionalSEN", FieldType.Decimal, "Primary Notional SEN")
                                 )
-                           
+
                         );
         }
 
