@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using Allocations.Models.Results;
 using Newtonsoft.Json;
 
 namespace Allocations.Models.Specs
 {
 
-    public class Product
+    public class Product : ResultSummary
     {
         [JsonProperty("id")]
         public string Id => $"{Name}".ToSlug();

@@ -165,5 +165,4 @@ namespace Allocations.Functions.Results
             return allocationLine;
         }
     }
-    }
 }
