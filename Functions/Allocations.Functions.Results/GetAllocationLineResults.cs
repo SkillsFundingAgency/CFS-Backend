@@ -157,12 +157,12 @@ namespace Allocations.Functions.Results
 
         public static AllocationLine GetAllocationLine(this Budget budget, string allocationLineId)
         {
-            AllocationLine allocationLine = null;
             foreach (var fundingPolicy in budget.FundingPolicies)
             {
-                allocationLine = fundingPolicy.AllocationLines.FirstOrDefault(x => x.Id == allocationLineId);
+                var allocationLine = fundingPolicy.AllocationLines?.FirstOrDefault(x => x.Id == allocationLineId);
+                if (allocationLine != null) return allocationLine;
             }
-            return allocationLine;
+            return null;
         }
     }
 }
