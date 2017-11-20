@@ -8,18 +8,18 @@ namespace Allocations.Models
     {
         public static Product GetProduct(this Budget budget, string id)
         {
-            Product product = null;
             foreach (var fundingPolicy in budget.FundingPolicies)
             {
                 foreach (var allocationLine in fundingPolicy.AllocationLines ?? new List<AllocationLine>())
                 {
                     foreach (var productFolder in allocationLine?.ProductFolders ?? new List<ProductFolder>())
                     {
-                        product = productFolder.Products.FirstOrDefault(x => x.Id == id);
+                        var product = productFolder.Products.FirstOrDefault(x => x.Id == id);
+                        if (product != null) return product;
                     }
                 }
             }
-            return product;
+            return null;
         }
     }
 }
