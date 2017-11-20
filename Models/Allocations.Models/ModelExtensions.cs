@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Allocations.Models.Specs;
 
 namespace Allocations.Models
@@ -10,9 +11,9 @@ namespace Allocations.Models
             Product product = null;
             foreach (var fundingPolicy in budget.FundingPolicies)
             {
-                foreach (var allocationLine in fundingPolicy.AllocationLines)
+                foreach (var allocationLine in fundingPolicy.AllocationLines ?? new List<AllocationLine>())
                 {
-                    foreach (var productFolder in allocationLine.ProductFolders)
+                    foreach (var productFolder in allocationLine?.ProductFolders ?? new List<ProductFolder>())
                     {
                         product = productFolder.Products.FirstOrDefault(x => x.Id == id);
                     }
