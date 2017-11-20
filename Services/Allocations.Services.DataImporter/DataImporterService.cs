@@ -27,9 +27,7 @@ namespace Allocations.Services.DataImporter
         [JsonProperty("primaryAmount")]
         public decimal PrimaryAmount { get; set; }
 
-        [Description("Primary Notional SEN")]
-        [JsonProperty("primaryNotionalSEN")]
-        public decimal PrimaryNotionalSEN { get; set; }
+
     }
 
     public class CensusNumberCounts : ProviderSourceDataset
@@ -37,6 +35,14 @@ namespace Allocations.Services.DataImporter
         [Description("NOR Primary")]
         [JsonProperty("norPrimary")]
         public int NORPrimary { get; set; }
+
+    }
+
+    public class AptLocalAuthority : ProviderSourceDataset
+    {
+        [Description("Primary Notional SEN")]
+        [JsonProperty("primaryNotionalSEN")]
+        public decimal PrimaryNotionalSEN { get; set; }
 
     }
 
@@ -94,8 +100,7 @@ namespace Allocations.Services.DataImporter
                                 ProviderUrn = aptSourceRecord.URN,
                                 ProviderName = aptSourceRecord.ProviderName,
                                 PrimaryAmount = aptSourceRecord.PrimaryAmount,
-                                PrimaryAmountPerPupil = aptSourceRecord.PrimaryAmountPerPupil,
-                                PrimaryNotionalSEN = aptSourceRecord.PrimaryNotionalSEN
+                                PrimaryAmountPerPupil = aptSourceRecord.PrimaryAmountPerPupil
 
 
                             };
@@ -117,6 +122,27 @@ namespace Allocations.Services.DataImporter
                                 ProviderUrn = numberCountSourceRecord.URN,
                                 ProviderName = numberCountSourceRecord.ProviderName,
                                 NORPrimary = numberCountSourceRecord.NumberOnRollPrimary
+
+
+                            };
+                            await repository.CreateAsync(censusNumberCount);
+
+                        }
+                        break;
+                    case "export apt la mapped.xlsx":
+                        var aptLocalAuthorityRecords =
+                            reader.Read<AptLocalAuthorityRecord>(stream).ToArray();
+
+
+                        foreach (var aptLocalAuthorityRecord in aptLocalAuthorityRecords)
+                        {
+                            var censusNumberCount = new AptLocalAuthority
+                            {
+                                BudgetId = budgetId,
+                                DatasetName = "APT Local Authority",
+                                ProviderUrn = aptLocalAuthorityRecord.URN,
+                                ProviderName = aptLocalAuthorityRecord.ProviderName,
+                                PrimaryNotionalSEN = aptLocalAuthorityRecord.PrimaryNotionalSEN
 
 
                             };

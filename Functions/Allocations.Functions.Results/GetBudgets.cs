@@ -101,7 +101,7 @@ namespace Allocations.Functions.Results
                                             allocationTestResults.GroupBy(x => x.ProviderId)
                                             .Select(x => new
                                             {
-                                                Passed = x.All(tr => tr.TestResult == TestResult.Passed),
+                                                Passed = x.Any(tr => tr.TestResult == TestResult.Passed) && !x.Any(tr => tr.TestResult == TestResult.Failed),
                                                 Failed = x.Any(tr => tr.TestResult == TestResult.Failed),
                                                 Ignored = x.All(tr => tr.TestResult == TestResult.Ignored),
                                             }).ToArray();
@@ -174,6 +174,15 @@ namespace Allocations.Functions.Results
                                     Failed = budgetSummary.FundingPolicies.Where(x => x.TestSummary != null)
                                     .Sum(x => x.TestSummary.Failed),
                                 };
+                                if (budgetSummary.TotalProviders > 0)
+                                {
+                                    budgetSummary.TestSummary.PassedRate =
+                                        ((decimal)budgetSummary.TestSummary.Passed / budgetSummary.TotalProviders) * 100M;
+                                    budgetSummary.TestSummary.FailedRate =
+                                        ((decimal)budgetSummary.TestSummary.Failed / budgetSummary.TotalProviders) * 100M;
+                                    budgetSummary.TestSummary.Coverage =
+                                        ((decimal)(budgetSummary.TestSummary.Passed + budgetSummary.TestSummary.Failed) / budgetSummary.TotalProviders) * 100M;
+                                }
                             }
                         }
 
