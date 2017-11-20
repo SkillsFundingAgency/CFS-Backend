@@ -115,7 +115,7 @@ namespace Allocations.Functions.Results
                                             allocationLine.TestSummary.PassedRate =
                                                 ((decimal)allocationLine.TestSummary.Passed  / allocationLine.TotalProviders) * 100M;
                                             allocationLine.TestSummary.FailedRate =
-                                                ((decimal)allocationLine.TestSummary.Passed / allocationLine.TotalProviders) * 100M;
+                                                ((decimal)allocationLine.TestSummary.Failed / allocationLine.TotalProviders) * 100M;
                                             allocationLine.TestSummary.Coverage =
                                                 ((decimal)(allocationLine.TestSummary.Passed + allocationLine.TestSummary.Failed) / allocationLine.TotalProviders) * 100M;
                                         }
@@ -154,7 +154,7 @@ namespace Allocations.Functions.Results
                                         fundingPolicy.TestSummary.PassedRate =
                                             ((decimal)fundingPolicy.TestSummary.Passed / fundingPolicy.TotalProviders) * 100M;
                                         fundingPolicy.TestSummary.FailedRate =
-                                            ((decimal)fundingPolicy.TestSummary.Passed / fundingPolicy.TotalProviders) * 100M;
+                                            ((decimal)fundingPolicy.TestSummary.Failed / fundingPolicy.TotalProviders) * 100M;
                                         fundingPolicy.TestSummary.Coverage =
                                             ((decimal)(fundingPolicy.TestSummary.Passed + fundingPolicy.TestSummary.Failed) / fundingPolicy.TotalProviders) * 100M;
                                     }
@@ -174,6 +174,15 @@ namespace Allocations.Functions.Results
                                     Failed = budgetSummary.FundingPolicies.Where(x => x.TestSummary != null)
                                     .Sum(x => x.TestSummary.Failed),
                                 };
+                                if (budgetSummary.TotalProviders > 0)
+                                {
+                                    budgetSummary.TestSummary.PassedRate =
+                                        ((decimal)budgetSummary.TestSummary.Passed / budgetSummary.TotalProviders) * 100M;
+                                    budgetSummary.TestSummary.FailedRate =
+                                        ((decimal)budgetSummary.TestSummary.Failed / budgetSummary.TotalProviders) * 100M;
+                                    budgetSummary.TestSummary.Coverage =
+                                        ((decimal)(budgetSummary.TestSummary.Passed + budgetSummary.TestSummary.Failed) / budgetSummary.TotalProviders) * 100M;
+                                }
                             }
                         }
 

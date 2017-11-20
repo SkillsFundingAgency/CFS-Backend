@@ -27,13 +27,18 @@ namespace Allocations.Functions.Datasets
         {
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
 
-            var budget = await GetBudget();
+            var budgets = await GetBudgets();
 
-            var compilerOutput = BudgetCompiler.GenerateAssembly(budget);
+            foreach (var budget in budgets)
+            {
 
-            var allocationFactory = new AllocationFactory(compilerOutput.Assembly);
+                var compilerOutput = BudgetCompiler.GenerateAssembly(budget);
 
-            await StoreAggregates(budget, allocationFactory);
+                var allocationFactory = new AllocationFactory(compilerOutput.Assembly);
+
+                await StoreAggregates(budget, allocationFactory);
+            }
+
         }
 
         private static async Task StoreAggregates(Budget budget, AllocationFactory allocationFactory)
@@ -169,11 +174,11 @@ namespace Allocations.Functions.Datasets
             }
         }
 
-        private static async Task<Budget> GetBudget()
+        private static async Task<List<Budget>> GetBudgets()
         {
             using (var repository = new Repository<Budget>("specs"))
             {
-                return await repository.ReadAsync("budget-gag1718");
+                return repository.Query().ToList();
             }
         }
     }

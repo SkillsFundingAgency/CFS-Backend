@@ -8,11 +8,11 @@ namespace Allocations.Boostrapper
 {
     public static class SeedData
     {
-        public static Budget Budget(string name, string academicYear, string fundingStream)
+        public static Budget Budget(string acronym, string name, string academicYear, string fundingStream)
         {
             return new Budget
             {
-
+                Acronym = acronym,
                 Name = name,
                 AcademicYear = academicYear,
                 FundingStream = fundingStream,
@@ -142,7 +142,7 @@ namespace Allocations.Boostrapper
 
         public static Budget CreateGeneralAnnualGrant()
         {
-            return Budget("General Annual Grant 17-18", "2017-2018", "General Annual Grant")
+            return Budget("gag1718", "General Annual Grant 17-18", "2017-2018", "General Annual Grant")
                 .WithFundingPolicies(
                     FundingPolicy("School Block Share")
                         .WithAllocationLines(
@@ -195,14 +195,9 @@ namespace Allocations.Boostrapper
                                     new GivenStep("APT Provider Information", "Phase", ComparisonOperator.EqualTo, "Primary")
                                 )
                                 .WithThenSteps(new ThenStep(ComparisonOperator.GreaterThan, "0.00")
-                                ),
+                                )
                                                         
-                            TestScenario("Non-Primary providers should not have Primary Rate")
-                                .WithGivenSteps(
-                                    new GivenStep("APT Provider Information", "Phase", ComparisonOperator.NotEqualTo, "Primary")
-                                )
-                                .WithThenSteps(new ThenStep(ComparisonOperator.EqualTo, "0.00")
-                                )
+
                         ),
 
 
@@ -283,23 +278,11 @@ namespace Allocations.Boostrapper
 
                     Product("P007_InYearPriBE_Subtotal")
                         .WithDescription("This calculation determines the actual Primary Basic Entitlement allocation due for the Academic Year 18/19, pro-rating the allocation if an academy opened in-year.")
+                        .WithCalculation(@"Return Decimal.Zero")
                         .WithSBSTestProviders()
-                        .WithTestScenarios(
-                            TestScenario("Only Primary providers should have Primary Basic Entitlement")
-                                .WithGivenSteps(
-                                    new GivenStep("APT Provider Information", "Phase", ComparisonOperator.EqualTo, "Primary")
-                                )
-                                .WithThenSteps(new ThenStep(ComparisonOperator.GreaterThan, "0.00")
-                                ),
 
-                            TestScenario("Non-Primary providers should not have Primary Basic Entitlement")
-                                .WithGivenSteps(
-                                    new GivenStep("APT Provider Information", "Phase", ComparisonOperator.NotEqualTo, "Primary")
-                                )
-                                .WithThenSteps(new ThenStep(ComparisonOperator.EqualTo, "0.00")
-                                )
 
-                        )
+                        
 
 
                 );
