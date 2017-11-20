@@ -11,6 +11,7 @@ using System;
 using Allocations.Models.Specs;
 using Allocations.Models.Results;
 using Allocations.Repository;
+using static System.String;
 
 namespace Allocations.Functions.Results
 {
@@ -27,12 +28,12 @@ namespace Allocations.Functions.Results
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequestMessage req,
             TraceWriter log)
         {
-            string budgetId = req.GetQueryNameValuePairs()
-                .FirstOrDefault(q => String.Compare(q.Key, "budgetId", StringComparison.OrdinalIgnoreCase) == 0)
+            var budgetId = req.GetQueryNameValuePairs()
+                .FirstOrDefault(q => Compare(q.Key, "budgetId", StringComparison.OrdinalIgnoreCase) == 0)
                 .Value;
 
-            string allocationLineId = req.GetQueryNameValuePairs()
-                .FirstOrDefault(q => String.Compare(q.Key, "allocationLineId", StringComparison.OrdinalIgnoreCase) == 0)
+            var allocationLineId = req.GetQueryNameValuePairs()
+                .FirstOrDefault(q => Compare(q.Key, "allocationLineId", StringComparison.OrdinalIgnoreCase) == 0)
                 .Value;
 
             if (budgetId == null)
@@ -161,8 +162,9 @@ namespace Allocations.Functions.Results
             foreach (var fundingPolicy in budget.FundingPolicies)
             {
                 allocationLine = fundingPolicy.AllocationLines.FirstOrDefault(x => x.Id == allocationLineId);
+                if (allocationLine != null) return allocationLine;
             }
-            return allocationLine;
+            return null;
         }
     }
 }
