@@ -82,7 +82,7 @@ namespace Allocations.Repository
                     directSql,
                     queryOptions);
             }
-            return _documentClient.CreateDocumentQuery<T>(_collectionUri, queryOptions);
+            return _documentClient.CreateDocumentQuery<T>(_collectionUri, queryOptions).Where(x => x.DocumentType == typeof(T).Name && !x.Deleted);
 
         }
 
