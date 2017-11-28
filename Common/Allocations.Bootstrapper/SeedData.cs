@@ -2,7 +2,8 @@
 using System.Data;
 using System.Globalization;
 using Allocations.Models;
-using Allocations.Models.Specs;
+using CalculateFunding.Models;
+using CalculateFunding.Models.Specs;
 
 namespace Allocations.Boostrapper
 {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
-using Allocations.Models.Specs;
+using CalculateFunding.Models.Specs;
 using Newtonsoft.Json;
 
 namespace Allocations.Services.Compiler

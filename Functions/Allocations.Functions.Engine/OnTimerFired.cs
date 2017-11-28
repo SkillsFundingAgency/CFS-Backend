@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Allocations.Models.Specs;
 using Allocations.Repository;
 using Allocations.Services.Calculator;
 using Allocations.Services.Compiler;
+using CalculateFunding.Models.Specs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 

@@ -1,4 +1,5 @@
 using Allocations.Models;
+using CalculateFunding.Models;
 
 namespace Allocations.Functions.Engine.Models
 {

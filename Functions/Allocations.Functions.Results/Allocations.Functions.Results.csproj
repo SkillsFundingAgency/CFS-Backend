@@ -11,8 +11,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
     <ProjectReference Include="..\..\Common\Allocations.Repository\Allocations.Repository.csproj" />
-    <ProjectReference Include="..\..\Models\Allocations.Models\Allocations.Models.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />

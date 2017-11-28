@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using System.Reflection;
-using Allocations.Models.Specs;
+using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 
 namespace Allocations.Services.Compiler

@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Allocations.Models.Results;
 using Allocations.Repository;
+using CalculateFunding.Models.Results;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.WebJobs;

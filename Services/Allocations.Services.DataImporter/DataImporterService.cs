@@ -8,8 +8,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Allocations.Models;
-using Allocations.Models.Datasets;
 using Allocations.Repository;
+using CalculateFunding.Models.Datasets;
 using Newtonsoft.Json;
 
 namespace Allocations.Services.DataImporter

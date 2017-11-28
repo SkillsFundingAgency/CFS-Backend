@@ -8,9 +8,10 @@ using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
-using Allocations.Models.Specs;
 using Allocations.Models.Results;
 using Allocations.Repository;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
 
 namespace Allocations.Functions.Results
 {

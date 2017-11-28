@@ -1,4 +1,4 @@
-﻿using Allocations.Models.Specs;
+﻿using CalculateFunding.Models.Specs;
 
 namespace Allocations.Services.Compiler
 {

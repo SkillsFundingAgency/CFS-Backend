@@ -2,7 +2,9 @@
 using System.Linq;
 using Allocations.Models;
 using Allocations.Models.Results;
-using Allocations.Models.Specs;
+using CalculateFunding.Models;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
 
 namespace Allocations.Services.TestRunner
 {

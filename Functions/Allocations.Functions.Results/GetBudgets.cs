@@ -3,7 +3,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using Allocations.Models.Results;
-using Allocations.Models.Specs;
 using Allocations.Repository;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
@@ -11,6 +10,9 @@ using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Allocations.Models;
+using CalculateFunding.Models;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
 
 namespace Allocations.Functions.Results
 {

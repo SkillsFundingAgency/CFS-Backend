@@ -11,14 +11,13 @@ using Allocations.Boostrapper;
 using Allocations.Models;
 using Allocations.Repository;
 using Newtonsoft.Json;
-using Allocations.Models.Datasets;
 using Allocations.Models.Results;
-using Allocations.Models.Specs;
 using Allocations.Services.Calculator;
 using Allocations.Services.Compiler;
 using Allocations.Services.DataImporter;
 using Allocations.Services.TestRunner;
 using Allocations.Services.TestRunner.Vocab;
+using CalculateFunding.Models.Specs;
 using Newtonsoft.Json.Serialization;
 
 namespace EndToEndDemo

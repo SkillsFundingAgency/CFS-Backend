@@ -1,7 +1,7 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Text.RegularExpressions;
-using Allocations.Models.Specs;
+using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;

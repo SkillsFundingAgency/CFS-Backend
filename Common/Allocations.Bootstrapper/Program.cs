@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Allocations.Models.Results;
-using Allocations.Models.Specs;
 using Allocations.Repository;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
 using CommandLine;
 
 namespace Allocations.Boostrapper

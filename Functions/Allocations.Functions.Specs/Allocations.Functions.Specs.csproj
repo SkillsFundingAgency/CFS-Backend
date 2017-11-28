@@ -11,7 +11,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Common\Allocations.Repository\Allocations.Repository.csproj" />
-    <ProjectReference Include="..\..\Models\Allocations.Models\Allocations.Models.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />

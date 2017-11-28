@@ -143,6 +143,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\CalculateFunding.Models\CalculateFunding.Models.csproj">
+      <Project>{CE0CCEE7-E45A-45B2-B2E0-EE65CA986873}</Project>
+      <Name>CalculateFunding.Models</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Common\Allocations.Bootstrapper\Allocations.Boostrapper.csproj">
       <Project>{7C519EF0-58FE-4313-870D-E3ABD41F629D}</Project>
       <Name>Allocations.Boostrapper</Name>
@@ -150,10 +154,6 @@
     <ProjectReference Include="..\..\Common\Allocations.Repository\Allocations.Repository.csproj">
       <Project>{caf743cf-a061-4b51-91ff-4253596b91e5}</Project>
       <Name>Allocations.Repository</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Models\Allocations.Models\Allocations.Models.csproj">
-      <Project>{EC4C6287-DD06-4926-B496-EAAA75B9C895}</Project>
-      <Name>Allocations.Models</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Services\Allocations.Services.Calculator\Allocations.Services.Calculator.csproj">
       <Project>{406DBFC9-A5F9-4A89-87CE-A0334A2CFE47}</Project>

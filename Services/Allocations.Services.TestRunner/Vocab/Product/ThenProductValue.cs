@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Allocations.Models.Results;
-using Allocations.Models.Specs;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
 
 namespace Allocations.Services.TestRunner.Vocab.Product
 {
