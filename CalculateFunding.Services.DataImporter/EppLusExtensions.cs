@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using OfficeOpenXml;
 
-namespace Allocations.Services.DataImporter
+namespace CalculateFunding.Services.DataImporter
 {
     public static class EppLusExtensions
     {

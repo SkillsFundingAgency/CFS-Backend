@@ -1,4 +1,4 @@
-﻿namespace Allocations.Services.Compiler
+﻿namespace CalculateFunding.Services.Compiler
 {
     public class CompilerMessage
     {

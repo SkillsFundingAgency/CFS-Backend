@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using Allocations.Models.Results;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 
-namespace Allocations.Services.TestRunner.Vocab.Product
+namespace CalculateFunding.Services.TestRunner.Vocab.Product
 {
     public class ThenProductValue : GherkinStepAction
     {

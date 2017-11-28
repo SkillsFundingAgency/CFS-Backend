@@ -1,5 +1,5 @@
 ﻿
-namespace Allocations.Services.TestRunner
+namespace CalculateFunding.Services.TestRunner
 {
     public class GherkinError
     {

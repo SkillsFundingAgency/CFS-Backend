@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Allocations.Repository
+namespace CalculateFunding.Repository
 {
     public class SearchResult<T>
     {

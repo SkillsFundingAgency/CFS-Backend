@@ -1,10 +1,10 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace Allocations.Functions.Engine
+namespace CalculateFunding.Functions.Engine
 {
     public static class OnDatasetUpdated
     {

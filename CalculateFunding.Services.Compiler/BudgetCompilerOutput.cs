@@ -3,7 +3,7 @@ using System.Reflection;
 using CalculateFunding.Models.Specs;
 using Newtonsoft.Json;
 
-namespace Allocations.Services.Compiler
+namespace CalculateFunding.Services.Compiler
 {
     public class BudgetCompilerOutput
     {

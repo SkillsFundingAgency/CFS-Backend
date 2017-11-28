@@ -1,6 +1,6 @@
-﻿using Allocations.Services.TestRunner.Vocab.Product;
+﻿using CalculateFunding.Services.TestRunner.Vocab.Product;
 
-namespace Allocations.Services.TestRunner.Vocab
+namespace CalculateFunding.Services.TestRunner.Vocab
 {
     public class ProductGherkinVocabulary : GherkinVocabDefinition
     {

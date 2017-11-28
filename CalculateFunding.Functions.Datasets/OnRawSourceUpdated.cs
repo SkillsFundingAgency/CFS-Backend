@@ -1,10 +1,10 @@
 using System.IO;
 using System.Threading.Tasks;
+using CalculateFunding.Services.DataImporter;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
-using Allocations.Services.DataImporter;
 
-namespace Allocations.Functions.Datasets
+namespace CalculateFunding.Functions.Datasets
 {
     public static class OnRawSourceUpdated
     {

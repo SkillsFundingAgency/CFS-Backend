@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Allocations.Models;
 
-namespace Allocations.Services.Calculator
+namespace CalculateFunding.Services.Calculator
 {
     public class AllocationFactory
     {

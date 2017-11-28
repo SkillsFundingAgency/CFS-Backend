@@ -5,7 +5,7 @@ using Microsoft.Azure.Documents.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Allocations.Repository
+namespace CalculateFunding.Repository
 {
     public static class DocumentDbConnectionString
     {

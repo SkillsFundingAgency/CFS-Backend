@@ -1,7 +1,6 @@
-﻿using Allocations.Models;
-using CalculateFunding.Models;
+﻿using CalculateFunding.Models;
 
-namespace Allocations.Services.TestRunner
+namespace CalculateFunding.Services.TestRunner
 {
     public class GherkinScenarioResult : GherkinResult
     {

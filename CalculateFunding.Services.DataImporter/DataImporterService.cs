@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Configuration;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-using Allocations.Models;
-using Allocations.Repository;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Repository;
 using Newtonsoft.Json;
 
-namespace Allocations.Services.DataImporter
+namespace CalculateFunding.Services.DataImporter
 {
     public class AptBasicEntitlement : ProviderSourceDataset
     {

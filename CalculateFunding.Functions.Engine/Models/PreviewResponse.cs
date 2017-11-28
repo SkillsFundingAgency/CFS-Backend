@@ -1,11 +1,9 @@
 using System.Collections.Generic;
-using Allocations.Models.Results;
-using Allocations.Services.Calculator;
-using Allocations.Services.Compiler;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Compiler;
 
-namespace Allocations.Functions.Engine.Models
+namespace CalculateFunding.Functions.Engine.Models
 {
     public class PreviewResponse
     {

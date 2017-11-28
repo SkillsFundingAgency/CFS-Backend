@@ -4,7 +4,7 @@ using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace Allocations.Services.Compiler.CSharp
+namespace CalculateFunding.Services.Compiler.CSharp
 {
     public class CSharpCompiler : BaseCompiler
     {

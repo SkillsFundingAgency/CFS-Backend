@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Allocations.Services.Compiler.CSharp
+namespace CalculateFunding.Services.Compiler.CSharp
 {
     public abstract class CSharpTypeGenerator
     {

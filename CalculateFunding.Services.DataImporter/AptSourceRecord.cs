@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Allocations.Services.DataImporter
+namespace CalculateFunding.Services.DataImporter
 {
     public class AptSourceRecord
     {

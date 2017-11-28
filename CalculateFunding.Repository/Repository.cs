@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
-using Allocations.Models;
 using CalculateFunding.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
 using Newtonsoft.Json;
 
-namespace Allocations.Repository
+namespace CalculateFunding.Repository
 {
     public class Repository<T> : IDisposable where T : DocumentEntity
     {

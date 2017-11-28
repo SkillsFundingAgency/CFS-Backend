@@ -1,20 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Allocations.Models;
-using Allocations.Models.Results;
-using Allocations.Repository;
-using Allocations.Services.Compiler;
-using Allocations.Services.TestRunner;
-using Allocations.Services.TestRunner.Vocab;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Repository;
+using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.TestRunner;
+using CalculateFunding.Services.TestRunner.Vocab;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Allocations.Services.Calculator
+namespace CalculateFunding.Services.Calculator
 {
     public class CalculationEngine
     {

@@ -1,7 +1,6 @@
-using Allocations.Models;
 using CalculateFunding.Models;
 
-namespace Allocations.Functions.Engine.Models
+namespace CalculateFunding.Functions.Engine.Models
 {
     public class FundingPolicySummary : ResultSummary
     {

@@ -1,7 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Data;
-using System.Globalization;
-using Allocations.Models;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Specs;
 

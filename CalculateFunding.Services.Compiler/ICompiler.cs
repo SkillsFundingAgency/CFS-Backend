@@ -1,6 +1,6 @@
 ﻿using CalculateFunding.Models.Specs;
 
-namespace Allocations.Services.Compiler
+namespace CalculateFunding.Services.Compiler
 {
     public interface ICompiler
     {

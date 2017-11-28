@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Allocations.Models.Results;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 
-namespace Allocations.Services.TestRunner.Vocab.Product
+namespace CalculateFunding.Services.TestRunner.Vocab.Product
 {
 
     //And 'PrimaryNOR' in 'APT Provider Information' is greater than 0

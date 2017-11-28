@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Allocations.Models;
-using Allocations.Models.Results;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 
-namespace Allocations.Services.TestRunner
+namespace CalculateFunding.Services.TestRunner
 {
     public class GherkinExecutor
     {

@@ -1,12 +1,8 @@
-using System;
 using System.Configuration;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Allocations.Models.Results;
-using Allocations.Repository;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search;
@@ -17,7 +13,7 @@ using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Allocations.Functions.Results
+namespace CalculateFunding.Functions.Results
 {
     public static class GetProductTestResults
     {

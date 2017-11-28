@@ -1,22 +1,20 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Allocations.Functions.Engine.Models;
-using Allocations.Models;
-using Allocations.Repository;
-using Allocations.Services.Calculator;
-using Allocations.Services.Compiler;
+using CalculateFunding.Functions.Engine.Models;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Repository;
+using CalculateFunding.Services.Calculator;
+using CalculateFunding.Services.Compiler;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Allocations.Functions.Engine
+namespace CalculateFunding.Functions.Engine
 {
     public static class Preview
     {

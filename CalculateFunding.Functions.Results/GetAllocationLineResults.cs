@@ -1,22 +1,18 @@
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web.Http;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Repository;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using System;
-using System.Web.Http;
-using Allocations.Models.Results;
-using Allocations.Repository;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 
-namespace Allocations.Functions.Results
+namespace CalculateFunding.Functions.Results
 {
     public static class GetAllocationLineResults
     {

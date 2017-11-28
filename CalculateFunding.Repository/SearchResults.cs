@@ -1,4 +1,4 @@
-﻿namespace Allocations.Repository
+﻿namespace CalculateFunding.Repository
 {
     public class SearchResults<T>
     {

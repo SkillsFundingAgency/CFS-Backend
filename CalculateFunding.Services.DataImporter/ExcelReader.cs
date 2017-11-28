@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using OfficeOpenXml;
 
-namespace Allocations.Services.DataImporter
+namespace CalculateFunding.Services.DataImporter
 {
     public class ExcelReader
     {

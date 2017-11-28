@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
-
-namespace Allocations.Services.Compiler.VisualBasic
+namespace CalculateFunding.Services.Compiler.VisualBasic
 {
 
     public class DatasetTypeGenerator : VisualBasicTypeGenerator

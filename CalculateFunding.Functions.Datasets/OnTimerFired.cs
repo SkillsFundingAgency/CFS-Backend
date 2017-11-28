@@ -1,19 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
-using Allocations.Repository;
-using Allocations.Services.Calculator;
-using Allocations.Services.Compiler;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Repository;
+using CalculateFunding.Services.Calculator;
+using CalculateFunding.Services.Compiler;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Allocations.Functions.Datasets
+namespace CalculateFunding.Functions.Datasets
 {
     public static class OnTimerFired
     {

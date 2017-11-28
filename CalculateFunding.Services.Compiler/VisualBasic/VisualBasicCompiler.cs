@@ -1,12 +1,10 @@
-using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
 
-namespace Allocations.Services.Compiler.VisualBasic
+namespace CalculateFunding.Services.Compiler.VisualBasic
 {
     public class VisualBasicCompiler : BaseCompiler
     {

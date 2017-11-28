@@ -1,6 +1,6 @@
 ﻿using CalculateFunding.Models.Specs;
 
-namespace Allocations.Services.TestRunner
+namespace CalculateFunding.Services.TestRunner
 {
     public abstract class GherkinVocabDefinition
     {

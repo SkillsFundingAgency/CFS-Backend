@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Allocations.Services.Compiler.CSharp;
-using Allocations.Services.Compiler.VisualBasic;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Compiler.CSharp;
+using CalculateFunding.Services.Compiler.VisualBasic;
 
-namespace Allocations.Services.Compiler
+namespace CalculateFunding.Services.Compiler
 {
     public static class BudgetCompiler
     {

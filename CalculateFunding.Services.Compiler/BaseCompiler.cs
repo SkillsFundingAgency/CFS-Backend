@@ -3,7 +3,7 @@ using System.Reflection;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 
-namespace Allocations.Services.Compiler
+namespace CalculateFunding.Services.Compiler
 {
 
     public abstract class BaseCompiler : ICompiler

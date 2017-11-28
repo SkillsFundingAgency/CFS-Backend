@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using CalculateFunding.Models.Results;
 using Newtonsoft.Json;
 
-namespace Allocations.Models.Results
+namespace CalculateFunding.Models.Results
 {
     public class ProductFolderSummary : ResultSummary
     {

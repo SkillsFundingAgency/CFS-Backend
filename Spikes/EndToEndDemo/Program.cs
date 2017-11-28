@@ -2,12 +2,12 @@
 using System.IO;
 using System.Threading.Tasks;
 using Allocations.Boostrapper;
-using Allocations.Repository;
 using Newtonsoft.Json;
-using Allocations.Services.Calculator;
-using Allocations.Services.Compiler;
-using Allocations.Services.DataImporter;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Repository;
+using CalculateFunding.Services.Calculator;
+using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.DataImporter;
 using Newtonsoft.Json.Serialization;
 
 namespace EndToEndDemo

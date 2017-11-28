@@ -1,7 +1,5 @@
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Specs;
 using Microsoft.Azure.WebJobs;
@@ -10,7 +8,7 @@ using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Allocations.Functions.Engine
+namespace CalculateFunding.Functions.Engine
 {
     public static class HealthCheck
     {

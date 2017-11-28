@@ -1,4 +1,4 @@
-namespace Allocations.Functions.Engine.Models
+namespace CalculateFunding.Functions.Engine.Models
 {
     public abstract class ResultSummary
     {

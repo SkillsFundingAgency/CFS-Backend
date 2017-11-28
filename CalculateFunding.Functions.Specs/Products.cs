@@ -1,6 +1,9 @@
-﻿using Allocations.Repository;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using System.Web.Http;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -8,13 +11,8 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Web.Http;
 
-namespace Allocations.Functions.Specs
+namespace CalculateFunding.Functions.Specs
 {
     public static class Products
     {

@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Allocations.Services.Compiler
+namespace CalculateFunding.Services.Compiler
 {
     [JsonConverter(typeof(StringEnumConverter))]
     public enum Severity

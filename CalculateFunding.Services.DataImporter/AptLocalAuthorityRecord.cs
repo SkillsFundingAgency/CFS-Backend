@@ -1,4 +1,4 @@
-﻿namespace Allocations.Services.DataImporter
+﻿namespace CalculateFunding.Services.DataImporter
 {
     public class AptLocalAuthorityRecord
     {

@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Allocations.Models;
 using CalculateFunding.Models;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Spatial;
 using Newtonsoft.Json;
 
-namespace Allocations.Repository
+namespace CalculateFunding.Repository
 {
     public class SearchInitializer
     {
