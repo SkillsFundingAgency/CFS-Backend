@@ -168,14 +168,18 @@ namespace Allocations.Boostrapper
                             Dataset("APT Basic Entitlement")
                                 .WithFields(
                                     Field("PrimaryAmountPerPupil", FieldType.Decimal, "Primary Amount Per Pupil"),
-                                    Field("PrimaryAmount", FieldType.Decimal, "Primary Amount"),
-                                    Field("PrimaryNotionalSEN", FieldType.Decimal, "Primary Notional SEN")
+                                    Field("PrimaryAmount", FieldType.Decimal, "Primary Amount")
+                                   
                                 ),
                             Dataset("Census Number Counts")
                                 .WithFields(
                                     Field("NORPrimary", FieldType.Integer, "NOR Primary")
+                                ),
+                            Dataset("APT Local Authority")
+                                .WithFields(
+                                    Field("PrimaryNotionalSEN", FieldType.Decimal, "Primary Notional SEN")
                                 )
-                           
+
                         );
         }
 
@@ -195,14 +199,9 @@ namespace Allocations.Boostrapper
                                     new GivenStep("APT Provider Information", "Phase", ComparisonOperator.EqualTo, "Primary")
                                 )
                                 .WithThenSteps(new ThenStep(ComparisonOperator.GreaterThan, "0.00")
-                                ),
+                                )
                                                         
-                            TestScenario("Non-Primary providers should not have Primary Rate")
-                                .WithGivenSteps(
-                                    new GivenStep("APT Provider Information", "Phase", ComparisonOperator.NotEqualTo, "Primary")
-                                )
-                                .WithThenSteps(new ThenStep(ComparisonOperator.EqualTo, "0.00")
-                                )
+
                         ),
 
 
@@ -283,23 +282,11 @@ namespace Allocations.Boostrapper
 
                     Product("P007_InYearPriBE_Subtotal")
                         .WithDescription("This calculation determines the actual Primary Basic Entitlement allocation due for the Academic Year 18/19, pro-rating the allocation if an academy opened in-year.")
+                        .WithCalculation(@"Return Decimal.Zero")
                         .WithSBSTestProviders()
-                        .WithTestScenarios(
-                            TestScenario("Only Primary providers should have Primary Basic Entitlement")
-                                .WithGivenSteps(
-                                    new GivenStep("APT Provider Information", "Phase", ComparisonOperator.EqualTo, "Primary")
-                                )
-                                .WithThenSteps(new ThenStep(ComparisonOperator.GreaterThan, "0.00")
-                                ),
 
-                            TestScenario("Non-Primary providers should not have Primary Basic Entitlement")
-                                .WithGivenSteps(
-                                    new GivenStep("APT Provider Information", "Phase", ComparisonOperator.NotEqualTo, "Primary")
-                                )
-                                .WithThenSteps(new ThenStep(ComparisonOperator.EqualTo, "0.00")
-                                )
 
-                        )
+                        
 
 
                 );

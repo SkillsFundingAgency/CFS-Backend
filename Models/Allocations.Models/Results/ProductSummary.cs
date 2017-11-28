@@ -1,14 +1,19 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using Allocations.Models.Results;
+using Allocations.Models.Specs;
 using Newtonsoft.Json;
 
-namespace Allocations.Models.Specs
+namespace Allocations.Models.Results
 {
-
-    public class Product : ResultSummary
+    public class ProductSummary : ResultSummary
     {
+        public ProductSummary(string id, string name, ProductCalculation calculation, string description, List<ProductTestScenario> testScenarios)
+        {
+            Name = name;
+            this.Calculation = calculation;
+            Description = description;
+            this.TestScenarios = testScenarios;
+        }
+
         [JsonProperty("id")]
         public string Id => $"{Name}".ToSlug();
         [JsonProperty("name")]
@@ -22,5 +27,4 @@ namespace Allocations.Models.Specs
         [JsonProperty("testProviders")]
         public List<Reference> TestProviders { get; set; }
     }
-
 }
