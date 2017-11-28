@@ -87,9 +87,9 @@
       <Project>{CE0CCEE7-E45A-45B2-B2E0-EE65CA986873}</Project>
       <Name>CalculateFunding.Models</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Allocations.Repository\Allocations.Repository.csproj">
-      <Project>{caf743cf-a061-4b51-91ff-4253596b91e5}</Project>
-      <Name>Allocations.Repository</Name>
+    <ProjectReference Include="..\..\CalculateFunding.Repository\CalculateFunding.Repository.csproj">
+      <Project>{B899850F-5CCF-4C75-A715-B0453D19D2A8}</Project>
+      <Name>CalculateFunding.Repository</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,0 +1,8 @@
+{
+    "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=gvaggxslfcz4gstorage;AccountKey=+HmYeJAg3EB8No7WMciz9Dg5e7EdASTXbFjbe3UWjcgdcvWLw/NgieumiinAUQbVbM30lI/AtcUdj2bgGLSz4A==",
+    "AzureWebJobsDashboard": "DefaultEndpointsProtocol=https;AccountName=gvaggxslfcz4gstorage;AccountKey=+HmYeJAg3EB8No7WMciz9Dg5e7EdASTXbFjbe3UWjcgdcvWLw/NgieumiinAUQbVbM30lI/AtcUdj2bgGLSz4A==",
+    "CosmosDBConnectionString": "AccountEndpoint=https://gvaggxslfcz4g-db.documents.azure.com:443/;AccountKey=e6UD2EN6ZoZF1WCytE7wqRhVYnpq3GFB71ycQY79Aktp91qGYZ3EU3ENgsILTgUiNYBx020An6it9D1QDD4V9g==;"
+  }
+}

@@ -147,10 +147,6 @@
       <Project>{DFD4D355-AD02-4F14-9D44-94C138895598}</Project>
       <Name>Allocations.Services.Compiler</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Allocations.Services.TestRunner\Allocations.Services.TestRunner.csproj">
-      <Project>{E1FD553D-9D2C-4DCA-BD3B-4A261CB57FDF}</Project>
-      <Name>Allocations.Services.TestRunner</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

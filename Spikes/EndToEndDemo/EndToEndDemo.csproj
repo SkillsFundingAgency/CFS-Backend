@@ -147,29 +147,25 @@
       <Project>{CE0CCEE7-E45A-45B2-B2E0-EE65CA986873}</Project>
       <Name>CalculateFunding.Models</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\CalculateFunding.Repository\CalculateFunding.Repository.csproj">
+      <Project>{B899850F-5CCF-4C75-A715-B0453D19D2A8}</Project>
+      <Name>CalculateFunding.Repository</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\CalculateFunding.Services.Calculator\CalculateFunding.Services.Calculator.csproj">
+      <Project>{8CB3AE5F-2517-4E83-87C9-024C9A8E9BEF}</Project>
+      <Name>CalculateFunding.Services.Calculator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\CalculateFunding.Services.Compiler\CalculateFunding.Services.Compiler.csproj">
+      <Project>{D1D2B46F-EEC5-4F40-BD20-8DE680F1AAD0}</Project>
+      <Name>CalculateFunding.Services.Compiler</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\CalculateFunding.Services.DataImporter\CalculateFunding.Services.DataImporter.csproj">
+      <Project>{E2B3EF61-18D9-47B8-B5BF-1423C54FFE03}</Project>
+      <Name>CalculateFunding.Services.DataImporter</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Common\Allocations.Bootstrapper\Allocations.Boostrapper.csproj">
       <Project>{7C519EF0-58FE-4313-870D-E3ABD41F629D}</Project>
       <Name>Allocations.Boostrapper</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Common\Allocations.Repository\Allocations.Repository.csproj">
-      <Project>{caf743cf-a061-4b51-91ff-4253596b91e5}</Project>
-      <Name>Allocations.Repository</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Services\Allocations.Services.Calculator\Allocations.Services.Calculator.csproj">
-      <Project>{406DBFC9-A5F9-4A89-87CE-A0334A2CFE47}</Project>
-      <Name>Allocations.Services.Calculator</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Services\Allocations.Services.Compiler\Allocations.Services.Compiler.csproj">
-      <Project>{DFD4D355-AD02-4F14-9D44-94C138895598}</Project>
-      <Name>Allocations.Services.Compiler</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Services\Allocations.Services.DataImporter\Allocations.Services.DataImporter.csproj">
-      <Project>{74FB279B-4DBD-43F9-82B3-3BDCEBF7F590}</Project>
-      <Name>Allocations.Services.DataImporter</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Services\Allocations.Services.TestRunner\Allocations.Services.TestRunner.csproj">
-      <Project>{E1FD553D-9D2C-4DCA-BD3B-4A261CB57FDF}</Project>
-      <Name>Allocations.Services.TestRunner</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
