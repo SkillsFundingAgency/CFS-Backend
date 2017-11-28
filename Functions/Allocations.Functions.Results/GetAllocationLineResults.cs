@@ -98,41 +98,42 @@ namespace Allocations.Functions.Results
                                 })
                             }).SelectMany(x => x.ScenarioResults).ToArray();
 
-                        var resultsByProduct = scenarioResults.GroupBy(x => new { x.AllocationLineId, x.ProductId })
+                        var resultsByProduct = scenarioResults.GroupBy(x => new { x.ProductId })
                             .ToDictionary(x => x.Key);
 
-                        var resultsByScenario = scenarioResults.GroupBy(x => new { x.ScenarioName })
+                        var resultsByScenario = scenarioResults.GroupBy(x => new { x.ProductId, x.ScenarioName })
                             .ToDictionary(x => x.Key);
 
-                        //foreach (var productFoldersa in allocationLine.ProductFolders)
-                        //{
-                        //    foreach (var product in productFoldersa.Products)
-                        //    {
-                        //        foreach (var scenario in product.TestScenarios)
-                        //        {
-                        //            if (resultsByScenario.TryGetValue(new
-                        //            {
-                        //                ProductId = product.Id,
-                        //                ScenarioName = scenario.Name
-                        //            }, out var scenarioTestResults))
-                        //            {
-                        //                var byScenarioAndProvider =
-                        //                    scenarioTestResults.GroupBy(x => x.ProductId)
-                        //                        .Select(x => new
-                        //                        {
-                        //                            Passed = x.All(tr => tr.TestResult == TestResult.Passed),
-                        //                            Failed = x.Any(tr => tr.TestResult == TestResult.Failed),
-                        //                            Ignored = x.All(tr => tr.TestResult == TestResult.Ignored),
-                        //                        }).ToArray();
-                        //                scenario.TestSummary = new TestSummary
-                        //                {
-                        //                    Passed = byScenarioAndProvider.Count(x => x.Passed),
-                        //                    Failed = byScenarioAndProvider.Count(x => x.Failed)
-                        //                };
-                        //            }
-                        //        }
-                        //    }
-                        //}
+                        foreach (var productFolder in allocationLine.ProductFolders)
+                        {
+                            foreach (var product in productFolder.Products)
+                            {
+                                foreach (var scenario in product.TestScenarios)
+                                {
+                                    if (resultsByScenario.TryGetValue(new
+                                    {
+                                        ProductId = product.Id,
+                                        ScenarioName = scenario.Name
+                                    }, out var scenarioTestResults))
+                                    {
+                                        var byScenarioAndProvider =
+                                            scenarioTestResults.GroupBy(x => x.ScenarioName)
+                                                .Select(x => new
+                                                {
+                                                    Passed = x.All(tr => tr.TestResult == TestResult.Passed),
+                                                    Failed = x.Any(tr => tr.TestResult == TestResult.Failed),
+                                                    Ignored = x.All(tr => tr.TestResult == TestResult.Ignored),
+                                                }).ToArray();
+                                        scenario.TestSummary = new TestSummary
+                                        {
+                                            Passed = byScenarioAndProvider.Count(x => x.Passed),
+                                            Failed = byScenarioAndProvider.Count(x => x.Failed)
+                                        };
+                                        scenario.TotalProviders = scenarioResults.GroupBy(x => x.ScenarioName).Count();
+                                    }
+                                }
+                            }
+                        }
 
                         foreach (var productFolder in allocationLine.ProductFolders)
                         {
@@ -141,7 +142,6 @@ namespace Allocations.Functions.Results
 
                                 if (resultsByProduct.TryGetValue(new
                                 {
-                                    AllocationLineId = allocationLine.Id,
                                     ProductId = product.Id
                                 }, out var allocationTestResults))
                                 {
@@ -174,7 +174,7 @@ namespace Allocations.Functions.Results
                                     product.TestSummary = new TestSummary
                                     {
                                         Passed = 0,
-                                        Failed = 0,
+                                        Failed = 0
                                     };
                                 }
                             }
