@@ -117,7 +117,7 @@ namespace Allocations.Functions.Results
                                     }, out var scenarioTestResults))
                                     {
                                         var byScenarioAndProvider =
-                                            scenarioTestResults.GroupBy(x => x.ScenarioName)
+                                            scenarioTestResults.GroupBy(x => x.ProviderId)
                                                 .Select(x => new
                                                 {
                                                     Passed = x.All(tr => tr.TestResult == TestResult.Passed),
@@ -129,7 +129,7 @@ namespace Allocations.Functions.Results
                                             Passed = byScenarioAndProvider.Count(x => x.Passed),
                                             Failed = byScenarioAndProvider.Count(x => x.Failed)
                                         };
-                                        scenario.TotalProviders = scenarioResults.GroupBy(x => x.ScenarioName).Count();
+                                        scenario.TotalProviders = scenarioResults.GroupBy(x => x.ProviderId).Count();
                                     }
                                 }
                             }
