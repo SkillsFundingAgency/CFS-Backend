@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+VisualStudioVersion = 15.0.27110.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Models", "Models", "{539AB1D8-B007-4CB6-8355-918D498486E2}"
 EndProject
@@ -34,15 +34,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Calculator", "CalculateFunding.Services.Calculator\CalculateFunding.Services.Calculator.csproj", "{8CB3AE5F-2517-4E83-87C9-024C9A8E9BEF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.TestRunner", "CalculateFunding.Services.TestRunner\CalculateFunding.Services.TestRunner.csproj", "{13376B99-C9AF-41F3-BD5E-FF3209532EF9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.TestRunner", "CalculateFunding.Services.TestRunner\CalculateFunding.Services.TestRunner.csproj", "{13376B99-C9AF-41F3-BD5E-FF3209532EF9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.DataImporter", "CalculateFunding.Services.DataImporter\CalculateFunding.Services.DataImporter.csproj", "{E2B3EF61-18D9-47B8-B5BF-1423C54FFE03}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.DataImporter", "CalculateFunding.Services.DataImporter\CalculateFunding.Services.DataImporter.csproj", "{E2B3EF61-18D9-47B8-B5BF-1423C54FFE03}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.Engine", "CalculateFunding.Functions.Engine\CalculateFunding.Functions.Engine.csproj", "{5902E0A9-8011-4511-BE27-881E87ADB244}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Engine", "CalculateFunding.Functions.Engine\CalculateFunding.Functions.Engine.csproj", "{5902E0A9-8011-4511-BE27-881E87ADB244}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.Results", "CalculateFunding.Functions.Results\CalculateFunding.Functions.Results.csproj", "{35D6C227-6286-46C9-AC9F-54F109E97E25}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Results", "CalculateFunding.Functions.Results\CalculateFunding.Functions.Results.csproj", "{35D6C227-6286-46C9-AC9F-54F109E97E25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.Specs", "CalculateFunding.Functions.Specs\CalculateFunding.Functions.Specs.csproj", "{F01ADEE3-F45D-4918-BF96-5345EA2654E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Specs", "CalculateFunding.Functions.Specs\CalculateFunding.Functions.Specs.csproj", "{F01ADEE3-F45D-4918-BF96-5345EA2654E7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.PerformanceTesting", "CalculateFunding.Functions.PerformanceTesting\CalculateFunding.Functions.PerformanceTesting.csproj", "{2FDB9CB8-B2F6-4459-A520-5969E7538E31}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -102,6 +104,10 @@ Global
 		{F01ADEE3-F45D-4918-BF96-5345EA2654E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F01ADEE3-F45D-4918-BF96-5345EA2654E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F01ADEE3-F45D-4918-BF96-5345EA2654E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FDB9CB8-B2F6-4459-A520-5969E7538E31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FDB9CB8-B2F6-4459-A520-5969E7538E31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FDB9CB8-B2F6-4459-A520-5969E7538E31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FDB9CB8-B2F6-4459-A520-5969E7538E31}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -120,6 +126,7 @@ Global
 		{5902E0A9-8011-4511-BE27-881E87ADB244} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{35D6C227-6286-46C9-AC9F-54F109E97E25} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{F01ADEE3-F45D-4918-BF96-5345EA2654E7} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
+		{2FDB9CB8-B2F6-4459-A520-5969E7538E31} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2FA36A0A-CA20-41CF-9BC2-FA6545720009}
