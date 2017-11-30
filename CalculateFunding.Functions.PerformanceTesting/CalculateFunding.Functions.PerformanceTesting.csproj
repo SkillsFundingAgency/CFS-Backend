@@ -4,6 +4,7 @@
     <AzureFunctionsVersion>v2</AzureFunctionsVersion>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.4.0" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.6" />
   </ItemGroup>
   <ItemGroup>
@@ -11,6 +12,7 @@
     <ProjectReference Include="..\CalculateFunding.Repository\CalculateFunding.Repository.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Calculator\CalculateFunding.Services.Calculator.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Compiler\CalculateFunding.Services.Compiler.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.DataImporter\CalculateFunding.Services.DataImporter.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

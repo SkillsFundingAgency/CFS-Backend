@@ -9,6 +9,20 @@ namespace CalculateFunding.Repository
 {
     public static class DocumentDbConnectionString
     {
+
+        private static readonly ConnectionPolicy ConnectionPolicy = new ConnectionPolicy
+        {
+            ConnectionMode = ConnectionMode.Direct,
+            ConnectionProtocol = Protocol.Tcp,
+            RequestTimeout = new TimeSpan(1, 0, 0),
+            MaxConnectionLimit = 1000,
+            RetryOptions = new RetryOptions
+            {
+                MaxRetryAttemptsOnThrottledRequests = 10,
+                MaxRetryWaitTimeInSeconds = 60
+            }
+        };
+
         public static DocumentClient Parse(string connectionString)
         {
             if (String.IsNullOrWhiteSpace(connectionString))
@@ -69,7 +83,7 @@ namespace CalculateFunding.Repository
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             };
 
-            documentClient = new DocumentClient(new Uri(settings[AccountEndpointKey]), settings[AccountKeyKey]);
+            documentClient = new DocumentClient(new Uri(settings[AccountEndpointKey]), settings[AccountKeyKey], ConnectionPolicy);
             return true;
         }
 

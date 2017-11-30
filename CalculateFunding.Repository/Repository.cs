@@ -15,29 +15,61 @@ namespace CalculateFunding.Repository
     public class Repository<T> : IDisposable where T : DocumentEntity
     {
         private readonly string _collectionName;
+        private readonly string _partitionKey;
         private readonly string _databaseName;
         private readonly DocumentClient _documentClient;
         private readonly Uri _collectionUri;
         private readonly string _documentType = typeof(T).Name;
+        private ResourceResponse<DocumentCollection> _collection;
 
-
-        public Repository(string collectionName, string connectionStringOverride = null)
+        public Repository(string collectionName, string partitionKey = null, string connectionStringOverride = null)
         {
-            var connectionString = connectionStringOverride ?? ConfigurationManager.AppSettings["CosmosDBConnectionString"];
+            var connectionString = connectionStringOverride ?? Environment.GetEnvironmentVariable("CosmosDBConnectionString");
 
             var databaseName = "allocations";
 
             _collectionName = collectionName;
+            _partitionKey = partitionKey;
             _databaseName = databaseName;
             _documentClient = DocumentDbConnectionString.Parse(connectionString); ;
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_databaseName, _collectionName);
+        }
+
+        public async Task EnsureCollectionExists()
+        {
+            if(_collection == null)
+            {
+                var collection = new DocumentCollection { Id = _collectionName };
+                if (_partitionKey != null)
+                {
+                    collection.PartitionKey.Paths.Add(_partitionKey);
+                }
+
+                await _documentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = _databaseName });
+                _collection = await _documentClient.CreateDocumentCollectionIfNotExistsAsync(
+                    UriFactory.CreateDatabaseUri(_databaseName), collection);
+            }
+
 
         }
 
-        private async Task EnsureCollectionExists()
+        public async Task SetThroughput(int requestUnits)
         {
-            await _documentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = _databaseName });
-            await _documentClient.CreateDocumentCollectionIfNotExistsAsync(UriFactory.CreateDatabaseUri(_databaseName), new DocumentCollection { Id = _collectionName });
+            //Fetch the resource to be updated
+            OfferV2 offer = (OfferV2) _documentClient.CreateOfferQuery()
+                .Where(r => r.ResourceLink == _collection.Resource.SelfLink)
+                .AsEnumerable()
+                .SingleOrDefault();
+
+            if(offer.Content.OfferThroughput != requestUnits)
+            {
+                // Set the throughput to the new value, for example 12,000 request units per second
+                offer = new OfferV2(offer, requestUnits);
+
+                //Now persist these changes to the database by replacing the original resource
+                await _documentClient.ReplaceOfferAsync(offer);
+            }
+
 
         }
 
@@ -109,7 +141,7 @@ namespace CalculateFunding.Repository
 
         public async Task<HttpStatusCode> CreateAsync<TAny>(TAny entity) where TAny : T
         {
-            await EnsureCollectionExists();
+
             entity.DocumentType = _documentType; // in case not specified
             entity.CreatedAt = DateTime.UtcNow;
             entity.UpdatedAt = DateTime.UtcNow;
@@ -132,7 +164,7 @@ namespace CalculateFunding.Repository
 
 
         public void Dispose()
-        {
+        { 
             _documentClient?.Dispose();
         }
 
