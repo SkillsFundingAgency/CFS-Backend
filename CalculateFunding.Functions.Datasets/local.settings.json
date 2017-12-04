@@ -4,7 +4,7 @@
     "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=gvaggxslfcz4gstorage;AccountKey=+HmYeJAg3EB8No7WMciz9Dg5e7EdASTXbFjbe3UWjcgdcvWLw/NgieumiinAUQbVbM30lI/AtcUdj2bgGLSz4A==",
     "AzureWebJobsDashboard": "DefaultEndpointsProtocol=https;AccountName=gvaggxslfcz4gstorage;AccountKey=+HmYeJAg3EB8No7WMciz9Dg5e7EdASTXbFjbe3UWjcgdcvWLw/NgieumiinAUQbVbM30lI/AtcUdj2bgGLSz4A==",
     //"CosmosDBConnectionString": "AccountEndpoint=https://gvaggxslfcz4g-db.documents.azure.com:443/;AccountKey=e6UD2EN6ZoZF1WCytE7wqRhVYnpq3GFB71ycQY79Aktp91qGYZ3EU3ENgsILTgUiNYBx020An6it9D1QDD4V9g==;q",
-    "CosmosDBConnectionString": "AccountEndpoint=https://localhost:8081;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==;",
-    "DatasetStorage": "DefaultEndpointsProtocol=https;AccountName=gvaggxslfcz4gdata;AccountKey=GDuBqjxHCUV9R2/2UihYWurG1EuhGIyqYO102Mr2bygfIk6UAKSMD8ImrfeDSsjAUR00KpyId9iUEbo283lqAQ=="
+    "CosmosDBConnectionString": "AccountEndpoint=https://calculatefunding-perf.documents.azure.com:443/;AccountKey=X5xyFsWKcSF0fF5GyuTTUkZgoimAcsq0RAManC4kdFmoRFuLNtBhipyw7N8QHayFTtRArlCxQ8wVRZD7ApgEOQ==;",
+    "DatasetStorage": "AccountEndpoint=https://calculatefundingperfdata.documents.azure.com:443/;AccountKey=xOtgv+MJFtqdlsOycvLgjg/mmmBRU7oUhqAGLe8Dv6ib2ferge1Nll3cfi/paJSHiPFgMDvqII9yh/Mm30VOMA==;"
   }
 }

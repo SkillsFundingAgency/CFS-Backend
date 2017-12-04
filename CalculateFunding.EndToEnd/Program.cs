@@ -1,33 +1,30 @@
-﻿using System;
+﻿using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.DataImporter;
+using System;
 using System.IO;
 using System.Threading.Tasks;
-using Allocations.Boostrapper;
-using Newtonsoft.Json;
+using CalculateFunding.Bootstrapper;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repository;
 using CalculateFunding.Services.Calculator;
-using CalculateFunding.Services.Compiler;
-using CalculateFunding.Services.DataImporter;
-using Newtonsoft.Json.Serialization;
+using CalculateFunding.Repository;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using CalculateFunding.Functions.Common;
 
-namespace EndToEndDemo
+namespace CalculateFunding.EndToEnd
 {
 
     class Program
     {
-        private static JsonSerializerSettings _jsonSerializerSettings = new JsonSerializerSettings
-        {
-            ContractResolver = new CamelCasePropertyNamesContractResolver()
-        };
         static void Main(string[] args)
         {
-            var importer = new DataImporterService(); 
+
+            var importer = ServiceFactory.GetService<DataImporterService>();
             Task.Run(async () =>
             {
                 await GenerateBudgetModel();
-
-
-
 
                 var budgetDefinition = SeedData.CreateGeneralAnnualGrant();
 
@@ -43,8 +40,8 @@ namespace EndToEndDemo
 
                 if (compilerOutput.Success)
                 {
-                    var calc = new CalculationEngine(compilerOutput, TODO, TODO);
-                    await calc.GenerateAllocations();
+                    var calc = ServiceFactory.GetService<CalculationEngine>();
+                    await calc.GenerateAllocations(compilerOutput);
                 }
                 else
                 {
@@ -55,23 +52,24 @@ namespace EndToEndDemo
                     Console.ReadKey();
                 }
 
-               // await StoreAggregates(budgetDefinition, new AllocationFactory(compilerOutput.Assembly));
+                // await StoreAggregates(budgetDefinition, new AllocationFactory(compilerOutput.Assembly));
 
 
 
             }
 
             // Do any async anything you need here without worry
-        ). GetAwaiter().GetResult();
-    }
+        ).GetAwaiter().GetResult();
+        }
 
+        public static IConfigurationRoot Configuration { get; set; }
 
         private static async Task GenerateBudgetModel()
         {
-            using (var repository = new Repository<Budget>("specs"))
-            {
-                await repository.CreateAsync(SeedData.CreateGeneralAnnualGrant());
-            }
+            var repository = ServiceFactory.GetService<Repository<Budget>>();
+
+            await repository.CreateAsync(SeedData.CreateGeneralAnnualGrant());
+            
         }
 
     }

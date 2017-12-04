@@ -2,7 +2,7 @@
 using CalculateFunding.Models;
 using CalculateFunding.Models.Specs;
 
-namespace Allocations.Boostrapper
+namespace CalculateFunding.Bootstrapper
 {
     public static class SeedData
     {

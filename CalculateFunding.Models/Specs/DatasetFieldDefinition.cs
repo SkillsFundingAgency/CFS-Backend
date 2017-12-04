@@ -19,6 +19,7 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("type")]
         public FieldType Type { get; set; }
 
-
+        [JsonProperty("sourceMapping")]
+        public FieldMapping SourceMapping { get; set; }
     }
 }

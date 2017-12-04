@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
 using CalculateFunding.Models;
@@ -35,7 +36,6 @@ namespace CalculateFunding.Functions.Specs
                 return await OnPost(req, budgetId);
             }
 
-
             if (budgetId.FirstOrDefault() == null)
             {
                 return new BadRequestErrorMessageResult("budgetId is required");
@@ -47,16 +47,13 @@ namespace CalculateFunding.Functions.Specs
 
         private static async Task<IActionResult> OnGet(string budgetId, string productId)
         {
-
-            using (var repository = new Repository<Budget>("specs"))
-            {
-
-                var budget = await repository.ReadAsync(budgetId);
+            var repository = GetRepository();
+            var budget = await repository.ReadAsync(budgetId);
                 var product = budget?.GetProduct(productId);
                 if (product == null) return new NotFoundResult();
 
                 return new JsonResult(product);
-            }
+            
         }
 
         private static async Task<IActionResult> OnPost(HttpRequest req, string budgetId)
@@ -70,28 +67,39 @@ namespace CalculateFunding.Functions.Specs
                 return new BadRequestErrorMessageResult("Please ensure product is passed in the request body");
             }
 
-            using (var repository = new Repository<Budget>("specs"))
+            var repository = GetRepository();
+            
+            var budget = await repository.ReadAsync(budgetId);
+
+            var existing = budget.GetProduct(product.Id);
+            if (existing != null)
             {
-                var budget = await repository.ReadAsync(budgetId);
-
-                var existing = budget.GetProduct(product.Id);
-                if (existing != null)
-                {
-                    existing.Name = product.Name;
-                    existing.Description = product.Description;
-                    existing.TestScenarios = product.TestScenarios;
-                    existing.Calculation = product.Calculation;
-                    existing.TestProviders = product.TestProviders;
-                }
-                else
-                {
-                    // TODO create
-                }
-
-                await repository.UpsertAsync(budget);
+                existing.Name = product.Name;
+                existing.Description = product.Description;
+                existing.TestScenarios = product.TestScenarios;
+                existing.Calculation = product.Calculation;
+                existing.TestProviders = product.TestProviders;
+            }
+            else
+            {
+                // TODO create
             }
 
+            await repository.CreateAsync(budget);
+            
+
             return new AcceptedResult();
+        }
+
+        private static Repository<Budget> GetRepository()
+        {
+            var repository = new Repository<Budget>(new RepositorySettings
+            {
+                ConnectionString = Environment.GetEnvironmentVariable(""),
+                CollectionName = "specs",
+                DatabaseName = "calculate-funding"
+            }, null);
+            return repository;
         }
     }
 

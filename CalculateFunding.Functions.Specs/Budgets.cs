@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
 using CalculateFunding.Models.Specs;
@@ -40,19 +41,19 @@ namespace CalculateFunding.Functions.Specs
 
         private static async Task<IActionResult> OnGet(string budgetId)
         {
-            using (var repository = new Repository<Budget>("specs"))
+            var repository = GetRepository();
+            
+            if (budgetId != null)
             {
-                if (budgetId != null)
-                {
-                    var budget = await repository.ReadAsync(budgetId);
-                    if (budget == null) return new NotFoundResult();
-                    return new OkObjectResult(JsonConvert.SerializeObject(budget, SerializerSettings));
+                var budget = await repository.ReadAsync(budgetId);
+                if (budget == null) return new NotFoundResult();
+                return new OkObjectResult(JsonConvert.SerializeObject(budget, SerializerSettings));
 
-                }
-
-                var budgets = repository.Query().ToList();
-                return new OkObjectResult(JsonConvert.SerializeObject(budgets, SerializerSettings));
             }
+
+            var budgets = repository.Query().ToList();
+            return new OkObjectResult(JsonConvert.SerializeObject(budgets, SerializerSettings));
+            
         }
 
         private static async Task<IActionResult> OnPost(HttpRequest req)
@@ -66,12 +67,21 @@ namespace CalculateFunding.Functions.Specs
                 return new BadRequestErrorMessageResult("Please ensure budget is passed in the request body");
             }
 
-            using (var repository = new Repository<Budget>("specs"))
-            {
-                await repository.CreateAsync(budget);
-            }
+            var repository = GetRepository();
+            await repository.CreateAsync(budget);
 
             return new AcceptedResult();
+        }
+
+        private static Repository<Budget> GetRepository()
+        {
+            var repository = new Repository<Budget>(new RepositorySettings
+            {
+                ConnectionString = Environment.GetEnvironmentVariable(""),
+                CollectionName = "specs",
+                DatabaseName = "calculate-funding"
+            }, null);
+            return repository;
         }
     }
 

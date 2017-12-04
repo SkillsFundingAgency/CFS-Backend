@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repository;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.DataImporter
@@ -56,14 +57,18 @@ namespace CalculateFunding.Services.DataImporter
 
     public class DataImporterService
     {
+        private readonly Repository<ProviderSourceDataset> _datasetRespository;
+        private readonly ILogger _logger;
+
+        public DataImporterService(Repository<ProviderSourceDataset> datasetRespository, ILogger<DataImporterService> logger)
+        {
+            _datasetRespository = datasetRespository;
+            _logger = logger;
+        }
         public async Task GetSourceDataAsync(string name, Stream stream, string budgetId)
         {
+            _logger.LogInformation(name);
             var reader = new ExcelReader();
-
-
-            using (var repository = new Repository<ProviderSourceDataset>("datasets"))
-            {
-
 
 
                 switch (name.ToLowerInvariant())
@@ -86,7 +91,7 @@ namespace CalculateFunding.Services.DataImporter
                                 Phase = aptSourceRecord.Phase
                                 
                             };
-                            await repository.CreateAsync(providerInformation);
+                            await _datasetRespository.CreateAsync(providerInformation);
 
                             var basicEntitlement = new AptBasicEntitlement
                             {
@@ -99,7 +104,7 @@ namespace CalculateFunding.Services.DataImporter
 
 
                             };
-                            await repository.CreateAsync(basicEntitlement);
+                            await _datasetRespository.CreateAsync(basicEntitlement);
 
                         }
                         break;
@@ -120,7 +125,7 @@ namespace CalculateFunding.Services.DataImporter
 
 
                             };
-                            await repository.CreateAsync(censusNumberCount);
+                            await _datasetRespository.CreateAsync(censusNumberCount);
 
                         }
                         break;
@@ -141,7 +146,7 @@ namespace CalculateFunding.Services.DataImporter
 
 
                             };
-                            await repository.CreateAsync(censusNumberCount);
+                            await _datasetRespository.CreateAsync(censusNumberCount);
 
                         }
                         break;
@@ -149,8 +154,6 @@ namespace CalculateFunding.Services.DataImporter
                         break;
                 }
 
-
-            }
 
 
         }

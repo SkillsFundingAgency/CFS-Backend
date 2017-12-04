@@ -6,15 +6,15 @@ using Microsoft.Azure.WebJobs.Host;
 
 namespace CalculateFunding.Functions.Datasets
 {
-    public static class OnRawSourceUpdated
+    public static class OnSourceUpdated
     {
-        [FunctionName("on-raw-source-updated")]
-        public static async Task Run([BlobTrigger("raw-datasets/{name}", Connection = "DatasetStorage")]Stream blob, string name, TraceWriter log)
+        [FunctionName("on-source-updated")]
+        public static async Task Run([BlobTrigger("source-datasets/{name}", Connection = "DatasetStorage")]Stream blob, string name, TraceWriter log)
         {
             
             log.Info($"C# Blob trigger function Processed blob\n Name:{name} \n Size: {blob.Length} Bytes");
-            var importer = new DataImporterService();
-            await importer.GetSourceDataAsync(name, blob, "budget-gag1718");
+            //var importer = new DataImporterService();
+            //await importer.GetSourceDataAsync(name, blob, "budget-gag1718");
         }
     }
 }

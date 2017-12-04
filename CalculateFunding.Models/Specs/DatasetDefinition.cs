@@ -16,5 +16,26 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("fieldDefinitions")]
         public List<DatasetFieldDefinition> FieldDefinitions { get; set; }
+
+        [JsonProperty("sourceMapping")]
+        public DatasetMapping SourceMapping { get; set; }
+    }
+
+    public class FieldMapping
+    {
+        [JsonProperty("matchColumn")]
+        public string MatchColumn { get; set; }
+    }
+
+    public class DatasetMapping
+    {
+        [JsonProperty("sourceType")]
+        public string SourceType { get; set; }
+    
+        [JsonProperty("academicYear")]
+        public string AcademicYear { get; set; }
+
+        [JsonProperty("matchName")]
+        public string MatchName { get; set; }
     }
 }

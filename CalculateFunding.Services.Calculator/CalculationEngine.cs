@@ -16,22 +16,22 @@ namespace CalculateFunding.Services.Calculator
 {
     public class CalculationEngine
     {
-        private readonly AllocationFactory _allocationFactory;
-        private readonly BudgetCompilerOutput _compilerOutput;
+        private readonly Repository<ProviderSourceDataset> _providerSourceRepository;
+        private readonly Repository<ProviderResult> _providerResultRepository;
+        private readonly Repository<ProviderTestResult> _providerTestResultRepository;
 
-        public CalculationEngine(BudgetCompilerOutput compilerOutput)
+        public CalculationEngine(Repository<ProviderSourceDataset> providerSourceRepository, Repository<ProviderResult> providerResultRepository, Repository<ProviderTestResult> providerTestResultRepository)
         {
-            _compilerOutput = compilerOutput;
-            _allocationFactory = new AllocationFactory(_compilerOutput.Assembly);
+            _providerSourceRepository = providerSourceRepository;
+            _providerResultRepository = providerResultRepository;
+            _providerTestResultRepository = providerTestResultRepository;
         }
 
-        public async Task GenerateAllocations()
+        public async Task GenerateAllocations(BudgetCompilerOutput compilerOutput)
         {
+            var allocationFactory = new AllocationFactory(compilerOutput.Assembly);
 
-            using (var repository = new Repository<ProviderSourceDataset>("datasets"))
-            {
-
-                var datasetsByUrn = repository.Query().Where(x => x.DocumentType == "ProviderSourceDataset" && x.BudgetId == _compilerOutput.Budget.Id).ToArray().GroupBy(x => x.ProviderUrn);
+                var datasetsByUrn = _providerSourceRepository.Query().Where(x => x.DocumentType == "ProviderSourceDataset" && x.BudgetId == compilerOutput.Budget.Id).ToArray().GroupBy(x => x.ProviderUrn);
 
                 foreach (var urn in datasetsByUrn)
                 {
@@ -42,14 +42,14 @@ namespace CalculateFunding.Services.Calculator
                     foreach (var dataset in datasets)
                     {
                        
-                        var type = _allocationFactory.GetDatasetType(dataset.DatasetName);
+                        var type = allocationFactory.GetDatasetType(dataset.DatasetName);
                         var nameField = typeof(ProviderSourceDataset).GetProperty("ProviderName");
                         if (nameField != null)
                         {
                             providerName = nameField.GetValue(dataset)?.ToString();
                         }
 
-                        var datasetAsJson = repository.QueryAsJson($"SELECT * FROM ds WHERE ds.id='{dataset.Id}' AND ds.deleted = false").First();
+                        var datasetAsJson = _providerSourceRepository.QueryAsJson($"SELECT * FROM ds WHERE ds.id='{dataset.Id}' AND ds.deleted = false").First();
 
 
                         object blah = JsonConvert.DeserializeObject(datasetAsJson, type, new JsonSerializerSettings{ContractResolver = new CamelCasePropertyNamesContractResolver()});
@@ -57,60 +57,51 @@ namespace CalculateFunding.Services.Calculator
                     }
 
                     var provider = new Reference(urn.Key, providerName);
-                    var result = CalculateProviderProducts(provider, typedDatasets);
-                    var testResult = RunProviderTests(provider, typedDatasets, result);
+                    var result = CalculateProviderProducts(allocationFactory, compilerOutput, provider, typedDatasets);
+                    var testResult = RunProviderTests(compilerOutput, provider, typedDatasets, result);
 
-                    using (var allocationRepository = new Repository<ProviderResult>("results"))
-                    {
-                        using (var testResultRepository = new Repository<ProviderTestResult>("results"))
-                        {
-                            await testResultRepository.CreateAsync(testResult);
-                        }
-                        await allocationRepository.CreateAsync(result);
-                    }
-
-
-
+                    await _providerTestResultRepository.CreateAsync(testResult);    
+                    await _providerResultRepository.CreateAsync(result);
+                   
                 }
-            }
+            
         }
 
-        public async Task<List<object>> GetProviderDatasets(Reference provider, string budgetId)
+        public async Task<List<object>> GetProviderDatasets(AllocationFactory allocationFactory, Reference provider, string budgetId)
         {
             var typedDatasets = new List<object>();
-            using (var repository = new Repository<ProviderSourceDataset>("datasets"))
-            {
-                var datasetsAsJson = repository.QueryAsJson($"SELECT * FROM ds WHERE ds.budgetId='{budgetId}' AND ds.providerUrn='{provider.Id}' AND ds.deleted = false").ToList();
+
+                var datasetsAsJson = _providerSourceRepository.QueryAsJson($"SELECT * FROM ds WHERE ds.budgetId='{budgetId}' AND ds.providerUrn='{provider.Id}' AND ds.deleted = false").ToList();
 
                 foreach (var datasetAsJson in datasetsAsJson)
                 {
                     var dataset = JsonConvert.DeserializeObject<ProviderSourceDataset>(datasetAsJson);
-                    var type = _allocationFactory.GetDatasetType(dataset.DatasetName);
+                    var type = allocationFactory.GetDatasetType(dataset.DatasetName);
 
                     object blah = JsonConvert.DeserializeObject(datasetAsJson, type);
                     typedDatasets.Add(blah);
                 }            
-            }
+            
             return typedDatasets;
         }
 
-        public ProviderResult CalculateProviderProducts(Reference provider, List<object> typedDatasets)
+        public ProviderResult CalculateProviderProducts(AllocationFactory allocationFactory, BudgetCompilerOutput compilerOutput, Reference provider, List<object> typedDatasets)
         {
-            var model = _allocationFactory.CreateAllocationModel();
+            var model = allocationFactory.CreateAllocationModel();
 
-            var calculationResults = model.Execute(_compilerOutput.Budget.Name, typedDatasets.ToArray());
+            var calculationResults = model.Execute(compilerOutput.Budget.Name, typedDatasets.ToArray());
 
             var providerAllocations = calculationResults.ToDictionary(x => x.ProductName);
 
             var result = new ProviderResult
             {
                 Provider = provider,
-                Budget = new Reference(_compilerOutput.Budget.Id, _compilerOutput.Budget.Name),
+                Budget = new Reference(compilerOutput.Budget.Id, compilerOutput.Budget.Name),
                 SourceDatasets = typedDatasets.ToArray()
             };
             var productResults = new List<ProductResult>();
 
-            foreach (var fundingPolicy in _compilerOutput.Budget.FundingPolicies)
+            foreach (var fundingPolicy in compilerOutput.Budget.FundingPolicies)
             {
                 foreach (var allocationLine in fundingPolicy.AllocationLines ?? new List<AllocationLine>())
                 {
@@ -125,7 +116,7 @@ namespace CalculateFunding.Services.Calculator
                                 ProductFolder = new Reference(productFolder.Id, productFolder.Name),
                                 Product = product
                             };
-                            var productIdentifier = BudgetCompiler.GetIdentitier(product.Name, _compilerOutput.Budget.TargetLanguage);
+                            var productIdentifier = BudgetCompiler.GetIdentitier(product.Name, compilerOutput.Budget.TargetLanguage);
                             if (providerAllocations.ContainsKey(productIdentifier))
                             {
                                 var calculationResult = providerAllocations[productIdentifier];
@@ -142,14 +133,14 @@ namespace CalculateFunding.Services.Calculator
             return result;
         }
 
-        public ProviderTestResult RunProviderTests(Reference provider, List<object> typedDatasets, ProviderResult providerResult)
+        public ProviderTestResult RunProviderTests(BudgetCompilerOutput compilerOutput, Reference provider, List<object> typedDatasets, ProviderResult providerResult)
         {
             var gherkinExecutor = new GherkinExecutor(new ProductGherkinVocabulary());
 
             var testResult = new ProviderTestResult
             {
                 Provider = provider,
-                Budget = new Reference(_compilerOutput.Budget.Id, _compilerOutput.Budget.Name),
+                Budget = new Reference(compilerOutput.Budget.Id, compilerOutput.Budget.Name),
             };
             var scenarioResults = new List<ProductTestScenarioResult>();
             foreach (var productResult in providerResult.ProductResults)

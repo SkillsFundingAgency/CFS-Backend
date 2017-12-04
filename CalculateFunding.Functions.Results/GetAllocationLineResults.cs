@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
+using CalculateFunding.Functions.Common;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repository;
@@ -16,11 +17,11 @@ namespace CalculateFunding.Functions.Results
 {
     public static class GetAllocationLineResults
     {
-          private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
-          {
-              ContractResolver = new CamelCasePropertyNamesContractResolver(),
-              Formatting = Formatting.Indented
-          };
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            Formatting = Formatting.Indented
+        };
 
         [FunctionName("allocationLine")]
         public static async Task<IActionResult> Run(
@@ -39,110 +40,107 @@ namespace CalculateFunding.Functions.Results
 
         private static async Task<IActionResult> OnGet(string budgetId, string allocationLineId)
         {
-            using (var repository = new Repository<Budget>("specs"))
+            var repository = ServiceFactory.GetService<Repository<Budget>>();
+            var resultsRepository = ServiceFactory.GetService<Repository<ProviderResult>>();
+            var testResultsRepository = ServiceFactory.GetService<Repository<ProviderTestResult>>();
+
+
+            var allocationResults = resultsRepository.Query().ToList().Where(x => x.ProductResults != null)
+                .ToArray();
+            var resultsByAllocationLine = allocationResults.Select(x => new
             {
-                using (var resultsRepository = new Repository<ProviderResult>("results"))
+                ProductResults = x.ProductResults.Select(pr => new
                 {
-                    using (var testResultsRepository = new Repository<ProviderTestResult>("results"))
+                    BudgetId = x.Budget.Id,
+                    ProviderId = x.Provider.Id,
+                    AllocationLineId = pr.AllocationLine.Id,
+                    FundingPolicyId = pr.FundingPolicy.Id,
+                    Value = pr.Value ?? decimal.Zero
+                })
+            }).SelectMany(x => x.ProductResults).GroupBy(x => x.AllocationLineId).ToDictionary(x => x.Key);
+
+            var budget = await repository.ReadAsync(budgetId);
+            var allocationLine = budget?.GetAllocationLine(allocationLineId);
+            if (allocationLine == null) return new NotFoundResult();
+
+            foreach (var productFolder in allocationLine.ProductFolders)
+            {
+                foreach (var product in productFolder.Products)
+                {
+                    if (resultsByAllocationLine.TryGetValue(product.Id,
+                        out var allocationLineResults))
                     {
-                        var allocationResults = resultsRepository.Query().ToList().Where(x => x.ProductResults != null)
-                            .ToArray();
-                        var resultsByAllocationLine = allocationResults.Select(x => new
-                        {
-                            ProductResults = x.ProductResults.Select(pr => new
-                            {
-                                BudgetId = x.Budget.Id,
-                                ProviderId = x.Provider.Id,
-                                AllocationLineId = pr.AllocationLine.Id,
-                                FundingPolicyId = pr.FundingPolicy.Id,
-                                Value = pr.Value ?? decimal.Zero
-                            })
-                        }).SelectMany(x => x.ProductResults).GroupBy(x => x.AllocationLineId).ToDictionary(x => x.Key);
+                        product.TotalProviders = allocationLineResults.GroupBy(x => x.ProviderId).Count();
+                        product.TotalAmount = allocationLineResults.Sum(x => x.Value);
+                    }
+                }
+                //productFolder.TotalProviders = productFolder.Products?.Max(x => x.TotalProviders) ?? 0;
+                //productFolder.TotalAmount =
+                //    productFolder.Products?.Sum(x => x.TotalAmount) ?? decimal.Zero;
+            }
 
-                        var budget = await repository.ReadAsync(budgetId);
-                        var allocationLine = budget?.GetAllocationLine(allocationLineId);
-                        if (allocationLine == null) return new NotFoundResult();
+            var testsResults = testResultsRepository.Query().ToList();
+            var scenarioResults = testsResults.Where(sr => sr.ScenarioResults != null).Select(x => x)
+                .Select(x => new
+                {
+                    ScenarioResults = x.ScenarioResults.Select(sr => new
+                    {
+                        BudgetId = x.Budget.Id,
+                        ProviderId = x.Provider.Id,
+                        AllocationLineId = sr.AllocationLine.Id,
+                        FundingPolicyId = sr.FundingPolicy.Id,
+                        ProductId = sr.Product.Id,
+                        sr.TestResult,
+                        Covered = sr.TotalSteps == sr.StepExected
+                    })
+                }).SelectMany(x => x.ScenarioResults).ToArray();
 
-                        foreach (var productFolder in allocationLine.ProductFolders)
-                        {
-                            foreach (var product in productFolder.Products)
-                            {
-                                if (resultsByAllocationLine.TryGetValue(product.Id,
-                                    out var allocationLineResults))
-                                {
-                                    product.TotalProviders = allocationLineResults.GroupBy(x => x.ProviderId).Count();
-                                    product.TotalAmount = allocationLineResults.Sum(x => x.Value);
-                                }
-                            }
-                            //productFolder.TotalProviders = productFolder.Products?.Max(x => x.TotalProviders) ?? 0;
-                            //productFolder.TotalAmount =
-                            //    productFolder.Products?.Sum(x => x.TotalAmount) ?? decimal.Zero;
-                        }
-
-                        var testsResults = testResultsRepository.Query().ToList();
-                        var scenarioResults = testsResults.Where(sr => sr.ScenarioResults != null).Select(x => x)
+            var resultsByProduct = scenarioResults.GroupBy(x => new { x.AllocationLineId, x.ProductId }).ToDictionary(x => x.Key);
+            foreach (var productFolder in allocationLine.ProductFolders)
+            {
+                foreach (var product in productFolder.Products)
+                {
+                    if (resultsByProduct.TryGetValue(new
+                    {
+                        AllocationLineId = allocationLine.Id,
+                        ProductId = product.Id
+                    }, out var allocationTestResults))
+                    {
+                        var byProductAndProvider =
+                            allocationTestResults.GroupBy(x => x.ProviderId)
                             .Select(x => new
                             {
-                                ScenarioResults = x.ScenarioResults.Select(sr => new
-                                {
-                                    BudgetId = x.Budget.Id,
-                                    ProviderId = x.Provider.Id,
-                                    AllocationLineId = sr.AllocationLine.Id,
-                                    FundingPolicyId = sr.FundingPolicy.Id,
-                                    ProductId = sr.Product.Id,
-                                    sr.TestResult,
-                                    Covered = sr.TotalSteps == sr.StepExected
-                                })
-                            }).SelectMany(x => x.ScenarioResults).ToArray();
-
-                        var resultsByProduct = scenarioResults.GroupBy(x => new { x.AllocationLineId, x.ProductId }).ToDictionary(x => x.Key);
-                        foreach (var productFolder in allocationLine.ProductFolders)
+                                Passed = x.All(tr => tr.TestResult == TestResult.Passed),
+                                Failed = x.Any(tr => tr.TestResult == TestResult.Failed),
+                                Ignored = x.All(tr => tr.TestResult == TestResult.Ignored),
+                            }).ToArray();
+                        product.TestSummary = new TestSummary
                         {
-                            foreach (var product in productFolder.Products)
-                            {
-                                if (resultsByProduct.TryGetValue(new
-                                {
-                                    AllocationLineId = allocationLine.Id,
-                                    ProductId = product.Id
-                                }, out var allocationTestResults))
-                                {
-                                    var byProductAndProvider =
-                                        allocationTestResults.GroupBy(x => x.ProviderId)
-                                        .Select(x => new
-                                        {
-                                            Passed = x.All(tr => tr.TestResult == TestResult.Passed),
-                                            Failed = x.Any(tr => tr.TestResult == TestResult.Failed),
-                                            Ignored = x.All(tr => tr.TestResult == TestResult.Ignored),
-                                        }).ToArray();
-                                    product.TestSummary = new TestSummary
-                                    {
-                                        Passed = byProductAndProvider.Count(x => x.Passed),
-                                        Failed = byProductAndProvider.Count(x => x.Failed)
-                                    };
-                                    if (product.TotalProviders > 0)
-                                    {
-                                        product.TestSummary.PassedRate =
-                                            ((decimal)product.TestSummary.Passed / product.TotalProviders) * 100M;
-                                        product.TestSummary.FailedRate =
-                                            ((decimal)product.TestSummary.Passed / product.TotalProviders) * 100M;
-                                        product.TestSummary.Coverage =
-                                            ((decimal)(product.TestSummary.Passed + product.TestSummary.Failed) / product.TotalProviders) * 100M;
-                                    }
-                                }
-                                else
-                                {
-                                    product.TestSummary = new TestSummary
-                                    {
-                                        Passed = 0,
-                                        Failed = 0,
-                                    };
-                                }
-                            }
+                            Passed = byProductAndProvider.Count(x => x.Passed),
+                            Failed = byProductAndProvider.Count(x => x.Failed)
+                        };
+                        if (product.TotalProviders > 0)
+                        {
+                            product.TestSummary.PassedRate =
+                                ((decimal)product.TestSummary.Passed / product.TotalProviders) * 100M;
+                            product.TestSummary.FailedRate =
+                                ((decimal)product.TestSummary.Passed / product.TotalProviders) * 100M;
+                            product.TestSummary.Coverage =
+                                ((decimal)(product.TestSummary.Passed + product.TestSummary.Failed) / product.TotalProviders) * 100M;
                         }
-                        return new JsonResult(allocationLine);
+                    }
+                    else
+                    {
+                        product.TestSummary = new TestSummary
+                        {
+                            Passed = 0,
+                            Failed = 0,
+                        };
                     }
                 }
             }
+            return new JsonResult(allocationLine);
+
         }
 
         public static AllocationLine GetAllocationLine(this Budget budget, string allocationLineId)

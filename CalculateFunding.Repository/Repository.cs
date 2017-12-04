@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Configuration;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -8,12 +10,14 @@ using CalculateFunding.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Repository
 {
-    public class Repository<T> : IDisposable where T : DocumentEntity
+    public class Repository<T>  where T : DocumentEntity
     {
+        private readonly ILogger _logger;
         private readonly string _collectionName;
         private readonly string _partitionKey;
         private readonly string _databaseName;
@@ -22,17 +26,18 @@ namespace CalculateFunding.Repository
         private readonly string _documentType = typeof(T).Name;
         private ResourceResponse<DocumentCollection> _collection;
 
-        public Repository(string collectionName, string partitionKey = null, string connectionStringOverride = null)
+        public Repository(RepositorySettings settings, ILogger logger)
         {
-            var connectionString = connectionStringOverride ?? Environment.GetEnvironmentVariable("CosmosDBConnectionString");
+            _logger = logger;
+            var databaseName = settings.DatabaseName;
 
-            var databaseName = "allocations";
-
-            _collectionName = collectionName;
-            _partitionKey = partitionKey;
+            _collectionName = settings.CollectionName;
+            _partitionKey = settings.PartitionKey;
             _databaseName = databaseName;
-            _documentClient = DocumentDbConnectionString.Parse(connectionString); ;
+            _documentClient = DocumentDbConnectionString.Parse(settings.ConnectionString); ;
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_databaseName, _collectionName);
+
+            Task.WaitAll(EnsureCollectionExists());
         }
 
         public async Task EnsureCollectionExists()
@@ -49,8 +54,6 @@ namespace CalculateFunding.Repository
                 _collection = await _documentClient.CreateDocumentCollectionIfNotExistsAsync(
                     UriFactory.CreateDatabaseUri(_databaseName), collection);
             }
-
-
         }
 
         public async Task SetThroughput(int requestUnits)
@@ -69,14 +72,6 @@ namespace CalculateFunding.Repository
                 //Now persist these changes to the database by replacing the original resource
                 await _documentClient.ReplaceOfferAsync(offer);
             }
-
-
-        }
-
-        public async Task UpsertAsync(T payload)
-        {
-            await EnsureCollectionExists();
-            var response = await _documentClient.UpsertDocumentAsync(_collectionUri, payload);
         }
 
         public IQueryable<T> Read(int maxItemCount = 1000)
@@ -149,6 +144,28 @@ namespace CalculateFunding.Repository
             return response.StatusCode;
         }
 
+        public async Task BulkCreateAsync<TAny>(IList<TAny> entities, int degreeOfParallelism) where TAny : T
+        {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            int taskCount;
+            // set TaskCount = 10 for each 10k RUs, minimum 1, maximum 250
+            taskCount = Math.Max(degreeOfParallelism, 1);
+            taskCount = Math.Min(taskCount, 250);
+            
+
+            await Task.Run(() => Parallel.ForEach(entities, new ParallelOptions { MaxDegreeOfParallelism = degreeOfParallelism }, (item) =>
+            {
+                Task.WaitAll(CreateAsync(item));
+            }));
+
+
+            stopwatch.Stop();
+
+            var itemsPerSec = entities.Count / (stopwatch.ElapsedMilliseconds / 1000M);
+        }
+
         public async Task<HttpStatusCode> UpdateAsync<TAny>(TAny entity) where TAny : T
         {
             if (entity.DocumentType != null && entity.DocumentType != _documentType)
@@ -159,13 +176,6 @@ namespace CalculateFunding.Repository
             entity.UpdatedAt = DateTime.UtcNow;
             var response = await _documentClient.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseName, _collectionName, entity.Id), entity);
             return response.StatusCode;
-        }
-
-
-
-        public void Dispose()
-        { 
-            _documentClient?.Dispose();
         }
 
     }

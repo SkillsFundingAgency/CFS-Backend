@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repository;
 using CalculateFunding.Services.Calculator;
@@ -18,27 +19,29 @@ namespace CalculateFunding.Functions.Engine
         {
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
 
-            var budgets = await GetBudgets();
-            foreach (var budget in budgets)
-            {
+          //  var dataset = new Repository<ProviderSourceDataset>();
 
-                var compilerOutput = BudgetCompiler.GenerateAssembly(budget);
+            //var budgets = await GetBudgets();
+            //foreach (var budget in budgets)
+            //{
+
+            //    var compilerOutput = BudgetCompiler.GenerateAssembly(budget);
 
 
-                var calc = new CalculationEngine(compilerOutput);
-                await calc.GenerateAllocations();
-            }
+            //    var calc = new CalculationEngine(, TODO, TODO);
+            //    await calc.GenerateAllocations(compilerOutput);
+            //}
 
 
         }
 
 
-        private static async Task<List<Budget>> GetBudgets()
-        {
-            using (var repository = new Repository<Budget>("specs"))
-            {
-                return repository.Query().ToList();
-            }
-        }
+        //private static async Task<List<Budget>> GetBudgets()
+        //{
+        //    using (var repository = new Repository<Budget>("specs"))
+        //    {
+        //        return repository.Query().ToList();
+        //    }
+        //}
     }
 }
