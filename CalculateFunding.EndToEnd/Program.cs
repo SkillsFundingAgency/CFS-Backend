@@ -24,19 +24,19 @@ namespace CalculateFunding.EndToEnd
             var importer = ServiceFactory.GetService<DataImporterService>();
             Task.Run(async () =>
             {
-                await GenerateBudgetModel();
+                //await GenerateBudgetModel();
 
                 var budgetDefinition = SeedData.CreateGeneralAnnualGrant();
 
-                foreach (var file in Directory.GetFiles("SourceData"))
-                {
-                    using (var stream = new FileStream(file, FileMode.Open))
-                    {
-                        await importer.GetSourceDataAsync(Path.GetFileName(file), stream, budgetDefinition.Id);
-                    }
-                }
-
-                var compilerOutput = BudgetCompiler.GenerateAssembly(budgetDefinition);
+                //foreach (var file in Directory.GetFiles("SourceData"))
+                //{
+                //    using (var stream = new FileStream(file, FileMode.Open))
+                //    {
+                //        await importer.GetSourceDataAsync(Path.GetFileName(file), stream, budgetDefinition.Id);
+                //    }
+                //}
+                var compiler = ServiceFactory.GetService<BudgetCompiler>();
+                var compilerOutput = compiler.GenerateAssembly(budgetDefinition);
 
                 if (compilerOutput.Success)
                 {

@@ -10,19 +10,21 @@ namespace CalculateFunding.Services.Compiler.CSharp
 
     public class DatasetTypeGenerator : CSharpTypeGenerator
     {
-        public CompilationUnitSyntax GenerateDataset(Budget budget, DatasetDefinition datasetDefinition)
+        public CompilationUnitSyntax GenerateDataset(Budget budget)
         {
+            var classes = budget.DatasetDefinitions.Select(datasetDefinition => SyntaxFactory.ClassDeclaration(Identifier($"{datasetDefinition.Name}Dataset"))
+                .WithModifiers(
+                    SyntaxFactory.TokenList(
+                        SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                .WithMembers(
+                    SyntaxFactory.List(GetMembers(datasetDefinition)
+                    ))
+            );
+
             return SyntaxFactory.CompilationUnit()
                 .WithUsings(StandardUsings())
                 .WithMembers(
-                    SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
-                        SyntaxFactory.ClassDeclaration(Identifier($"{datasetDefinition.Name}Dataset"))
-                            .WithModifiers(
-                                SyntaxFactory.TokenList(
-                                    SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                            .WithMembers(
-                                SyntaxFactory.List<MemberDeclarationSyntax>(GetMembers(datasetDefinition)
-                                    ))))
+                    SyntaxFactory.List<MemberDeclarationSyntax>(classes))
                 .NormalizeWhitespace();
         }
 

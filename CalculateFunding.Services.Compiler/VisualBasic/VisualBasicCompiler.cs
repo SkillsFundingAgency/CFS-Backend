@@ -2,42 +2,44 @@ using System.IO;
 using System.Linq;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.Extensions.Logging;
 
 namespace CalculateFunding.Services.Compiler.VisualBasic
 {
-    public class VisualBasicCompiler : BaseCompiler
+    public class VisualBasicCompiler : RoslynCompiler
     {
-        protected override BudgetCompilerOutput Compile(Budget budget, MetadataReference[] references, MemoryStream ms)
+        public VisualBasicCompiler(ILogger<VisualBasicCompiler> logger) : base(logger)
+        {         
+        }
+
+        protected override EmitResult GenerateCode(MetadataReference[] references, MemoryStream ms, SyntaxTree datasetSyntaxTree,
+            SyntaxTree calcSyntaxTree)
         {
-            var datasetTypeGenerator = new DatasetTypeGenerator();
-            var productTypeGenerator = new ProductTypeGenerator();
-
-            var datasetSyntaxTrees = datasetTypeGenerator.GenerateDatasets(budget).SyntaxTree;
-            var calcSyntaxTree = productTypeGenerator.GenerateCalcs(budget).SyntaxTree;
-
-             var compilerOutput = new BudgetCompilerOutput
-            {
-                Budget = budget,
-                DatasetSourceCode = datasetSyntaxTrees.ToString(),
-                CalculationSourceCode = calcSyntaxTree.ToString()
-            };
-
             var options = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
 
             var compilation = VisualBasicCompilation.Create("budget")
                 .WithOptions(options)
-                .AddSyntaxTrees(datasetSyntaxTrees)
+                .AddSyntaxTrees(datasetSyntaxTree)
                 .AddSyntaxTrees(calcSyntaxTree)
                 .AddReferences(references);
 
 
-            var result = compilation.Emit(ms);
-            compilerOutput.Success = result.Success;
-            compilerOutput.CompilerMessages = result.Diagnostics.Select(x => new CompilerMessage { Message = x.GetMessage(), Severity = (Severity)x.Severity }).ToList();
+            return compilation.Emit(ms);
+        }
 
-            return compilerOutput;
+        protected override SyntaxTree GenerateProductSyntaxTree(Budget budget)
+        {
+            var productTypeGenerator = new ProductTypeGenerator();
+            return productTypeGenerator.GenerateCalcs(budget).SyntaxTree;
+        }
+
+        protected override SyntaxTree GenerateDatasetSyntaxTree(Budget budget)
+        {
+            var datasetTypeGenerator = new DatasetTypeGenerator();
+            return datasetTypeGenerator.GenerateDatasets(budget).SyntaxTree;
         }
 
         public override string GetIdentifier(string name)

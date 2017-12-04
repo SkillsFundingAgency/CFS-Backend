@@ -36,8 +36,6 @@ namespace CalculateFunding.Repository
             _databaseName = databaseName;
             _documentClient = DocumentDbConnectionString.Parse(settings.ConnectionString); ;
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_databaseName, _collectionName);
-
-            Task.WaitAll(EnsureCollectionExists());
         }
 
         public async Task EnsureCollectionExists()

@@ -4,6 +4,9 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repository;
 using CalculateFunding.Services.Calculator;
+using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.Compiler.CSharp;
+using CalculateFunding.Services.Compiler.VisualBasic;
 using CalculateFunding.Services.DataImporter;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,6 +70,9 @@ namespace CalculateFunding.Functions.Common
                     DatabaseName = "calculate-funding",
                     CollectionName = "results"
                 }, null))
+                .AddTransient<CSharpCompiler>()
+                .AddTransient<VisualBasicCompiler>()
+                .AddTransient<BudgetCompiler>()
                 .AddTransient<DataImporterService>()
                 .AddTransient<CalculationEngine>()
                 .BuildServiceProvider();

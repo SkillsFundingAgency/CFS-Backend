@@ -19,12 +19,14 @@ namespace CalculateFunding.Services.Calculator
         private readonly Repository<ProviderSourceDataset> _providerSourceRepository;
         private readonly Repository<ProviderResult> _providerResultRepository;
         private readonly Repository<ProviderTestResult> _providerTestResultRepository;
+        private readonly ILangugeSyntaxProvider _langugeSyntaxProvider;
 
-        public CalculationEngine(Repository<ProviderSourceDataset> providerSourceRepository, Repository<ProviderResult> providerResultRepository, Repository<ProviderTestResult> providerTestResultRepository)
+        public CalculationEngine(Repository<ProviderSourceDataset> providerSourceRepository, Repository<ProviderResult> providerResultRepository, Repository<ProviderTestResult> providerTestResultRepository, ILangugeSyntaxProvider langugeSyntaxProvider)
         {
             _providerSourceRepository = providerSourceRepository;
             _providerResultRepository = providerResultRepository;
             _providerTestResultRepository = providerTestResultRepository;
+            _langugeSyntaxProvider = langugeSyntaxProvider;
         }
 
         public async Task GenerateAllocations(BudgetCompilerOutput compilerOutput)
@@ -116,7 +118,7 @@ namespace CalculateFunding.Services.Calculator
                                 ProductFolder = new Reference(productFolder.Id, productFolder.Name),
                                 Product = product
                             };
-                            var productIdentifier = BudgetCompiler.GetIdentitier(product.Name, compilerOutput.Budget.TargetLanguage);
+                            var productIdentifier = _langugeSyntaxProvider.GetIdentitier(product.Name, compilerOutput.Budget.TargetLanguage);
                             if (providerAllocations.ContainsKey(productIdentifier))
                             {
                                 var calculationResult = providerAllocations[productIdentifier];

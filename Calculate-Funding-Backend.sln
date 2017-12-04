@@ -48,7 +48,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.EndToEnd",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Bootstrapper", "CalculateFunding.Bootstrapper\CalculateFunding.Bootstrapper.csproj", "{0129E02D-69FF-4000-AF32-2A19CD539B38}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.Common", "CalculateFunding.Functions.Common\CalculateFunding.Functions.Common.csproj", "{FA54C5C9-B9FC-4800-A01A-B83C3C4B8749}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Common", "CalculateFunding.Functions.Common\CalculateFunding.Functions.Common.csproj", "{FA54C5C9-B9FC-4800-A01A-B83C3C4B8749}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

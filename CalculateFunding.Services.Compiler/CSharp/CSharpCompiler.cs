@@ -1,42 +1,49 @@
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.Extensions.Logging;
 
 namespace CalculateFunding.Services.Compiler.CSharp
 {
-    public class CSharpCompiler : BaseCompiler
+    public class CSharpCompiler : RoslynCompiler
     {
-        protected override BudgetCompilerOutput Compile(Budget budget, MetadataReference[] references, MemoryStream ms)
+        private readonly ILogger<CSharpCompiler> _logger;
+
+        public CSharpCompiler(ILogger<CSharpCompiler> logger) : base(logger)
+        {
+        }
+
+        protected override SyntaxTree GenerateProductSyntaxTree(Budget budget)
+        {
+            var productTypeGenerator = new ProductTypeGenerator();
+            var calcSyntaxTree = productTypeGenerator.GenerateCalcs(budget).SyntaxTree;
+            return calcSyntaxTree;
+        }
+
+        protected override SyntaxTree GenerateDatasetSyntaxTree(Budget budget)
         {
             var datasetTypeGenerator = new DatasetTypeGenerator();
-            var productTypeGenerator = new ProductTypeGenerator();
+            return datasetTypeGenerator.GenerateDataset(budget).SyntaxTree;
+        }
 
-            var datasetSyntaxTrees = budget.DatasetDefinitions.Select(x => datasetTypeGenerator.GenerateDataset(budget, x).SyntaxTree).ToArray();
-            var calcSyntaxTree = productTypeGenerator.GenerateCalcs(budget).SyntaxTree;
-
+        protected override EmitResult GenerateCode(MetadataReference[] references, MemoryStream ms, SyntaxTree datasetSyntaxTree,
+            SyntaxTree calcSyntaxTree)
+        {
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
             var compilation = CSharpCompilation.Create("budget")
                 .WithOptions(options)
-                .AddSyntaxTrees(datasetSyntaxTrees)
+                .AddSyntaxTrees(datasetSyntaxTree)
                 .AddSyntaxTrees(calcSyntaxTree)
                 .AddReferences(references);
 
 
-            var compilerOutput = new BudgetCompilerOutput
-            {
-                Budget = budget,
-      //          DatasetSourceCode = datasetSyntaxTrees.Select(x => x.ToString()).ToArray(),
-                CalculationSourceCode = calcSyntaxTree.ToString()
-            };
-
             var result = compilation.Emit(ms);
-            compilerOutput.Success = result.Success;
-            compilerOutput.CompilerMessages = result.Diagnostics.Select(x => new CompilerMessage { Message = x.GetMessage(), Severity = (Severity)x.Severity }).ToList();
-
-            return compilerOutput;
+            return result;
         }
 
         public override string GetIdentifier(string name)

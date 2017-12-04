@@ -6,31 +6,35 @@ using CalculateFunding.Services.Compiler.VisualBasic;
 
 namespace CalculateFunding.Services.Compiler
 {
-    public static class BudgetCompiler
+    public interface ILangugeSyntaxProvider
     {
-        private static readonly Dictionary<TargetLanguage, ICompiler> Compilers = new Dictionary<TargetLanguage, ICompiler>();
+        string GetIdentitier(string name, TargetLanguage targetLanguage);
+    }
+    public class BudgetCompiler : ILangugeSyntaxProvider
+    {
+        private readonly Dictionary<TargetLanguage, ICompiler> Compilers = new Dictionary<TargetLanguage, ICompiler>();
 
-        static BudgetCompiler()
+        public BudgetCompiler(CSharpCompiler cSharpCompiler, VisualBasicCompiler visualBasicCompiler)
         {
-            Compilers.Add(TargetLanguage.CSharp, new CSharpCompiler());
-            Compilers.Add(TargetLanguage.VisualBasic, new VisualBasicCompiler());
+            Compilers.Add(TargetLanguage.CSharp, cSharpCompiler);
+            Compilers.Add(TargetLanguage.VisualBasic, visualBasicCompiler);
         }
-        public static BudgetCompilerOutput GenerateAssembly(Budget budget)
+        public BudgetCompilerOutput GenerateAssembly(Budget budget)
         {
             if (Compilers.TryGetValue(budget.TargetLanguage, out var compiler))
             {
-                return compiler.Compile(budget);
+                return compiler.GenerateCode(budget);
             }
             throw new NotImplementedException($"Language {budget.TargetLanguage} not implemented");
         }
 
-        public static string GetIdentitier(string name, TargetLanguage targetLanguage)
+        public string GetIdentitier(string name, TargetLanguage targetLanguage)
         {
             if (Compilers.TryGetValue(targetLanguage, out var compiler))
             {
                 return compiler.GetIdentifier(name);
             }
-             throw new NotImplementedException($"GetIndetifier for {targetLanguage} not implemented");
+             throw new NotImplementedException($"GetIndentifier for {targetLanguage} not implemented");
         }
     }
 }

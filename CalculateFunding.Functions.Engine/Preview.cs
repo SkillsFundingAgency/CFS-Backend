@@ -45,8 +45,8 @@ namespace CalculateFunding.Functions.Engine
                 // If we are given a scenario then remove everything else
                 product.TestScenarios = new List<ProductTestScenario>{ request.TestScenario};
             }
-
-            var compilerOutput = BudgetCompiler.GenerateAssembly(budget);
+            var compiler = ServiceFactory.GetService<BudgetCompiler>();
+            var compilerOutput = compiler.GenerateAssembly(budget);
                 
 
             var viewModel = new PreviewResponse()

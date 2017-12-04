@@ -4,7 +4,7 @@ namespace CalculateFunding.Services.Compiler
 {
     public interface ICompiler
     {
-        BudgetCompilerOutput Compile(Budget budget);
+        BudgetCompilerOutput GenerateCode(Budget budget);
         string GetIdentifier(string name);
     }
 }
