@@ -2,6 +2,7 @@
 using CalculateFunding.Services.DataImporter;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Bootstrapper;
 using CalculateFunding.Models.Datasets;
@@ -24,17 +25,30 @@ namespace CalculateFunding.EndToEnd
             var importer = ServiceFactory.GetService<DataImporterService>();
             Task.Run(async () =>
             {
-                await GenerateBudgetModel();
+                //await GenerateBudgetModel();
 
                 var budgetDefinition = SeedData.CreateGeneralAnnualGrant();
 
-                //foreach (var file in Directory.GetFiles("SourceData"))
-                //{
-                //    using (var stream = new FileStream(file, FileMode.Open))
-                //    {
-                //        await importer.GetSourceDataAsync(Path.GetFileName(file), stream, budgetDefinition.Id);
-                //    }
-                //}
+                var files = Directory.GetFiles("SourceData");
+                foreach (var file in files.Where(x => x.ToLowerInvariant().EndsWith(".csv")))
+                {
+                    using (var stream = new FileStream(file, FileMode.Open))
+                    {
+                        using (var reader = new StreamReader(stream))
+                        {
+                            var providers = importer.ImportEdubaseCsv(Path.GetFileName(file), reader).ToList();
+                        }
+                    }
+                }
+
+
+                foreach (var file in Directory.GetFiles("SourceData").Where(x => x.ToLowerInvariant().EndsWith(".xlsx")))
+                {
+                    using (var stream = new FileStream(file, FileMode.Open))
+                    {
+                        await importer.GetSourceDataAsync(Path.GetFileName(file), stream, budgetDefinition.Id);
+                    }
+                }
                 var compiler = ServiceFactory.GetService<BudgetCompiler>();
                 var compilerOutput = compiler.GenerateAssembly(budgetDefinition);
 

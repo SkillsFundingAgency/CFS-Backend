@@ -24,6 +24,9 @@
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="SourceData\edubasealldata20171122.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="SourceData\Excel ARP LA part2.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
