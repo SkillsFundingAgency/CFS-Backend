@@ -4,10 +4,13 @@ using System.Threading.Tasks;
 using Allocations.Models;
 using Allocations.Models.Datasets;
 using Allocations.Models.Results;
+using Allocations.Models.Specs;
 using Allocations.Repository;
+using Allocations.Services.Compiler;
 using Allocations.Services.TestRunner;
 using Allocations.Services.TestRunner.Vocab;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Allocations.Services.Calculator
 {
@@ -28,7 +31,7 @@ namespace Allocations.Services.Calculator
             using (var repository = new Repository<ProviderSourceDataset>("datasets"))
             {
 
-                var datasetsByUrn = repository.Query().Where(x => x.BudgetId == _compilerOutput.Budget.Id).ToArray().GroupBy(x => x.ProviderUrn);
+                var datasetsByUrn = repository.Query().Where(x => x.DocumentType == "ProviderSourceDataset" && x.BudgetId == _compilerOutput.Budget.Id).ToArray().GroupBy(x => x.ProviderUrn);
 
                 foreach (var urn in datasetsByUrn)
                 {
@@ -40,7 +43,7 @@ namespace Allocations.Services.Calculator
                     {
                        
                         var type = _allocationFactory.GetDatasetType(dataset.DatasetName);
-                        var nameField = type.GetProperty("PoviderName");
+                        var nameField = typeof(ProviderSourceDataset).GetProperty("ProviderName");
                         if (nameField != null)
                         {
                             providerName = nameField.GetValue(dataset)?.ToString();
@@ -49,7 +52,7 @@ namespace Allocations.Services.Calculator
                         var datasetAsJson = repository.QueryAsJson($"SELECT * FROM ds WHERE ds.id='{dataset.Id}' AND ds.deleted = false").First();
 
 
-                        object blah = JsonConvert.DeserializeObject(datasetAsJson, type);
+                        object blah = JsonConvert.DeserializeObject(datasetAsJson, type, new JsonSerializerSettings{ContractResolver = new CamelCasePropertyNamesContractResolver()});
                         typedDatasets.Add(blah);
                     }
 
@@ -72,12 +75,12 @@ namespace Allocations.Services.Calculator
             }
         }
 
-        public async Task<List<object>> GetProviderDatasets(Reference provider)
+        public async Task<List<object>> GetProviderDatasets(Reference provider, string budgetId)
         {
             var typedDatasets = new List<object>();
             using (var repository = new Repository<ProviderSourceDataset>("datasets"))
             {
-                var datasetsAsJson = repository.QueryAsJson($"SELECT * FROM ds WHERE ds.providerUrn='{provider.Id}' AND ds.deleted = false").ToList();
+                var datasetsAsJson = repository.QueryAsJson($"SELECT * FROM ds WHERE ds.budgetId='{budgetId}' AND ds.providerUrn='{provider.Id}' AND ds.deleted = false").ToList();
 
                 foreach (var datasetAsJson in datasetsAsJson)
                 {
@@ -109,9 +112,9 @@ namespace Allocations.Services.Calculator
 
             foreach (var fundingPolicy in _compilerOutput.Budget.FundingPolicies)
             {
-                foreach (var allocationLine in fundingPolicy.AllocationLines)
+                foreach (var allocationLine in fundingPolicy.AllocationLines ?? new List<AllocationLine>())
                 {
-                    foreach (var productFolder in allocationLine.ProductFolders)
+                    foreach (var productFolder in allocationLine.ProductFolders ?? new List<ProductFolder>())
                     {
                         foreach (var product in productFolder.Products)
                         {
@@ -122,10 +125,12 @@ namespace Allocations.Services.Calculator
                                 ProductFolder = new Reference(productFolder.Id, productFolder.Name),
                                 Product = product
                             };
-                            var productIdentifier = CSharpTypeGenerator.Identifier(product.Name);
+                            var productIdentifier = BudgetCompiler.GetIdentitier(product.Name, _compilerOutput.Budget.TargetLanguage);
                             if (providerAllocations.ContainsKey(productIdentifier))
                             {
-                                productResult.Value = providerAllocations[productIdentifier].Value;
+                                var calculationResult = providerAllocations[productIdentifier];
+                                productResult.Value = calculationResult.Value;
+                                productResult.Exception = calculationResult.Exception;
                             }
 
                             productResults.Add(productResult);
@@ -139,7 +144,6 @@ namespace Allocations.Services.Calculator
 
         public ProviderTestResult RunProviderTests(Reference provider, List<object> typedDatasets, ProviderResult providerResult)
         {
-            var gherkinValidator = new GherkinValidator(new ProductGherkinVocabulary());
             var gherkinExecutor = new GherkinExecutor(new ProductGherkinVocabulary());
 
             var testResult = new ProviderTestResult
@@ -151,13 +155,10 @@ namespace Allocations.Services.Calculator
             foreach (var productResult in providerResult.ProductResults)
             {
 
-                if (productResult.Product.FeatureFile != null)
+                if (productResult.Product.TestScenarios != null)
                 {
-                    var validationErrors =
-                        gherkinValidator.Validate(_compilerOutput.Budget, productResult.Product.FeatureFile).ToArray();
-
                     var gherkinScenarioResults =
-                        gherkinExecutor.Execute(productResult, typedDatasets, productResult.Product.FeatureFile);
+                        gherkinExecutor.Execute(productResult, typedDatasets, productResult.Product.TestScenarios);
 
                     foreach (var executeResult in gherkinScenarioResults)
                     {
@@ -168,8 +169,7 @@ namespace Allocations.Services.Calculator
                             ProductFolder = productResult.ProductFolder,
                             Product = productResult.Product,
                             ProductValue = productResult.Value,
-                            ScenarioName = executeResult.ScenarioName,
-                            ScenarioDescription = executeResult.ScenarioDescription,
+                            Scenario = executeResult.Scenario,
                             TestResult =
                                 executeResult.StepsExecuted < executeResult.TotalSteps
                                     ? TestResult.Ignored

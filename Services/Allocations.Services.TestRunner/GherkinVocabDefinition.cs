@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Gherkin.Ast;
+﻿using Allocations.Models.Specs;
 
 namespace Allocations.Services.TestRunner
 {
@@ -10,11 +9,11 @@ namespace Allocations.Services.TestRunner
             StepsAction = stepsAction;
         }
 
-        public GherkinStepAction GetAction(Step step)
+        public GherkinStepAction GetAction(TestStepType stepType)
         {
             foreach (var stepAction in StepsAction)
             {
-                if (stepAction.RegularExpression.IsMatch(step.Text))
+                if (stepAction.IsMatch(stepType))
                 {
                     return stepAction;
                 }
@@ -22,6 +21,6 @@ namespace Allocations.Services.TestRunner
             return null;
         }
 
-        protected GherkinStepAction[] StepsAction { get; private set; }
+        protected GherkinStepAction[] StepsAction { get; }
     }
 }

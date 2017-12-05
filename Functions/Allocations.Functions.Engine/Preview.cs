@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -7,6 +8,7 @@ using Allocations.Models;
 using Allocations.Models.Specs;
 using Allocations.Repository;
 using Allocations.Services.Calculator;
+using Allocations.Services.Compiler;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
@@ -28,12 +30,18 @@ namespace Allocations.Functions.Engine
 
                 var request = JsonConvert.DeserializeObject<PreviewRequest>(json, SerializerSettings);
                 var budget = await budgetRepository.ReadAsync(request.BudgetId);
-                var product = GetProduct(request.ProductId, budget);
+                var product = budget.GetProduct(request.ProductId);
                 if (product == null) return new HttpResponseMessage(HttpStatusCode.NotFound);
 
                 if (!string.IsNullOrWhiteSpace(request.Calculation))
                 {
                     product.Calculation = new ProductCalculation {SourceCode = request.Calculation};
+                }
+
+                if (request.TestScenario != null)
+                {
+                    // If we are given a scenario then remove everything else
+                    product.TestScenarios = new List<ProductTestScenario>{ request.TestScenario};
                 }
 
                 var compilerOutput = BudgetCompiler.GenerateAssembly(budget);
@@ -44,13 +52,14 @@ namespace Allocations.Functions.Engine
                     CompilerOutput = compilerOutput
                 };
 
-                var calc = new CalculationEngine(compilerOutput);
 
                 if (compilerOutput.Success)
                 {
-                    foreach (var testProvider in product.TestProviders ?? new Reference[0])
+                    var calc = new CalculationEngine(compilerOutput);
+
+                    foreach (var testProvider in product.TestProviders ?? new List<Reference>())
                     {
-                        var typedDatasets = await calc.GetProviderDatasets(testProvider);
+                        var typedDatasets = await calc.GetProviderDatasets(testProvider, request.BudgetId);
 
 
                         var providerResult = calc.CalculateProviderProducts(testProvider, typedDatasets);
@@ -75,21 +84,7 @@ namespace Allocations.Functions.Engine
 
         };
 
-        private static Product GetProduct(string id, Budget budget)
-        {
-            Product product = null;
-            foreach (var fundingPolicy in budget.FundingPolicies)
-            {
-                foreach (var allocationLine in fundingPolicy.AllocationLines)
-                {
-                    foreach (var productFolder in allocationLine.ProductFolders)
-                    {
-                        product = productFolder.Products.FirstOrDefault(x => x.Id == id);
-                    }
-                }
-            }
-            return product;
-        }
+
 
 
     }

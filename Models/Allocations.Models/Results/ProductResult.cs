@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
+using System.Runtime.Serialization;
 using Allocations.Models.Specs;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Schema;
@@ -18,6 +19,7 @@ namespace Allocations.Models.Results
         public Product Product { get; set; }
         [JsonProperty("value")]
         public decimal? Value { get; set; }
-
+        [JsonProperty("exception")]
+        public Exception Exception { get; set; }
     }
 }

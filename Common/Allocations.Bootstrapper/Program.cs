@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Allocations.Models.Results;
+using Allocations.Models.Specs;
 using Allocations.Repository;
 using CommandLine;
 
@@ -43,7 +44,18 @@ namespace Allocations.Boostrapper
                         throw;
                     }
 
-
+                    Console.WriteLine("Seed budget");
+                    try
+                    {
+                        using (var repo = new Repository<Budget>("specs", result.Value.CosmosDBConnectionString))
+                        {
+                            await repo.CreateAsync(SeedData.CreateGeneralAnnualGrant());
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.Write(e.ToString());
+                    }
 
                 }).Wait();
                 Console.WriteLine("Completed successfully");
@@ -58,6 +70,8 @@ namespace Allocations.Boostrapper
              */
 
         }
+
+
 
     }
 }

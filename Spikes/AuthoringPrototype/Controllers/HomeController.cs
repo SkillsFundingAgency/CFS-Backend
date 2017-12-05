@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Allocations.Models;
+using Allocations.Models.Compiler;
 using Allocations.Models.Results;
 using Allocations.Models.Specs;
 using Allocations.Repository;

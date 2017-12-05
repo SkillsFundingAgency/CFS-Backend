@@ -27,9 +27,7 @@ namespace Allocations.Services.DataImporter
         [JsonProperty("primaryAmount")]
         public decimal PrimaryAmount { get; set; }
 
-        [Description("Primary Notional SEN")]
-        [JsonProperty("primaryNotionalSEN")]
-        public decimal PrimaryNotionalSEN { get; set; }
+
     }
 
     public class CensusNumberCounts : ProviderSourceDataset
@@ -37,6 +35,14 @@ namespace Allocations.Services.DataImporter
         [Description("NOR Primary")]
         [JsonProperty("norPrimary")]
         public int NORPrimary { get; set; }
+
+    }
+
+    public class AptLocalAuthority : ProviderSourceDataset
+    {
+        [Description("Primary Notional SEN")]
+        [JsonProperty("primaryNotionalSEN")]
+        public decimal PrimaryNotionalSEN { get; set; }
 
     }
 
@@ -55,72 +61,7 @@ namespace Allocations.Services.DataImporter
 
     public class DataImporterService
     {
-
-        public async Task GetSourceDataAsync()
-        {
-            var reader = new ExcelReader();
-
-            using (var repository = new Repository<ProviderSourceDataset>("datasets"))
-            {
-                var aptSourceRecords =
-                    reader.Read<AptSourceRecord>(@"SourceData\Export APT.XLSX").ToArray();
-
-                var numberCountSourceRecords =
-                    reader.Read<NumberCountSourceRecord>(@"SourceData\Number Counts Export.XLSX").ToArray();
-
-                foreach (var aptSourceRecord in aptSourceRecords)
-                {
-                    var providerInformation = new AptProviderInformation
-                    {
-                        BudgetId = "budget-gag1718",
-                        DatasetName = "APT Provider Information",
-                        ProviderUrn = aptSourceRecord.URN,
-                        DateOpened = aptSourceRecord.DateOpened,
-                        LocalAuthority = aptSourceRecord.LocalAuthority,
-                        ProviderName = aptSourceRecord.ProviderName,
-                        UPIN = aptSourceRecord.UPIN,
-                        Phase = aptSourceRecord.Phase,
-                       
-                    };
-                    await repository.CreateAsync(providerInformation);
-
-                    var basicEntitlement = new AptBasicEntitlement
-                    {
-                        BudgetId = "budget-gag1718",
-                        DatasetName = "APT Basic Entitlement",
-                        ProviderUrn = aptSourceRecord.URN,
-
-                        PrimaryAmount = aptSourceRecord.PrimaryAmount,
-                        PrimaryAmountPerPupil = aptSourceRecord.PrimaryAmountPerPupil,
-                        PrimaryNotionalSEN = aptSourceRecord.PrimaryNotionalSEN
-                       
-
-
-                    };
-                    await repository.UpsertAsync(basicEntitlement);
-
-                }
-                foreach (var numberCountSourceRecord in numberCountSourceRecords)
-                {
-                    var censusNumberCount = new CensusNumberCounts
-                    {
-                        BudgetId = "budget-gag1718",
-                        DatasetName = "Census Number Counts",
-                        ProviderUrn = numberCountSourceRecord.URN,
-
-                        NORPrimary = numberCountSourceRecord.NumberOnRollPrimary
-
-
-                    };
-                    await repository.UpsertAsync(censusNumberCount);
-
-                }
-            }
-
-
-        }
-
-        public async Task GetSourceDataAsync(string name, Stream stream)
+        public async Task GetSourceDataAsync(string name, Stream stream, string budgetId)
         {
             var reader = new ExcelReader();
 
@@ -140,7 +81,7 @@ namespace Allocations.Services.DataImporter
                         {
                             var providerInformation = new AptProviderInformation
                             {
-                                BudgetId = "budget-gag1718",
+                                BudgetId = budgetId,
                                 DatasetName = "APT Provider Information",
                                 ProviderUrn = aptSourceRecord.URN,
                                 DateOpened = aptSourceRecord.DateOpened,
@@ -154,13 +95,12 @@ namespace Allocations.Services.DataImporter
 
                             var basicEntitlement = new AptBasicEntitlement
                             {
-                                BudgetId = "budget-gag1718",
+                                BudgetId = budgetId,
                                 DatasetName = "APT Basic Entitlement",
                                 ProviderUrn = aptSourceRecord.URN,
-
+                                ProviderName = aptSourceRecord.ProviderName,
                                 PrimaryAmount = aptSourceRecord.PrimaryAmount,
-                                PrimaryAmountPerPupil = aptSourceRecord.PrimaryAmountPerPupil,
-                                PrimaryNotionalSEN = aptSourceRecord.PrimaryNotionalSEN
+                                PrimaryAmountPerPupil = aptSourceRecord.PrimaryAmountPerPupil
 
 
                             };
@@ -177,11 +117,32 @@ namespace Allocations.Services.DataImporter
                         {
                             var censusNumberCount = new CensusNumberCounts
                             {
-                                BudgetId = "budget-gag1718",
+                                BudgetId = budgetId,
                                 DatasetName = "Census Number Counts",
                                 ProviderUrn = numberCountSourceRecord.URN,
-
+                                ProviderName = numberCountSourceRecord.ProviderName,
                                 NORPrimary = numberCountSourceRecord.NumberOnRollPrimary
+
+
+                            };
+                            await repository.CreateAsync(censusNumberCount);
+
+                        }
+                        break;
+                    case "export apt la mapped.xlsx":
+                        var aptLocalAuthorityRecords =
+                            reader.Read<AptLocalAuthorityRecord>(stream).ToArray();
+
+
+                        foreach (var aptLocalAuthorityRecord in aptLocalAuthorityRecords)
+                        {
+                            var censusNumberCount = new AptLocalAuthority
+                            {
+                                BudgetId = budgetId,
+                                DatasetName = "APT Local Authority",
+                                ProviderUrn = aptLocalAuthorityRecord.URN,
+                                ProviderName = aptLocalAuthorityRecord.ProviderName,
+                                PrimaryNotionalSEN = aptLocalAuthorityRecord.PrimaryNotionalSEN
 
 
                             };

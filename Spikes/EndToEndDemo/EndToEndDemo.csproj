@@ -34,9 +34,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Gherkin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=86496cfa5b4a5851, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Gherkin.4.0.0\lib\net45\Gherkin.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.Win32.Primitives">
       <HintPath>..\..\packages\Microsoft.Win32.Primitives.4.3.0\lib\net46\Microsoft.Win32.Primitives.dll</HintPath>
       <Private>True</Private>
@@ -132,6 +129,9 @@
     <None Include="SourceData\Export APT.XLSX">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="SourceData\Export Atp La Mapped.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="SourceData\Export Atp La part1.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -143,6 +143,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Common\Allocations.Bootstrapper\Allocations.Boostrapper.csproj">
+      <Project>{7C519EF0-58FE-4313-870D-E3ABD41F629D}</Project>
+      <Name>Allocations.Boostrapper</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Common\Allocations.Repository\Allocations.Repository.csproj">
       <Project>{caf743cf-a061-4b51-91ff-4253596b91e5}</Project>
       <Name>Allocations.Repository</Name>
@@ -154,6 +158,10 @@
     <ProjectReference Include="..\..\Services\Allocations.Services.Calculator\Allocations.Services.Calculator.csproj">
       <Project>{406DBFC9-A5F9-4A89-87CE-A0334A2CFE47}</Project>
       <Name>Allocations.Services.Calculator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Services\Allocations.Services.Compiler\Allocations.Services.Compiler.csproj">
+      <Project>{DFD4D355-AD02-4F14-9D44-94C138895598}</Project>
+      <Name>Allocations.Services.Compiler</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Services\Allocations.Services.DataImporter\Allocations.Services.DataImporter.csproj">
       <Project>{74FB279B-4DBD-43F9-82B3-3BDCEBF7F590}</Project>

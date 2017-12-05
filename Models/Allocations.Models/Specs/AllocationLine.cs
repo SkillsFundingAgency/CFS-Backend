@@ -1,8 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Allocations.Models.Results;
+using Newtonsoft.Json;
 
 namespace Allocations.Models.Specs
 {
-    public class AllocationLine
+    public class AllocationLine : ResultSummary
     {
         [JsonProperty("id")]
         public string Id => $"{Name}".ToSlug();
@@ -10,6 +12,6 @@ namespace Allocations.Models.Specs
         public string Name { get; set; }
 
         [JsonProperty("productFolders")]
-        public ProductFolder[] ProductFolders { get; set; }
+        public List<ProductFolder> ProductFolders { get; set; }
     }
 }

@@ -58,25 +58,44 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CalculationResult.cs" />
+    <Compile Include="Datasets\AggregateDataset.cs" />
+    <Compile Include="Datasets\AggregateField.cs" />
     <Compile Include="Datasets\ProviderSourceDataset.cs" />
     <Compile Include="DocumentEntity.cs" />
     <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="ModelExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reference.cs" />
+    <Compile Include="Results\AllocationLineSummary.cs" />
+    <Compile Include="Results\BudgetSummary.cs" />
     <Compile Include="Results\DatasetReference.cs" />
+    <Compile Include="Results\FundingPolicySummary.cs" />
     <Compile Include="Results\ProductResult.cs" />
     <Compile Include="Results\ProductTestScenarioResult.cs" />
-    <Compile Include="Results\ProductTestScenarioResultIndex - Copy.cs" />
     <Compile Include="Results\ProductTestScenarioResultIndex.cs" />
+    <Compile Include="Results\ProviderResultIndex.cs" />
     <Compile Include="Results\ProviderResult.cs" />
     <Compile Include="Results\ProviderTestResult.cs" />
+    <Compile Include="Results\ResultSummary.cs" />
     <Compile Include="Results\TestResult.cs" />
+    <Compile Include="Results\TestSummary.cs" />
     <Compile Include="SearchIndexAttribute.cs" />
     <Compile Include="Specs\AllocationLine.cs" />
     <Compile Include="Specs\Budget.cs" />
+    <Compile Include="Specs\ComparisonOperator.cs" />
+    <Compile Include="Specs\DatasetDefinition.cs" />
+    <Compile Include="Specs\DatasetFieldDefinition.cs" />
+    <Compile Include="Specs\FieldType.cs" />
     <Compile Include="Specs\FundingPolicy.cs" />
+    <Compile Include="Specs\GivenStep.cs" />
     <Compile Include="Specs\Product.cs" />
+    <Compile Include="Specs\ProductCalculation.cs" />
     <Compile Include="Specs\ProductFolder.cs" />
+    <Compile Include="Specs\ProductTestScenario.cs" />
+    <Compile Include="Specs\TargetLanguage.cs" />
+    <Compile Include="Specs\TestStep.cs" />
+    <Compile Include="Specs\TestStepType.cs" />
+    <Compile Include="Specs\ThenStep.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

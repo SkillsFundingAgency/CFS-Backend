@@ -1,15 +1,18 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace Allocations.Models.Specs
 {
-
     public class Budget : DocumentEntity
     {
-        public override string Id => $"{DocumentType}-{Name}".ToSlug();
+        public override string Id => $"{DocumentType}-{Acronym}".ToSlug();
 
         [JsonProperty("name")]
         public string Name { get; set; }
+
+        [JsonProperty("acronym")]
+        public string Acronym { get; set; }
 
         [JsonProperty("academicYear")]
         public string AcademicYear { get; set; }
@@ -18,48 +21,14 @@ namespace Allocations.Models.Specs
         public string FundingStream { get; set; }
 
         [JsonProperty("fundingPolicies")]
-        public FundingPolicy[] FundingPolicies { get; set; }
+        public List<FundingPolicy> FundingPolicies { get; set; }
 
         [JsonProperty("datasetDefinitions")]
-        public DatasetDefinition[] DatasetDefinitions { get; set; }
+        public List<DatasetDefinition> DatasetDefinitions { get; set; }
+
+        [JsonProperty("targetLanguage")]
+        public TargetLanguage TargetLanguage { get; set; }
 
     }
-
-
-    public class DatasetDefinition
-    {
-        [JsonProperty("id")]
-        public string Id => Name.ToSlug();
-
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("description")]
-        public string Description { get; set; }
-
-        [JsonProperty("fieldDefinitions")]
-        public DatasetFieldDefinition[] FieldDefinitions { get; set; }
-    }
-
-    public class DatasetFieldDefinition
-    {
-        [JsonProperty("id")]
-        public string Id => Name.ToSlug();
-
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("longName")]
-        public string LongName { get; set; }
-
-        [JsonProperty("description")]
-        public string Description { get; set; }
-
-        [JsonProperty("type")]
-        public TypeCode Type { get; set; }
-
-
-    }
-
 }
 

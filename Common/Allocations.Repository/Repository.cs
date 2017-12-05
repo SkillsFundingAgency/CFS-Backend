@@ -22,9 +22,9 @@ namespace Allocations.Repository
         private readonly string _documentType = typeof(T).Name;
 
 
-        public Repository(string collectionName)
+        public Repository(string collectionName, string connectionStringOverride = null)
         {
-            var connectionString = ConfigurationManager.AppSettings["CosmosDBConnectionString"];
+            var connectionString = connectionStringOverride ?? ConfigurationManager.AppSettings["CosmosDBConnectionString"];
 
             var databaseName = "allocations";
 
@@ -82,7 +82,7 @@ namespace Allocations.Repository
                     directSql,
                     queryOptions);
             }
-            return _documentClient.CreateDocumentQuery<T>(_collectionUri, queryOptions);
+            return _documentClient.CreateDocumentQuery<T>(_collectionUri, queryOptions).Where(x => x.DocumentType == typeof(T).Name && !x.Deleted);
 
         }
 

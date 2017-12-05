@@ -24,17 +24,24 @@ namespace Allocations.Functions.Specs
 
         [FunctionName("budgets")]
         public static async Task<HttpResponseMessage> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequestMessage req, TraceWriter log)
+            [HttpTrigger(AuthorizationLevel.Function, "post", "get")] HttpRequestMessage req, TraceWriter log)
         {
             string budgetId = req.GetQueryNameValuePairs()
                 .FirstOrDefault(q => String.Compare(q.Key, "budgetId", StringComparison.OrdinalIgnoreCase) == 0)
                 .Value;
 
 
-            if (budgetId == null)
+            if (req.Method == HttpMethod.Post)
             {
+                return await OnPost(req);
             }
 
+            return await OnGet(budgetId);
+
+        }
+
+        private static async Task<HttpResponseMessage> OnGet(string budgetId)
+        {
             using (var repository = new Repository<Budget>("specs"))
             {
                 if (budgetId != null)
@@ -46,7 +53,6 @@ namespace Allocations.Functions.Specs
                         Content = new StringContent(JsonConvert.SerializeObject(budget,
                             SerializerSettings), System.Text.Encoding.UTF8, "application/json")
                     };
-
                 }
 
                 var budgets = repository.Query().ToList();
@@ -55,9 +61,27 @@ namespace Allocations.Functions.Specs
                     Content = new StringContent(JsonConvert.SerializeObject(budgets, SerializerSettings),
                         System.Text.Encoding.UTF8, "application/json")
                 };
+            }
+        }
 
+        private static async Task<HttpResponseMessage> OnPost(HttpRequestMessage req)
+        {
+            var json = await req.Content.ReadAsStringAsync();
+
+            var budget = JsonConvert.DeserializeObject<Budget>(json, SerializerSettings);
+
+            if (budget == null)
+            {
+                return req.CreateResponse(HttpStatusCode.BadRequest,
+                    "Please ensure budget is passed in the request body");
             }
 
+            using (var repository = new Repository<Budget>("specs"))
+            {
+                await repository.CreateAsync(budget);
+            }
+
+            return req.CreateResponse(HttpStatusCode.Created);
         }
     }
 
