@@ -8,19 +8,19 @@ using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
+using Allocations.Repository;
 using Allocations.Models.Specs;
 using Allocations.Models.Results;
-using Allocations.Repository;
 
 namespace Allocations.Functions.Results
 {
-    public static class GetAllocationLineResults
+    public static class GetAllocationTestResults
     {
-          private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
-          {
-              ContractResolver = new CamelCasePropertyNamesContractResolver(),
-              Formatting = Formatting.Indented
-          };
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            Formatting = Formatting.Indented
+        };
 
         [FunctionName("allocationLine")]
         public static async Task<HttpResponseMessage> Run(
@@ -72,16 +72,13 @@ namespace Allocations.Functions.Results
                         {
                             foreach (var product in productFolder.Products)
                             {
-                                if (resultsByAllocationLine.TryGetValue(product.Id,
+                                if (resultsByAllocationLine.TryGetValue(allocationLine.Id,
                                     out var allocationLineResults))
                                 {
                                     product.TotalProviders = allocationLineResults.GroupBy(x => x.ProviderId).Count();
                                     product.TotalAmount = allocationLineResults.Sum(x => x.Value);
                                 }
                             }
-                            //productFolder.TotalProviders = productFolder.Products?.Max(x => x.TotalProviders) ?? 0;
-                            //productFolder.TotalAmount =
-                            //    productFolder.Products?.Sum(x => x.TotalAmount) ?? decimal.Zero;
                         }
 
                         var testsResults = testResultsRepository.Query().ToList();
@@ -95,30 +92,67 @@ namespace Allocations.Functions.Results
                                     AllocationLineId = sr.AllocationLine.Id,
                                     FundingPolicyId = sr.FundingPolicy.Id,
                                     ProductId = sr.Product.Id,
+                                    ScenarioName = sr.Scenario.Name,
                                     sr.TestResult,
                                     Covered = sr.TotalSteps == sr.StepExected
                                 })
                             }).SelectMany(x => x.ScenarioResults).ToArray();
 
-                        var resultsByProduct = scenarioResults.GroupBy(x => new { x.AllocationLineId, x.ProductId }).ToDictionary(x => x.Key);
+                        var resultsByProduct = scenarioResults.GroupBy(x => new { x.ProductId })
+                            .ToDictionary(x => x.Key);
+
+                        var resultsByScenario = scenarioResults.GroupBy(x => new { x.ProductId, x.ScenarioName })
+                            .ToDictionary(x => x.Key);
+
                         foreach (var productFolder in allocationLine.ProductFolders)
                         {
                             foreach (var product in productFolder.Products)
                             {
+                                foreach (var scenario in product.TestScenarios)
+                                {
+                                    if (resultsByScenario.TryGetValue(new
+                                    {
+                                        ProductId = product.Id,
+                                        ScenarioName = scenario.Name
+                                    }, out var scenarioTestResults))
+                                    {
+                                        var byScenarioAndProvider =
+                                            scenarioTestResults.GroupBy(x => x.ProviderId)
+                                                .Select(x => new
+                                                {
+                                                    Passed = x.All(tr => tr.TestResult == TestResult.Passed),
+                                                    Failed = x.Any(tr => tr.TestResult == TestResult.Failed),
+                                                    Ignored = x.All(tr => tr.TestResult == TestResult.Ignored),
+                                                }).ToArray();
+                                        scenario.TestSummary = new TestSummary
+                                        {
+                                            Passed = byScenarioAndProvider.Count(x => x.Passed),
+                                            Failed = byScenarioAndProvider.Count(x => x.Failed)
+                                        };
+                                        scenario.TotalProviders = scenarioResults.GroupBy(x => x.ProviderId).Count();
+                                    }
+                                }
+                            }
+                        }
+
+                        foreach (var productFolder in allocationLine.ProductFolders)
+                        {
+                            foreach (var product in productFolder.Products)
+                            {
+
                                 if (resultsByProduct.TryGetValue(new
                                 {
-                                    AllocationLineId = allocationLine.Id,
                                     ProductId = product.Id
                                 }, out var allocationTestResults))
                                 {
                                     var byProductAndProvider =
                                         allocationTestResults.GroupBy(x => x.ProviderId)
-                                        .Select(x => new
-                                        {
-                                            Passed = x.All(tr => tr.TestResult == TestResult.Passed),
-                                            Failed = x.Any(tr => tr.TestResult == TestResult.Failed),
-                                            Ignored = x.All(tr => tr.TestResult == TestResult.Ignored),
-                                        }).ToArray();
+                                            .Select(x => new
+                                            {
+                                                Passed = x.All(tr => tr.TestResult == TestResult.Passed),
+                                                Failed = x.Any(tr => tr.TestResult == TestResult.Failed),
+                                                Ignored = x.All(tr => tr.TestResult == TestResult.Ignored),
+                                            }).ToArray();
                                     product.TestSummary = new TestSummary
                                     {
                                         Passed = byProductAndProvider.Count(x => x.Passed),
@@ -129,9 +163,10 @@ namespace Allocations.Functions.Results
                                         product.TestSummary.PassedRate =
                                             ((decimal)product.TestSummary.Passed / product.TotalProviders) * 100M;
                                         product.TestSummary.FailedRate =
-                                            ((decimal)product.TestSummary.Passed / product.TotalProviders) * 100M;
+                                            ((decimal)product.TestSummary.Failed / product.TotalProviders) * 100M;
                                         product.TestSummary.Coverage =
-                                            ((decimal)(product.TestSummary.Passed + product.TestSummary.Failed) / product.TotalProviders) * 100M;
+                                        ((decimal)(product.TestSummary.Passed + product.TestSummary.Failed) /
+                                         product.TotalProviders) * 100M;
                                     }
                                 }
                                 else
@@ -139,7 +174,7 @@ namespace Allocations.Functions.Results
                                     product.TestSummary = new TestSummary
                                     {
                                         Passed = 0,
-                                        Failed = 0,
+                                        Failed = 0
                                     };
                                 }
                             }
@@ -157,9 +192,10 @@ namespace Allocations.Functions.Results
 
         public static AllocationLine GetAllocationLine(this Budget budget, string allocationLineId)
         {
+            AllocationLine allocationLine = null;
             foreach (var fundingPolicy in budget.FundingPolicies)
             {
-                var allocationLine = fundingPolicy.AllocationLines?.FirstOrDefault(x => x.Id == allocationLineId);
+                allocationLine = fundingPolicy.AllocationLines.FirstOrDefault(x => x.Id == allocationLineId);
                 if (allocationLine != null) return allocationLine;
             }
             return null;
