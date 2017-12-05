@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Results;
 using Newtonsoft.Json;
@@ -53,11 +54,9 @@ namespace CalculateFunding.Models.Providers
         public object Data { get; set; }
     }
 
-    public class Provider: DocumentEntity
+    public class Provider: DbEntity
     {
-
-        public override string Id => $"{DocumentType}-{URN}".ToSlug();
-
+        [Key]
         [JsonProperty("urn")]
         public string URN { get; set; }
 
@@ -114,7 +113,15 @@ namespace CalculateFunding.Models.Providers
         public string OfstedRating { get; set; }
         public DateTimeOffset? LastChangedDate { get; set; }
 
-        public Address Address { get; set; }
+        public string Street { get; set; }
+        public string Locality { get; set; }
+        public string Address3 { get; set; }
+        public string Town { get; set; }
+        public string County { get; set; }
+        public string Postcode { get; set; }
+        public string Country { get; set; }
+        public int? Easting { get; set; }
+        public int? Northing { get; set; }
         public string Website { get; set; }
         public string Telephone { get; set; }
         public string TeenMoth { get; set; }
@@ -147,16 +154,4 @@ namespace CalculateFunding.Models.Providers
         public string RSCRegion { get; set; }
     }
 
-    public class Address
-    {
-        public string Street { get; set; }
-        public string Locality { get; set; }
-        public string Address3 { get; set; }
-        public string Town { get; set; }
-        public string County { get; set; }
-        public string Postcode { get; set; }
-        public string Country { get; set; }
-        public int? Easting { get; set; }
-        public int? Northing { get; set; }
-    }
 }

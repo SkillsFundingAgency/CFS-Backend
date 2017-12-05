@@ -80,15 +80,15 @@ namespace CalculateFunding.Services.DataImporter.Providers
 
             Map(m => m.LastChangedDate).ConvertUsing(m => MapToDate(m, "LastChangedDate"));
 
-            Map(m => m.Address.Street).Name("Street");
-            Map(m => m.Address.Locality).Name("Locality");
-            Map(m => m.Address.Address3).Name("Address3");
-            Map(m => m.Address.Town).Name("Town");
-            Map(m => m.Address.County).Name("County");
-            Map(m => m.Address.Postcode).Name("Postcode");
-            Map(m => m.Address.Country).Name("Country(name)");
-            Map(m => m.Address.Easting).ConvertUsing(m => MapToInt(m, "Easting"));
-            Map(m => m.Address.Northing).ConvertUsing(m => MapToInt(m, "Northing"));
+            Map(m => m.Street).Name("Street");
+            Map(m => m.Locality).Name("Locality");
+            Map(m => m.Address3).Name("Address3");
+            Map(m => m.Town).Name("Town");
+            Map(m => m.County).Name("County");
+            Map(m => m.Postcode).Name("Postcode");
+            Map(m => m.Country).Name("Country(name)");
+            Map(m => m.Easting).ConvertUsing(m => MapToInt(m, "Easting"));
+            Map(m => m.Northing).ConvertUsing(m => MapToInt(m, "Northing"));
             Map(m => m.Website).Name("SchoolWebsite");
             Map(m => m.Telephone).Name("TelephoneNum");
 
