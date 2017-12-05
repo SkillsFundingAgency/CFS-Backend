@@ -24,7 +24,7 @@ namespace CalculateFunding.EndToEnd
             var importer = ServiceFactory.GetService<DataImporterService>();
             Task.Run(async () =>
             {
-                //await GenerateBudgetModel();
+                await GenerateBudgetModel();
 
                 var budgetDefinition = SeedData.CreateGeneralAnnualGrant();
 
