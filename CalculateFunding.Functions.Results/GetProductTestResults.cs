@@ -1,3 +1,4 @@
+using System;
 using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace CalculateFunding.Functions.Results
 
         static GetProductTestResults()
         {
-            var searchServiceClient = new SearchServiceClient(ConfigurationManager.AppSettings["SearchServiceName"], new SearchCredentials(ConfigurationManager.AppSettings["SearchServicePrimaryKey"]));
+            var searchServiceClient = new SearchServiceClient(Environment.GetEnvironmentVariable("SearchServiceName"), new SearchCredentials(Environment.GetEnvironmentVariable("SearchServicePrimaryKey")));
             SearchIndexClient = searchServiceClient.Indexes.GetClient((typeof(ProductTestScenarioResultIndex).Name.ToLowerInvariant()));
         }
 
