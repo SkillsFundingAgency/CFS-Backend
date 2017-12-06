@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Providers;
 using CalculateFunding.Repository;
-using CalculateFunding.Services.DataImporter.Providers;
-using CsvHelper;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -59,6 +55,7 @@ namespace CalculateFunding.Services.DataImporter
 
     }
 
+
     public class DataImporterService
     {
         private readonly Repository<ProviderSourceDataset> _datasetRespository;
@@ -70,25 +67,7 @@ namespace CalculateFunding.Services.DataImporter
             _logger = logger;
         }
 
-        public IEnumerable<Provider> ImportEdubaseCsv(string name, StreamReader reader)
-        {
 
-            using (var csvReader = new CsvReader(reader))
-            {
-                csvReader.Configuration.HeaderValidated = null;
-                csvReader.Configuration.MissingFieldFound = null;
-                csvReader.Configuration.RegisterClassMap<EdubaseRecordMap>();
-                var records = csvReader.GetRecords<Provider>();
-                foreach (var record in records)
-                {
-                    yield return record;
-                }
-            }
-
-                
-      
-            
-        }
         public async Task GetSourceDataAsync(string name, Stream stream, string budgetId)
         {
             _logger.LogInformation(name);

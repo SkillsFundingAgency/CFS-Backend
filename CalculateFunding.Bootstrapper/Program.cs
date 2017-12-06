@@ -4,8 +4,11 @@ using System.Threading.Tasks;
 using CalculateFunding.Bootstrapper;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Repositories.Providers;
 using CalculateFunding.Repository;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Allocations.Boostrapper
@@ -15,15 +18,10 @@ namespace Allocations.Boostrapper
         public static IConfigurationRoot Configuration { get; set; }
         static int Main(string[] args)
         {
-            var dict = new Dictionary<string, string>
-            {
-                {"Profile:MachineName", "MairaPC"},
-                {"App:MainWindow:Left", "1980"}
-            };
 
             var builder = new ConfigurationBuilder();
 
-            builder.AddInMemoryCollection(dict)
+            builder
                 .AddCommandLine(args)
                 .AddJsonFile("appsettings.json");
 
@@ -33,21 +31,27 @@ namespace Allocations.Boostrapper
             var cosmosDbConnectionString = Configuration["cosmosDbConnectionString"];
             var searchServiceName = Configuration["searchServiceName"];
             var searchPrimaryKey = Configuration["searchPrimaryKey"];
+            var providersConnectionString = Configuration["providersConnectionString"];
 
             bool isValid = true;
-            if (string.IsNullOrWhiteSpace(cosmosDbConnectionString))
+            //if (string.IsNullOrWhiteSpace(cosmosDbConnectionString))
+            //{
+            //    Console.WriteLine("cosmosDbConnectionString must be provided");
+            //    isValid = false;
+            //}
+            //if (string.IsNullOrWhiteSpace(searchServiceName))
+            //{
+            //    Console.WriteLine("searchServiceName must be specified");
+            //    isValid = false;
+            //}
+            //if (string.IsNullOrWhiteSpace(searchPrimaryKey))
+            //{
+            //    Console.WriteLine("searchPrimaryKey must be specified");
+            //    isValid = false;
+            //}
+            if (string.IsNullOrWhiteSpace(providersConnectionString))
             {
-                Console.WriteLine("cosmosDbConnectionString must be provided");
-                isValid = false;
-            }
-            if (string.IsNullOrWhiteSpace(searchServiceName))
-            {
-                Console.WriteLine("searchServiceName must be specified");
-                isValid = false;
-            }
-            if (string.IsNullOrWhiteSpace(searchPrimaryKey))
-            {
-                Console.WriteLine("searchPrimaryKey must be specified");
+                Console.WriteLine("providersConnectionString must be specified");
                 isValid = false;
             }
 
@@ -60,41 +64,57 @@ namespace Allocations.Boostrapper
                     {
                         try
                         {
-                            var searchInitializer = new SearchInitializer(searchServiceName,
-                                searchPrimaryKey, cosmosDbConnectionString);
+                            var serviceProvider = new ServiceCollection()
+                                .AddSingleton(new LoggerFactory()
+                                    .AddConsole())
+                                .AddLogging()
+                                .AddDbContext<ProvidersDbContext>(options =>
+                                    options.UseSqlServer(providersConnectionString)).BuildServiceProvider();
+                            var providerDbContext = serviceProvider.GetService<ProvidersDbContext>();
 
-                            await searchInitializer.Initialise(typeof(ProductTestScenarioResultIndex));
-                            await searchInitializer.Initialise(typeof(ProviderResultIndex));
+                            await providerDbContext.Database.MigrateAsync();
                         }
                         catch (Exception e)
                         {
-
-                            Console.WriteLine(e);
-                            throw;
-                        }
-
-                        Console.WriteLine("Seed budget");
-                        try
-                        {
-                            var settings = new RepositorySettings
-                            {
-                                ConnectionString = cosmosDbConnectionString,
-                                DatabaseName = "calculate-funding",
-                                CollectionName = "specs"
-                            };
-
-                            var logger = new LoggerFactory()
-                                .AddConsole()
-                                .CreateLogger("Bootstrapper");
-                            var repo = new Repository<Budget>(settings, logger);
-                            
-                            await repo.CreateAsync(SeedData.CreateGeneralAnnualGrant());
                             
                         }
-                        catch (Exception e)
-                        {
-                            Console.Write(e.ToString());
-                        }
+                        //try
+                        //{
+                        //    var searchInitializer = new SearchInitializer(searchServiceName,
+                        //        searchPrimaryKey, cosmosDbConnectionString);
+
+                        //    await searchInitializer.Initialise(typeof(ProductTestScenarioResultIndex));
+                        //    await searchInitializer.Initialise(typeof(ProviderResultIndex));
+                        //}
+                        //catch (Exception e)
+                        //{
+
+                        //    Console.WriteLine(e);
+                        //    throw;
+                        //}
+
+                        //Console.WriteLine("Seed budget");
+                        //try
+                        //{
+                        //    var settings = new RepositorySettings
+                        //    {
+                        //        ConnectionString = cosmosDbConnectionString,
+                        //        DatabaseName = "calculate-funding",
+                        //        CollectionName = "specs"
+                        //    };
+
+                        //    var logger = new LoggerFactory()
+                        //        .AddConsole()
+                        //        .CreateLogger("Bootstrapper");
+                        //    var repo = new Repository<Budget>(settings, logger);
+                            
+                        //    await repo.CreateAsync(SeedData.CreateGeneralAnnualGrant());
+                            
+                        //}
+                        //catch (Exception e)
+                        //{
+                        //    Console.Write(e.ToString());
+                        //}
 
                     }).Wait();
                     Console.WriteLine("Completed successfully");

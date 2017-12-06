@@ -20,8 +20,7 @@
         "P4"
       ],
       "metadata": {
-        "description":
-          "Describes plan's pricing tier and instance size. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
+        "description": "Describes plan's pricing tier and instance size. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
       }
     },
     "skuCapacity": {
@@ -88,14 +87,11 @@
     "engineFunctionAppName": "[concat(resourceGroup().name, '-fapp-engine')]",
     "hostingPlanName": "[concat(resourceGroup().name, '-plan')]",
     "datasetStorageAccountName": "[concat(resourceGroup().name, 'data')]",
-    "datasetStorageAccountid":
-      "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('datasetstorageAccountName'))]",
+    "datasetStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('datasetstorageAccountName'))]",
     "providersStorageAccountName": "[concat(resourceGroup().name, 'prov')]",
-    "providersStorageAccountId":
-      "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('providersStorageAccountName'))]",
+    "providersStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('providersStorageAccountName'))]",
     "storageAccountName": "[concat(resourceGroup().name, 'storage')]",
-    "storageAccountid":
-      "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
+    "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
   },
   "resources": [
     {
@@ -124,6 +120,7 @@
         ]
       }
     },
+
     {
       "name": "[variables('sqlServerName')]",
       "type": "Microsoft.Sql/servers",
@@ -153,7 +150,7 @@
           }
         },
         {
-          "name": "[variables('providersDatabaseName')]",
+          "name": "[variables('sqlDatabaseName')]",
           "type": "databases",
           "location": "[resourceGroup().location]",
           "apiVersion": "2014-04-01-preview",
@@ -566,23 +563,22 @@
           ]
         }
       }
-    },
-
-    "outputs",
-    {
-      "CosmosDbConnectionString": {
-        "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]",
-        "type": "string"
-      },
-      "AppInsightsInstrumentationKey": {
-        "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]",
-        "type": "string"
-      },
-      "AzureSearchKey": {
-        "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]",
-        "type": "string"
-      }
-
     }
+  ],
+  "outputs": {
+    "CosmosDbConnectionString": {
+      "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]",
+      "type": "string"
+    },
+    "AppInsightsInstrumentationKey": {
+      "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]",
+      "type": "string"
+    },
+    "AzureSearchKey": {
+      "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]",
+      "type": "string"
+    }
+
+  }
 
 }

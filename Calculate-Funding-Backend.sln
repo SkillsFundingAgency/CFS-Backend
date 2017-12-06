@@ -55,7 +55,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Repositori
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Repositories.Providers.Migrations", "CalculateFunding.Repositories.Providers.Migrations\CalculateFunding.Repositories.Providers.Migrations.csproj", "{7B690B11-F49E-4D9E-98E1-057ABC9186F6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.Providers", "CalculateFunding.Functions.Providers\CalculateFunding.Functions.Providers.csproj", "{AB3F8E8C-E366-439D-8180-7238EB5070E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Providers", "CalculateFunding.Functions.Providers\CalculateFunding.Functions.Providers.csproj", "{AB3F8E8C-E366-439D-8180-7238EB5070E7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -141,7 +141,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{CE0CCEE7-E45A-45B2-B2E0-EE65CA986873} = {539AB1D8-B007-4CB6-8355-918D498486E2}
-		{B899850F-5CCF-4C75-A715-B0453D19D2A8} = {05B79C3B-E1CD-4A38-A21E-9127CAB0B636}
+		{B899850F-5CCF-4C75-A715-B0453D19D2A8} = {40D52A2C-3E44-4B5A-917E-2FD2F1E8F689}
 		{92E79623-614B-4D7F-BA07-EF2B7005233A} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{D1D2B46F-EEC5-4F40-BD20-8DE680F1AAD0} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
 		{8CB3AE5F-2517-4E83-87C9-024C9A8E9BEF} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}

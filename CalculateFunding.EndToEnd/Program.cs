@@ -38,7 +38,7 @@ namespace CalculateFunding.EndToEnd
                     {
                         using (var reader = new StreamReader(stream))
                         {
-                            var providers = importer.ImportEdubaseCsv(Path.GetFileName(file), reader).ToList();
+                            var providers = new EdubaseImporterService().ImportEdubaseCsv(Path.GetFileName(file), reader).ToList();
 
                             try
                             {
