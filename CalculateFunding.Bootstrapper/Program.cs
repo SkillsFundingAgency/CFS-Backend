@@ -73,7 +73,7 @@ namespace Allocations.Boostrapper
                                     .AddConsole())
                                 .AddLogging()
                                 .AddDbContext<ProvidersDbContext>(options =>
-                                    options.UseSqlServer(providersConnectionString)).BuildServiceProvider();
+                                    options.UseSqlServer(providersConnectionString, b => b.MigrationsAssembly("CalculateFunding.Repositories.Providers.Migrations"))).BuildServiceProvider();
                             var providerDbContext = serviceProvider.GetService<ProvidersDbContext>();
 
                             Console.WriteLine($"Applying migrations for {providersConnectionString}");
