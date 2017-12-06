@@ -57,7 +57,7 @@ namespace Allocations.Boostrapper
 
             if (isValid)
             {
-                Console.WriteLine($"Started with {args}");
+                //Console.WriteLine($"Started with {args}");
                 try
                 {
                     Task.Run(async () =>
@@ -73,10 +73,11 @@ namespace Allocations.Boostrapper
                             var providerDbContext = serviceProvider.GetService<ProvidersDbContext>();
 
                             await providerDbContext.Database.MigrateAsync();
+                            Console.WriteLine($"Applied migrations to Providers");
                         }
                         catch (Exception e)
                         {
-                            
+                            Console.WriteLine(e);
                         }
                         //try
                         //{
