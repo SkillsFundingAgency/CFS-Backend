@@ -55,6 +55,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Repositori
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Repositories.Providers.Migrations", "CalculateFunding.Repositories.Providers.Migrations\CalculateFunding.Repositories.Providers.Migrations.csproj", "{7B690B11-F49E-4D9E-98E1-057ABC9186F6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.Providers", "CalculateFunding.Functions.Providers\CalculateFunding.Functions.Providers.csproj", "{AB3F8E8C-E366-439D-8180-7238EB5070E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,6 +131,10 @@ Global
 		{7B690B11-F49E-4D9E-98E1-057ABC9186F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B690B11-F49E-4D9E-98E1-057ABC9186F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B690B11-F49E-4D9E-98E1-057ABC9186F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB3F8E8C-E366-439D-8180-7238EB5070E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB3F8E8C-E366-439D-8180-7238EB5070E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB3F8E8C-E366-439D-8180-7238EB5070E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB3F8E8C-E366-439D-8180-7238EB5070E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -151,6 +157,7 @@ Global
 		{FA54C5C9-B9FC-4800-A01A-B83C3C4B8749} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{F5A4401B-DA5A-42F2-A5B2-A3AB7734D66F} = {40D52A2C-3E44-4B5A-917E-2FD2F1E8F689}
 		{7B690B11-F49E-4D9E-98E1-057ABC9186F6} = {40D52A2C-3E44-4B5A-917E-2FD2F1E8F689}
+		{AB3F8E8C-E366-439D-8180-7238EB5070E7} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2FA36A0A-CA20-41CF-9BC2-FA6545720009}
