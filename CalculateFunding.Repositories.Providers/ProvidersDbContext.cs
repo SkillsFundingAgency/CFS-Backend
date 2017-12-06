@@ -7,12 +7,11 @@ namespace CalculateFunding.Repositories.Providers
 {
     public class ProvidersDbContext : DbContext
     {
-        private DbContextOptions<ProvidersDbContext> options;
 
-        public ProvidersDbContext(DbContextOptions<ProvidersDbContext> options)
+        public ProvidersDbContext(DbContextOptions options) : base (options)
         {
-            this.options = options;
         }
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
