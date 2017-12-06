@@ -150,7 +150,7 @@
           }
         },
         {
-          "name": "[variables('providersDatabase')]",
+          "name": "[variables('providersDatabaseName')]",
           "type": "databases",
           "location": "[resourceGroup().location]",
           "apiVersion": "2014-04-01-preview",
