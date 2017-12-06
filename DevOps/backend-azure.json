@@ -20,7 +20,8 @@
         "P4"
       ],
       "metadata": {
-        "description": "Describes plan's pricing tier and instance size. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
+        "description":
+          "Describes plan's pricing tier and instance size. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
       }
     },
     "skuCapacity": {
@@ -30,12 +31,55 @@
       "metadata": {
         "description": "Describes plan's instance count"
       }
+    },
+    "sqlServerAdminLogin": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "The SQL server admin username."
+      }
+    },
+    "sqlServerAdminLoginPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The SQL server admin password"
+      }
+    },
+    "sqlDatabaseEdition": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "Standard",
+        "Premium"
+      ],
+      "metadata": {
+        "description": "The SQL server edition"
+      }
+    },
+    "sqldatabaseRequestedServiceObjectiveName": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "S0",
+        "S1",
+        "S2",
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "metadata": {
+        "description": "Describes the performance level for Edition"
+      }
     }
   },
   "variables": {
     "offerType": "Standard",
     "applicationInsightsName": "[concat(resourceGroup().name, '-ai')]",
     "documentDatabaseName": "[concat(resourceGroup().name, '-db')]",
+    "sqlServerName": "[concat(resourceGroup().name, '-sql')]",
+    "providersDatabaseName": "Providers",
     "azureSearchName": "[concat(resourceGroup().name, '-search')]",
     "datasetsFunctionAppName": "[concat(resourceGroup().name, '-fapp-datasets')]",
     "providersFunctionAppName": "[concat(resourceGroup().name, '-fapp-providers')]",
@@ -44,9 +88,14 @@
     "engineFunctionAppName": "[concat(resourceGroup().name, '-fapp-engine')]",
     "hostingPlanName": "[concat(resourceGroup().name, '-plan')]",
     "datasetStorageAccountName": "[concat(resourceGroup().name, 'data')]",
-    "datasetStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('datasetstorageAccountName'))]",
+    "datasetStorageAccountid":
+      "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('datasetstorageAccountName'))]",
+    "providersStorageAccountName": "[concat(resourceGroup().name, 'prov')]",
+    "providersStorageAccountId":
+      "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('providersStorageAccountName'))]",
     "storageAccountName": "[concat(resourceGroup().name, 'storage')]",
-    "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
+    "storageAccountid":
+      "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
   },
   "resources": [
     {
@@ -76,6 +125,55 @@
       }
     },
     {
+      "name": "[variables('sqlServerName')]",
+      "type": "Microsoft.Sql/servers",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2014-04-01-preview",
+      "dependsOn": [],
+      "tags": {
+        "displayName": "SQL Server"
+      },
+      "properties": {
+        "administratorLogin": "[parameters('sqlServerAdminLogin')]",
+        "administratorLoginPassword": "[parameters('sqlServerAdminLoginPassword')]",
+        "version": "12.0"
+      },
+      "resources": [
+        {
+          "name": "AllowAllWindowsAzureIps",
+          "type": "firewallrules",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[concat('Microsoft.Sql/servers/', variables('sqlServerName'))]"
+          ],
+          "properties": {
+            "startIpAddress": "0.0.0.0",
+            "endIpAddress": "0.0.0.0"
+          }
+        },
+        {
+          "name": "[variables('providersDatabaseName')]",
+          "type": "databases",
+          "location": "[resourceGroup().location]",
+          "apiVersion": "2014-04-01-preview",
+          "dependsOn": [
+            "[variables('sqlServerName')]"
+          ],
+          "tags": {
+            "displayName": "SQL Database"
+          },
+          "properties": {
+            "collation": "SQL_Latin1_General_CP1_CI_AS",
+            "edition": "[parameters('sqlDatabaseEdition')]",
+            "maxSizeBytes": "1073741824",
+            "requestedServiceObjectiveName": "[parameters('sqldatabaseRequestedServiceObjectiveName')]"
+          }
+        }
+      ]
+    },
+
+    {
       "apiVersion": "2015-02-28",
       "name": "[variables('azureSearchName')]",
       "type": "Microsoft.Search/searchServices",
@@ -91,6 +189,7 @@
         "partitionCount": "1"
       }
     },
+
     {
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[variables('storageAccountName')]",
@@ -101,6 +200,7 @@
         "name": "Standard_LRS"
       }
     },
+
     {
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[variables('datasetStorageAccountName')]",
@@ -112,18 +212,17 @@
       }
     },
 
-    // Consumption based plan
-    //{
-    //  "type": "Microsoft.Web/serverfarms",
-    //  "apiVersion": "2015-04-01",
-    //  "name": "[variables('hostingPlanName')]",
-    //  "location": "[resourceGroup().location]",
-    //  "properties": {
-    //    "name": "[variables('hostingPlanName')]",
-    //    "computeMode": "Dynamic",
-    //    "sku": "Dynamic"
-    //  }
-    //},
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('providersStorageAccountName')]",
+      "apiVersion": "2017-06-01",
+      "location": "[resourceGroup().location]",
+      "kind": "Storage",
+      "sku": {
+        "name": "Standard_LRS"
+      }
+    },
+
 
     {
       "apiVersion": "2016-03-01",
@@ -140,7 +239,7 @@
       "properties": {
         "name": "[variables('hostingPlanName')]"
       }
-    },,
+    },
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
@@ -219,7 +318,9 @@
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
         "[variables('applicationInsightsName')]",
+        "[variables('sqlServerName')]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]"
+
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
@@ -267,8 +368,12 @@
               "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
             },
             {
-              "name": "DatasetStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+              "name": "ProvidersStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('providersStorageAccountName'), ';AccountKey=', listKeys(variables('providersStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "value": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', variables('sqlserverName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', 'Providers', ';User Id=', parameters('sqlServerAdminLogin'), '@', reference(concat('Microsoft.Sql/servers/', variables('sqlserverName'))).fullyQualifiedDomainName, ';Password=', parameters('sqlServerAdminLoginPassword'), ';')]",
+              "name": "ProvidersConnectionString"
             }
           ]
         }
@@ -461,22 +566,23 @@
           ]
         }
       }
-    }
-  ],
-  "outputs": {
-    "CosmosDbConnectionString": {
-      "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]",
-      "type": "string"
     },
-    "AppInsightsInstrumentationKey": {
-      "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]",
-      "type": "string"
-    },
-    "AzureSearchKey":{
-      "value":  "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]",
-      "type": "string"
-    }
 
-  }
+    "outputs",
+    {
+      "CosmosDbConnectionString": {
+        "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]",
+        "type": "string"
+      },
+      "AppInsightsInstrumentationKey": {
+        "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]",
+        "type": "string"
+      },
+      "AzureSearchKey": {
+        "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]",
+        "type": "string"
+      }
+
+    }
 
 }
