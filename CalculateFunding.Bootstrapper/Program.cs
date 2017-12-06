@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Bootstrapper;
 using CalculateFunding.Models.Results;
@@ -64,6 +65,9 @@ namespace Allocations.Boostrapper
                     {
                         try
                         {
+                            string externalip = new WebClient().DownloadString("http://icanhazip.com");
+                            Console.WriteLine(externalip);
+
                             var serviceProvider = new ServiceCollection()
                                 .AddSingleton(new LoggerFactory()
                                     .AddConsole())
@@ -72,6 +76,7 @@ namespace Allocations.Boostrapper
                                     options.UseSqlServer(providersConnectionString)).BuildServiceProvider();
                             var providerDbContext = serviceProvider.GetService<ProvidersDbContext>();
 
+                            Console.WriteLine($"Applying migrations for {providersConnectionString}");
                             await providerDbContext.Database.MigrateAsync();
                             Console.WriteLine($"Applied migrations to Providers");
                         }
