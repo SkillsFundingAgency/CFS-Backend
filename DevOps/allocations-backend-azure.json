@@ -18,21 +18,18 @@
   },
   "variables": {
     "offerType": "Standard",
-    "applicationInsightsName": "[concat(uniquestring(resourceGroup().name), '-ai')]",
-    "documentDatabaseName": "[concat(uniquestring(resourceGroup().name), '-db')]",
-    "azureSearchName": "[concat(uniquestring(resourceGroup().name), '-search')]",
-    "datasetsFunctionAppName": "[concat(uniquestring(resourceGroup().name), '-fapp-datasets')]",
-    "resultsFunctionAppName": "[concat(uniquestring(resourceGroup().name), '-fapp-results')]",
-    "specsFunctionAppName": "[concat(uniquestring(resourceGroup().name), '-fapp-specs')]",
-    "engineFunctionAppName": "[concat(uniquestring(resourceGroup().name), '-fapp-engine')]",
-    "hostingPlanName": "[concat(uniquestring(resourceGroup().name), '-plan')]",
-    "datasetStorageAccountName": "[concat(uniquestring(resourceGroup().name), 'data')]",
+    "applicationInsightsName": "[concat(resourceGroup().name, '-ai')]",
+    "documentDatabaseName": "[concat(resourceGroup().name, '-db')]",
+    "azureSearchName": "[concat(resourceGroup().name, '-search')]",
+    "datasetsFunctionAppName": "[concat(resourceGroup().name, '-fapp-datasets')]",
+    "resultsFunctionAppName": "[concat(resourceGroup().name, '-fapp-results')]",
+    "specsFunctionAppName": "[concat(resourceGroup().name, '-fapp-specs')]",
+    "engineFunctionAppName": "[concat(resourceGroup().name, '-fapp-engine')]",
+    "hostingPlanName": "[concat(resourceGroup().name, '-plan')]",
+    "datasetStorageAccountName": "[concat(resourceGroup().name, 'data')]",
     "datasetStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('datasetstorageAccountName'))]",
-    "storageAccountName": "[concat(uniquestring(resourceGroup().name), 'storage')]",
-    "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-    "operationsPolicyPrefix": "<policies><inbound><base/><set-query-parameter name=\"code\" exists-action=\"override\"><value>",
-    "operationsPolicySuffix": "</value></set-query-parameter></inbound></policies>"
-
+    "storageAccountName": "[concat(resourceGroup().name, 'storage')]",
+    "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
   },
   "resources": [
     {
