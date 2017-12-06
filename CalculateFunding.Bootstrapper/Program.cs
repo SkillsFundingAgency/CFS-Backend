@@ -19,12 +19,12 @@ namespace Allocations.Boostrapper
         public static IConfigurationRoot Configuration { get; set; }
         static int Main(string[] args)
         {
-
+            Console.WriteLine($"Args:{string.Join(", ", args ?? new string[0])}");
             var builder = new ConfigurationBuilder();
 
-            builder
-                .AddCommandLine(args)
-                .AddJsonFile("appsettings.json");
+            builder       
+                .AddJsonFile("appsettings.json")
+                .AddCommandLine(args);
 
             Configuration = builder.Build();
 

@@ -16,9 +16,9 @@ namespace CalculateFunding.Repositories.Providers
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(
-                "Server=.;Database=Providers;Trusted_Connection=True;MultipleActiveResultSets=true",
-                b => b.MigrationsAssembly("CalculateFunding.Repositories.Providers.Migrations"));
+            //optionsBuilder.UseSqlServer(
+            //    "Server=.;Database=Providers;Trusted_Connection=True;MultipleActiveResultSets=true",
+            //    b => b.MigrationsAssembly("CalculateFunding.Repositories.Providers.Migrations"));
             base.OnConfiguring(optionsBuilder);
         }
 
