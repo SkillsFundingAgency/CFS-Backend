@@ -13,6 +13,8 @@ using CalculateFunding.Repository;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using CalculateFunding.Functions.Common;
+using CalculateFunding.Repositories.Providers;
+using Microsoft.EntityFrameworkCore;
 
 namespace CalculateFunding.EndToEnd
 {
@@ -37,6 +39,29 @@ namespace CalculateFunding.EndToEnd
                         using (var reader = new StreamReader(stream))
                         {
                             var providers = importer.ImportEdubaseCsv(Path.GetFileName(file), reader).ToList();
+
+                            try
+                            {
+                                var dbContext = ServiceFactory.GetService<ProvidersDbContext>();
+
+                                // var created = await dbContext.Database.EnsureCreatedAsync();
+                                await dbContext.Database.MigrateAsync();
+
+                                var command = new ProviderCommand {Id = Guid.NewGuid()};
+                                await dbContext.ProviderCommands.AddAsync(command);
+                                await dbContext.ProviderCommandCandidates.AddRangeAsync(providers.Take(100).Select(x =>
+                                    new ProviderCommandCandidate
+                                    {
+                                        ProviderCommandId = command.Id,
+                                        URN = x.URN,
+                                        Name = x.Name
+                                    }));
+                                await dbContext.SaveChangesAsync();
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e.Message);
+                            }
                         }
                     }
                 }

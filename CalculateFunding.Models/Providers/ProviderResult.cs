@@ -54,7 +54,7 @@ namespace CalculateFunding.Models.Providers
         public object Data { get; set; }
     }
 
-    public class Provider: DbEntity
+    public class Provider
     {
         [Key]
         [JsonProperty("urn")]

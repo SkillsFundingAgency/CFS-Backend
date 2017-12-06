@@ -2,12 +2,14 @@
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Repositories.Providers;
 using CalculateFunding.Repository;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.CSharp;
 using CalculateFunding.Services.Compiler.VisualBasic;
 using CalculateFunding.Services.DataImporter;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -37,14 +39,13 @@ namespace CalculateFunding.Functions.Common
                     .AddSerilog()
                     .AddDebug())
                 .AddLogging();
-
             ServiceProvider = serviceCollection
                 // .AddOptions()
                 //.Configure<RepositorySettings>(settings => config.GetSection("SpecificationsRepository"))
                 //.Configure<RepositorySettings>(settings => config.GetSection("DatasetsRepository"))
                 //.Configure<RepositorySettings>(settings => config.GetSection("ResultsRepository"))
                 //.Configure<RepositorySettings>(settings => config.GetSection("Configuration"))
-
+                .AddDbContext<ProvidersDbContext>(options => options.UseSqlServer(config["ProvidersConnectionString"]))
                 .AddSingleton(new Repository<Budget>(new RepositorySettings
                 {
                     ConnectionString = config["CosmosDBConnectionString"],
