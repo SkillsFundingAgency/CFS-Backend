@@ -2,17 +2,33 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-
-    "apiManagementSku": {
+    "skuName": {
       "type": "string",
+      "defaultValue": "S1",
       "allowedValues": [
-        "Developer",
-        "Standard",
-        "Premium"
+        "F1",
+        "D1",
+        "B1",
+        "B2",
+        "B3",
+        "S1",
+        "S2",
+        "S3",
+        "P1",
+        "P2",
+        "P3",
+        "P4"
       ],
-      "defaultValue": "Developer",
       "metadata": {
-        "description": "The pricing tier of this API Management service"
+        "description": "Describes plan's pricing tier and instance size. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
+      }
+    },
+    "skuCapacity": {
+      "type": "int",
+      "defaultValue": 1,
+      "minValue": 1,
+      "metadata": {
+        "description": "Describes plan's instance count"
       }
     }
   },
@@ -95,17 +111,36 @@
         "name": "Standard_LRS"
       }
     },
+
+    // Consumption based plan
+    //{
+    //  "type": "Microsoft.Web/serverfarms",
+    //  "apiVersion": "2015-04-01",
+    //  "name": "[variables('hostingPlanName')]",
+    //  "location": "[resourceGroup().location]",
+    //  "properties": {
+    //    "name": "[variables('hostingPlanName')]",
+    //    "computeMode": "Dynamic",
+    //    "sku": "Dynamic"
+    //  }
+    //},
+
     {
-      "type": "Microsoft.Web/serverfarms",
-      "apiVersion": "2015-04-01",
+      "apiVersion": "2016-03-01",
       "name": "[variables('hostingPlanName')]",
+      "type": "Microsoft.Web/serverfarms",
       "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "HostingPlan"
+      },
+      "sku": {
+        "name": "[parameters('skuName')]",
+        "capacity": "[parameters('skuCapacity')]"
+      },
       "properties": {
-        "name": "[variables('hostingPlanName')]",
-        "computeMode": "Dynamic",
-        "sku": "Dynamic"
+        "name": "[variables('hostingPlanName')]"
       }
-    },
+    },,
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
@@ -122,6 +157,7 @@
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
+          "alwaysOn": true,
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -141,7 +177,7 @@
             },
             {
               "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "~1"
+              "value": "beta"
             },
             {
               "name": "ROUTING_EXTENSION_VERSION",
@@ -188,6 +224,7 @@
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
+          "alwaysOn": true,
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -207,7 +244,7 @@
             },
             {
               "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "~1"
+              "value": "beta"
             },
             {
               "name": "ROUTING_EXTENSION_VERSION",
@@ -253,6 +290,7 @@
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
+          "alwaysOn": true,
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -272,7 +310,7 @@
             },
             {
               "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "~1"
+              "value": "beta"
             },
             {
               "name": "ROUTING_EXTENSION_VERSION",
@@ -315,6 +353,7 @@
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
+          "alwaysOn": true,
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -334,7 +373,7 @@
             },
             {
               "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "~1"
+              "value": "beta"
             },
             {
               "name": "ROUTING_EXTENSION_VERSION",
@@ -377,6 +416,7 @@
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
+          "alwaysOn": true,
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -396,7 +436,7 @@
             },
             {
               "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "~1"
+              "value": "beta"
             },
             {
               "name": "ROUTING_EXTENSION_VERSION",

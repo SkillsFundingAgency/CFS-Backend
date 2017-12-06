@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Functions", "Functions", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{49BE3153-121F-4DD5-BEDD-ED4D8E0BDEF7}"
 	ProjectSection(SolutionItems) = preProject
-		DevOps\allocations-backend-azure.json = DevOps\allocations-backend-azure.json
+		DevOps\backend-azure.json = DevOps\backend-azure.json
 		Readme.md = Readme.md
 	EndProjectSection
 EndProject
