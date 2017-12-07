@@ -1,4 +1,6 @@
 using System;
+using System.Data.SqlClient;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,19 +29,42 @@ namespace CalculateFunding.Functions.Providers
 
                 var dbContext = ServiceFactory.GetService<ProvidersDbContext>();
 
-                // var created = await dbContext.Database.EnsureCreatedAsync();
-                await dbContext.Database.MigrateAsync();
-
                 var command = new Repositories.Providers.ProviderCommand { Id = Guid.NewGuid() };
+
+
                 await dbContext.ProviderCommands.AddAsync(command);
-                await dbContext.ProviderCommandCandidates.AddRangeAsync(providers.Take(100).Select(x =>
-                    new ProviderCommandCandidate
-                    {
-                        ProviderCommandId = command.Id,
-                        URN = x.URN,
-                        Name = x.Name
-                    }));
                 await dbContext.SaveChangesAsync();
+                var stopWatch = new Stopwatch();
+                stopWatch.Start();
+
+                await dbContext.BulkInsert("dbo.ProviderCommandCandidates", providers.Take(10000).Select(x => new ProviderCommandCandidate
+                {
+                    ProviderCommandId = command.Id,
+                    CreatedAt = DateTimeOffset.Now,
+                    UpdatedAt = DateTimeOffset.Now,
+                    URN = x.URN,
+                    Name = x.Name,
+                    Address3 = x.Address3,
+                    Deleted = false
+                }));
+
+                stopWatch.Stop();
+                log.Info($"Bulk Insert in {stopWatch.ElapsedMilliseconds}ms");
+
+                stopWatch.Restart();
+                var merge = new MergeStatementGenerator
+                {
+                    CommandIdColumnName = "ProviderCommandId",
+                    KeyColumnName = "URN",
+                    ColumnNames = typeof(ProviderEntity).GetProperties().Select(x => x.Name.ToString()).ToList(),
+                    SourceTableName = "ProviderCommandCandidates",
+                    TargetTableName = "Providers"
+                };
+                var statement = merge.GetMergeStatement();
+                await dbContext.Database.ExecuteSqlCommandAsync(statement, new SqlParameter("@CommandId", command.Id));
+
+                stopWatch.Stop();
+                log.Info($"Merge in {stopWatch.ElapsedMilliseconds}ms");
             }
 
             log.Info($"C# Blob trigger function Processed blob\n Name:{name} \n Size: {blob.Length} Bytes");

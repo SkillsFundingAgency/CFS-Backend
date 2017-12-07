@@ -1,12 +1,121 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Threading.Tasks;
 using CalculateFunding.Models.Providers;
+using FastMember;
 using Microsoft.EntityFrameworkCore;
 
 namespace CalculateFunding.Repositories.Providers
 {
+
+    public static class ExtensionMethods
+    {
+        private static List<Type> Types
+        {
+            get
+            {
+                return new List<Type>
+                {
+                    typeof (String),
+                    typeof (int?),
+                    typeof (Guid?),
+                    typeof (double?),
+                    typeof (decimal?),
+                    typeof (float?),
+                    typeof (Single?),
+                    typeof (bool?),
+                    typeof (DateTime?),
+                    typeof (DateTimeOffset?),
+                    typeof (int),
+                    typeof (Guid),
+                    typeof (double),
+                    typeof (decimal),
+                    typeof (float),
+                    typeof (Single),
+                    typeof (bool),
+                    typeof (DateTime),
+                    typeof (DateTimeOffset),
+                    typeof (DBNull)
+                };
+            }
+        }
+
+        public static IEnumerable<SqlBulkCopyColumnMapping> GetColumnMappings<T>(this IEnumerable<T> source)
+        {
+            return typeof(T).GetProperties().Where(x => Types.Contains(x.PropertyType)).Select(x => new SqlBulkCopyColumnMapping(x.Name, x.Name));
+        }
+
+
+        public static DataTable ToDataTable<T>(this IEnumerable<T> source)
+        {
+            using (var dt = new DataTable())
+            {
+                var toList = source.ToList();
+
+                var properties = typeof(T).GetProperties();
+
+                for (var index = 0; index < properties.Count(); index++)
+                {
+                    var info = typeof(T).GetProperties()[index];
+                    if (Types.Contains(info.PropertyType))
+                    {
+                        var type = (info.PropertyType.IsGenericType && info.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>) ? Nullable.GetUnderlyingType(info.PropertyType) : info.PropertyType);
+
+                        dt.Columns.Add(new DataColumn(info.Name, type));
+                    }
+                }
+
+                for (var index = 0; index < toList.Count; index++)
+                {
+                    var t = toList[index];
+                    var row = dt.NewRow();
+                    foreach (var info in properties)
+                    {
+                        if (Types.Contains(info.PropertyType))
+                        {   
+                            
+                            row[info.Name] = info.GetValue(t, null) ?? DBNull.Value;
+                        }
+                    }
+                    dt.Rows.Add(row);
+                }
+
+                return dt;
+            }
+        }
+    }
     public class ProvidersDbContext : DbContext
     {
+
+        
+        public async Task BulkInsert<T>(string tableName, IEnumerable<T> entities)
+        {
+            var connection = Database.GetDbConnection() as SqlConnection;
+            if (connection.State != ConnectionState.Open)
+            {
+                await Database.OpenConnectionAsync();
+            }
+
+            using (var bcp = new SqlBulkCopy(connection))
+            {
+                bcp.BulkCopyTimeout = 60 * 30;
+                var columnMappings = entities.GetColumnMappings();
+                foreach (var columnMapping in columnMappings)
+                {
+                    bcp.ColumnMappings.Add(columnMapping);
+                }
+
+                bcp.DestinationTableName = tableName;
+                var table = entities.ToDataTable();
+                await bcp.WriteToServerAsync(table);
+            }
+        }
+
+
 
         public ProvidersDbContext(DbContextOptions options) : base (options)
         {

@@ -1,20 +1,20 @@
-﻿using CalculateFunding.Services.Compiler;
+﻿using CalculateFunding.Bootstrapper;
+using CalculateFunding.Functions.Common;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Repositories.Providers;
+using CalculateFunding.Repository;
+using CalculateFunding.Services.Calculator;
+using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.DataImporter;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Bootstrapper;
-using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Calculator;
-using CalculateFunding.Repository;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using CalculateFunding.Functions.Common;
-using CalculateFunding.Repositories.Providers;
-using Microsoft.EntityFrameworkCore;
 
 namespace CalculateFunding.EndToEnd
 {
@@ -44,19 +44,46 @@ namespace CalculateFunding.EndToEnd
                             {
                                 var dbContext = ServiceFactory.GetService<ProvidersDbContext>();
 
-                                // var created = await dbContext.Database.EnsureCreatedAsync();
-                                await dbContext.Database.MigrateAsync();
-
                                 var command = new ProviderCommand {Id = Guid.NewGuid()};
+
+                                   
                                 await dbContext.ProviderCommands.AddAsync(command);
-                                await dbContext.ProviderCommandCandidates.AddRangeAsync(providers.Take(100).Select(x =>
-                                    new ProviderCommandCandidate
-                                    {
-                                        ProviderCommandId = command.Id,
-                                        URN = x.URN,
-                                        Name = x.Name
-                                    }));
                                 await dbContext.SaveChangesAsync();
+                                var stopWatch = new Stopwatch();
+                                stopWatch.Start();
+
+                                await dbContext.BulkInsert("dbo.ProviderCommandCandidates", providers.Take(10000).Select(x => new ProviderCommandCandidate
+                                    {
+                                    ProviderCommandId = command.Id,
+                                        CreatedAt = DateTimeOffset.Now,
+                                        UpdatedAt = DateTimeOffset.Now,
+                                        URN = x.URN,
+                                        Name = x.Name,
+                                        Address3 = x.Address3,
+                                        Deleted = false
+                                    }));
+
+                                stopWatch.Stop();
+                                Console.WriteLine($"Bulk Insert in {stopWatch.ElapsedMilliseconds}ms");
+                                
+                                stopWatch.Restart();
+                                var merge = new MergeStatementGenerator
+                                {
+                                    CommandIdColumnName = "ProviderCommandId",
+                                    KeyColumnName = "URN",
+                                    ColumnNames = typeof(ProviderEntity).GetProperties().Select(x => x.Name.ToString()).ToList(),
+                                    SourceTableName = "ProviderCommandCandidates",
+                                    TargetTableName = "Providers"
+                                };
+                                var statement = merge.GetMergeStatement();
+                                var name = new SqlParameter("@CommandId", command.Id);
+                                await dbContext.Database.ExecuteSqlCommandAsync(statement, name);
+
+                                stopWatch.Stop();
+                                Console.WriteLine($"Merge in {stopWatch.ElapsedMilliseconds}ms");
+
+
+
                             }
                             catch (Exception e)
                             {
