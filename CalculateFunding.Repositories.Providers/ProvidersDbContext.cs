@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Claims;
-using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Repositories.Common.Sql;
@@ -13,38 +12,38 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CalculateFunding.Repositories.Providers
 {
-    public class ProvidersDbContext : DbContext
+    public class ProvidersDbContext : BaseDbContext
     {
-        //public ProvidersDbContext(DbContextOptions options) : base(options)
-        //{
-        //}
 
         public ProvidersDbContext(DbContextOptions<ProvidersDbContext> options) : base(options)
         {
         }
 
-
-        public async Task BulkInsert<T>(string tableName, IEnumerable<T> entities)
+        public async Task<IEnumerable<ProviderEventEntity>> Upsert(long commandId, IEnumerable<ProviderCommandCandidateEntity> candidates)
         {
-            var connection = Database.GetDbConnection() as SqlConnection;
-            if (connection.State != ConnectionState.Open)
-            {
-                await Database.OpenConnectionAsync();
-            }
+            var stopwatch = new Stopwatch();
+            await BulkInsert("dbo.ProviderCommandCandidates", candidates);
 
-            using (var bcp = new SqlBulkCopy(connection))
-            {
-                bcp.BulkCopyTimeout = 60 * 30;
-                var columnMappings = entities.GetColumnMappings();
-                foreach (var columnMapping in columnMappings)
-                {
-                    bcp.ColumnMappings.Add(columnMapping);
-                }
+            stopwatch.Stop();
+            Console.WriteLine($"Bulk Insert in {stopwatch.ElapsedMilliseconds}ms");
 
-                bcp.DestinationTableName = tableName;
-                var table = entities.ToDataTable();
-                await bcp.WriteToServerAsync(table);
-            }
+            stopwatch.Restart();
+            var merge = new MergeStatementGenerator
+            {
+                CommandIdColumnName = "ProviderCommandId",
+                KeyColumnName = "URN",
+                ColumnNames = typeof(ProviderEntity).GetProperties().Select(x => x.Name.ToString()).ToList(),
+                SourceTableName = "ProviderCommandCandidates",
+                TargetTableName = "Providers"
+            };
+            var statement = merge.GetMergeStatement();
+            var name = new SqlParameter("@CommandId", commandId);
+            var events = ProviderEvents.FromSql(statement, name).ToList();
+
+            await BulkInsert("dbo.ProviderEvents", events);
+
+            return events;
+
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -80,30 +79,5 @@ namespace CalculateFunding.Repositories.Providers
         public DbSet<ProviderCommandEntity> ProviderCommands { get; set; }
         public DbSet<ProviderCommandCandidateEntity> ProviderCommandCandidates { get; set; }
 
-        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
-        {
-            AddTimestamps();
-            return base.SaveChangesAsync(cancellationToken);
-        }
-
-        private void AddTimestamps()
-        {
-            var referenceDate = DateTimeOffset.Now;
-            var dateTrackedEntries = ChangeTracker.Entries().Where(x => x.State == EntityState.Added || x.State == EntityState.Modified);
-
-            foreach (var entity in dateTrackedEntries)
-            {
-                if (entity.Entity is DbEntity dbEntity)
-                {
-                    if (entity.State == EntityState.Added)
-                    {
-                        dbEntity.CreatedAt = referenceDate;
-                    }
-
-                    dbEntity.UpdatedAt = referenceDate;
-                }
-
-            }
-        }
     }
 }
