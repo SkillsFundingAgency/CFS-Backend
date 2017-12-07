@@ -15,6 +15,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Repositories.Common.Sql;
 
 namespace CalculateFunding.EndToEnd
 {
@@ -44,17 +45,21 @@ namespace CalculateFunding.EndToEnd
                             {
                                 var dbContext = ServiceFactory.GetService<ProvidersDbContext>();
 
-                                var command = new ProviderCommand {Id = Guid.NewGuid()};
+                                var command = new ProviderCommandEntity
+                                {
+                                    CreatedAt = DateTimeOffset.Now,
+                                    UpdatedAt = DateTimeOffset.Now,
+                                };
 
                                    
-                                await dbContext.ProviderCommands.AddAsync(command);
+                                var addedCommand = await dbContext.ProviderCommands.AddAsync(command);
                                 await dbContext.SaveChangesAsync();
                                 var stopWatch = new Stopwatch();
                                 stopWatch.Start();
 
-                                await dbContext.BulkInsert("dbo.ProviderCommandCandidates", providers.Take(10000).Select(x => new ProviderCommandCandidate
+                                await dbContext.BulkInsert("dbo.ProviderCommandCandidates", providers.Select(x => new ProviderCommandCandidateEntity
                                     {
-                                    ProviderCommandId = command.Id,
+                                    ProviderCommandId = addedCommand.Entity.Id,
                                         CreatedAt = DateTimeOffset.Now,
                                         UpdatedAt = DateTimeOffset.Now,
                                         URN = x.URN,
@@ -77,12 +82,12 @@ namespace CalculateFunding.EndToEnd
                                 };
                                 var statement = merge.GetMergeStatement();
                                 var name = new SqlParameter("@CommandId", command.Id);
-                                await dbContext.Database.ExecuteSqlCommandAsync(statement, name);
+                                var events = dbContext.ProviderEvents.FromSql(statement, name).ToList();
+
+                                await dbContext.BulkInsert("dbo.ProviderEvents", events);
 
                                 stopWatch.Stop();
                                 Console.WriteLine($"Merge in {stopWatch.ElapsedMilliseconds}ms");
-
-
 
                             }
                             catch (Exception e)

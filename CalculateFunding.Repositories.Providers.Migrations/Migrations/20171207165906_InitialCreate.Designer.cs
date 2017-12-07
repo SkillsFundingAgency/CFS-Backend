@@ -11,9 +11,10 @@ using System;
 namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
 {
     [DbContext(typeof(ProvidersDbContext))]
-    partial class ProvidersDbContextModelSnapshot : ModelSnapshot
+    [Migration("20171207165906_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -95,6 +96,8 @@ namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
 
                     b.Property<string>("Postcode");
 
+                    b.Property<long?>("ProviderCommandEntityId");
+
                     b.Property<string>("RSCRegion");
 
                     b.Property<int?>("ResourcedProvisionCapacity");
@@ -144,11 +147,13 @@ namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
                     b.Property<string>("UKPRN");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
-                        .ValueGeneratedOnAdd();
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.Property<string>("Website");
 
                     b.HasKey("ProviderCommandId", "URN");
+
+                    b.HasIndex("ProviderCommandEntityId");
 
                     b.HasIndex("URN");
 
@@ -174,7 +179,7 @@ namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
                         .ValueGeneratedOnAddOrUpdate();
 
                     b.Property<DateTimeOffset>("UpdatedAt")
-                        .ValueGeneratedOnAdd();
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.HasKey("Id");
 
@@ -306,7 +311,7 @@ namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
                     b.Property<string>("UKPRN");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
-                        .ValueGeneratedOnAdd();
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.Property<string>("Website");
 
@@ -395,6 +400,8 @@ namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
 
                     b.Property<string>("Postcode");
 
+                    b.Property<long?>("ProviderCommandEntityId");
+
                     b.Property<string>("RSCRegion");
 
                     b.Property<int?>("ResourcedProvisionCapacity");
@@ -444,11 +451,13 @@ namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
                     b.Property<string>("UKPRN");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
-                        .ValueGeneratedOnAdd();
+                        .ValueGeneratedOnAddOrUpdate();
 
                     b.Property<string>("Website");
 
                     b.HasKey("ProviderCommandId", "URN");
+
+                    b.HasIndex("ProviderCommandEntityId");
 
                     b.HasIndex("URN");
 
@@ -459,10 +468,9 @@ namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
 
             modelBuilder.Entity("CalculateFunding.Repositories.Providers.ProviderCommandCandidateEntity", b =>
                 {
-                    b.HasOne("CalculateFunding.Repositories.Providers.ProviderCommandEntity", "ProviderCommand")
+                    b.HasOne("CalculateFunding.Repositories.Providers.ProviderCommandEntity", "ProviderCommandEntity")
                         .WithMany()
-                        .HasForeignKey("ProviderCommandId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("ProviderCommandEntityId");
 
                     b.HasOne("CalculateFunding.Repositories.Providers.ProviderEntity", "Provider")
                         .WithMany()
@@ -479,10 +487,9 @@ namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
 
             modelBuilder.Entity("CalculateFunding.Repositories.Providers.ProviderEventEntity", b =>
                 {
-                    b.HasOne("CalculateFunding.Repositories.Providers.ProviderCommandEntity", "ProviderCommand")
+                    b.HasOne("CalculateFunding.Repositories.Providers.ProviderCommandEntity", "ProviderCommandEntity")
                         .WithMany()
-                        .HasForeignKey("ProviderCommandId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("ProviderCommandEntityId");
 
                     b.HasOne("CalculateFunding.Repositories.Providers.ProviderEntity", "Provider")
                         .WithMany()

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-namespace CalculateFunding.Repositories.Providers
+namespace CalculateFunding.Repositories.Common.Sql
 {
     public class MergeStatementGenerator
     {
@@ -60,7 +59,7 @@ THEN
 WHEN NOT MATCHED THEN
    INSERT
    (
-      [URN],
+      [{KeyColumnName}],
 	  [CreatedAt],
 	  [UpdatedAt],
 	  [Deleted],
@@ -68,7 +67,7 @@ WHEN NOT MATCHED THEN
    )
    VALUES
    (
-      src.[URN],
+      src.[{KeyColumnName}],
 	  src.[CreatedAt],
 	  src.[UpdatedAt],
 	  src.[Deleted],
@@ -76,9 +75,15 @@ WHEN NOT MATCHED THEN
    )
 {GetDeleteClause()}
 OUTPUT
-   $action,
-   inserted.*,
-   deleted.*;
+   $action as Action,
+   @CommandId as {CommandIdColumnName},
+      inserted.[{KeyColumnName}],
+	  inserted.[CreatedAt],
+	  inserted.[UpdatedAt],
+	  inserted.[Deleted],
+      NULL AS Timestamp,
+{RepeatForColumns("    inserted.[{0}]", ",")}
+;
 ";
         public List<string> ColumnNames { get; set; }
 

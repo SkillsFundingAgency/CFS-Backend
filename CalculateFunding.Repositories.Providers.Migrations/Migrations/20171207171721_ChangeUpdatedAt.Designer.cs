@@ -11,8 +11,8 @@ using System;
 namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
 {
     [DbContext(typeof(ProvidersDbContext))]
-    [Migration("20171205183003_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20171207171721_ChangeUpdatedAt")]
+    partial class ChangeUpdatedAt
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -21,29 +21,9 @@ namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
                 .HasAnnotation("ProductVersion", "2.0.1-rtm-125")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("CalculateFunding.Repositories.Providers.ProviderCommand", b =>
+            modelBuilder.Entity("CalculateFunding.Repositories.Providers.ProviderCommandCandidateEntity", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<DateTimeOffset>("CreatedAt");
-
-                    b.Property<bool>("Deleted");
-
-                    b.Property<byte[]>("Timestamp")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate();
-
-                    b.Property<DateTimeOffset>("UpdatedAt");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ProviderCommands");
-                });
-
-            modelBuilder.Entity("CalculateFunding.Repositories.Providers.ProviderCommandCandidate", b =>
-                {
-                    b.Property<Guid>("ProviderCommandId");
+                    b.Property<long>("ProviderCommandId");
 
                     b.Property<string>("URN");
 
@@ -61,7 +41,8 @@ namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
 
                     b.Property<string>("County");
 
-                    b.Property<DateTimeOffset>("CreatedAt");
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<bool>("Deleted");
 
@@ -115,6 +96,8 @@ namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
 
                     b.Property<string>("Postcode");
 
+                    b.Property<long?>("ProviderCommandEntityId");
+
                     b.Property<string>("RSCRegion");
 
                     b.Property<int?>("ResourcedProvisionCapacity");
@@ -163,13 +146,46 @@ namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
 
                     b.Property<string>("UKPRN");
 
-                    b.Property<DateTimeOffset>("UpdatedAt");
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("Website");
 
                     b.HasKey("ProviderCommandId", "URN");
 
+                    b.HasIndex("ProviderCommandEntityId");
+
+                    b.HasIndex("URN");
+
+                    b.HasIndex("ProviderCommandId", "URN");
+
                     b.ToTable("ProviderCommandCandidates");
+                });
+
+            modelBuilder.Entity("CalculateFunding.Repositories.Providers.ProviderCommandEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<bool>("Deleted");
+
+                    b.Property<string>("ProviderURN");
+
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd();
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProviderURN");
+
+                    b.ToTable("ProviderCommands");
                 });
 
             modelBuilder.Entity("CalculateFunding.Repositories.Providers.ProviderEntity", b =>
@@ -191,7 +207,8 @@ namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
 
                     b.Property<string>("County");
 
-                    b.Property<DateTimeOffset>("CreatedAt");
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<bool>("Deleted");
 
@@ -293,20 +310,190 @@ namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
 
                     b.Property<string>("UKPRN");
 
-                    b.Property<DateTimeOffset>("UpdatedAt");
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd();
 
                     b.Property<string>("Website");
 
                     b.HasKey("URN");
 
+                    b.HasIndex("URN");
+
                     b.ToTable("Providers");
                 });
 
-            modelBuilder.Entity("CalculateFunding.Repositories.Providers.ProviderCommandCandidate", b =>
+            modelBuilder.Entity("CalculateFunding.Repositories.Providers.ProviderEventEntity", b =>
                 {
-                    b.HasOne("CalculateFunding.Repositories.Providers.ProviderCommand", "ProviderCommand")
+                    b.Property<long>("ProviderCommandId");
+
+                    b.Property<string>("URN");
+
+                    b.Property<string>("Action")
+                        .IsRequired();
+
+                    b.Property<string>("Address3");
+
+                    b.Property<string>("CCF");
+
+                    b.Property<string>("CensusAreaStatisticWard");
+
+                    b.Property<DateTimeOffset?>("CensusDate");
+
+                    b.Property<DateTimeOffset?>("CloseDate");
+
+                    b.Property<string>("Country");
+
+                    b.Property<string>("County");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<bool>("Deleted");
+
+                    b.Property<string>("EBD");
+
+                    b.Property<int?>("Easting");
+
+                    b.Property<string>("EdByOther");
+
+                    b.Property<string>("EstablishmentName");
+
+                    b.Property<string>("EstablishmentNumber");
+
+                    b.Property<string>("FEHEIdentifier");
+
+                    b.Property<string>("FTProv");
+
+                    b.Property<string>("FederationFlag");
+
+                    b.Property<string>("FurtherEducationType");
+
+                    b.Property<string>("GSSLACode");
+
+                    b.Property<string>("LSOA");
+
+                    b.Property<DateTimeOffset?>("LastChangedDate");
+
+                    b.Property<string>("Locality");
+
+                    b.Property<string>("MSOA");
+
+                    b.Property<string>("Name");
+
+                    b.Property<int?>("Northing");
+
+                    b.Property<int?>("NumberOfBoys");
+
+                    b.Property<int?>("NumberOfGirls");
+
+                    b.Property<int?>("NumberOfPupils");
+
+                    b.Property<DateTimeOffset?>("OfstedLastInspectionDate");
+
+                    b.Property<string>("OfstedRating");
+
+                    b.Property<DateTimeOffset?>("OpenDate");
+
+                    b.Property<int?>("PRUPlaces");
+
+                    b.Property<decimal?>("PercentageFSM");
+
+                    b.Property<string>("Postcode");
+
+                    b.Property<long?>("ProviderCommandEntityId");
+
+                    b.Property<string>("RSCRegion");
+
+                    b.Property<int?>("ResourcedProvisionCapacity");
+
+                    b.Property<int?>("ResourcedProvisionOnRoll");
+
+                    b.Property<string>("SEN1");
+
+                    b.Property<int?>("SENNoStat");
+
+                    b.Property<string>("SENPRU");
+
+                    b.Property<int?>("SENStat");
+
+                    b.Property<int?>("SchoolCapacity");
+
+                    b.Property<string>("SchoolSponsorFlag");
+
+                    b.Property<string>("SchoolSponsors");
+
+                    b.Property<string>("Section41Approved");
+
+                    b.Property<int?>("SenUnitCapacity");
+
+                    b.Property<int?>("SenUnitOnRoll");
+
+                    b.Property<int?>("StatutoryHighAge");
+
+                    b.Property<int?>("StatutoryLowAge");
+
+                    b.Property<string>("Street");
+
+                    b.Property<string>("TeenMoth");
+
+                    b.Property<int?>("TeenMothPlaces");
+
+                    b.Property<string>("Telephone");
+
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
+
+                    b.Property<string>("Town");
+
+                    b.Property<string>("TypeOfResourcedProvision");
+
+                    b.Property<string>("UKPRN");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Website");
+
+                    b.HasKey("ProviderCommandId", "URN");
+
+                    b.HasIndex("ProviderCommandEntityId");
+
+                    b.HasIndex("URN");
+
+                    b.HasIndex("ProviderCommandId", "URN");
+
+                    b.ToTable("ProviderEvents");
+                });
+
+            modelBuilder.Entity("CalculateFunding.Repositories.Providers.ProviderCommandCandidateEntity", b =>
+                {
+                    b.HasOne("CalculateFunding.Repositories.Providers.ProviderCommandEntity", "ProviderCommandEntity")
                         .WithMany()
-                        .HasForeignKey("ProviderCommandId")
+                        .HasForeignKey("ProviderCommandEntityId");
+
+                    b.HasOne("CalculateFunding.Repositories.Providers.ProviderEntity", "Provider")
+                        .WithMany()
+                        .HasForeignKey("URN")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("CalculateFunding.Repositories.Providers.ProviderCommandEntity", b =>
+                {
+                    b.HasOne("CalculateFunding.Repositories.Providers.ProviderEntity", "Provider")
+                        .WithMany()
+                        .HasForeignKey("ProviderURN");
+                });
+
+            modelBuilder.Entity("CalculateFunding.Repositories.Providers.ProviderEventEntity", b =>
+                {
+                    b.HasOne("CalculateFunding.Repositories.Providers.ProviderCommandEntity", "ProviderCommandEntity")
+                        .WithMany()
+                        .HasForeignKey("ProviderCommandEntityId");
+
+                    b.HasOne("CalculateFunding.Repositories.Providers.ProviderEntity", "Provider")
+                        .WithMany()
+                        .HasForeignKey("URN")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618

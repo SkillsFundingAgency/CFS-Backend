@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Functions.Common;
+using CalculateFunding.Repositories.Common.Sql;
 using CalculateFunding.Repositories.Providers;
 using CalculateFunding.Services.DataImporter;
 using Microsoft.Azure.WebJobs;
@@ -29,7 +30,7 @@ namespace CalculateFunding.Functions.Providers
 
                 var dbContext = ServiceFactory.GetService<ProvidersDbContext>();
 
-                var command = new Repositories.Providers.ProviderCommand { Id = Guid.NewGuid() };
+                var command = new Repositories.Providers.ProviderCommandEntity();
 
 
                 await dbContext.ProviderCommands.AddAsync(command);
@@ -37,7 +38,7 @@ namespace CalculateFunding.Functions.Providers
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
 
-                await dbContext.BulkInsert("dbo.ProviderCommandCandidates", providers.Take(10000).Select(x => new ProviderCommandCandidate
+                await dbContext.BulkInsert("dbo.ProviderCommandCandidates", providers.Take(10000).Select(x => new ProviderCommandCandidateEntity
                 {
                     ProviderCommandId = command.Id,
                     CreatedAt = DateTimeOffset.Now,

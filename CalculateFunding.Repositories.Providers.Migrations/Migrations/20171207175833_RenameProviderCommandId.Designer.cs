@@ -11,9 +11,10 @@ using System;
 namespace CalculateFunding.Repositories.Providers.Migrations.Migrations
 {
     [DbContext(typeof(ProvidersDbContext))]
-    partial class ProvidersDbContextModelSnapshot : ModelSnapshot
+    [Migration("20171207175833_RenameProviderCommandId")]
+    partial class RenameProviderCommandId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

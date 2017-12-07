@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Repositories.Common.Sql\CalculateFunding.Repositories.Common.Sql.csproj" />
   </ItemGroup>
 
   <ItemGroup>
