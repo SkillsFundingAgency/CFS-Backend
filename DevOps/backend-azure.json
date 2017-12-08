@@ -46,7 +46,7 @@
     },
     "sqlDatabaseEdition": {
       "type": "string",
-      "defaultValue": "Basic",
+      "defaultValue": "Standard",
       "allowedValues": [
         "Basic",
         "Standard",
@@ -58,7 +58,7 @@
     },
     "sqldatabaseRequestedServiceObjectiveName": {
       "type": "string",
-      "defaultValue": "Basic",
+      "defaultValue": "S2",
       "allowedValues": [
         "Basic",
         "S0",

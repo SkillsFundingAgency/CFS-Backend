@@ -20,9 +20,10 @@ namespace CalculateFunding.Functions.Providers
         [FunctionName("OnSourceUpdated")]
         public static async Task RunAsync([BlobTrigger("edubase/{name}", Connection = "ProvidersStorage")]Stream blob, string name, TraceWriter log)
         {
- 
 
 
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
             var importer = new EdubaseImporterService();
             using (var reader = new StreamReader(blob))
             {
@@ -33,39 +34,26 @@ namespace CalculateFunding.Functions.Providers
                 var command = new Repositories.Providers.ProviderCommandEntity();
 
 
-                await dbContext.ProviderCommands.AddAsync(command);
+                var addResult = await dbContext.ProviderCommands.AddAsync(command);
                 await dbContext.SaveChangesAsync();
-                var stopWatch = new Stopwatch();
-                stopWatch.Start();
-
-                await dbContext.BulkInsert("dbo.ProviderCommandCandidates", providers.Take(10000).Select(x => new ProviderCommandCandidateEntity
-                {
-                    ProviderCommandId = command.Id,
-                    CreatedAt = DateTimeOffset.Now,
-                    UpdatedAt = DateTimeOffset.Now,
-                    URN = x.URN,
-                    Name = x.Name,
-                    Address3 = x.Address3,
-                    Deleted = false
-                }));
-
                 stopWatch.Stop();
-                log.Info($"Bulk Insert in {stopWatch.ElapsedMilliseconds}ms");
-
+                log.Info($"Read {name} in {stopWatch.ElapsedMilliseconds}ms");
                 stopWatch.Restart();
-                var merge = new MergeStatementGenerator
-                {
-                    CommandIdColumnName = "ProviderCommandId",
-                    KeyColumnName = "URN",
-                    ColumnNames = typeof(ProviderEntity).GetProperties().Select(x => x.Name.ToString()).ToList(),
-                    SourceTableName = "ProviderCommandCandidates",
-                    TargetTableName = "Providers"
-                };
-                var statement = merge.GetMergeStatement();
-                await dbContext.Database.ExecuteSqlCommandAsync(statement, new SqlParameter("@CommandId", command.Id));
+
+                var events = (await dbContext.Upsert(addResult.Entity.Id, providers.Select(x =>
+                    new ProviderCommandCandidateEntity
+                    {
+                        ProviderCommandId = command.Id,
+                        CreatedAt = DateTimeOffset.Now,
+                        UpdatedAt = DateTimeOffset.Now,
+                        URN = x.URN,
+                        Name = x.Name,
+                        Address3 = x.Address3,
+                        Deleted = false
+                    }))).ToList();
 
                 stopWatch.Stop();
-                log.Info($"Merge in {stopWatch.ElapsedMilliseconds}ms");
+                log.Info($"Bulk Inserted with {events.Count} changes in {stopWatch.ElapsedMilliseconds}ms");
             }
 
             log.Info($"C# Blob trigger function Processed blob\n Name:{name} \n Size: {blob.Length} Bytes");
