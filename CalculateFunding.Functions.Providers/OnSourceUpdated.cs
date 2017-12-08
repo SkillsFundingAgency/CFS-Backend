@@ -43,17 +43,7 @@ namespace CalculateFunding.Functions.Providers
                 log.Info($"Read {name} in {stopWatch.ElapsedMilliseconds}ms");
                 stopWatch.Restart();
 
-                var events = (await dbContext.Upsert(addResult.Entity.Id, providers.Select(x =>
-                    new ProviderCommandCandidateEntity
-                    {
-                        ProviderCommandId = command.Id,
-                        CreatedAt = DateTimeOffset.Now,
-                        UpdatedAt = DateTimeOffset.Now,
-                        URN = x.URN,
-                        Name = x.Name,
-                        Address3 = x.Address3,
-                        Deleted = false
-                    }))).ToList();
+                var events = (await dbContext.Upsert(addResult.Entity.Id, providers)).ToList();
 
                 stopWatch.Stop();
                 log.Info($"Bulk Inserted with {events.Count} changes in {stopWatch.ElapsedMilliseconds}ms");
