@@ -2,7 +2,9 @@ using System;
 using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Functions.Common;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,36 +20,18 @@ namespace CalculateFunding.Functions.Results
 {
     public static class GetProductTestResults
     {
-        private static readonly ISearchIndexClient SearchIndexClient;
-
-        static GetProductTestResults()
-        {
-            var searchServiceClient = new SearchServiceClient(Environment.GetEnvironmentVariable("SearchServiceName"), new SearchCredentials(Environment.GetEnvironmentVariable("SearchServicePrimaryKey")));
-            SearchIndexClient = searchServiceClient.Indexes.GetClient((typeof(ProductTestScenarioResultIndex).Name.ToLowerInvariant()));
-        }
-
         [FunctionName("product-tests")]
         public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequest req, TraceWriter log)
         {
             log.Info("C# HTTP trigger function processed a request.");
             req.Query.TryGetValue("searchTerm", out var searchTerm);
 
-            var azureSearchResult = await SearchIndexClient.Documents.SearchAsync<ProductTestScenarioResultIndex>(searchTerm, new SearchParameters { IncludeTotalResultCount = true });
+            var searchRepository = ServiceFactory.GetService<SearchRepository<ProductTestScenarioResultIndex>>();
 
-            var response = new SearchResults<ProductTestScenarioResultIndex>
-            {
-                SearchTerm = searchTerm,
-                TotalCount = azureSearchResult.Count,
+            var searchResults = await searchRepository.Search(searchTerm);
 
-                Results = azureSearchResult.Results.Select(x => new Repository.SearchResult<ProductTestScenarioResultIndex>
-                {
-                    HitHighLights = x.Highlights,
-                    Result = x.Document,
-                    Score = x.Score
-                }).ToArray()
-            };
 
-            return new OkObjectResult(JsonConvert.SerializeObject(response,
+            return new OkObjectResult(JsonConvert.SerializeObject(searchResults,
                 new JsonSerializerSettings
                 {
                     ContractResolver = new CamelCasePropertyNamesContractResolver(),

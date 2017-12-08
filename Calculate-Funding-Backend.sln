@@ -59,6 +59,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Repositori
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Repositories.Common.Cosmos", "CalculateFunding.Repositories.Common.Cosmos\CalculateFunding.Repositories.Common.Cosmos.csproj", "{95480829-DB9B-45A1-8F51-3D1458DD0F10}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Repositories.Common.Search", "CalculateFunding.Repositories.Common.Search\CalculateFunding.Repositories.Common.Search.csproj", "{311BB52A-A7B5-4C75-8DCB-7E26078BDAD6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -141,6 +143,10 @@ Global
 		{95480829-DB9B-45A1-8F51-3D1458DD0F10}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95480829-DB9B-45A1-8F51-3D1458DD0F10}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95480829-DB9B-45A1-8F51-3D1458DD0F10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{311BB52A-A7B5-4C75-8DCB-7E26078BDAD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{311BB52A-A7B5-4C75-8DCB-7E26078BDAD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{311BB52A-A7B5-4C75-8DCB-7E26078BDAD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{311BB52A-A7B5-4C75-8DCB-7E26078BDAD6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -165,6 +171,7 @@ Global
 		{AB3F8E8C-E366-439D-8180-7238EB5070E7} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{F6B332D4-044A-467D-93CE-489E5FC63278} = {40D52A2C-3E44-4B5A-917E-2FD2F1E8F689}
 		{95480829-DB9B-45A1-8F51-3D1458DD0F10} = {40D52A2C-3E44-4B5A-917E-2FD2F1E8F689}
+		{311BB52A-A7B5-4C75-8DCB-7E26078BDAD6} = {40D52A2C-3E44-4B5A-917E-2FD2F1E8F689}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2FA36A0A-CA20-41CF-9BC2-FA6545720009}

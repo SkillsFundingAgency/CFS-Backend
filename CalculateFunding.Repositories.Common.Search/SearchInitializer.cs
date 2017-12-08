@@ -9,7 +9,7 @@ using Microsoft.Azure.Search.Models;
 using Microsoft.Spatial;
 using Newtonsoft.Json;
 
-namespace CalculateFunding.Repository
+namespace CalculateFunding.Repositories.Common.Search
 {
     public class SearchInitializer
     {
@@ -43,22 +43,18 @@ namespace CalculateFunding.Repository
 
 
 
-        public async Task Initialise(params Type[] types)
+        public async Task Initialise<T>()
         {
-            foreach (var type in types)
+            var type = typeof(T);
+            var definition = GetDefinition(type);
+
+            await CreateIndexAsync(definition);
+
+            var attribute = type.GetCustomAttribute<SearchIndexAttribute>();
+            if (attribute?.IndexerForType != null)
             {
-                var definition = GetDefinition(type);
-
-                await CreateIndexAsync(definition);
-
-                var attribute = type.GetCustomAttribute<SearchIndexAttribute>();
-                if (attribute?.IndexerForType != null)
-                {
-                    await InitialiseIndexer(type, attribute);
-                }
+                await InitialiseIndexer(type, attribute);
             }
-
-
 
         }
 

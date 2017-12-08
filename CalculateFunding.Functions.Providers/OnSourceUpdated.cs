@@ -4,7 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Functions.Common;
+using CalculateFunding.Models.Providers;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Sql;
 using CalculateFunding.Repositories.Providers;
 using CalculateFunding.Services.DataImporter;
@@ -20,8 +23,9 @@ namespace CalculateFunding.Functions.Providers
         [FunctionName("OnSourceUpdated")]
         public static async Task RunAsync([BlobTrigger("edubase/{name}", Connection = "ProvidersStorage")]Stream blob, string name, TraceWriter log)
         {
+            Mapper.Initialize(cfg => cfg.CreateMap<ProviderEventEntity, ProviderIndex>());
 
-
+            var searchRepository = ServiceFactory.GetService<SearchRepository<ProviderIndex>>();
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             var importer = new EdubaseImporterService();
@@ -31,8 +35,7 @@ namespace CalculateFunding.Functions.Providers
 
                 var dbContext = ServiceFactory.GetService<ProvidersDbContext>();
 
-                var command = new Repositories.Providers.ProviderCommandEntity();
-
+                var command = new ProviderCommandEntity();
 
                 var addResult = await dbContext.ProviderCommands.AddAsync(command);
                 await dbContext.SaveChangesAsync();
@@ -54,6 +57,8 @@ namespace CalculateFunding.Functions.Providers
 
                 stopWatch.Stop();
                 log.Info($"Bulk Inserted with {events.Count} changes in {stopWatch.ElapsedMilliseconds}ms");
+
+                var results = await searchRepository.Index(events.Select(Mapper.Map<ProviderIndex>));
             }
 
             log.Info($"C# Blob trigger function Processed blob\n Name:{name} \n Size: {blob.Length} Bytes");

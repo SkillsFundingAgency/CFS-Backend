@@ -1,7 +1,9 @@
 ﻿using System;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Providers;
 using CalculateFunding.Repository;
 using CalculateFunding.Services.Calculator;
@@ -71,6 +73,11 @@ namespace CalculateFunding.Functions.Common
                     DatabaseName = "calculate-funding",
                     CollectionName = "results"
                 }, null))
+                .AddSingleton(new SearchRepository<ProviderIndex>(new SearchRepositorySettings
+                {
+                    SearchServiceName = config["SearchServiceName"],
+                    SearchKey = config["SearchPrimaryKey"]
+                }))
                 .AddTransient<CSharpCompiler>()
                 .AddTransient<VisualBasicCompiler>()
                 .AddTransient<BudgetCompiler>()
