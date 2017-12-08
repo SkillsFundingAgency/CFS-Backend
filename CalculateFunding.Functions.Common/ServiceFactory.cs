@@ -45,7 +45,7 @@ namespace CalculateFunding.Functions.Common
                 //.Configure<RepositorySettings>(settings => config.GetSection("DatasetsRepository"))
                 //.Configure<RepositorySettings>(settings => config.GetSection("ResultsRepository"))
                 //.Configure<RepositorySettings>(settings => config.GetSection("Configuration"))
-                .AddDbContext<ProvidersDbContext>(options => options.UseSqlServer(config["ProvidersConnectionString"]))
+                .AddDbContext<ProvidersDbContext>(options => options.UseSqlServer(config["ProvidersConnectionString"], sqlServerOptions => sqlServerOptions.CommandTimeout(60 * 3)))
                 .AddSingleton(new Repository<Budget>(new RepositorySettings
                 {
                     ConnectionString = config["CosmosDBConnectionString"],
