@@ -1,4 +1,5 @@
 ﻿using System;
+using AutoMapper;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
@@ -29,6 +30,9 @@ namespace CalculateFunding.Functions.Common
         }
         static ServiceFactory()
         {
+            
+            Mapper.Initialize(cfg => cfg.CreateMap<ProviderEventEntity, ProviderIndex>());
+
             var builder = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
                 .AddJsonFile("appsettings.json");
@@ -76,7 +80,7 @@ namespace CalculateFunding.Functions.Common
                 .AddSingleton(new SearchRepository<ProviderIndex>(new SearchRepositorySettings
                 {
                     SearchServiceName = config["SearchServiceName"],
-                    SearchKey = config["SearchPrimaryKey"]
+                    SearchKey = config["SearchServicePrimaryKey"]
                 }))
                 .AddTransient<CSharpCompiler>()
                 .AddTransient<VisualBasicCompiler>()

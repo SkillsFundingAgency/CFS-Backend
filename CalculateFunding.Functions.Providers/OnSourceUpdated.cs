@@ -23,7 +23,6 @@ namespace CalculateFunding.Functions.Providers
         [FunctionName("OnSourceUpdated")]
         public static async Task RunAsync([BlobTrigger("edubase/{name}", Connection = "ProvidersStorage")]Stream blob, string name, TraceWriter log)
         {
-            Mapper.Initialize(cfg => cfg.CreateMap<ProviderEventEntity, ProviderIndex>());
 
             var searchRepository = ServiceFactory.GetService<SearchRepository<ProviderIndex>>();
             var stopWatch = new Stopwatch();
