@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Models;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 
@@ -78,9 +79,9 @@ namespace CalculateFunding.Repositories.Common.Search
             var client = await GetOrCreateIndex();
             var errors = new List<IndexError>();
 
-            for (int i = 0; i < (int)Math.Ceiling(documents.Count / 1000.0); i++)
+            foreach (var batch in documents.ToBatches(1000))
             {
-                var indexResult = await client.Documents.IndexAsync(new IndexBatch<T>(documents.Select(IndexAction.MergeOrUpload).Skip(i * 1000).Take(documents.Count - (i * 1000))));
+                var indexResult = await client.Documents.IndexAsync(new IndexBatch<T>(batch.Select(IndexAction.MergeOrUpload)));
                 foreach (var result in indexResult.Results)
                 {
                     if (!result.Succeeded)

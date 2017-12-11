@@ -74,10 +74,17 @@ namespace CalculateFunding.Repositories.Common.Search
 
         public async Task InitialiseIndexer(Type indexType, SearchIndexAttribute attribute)
         {
+            var type = DataSourceType.AzureSql;
+            switch (attribute.IndexerType)
+            {
+                case IndexerType.DocumentDb:
+                    type = DataSourceType.DocumentDb;
+                    break;
+            }
            var dataSourceDefinition = new DataSource
             {
                 Name = attribute.IndexerForType.Name.ToLowerInvariant(),
-                Type = DataSourceType.DocumentDb,
+                Type = type,
                 Credentials = new DataSourceCredentials($"{_documentDbConnectionString}Database={attribute.DatabaseName}"),
                 Container = new DataContainer { Name = attribute.CollectionName, Query = attribute.IndexerQuery },
                 DataChangeDetectionPolicy =

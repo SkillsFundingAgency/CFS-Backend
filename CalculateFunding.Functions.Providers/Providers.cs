@@ -16,10 +16,9 @@ namespace CalculateFunding.Functions.Providers
     public static class Providers
     {
 
-        [FunctionName("product-tests")]
+        [FunctionName("providers")]
         public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequest req, TraceWriter log)
         {
-            log.Info("C# HTTP trigger function processed a request.");
             req.Query.TryGetValue("searchTerm", out var searchTerm);
 
             var searchRepository = ServiceFactory.GetService<SearchRepository<ProviderIndex>>();

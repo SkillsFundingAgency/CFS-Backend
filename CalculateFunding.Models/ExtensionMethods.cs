@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace CalculateFunding.Models
 {
@@ -15,6 +17,16 @@ namespace CalculateFunding.Models
             str = str.Substring(0, str.Length <= 50 ? str.Length : 50).Trim();
             str = Regex.Replace(str, @"\s", "-"); // hyphens   
             return str;
+        }
+
+        public static IEnumerable<IEnumerable<T>> ToBatches<T>(this IList<T> items, int batchSize)
+        {
+            int total = 0;
+            while (total < items.Count)
+            {
+                yield return items.Skip(total).Take(batchSize);
+                total += batchSize;
+            }
         }
 
         private static string RemoveAccent(this string txt)
