@@ -47,7 +47,7 @@ namespace CalculateFunding.Functions.Providers
                 stopWatch.Stop();
                 log.Info($"Bulk Inserted with {events.Count} changes in {stopWatch.ElapsedMilliseconds}ms");
 
-                var results = await searchRepository.Index(events.Select(Mapper.Map<ProviderIndex>));
+                var results = await searchRepository.Index(events.Select(Mapper.Map<ProviderIndex>).ToList());
             }
 
             log.Info($"C# Blob trigger function Processed blob\n Name:{name} \n Size: {blob.Length} Bytes");

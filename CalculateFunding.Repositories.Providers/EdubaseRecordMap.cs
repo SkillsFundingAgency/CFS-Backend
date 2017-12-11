@@ -5,7 +5,7 @@ using CsvHelper.Configuration;
 namespace CalculateFunding.Repositories.Providers
 {
 
-    public sealed class EdubaseRecordMap : ClassMap<ProviderCommandCandidateEntity>
+    public sealed class EdubaseRecordMap : ClassMap<ProviderBaseEntity>
     {
         public EdubaseRecordMap()
         {
@@ -55,7 +55,7 @@ namespace CalculateFunding.Repositories.Providers
             Map(m => m.NumberOfGirls).ConvertUsing(m => MapToInt(m, "NumberOfGirls"));
             Map(m => m.PercentageFSM).ConvertUsing(m => MapToDecimal(m, "PercentageFSM"));
 
-           // Map(m => m.TrustSchoolFlag.Id).Name("TrustSchoolFlag (code)");
+            // Map(m => m.TrustSchoolFlag.Id).Name("TrustSchoolFlag (code)");
             Map(m => m.TrustSchoolFlag).Name("TrustSchoolFlag (name)");
            // Map(m => m.Trusts.Id).Name("Trusts (code)");
             Map(m => m.Trusts).Name("Trusts (name)");
@@ -159,14 +159,14 @@ namespace CalculateFunding.Repositories.Providers
             return null;
         }
 
-        private static decimal? MapToDecimal(IReaderRow m, string fieldName)
+        private static decimal MapToDecimal(IReaderRow m, string fieldName)
         {
             var str = m.GetField(fieldName);
             if (decimal.TryParse(str, out var number))
             {
                 return number;
             }
-            return null;
+            return decimal.Zero;
         }
     }
 }

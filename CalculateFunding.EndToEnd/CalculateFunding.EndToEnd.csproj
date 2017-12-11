@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Bootstrapper\CalculateFunding.Bootstrapper.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Common\CalculateFunding.Functions.Common.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Functions.Providers\CalculateFunding.Functions.Providers.csproj" />
     <ProjectReference Include="..\CalculateFunding.Repositories.Providers.Migrations\CalculateFunding.Repositories.Providers.Migrations.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Calculator\CalculateFunding.Services.Calculator.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Compiler\CalculateFunding.Services.Compiler.csproj" />

@@ -15,7 +15,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Repositories.Common.Sql;
+using CalculateFunding.Functions.Providers;
+using CalculateFunding.Models.Providers;
+using CalculateFunding.Repositories.Common.Search;
 
 namespace CalculateFunding.EndToEnd
 {
@@ -35,67 +39,45 @@ namespace CalculateFunding.EndToEnd
                 var files = Directory.GetFiles("SourceData");
                 foreach (var file in files.Where(x => x.ToLowerInvariant().EndsWith(".csv")))
                 {
-                    using (var stream = new FileStream(file, FileMode.Open))
+                    using (var blob = new FileStream(file, FileMode.Open))
                     {
-                        using (var reader = new StreamReader(stream))
+                        try
                         {
-                            var providers = new EdubaseImporterService().ImportEdubaseCsv(Path.GetFileName(file), reader).ToList();
 
-                            try
+                            var searchRepository = ServiceFactory.GetService<SearchRepository<ProviderIndex>>();
+                            var stopWatch = new Stopwatch();
+                            stopWatch.Start();
+
+                            using (var reader = new StreamReader(blob))
                             {
+                                var providers = new EdubaseImporterService().ImportEdubaseCsv(file, reader);
+
                                 var dbContext = ServiceFactory.GetService<ProvidersDbContext>();
 
-                                var command = new ProviderCommandEntity
-                                {
-                                    CreatedAt = DateTimeOffset.Now,
-                                    UpdatedAt = DateTimeOffset.Now,
-                                };
+                                var command = new ProviderCommandEntity();
 
-                                   
-                                var addedCommand = await dbContext.ProviderCommands.AddAsync(command);
+                                var addResult = await dbContext.ProviderCommands.AddAsync(command);
                                 await dbContext.SaveChangesAsync();
-                                var stopWatch = new Stopwatch();
-                                stopWatch.Start();
-
-                                await dbContext.BulkInsert("dbo.ProviderCommandCandidates", providers.Select(x => new ProviderCommandCandidateEntity
-                                    {
-                                    ProviderCommandId = addedCommand.Entity.Id,
-                                        CreatedAt = DateTimeOffset.Now,
-                                        UpdatedAt = DateTimeOffset.Now,
-                                        URN = x.URN,
-                                        Name = x.Name,
-                                        Address3 = x.Address3,
-                                        Deleted = false
-                                    }));
-
                                 stopWatch.Stop();
-                                Console.WriteLine($"Bulk Insert in {stopWatch.ElapsedMilliseconds}ms");
-                                
+                                Console.WriteLine($"Read {file} in {stopWatch.ElapsedMilliseconds}ms");
                                 stopWatch.Restart();
-                                var merge = new MergeStatementGenerator
-                                {
-                                    CommandIdColumnName = "ProviderCommandId",
-                                    KeyColumnName = "URN",
-                                    ColumnNames = typeof(ProviderEntity).GetProperties().Select(x => x.Name.ToString()).ToList(),
-                                    SourceTableName = "ProviderCommandCandidates",
-                                    TargetTableName = "Providers"
-                                };
-                                var statement = merge.GetMergeStatement();
-                                var name = new SqlParameter("@CommandId", command.Id);
-                                var events = dbContext.ProviderEvents.FromSql(statement, name).ToList();
 
-                                await dbContext.BulkInsert("dbo.ProviderEvents", events);
+                                var events = (await dbContext.Upsert(addResult.Entity.Id, providers)).ToList();
 
                                 stopWatch.Stop();
-                                Console.WriteLine($"Merge in {stopWatch.ElapsedMilliseconds}ms");
+                                Console.WriteLine($"Bulk Inserted with {events.Count} changes in {stopWatch.ElapsedMilliseconds}ms");
 
+                                var results = await searchRepository.Index(events.Select(Mapper.Map<ProviderIndex>).ToList());
                             }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine(e.Message);
-                            }
+
+                            Console.WriteLine($"C# Blob trigger function Processed blob\n Name:{file} \n Size: {blob.Length} Bytes");
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.Message);
                         }
                     }
+
                 }
 
 

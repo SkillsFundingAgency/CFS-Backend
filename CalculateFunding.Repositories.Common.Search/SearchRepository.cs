@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Search;
@@ -72,15 +73,24 @@ namespace CalculateFunding.Repositories.Common.Search
         }
 
 
-        public async Task<IEnumerable<IndexError>> Index(IEnumerable<T> documents)
+        public async Task<IList<IndexError>> Index(IList<T> documents)
         {
             var client = await GetOrCreateIndex();
+            var errors = new List<IndexError>();
 
+            for (int i = 0; i < (int)Math.Ceiling(documents.Count / 1000.0); i++)
+            {
+                var indexResult = await client.Documents.IndexAsync(new IndexBatch<T>(documents.Select(IndexAction.MergeOrUpload).Skip(i * 1000).Take(documents.Count - (i * 1000))));
+                foreach (var result in indexResult.Results)
+                {
+                    if (!result.Succeeded)
+                    {
+                        errors.Add(new IndexError {Key = result.Key, ErrorMessage = result.ErrorMessage});
+                    }
+                }
+            }
 
-            var batch = new IndexBatch<T>(documents.Select(IndexAction.MergeOrUpload));
-            var indexResult = await client.Documents.IndexAsync(batch);
-
-            return indexResult.Results?.Where(x => !x.Succeeded).Select(x => new IndexError{ Key = x.Key, ErrorMessage = x.ErrorMessage});
+            return errors;
 
         }
     }
