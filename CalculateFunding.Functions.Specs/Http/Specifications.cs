@@ -47,12 +47,12 @@ namespace CalculateFunding.Functions.Specs.Http
             {
                 var budget = await repository.ReadAsync(specificationId);
                 if (budget == null) return new NotFoundResult();
-                return new OkObjectResult(JsonConvert.SerializeObject(budget, SerializerSettings));
+                return new JsonResult(budget, SerializerSettings);
 
             }
 
             var budgets = repository.Query().ToList();
-            return new OkObjectResult(JsonConvert.SerializeObject(budgets, SerializerSettings));
+            return new JsonResult(budgets, SerializerSettings);
             
         }
 
