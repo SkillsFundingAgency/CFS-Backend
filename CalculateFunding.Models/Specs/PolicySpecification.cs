@@ -10,5 +10,8 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("calculations")]
         public List<CalculationSpecification> Calculations { get; set; }
+
+        [JsonProperty("subPolicies")]
+        public List<PolicySpecification> SubPolicies { get; set; }
     }
 }
