@@ -7,17 +7,13 @@ namespace CalculateFunding.Repositories.Providers
     public abstract class ProviderBaseEntity : DbEntity
     {
         [Required]
-        public string URN { get; set; }
-        [Required]
         public string UKPRN { get; set; }
-
+        [Required]
+        public string URN { get; set; }
         public string Name { get; set; }
-
         public string Authority { get; set; }
-
         public DateTimeOffset? OpenDate { get; set; }
         public DateTimeOffset? CloseDate { get; set; }
-
         public string EstablishmentNumber { get; set; }
         public string EstablishmentName { get; set; }
         public string EstablishmentType { get; set; }

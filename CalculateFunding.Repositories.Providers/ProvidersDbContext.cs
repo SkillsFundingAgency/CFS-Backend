@@ -19,10 +19,10 @@ namespace CalculateFunding.Repositories.Providers
         {
         }
 
-        public async Task<IEnumerable<ProviderEventEntity>> Upsert(long commandId, IEnumerable<ProviderCommandCandidateEntity> candidates)
+        public async Task<IEnumerable<ProviderEventEntity>> Upsert(long commandId, IEnumerable<ProviderCandidateEntity> candidates)
         {
             var stopwatch = new Stopwatch();
-            await BulkInsert("dbo.ProviderCommandCandidates", candidates);
+            await BulkInsert("dbo.ProviderCandidates", candidates);
 
             stopwatch.Stop();
             Console.WriteLine($"Bulk Insert in {stopwatch.ElapsedMilliseconds}ms");
@@ -33,7 +33,7 @@ namespace CalculateFunding.Repositories.Providers
                 CommandIdColumnName = "ProviderCommandId",
                 KeyColumnName = "URN",
                 ColumnNames = typeof(ProviderEntity).GetProperties().Select(x => x.Name.ToString()).ToList(),
-                SourceTableName = "ProviderCommandCandidates",
+                SourceTableName = "ProviderCandidates",
                 TargetTableName = "Providers"
             };
             var statement = merge.GetMergeStatement();
@@ -49,35 +49,35 @@ namespace CalculateFunding.Repositories.Providers
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ProviderEntity>()
-                .HasKey(c => c.URN);
+                .HasKey(c => c.UKPRN);
 
 
             modelBuilder.Entity<ProviderEntity>()
-                .HasIndex(b => b.URN);
+                .HasIndex(b => b.UKPRN);
 
             modelBuilder.Entity<ProviderCommandEntity>()
                 .HasKey(b => b.Id);
 
-            modelBuilder.Entity<ProviderCommandCandidateEntity>()
-                .HasKey(c => new { c.ProviderCommandId, c.URN });
+            modelBuilder.Entity<ProviderCandidateEntity>()
+                .HasKey(c => new { c.ProviderCommandId, c.UKPRN });
 
 
             modelBuilder.Entity<ProviderEventEntity>()
-                .HasIndex(b => new { b.ProviderCommandId, b.URN });
+                .HasIndex(b => new { b.ProviderCommandId, b.UKPRN });
 
             modelBuilder.Entity<ProviderEventEntity>()
-                .HasKey(c => new { c.ProviderCommandId, c.URN });
+                .HasKey(c => new { c.ProviderCommandId, c.UKPRN });
 
 
-            modelBuilder.Entity<ProviderCommandCandidateEntity>()
-                .HasIndex(b => new{ b.ProviderCommandId, b.URN});
+            modelBuilder.Entity<ProviderCandidateEntity>()
+                .HasIndex(b => new{ b.ProviderCommandId, b.UKPRN});
 
         }
 
         public DbSet<ProviderEntity> Providers { get; set; }
         public DbSet<ProviderEventEntity> ProviderEvents { get; set; }
         public DbSet<ProviderCommandEntity> ProviderCommands { get; set; }
-        public DbSet<ProviderCommandCandidateEntity> ProviderCommandCandidates { get; set; }
+        public DbSet<ProviderCandidateEntity> ProviderCandidates { get; set; }
 
     }
 }

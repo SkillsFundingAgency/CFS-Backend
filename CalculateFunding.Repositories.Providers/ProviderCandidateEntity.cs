@@ -1,6 +1,6 @@
 ﻿namespace CalculateFunding.Repositories.Providers
 {
-    public class ProviderCommandCandidateEntity : ProviderBaseEntity
+    public class ProviderCandidateEntity : ProviderBaseEntity
     {
         public virtual ProviderEntity Provider { get; set; }
         public long ProviderCommandId { get; set; }

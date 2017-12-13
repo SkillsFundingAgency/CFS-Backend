@@ -11,6 +11,8 @@ namespace CalculateFunding.Repositories.Providers
         {
             
             AutoMap();
+            Map(m => m.UKPRN).Name("URN");
+            Map(m => m.UKPRN).Name("URN");
             Map(m => m.Name).Name("EstablishmentName");
             //Map(m => m.Authority.Id).Name("LA (code)");
             Map(m => m.Authority).Name("LA (name)");

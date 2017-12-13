@@ -11,7 +11,7 @@ namespace CalculateFunding.Repositories.Providers
 
     public class EdubaseImporterService
     {
-        public IEnumerable<ProviderCommandCandidateEntity> ImportEdubaseCsv(string name, StreamReader reader)
+        public IEnumerable<ProviderCandidateEntity> ImportEdubaseCsv(string name, StreamReader reader)
         {
 
             using (var csvReader = new CsvReader(reader))
@@ -19,7 +19,7 @@ namespace CalculateFunding.Repositories.Providers
                 csvReader.Configuration.HeaderValidated = null;
                 csvReader.Configuration.MissingFieldFound = null;
                 csvReader.Configuration.RegisterClassMap<EdubaseRecordMap>();
-                var records = csvReader.GetRecords<ProviderCommandCandidateEntity>();
+                var records = csvReader.GetRecords<ProviderCandidateEntity>();
                 foreach (var record in records)
                 {
                     yield return record;

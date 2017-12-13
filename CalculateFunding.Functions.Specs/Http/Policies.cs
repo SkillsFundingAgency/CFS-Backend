@@ -12,9 +12,9 @@ using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace CalculateFunding.Functions.Specs
+namespace CalculateFunding.Functions.Specs.Http
 {
-    public static class Budgets
+    public static class Policies
     {
         private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
         {
@@ -23,7 +23,7 @@ namespace CalculateFunding.Functions.Specs
 
         };
 
-        [FunctionName("budgets")]
+        [FunctionName("policies")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", "get")] HttpRequest req, TraceWriter log)
         {

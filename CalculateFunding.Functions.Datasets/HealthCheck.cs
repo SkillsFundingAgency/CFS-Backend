@@ -13,16 +13,16 @@ namespace CalculateFunding.Functions.Datasets
     public static class HealthCheck
     {
         [FunctionName("health-check")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
+        public static HttpResponseMessage Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
         {
             var versionNumber = typeof(Budget).Assembly.GetName().Version;
 
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(JsonConvert.SerializeObject(new
-                    {
+                {
                     versionNumber
-                    },
+                },
                     new JsonSerializerSettings
                     {
                         ContractResolver = new CamelCasePropertyNamesContractResolver(),

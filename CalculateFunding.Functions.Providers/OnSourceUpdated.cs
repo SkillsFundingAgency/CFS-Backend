@@ -42,7 +42,7 @@ namespace CalculateFunding.Functions.Providers
                 log.Info($"Read {name} in {stopWatch.ElapsedMilliseconds}ms");
                 stopWatch.Restart();
 
-                var events = (await dbContext.Upsert(addResult.Entity.Id, providers)).ToList();
+                var events = (await dbContext.Upsert(addResult.Entity.Id, providers.Where(x => !string.IsNullOrEmpty(x.UKPRN)))).ToList();
 
                 stopWatch.Stop();
                 log.Info($"Bulk Inserted with {events.Count} changes in {stopWatch.ElapsedMilliseconds}ms");

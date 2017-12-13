@@ -62,7 +62,9 @@ namespace CalculateFunding.EndToEnd
                                 Console.WriteLine($"Read {file} in {stopWatch.ElapsedMilliseconds}ms");
                                 stopWatch.Restart();
 
-                                var events = (await dbContext.Upsert(addResult.Entity.Id, providers)).ToList();
+                                var list = providers.ToList();
+
+                                var events = (await dbContext.Upsert(addResult.Entity.Id, list.Where(x => !string.IsNullOrEmpty(x.UKPRN)))).ToList();
 
                                 stopWatch.Stop();
                                 Console.WriteLine($"Bulk Inserted with {events.Count} changes in {stopWatch.ElapsedMilliseconds}ms");
