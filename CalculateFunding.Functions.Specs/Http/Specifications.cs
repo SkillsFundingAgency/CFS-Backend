@@ -68,6 +68,7 @@ namespace CalculateFunding.Functions.Specs.Http
             }
 
             var repository = ServiceFactory.GetService<Repository<Specification>>();
+            await repository.EnsureCollectionExists();
             await repository.CreateAsync(item);
 
             return new AcceptedResult();

@@ -104,7 +104,6 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                     queryOptions);
             }
             return _documentClient.CreateDocumentQuery<T>(_collectionUri, queryOptions);
-
         }
 
         public IEnumerable<string> QueryAsJson(string directSql = null, int maxItemCount = -1)
