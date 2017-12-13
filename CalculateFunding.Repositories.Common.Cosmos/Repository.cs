@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -13,9 +11,9 @@ using Microsoft.Azure.Documents.Linq;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace CalculateFunding.Repository
+namespace CalculateFunding.Repositories.Common.Cosmos
 {
-    public class Repository<T>  where T : DocumentEntity
+    public class Repository<T>  where T : Reference
     {
         private readonly ILogger _logger;
         private readonly string _collectionName;
@@ -72,25 +70,24 @@ namespace CalculateFunding.Repository
             }
         }
 
-        public IQueryable<T> Read(int maxItemCount = 1000)
+        public IQueryable<DocumentEntity<T>> Read(int maxItemCount = 1000)
         {
-
             // Set some common query options
             var queryOptions = new FeedOptions { MaxItemCount = maxItemCount };
 
-            return _documentClient.CreateDocumentQuery<T>(_collectionUri, queryOptions).Where(x => x.DocumentType == _documentType && !x.Deleted);
+            return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == _documentType && !x.Deleted);
         }
 
-        public async Task<T> ReadAsync(string id)
+        public async Task<DocumentEntity<T>> ReadAsync(string id)
         {
             // Here we find the Andersen family via its LastName
-            var response = await Read(maxItemCount: 1).Where(x => x.Id == id).AsDocumentQuery().ExecuteNextAsync<T>();
+            var response = await Read(maxItemCount: 1).Where(x => x.Id == id).AsDocumentQuery().ExecuteNextAsync< DocumentEntity<T>>();
             return response.FirstOrDefault();
         }
 
-        public async Task<TSpecific> ReadAsync<TSpecific>(string id) where TSpecific : T
+        public async Task<DocumentEntity<TSpecific>> ReadAsync<TSpecific>(string id) where TSpecific : T
         {
-            var response = await _documentClient.CreateDocumentQuery<TSpecific>(_collectionUri, new FeedOptions { MaxItemCount = 1 }).Where(x => x.Id == id && x.DocumentType == _documentType && !x.Deleted).AsDocumentQuery().ExecuteNextAsync<TSpecific>(); ;
+            var response = await _documentClient.CreateDocumentQuery<DocumentEntity<TSpecific>>(_collectionUri, new FeedOptions { MaxItemCount = 1 }).Where(x => x.Id == id && x.DocumentType == _documentType && !x.Deleted).AsDocumentQuery().ExecuteNextAsync<DocumentEntity<TSpecific>>(); ;
             return response.FirstOrDefault();
         }
 
@@ -126,19 +123,22 @@ namespace CalculateFunding.Repository
 
         public async Task<HttpStatusCode> DeleteAsync(string id)
         {
-            var entity = await ReadAsync(id);
-            entity.Deleted = true;
-            return await UpdateAsync(entity);
+            var doc = await ReadAsync(id);
+            doc.Deleted = true;
+            var response = await _documentClient.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseName, _collectionName, doc.Id), doc);
+            return response.StatusCode;
         }
 
 
         public async Task<HttpStatusCode> CreateAsync<TAny>(TAny entity) where TAny : T
         {
-
-            entity.DocumentType = _documentType; // in case not specified
-            entity.CreatedAt = DateTime.UtcNow;
-            entity.UpdatedAt = DateTime.UtcNow;
-            var response = await _documentClient.UpsertDocumentAsync(_collectionUri, entity);
+            var doc = new DocumentEntity<TAny>(entity)
+            {
+                DocumentType = _documentType,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            var response = await _documentClient.UpsertDocumentAsync(_collectionUri, doc);
             return response.StatusCode;
         }
 
@@ -166,13 +166,14 @@ namespace CalculateFunding.Repository
 
         public async Task<HttpStatusCode> UpdateAsync<TAny>(TAny entity) where TAny : T
         {
-            if (entity.DocumentType != null && entity.DocumentType != _documentType)
+            var doc = new DocumentEntity<TAny>(entity);
+            if (doc.DocumentType != null && doc.DocumentType != _documentType)
             {
-                throw new ArgumentException($"Cannot change {entity.Id} from {entity.DocumentType} to {typeof(T).Name}");
+                throw new ArgumentException($"Cannot change {entity.Id} from {doc.DocumentType} to {typeof(T).Name}");
             }
-            entity.DocumentType = _documentType; // in case not specified
-            entity.UpdatedAt = DateTime.UtcNow;
-            var response = await _documentClient.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseName, _collectionName, entity.Id), entity);
+            doc.DocumentType = _documentType; // in case not specified
+            doc.UpdatedAt = DateTime.UtcNow;
+            var response = await _documentClient.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseName, _collectionName, entity.Id), doc);
             return response.StatusCode;
         }
 

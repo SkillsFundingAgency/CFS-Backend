@@ -4,7 +4,7 @@ using System.Web.Http;
 using CalculateFunding.Functions.Common;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repository;
+using CalculateFunding.Repositories.Common.Cosmos;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -60,7 +60,7 @@ namespace CalculateFunding.Functions.Results
             }).SelectMany(x => x.ProductResults).GroupBy(x => x.AllocationLineId).ToDictionary(x => x.Key);
 
             var budget = await repository.ReadAsync(budgetId);
-            var allocationLine = budget?.GetAllocationLine(allocationLineId);
+            var allocationLine = budget?.Content?.GetAllocationLine(allocationLineId);
             if (allocationLine == null) return new NotFoundResult();
 
             foreach (var productFolder in allocationLine.ProductFolders)

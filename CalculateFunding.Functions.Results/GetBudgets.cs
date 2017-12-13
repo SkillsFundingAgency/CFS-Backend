@@ -8,7 +8,7 @@ using CalculateFunding.Functions.Common;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repository;
+using CalculateFunding.Repositories.Common.Cosmos;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;

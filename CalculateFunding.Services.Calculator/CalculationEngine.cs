@@ -5,7 +5,7 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repository;
+using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Vocab;
@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Calculator
         {
             var allocationFactory = new AllocationFactory(compilerOutput.Assembly);
 
-                var datasetsByUrn = _providerSourceRepository.Query().Where(x => x.DocumentType == "ProviderSourceDataset" && x.BudgetId == compilerOutput.Budget.Id).ToArray().GroupBy(x => x.ProviderUrn);
+                var datasetsByUrn = _providerSourceRepository.Query().Where(x =>  x.BudgetId == compilerOutput.Budget.Id).ToArray().GroupBy(x => x.ProviderUrn);
 
                 foreach (var urn in datasetsByUrn)
                 {

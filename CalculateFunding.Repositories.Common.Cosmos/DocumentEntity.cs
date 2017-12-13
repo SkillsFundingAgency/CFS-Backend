@@ -1,24 +1,29 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
+using CalculateFunding.Models;
 using Newtonsoft.Json;
 
-namespace CalculateFunding.Models
+namespace CalculateFunding.Repositories.Common.Cosmos
 {
-
     [DataContract]
-    public abstract class DocumentEntity
+    public class DocumentEntity<T> where T : Reference
     {
-        protected DocumentEntity()
+        public DocumentEntity(T content = null)
         {
-            DocumentType = GetType().Name;
+            DocumentType = typeof(T).Name;
+            Content = content;
         }
+
         [JsonProperty("id")]
         [Key]
-        public abstract string Id { get; }
+        public string Id => Content?.Id;
 
         [JsonProperty("documentType")]
         public string DocumentType { get; set; }
+
+        [JsonProperty("content")]
+        public T Content { get; set; }
 
         [JsonProperty("createdAt")]
         public DateTime CreatedAt { get; set; }

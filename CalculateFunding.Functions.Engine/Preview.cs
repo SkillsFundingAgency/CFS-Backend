@@ -6,7 +6,7 @@ using CalculateFunding.Functions.Common;
 using CalculateFunding.Functions.Engine.Models;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repository;
+using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Compiler;
 using Microsoft.Azure.WebJobs;
@@ -32,7 +32,7 @@ namespace CalculateFunding.Functions.Engine
 
             var request = JsonConvert.DeserializeObject<PreviewRequest>(json, SerializerSettings);
             var budget = await budgetRepository.ReadAsync(request.BudgetId);
-            var product = budget.GetProduct(request.ProductId);
+            var product = budget?.Content.GetProduct(request.ProductId);
             if (product == null) return new HttpResponseMessage(HttpStatusCode.NotFound);
 
             if (!string.IsNullOrWhiteSpace(request.Calculation))
@@ -46,7 +46,7 @@ namespace CalculateFunding.Functions.Engine
                 product.TestScenarios = new List<ProductTestScenario>{ request.TestScenario};
             }
             var compiler = ServiceFactory.GetService<BudgetCompiler>();
-            var compilerOutput = compiler.GenerateAssembly(budget);
+            var compilerOutput = compiler.GenerateAssembly(budget.Content);
                 
 
             var viewModel = new PreviewResponse()

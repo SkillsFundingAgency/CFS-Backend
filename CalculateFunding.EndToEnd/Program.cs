@@ -2,7 +2,6 @@
 using CalculateFunding.Functions.Common;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Providers;
-using CalculateFunding.Repository;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.DataImporter;
@@ -19,6 +18,7 @@ using AutoMapper;
 using CalculateFunding.Repositories.Common.Sql;
 using CalculateFunding.Functions.Providers;
 using CalculateFunding.Models.Providers;
+using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 
 namespace CalculateFunding.EndToEnd

@@ -1,9 +1,9 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
+using CalculateFunding.Functions.Common;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repository;
+using CalculateFunding.Repositories.Common.Cosmos;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -27,7 +27,7 @@ namespace CalculateFunding.Functions.Specs.Http
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", "get")] HttpRequest req, TraceWriter log)
         {
-            req.Query.TryGetValue("budgetId", out var budgetId);
+            req.Query.TryGetValue("specificationId", out var specificationId);
 
 
             if (req.Method == "POST")
@@ -35,17 +35,17 @@ namespace CalculateFunding.Functions.Specs.Http
                 return await OnPost(req);
             }
 
-            return await OnGet(budgetId.FirstOrDefault());
+            return await OnGet(specificationId.FirstOrDefault());
 
         }
 
-        private static async Task<IActionResult> OnGet(string budgetId)
+        private static async Task<IActionResult> OnGet(string specificationId)
         {
-            var repository = GetRepository();
-            
-            if (budgetId != null)
+            var repository = ServiceFactory.GetService<Repository<Specification>>();
+
+            if (specificationId != null)
             {
-                var budget = await repository.ReadAsync(budgetId);
+                var budget = await repository.ReadAsync(specificationId);
                 if (budget == null) return new NotFoundResult();
                 return new OkObjectResult(JsonConvert.SerializeObject(budget, SerializerSettings));
 
@@ -60,28 +60,17 @@ namespace CalculateFunding.Functions.Specs.Http
         {
             var json = await req.ReadAsStringAsync();
 
-            var budget = JsonConvert.DeserializeObject<Budget>(json, SerializerSettings);
+            var item = JsonConvert.DeserializeObject<Specification>(json, SerializerSettings);
 
-            if (budget == null)
+            if (item == null)
             {
                 return new BadRequestErrorMessageResult("Please ensure budget is passed in the request body");
             }
 
-            var repository = GetRepository();
-            await repository.CreateAsync(budget);
+            var repository = ServiceFactory.GetService<Repository<Specification>>();
+            await repository.CreateAsync(item);
 
             return new AcceptedResult();
-        }
-
-        private static Repository<Budget> GetRepository()
-        {
-            var repository = new Repository<Budget>(new RepositorySettings
-            {
-                ConnectionString = Environment.GetEnvironmentVariable(""),
-                CollectionName = "specs",
-                DatabaseName = "calculate-funding"
-            }, null);
-            return repository;
         }
     }
 

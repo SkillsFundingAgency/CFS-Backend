@@ -3,7 +3,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using CalculateFunding.Repository;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.DataImporter;
 using System;
@@ -11,6 +10,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Functions.Common;
+using CalculateFunding.Repositories.Common.Cosmos;
 
 namespace CalculateFunding.Functions.PerformanceTesting
 {

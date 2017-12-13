@@ -2,10 +2,8 @@
 
 namespace CalculateFunding.Models.Results
 {
-    public class ProviderResult : DocumentEntity
+    public class ProviderResult : Reference
     {
-        public override string Id => $"{DocumentType}-{Budget.Id}-{Provider.Id}".ToSlug();
-
         [JsonProperty("budget")]
         public Reference Budget { get; set; }
         [JsonProperty("provider")]

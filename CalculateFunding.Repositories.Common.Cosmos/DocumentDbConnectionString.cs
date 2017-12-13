@@ -5,7 +5,7 @@ using Microsoft.Azure.Documents.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace CalculateFunding.Repository
+namespace CalculateFunding.Repositories.Common.Cosmos
 {
     public static class DocumentDbConnectionString
     {

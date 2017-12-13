@@ -1,4 +1,4 @@
-﻿namespace CalculateFunding.Repository
+﻿namespace CalculateFunding.Repositories.Common.Cosmos
 {
     public class RepositorySettings
     {

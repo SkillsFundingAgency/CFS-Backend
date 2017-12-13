@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repository;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Compiler;
 using Microsoft.Azure.WebJobs;

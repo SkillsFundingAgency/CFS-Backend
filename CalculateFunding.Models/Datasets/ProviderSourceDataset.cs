@@ -2,10 +2,8 @@
 
 namespace CalculateFunding.Models.Datasets
 {
-    public class ProviderSourceDataset : DocumentEntity
+    public class ProviderSourceDataset : Reference
     {
-        public override string Id => $"{BudgetId}-{ProviderUrn}-{DatasetName}".ToSlug();
-
         [JsonProperty("budgetId")]
         public string BudgetId { get; set; }
         [JsonProperty("providerUrn")]

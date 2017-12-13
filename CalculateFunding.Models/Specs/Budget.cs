@@ -3,12 +3,8 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs
 {
-    public class Budget : DocumentEntity
+    public class Budget : Reference
     {
-        public override string Id => $"{DocumentType}-{Acronym}".ToSlug();
-
-        [JsonProperty("name")]
-        public string Name { get; set; }
 
         [JsonProperty("acronym")]
         public string Acronym { get; set; }

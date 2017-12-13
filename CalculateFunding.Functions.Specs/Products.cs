@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repository;
+using CalculateFunding.Repositories.Common.Cosmos;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -49,7 +49,7 @@ namespace CalculateFunding.Functions.Specs
         {
             var repository = GetRepository();
             var budget = await repository.ReadAsync(budgetId);
-                var product = budget?.GetProduct(productId);
+                var product = budget.Content?.GetProduct(productId);
                 if (product == null) return new NotFoundResult();
 
                 return new JsonResult(product);
@@ -71,7 +71,7 @@ namespace CalculateFunding.Functions.Specs
             
             var budget = await repository.ReadAsync(budgetId);
 
-            var existing = budget.GetProduct(product.Id);
+            var existing = budget.Content.GetProduct(product.Id);
             if (existing != null)
             {
                 existing.Name = product.Name;
@@ -85,7 +85,7 @@ namespace CalculateFunding.Functions.Specs
                 // TODO create
             }
 
-            await repository.CreateAsync(budget);
+            await repository.CreateAsync(budget.Content);
             
 
             return new AcceptedResult();

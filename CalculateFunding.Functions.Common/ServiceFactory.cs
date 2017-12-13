@@ -4,9 +4,9 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Providers;
-using CalculateFunding.Repository;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.CSharp;
@@ -52,7 +52,7 @@ namespace CalculateFunding.Functions.Common
                 //.Configure<RepositorySettings>(settings => config.GetSection("ResultsRepository"))
                 //.Configure<RepositorySettings>(settings => config.GetSection("Configuration"))
                 .AddDbContext<ProvidersDbContext>(options => options.UseSqlServer(config["ProvidersConnectionString"], sqlServerOptions => sqlServerOptions.CommandTimeout(60 * 3)))
-                .AddSingleton(new Repository<Budget>(new RepositorySettings
+                .AddSingleton(new Repository<Specification>(new RepositorySettings
                 {
                     ConnectionString = config["CosmosDBConnectionString"],
                     DatabaseName = "calculate-funding",

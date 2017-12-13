@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using CalculateFunding.Functions.Common;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search;

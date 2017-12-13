@@ -34,9 +34,8 @@ namespace CalculateFunding.Models.Providers
 
     }
 
-    public class Command<T> : DocumentEntity
+    public class Command<T> : Reference
     {
-        public override string Id => Guid.NewGuid().ToString("N");
 
         [JsonProperty("eventDate")]
         public DateTime EventDate { get; set; }
