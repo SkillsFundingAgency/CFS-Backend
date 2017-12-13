@@ -99,11 +99,11 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             if (!string.IsNullOrEmpty(directSql))
             {
                 // Here we find the Andersen family via its LastName
-                return _documentClient.CreateDocumentQuery<T>(_collectionUri,
+                return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri,
                     directSql,
-                    queryOptions);
+                    queryOptions).Select(x => x.Content).AsQueryable();
             }
-            return _documentClient.CreateDocumentQuery<T>(_collectionUri, queryOptions);
+            return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Select(x => x.Content).AsQueryable();
         }
 
         public IEnumerable<string> QueryAsJson(string directSql = null, int maxItemCount = -1)
@@ -116,7 +116,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             foreach (var document in documents)
             {
                 dynamic json = document;
-                yield return JsonConvert.SerializeObject(json);
+                yield return JsonConvert.SerializeObject(json.Content); // haven't tried this yet!
             }
         }
 
