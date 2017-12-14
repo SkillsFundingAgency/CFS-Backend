@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -9,7 +10,7 @@ namespace CalculateFunding.Services.Compiler.CSharp
 {
     public class ProductTypeGenerator : CSharpTypeGenerator
     {
-        public CompilationUnitSyntax GenerateCalcs(Budget budget)
+        public CompilationUnitSyntax GenerateCalcs(Implementation budget)
         {
             return SyntaxFactory.CompilationUnit()
                 .WithUsings(StandardUsings())
@@ -20,34 +21,31 @@ namespace CalculateFunding.Services.Compiler.CSharp
                 .NormalizeWhitespace();
         }
 
-        private static IEnumerable<ClassDeclarationSyntax> Classes(Budget budget)
+        private static IEnumerable<ClassDeclarationSyntax> Classes(Implementation budget)
         {
-            foreach (var fundingPolicy in budget.FundingPolicies)
+            foreach (var calculation in budget.Calculations)
             {
-                foreach (var allocationLine in fundingPolicy.AllocationLines)
-                {
-                    yield return SyntaxFactory.ClassDeclaration(Identifier("ProductCalculations"))
-                        .WithModifiers(
-                            SyntaxFactory.TokenList(
-                                SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                                SyntaxFactory.Token(SyntaxKind.PartialKeyword)))
-                        .WithMembers(
-                            SyntaxFactory.List<MemberDeclarationSyntax>(budget.DatasetDefinitions.Select(GetMembers)
-                            ));
+                yield return SyntaxFactory.ClassDeclaration(Identifier("ProductCalculations"))
+                    .WithModifiers(
+                        SyntaxFactory.TokenList(
+                            SyntaxFactory.Token(SyntaxKind.PublicKeyword),
+                            SyntaxFactory.Token(SyntaxKind.PartialKeyword)))
+                    .WithMembers(
+                        SyntaxFactory.List<MemberDeclarationSyntax>(budget.DatasetDefinitions.Select(GetMembers)
+                        ));
 
-                        foreach (var partialClass in GetProductPartials(allocationLine))
-                    {
-                        yield return partialClass;
-                    }
+                foreach (var partialClass in GetProductPartials(calculation))
+                {
+                    yield return partialClass;
                 }
             }
         }
 
-        private static MethodDeclarationSyntax GetMethod(Product product)
+        private static MethodDeclarationSyntax GetMethod(CalculationImplementation product)
         {
-            if (product.Calculation?.SourceCode != null)
+            if (product?.SourceCode != null)
             {
-                var tree = SyntaxFactory.ParseSyntaxTree(product.Calculation.SourceCode);
+                var tree = SyntaxFactory.ParseSyntaxTree(product.SourceCode);
 
                 var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>()
                     .FirstOrDefault();
@@ -58,12 +56,8 @@ namespace CalculateFunding.Services.Compiler.CSharp
             return null;
         }
 
-        private static IEnumerable<ClassDeclarationSyntax> GetProductPartials(AllocationLine allocationLine)
+        private static IEnumerable<ClassDeclarationSyntax> GetProductPartials(CalculationImplementation calc)
         {
-            foreach (var productFolder in allocationLine.ProductFolders)
-            {
-                foreach (var product in productFolder.Products)
-                {
                     var partialClass = SyntaxFactory.ClassDeclaration(Identifier("ProductCalculations"))
 
                         .WithModifiers(
@@ -71,7 +65,7 @@ namespace CalculateFunding.Services.Compiler.CSharp
                                 SyntaxFactory.Token(SyntaxKind.PublicKeyword),
                                 SyntaxFactory.Token(SyntaxKind.PartialKeyword)))
                         .WithMembers(
-                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(GetMethod(product)));
+                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(GetMethod(calc)));
                     if (partialClass == null)
                     {
                         partialClass = SyntaxFactory.ClassDeclaration(Identifier("ProductCalculations"))
@@ -83,7 +77,7 @@ namespace CalculateFunding.Services.Compiler.CSharp
                             .WithMembers(
                                 SyntaxFactory.SingletonList<MemberDeclarationSyntax>(SyntaxFactory.MethodDeclaration(
                                         SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DecimalKeyword)),
-                                        Identifier(Identifier(product.Name)))
+                                        Identifier(Identifier(calc.Name)))
                                     .WithModifiers(
                                         SyntaxFactory.TokenList(
                                             SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
@@ -100,7 +94,7 @@ namespace CalculateFunding.Services.Compiler.CSharp
                                                                         SyntaxFactory.LiteralExpression(
                                                                             SyntaxKind.StringLiteralExpression,
                                                                             SyntaxFactory.Literal(
-                                                                                $"{product.Name} is not implemented"))))))))))
+                                                                                $"{calc.Name} is not implemented"))))))))))
                             ));
 
 
@@ -109,8 +103,6 @@ namespace CalculateFunding.Services.Compiler.CSharp
                     yield return partialClass;
 
                   
-                }
-            }
         }
 
         private static PropertyDeclarationSyntax GetMembers(DatasetDefinition datasetDefinition)

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
@@ -18,7 +19,7 @@ namespace CalculateFunding.Services.Compiler
         {
             Logger = logger;
         }
-        public BudgetCompilerOutput GenerateCode(Budget budget)
+        public CompilerOutput GenerateCode(Implementation budget)
         {
             MetadataReference[] references = {
                 AssemblyMetadata.CreateFromFile(typeof(object).Assembly.Location).GetReference()
@@ -45,7 +46,7 @@ namespace CalculateFunding.Services.Compiler
             }
         }
 
-        protected BudgetCompilerOutput GenerateCode(Budget budget, MetadataReference[] references, MemoryStream ms)
+        protected CompilerOutput GenerateCode(Implementation budget, MetadataReference[] references, MemoryStream ms)
         {
             var stopwatch = new Stopwatch();
 
@@ -57,9 +58,9 @@ namespace CalculateFunding.Services.Compiler
             stopwatch.Restart();
             var result = GenerateCode(references, ms, datasetSyntaxTree, productSyntaxTree);
 
-            var compilerOutput = new BudgetCompilerOutput
+            var compilerOutput = new CompilerOutput
             {
-                Budget = budget,
+                Implementation = budget,
                 //DatasetSourceCode = datasetSyntaxTrees.Select(x => x.ToString()).ToArray(),
                 CalculationSourceCode = productSyntaxTree.ToString()
             };
@@ -89,8 +90,8 @@ namespace CalculateFunding.Services.Compiler
         }
 
         protected abstract EmitResult GenerateCode(MetadataReference[] references, MemoryStream ms, SyntaxTree datasetSyntaxTree, SyntaxTree calcSyntaxTree);
-        protected abstract SyntaxTree GenerateProductSyntaxTree(Budget budget);
-        protected abstract SyntaxTree GenerateDatasetSyntaxTree(Budget budget);
+        protected abstract SyntaxTree GenerateProductSyntaxTree(Implementation budget);
+        protected abstract SyntaxTree GenerateDatasetSyntaxTree(Implementation budget);
         public abstract string GetIdentifier(string name);
 
 

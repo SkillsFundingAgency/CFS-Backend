@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -10,7 +11,7 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
 {
     public class ProductTypeGenerator : VisualBasicTypeGenerator
     {
-        public CompilationUnitSyntax GenerateCalcs(Budget budget)
+        public CompilationUnitSyntax GenerateCalcs(Implementation budget)
         {
             return SyntaxFactory.CompilationUnit()
                 .WithImports(StandardImports())
@@ -33,38 +34,24 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
                 .NormalizeWhitespace();
         }
 
-        private static IEnumerable<StatementSyntax> Methods(Budget budget)
+        private static IEnumerable<StatementSyntax> Methods(Implementation budget)
         {
             foreach (var budgetDatasetDefinition in budget.DatasetDefinitions)
             {
                 yield return GetDatasetProperties(budgetDatasetDefinition);
             }
-            foreach (var fundingPolicy in budget.FundingPolicies)
+            foreach (var calc in budget.Calculations)
             {
-                foreach (var allocationLine in fundingPolicy.AllocationLines ?? new List<AllocationLine>())
-                {
-                    foreach (var partialClass in GetMethods(allocationLine))
-                    {
-                        yield return partialClass;
-                    }
-
-                }
+                yield return GetMethod(calc);
             }
         }
 
-        private static IEnumerable<StatementSyntax> GetMethodStatements(Product product)
-        {
-            var tree = SyntaxFactory.ParseSyntaxTree(/*product.Calculation.SourceCode ?? */$"Throw new NotImplementedException(\"{product.Name} is not implemented\")");
 
-
-            return tree?.GetRoot()?.DescendantNodes()?.OfType<StatementSyntax>();     
-        }
-
-        private static StatementSyntax GetMethod(Product product)
+        private static StatementSyntax GetMethod(CalculationImplementation product)
         {
             var builder = new StringBuilder();
             builder.AppendLine($"Public Function {Identifier(product.Name)} As Decimal");
-            builder.Append(product.Calculation.SourceCode ?? "Throw new NotImplementedException(\"{product.Name} is not implemented\")");
+            builder.Append(product.SourceCode ?? "Throw new NotImplementedException(\"{product.Name} is not implemented\")");
             builder.AppendLine();
             builder.AppendLine("End Function");
             builder.AppendLine();
@@ -75,17 +62,7 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
         }
 
 
-        private static IEnumerable<StatementSyntax> GetMethods(AllocationLine allocationLine)
-        {
-            foreach (var productFolder in allocationLine.ProductFolders ?? new List<ProductFolder>())
-            {
-                foreach (var product in productFolder.Products ?? new List<Product>())
-                {
-                    var method = GetMethod(product);
-                    yield return method;
-                }
-            }
-        }
+ 
 
         private static StatementSyntax GetDatasetProperties(DatasetDefinition datasetDefinition)
         {

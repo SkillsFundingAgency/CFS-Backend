@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -27,24 +28,27 @@ namespace CalculateFunding.Functions.Calcs
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestMessage req, TraceWriter log, ExecutionContext context)
         {
 
-            var budgetRepository = ServiceFactory.GetService<Repository<Budget>>();
+            var budgetRepository = ServiceFactory.GetService<Repository<Implementation>>();
             
             var json = await req.Content.ReadAsStringAsync();
 
             var request = JsonConvert.DeserializeObject<PreviewRequest>(json, SerializerSettings);
             var budget = await budgetRepository.ReadAsync(request.BudgetId);
-            var product = budget?.Content.GetProduct(request.ProductId);
+            var product = budget?.Content?.Calculations.FirstOrDefault(x => x.Id == request.ProductId);
             if (product == null) return new HttpResponseMessage(HttpStatusCode.NotFound);
 
             if (!string.IsNullOrWhiteSpace(request.Calculation))
             {
-                product.Calculation = new CalculationImplementation { SourceCode = request.Calculation};
+                product.SourceCode  = request.Calculation;
             }
+
+            var testSuite = new TestSuite();
+            var calcTest = new CalculationTest();
 
             if (request.TestScenario != null)
             {
                 // If we are given a scenario then remove everything else
-                product.TestScenarios = new List<ProductTestScenario>{ request.TestScenario};
+                calcTest.TestScenarios = new List<TestScenario>{ request.TestScenario};
             }
             var compiler = ServiceFactory.GetService<BudgetCompiler>();
             var compilerOutput = compiler.GenerateAssembly(budget.Content);
@@ -63,13 +67,13 @@ namespace CalculateFunding.Functions.Calcs
 
                 var calc = ServiceFactory.GetService<CalculationEngine>();
 
-                foreach (var testProvider in product.TestProviders ?? new List<Reference>())
+                foreach (var testProvider in testSuite.TestProviders ?? new List<Reference>())
                 {
                     var typedDatasets = await calc.GetProviderDatasets(allocationFactory, testProvider, request.BudgetId);
 
 
                     var providerResult = calc.CalculateProviderProducts(allocationFactory, compilerOutput, testProvider, typedDatasets);
-                    var testResult = calc.RunProviderTests(compilerOutput, testProvider, typedDatasets, providerResult);
+                    var testResult = calc.RunProviderTests(testSuite, testProvider, typedDatasets, providerResult);
                     viewModel.TestResults.Add(testResult);
                 }
             }

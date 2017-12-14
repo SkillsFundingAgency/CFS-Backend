@@ -18,7 +18,7 @@ namespace CalculateFunding.Functions.Specs
         [FunctionName("health-check")]
         public static IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")]HttpRequest req, TraceWriter log)
         {
-            var versionNumber = typeof(Budget).Assembly.GetName().Version;
+            var versionNumber = typeof(Specification).Assembly.GetName().Version;
 
             return new JsonResult(new
             {

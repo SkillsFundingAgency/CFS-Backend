@@ -3,13 +3,8 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Scenarios
 {
-    public class ProductTestScenario
+    public class TestScenario : Reference
     {
-        [JsonProperty("id")]
-        public string Id { get; set; }
-
-        [JsonProperty("name")]
-        public string Name { get; set; }
 
         [JsonProperty("givenSteps")]
         public List<GivenStep> GivenSteps { get; set; }

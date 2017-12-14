@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -10,7 +11,7 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
 
     public class DatasetTypeGenerator : VisualBasicTypeGenerator
     {
-        public CompilationUnitSyntax GenerateDatasets(Budget budget)
+        public CompilationUnitSyntax GenerateDatasets(Implementation budget)
         {
 
             var classes = budget.DatasetDefinitions.Select(x => SyntaxFactory.ClassBlock(

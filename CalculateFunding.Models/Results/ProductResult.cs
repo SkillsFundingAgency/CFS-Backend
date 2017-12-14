@@ -1,4 +1,5 @@
 ﻿using System;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
 using Newtonsoft.Json;
 
@@ -14,7 +15,7 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("productFolder")]
         public Reference ProductFolder { get; set; }
         [JsonProperty("product")]
-        public Product Product { get; set; }
+        public CalculationImplementation Product { get; set; }
         [JsonProperty("value")]
         public decimal? Value { get; set; }
         [JsonProperty("exception")]

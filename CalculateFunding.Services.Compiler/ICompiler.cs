@@ -1,10 +1,11 @@
-﻿using CalculateFunding.Models.Specs;
+﻿using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Services.Compiler
 {
     public interface ICompiler
     {
-        BudgetCompilerOutput GenerateCode(Budget budget);
+        CompilerOutput GenerateCode(Implementation implementation);
         string GetIdentifier(string name);
     }
 }

@@ -3,12 +3,8 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs
 {
-    public class FundingPolicy
+    public class FundingStream : Reference
     {
-        [JsonProperty("id")]
-        public  string Id => $"{Name}".ToSlug();
-        [JsonProperty("name")]
-        public string Name { get; set; }
 
         [JsonProperty("allocationLines")]
         public List<AllocationLine> AllocationLines { get; set; }

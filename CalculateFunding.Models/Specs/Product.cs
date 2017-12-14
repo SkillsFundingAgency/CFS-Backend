@@ -18,7 +18,7 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("calculation")]
         public CalculationImplementation Calculation { get; set; }
         [JsonProperty("testScenarios")]
-        public List<ProductTestScenario> TestScenarios { get; set; }
+        public List<TestScenario> TestScenarios { get; set; }
         [JsonProperty("testProviders")]
         public List<Reference> TestProviders { get; set; }
     }

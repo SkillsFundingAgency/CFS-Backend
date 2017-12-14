@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Bootstrapper;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Allocations.Boostrapper
+namespace CalculateFunding.Bootstrapper
 {
     class Program
     {

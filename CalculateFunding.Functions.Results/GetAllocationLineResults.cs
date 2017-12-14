@@ -41,7 +41,7 @@ namespace CalculateFunding.Functions.Results
 
         private static async Task<IActionResult> OnGet(string budgetId, string allocationLineId)
         {
-            var repository = ServiceFactory.GetService<Repository<Budget>>();
+            var repository = ServiceFactory.GetService<Repository<Specification>>();
             var resultsRepository = ServiceFactory.GetService<Repository<ProviderResult>>();
             var testResultsRepository = ServiceFactory.GetService<Repository<ProviderTestResult>>();
 
@@ -142,16 +142,6 @@ namespace CalculateFunding.Functions.Results
             }
             return new JsonResult(allocationLine);
 
-        }
-
-        public static AllocationLine GetAllocationLine(this Budget budget, string allocationLineId)
-        {
-            foreach (var fundingPolicy in budget.FundingPolicies)
-            {
-                var allocationLine = fundingPolicy.AllocationLines?.FirstOrDefault(x => x.Id == allocationLineId);
-                if (allocationLine != null) return allocationLine;
-            }
-            return null;
         }
     }
 }

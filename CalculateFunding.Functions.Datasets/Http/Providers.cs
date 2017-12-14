@@ -1,17 +1,14 @@
-
-using System.IO;
 using System.Threading.Tasks;
 using CalculateFunding.Functions.Common;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repositories.Common.Search;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host;
-using Newtonsoft.Json;
 
-namespace CalculateFunding.Functions.Providers
+namespace CalculateFunding.Functions.Datasets.Http
 {
     public static class Providers
     {

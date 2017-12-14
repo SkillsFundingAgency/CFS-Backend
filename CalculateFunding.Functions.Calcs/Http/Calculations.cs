@@ -1,28 +1,22 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Web.Http;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Functions.Common;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repositories.Common.Cosmos;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
-namespace CalculateFunding.Functions.Specs.Http
+namespace CalculateFunding.Functions.Calcs.Http
 {
-    public static class FundingStreams
+    public static class Calculations
     {
-        [FunctionName("funding-streams")]
+        [FunctionName("calculations")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", "get")] HttpRequest req, TraceWriter log)
         {
-            return await RestMethods<FundingStream>.Run(req, log, "specificationId");
+            return await RestMethods<CalculationImplementation>.Run(req, log, "specificationId");
         }
     }
-
 }

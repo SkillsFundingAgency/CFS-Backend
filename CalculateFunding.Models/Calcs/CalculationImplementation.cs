@@ -2,7 +2,7 @@
 
 namespace CalculateFunding.Models.Calcs
 {
-    public class CalculationImplementation
+    public class CalculationImplementation : Reference
     {
         [JsonProperty("specification")]
         public Reference Specification { get; set; }

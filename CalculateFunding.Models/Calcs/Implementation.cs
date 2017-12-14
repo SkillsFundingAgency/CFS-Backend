@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using CalculateFunding.Models.Specs;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Calcs
@@ -9,5 +11,11 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("targetLanguage")]
         public TargetLanguage TargetLanguage { get; set; }
+
+        [JsonProperty("calculations")]
+        public List<CalculationImplementation> Calculations { get; set; }
+
+        [JsonProperty("datasetDefinitions")]
+        public List<DatasetDefinition> DatasetDefinitions { get; set; }
     }
 }

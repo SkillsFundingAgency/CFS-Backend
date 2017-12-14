@@ -20,13 +20,13 @@ namespace CalculateFunding.Services.Compiler
             Compilers.Add(TargetLanguage.CSharp, cSharpCompiler);
             Compilers.Add(TargetLanguage.VisualBasic, visualBasicCompiler);
         }
-        public BudgetCompilerOutput GenerateAssembly(Budget budget)
+        public CompilerOutput GenerateAssembly(Implementation implementation)
         {
-            if (Compilers.TryGetValue(budget.TargetLanguage, out var compiler))
+            if (Compilers.TryGetValue(implementation.TargetLanguage, out var compiler))
             {
-                return compiler.GenerateCode(budget);
+                return compiler.GenerateCode(implementation);
             }
-            throw new NotImplementedException($"Language {budget.TargetLanguage} not implemented");
+            throw new NotImplementedException($"Language {implementation.TargetLanguage} not implemented");
         }
 
         public string GetIdentitier(string name, TargetLanguage targetLanguage)

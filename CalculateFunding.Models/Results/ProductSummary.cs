@@ -8,7 +8,7 @@ namespace CalculateFunding.Models.Results
 {
     public class ProductSummary : ResultSummary
     {
-        public ProductSummary(string id, string name, CalculationImplementation calculation, string description, List<ProductTestScenario> testScenarios)
+        public ProductSummary(string id, string name, CalculationImplementation calculation, string description, List<TestScenario> testScenarios)
         {
             Name = name;
             this.Calculation = calculation;
@@ -25,7 +25,7 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("calculation")]
         public CalculationImplementation Calculation { get; set; }
         [JsonProperty("testScenarios")]
-        public List<ProductTestScenario> TestScenarios { get; set; }
+        public List<TestScenario> TestScenarios { get; set; }
         [JsonProperty("testProviders")]
         public List<Reference> TestProviders { get; set; }
     }

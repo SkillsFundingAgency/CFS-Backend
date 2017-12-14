@@ -15,7 +15,7 @@ namespace CalculateFunding.Functions.Calcs
         [FunctionName("health-check")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
         {
-            var versionNumber = typeof(Budget).Assembly.GetName().Version;
+            var versionNumber = typeof(Specification).Assembly.GetName().Version;
 
             return new HttpResponseMessage(HttpStatusCode.OK)
             {

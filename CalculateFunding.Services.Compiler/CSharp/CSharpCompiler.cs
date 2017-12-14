@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -17,17 +18,17 @@ namespace CalculateFunding.Services.Compiler.CSharp
         {
         }
 
-        protected override SyntaxTree GenerateProductSyntaxTree(Budget budget)
+        protected override SyntaxTree GenerateProductSyntaxTree(Implementation implementation)
         {
             var productTypeGenerator = new ProductTypeGenerator();
-            var calcSyntaxTree = productTypeGenerator.GenerateCalcs(budget).SyntaxTree;
+            var calcSyntaxTree = productTypeGenerator.GenerateCalcs(implementation).SyntaxTree;
             return calcSyntaxTree;
         }
 
-        protected override SyntaxTree GenerateDatasetSyntaxTree(Budget budget)
+        protected override SyntaxTree GenerateDatasetSyntaxTree(Implementation implementation)
         {
             var datasetTypeGenerator = new DatasetTypeGenerator();
-            return datasetTypeGenerator.GenerateDataset(budget).SyntaxTree;
+            return datasetTypeGenerator.GenerateDataset(implementation).SyntaxTree;
         }
 
         protected override EmitResult GenerateCode(MetadataReference[] references, MemoryStream ms, SyntaxTree datasetSyntaxTree,

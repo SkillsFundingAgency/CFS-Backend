@@ -1,5 +1,6 @@
 using System.IO;
 using System.Linq;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
@@ -30,13 +31,13 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
             return compilation.Emit(ms);
         }
 
-        protected override SyntaxTree GenerateProductSyntaxTree(Budget budget)
+        protected override SyntaxTree GenerateProductSyntaxTree(Implementation budget)
         {
             var productTypeGenerator = new ProductTypeGenerator();
             return productTypeGenerator.GenerateCalcs(budget).SyntaxTree;
         }
 
-        protected override SyntaxTree GenerateDatasetSyntaxTree(Budget budget)
+        protected override SyntaxTree GenerateDatasetSyntaxTree(Implementation budget)
         {
             var datasetTypeGenerator = new DatasetTypeGenerator();
             return datasetTypeGenerator.GenerateDatasets(budget).SyntaxTree;

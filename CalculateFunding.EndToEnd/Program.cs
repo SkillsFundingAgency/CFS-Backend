@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repositories.Common.Sql;
 using CalculateFunding.Repositories.Common.Cosmos;
@@ -27,13 +28,11 @@ namespace CalculateFunding.EndToEnd
     {
         static void Main(string[] args)
         {
-
+            var budgetDefinition = new Implementation();
             var importer = ServiceFactory.GetService<DataImporterService>();
             Task.Run(async () =>
             {
                 //await GenerateBudgetModel();
-
-                var budgetDefinition = SeedData.CreateGeneralAnnualGrant();
 
                 var files = Directory.GetFiles("SourceData");
                 foreach (var file in files.Where(x => x.ToLowerInvariant().EndsWith(".csv")))
@@ -118,13 +117,6 @@ namespace CalculateFunding.EndToEnd
 
         public static IConfigurationRoot Configuration { get; set; }
 
-        private static async Task GenerateBudgetModel()
-        {
-            var repository = ServiceFactory.GetService<Repository<Budget>>();
-
-            await repository.CreateAsync(SeedData.CreateGeneralAnnualGrant());
-            
-        }
 
     }
 

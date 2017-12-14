@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -10,7 +11,7 @@ namespace CalculateFunding.Services.Compiler.CSharp
 
     public class DatasetTypeGenerator : CSharpTypeGenerator
     {
-        public CompilationUnitSyntax GenerateDataset(Budget budget)
+        public CompilationUnitSyntax GenerateDataset(Implementation budget)
         {
             var classes = budget.DatasetDefinitions.Select(datasetDefinition => SyntaxFactory.ClassDeclaration(Identifier($"{datasetDefinition.Name}Dataset"))
                 .WithModifiers(
