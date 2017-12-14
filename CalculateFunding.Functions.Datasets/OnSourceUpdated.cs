@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Functions.Common;
-using CalculateFunding.Models.Providers;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Sql;
 using CalculateFunding.Repositories.Providers;
@@ -14,7 +14,7 @@ using CalculateFunding.Services.DataImporter;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.EntityFrameworkCore;
-using ProviderCommand = CalculateFunding.Models.Providers.ProviderCommand;
+using ProviderCommand = CalculateFunding.Models.Datasets.ProviderCommand;
 
 namespace CalculateFunding.Functions.Providers
 {

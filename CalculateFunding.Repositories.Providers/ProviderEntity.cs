@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using CalculateFunding.Models.Providers;
 using CsvHelper;
 
 namespace CalculateFunding.Repositories.Providers

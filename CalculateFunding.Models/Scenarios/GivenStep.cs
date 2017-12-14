@@ -1,4 +1,4 @@
-﻿namespace CalculateFunding.Models.Specs
+﻿namespace CalculateFunding.Models.Scenarios
 {
     public class GivenStep: TestStep
     {

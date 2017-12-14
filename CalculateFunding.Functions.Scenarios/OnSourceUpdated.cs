@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Functions.Common;
-using CalculateFunding.Models.Providers;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Providers;
 using Microsoft.Azure.WebJobs;

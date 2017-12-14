@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Azure.Search;
 
-namespace CalculateFunding.Models.Providers
+namespace CalculateFunding.Models.Datasets
 {
     [SearchIndex()]
     public class ProviderIndex

@@ -12,6 +12,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using NotFoundResult = Microsoft.AspNetCore.Mvc.NotFoundResult;
 
 namespace CalculateFunding.Functions.Results
 {

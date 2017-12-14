@@ -2,6 +2,7 @@
 using System.Linq;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Services.TestRunner

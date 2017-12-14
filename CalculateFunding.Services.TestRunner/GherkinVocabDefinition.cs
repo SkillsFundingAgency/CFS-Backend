@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Specs;
+﻿using CalculateFunding.Models.Scenarios;
+using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Services.TestRunner
 {

@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Scenarios;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs
@@ -14,7 +16,7 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("description")]
         public string Description { get; set; }
         [JsonProperty("calculation")]
-        public ProductCalculation Calculation { get; set; }
+        public CalculationImplementation Calculation { get; set; }
         [JsonProperty("testScenarios")]
         public List<ProductTestScenario> TestScenarios { get; set; }
         [JsonProperty("testProviders")]

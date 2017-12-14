@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Services.TestRunner.Vocab.Product

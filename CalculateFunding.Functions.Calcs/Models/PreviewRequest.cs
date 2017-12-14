@@ -1,3 +1,4 @@
+using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Functions.Calcs.Models

@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Bootstrapper
@@ -62,7 +64,7 @@ namespace CalculateFunding.Bootstrapper
             return new Product
             {
                 Name = name,
-                Calculation = new ProductCalculation { SourceCode= $"Throw new NotImplementedException(\"{name} is not implemented\")" },
+                Calculation = new CalculationImplementation { SourceCode= $"Throw new NotImplementedException(\"{name} is not implemented\")" },
                 TestScenarios = new List<ProductTestScenario>()
             }.WithTestScenarios(
                 TestScenario("Product should not have any errors")

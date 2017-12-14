@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using CalculateFunding.Models.Providers;
 using CalculateFunding.Repositories.Common.Sql;
 using FastMember;
 using Microsoft.EntityFrameworkCore;

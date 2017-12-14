@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace CalculateFunding.Models.Specs
+namespace CalculateFunding.Models.Scenarios
 {
     public abstract class TestStep
     {

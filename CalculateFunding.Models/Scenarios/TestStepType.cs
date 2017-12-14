@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace CalculateFunding.Models.Specs
+namespace CalculateFunding.Models.Scenarios
 {
     [JsonConverter(typeof(StringEnumConverter))]
     public enum TestStepType

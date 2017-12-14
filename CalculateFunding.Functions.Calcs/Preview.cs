@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using CalculateFunding.Functions.Calcs.Models;
 using CalculateFunding.Functions.Common;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calculator;
@@ -36,7 +38,7 @@ namespace CalculateFunding.Functions.Calcs
 
             if (!string.IsNullOrWhiteSpace(request.Calculation))
             {
-                product.Calculation = new ProductCalculation {SourceCode = request.Calculation};
+                product.Calculation = new CalculationImplementation { SourceCode = request.Calculation};
             }
 
             if (request.TestScenario != null)

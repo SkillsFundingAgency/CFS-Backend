@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
-using CalculateFunding.Models.Results;
 using Newtonsoft.Json;
 
-namespace CalculateFunding.Models.Providers
+namespace CalculateFunding.Models.Datasets
 {
 
 

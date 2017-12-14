@@ -15,8 +15,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repositories.Common.Sql;
-using CalculateFunding.Models.Providers;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 

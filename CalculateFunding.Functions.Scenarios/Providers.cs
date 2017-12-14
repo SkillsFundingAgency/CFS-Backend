@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using CalculateFunding.Functions.Common;
-using CalculateFunding.Models.Providers;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repositories.Common.Search;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

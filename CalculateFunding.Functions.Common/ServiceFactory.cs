@@ -1,7 +1,6 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
