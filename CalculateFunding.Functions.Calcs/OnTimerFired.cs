@@ -1,15 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Calculator;
-using CalculateFunding.Services.Compiler;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 
-namespace CalculateFunding.Functions.Engine
+namespace CalculateFunding.Functions.Calcs
 {
     public static class OnTimerFired
     {

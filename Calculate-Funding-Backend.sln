@@ -31,8 +31,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.T
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.DataImporter", "CalculateFunding.Services.DataImporter\CalculateFunding.Services.DataImporter.csproj", "{E2B3EF61-18D9-47B8-B5BF-1423C54FFE03}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Engine", "CalculateFunding.Functions.Engine\CalculateFunding.Functions.Engine.csproj", "{5902E0A9-8011-4511-BE27-881E87ADB244}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Results", "CalculateFunding.Functions.Results\CalculateFunding.Functions.Results.csproj", "{35D6C227-6286-46C9-AC9F-54F109E97E25}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Specs", "CalculateFunding.Functions.Specs\CalculateFunding.Functions.Specs.csproj", "{F01ADEE3-F45D-4918-BF96-5345EA2654E7}"
@@ -53,17 +51,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Repositori
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Repositories.Providers.Migrations", "CalculateFunding.Repositories.Providers.Migrations\CalculateFunding.Repositories.Providers.Migrations.csproj", "{7B690B11-F49E-4D9E-98E1-057ABC9186F6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Providers", "CalculateFunding.Functions.Providers\CalculateFunding.Functions.Providers.csproj", "{AB3F8E8C-E366-439D-8180-7238EB5070E7}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Repositories.Common.Sql", "CalculateFunding.Repositories.Common.Sql\CalculateFunding.Repositories.Common.Sql.csproj", "{F6B332D4-044A-467D-93CE-489E5FC63278}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Repositories.Common.Cosmos", "CalculateFunding.Repositories.Common.Cosmos\CalculateFunding.Repositories.Common.Cosmos.csproj", "{95480829-DB9B-45A1-8F51-3D1458DD0F10}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Repositories.Common.Search", "CalculateFunding.Repositories.Common.Search\CalculateFunding.Repositories.Common.Search.csproj", "{311BB52A-A7B5-4C75-8DCB-7E26078BDAD6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.ApiClient", "CalculateFunding.ApiClient\CalculateFunding.ApiClient.csproj", "{0A4543B1-9D9A-4FB8-8F4F-E3B818FD8057}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.ApiClient", "CalculateFunding.ApiClient\CalculateFunding.ApiClient.csproj", "{0A4543B1-9D9A-4FB8-8F4F-E3B818FD8057}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.ContentSync", "CalculateFunding.ContentSync\CalculateFunding.ContentSync.csproj", "{BAC0BDCA-4752-4D58-B064-43BAF6ED4EE9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.ContentSync", "CalculateFunding.ContentSync\CalculateFunding.ContentSync.csproj", "{BAC0BDCA-4752-4D58-B064-43BAF6ED4EE9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Calcs", "CalculateFunding.Functions.Calcs\CalculateFunding.Functions.Calcs.csproj", "{80F1BA7D-6575-49F1-9663-38F8F7D085B8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Scenarios", "CalculateFunding.Functions.Scenarios\CalculateFunding.Functions.Scenarios.csproj", "{C5479D34-C97B-4D38-8470-12B979F43F7A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -95,10 +95,6 @@ Global
 		{E2B3EF61-18D9-47B8-B5BF-1423C54FFE03}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2B3EF61-18D9-47B8-B5BF-1423C54FFE03}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2B3EF61-18D9-47B8-B5BF-1423C54FFE03}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5902E0A9-8011-4511-BE27-881E87ADB244}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5902E0A9-8011-4511-BE27-881E87ADB244}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5902E0A9-8011-4511-BE27-881E87ADB244}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5902E0A9-8011-4511-BE27-881E87ADB244}.Release|Any CPU.Build.0 = Release|Any CPU
 		{35D6C227-6286-46C9-AC9F-54F109E97E25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{35D6C227-6286-46C9-AC9F-54F109E97E25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{35D6C227-6286-46C9-AC9F-54F109E97E25}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -135,10 +131,6 @@ Global
 		{7B690B11-F49E-4D9E-98E1-057ABC9186F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B690B11-F49E-4D9E-98E1-057ABC9186F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B690B11-F49E-4D9E-98E1-057ABC9186F6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AB3F8E8C-E366-439D-8180-7238EB5070E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AB3F8E8C-E366-439D-8180-7238EB5070E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AB3F8E8C-E366-439D-8180-7238EB5070E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AB3F8E8C-E366-439D-8180-7238EB5070E7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F6B332D4-044A-467D-93CE-489E5FC63278}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F6B332D4-044A-467D-93CE-489E5FC63278}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6B332D4-044A-467D-93CE-489E5FC63278}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -159,6 +151,14 @@ Global
 		{BAC0BDCA-4752-4D58-B064-43BAF6ED4EE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BAC0BDCA-4752-4D58-B064-43BAF6ED4EE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BAC0BDCA-4752-4D58-B064-43BAF6ED4EE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80F1BA7D-6575-49F1-9663-38F8F7D085B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80F1BA7D-6575-49F1-9663-38F8F7D085B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80F1BA7D-6575-49F1-9663-38F8F7D085B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80F1BA7D-6575-49F1-9663-38F8F7D085B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5479D34-C97B-4D38-8470-12B979F43F7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5479D34-C97B-4D38-8470-12B979F43F7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5479D34-C97B-4D38-8470-12B979F43F7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5479D34-C97B-4D38-8470-12B979F43F7A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -170,7 +170,6 @@ Global
 		{8CB3AE5F-2517-4E83-87C9-024C9A8E9BEF} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
 		{13376B99-C9AF-41F3-BD5E-FF3209532EF9} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
 		{E2B3EF61-18D9-47B8-B5BF-1423C54FFE03} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
-		{5902E0A9-8011-4511-BE27-881E87ADB244} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{35D6C227-6286-46C9-AC9F-54F109E97E25} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{F01ADEE3-F45D-4918-BF96-5345EA2654E7} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{2FDB9CB8-B2F6-4459-A520-5969E7538E31} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
@@ -180,11 +179,12 @@ Global
 		{FA54C5C9-B9FC-4800-A01A-B83C3C4B8749} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{F5A4401B-DA5A-42F2-A5B2-A3AB7734D66F} = {40D52A2C-3E44-4B5A-917E-2FD2F1E8F689}
 		{7B690B11-F49E-4D9E-98E1-057ABC9186F6} = {40D52A2C-3E44-4B5A-917E-2FD2F1E8F689}
-		{AB3F8E8C-E366-439D-8180-7238EB5070E7} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{F6B332D4-044A-467D-93CE-489E5FC63278} = {40D52A2C-3E44-4B5A-917E-2FD2F1E8F689}
 		{95480829-DB9B-45A1-8F51-3D1458DD0F10} = {40D52A2C-3E44-4B5A-917E-2FD2F1E8F689}
 		{311BB52A-A7B5-4C75-8DCB-7E26078BDAD6} = {40D52A2C-3E44-4B5A-917E-2FD2F1E8F689}
 		{0A4543B1-9D9A-4FB8-8F4F-E3B818FD8057} = {539AB1D8-B007-4CB6-8355-918D498486E2}
+		{80F1BA7D-6575-49F1-9663-38F8F7D085B8} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
+		{C5479D34-C97B-4D38-8470-12B979F43F7A} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2FA36A0A-CA20-41CF-9BC2-FA6545720009}

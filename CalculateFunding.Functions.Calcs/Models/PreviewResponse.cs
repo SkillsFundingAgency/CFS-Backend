@@ -3,7 +3,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Compiler;
 
-namespace CalculateFunding.Functions.Engine.Models
+namespace CalculateFunding.Functions.Calcs.Models
 {
     public class PreviewResponse
     {

@@ -1,6 +1,6 @@
 using CalculateFunding.Models.Specs;
 
-namespace CalculateFunding.Functions.Engine.Models
+namespace CalculateFunding.Functions.Calcs.Models
 {
 
     public class PreviewRequest

@@ -1,6 +1,6 @@
 using CalculateFunding.Models;
 
-namespace CalculateFunding.Functions.Engine.Models
+namespace CalculateFunding.Functions.Calcs.Models
 {
     public class BudgetSummary : ResultSummary
     {

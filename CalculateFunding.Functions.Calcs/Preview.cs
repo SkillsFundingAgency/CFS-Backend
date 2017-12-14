@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using CalculateFunding.Functions.Calcs.Models;
 using CalculateFunding.Functions.Common;
-using CalculateFunding.Functions.Engine.Models;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
@@ -12,11 +12,10 @@ using CalculateFunding.Services.Compiler;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace CalculateFunding.Functions.Engine
+namespace CalculateFunding.Functions.Calcs
 {
     public static class Preview
     {

@@ -78,18 +78,18 @@
     "applicationInsightsName": "[concat(resourceGroup().name, '-ai')]",
     "documentDatabaseName": "[concat(resourceGroup().name, '-db')]",
     "sqlServerName": "[concat(resourceGroup().name, '-sql')]",
-    "providersDatabaseName": "Providers",
+    "datasetsDatabaseName": "Datasets",
     "azureSearchName": "[concat(resourceGroup().name, '-search')]",
     "datasetsFunctionAppName": "[concat(resourceGroup().name, '-fapp-datasets')]",
-    "providersFunctionAppName": "[concat(resourceGroup().name, '-fapp-providers')]",
     "resultsFunctionAppName": "[concat(resourceGroup().name, '-fapp-results')]",
     "specsFunctionAppName": "[concat(resourceGroup().name, '-fapp-specs')]",
-    "engineFunctionAppName": "[concat(resourceGroup().name, '-fapp-engine')]",
+    "calcsFunctionAppName": "[concat(resourceGroup().name, '-fapp-calcs')]",
+    "scenariosFunctionAppName": "[concat(resourceGroup().name, '-fapp-scenarios')]",
     "hostingPlanName": "[concat(resourceGroup().name, '-plan')]",
     "datasetStorageAccountName": "[concat(resourceGroup().name, 'data')]",
     "datasetStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('datasetstorageAccountName'))]",
-    "providersStorageAccountName": "[concat(resourceGroup().name, 'prov')]",
-    "providersStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('providersStorageAccountName'))]",
+    "calcsStorageAccountName": "[concat(resourceGroup().name, 'calc')]",
+    "calcsStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('calcsStorageAccountName'))]",
     "storageAccountName": "[concat(resourceGroup().name, 'storage')]",
     "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
   },
@@ -150,7 +150,7 @@
           }
         },
         {
-          "name": "[variables('providersDatabaseName')]",
+          "name": "[variables('datasetsDatabaseName')]",
           "type": "databases",
           "location": "[resourceGroup().location]",
           "apiVersion": "2014-04-01-preview",
@@ -211,7 +211,7 @@
 
     {
       "type": "Microsoft.Storage/storageAccounts",
-      "name": "[variables('providersStorageAccountName')]",
+      "name": "[variables('calcsStorageAccountName')]",
       "apiVersion": "2017-06-01",
       "location": "[resourceGroup().location]",
       "kind": "Storage",
@@ -307,7 +307,7 @@
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
-      "name": "[variables('providersFunctionAppName')]",
+      "name": "[variables('calcsFunctionAppName')]",
       "location": "[resourceGroup().location]",
       "kind": "functionapp",
       "dependsOn": [
@@ -338,7 +338,7 @@
             },
             {
               "name": "WEBSITE_CONTENTSHARE",
-              "value": "[toLower(variables('providersFunctionAppName'))]"
+              "value": "[toLower(variables('calcsFunctionAppName'))]"
             },
             {
               "name": "FUNCTIONS_EXTENSION_VERSION",
@@ -366,10 +366,10 @@
             },
             {
               "name": "ProvidersStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('providersStorageAccountName'), ';AccountKey=', listKeys(variables('providersStorageAccountid'),'2015-05-01-preview').key1)]"
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('calcsStorageAccountName'), ';AccountKey=', listKeys(variables('calcsStorageAccountid'),'2015-05-01-preview').key1)]"
             },
             {
-              "value": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', variables('sqlserverName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', 'Providers', ';User Id=', parameters('sqlServerAdminLogin'), '@', reference(concat('Microsoft.Sql/servers/', variables('sqlserverName'))).fullyQualifiedDomainName, ';Password=', parameters('sqlServerAdminLoginPassword'), ';')]",
+              "value": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', variables('sqlserverName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', 'Datasets', ';User Id=', parameters('sqlServerAdminLogin'), '@', reference(concat('Microsoft.Sql/servers/', variables('sqlserverName'))).fullyQualifiedDomainName, ';Password=', parameters('sqlServerAdminLoginPassword'), ';')]",
               "name": "ProvidersConnectionString"
             }
           ]
@@ -506,7 +506,7 @@
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
-      "name": "[variables('engineFunctionAppName')]",
+      "name": "[variables('scenariosFunctionAppName')]",
       "location": "[resourceGroup().location]",
       "kind": "functionapp",
       "dependsOn": [
@@ -534,7 +534,7 @@
             },
             {
               "name": "WEBSITE_CONTENTSHARE",
-              "value": "[toLower(variables('engineFunctionAppName'))]"
+              "value": "[toLower(variables('scenariosFunctionAppName'))]"
             },
             {
               "name": "FUNCTIONS_EXTENSION_VERSION",

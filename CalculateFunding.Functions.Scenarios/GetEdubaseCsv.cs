@@ -2,7 +2,7 @@ using System;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 
-namespace CalculateFunding.Functions.Providers
+namespace CalculateFunding.Functions.Scenarios
 {
     public static class GetEdubaseCsv
     {
