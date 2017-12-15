@@ -65,7 +65,7 @@ namespace CalculateFunding.ContentSync
             var apiClient = provider.GetService<CalculateFundingApiClient>();
 
             var files = Directory.GetFiles("Content");
-            foreach (var file in files.Where(x => x.ToLowerInvariant().EndsWith(".xlsx")))
+            foreach (var file in files.Where(x => x.ToLowerInvariant().EndsWith("2.xlsx")))
             {
                 using (var blob = new FileStream(file, FileMode.Open))
                 {
