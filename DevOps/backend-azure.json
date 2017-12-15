@@ -78,6 +78,7 @@
     "applicationInsightsName": "[concat(resourceGroup().name, '-ai')]",
     "documentDatabaseName": "[concat(resourceGroup().name, '-db')]",
     "sqlServerName": "[concat(resourceGroup().name, '-sql')]",
+    "serviceBusNamespaceName": "[concat(resourceGroup().name, '-sb')]",
     "datasetsDatabaseName": "Datasets",
     "azureSearchName": "[concat(resourceGroup().name, '-search')]",
     "datasetsFunctionAppName": "[concat(resourceGroup().name, '-fapp-datasets')]",
@@ -218,6 +219,39 @@
       "sku": {
         "name": "Standard_LRS"
       }
+    },
+
+    {
+      "apiVersion": "2015-08-01",
+      "name": "[variables('serviceBusNamespaceName')]",
+      "type": "Microsoft.ServiceBus/namespaces",
+      "location": "[resourceGroup().location]",
+      "properties": {},
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "name": "spec-events",
+          "type": "Topics",
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ],
+          "properties": {
+            "path": "spec-events"
+          },
+          "resources": [
+            {
+              "apiVersion": "2015-08-01",
+              "name": "spec-events-calcs",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "spec-events"
+              ],
+              "properties": {},
+              "resources": []
+            }
+          ]
+        }
+      ]
     },
 
 
