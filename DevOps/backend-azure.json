@@ -258,6 +258,26 @@
               ],
               "properties": {},
               "resources": []
+            },
+            {
+              "apiVersion": "2015-08-01",
+              "name": "spec-events-datasets",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "spec-events"
+              ],
+              "properties": {},
+              "resources": []
+            },
+            {
+              "apiVersion": "2015-08-01",
+              "name": "spec-events-results",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "spec-events"
+              ],
+              "properties": {},
+              "resources": []
             }
           ]
         },
@@ -269,7 +289,7 @@
             "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
           ],
           "properties": {
-            "path": "spec-events"
+            "path": "dataset-events"
           },
           "resources": [
             {
@@ -277,7 +297,7 @@
               "name": "dataset-events-calcs",
               "type": "Subscriptions",
               "dependsOn": [
-                "spec-events"
+                "dataset-events"
               ],
               "properties": {},
               "resources": []
@@ -300,7 +320,7 @@
               "name": "calc-events-scenarios",
               "type": "Subscriptions",
               "dependsOn": [
-                "spec-events"
+                "calc-events"
               ],
               "properties": {},
               "resources": []
@@ -310,13 +330,37 @@
               "name": "calc-events-results",
               "type": "Subscriptions",
               "dependsOn": [
-                "spec-events"
+                "calc-events"
+              ],
+              "properties": {},
+              "resources": []
+            }
+          ]
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "scenario-events",
+          "type": "Topics",
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ],
+          "properties": {
+            "path": "scenario-events"
+          },
+          "resources": [
+            {
+              "apiVersion": "2015-08-01",
+              "name": "scenario-events-results",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "scenario-events"
               ],
               "properties": {},
               "resources": []
             }
           ]
         }
+
       ]
     },
 
