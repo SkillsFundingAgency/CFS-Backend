@@ -6,7 +6,7 @@ using Microsoft.Azure.WebJobs.Host;
 
 namespace CalculateFunding.Functions.Datasets
 {
-    public static class OnSourceUpdated
+    public static class OnRawSourceUpdated
     {
         [FunctionName("on-source-updated")]
         public static async Task Run([BlobTrigger("source-datasets/{name}", Connection = "DatasetStorage")]Stream blob, string name, TraceWriter log)
