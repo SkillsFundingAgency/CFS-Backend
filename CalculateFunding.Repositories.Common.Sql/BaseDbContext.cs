@@ -5,10 +5,9 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CalculateFunding.Repositories.Common.Sql;
 using Microsoft.EntityFrameworkCore;
 
-namespace CalculateFunding.Repositories.Providers
+namespace CalculateFunding.Repositories.Common.Sql
 {
     public abstract class BaseDbContext : DbContext
     {

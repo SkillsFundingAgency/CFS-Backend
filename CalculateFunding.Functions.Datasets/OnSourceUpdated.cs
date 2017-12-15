@@ -1,5 +1,3 @@
-using System;
-using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -8,15 +6,11 @@ using AutoMapper;
 using CalculateFunding.Functions.Common;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Repositories.Common.Sql;
 using CalculateFunding.Repositories.Providers;
-using CalculateFunding.Services.DataImporter;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
-using Microsoft.EntityFrameworkCore;
-using ProviderCommand = CalculateFunding.Models.Datasets.ProviderCommand;
 
-namespace CalculateFunding.Functions.Providers
+namespace CalculateFunding.Functions.Datasets
 {
     public static class OnSourceUpdated
     {
