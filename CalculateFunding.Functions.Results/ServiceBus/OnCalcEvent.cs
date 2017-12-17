@@ -7,7 +7,7 @@ namespace CalculateFunding.Functions.Results.ServiceBus
     {
         [FunctionName("on-calc-event")]
         public static void Run(
-            [ServiceBusTrigger("calcs-events", "calcs-events-results", Connection = "ServiceBusConnection")]
+            [ServiceBusTrigger("calc-events", "calc-events-results", Connection = "ServiceBusConnection")]
             string messageJson,
             TraceWriter log)
         {
