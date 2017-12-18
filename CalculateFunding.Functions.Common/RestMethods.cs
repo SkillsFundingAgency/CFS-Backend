@@ -36,7 +36,7 @@ namespace CalculateFunding.Functions.Common
 
         private static async Task<IActionResult> OnGet(string id)
         {
-            var repository = ServiceFactory.GetService<Repository<T>>();
+            var repository = ServiceFactory.GetService<CosmosRepository<T>>();
 
             if (id != null)
             {
@@ -62,11 +62,50 @@ namespace CalculateFunding.Functions.Common
                 return new BadRequestErrorMessageResult("Please ensure entity is passed in the request body");
             }
 
-            var repository = ServiceFactory.GetService<Repository<T>>();
+            var repository = ServiceFactory.GetService<CosmosRepository<T>>();
+            await repository.EnsureCollectionExists();
+            var current = await repository.ReadAsync(item.Id);
+            if (current.Content != null)
+            {
+                if (!IsModified(current.Content, item))
+                {
+                    return new StatusCodeResult(304);
+                }
+            }
+
+
+            await repository.CreateAsync(item);
+
+            return new AcceptedResult();
+        }
+
+        private static bool IsModified<TAny>(TAny current, TAny item)
+        {
+            return JsonConvert.SerializeObject(current) == JsonConvert.SerializeObject(item);
+        }
+
+
+        private static async Task<IActionResult> OnPost(string json)
+        {
+            var item = JsonConvert.DeserializeObject<T>(json, SerializerSettings);
+
+            if (item == null)
+            {
+                return new BadRequestErrorMessageResult("Please ensure entity is passed in the request body");
+            }
+
+            // get current
+            // check updated
+            // update
+            // add event
+
+            var repository = ServiceFactory.GetService<CosmosRepository<T>>();
             await repository.EnsureCollectionExists();
             await repository.CreateAsync(item);
 
             return new AcceptedResult();
         }
+
+
     }
 }

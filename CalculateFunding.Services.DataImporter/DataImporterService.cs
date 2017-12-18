@@ -58,10 +58,10 @@ namespace CalculateFunding.Services.DataImporter
 
     public class DataImporterService
     {
-        private readonly Repository<ProviderSourceDataset> _datasetRespository;
+        private readonly CosmosRepository<ProviderSourceDataset> _datasetRespository;
         private readonly ILogger _logger;
 
-        public DataImporterService(Repository<ProviderSourceDataset> datasetRespository, ILogger<DataImporterService> logger)
+        public DataImporterService(CosmosRepository<ProviderSourceDataset> datasetRespository, ILogger<DataImporterService> logger)
         {
             _datasetRespository = datasetRespository;
             _logger = logger;

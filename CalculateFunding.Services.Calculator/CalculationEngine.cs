@@ -17,12 +17,12 @@ namespace CalculateFunding.Services.Calculator
 {
     public class CalculationEngine
     {
-        private readonly Repository<ProviderSourceDataset> _providerSourceRepository;
-        private readonly Repository<ProviderResult> _providerResultRepository;
-        private readonly Repository<ProviderTestResult> _providerTestResultRepository;
+        private readonly CosmosRepository<ProviderSourceDataset> _providerSourceRepository;
+        private readonly CosmosRepository<ProviderResult> _providerResultRepository;
+        private readonly CosmosRepository<ProviderTestResult> _providerTestResultRepository;
         private readonly ILangugeSyntaxProvider _langugeSyntaxProvider;
 
-        public CalculationEngine(Repository<ProviderSourceDataset> providerSourceRepository, Repository<ProviderResult> providerResultRepository, Repository<ProviderTestResult> providerTestResultRepository, ILangugeSyntaxProvider langugeSyntaxProvider)
+        public CalculationEngine(CosmosRepository<ProviderSourceDataset> providerSourceRepository, CosmosRepository<ProviderResult> providerResultRepository, CosmosRepository<ProviderTestResult> providerTestResultRepository, ILangugeSyntaxProvider langugeSyntaxProvider)
         {
             _providerSourceRepository = providerSourceRepository;
             _providerResultRepository = providerResultRepository;

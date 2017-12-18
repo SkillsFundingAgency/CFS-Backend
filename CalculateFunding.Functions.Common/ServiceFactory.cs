@@ -51,26 +51,26 @@ namespace CalculateFunding.Functions.Common
                 //.Configure<RepositorySettings>(settings => config.GetSection("ResultsRepository"))
                 //.Configure<RepositorySettings>(settings => config.GetSection("Configuration"))
                 .AddDbContext<ProvidersDbContext>(options => options.UseSqlServer(config["ProvidersConnectionString"], sqlServerOptions => sqlServerOptions.CommandTimeout(60 * 3)))
-                .AddSingleton(new Repository<Specification>(new RepositorySettings
+                .AddSingleton(new CosmosRepository<Specification>(new RepositorySettings
                 {
                     ConnectionString = config["CosmosDBConnectionString"],
                     DatabaseName = "calculate-funding",
                     CollectionName = "specs"
                 }, null))
-                .AddSingleton(new Repository<ProviderSourceDataset>(new RepositorySettings
+                .AddSingleton(new CosmosRepository<ProviderSourceDataset>(new RepositorySettings
                 {
                     ConnectionString = config["CosmosDBConnectionString"],
                     DatabaseName = "calculate-funding",
                     CollectionName = "datasets",
                     PartitionKey = "/providerUrn"
                 }, null))
-                .AddSingleton(new Repository<ProviderResult>(new RepositorySettings
+                .AddSingleton(new CosmosRepository<ProviderResult>(new RepositorySettings
                 {
                     ConnectionString = config["CosmosDBConnectionString"],
                     DatabaseName = "calculate-funding",
                     CollectionName = "results"
                 }, null))
-                .AddSingleton(new Repository<ProviderTestResult>(new RepositorySettings
+                .AddSingleton(new CosmosRepository<ProviderTestResult>(new RepositorySettings
                 {
                     ConnectionString = config["CosmosDBConnectionString"],
                     DatabaseName = "calculate-funding",

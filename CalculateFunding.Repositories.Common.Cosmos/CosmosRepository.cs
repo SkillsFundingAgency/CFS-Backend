@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Repositories.Common.Cosmos
 {
-    public class Repository<T>  where T : Reference
+    public class CosmosRepository<T>  where T : Reference
     {
         private readonly ILogger _logger;
         private readonly string _collectionName;
@@ -24,14 +24,12 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         private readonly string _documentType = typeof(T).Name;
         private ResourceResponse<DocumentCollection> _collection;
 
-        public Repository(RepositorySettings settings, ILogger logger)
+        public CosmosRepository(RepositorySettings settings, ILogger logger)
         {
             _logger = logger;
-            var databaseName = settings.DatabaseName;
-
             _collectionName = settings.CollectionName;
             _partitionKey = settings.PartitionKey;
-            _databaseName = databaseName;
+            _databaseName = settings.DatabaseName;
             _documentClient = DocumentDbConnectionString.Parse(settings.ConnectionString); ;
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_databaseName, _collectionName);
         }

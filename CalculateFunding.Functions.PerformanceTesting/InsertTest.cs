@@ -28,7 +28,7 @@ namespace CalculateFunding.Functions.PerformanceTesting
             var list = new List<AptProviderInformation>();
             var count = countParam.Select(x => (int?)int.Parse(x)).FirstOrDefault() ?? 1000;
             var requestUnits = ruParam.Select(x => (int?)int.Parse(x)).FirstOrDefault() ?? 1000;
-            var repository = ServiceFactory.GetService<Repository<ProviderSourceDataset>>();
+            var repository = ServiceFactory.GetService<CosmosRepository<ProviderSourceDataset>>();
 
 
 

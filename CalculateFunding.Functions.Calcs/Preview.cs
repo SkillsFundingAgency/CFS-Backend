@@ -28,7 +28,7 @@ namespace CalculateFunding.Functions.Calcs
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestMessage req, TraceWriter log, ExecutionContext context)
         {
 
-            var budgetRepository = ServiceFactory.GetService<Repository<Implementation>>();
+            var budgetRepository = ServiceFactory.GetService<CosmosRepository<Implementation>>();
             
             var json = await req.Content.ReadAsStringAsync();
 
