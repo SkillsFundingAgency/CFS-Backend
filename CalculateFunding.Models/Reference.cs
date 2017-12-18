@@ -2,7 +2,7 @@
 
 namespace CalculateFunding.Models
 {
-    public class Reference
+    public class Reference : IIdentifiable
     {
         [JsonProperty("id")]
         public string Id { get; set; }

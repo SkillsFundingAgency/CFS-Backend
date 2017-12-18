@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Specs;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
@@ -73,7 +74,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return typeof(T).Name;
         }
 
-        public IQueryable<DocumentEntity<T>> Read<T>(int maxItemCount = 1000) where T : Reference
+        public IQueryable<DocumentEntity<T>> Read<T>(int maxItemCount = 1000) where T : IIdentifiable
         {
             // Set some common query options
             var queryOptions = new FeedOptions { MaxItemCount = maxItemCount };
@@ -81,14 +82,14 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted);
         }
 
-        public async Task<DocumentEntity<T>> ReadAsync<T>(string id) where T : Reference
+        public async Task<DocumentEntity<T>> ReadAsync<T>(string id) where T : IIdentifiable
         {
             // Here we find the Andersen family via its LastName
             var response = await Read<T>(maxItemCount: 1).Where(x => x.Id == id).AsDocumentQuery().ExecuteNextAsync< DocumentEntity<T>>();
             return response.FirstOrDefault();
         }
 
-        public IQueryable<T> Query<T>(string directSql = null, int maxItemCount = -1) where T : Reference
+        public IQueryable<T> Query<T>(string directSql = null, int maxItemCount = -1) where T : IIdentifiable
         {
             // Set some common query options
             var queryOptions = new FeedOptions { MaxItemCount = maxItemCount };
@@ -117,7 +118,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             }
         }
 
-        public async Task<HttpStatusCode> DeleteAsync<T>(string id) where T : Reference
+        public async Task<HttpStatusCode> DeleteAsync<T>(string id) where T : IIdentifiable
         {
             var doc = await ReadAsync<T>(id);
             doc.Deleted = true;
@@ -126,7 +127,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         }
 
 
-        public async Task<HttpStatusCode> CreateAsync<T>(T entity) where T : Reference
+        public async Task<HttpStatusCode> CreateAsync<T>(T entity) where T : IIdentifiable
         {
             var doc = new DocumentEntity<T>(entity)
             {
@@ -136,6 +137,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             };
             var response = await _documentClient.UpsertDocumentAsync(_collectionUri, doc);
             return response.StatusCode;
+
         }
 
         public async Task BulkCreateAsync<T>(IList<T> entities, int degreeOfParallelism) where T : Reference

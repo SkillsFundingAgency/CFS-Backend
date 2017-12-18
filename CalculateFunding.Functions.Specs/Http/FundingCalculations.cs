@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
+using CalculateFunding.Functions.Common;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using Microsoft.AspNetCore.Http;
@@ -17,12 +18,12 @@ namespace CalculateFunding.Functions.Specs.Http
     public static class Calculations
     {
 
-        [FunctionName("calculations")]
-        public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "post", "get")] HttpRequest req, TraceWriter log)
+        [FunctionName("calculations-commands")]
+        public static async Task<IActionResult> RunCommands(
+            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, TraceWriter log)
         {
-            return new BadRequestResult();
-
+            var restMethods = new RestCommandMethods<Specification, SpecificationCommand>();
+            return await restMethods.Run(req, log);
         }
 
     }

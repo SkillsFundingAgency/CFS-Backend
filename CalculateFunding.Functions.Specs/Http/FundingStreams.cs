@@ -21,8 +21,16 @@ namespace CalculateFunding.Functions.Specs.Http
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", "get")] HttpRequest req, TraceWriter log)
         {
-            var restMethods = new RestMethods<FundingStream>();
-            return await restMethods.Run(req, log, "specificationId");
+            var restMethods = new RestGetMethods<FundingStream>();
+            return await restMethods.Run(req, log, "fundingStreamId");
+        }
+
+        [FunctionName("funding-streams-commands")]
+        public static async Task<IActionResult> RunCommands(
+            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, TraceWriter log)
+        {
+            var restMethods = new RestCommandMethods<FundingStream, FundingStreamCommand>();
+            return await restMethods.Run(req, log);
         }
     }
 

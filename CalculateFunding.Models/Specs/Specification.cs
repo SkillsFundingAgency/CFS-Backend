@@ -19,24 +19,4 @@ namespace CalculateFunding.Models.Specs
         public List<PolicySpecification> Policies { get; set; }
 
     }
-
-    public abstract class Command<T> where T : Reference
-    {
-        public Reference User { get; set; }
-        public string Method { get; set; }
-
-        public string TargetDocumentType { get; set; }
-
-        public T Content { get; set; }
-    }
-
-    public class SpecificationCommand : Command<Specification>
-    {
-        
-    }
-
-    public class CalculationSpecificationCommand : Command<Specification>
-    {
-        public string SpecificationId { get; set; }
-    }
 }

@@ -17,7 +17,7 @@ namespace CalculateFunding.Functions.Scenarios.Http
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", "get")] HttpRequest req, TraceWriter log)
         {
-            var restMethods = new RestMethods<Specification>();
+            var restMethods = new RestGetMethods<Specification>();
             return await restMethods.Run(req, log, "specificationId"); ;
         }
     }
@@ -28,7 +28,7 @@ namespace CalculateFunding.Functions.Scenarios.Http
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", "get")] HttpRequest req, TraceWriter log)
         {
-            var restMethods = new RestMethods<Specification>();
+            var restMethods = new RestGetMethods<Specification>();
             return await restMethods.Run(req, log, "specificationId");
         }
     }
