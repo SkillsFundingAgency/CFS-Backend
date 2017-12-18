@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.SymbolStore;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Repositories.Common.Cosmos
 {
-    public class CosmosRepository<T>  where T : Reference
+    public class CosmosRepository
     {
         private readonly ILogger _logger;
         private readonly string _collectionName;
@@ -21,7 +22,6 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         private readonly string _databaseName;
         private readonly DocumentClient _documentClient;
         private readonly Uri _collectionUri;
-        private readonly string _documentType = typeof(T).Name;
         private ResourceResponse<DocumentCollection> _collection;
 
         public CosmosRepository(RepositorySettings settings, ILogger logger)
@@ -68,28 +68,27 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             }
         }
 
-        public IQueryable<DocumentEntity<T>> Read(int maxItemCount = 1000)
+        private static string GetDocumentType<T>()
+        {
+            return typeof(T).Name;
+        }
+
+        public IQueryable<DocumentEntity<T>> Read<T>(int maxItemCount = 1000) where T : Reference
         {
             // Set some common query options
             var queryOptions = new FeedOptions { MaxItemCount = maxItemCount };
 
-            return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == _documentType && !x.Deleted);
+            return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted);
         }
 
-        public async Task<DocumentEntity<T>> ReadAsync(string id)
+        public async Task<DocumentEntity<T>> ReadAsync<T>(string id) where T : Reference
         {
             // Here we find the Andersen family via its LastName
-            var response = await Read(maxItemCount: 1).Where(x => x.Id == id).AsDocumentQuery().ExecuteNextAsync< DocumentEntity<T>>();
+            var response = await Read<T>(maxItemCount: 1).Where(x => x.Id == id).AsDocumentQuery().ExecuteNextAsync< DocumentEntity<T>>();
             return response.FirstOrDefault();
         }
 
-        public async Task<DocumentEntity<TSpecific>> ReadAsync<TSpecific>(string id) where TSpecific : T
-        {
-            var response = await _documentClient.CreateDocumentQuery<DocumentEntity<TSpecific>>(_collectionUri, new FeedOptions { MaxItemCount = 1 }).Where(x => x.Id == id && x.DocumentType == _documentType && !x.Deleted).AsDocumentQuery().ExecuteNextAsync<DocumentEntity<TSpecific>>(); ;
-            return response.FirstOrDefault();
-        }
-
-        public IQueryable<T> Query(string directSql = null, int maxItemCount = -1)
+        public IQueryable<T> Query<T>(string directSql = null, int maxItemCount = -1) where T : Reference
         {
             // Set some common query options
             var queryOptions = new FeedOptions { MaxItemCount = maxItemCount };
@@ -118,20 +117,20 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             }
         }
 
-        public async Task<HttpStatusCode> DeleteAsync(string id)
+        public async Task<HttpStatusCode> DeleteAsync<T>(string id) where T : Reference
         {
-            var doc = await ReadAsync(id);
+            var doc = await ReadAsync<T>(id);
             doc.Deleted = true;
             var response = await _documentClient.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseName, _collectionName, doc.Id), doc);
             return response.StatusCode;
         }
 
 
-        public async Task<HttpStatusCode> CreateAsync<TAny>(TAny entity) where TAny : T
+        public async Task<HttpStatusCode> CreateAsync<T>(T entity) where T : Reference
         {
-            var doc = new DocumentEntity<TAny>(entity)
+            var doc = new DocumentEntity<T>(entity)
             {
-                DocumentType = _documentType,
+                DocumentType = GetDocumentType<T>(),
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -139,7 +138,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return response.StatusCode;
         }
 
-        public async Task BulkCreateAsync<TAny>(IList<TAny> entities, int degreeOfParallelism) where TAny : T
+        public async Task BulkCreateAsync<T>(IList<T> entities, int degreeOfParallelism) where T : Reference
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -161,14 +160,15 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             var itemsPerSec = entities.Count / (stopwatch.ElapsedMilliseconds / 1000M);
         }
 
-        public async Task<HttpStatusCode> UpdateAsync<TAny>(TAny entity) where TAny : T
+        public async Task<HttpStatusCode> UpdateAsync<T>(T entity) where T : Reference
         {
-            var doc = new DocumentEntity<TAny>(entity);
-            if (doc.DocumentType != null && doc.DocumentType != _documentType)
+            var documentType = GetDocumentType<T>();
+            var doc = new DocumentEntity<T>(entity);
+            if (doc.DocumentType != null && doc.DocumentType != documentType)
             {
                 throw new ArgumentException($"Cannot change {entity.Id} from {doc.DocumentType} to {typeof(T).Name}");
             }
-            doc.DocumentType = _documentType; // in case not specified
+            doc.DocumentType = documentType; // in case not specified
             doc.UpdatedAt = DateTime.UtcNow;
             var response = await _documentClient.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseName, _collectionName, entity.Id), doc);
             return response.StatusCode;

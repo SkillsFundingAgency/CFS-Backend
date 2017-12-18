@@ -17,16 +17,12 @@ namespace CalculateFunding.Services.Calculator
 {
     public class CalculationEngine
     {
-        private readonly CosmosRepository<ProviderSourceDataset> _providerSourceRepository;
-        private readonly CosmosRepository<ProviderResult> _providerResultRepository;
-        private readonly CosmosRepository<ProviderTestResult> _providerTestResultRepository;
+        private readonly CosmosRepository _repository;
         private readonly ILangugeSyntaxProvider _langugeSyntaxProvider;
 
-        public CalculationEngine(CosmosRepository<ProviderSourceDataset> providerSourceRepository, CosmosRepository<ProviderResult> providerResultRepository, CosmosRepository<ProviderTestResult> providerTestResultRepository, ILangugeSyntaxProvider langugeSyntaxProvider)
+        public CalculationEngine(CosmosRepository repository, ILangugeSyntaxProvider langugeSyntaxProvider)
         {
-            _providerSourceRepository = providerSourceRepository;
-            _providerResultRepository = providerResultRepository;
-            _providerTestResultRepository = providerTestResultRepository;
+            _repository = repository;
             _langugeSyntaxProvider = langugeSyntaxProvider;
         }
 
@@ -34,7 +30,7 @@ namespace CalculateFunding.Services.Calculator
         {
             var allocationFactory = new AllocationFactory(compilerOutput.Assembly);
 
-                var datasetsByUrn = _providerSourceRepository.Query().Where(x =>  x.BudgetId == compilerOutput.Implementation.Id).ToArray().GroupBy(x => x.ProviderUrn);
+                var datasetsByUrn = _repository.Query<ProviderSourceDataset>().Where(x =>  x.BudgetId == compilerOutput.Implementation.Id).ToArray().GroupBy(x => x.ProviderUrn);
 
                 foreach (var urn in datasetsByUrn)
                 {
@@ -52,7 +48,7 @@ namespace CalculateFunding.Services.Calculator
                             providerName = nameField.GetValue(dataset)?.ToString();
                         }
 
-                        var datasetAsJson = _providerSourceRepository.QueryAsJson($"SELECT * FROM ds WHERE ds.id='{dataset.Id}' AND ds.deleted = false").First();
+                        var datasetAsJson = _repository.QueryAsJson($"SELECT * FROM ds WHERE ds.id='{dataset.Id}' AND ds.deleted = false").First();
 
 
                         object blah = JsonConvert.DeserializeObject(datasetAsJson, type, new JsonSerializerSettings{ContractResolver = new CamelCasePropertyNamesContractResolver()});
@@ -63,8 +59,8 @@ namespace CalculateFunding.Services.Calculator
                     var result = CalculateProviderProducts(allocationFactory, compilerOutput, provider, typedDatasets);
                     var testResult = RunProviderTests(new TestSuite(), provider, typedDatasets, result); // TODO
 
-                    await _providerTestResultRepository.CreateAsync(testResult);    
-                    await _providerResultRepository.CreateAsync(result);
+                    await _repository.CreateAsync(testResult);    
+                    await _repository.CreateAsync(result);
                    
                 }
             
@@ -74,7 +70,7 @@ namespace CalculateFunding.Services.Calculator
         {
             var typedDatasets = new List<object>();
 
-                var datasetsAsJson = _providerSourceRepository.QueryAsJson($"SELECT * FROM ds WHERE ds.budgetId='{budgetId}' AND ds.providerUrn='{provider.Id}' AND ds.deleted = false").ToList();
+                var datasetsAsJson = _repository.QueryAsJson($"SELECT * FROM ds WHERE ds.budgetId='{budgetId}' AND ds.providerUrn='{provider.Id}' AND ds.deleted = false").ToList();
 
                 foreach (var datasetAsJson in datasetsAsJson)
                 {

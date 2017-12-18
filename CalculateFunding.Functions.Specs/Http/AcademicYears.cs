@@ -21,7 +21,8 @@ namespace CalculateFunding.Functions.Specs.Http
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", "get")] HttpRequest req, TraceWriter log)
         {
-            return await RestMethods<AcademicYear>.Run(req, log, "specificationId");
+            var restMethods = new RestMethods<AcademicYear>();
+            return await restMethods.Run(req, log, "specificationId");
         }
     }
 

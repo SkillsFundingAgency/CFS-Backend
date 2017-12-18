@@ -12,7 +12,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace CalculateFunding.Functions.Common
 {
-    public static class RestMethods<T> where T : Reference
+    public class RestMethods<T> where T : Reference
     {
         private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
         {
@@ -20,10 +20,9 @@ namespace CalculateFunding.Functions.Common
             Formatting = Formatting.Indented
 
         };
-        public static async Task<IActionResult> Run(HttpRequest req, TraceWriter log, string idName)
+        public async Task<IActionResult> Run(HttpRequest req, TraceWriter log, string idName)
         {
             req.Query.TryGetValue(idName, out var id);
-
 
             if (req.Method == "POST")
             {
@@ -34,26 +33,30 @@ namespace CalculateFunding.Functions.Common
 
         }
 
-        private static async Task<IActionResult> OnGet(string id)
+        private async Task<IActionResult> OnGet(string id)
         {
-            var repository = ServiceFactory.GetService<CosmosRepository<T>>();
+            var repository = ServiceFactory.GetService<CosmosRepository>();
 
             if (id != null)
             {
-                var entity = await repository.ReadAsync(id);
+                var entity = await repository.ReadAsync<T>(id);
                 if (entity == null) return new NotFoundResult();
                 return new JsonResult(entity.Content, SerializerSettings);
 
             }
 
-            var entities = repository.Query().ToList();
+            var entities = repository.Query<T>().ToList();
             return new JsonResult(entities, SerializerSettings);
 
         }
 
-        private static async Task<IActionResult> OnPost(HttpRequest req)
+        private async Task<IActionResult> OnPost(HttpRequest req)
         {
+            var repository = ServiceFactory.GetService<CosmosRepository>();
+            await repository.EnsureCollectionExists();
+
             var json = await req.ReadAsStringAsync();
+
 
             var item = JsonConvert.DeserializeObject<T>(json, SerializerSettings);
 
@@ -62,9 +65,8 @@ namespace CalculateFunding.Functions.Common
                 return new BadRequestErrorMessageResult("Please ensure entity is passed in the request body");
             }
 
-            var repository = ServiceFactory.GetService<CosmosRepository<T>>();
-            await repository.EnsureCollectionExists();
-            var current = await repository.ReadAsync(item.Id);
+
+            var current = await repository.ReadAsync<T>(item.Id);
             if (current.Content != null)
             {
                 if (!IsModified(current.Content, item))
@@ -72,7 +74,6 @@ namespace CalculateFunding.Functions.Common
                     return new StatusCodeResult(304);
                 }
             }
-
 
             await repository.CreateAsync(item);
 
@@ -83,29 +84,6 @@ namespace CalculateFunding.Functions.Common
         {
             return JsonConvert.SerializeObject(current) == JsonConvert.SerializeObject(item);
         }
-
-
-        private static async Task<IActionResult> OnPost(string json)
-        {
-            var item = JsonConvert.DeserializeObject<T>(json, SerializerSettings);
-
-            if (item == null)
-            {
-                return new BadRequestErrorMessageResult("Please ensure entity is passed in the request body");
-            }
-
-            // get current
-            // check updated
-            // update
-            // add event
-
-            var repository = ServiceFactory.GetService<CosmosRepository<T>>();
-            await repository.EnsureCollectionExists();
-            await repository.CreateAsync(item);
-
-            return new AcceptedResult();
-        }
-
 
     }
 }

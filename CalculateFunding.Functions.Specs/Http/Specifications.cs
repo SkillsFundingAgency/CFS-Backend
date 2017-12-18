@@ -11,11 +11,21 @@ namespace CalculateFunding.Functions.Specs.Http
 {
     public static class Specifications
     {
+        
         [FunctionName("specifications")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "post", "get")] HttpRequest req, TraceWriter log)
+            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, TraceWriter log)
         {
-            return await RestMethods<Specification>.Run(req, log, "specificationId");
+            var restMethods = new RestMethods<Specification>();
+            return await restMethods.Run(req, log, "specificationId");
+        }
+
+        [FunctionName("specifications-commands")]
+        public static async Task<IActionResult> RunCommands(
+            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, TraceWriter log)
+        {
+            var restMethods = new RestMethods<Specification>();
+            return await restMethods.Run(req, log, "specificationId");
         }
     }
 }

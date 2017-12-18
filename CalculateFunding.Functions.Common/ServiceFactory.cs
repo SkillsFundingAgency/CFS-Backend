@@ -1,8 +1,6 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Providers;
@@ -45,36 +43,13 @@ namespace CalculateFunding.Functions.Common
                     .AddDebug())
                 .AddLogging();
             ServiceProvider = serviceCollection
-                // .AddOptions()
-                //.Configure<RepositorySettings>(settings => config.GetSection("SpecificationsRepository"))
-                //.Configure<RepositorySettings>(settings => config.GetSection("DatasetsRepository"))
-                //.Configure<RepositorySettings>(settings => config.GetSection("ResultsRepository"))
-                //.Configure<RepositorySettings>(settings => config.GetSection("Configuration"))
                 .AddDbContext<ProvidersDbContext>(options => options.UseSqlServer(config["ProvidersConnectionString"], sqlServerOptions => sqlServerOptions.CommandTimeout(60 * 3)))
-                .AddSingleton(new CosmosRepository<Specification>(new RepositorySettings
+                .AddSingleton(new CosmosRepository(new RepositorySettings
                 {
                     ConnectionString = config["CosmosDBConnectionString"],
-                    DatabaseName = "calculate-funding",
-                    CollectionName = "specs"
-                }, null))
-                .AddSingleton(new CosmosRepository<ProviderSourceDataset>(new RepositorySettings
-                {
-                    ConnectionString = config["CosmosDBConnectionString"],
-                    DatabaseName = "calculate-funding",
-                    CollectionName = "datasets",
-                    PartitionKey = "/providerUrn"
-                }, null))
-                .AddSingleton(new CosmosRepository<ProviderResult>(new RepositorySettings
-                {
-                    ConnectionString = config["CosmosDBConnectionString"],
-                    DatabaseName = "calculate-funding",
-                    CollectionName = "results"
-                }, null))
-                .AddSingleton(new CosmosRepository<ProviderTestResult>(new RepositorySettings
-                {
-                    ConnectionString = config["CosmosDBConnectionString"],
-                    DatabaseName = "calculate-funding",
-                    CollectionName = "results"
+                    DatabaseName = config["CosmosDBDatabaseName"],
+                    CollectionName = config["CosmosDBCollectionName"]
+                    
                 }, null))
                 .AddSingleton(new SearchRepository<ProviderIndex>(new SearchRepositorySettings
                 {

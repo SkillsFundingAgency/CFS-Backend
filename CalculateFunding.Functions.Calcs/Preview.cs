@@ -28,12 +28,12 @@ namespace CalculateFunding.Functions.Calcs
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestMessage req, TraceWriter log, ExecutionContext context)
         {
 
-            var budgetRepository = ServiceFactory.GetService<CosmosRepository<Implementation>>();
+            var budgetRepository = ServiceFactory.GetService<CosmosRepository>();
             
             var json = await req.Content.ReadAsStringAsync();
 
             var request = JsonConvert.DeserializeObject<PreviewRequest>(json, SerializerSettings);
-            var budget = await budgetRepository.ReadAsync(request.BudgetId);
+            var budget = await budgetRepository.ReadAsync<Implementation>(request.BudgetId);
             var product = budget?.Content?.Calculations.FirstOrDefault(x => x.Id == request.ProductId);
             if (product == null) return new HttpResponseMessage(HttpStatusCode.NotFound);
 
