@@ -47,6 +47,8 @@ namespace CalculateFunding.Functions.Common
         private async Task<IActionResult> OnPost(TCommand command)
         {
             var repository = ServiceFactory.GetService<CosmosRepository>();
+            var messenger = ServiceFactory.GetService<Messenger>();
+
             await repository.EnsureCollectionExists();
             var current = await repository.ReadAsync<T>(command.Content.Id);
             if (current.Content != null)
@@ -58,6 +60,7 @@ namespace CalculateFunding.Functions.Common
             }
             await repository.CreateAsync(command.Content);
             await repository.CreateAsync(command);
+            await messenger.SendAsync("spec-events", command);
             // send SB message
 
             return new AcceptedResult();
@@ -68,6 +71,7 @@ namespace CalculateFunding.Functions.Common
         private async Task<IActionResult> OnDelete(TCommand command)
         {
             var repository = ServiceFactory.GetService<CosmosRepository>();
+            var messenger = ServiceFactory.GetService<Messenger>();
             await repository.EnsureCollectionExists();
             var current = await repository.ReadAsync<T>(command.Content.Id);
             if (current.Content != null)
@@ -80,6 +84,7 @@ namespace CalculateFunding.Functions.Common
             current.Deleted = true;
             await repository.CreateAsync(current.Content);
             await repository.CreateAsync(command);
+            await messenger.SendAsync("spec-events", command);
             // send SB messageB
 
             return new AcceptedResult();

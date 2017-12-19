@@ -86,7 +86,13 @@ namespace CalculateFunding.ContentSync
                         Policies = GetPolicies(policies, calcs).ToList()
                     };
 
-                    var result = apiClient.PostSpecification(specification).Result;
+                    var result = apiClient.PostSpecificationCommand(new SpecificationCommand
+                    {
+                        Content = specification,
+                        Method = "POST",
+                        Id = Guid.NewGuid().ToString("N"),
+                        User = new Reference("matt.hammond@education.gov.uk", "Matt Hammond")
+                    }).Result;
 
                     Console.WriteLine(result);
                 }

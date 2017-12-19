@@ -51,6 +51,7 @@ namespace CalculateFunding.Functions.Common
                     CollectionName = config["CosmosDBCollectionName"]
                     
                 }, null))
+                .AddSingleton(new Messenger(config["ServiceBusConnectionString"]))
                 .AddSingleton(new SearchRepository<ProviderIndex>(new SearchRepositorySettings
                 {
                     SearchServiceName = config["SearchServiceName"],

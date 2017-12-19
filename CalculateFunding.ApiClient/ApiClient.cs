@@ -54,9 +54,9 @@ namespace CalculateFunding.ApiClient
         }
 
 
-        public async Task<HttpStatusCode> PostSpecification(Specification specification)
+        public async Task<HttpStatusCode> PostSpecificationCommand(SpecificationCommand command)
         {
-            return await PostAsync($"{_specsPath}/specifications", specification);
+            return await PostAsync($"{_specsPath}/commands/specifications", command);
         }
 
         //public async Task<ApiResponse<ProviderTestResult[]>> GetProviderResults(string budgetId)
