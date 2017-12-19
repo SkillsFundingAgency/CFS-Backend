@@ -43,10 +43,5 @@ namespace CalculateFunding.Functions.Common
 
         }
 
-        private static bool IsModified<TAny>(TAny current, TAny item)
-        {
-            return JsonConvert.SerializeObject(current) == JsonConvert.SerializeObject(item);
-        }
-
     }
 }

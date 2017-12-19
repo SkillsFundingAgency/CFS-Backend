@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="functions-extensions\**" />
+    <EmbeddedResource Remove="functions-extensions\**" />
+    <None Remove="functions-extensions\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="OnTimerFired.cs" />
   </ItemGroup>
 
