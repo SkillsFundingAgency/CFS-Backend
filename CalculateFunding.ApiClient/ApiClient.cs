@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 

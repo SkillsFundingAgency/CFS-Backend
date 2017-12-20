@@ -16,41 +16,42 @@ using Newtonsoft.Json.Serialization;
 
 namespace CalculateFunding.Functions.Specs.Http
 {
-    public static class Policies
+    public static class Calculations
     {
-        [FunctionName("policies-commands")]
+
+        [FunctionName("calculations-commands")]
         public static async Task<IActionResult> RunCommands(
             [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, TraceWriter log)
         {
             var restMethods =
-                new RestCommandMethods<Specification, PolicySpecificationCommand, PolicySpecification>
+                new RestCommandMethods<Specification, CalculationSpecificationCommand, CalculationSpecification>
                 {
                     GetEntityId = command => command.SpecificationId,
                     UpdateTarget = (specification, command) =>
                     {
-                        var existing = specification?.GetPolicy(command.Id);
-                        if (existing != null)
+                        var policy = specification?.GetPolicy(command.PolicyId);
+                        if (policy != null)
                         {
-                            existing.Name = command.Content.Name;
-                            existing.Description = command.Content.Description;
+                            var existing = policy.GetCalculation(command.Content.Id);
+                            if (existing != null)
+                            {
+                                existing.Name = command.Content.Name;
+                                existing.Description = command.Content.Description;
+                            }
+                            else
+                            {
+                                policy.Calculations = policy.Calculations ?? new List<CalculationSpecification>();
+                                policy.Calculations.Add(command.Content);
+                            }
                         }
-                        var parent = specification?.GetPolicy(command.ParentPolicyId);
-                        if (parent != null)
-                        {
-                            parent.SubPolicies = parent.SubPolicies ?? new List<PolicySpecification>();
-                            parent.SubPolicies.Add(command.Content);
-                        }
-                        else
-                        {
-                            specification.Policies = specification.Policies ?? new List<PolicySpecification>();
-                            specification.Policies.Add(command.Content);
-                        }
+
 
                         return specification;
                     }
                 };
             return await restMethods.Run(req, log);
         }
+
     }
 
 }

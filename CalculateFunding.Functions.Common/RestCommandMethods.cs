@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using System.Web.Http;
 using CalculateFunding.Models;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,8 +12,20 @@ using Newtonsoft.Json.Serialization;
 
 namespace CalculateFunding.Functions.Common
 {
-    public class RestCommandMethods<T, TCommand> where T : IIdentifiable where TCommand : Command<T>
+    public class RestCommandMethods<TEntity, TCommand> : RestCommandMethods<TEntity, TCommand, TEntity> where TEntity : IIdentifiable where TCommand : Command<TEntity>
     {
+        public RestCommandMethods()
+        {
+            UpdateTarget = (source, target) => target.Content;
+        }
+    }
+
+    public class RestCommandMethods<TEntity, TCommand, TCommandEntity> where TEntity : IIdentifiable where TCommandEntity : IIdentifiable where TCommand : Command<TCommandEntity>
+    {
+        public RestCommandMethods()
+        {
+            GetEntityId = command => command.Content.Id;
+        }
         private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
@@ -50,10 +62,11 @@ namespace CalculateFunding.Functions.Common
             var messenger = ServiceFactory.GetService<Messenger>();
 
             await repository.EnsureCollectionExists();
-            var current = await repository.ReadAsync<T>(command.Content.Id);
+            var current = await repository.ReadAsync<TEntity>(GetEntityId(command));
             if (current.Content != null)
             {
-                if (!IsModified(current.Content, command.Content))
+                TEntity updatedContent = UpdateTarget(current.Content, command);
+                if (!IsModified(current.Content, updatedContent))
                 {
                     return new StatusCodeResult(304);
                 }
@@ -66,6 +79,8 @@ namespace CalculateFunding.Functions.Common
             return new AcceptedResult();
         }
 
+        public Func<TEntity, TCommand, TEntity> UpdateTarget { get; set; }
+        public Func<TCommand, string> GetEntityId { get; set; }
 
 
         private async Task<IActionResult> OnDelete(TCommand command)
@@ -73,7 +88,7 @@ namespace CalculateFunding.Functions.Common
             var repository = ServiceFactory.GetService<CosmosRepository>();
             var messenger = ServiceFactory.GetService<Messenger>();
             await repository.EnsureCollectionExists();
-            var current = await repository.ReadAsync<T>(command.Content.Id);
+            var current = await repository.ReadAsync<TEntity>(GetEntityId(command));
             if (current.Content != null)
             {
                 if (current.Deleted)
