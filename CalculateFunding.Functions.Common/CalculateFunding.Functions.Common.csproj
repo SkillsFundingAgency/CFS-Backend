@@ -17,6 +17,7 @@
     <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="2.5.0" />
     <PackageReference Include="AutoMapper" Version="6.2.2" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.7" />
+    <PackageReference Include="WindowsAzure.ServiceBus" Version="4.1.6" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,12 +26,6 @@
     <ProjectReference Include="..\CalculateFunding.Repositories.Providers\CalculateFunding.Repositories.Providers.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Calculator\CalculateFunding.Services.Calculator.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.DataImporter\CalculateFunding.Services.DataImporter.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Microsoft.Azure.ServiceBus">
-      <HintPath>..\..\..\..\.nuget\packages\microsoft.azure.servicebus\2.0.0\lib\netstandard2.0\Microsoft.Azure.ServiceBus.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>
