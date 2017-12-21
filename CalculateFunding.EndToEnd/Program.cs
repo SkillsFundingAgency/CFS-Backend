@@ -50,24 +50,19 @@ namespace CalculateFunding.EndToEnd
                             {
                                 var providers = new EdubaseImporterService().ImportEdubaseCsv(file, reader);
 
-                                var dbContext = ServiceFactory.GetService<ProvidersDbContext>();
 
-                                var command = new ProviderCommandEntity();
-
-                                var addResult = await dbContext.ProviderCommands.AddAsync(command);
-                                await dbContext.SaveChangesAsync();
                                 stopWatch.Stop();
                                 Console.WriteLine($"Read {file} in {stopWatch.ElapsedMilliseconds}ms");
                                 stopWatch.Restart();
 
                                 var list = providers.ToList();
 
-                                var events = (await dbContext.Upsert(addResult.Entity.Id, list.Where(x => !string.IsNullOrEmpty(x.UKPRN)))).ToList();
+                      //          var events = (await dbContext.Upsert(addResult.Entity.Id, list.Where(x => !string.IsNullOrEmpty(x.UKPRN)))).ToList();
 
                                 stopWatch.Stop();
-                                Console.WriteLine($"Bulk Inserted with {events.Count} changes in {stopWatch.ElapsedMilliseconds}ms");
+                            //    Console.WriteLine($"Bulk Inserted with {events.Count} changes in {stopWatch.ElapsedMilliseconds}ms");
 
-                                var results = await searchRepository.Index(events.Select(Mapper.Map<ProviderIndex>).ToList());
+                           //     var results = await searchRepository.Index(events.Select(Mapper.Map<ProviderIndex>).ToList());
                             }
 
                             Console.WriteLine($"C# Blob trigger function Processed blob\n Name:{file} \n Size: {blob.Length} Bytes");

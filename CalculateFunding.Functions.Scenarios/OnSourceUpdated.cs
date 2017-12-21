@@ -36,12 +36,12 @@ namespace CalculateFunding.Functions.Scenarios
                 log.Info($"Read {name} in {stopWatch.ElapsedMilliseconds}ms");
                 stopWatch.Restart();
 
-                var events = (await dbContext.Upsert(addResult.Entity.Id, providers.Where(x => !string.IsNullOrEmpty(x.UKPRN)))).ToList();
+                //var events = (await dbContext.Upsert(addResult.Entity.Id, providers.Where(x => !string.IsNullOrEmpty(x.UKPRN)))).ToList();
 
-                stopWatch.Stop();
-                log.Info($"Bulk Inserted with {events.Count} changes in {stopWatch.ElapsedMilliseconds}ms");
+                //stopWatch.Stop();
+                //log.Info($"Bulk Inserted with {events.Count} changes in {stopWatch.ElapsedMilliseconds}ms");
 
-                var results = await searchRepository.Index(events.Select(Mapper.Map<ProviderIndex>).ToList());
+                //var results = await searchRepository.Index(events.Select(Mapper.Map<ProviderIndex>).ToList());
             }
 
             log.Info($"C# Blob trigger function Processed blob\n Name:{name} \n Size: {blob.Length} Bytes");

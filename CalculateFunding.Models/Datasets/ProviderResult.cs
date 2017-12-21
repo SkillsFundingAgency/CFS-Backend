@@ -50,7 +50,7 @@ namespace CalculateFunding.Models.Datasets
         public object Data { get; set; }
     }
 
-    public class Provider
+    public class Provider : Reference
     {
         [Key]
         [JsonProperty("urn")]
@@ -58,9 +58,6 @@ namespace CalculateFunding.Models.Datasets
 
         [JsonProperty("ukprn")]
         public string UKPRN { get; set; }
-
-        [JsonProperty("name")]
-        public string Name { get; set; }
 
         [JsonProperty("authority")]
         public Reference Authority { get; set; }

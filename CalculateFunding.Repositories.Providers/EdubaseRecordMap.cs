@@ -1,11 +1,12 @@
 ﻿using System;
+using CalculateFunding.Models.Datasets;
 using CsvHelper;
 using CsvHelper.Configuration;
 
 namespace CalculateFunding.Repositories.Providers
 {
 
-    public sealed class EdubaseRecordMap : ClassMap<ProviderBaseEntity>
+    public sealed class EdubaseRecordMap : ClassMap<Provider>
     {
         public EdubaseRecordMap()
         {

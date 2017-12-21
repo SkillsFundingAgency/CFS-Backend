@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Azure.ServiceBus;
+using Microsoft.ServiceBus.Messaging;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Functions.Common
@@ -20,7 +20,8 @@ namespace CalculateFunding.Functions.Common
         {
             if (!_topicClients.TryGetValue(topicName, out var topicClient))
             {
-                topicClient = new TopicClient(_connectionString, topicName);
+
+                topicClient = TopicClient.CreateFromConnectionString(_connectionString, topicName);
                 _topicClients.Add(topicName, topicClient);
             }
             return topicClient;
@@ -31,7 +32,7 @@ namespace CalculateFunding.Functions.Common
             var topicClient = GetTopicClient(topicName);
             
             var json = JsonConvert.SerializeObject(command);
-            await topicClient.SendAsync(new Message(Encoding.UTF8.GetBytes(json)));
+            await topicClient.SendAsync(new BrokeredMessage(Encoding.UTF8.GetBytes(json)));
         }
     }
 }
