@@ -43,6 +43,9 @@
     <None Update="SourceData\Number Counts Export.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="SourceData\SBS-Specification2.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="SourceData\Weights export.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -6,15 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="functions-extensions\**" />
-    <EmbeddedResource Remove="functions-extensions\**" />
-    <None Remove="functions-extensions\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="6.2.2" />
+    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.0-beta4" />
     <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta4" />
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.7" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.6" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,6 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="host.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="local.settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
