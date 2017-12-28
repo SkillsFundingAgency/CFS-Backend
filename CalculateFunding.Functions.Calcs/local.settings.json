@@ -1,0 +1,12 @@
+{
+    "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=gvaggxslfcz4gstorage;AccountKey=+HmYeJAg3EB8No7WMciz9Dg5e7EdASTXbFjbe3UWjcgdcvWLw/NgieumiinAUQbVbM30lI/AtcUdj2bgGLSz4A==",
+    "AzureWebJobsDashboard": "DefaultEndpointsProtocol=https;AccountName=gvaggxslfcz4gstorage;AccountKey=+HmYeJAg3EB8No7WMciz9Dg5e7EdASTXbFjbe3UWjcgdcvWLw/NgieumiinAUQbVbM30lI/AtcUdj2bgGLSz4A==",
+    "CosmosDBConnectionString": "AccountEndpoint=https://localhost:8081;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==;",
+    "CosmosDBDatabaseName": "end-to-end",
+    "CosmosDBCollectionName": "end-to-end",
+    "ServiceBusConnection": "Endpoint=sb://esfacfsbdevbus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=rx+F+1siLTdMbedK9+UeY4+MMiq6v4gT9x0cNgb4OcA=",
+    "ServiceBusTopicName": "spec-events"
+  }
+}

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AzureFunctionsVersion>v2</AzureFunctionsVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="6.2.2" />
+    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.0-beta4" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta4" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CalculateFunding.Functions.Common\CalculateFunding.Functions.Common.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Calculator\CalculateFunding.Services.Calculator.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Compiler\CalculateFunding.Services.Compiler.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="local.settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

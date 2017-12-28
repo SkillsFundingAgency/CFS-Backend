@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AzureFunctionsVersion>v2</AzureFunctionsVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="6.2.2" />
+    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.0-beta4" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.0.1" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.6" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CalculateFunding.Functions.Common\CalculateFunding.Functions.Common.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Repositories.Common.Sql\CalculateFunding.Repositories.Common.Sql.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Repositories.Providers\CalculateFunding.Repositories.Providers.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.DataImporter\CalculateFunding.Services.DataImporter.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="host.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="local.settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+</Project>

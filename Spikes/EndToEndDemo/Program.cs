@@ -1,24 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Configuration;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using Allocations.Boostrapper;
-using Allocations.Models;
-using Allocations.Repository;
 using Newtonsoft.Json;
-using Allocations.Models.Datasets;
-using Allocations.Models.Results;
-using Allocations.Models.Specs;
-using Allocations.Services.Calculator;
-using Allocations.Services.Compiler;
-using Allocations.Services.DataImporter;
-using Allocations.Services.TestRunner;
-using Allocations.Services.TestRunner.Vocab;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Repository;
+using CalculateFunding.Services.Calculator;
+using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.DataImporter;
 using Newtonsoft.Json.Serialization;
 
 namespace EndToEndDemo
@@ -54,7 +43,7 @@ namespace EndToEndDemo
 
                 if (compilerOutput.Success)
                 {
-                    var calc = new CalculationEngine(compilerOutput);
+                    var calc = new CalculationEngine(compilerOutput, TODO, TODO);
                     await calc.GenerateAllocations();
                 }
                 else
