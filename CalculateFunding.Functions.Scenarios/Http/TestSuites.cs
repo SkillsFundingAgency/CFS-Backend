@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
 
 namespace CalculateFunding.Functions.Scenarios.Http
 {
@@ -15,7 +16,7 @@ namespace CalculateFunding.Functions.Scenarios.Http
     {
         [FunctionName("test-suites")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "post", "get")] HttpRequest req, TraceWriter log)
+            [HttpTrigger(AuthorizationLevel.Function, "post", "get")] HttpRequest req, ILogger log)
         {
             var restMethods = new RestGetMethods<Specification>();
             return await restMethods.Run(req, log, "specificationId"); ;
@@ -26,7 +27,7 @@ namespace CalculateFunding.Functions.Scenarios.Http
     {
         [FunctionName("test-scenarios")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "post", "get")] HttpRequest req, TraceWriter log)
+            [HttpTrigger(AuthorizationLevel.Function, "post", "get")] HttpRequest req, ILogger log)
         {
             var restMethods = new RestGetMethods<Specification>();
             return await restMethods.Run(req, log, "specificationId");

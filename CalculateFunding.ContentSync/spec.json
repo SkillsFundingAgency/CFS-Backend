@@ -1,0 +1,1469 @@
+{
+  "academicYear": {
+    "id": "1819",
+    "name": "1819"
+  },
+  "fundingStream": {
+    "id": "gag",
+    "name": "gag"
+  },
+  "description": "Most funding for academies comes from the general annual grant (GAG). This is made up of: school budget share  (calculated on the same basis as for maintained schools in the same local authority) and Education services grant (ESG) protection if applicable\n\nA minimum funding guarantee protects the school budget share. This means per-pupil funding will not fall by more than 1.5% compared with the previous year. The minimum funding guarantee calculation excludes funding for sixth forms and places in special units. Where appropriate, the GAG may also include funding for high needs places, 16 to 19 students and startup funding for new institutions.",
+  "policies": [
+    {
+      "description": "The School Budget Share (SBS) allocation makes up the majority of academy revenue funding, and is calculated by following the same funding formula as represented on the Authority Proforma Tool (APT) for the Local Authority in which the academy is located. This ensures that academies are funded on a comparable basis to that of maintained schools in the same local authority.",
+      "calculations": [],
+      "subPolicies": [
+        {
+          "description": "This is a set unit value of cash per pupil, applicable to all pupils (therefore no weighting is necessary). This factor is a mandatory pupil led factor, and for AY 2017 to 2018, minimum unit values for primary and secondary pupils have been set at £2,000 and £3,000 respectively. Within the secondary limit, the LA can set different unit values for KS3 and KS4.",
+          "calculations": [
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Basic Entitlement Primary Amount Per Pupil'.",
+              "id": "P004_PriRate",
+              "name": "P004_PriRate"
+            },
+            {
+              "description": "Full year amount of basic entitlemet for academies that have primary pupils calculated by multiplying primary pupils by the LA-determinded rate, except for in-year openers funded on census, where the LA -calculated allocation is picked up from the New ISB sheet of the APT Aggregation.",
+              "id": "P005_PriBESubtotal",
+              "name": "P005_PriBESubtotal"
+            },
+            {
+              "description": "The Primary Basic entitlement NSEN percentage is multiplied by the Primary Basic Entitlement funding to produce the full year NSEN amount attributable to primary basic entitlement.",
+              "id": "P006_NSEN_PriBE",
+              "name": "P006_NSEN_PriBE"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Basic Entitlement Primary Notional SEN'",
+              "id": "P006a_NSEN_PriBE_Percent",
+              "name": "P006a_NSEN_PriBE_Percent"
+            },
+            {
+              "description": "This calculation determines the actual Primary Basic Entitlement allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P007_InYearPriBE_Subtotal",
+              "name": "P007_InYearPriBE_Subtotal"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Basic Entitlement KS3 Amount Per Pupil'.",
+              "id": "P009_KS3Rate",
+              "name": "P009_KS3Rate"
+            },
+            {
+              "description": "Full year amount of basic entitlemet for academies that have KS3 pupils calculated by multiplying KS3 pupils by the LA-determinded rate, except for in-year openers funded on census, where the LA -calculated allocation is picked up from the New ISB sheet of the APT Aggregation.",
+              "id": "P010_KS3_BESubtotal",
+              "name": "P010_KS3_BESubtotal"
+            },
+            {
+              "description": "The KS3 Basic entitlement NSEN percentage is multiplied by the KS3 Basic Entitlement funding to produce the full year NSEN amount attributable to KS3 basic entitlement.",
+              "id": "P011_NSEN_KS3BE_percent",
+              "name": "P011_NSEN_KS3BE_percent"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Basic Entitlement KS3 Notional SEN'",
+              "id": "P011a_NSEN_KS3BE_Percent",
+              "name": "P011a_NSEN_KS3BE_Percent"
+            },
+            {
+              "description": "This calculation determines the actual KS3 Basic Entitlement allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P012_InYearKS3_BESubtotal",
+              "name": "P012_InYearKS3_BESubtotal"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Basic Entitlement KS4 Amount Per Pupil'.",
+              "id": "P014_KS4Rate",
+              "name": "P014_KS4Rate"
+            },
+            {
+              "description": "Full year amount of basic entitlemet for academies that have KS4 pupils calculated by multiplying KS4 pupils by the LA-determinded rate, except for in-year openers funded on census, where the LA -calculated allocation is picked up from the New ISB sheet of the APT Aggregation.",
+              "id": "P015_KS4_BESubtotal",
+              "name": "P015_KS4_BESubtotal"
+            },
+            {
+              "description": "The KS4 Basic entitlement NSEN percentage is multiplied by the KS4 Basic Entitlement funding to produce the full year NSEN amount attributable to KS4 basic entitlement.",
+              "id": "P016_NSEN_KS4BE",
+              "name": "P016_NSEN_KS4BE"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Basic Entitlement KS4 Notional SEN'",
+              "id": "P016a_NSEN_KS4BE_Percent",
+              "name": "P016a_NSEN_KS4BE_Percent"
+            },
+            {
+              "description": "This calculation determines the actual KS4 Basic Entitlement allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P018_InYearKS4_BESubtotal",
+              "name": "P018_InYearKS4_BESubtotal"
+            }
+          ],
+          "subPolicies": [],
+          "id": "bb411f3c107a40a8a71ff57604296e0e",
+          "name": "Basic Entitlement"
+        },
+        {
+          "description": "The de-delegation of funding to converting academies is dependent on the date of conversion as summarised here \n• Those converting on the 1st April 2017 receive all of their de-delegation funding (same principle as a 1st September opener), so do not have a deduction for either the April to August proportion or the AY 2017 to 2018 allocation.\n• Those converting from 2nd April 2017 to end August 2017, will receive no de-delegation for the April to August period, but then receive full 12 months de-delegation for AY 2017 to 2018.\n• Those converting on 1st September 2017 receive full AY 2017 to 2018 de-delegation\n• converting from 2nd September 2017 to end March 2018 will only receive the de-delegation for the 153 day period April 2018 to August 2018\n",
+          "calculations": [
+            {
+              "description": "For academies open on or after 2 September 2017, the LA retains the proportion of their dedelegation funding to the end of March, with funding only provided to the academy for the 153 days from 1 April 2018 to 31 August 2018.  This calculation produces the amount of dedelegation funding from the opening date to the end of March, that is retained by the authority and therefore removed from the part-year total SBS.  ",
+              "id": "P297_DedelegationRetained",
+              "name": "P297_DedelegationRetained"
+            }
+          ],
+          "subPolicies": [],
+          "id": "cc9eac91ede6480eb46f748efb3a9d11",
+          "name": "Dedelegation Retained by LA"
+        },
+        {
+          "description": "EAL is another optional pupil led factor. Local authorities can choose whether to fund pupils with EAL who have been in the school system for 1, 1 to 2 or 1 to 3 years, and can set different unit values for primary and secondary pupils.  EAL1 refers to all EAL pupils in the first year of state-funded education, EAL2 includes those in their first or second year and EAL3 includes all in first, second or third year. Year R is excluded from the calculation of the measure provided in the schools block dataset, but not in the actual calculation of the funding, because language data recording on the census is optional for Year R and so the data is very incomplete. The measure itself applies to all R to Yr11 pupils.",
+          "calculations": [
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('EAL1_Primary_Proportion') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then defaults to zero.",
+              "id": "P142_EAL1PriFactor",
+              "name": "P142_EAL1PriFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - EAL1 Primary Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P144_EAL1PriRate",
+              "name": "P144_EAL1PriRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of Primary EAL1 for academies, where the LA has applied this factor.",
+              "id": "P145_EAL1PriSubtotal",
+              "name": "P145_EAL1PriSubtotal"
+            },
+            {
+              "description": "This calculation determines the actual EAL1 Primary allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P146_InYearEAL1PriSubtotal",
+              "name": "P146_InYearEAL1PriSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('EAL2_Primary_Proportion') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then defaults to zero.",
+              "id": "P147_EAL2PriFactor",
+              "name": "P147_EAL2PriFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - EAL2 Primary Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P149_EAL2PriRate",
+              "name": "P149_EAL2PriRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of Primary EAL2 for academies, where the LA has applied this factor.",
+              "id": "P150_EAL2PriSubtotal",
+              "name": "P150_EAL2PriSubtotal"
+            },
+            {
+              "description": "This calculation determines the actual EAL2 Primary allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P151_InYearEAL2PriSubtotal",
+              "name": "P151_InYearEAL2PriSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('EAL3_Primary_Proportion') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then defaults to zero.",
+              "id": "P152_EAL3PriFactor",
+              "name": "P152_EAL3PriFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - EAL3 Primary Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P154_EAL3PriRate",
+              "name": "P154_EAL3PriRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of Primary EAL3 for academies, where the LA has applied this factor.",
+              "id": "P155_EAL3PriSubtotal",
+              "name": "P155_EAL3PriSubtotal"
+            },
+            {
+              "description": "Calculates the proportion of EAL primary funding attributable to NSEN.",
+              "id": "P156_NSENPriEAL",
+              "name": "P156_NSENPriEAL"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Primary EAL Notional SEN'",
+              "id": "P156a_NSENPriEAL_Percent",
+              "name": "P156a_NSENPriEAL_Percent"
+            },
+            {
+              "description": "This calculation determines the actual EAL3 Primary allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P157_InYearEAL3PriSubtotal",
+              "name": "P157_InYearEAL3PriSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('EAL1_Secondary_Proportion') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then defaults to zero.",
+              "id": "P158_EAL1SecFactor",
+              "name": "P158_EAL1SecFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - EAL1 Secondary Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P160_EAL1SecRate",
+              "name": "P160_EAL1SecRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of Secondary EAL1 for academies, where the LA has applied this factor.",
+              "id": "P161_EAL1SecSubtotal",
+              "name": "P161_EAL1SecSubtotal"
+            },
+            {
+              "description": "This calculation determines the actual EAL1 Secondary allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P162_InYearEAL1SecSubtotal",
+              "name": "P162_InYearEAL1SecSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('EAL2_Secondary_Proportion') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then defaults to zero.",
+              "id": "P163_EAL2SecFactor",
+              "name": "P163_EAL2SecFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - EAL2 Secondary Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P165_EAL2SecRate",
+              "name": "P165_EAL2SecRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of Secondary EAL2 for academies, where the LA has applied this factor.",
+              "id": "P166_EAL2SecSubtotal",
+              "name": "P166_EAL2SecSubtotal"
+            },
+            {
+              "description": "This calculation determines the actual EAL2 Secondary allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P167_InYearEAL2SecSubtotal",
+              "name": "P167_InYearEAL2SecSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('EAL3_Secondary_Proportion') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then defaults to zero.",
+              "id": "P168_EAL3SecFactor",
+              "name": "P168_EAL3SecFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - EAL3 Secondary Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P170_EAL3SecRate",
+              "name": "P170_EAL3SecRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of Secondary EAL3 for academies, where the LA has applied this factor.",
+              "id": "P171_EAL3SecSubtotal",
+              "name": "P171_EAL3SecSubtotal"
+            },
+            {
+              "description": "The proportion of EAL Secondary funding attributed to NSEN.",
+              "id": "P172_NSENSecEAL",
+              "name": "P172_NSENSecEAL"
+            },
+            {
+              "description": "The 'EALS_SEN' has been obtained from 'APT Proforma dataset - EAL Secondary Notional SEN'.  ",
+              "id": "P172a_NSENSecEAL_Percent",
+              "name": "P172a_NSENSecEAL_Percent"
+            },
+            {
+              "description": "This calculation determines the actual EAL3 Secondary allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P173_InYearEAL3SecSubtotal",
+              "name": "P173_InYearEAL3SecSubtotal"
+            }
+          ],
+          "subPolicies": [],
+          "id": "dfd825e4a5784fa188379b080fa0c4ae",
+          "name": "EAL"
+        },
+        {
+          "description": "The calculation multiplies the number of pupils in the FSM band by the funding rate for that band then multiplies by the percentage of pupils in that band, as recorded on the census (or as amended on ‘Inputs and Adjustments’ within the APT). If both of these sources are ‘blank’ then the LA Average is used",
+          "calculations": [
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('Primary FSM Proportion') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then LA average is applied (taken from the 'Local Authority Averages' dataset).",
+              "id": "P019_PriFSMFactor",
+              "name": "P019_PriFSMFactor"
+            },
+            {
+              "description": "The FSM indicator ('FSM Primary FSM/FSM6') and the FSM rate ('FSM Primary Amount Per Pupil') are both obtained from the '1718 APT Proforma dataset'.",
+              "id": "P021_PriFSMRate",
+              "name": "P021_PriFSMRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of FSM for academies with primary pupils, where the LA has applied this factor.",
+              "id": "P022_PriFSMSubtotal",
+              "name": "P022_PriFSMSubtotal"
+            },
+            {
+              "description": "This calculation determines the actual Primary FSM allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P023_InYearPriFSMSubtotal",
+              "name": "P023_InYearPriFSMSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('Primary FSM6 Proportion') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then LA average is applied (taken from the 'Local Authority Averages' dataset).",
+              "id": "P024_PriFSM6Factor",
+              "name": "P024_PriFSM6Factor"
+            },
+            {
+              "description": "The FSM indicator ('FSM Primary FSM/FSM6') and the FSM rate ('FSM Primary Amount Per Pupil') are both obtained from the '1718 APT Proforma dataset'.",
+              "id": "P026_PriFSM6Rate",
+              "name": "P026_PriFSM6Rate"
+            },
+            {
+              "description": "This calculation determines the full year amount of FSM6 for academies with primary pupils, where the LA has applied this factor.",
+              "id": "P027_PriFSM6Subtotal",
+              "name": "P027_PriFSM6Subtotal"
+            },
+            {
+              "description": "The 'PriFSM_NSEN' percentage is obtained from 'APT Proforma dataset - FSM Pri Notional SEN'.  This is multiplied by the Pri FSM total to calculate the NSEN funding attributed to Pri FSM.",
+              "id": "P028_NSENFSMPri",
+              "name": "P028_NSENFSMPri"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - FSM Pri Notional SEN'",
+              "id": "P028a_NSENFSMPri_Percent",
+              "name": "P028a_NSENFSMPri_Percent"
+            },
+            {
+              "description": "This calculation determines the actual Primary FSM6 allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P029_InYearPriFSM6Subtotal",
+              "name": "P029_InYearPriFSM6Subtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('Secondary FSM Proportion') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then LA average is applied (taken from the 'Local Authority Averages' dataset).",
+              "id": "P030_SecFSMFactor",
+              "name": "P030_SecFSMFactor"
+            },
+            {
+              "description": "The FSM indicator ('FSM Secondary FSM/FSM6') and the FSM rate ('FSM Secondary Amount Per Pupil') are both obtained from the '1718 APT Proforma dataset'.",
+              "id": "P032_SecFSMRate",
+              "name": "P032_SecFSMRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of FSM for academies with Secondary pupils, where the LA has applied this factor.",
+              "id": "P033_SecFSMSubtotal",
+              "name": "P033_SecFSMSubtotal"
+            },
+            {
+              "description": "This calculation determines the actual Secondary FSM allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P034_InYearSecFSMSubtotal",
+              "name": "P034_InYearSecFSMSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('Secondary FSM6 Proportion') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then LA average is applied (taken from the 'Local Authority Averages' dataset).",
+              "id": "P035_SecFSM6Factor",
+              "name": "P035_SecFSM6Factor"
+            },
+            {
+              "description": "The FSM indicator ('FSM Secondary FSM/FSM6') and the FSM rate ('FSM Secondary Amount Per Pupil') are both obtained from the '1718 APT Proforma dataset'.",
+              "id": "P037_SecFSM6Rate",
+              "name": "P037_SecFSM6Rate"
+            },
+            {
+              "description": "This calculation determines the full year amount of FSM6 for academies with Secondary pupils, where the LA has applied this factor.",
+              "id": "P038_SecFSM6Subtotal",
+              "name": "P038_SecFSM6Subtotal"
+            },
+            {
+              "description": "The 'DEP_FSM_SEC_SEN' has been obtained from 'APT Proforma dataset - FSM Secondary Notional SEN'.  This has been used to calculate the NSEN attributed to Secondary FSM Factor",
+              "id": "P039_NSENFSMSec",
+              "name": "P039_NSENFSMSec"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - FSM Sec Notional SEN'",
+              "id": "P039a_NSENFSMSec_Percent",
+              "name": "P039a_NSENFSMSec_Percent"
+            },
+            {
+              "description": "This calculation determines the actual Secondary FSM6 allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P040_InYearSecFSM6Subtotal",
+              "name": "P040_InYearSecFSM6Subtotal"
+            }
+          ],
+          "subPolicies": [],
+          "id": "524c10bb461b46f3b351b86403168379",
+          "name": "FSM"
+        },
+        {
+          "description": "The calculation multiplies the number of pupils in the IDACI band by the funding rate for that band then multiplies by the percentage of pupils in that band, as recorded on the census (or as amended on ‘Inputs and Adjustments’ within the APT). If both of these sources are ‘blank’ then the LA Average is used",
+          "calculations": [
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('IDACI Primary Proportion Band F') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then LA average is applied (taken from the 'Local Authority Averages' dataset).",
+              "id": "P041_IDACIFPriFactor",
+              "name": "P041_IDACIFPriFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACI Primary BF Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P043_IDACIFPriRate",
+              "name": "P043_IDACIFPriRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of IDACI F for academies with primary pupils, where the LA has applied this factor.",
+              "id": "P044_IDACIFPriSubtotal",
+              "name": "P044_IDACIFPriSubtotal"
+            },
+            {
+              "description": "The 'DEP_IDACI_BF_PRI_SEN' has been obtained from 'APT Proforma dataset - IDACI F Primary Notional SEN'.  This has been used to calculate the NSEN attributed to Primary IDACIF.",
+              "id": "P045_NSENIDACIFPri",
+              "name": "P045_NSENIDACIFPri"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACIF Pri Notional SEN'",
+              "id": "P045a_NSENIDACIFPri_Percent",
+              "name": "P045a_NSENIDACIFPri_Percent"
+            },
+            {
+              "description": "This calculation determines the actual Primary IDACIF allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P046_InYearIDACIFPriSubtotal",
+              "name": "P046_InYearIDACIFPriSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('IDACI Primary Proportion Band E') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then LA average is applied (taken from the 'Local Authority Averages' dataset).",
+              "id": "P047_IDACIEPriFactor",
+              "name": "P047_IDACIEPriFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACI Primary BE Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P049_IDACIEPriRate",
+              "name": "P049_IDACIEPriRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of IDACI E for academies with primary pupils, where the LA has applied this factor.",
+              "id": "P050_IDACIEPriSubtotal",
+              "name": "P050_IDACIEPriSubtotal"
+            },
+            {
+              "description": "The 'DEP_IDACI_BE_PRI_SEN' has been obtained from 'APT Proforma dataset - IDACI E Primary Notional SEN'.  This has been used to calculate the NSEN attributed to Primary IDACIE.",
+              "id": "P051_NSENIDACIEPri",
+              "name": "P051_NSENIDACIEPri"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACIE Pri Notional SEN'",
+              "id": "P051a_NSENIDACIEPri_Percent",
+              "name": "P051a_NSENIDACIEPri_Percent"
+            },
+            {
+              "description": "This calculation determines the actual Primary IDACIE allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P052_InYearIDACIEPriSubtotal",
+              "name": "P052_InYearIDACIEPriSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('IDACI Primary Proportion Band D') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then LA average is applied (taken from the 'Local Authority Averages' dataset).",
+              "id": "P053_IDACIDPriFactor",
+              "name": "P053_IDACIDPriFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACI Primary BD Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P055_IDACIDPriRate",
+              "name": "P055_IDACIDPriRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of IDACI D for academies with primary pupils, where the LA has applied this factor.",
+              "id": "P056_IDACIDPriSubtotal",
+              "name": "P056_IDACIDPriSubtotal"
+            },
+            {
+              "description": "The 'DEP_IDACI_BD_PRI_SEN' has been obtained from 'APT Proforma dataset - IDACI D Primary Notional SEN'.  This has been used to calculate the NSEN attributed to Primary IDACID.",
+              "id": "P057_NSENIDACIDPri",
+              "name": "P057_NSENIDACIDPri"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACID Pri Notional SEN'",
+              "id": "P057a_NSENIDACIDPri_Percent",
+              "name": "P057a_NSENIDACIDPri_Percent"
+            },
+            {
+              "description": "This calculation determines the actual Primary IDACID allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P058_InYearIDACIDPriSubtotal",
+              "name": "P058_InYearIDACIDPriSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('IDACI Primary Proportion Band C') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then LA average is applied (taken from the 'Local Authority Averages' dataset).",
+              "id": "P059_IDACICPriFactor",
+              "name": "P059_IDACICPriFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACI Primary BC Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P061_IDACICPriRate",
+              "name": "P061_IDACICPriRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of IDACI C for academies with primary pupils, where the LA has applied this factor.",
+              "id": "P062_IDACICPriSubtotal",
+              "name": "P062_IDACICPriSubtotal"
+            },
+            {
+              "description": "The 'DEP_IDACI_BC_PRI_SEN' has been obtained from 'APT Proforma dataset - IDACI C Primary Notional SEN'.  This has been used to calculate the NSEN attributed to Primary IDACIC.",
+              "id": "P063_NSENIDACICPri",
+              "name": "P063_NSENIDACICPri"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACIC Pri Notional SEN'",
+              "id": "P063a_NSENIDACICPri_Percent",
+              "name": "P063a_NSENIDACICPri_Percent"
+            },
+            {
+              "description": "This calculation determines the actual Primary IDACIC allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P064_InYearIDACICPriSubtotal",
+              "name": "P064_InYearIDACICPriSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('IDACI Primary Proportion Band B') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then LA average is applied (taken from the 'Local Authority Averages' dataset).",
+              "id": "P065_IDACIBPriFactor",
+              "name": "P065_IDACIBPriFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACI Primary BB Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P067_IDACIBPriRate",
+              "name": "P067_IDACIBPriRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of IDACI B for academies with primary pupils, where the LA has applied this factor.",
+              "id": "P068_IDACIBPriSubtotal",
+              "name": "P068_IDACIBPriSubtotal"
+            },
+            {
+              "description": "The 'DEP_IDACI_BB_PRI_SEN' has been obtained from 'APT Proforma dataset - IDACI B Primary Notional SEN'.  This has been used to calculate the NSEN attributed to Primary IDACIB.",
+              "id": "P069_NSENIDACIBPri",
+              "name": "P069_NSENIDACIBPri"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACIB Pri Notional SEN'",
+              "id": "P069a_NSENIDACIBPri_Percent",
+              "name": "P069a_NSENIDACIBPri_Percent"
+            },
+            {
+              "description": "This calculation determines the actual Primary IDACIB allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P070_InYearIDACIBPriSubtotal",
+              "name": "P070_InYearIDACIBPriSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('IDACI Primary Proportion Band A') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then LA average is applied (taken from the 'Local Authority Averages' dataset).",
+              "id": "P071_IDACIAPriFactor",
+              "name": "P071_IDACIAPriFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACI Primary BA Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P073_IDACIAPriRate",
+              "name": "P073_IDACIAPriRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of IDACI A for academies with primary pupils, where the LA has applied this factor.",
+              "id": "P074_IDACIAPriSubtotal",
+              "name": "P074_IDACIAPriSubtotal"
+            },
+            {
+              "description": "The 'DEP_IDACI_BA_PRI_SEN' has been obtained from 'APT Proforma dataset - IDACI A Primary Notional SEN'.  This has been used to calculate the NSEN attributed to Primary IDACIA.",
+              "id": "P075_NSENIDACIAPri",
+              "name": "P075_NSENIDACIAPri"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACIA Pri Notional SEN'",
+              "id": "P075a_NSENIDACIAPri_Percent",
+              "name": "P075a_NSENIDACIAPri_Percent"
+            },
+            {
+              "description": "This calculation determines the actual Primary IDACIA allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P076_InYearIDACIAPriSubtotal",
+              "name": "P076_InYearIDACIAPriSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('IDACI Secondary Proportion Band F') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then LA average is applied (taken from the 'Local Authority Averages' dataset).",
+              "id": "P077_IDACIFSecFactor",
+              "name": "P077_IDACIFSecFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACI Secondary BF Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P079_IDACIFSecRate",
+              "name": "P079_IDACIFSecRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of IDACI F for academies with Secondary pupils, where the LA has applied this factor.",
+              "id": "P080_IDACIFSecSubtotal",
+              "name": "P080_IDACIFSecSubtotal"
+            },
+            {
+              "description": "The 'DEP_IDACI_BF_SEC_SEN' has been obtained from 'APT Proforma dataset - IDACI F Secondary Notional SEN'.  This has been used to calculate the 'DEP_IDACI_BF_SEC_SEN'",
+              "id": "P081_NSENIDACIFSec",
+              "name": "P081_NSENIDACIFSec"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACIF Sec Notional SEN'",
+              "id": "P081a_NSENIDACIFSec_Percent",
+              "name": "P081a_NSENIDACIFSec_Percent"
+            },
+            {
+              "description": "This calculation determines the actual Secondary IDACIF allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P082_InYearIDACIFSecSubtotal",
+              "name": "P082_InYearIDACIFSecSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('IDACI Secondary Proportion Band E') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then LA average is applied (taken from the 'Local Authority Averages' dataset).",
+              "id": "P083_IDACIESecFactor",
+              "name": "P083_IDACIESecFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACI Secondary BE Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P085_IDACIESecRate",
+              "name": "P085_IDACIESecRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of IDACI E for academies with Secondary pupils, where the LA has applied this factor.",
+              "id": "P086_IDACIESecSubtotal",
+              "name": "P086_IDACIESecSubtotal"
+            },
+            {
+              "description": "The 'DEP_IDACI_BE_SEC_SEN' has been obtained from 'APT Proforma dataset - IDACI E Secondary Notional SEN'.  This has been used to calculate the 'DEP_IDACI_BE_SEC_SEN'",
+              "id": "P087_NSENIDACIESec",
+              "name": "P087_NSENIDACIESec"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACIE Sec Notional SEN'",
+              "id": "P87a_NSENIDACIESec_Percent",
+              "name": "P87a_NSENIDACIESec_Percent"
+            },
+            {
+              "description": "This calculation determines the actual Secondary IDACIE allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P088_InYearIDACIESecSubtotal",
+              "name": "P088_InYearIDACIESecSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('IDACI Secondary Proportion Band D') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then LA average is applied (taken from the 'Local Authority Averages' dataset).",
+              "id": "P089_IDACIDSecFactor",
+              "name": "P089_IDACIDSecFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACI Secondary BD Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P091_IDACIDSecRate",
+              "name": "P091_IDACIDSecRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of IDACI D for academies with Secondary pupils, where the LA has applied this factor.",
+              "id": "P092_IDACIDSecSubtotal",
+              "name": "P092_IDACIDSecSubtotal"
+            },
+            {
+              "description": "The 'DEP_IDACI_BD_SEC_SEN' has been obtained from 'APT Proforma dataset - IDACI D Secondary Notional SEN'.  This has been used to calculate the 'DEP_IDACI_BD_SEC_SEN'",
+              "id": "P093_NSENIDACIDSec",
+              "name": "P093_NSENIDACIDSec"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACID Sec Notional SEN'",
+              "id": "P093a_NSENIDACIDSec_Percent",
+              "name": "P093a_NSENIDACIDSec_Percent"
+            },
+            {
+              "description": "This calculation determines the actual Secondary IDACID allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P094_InYearIDACIDSecSubtotal",
+              "name": "P094_InYearIDACIDSecSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('IDACI Secondary Proportion Band C') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then LA average is applied (taken from the 'Local Authority Averages' dataset).",
+              "id": "P095_IDACICSecFactor",
+              "name": "P095_IDACICSecFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACI Secondary BC Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P097_IDACICSecRate",
+              "name": "P097_IDACICSecRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of IDACI C for academies with Secondary pupils, where the LA has applied this factor.",
+              "id": "P098_IDACICSecSubtotal",
+              "name": "P098_IDACICSecSubtotal"
+            },
+            {
+              "description": "The 'DEP_IDACI_BC_SEC_SEN' has been obtained from 'APT Proforma dataset - IDACI C Secondary Notional SEN'.  This has been used to calculate the 'DEP_IDACI_BC_SEC_SEN'",
+              "id": "P099_NSENIDACICSec",
+              "name": "P099_NSENIDACICSec"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACIC Sec Notional SEN'",
+              "id": "P099a_NSENIDACICSec_Percent",
+              "name": "P099a_NSENIDACICSec_Percent"
+            },
+            {
+              "description": "This calculation determines the actual Secondary IDACIC allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P100_InYearIDACICSecSubtotal",
+              "name": "P100_InYearIDACICSecSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('IDACI Secondary Proportion Band B') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then LA average is applied (taken from the 'Local Authority Averages' dataset).",
+              "id": "P101_IDACIBSecFactor",
+              "name": "P101_IDACIBSecFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACI Secondary BB Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P103_IDACIBSecRate",
+              "name": "P103_IDACIBSecRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of IDACI B for academies with Secondary pupils, where the LA has applied this factor.",
+              "id": "P104_IDACIBSecSubtotal",
+              "name": "P104_IDACIBSecSubtotal"
+            },
+            {
+              "description": "The 'DEP_IDACI_BB_SEC_SEN' has been obtained from 'APT Proforma dataset - IDACI B Secondary Notional SEN'.  This has been used to calculate the 'DEP_IDACI_BB_SEC_SEN'",
+              "id": "P105_NSENIDACIBSec",
+              "name": "P105_NSENIDACIBSec"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACIB Sec Notional SEN'",
+              "id": "P105a_NSENIDACIBSec_Percent",
+              "name": "P105a_NSENIDACIBSec_Percent"
+            },
+            {
+              "description": "This calculation determines the actual Secondary IDACIB allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P106_InYearIDACIBSecSubtotal",
+              "name": "P106_InYearIDACIBSecSubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('IDACI Secondary Proportion Band A') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then LA average is applied (taken from the 'Local Authority Averages' dataset).",
+              "id": "P107_IDACIASecFactor",
+              "name": "P107_IDACIASecFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACI Secondary B6 Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P109_IDACIASecRate",
+              "name": "P109_IDACIASecRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of IDACI 6 for academies with Secondary pupils, where the LA has applied this factor.",
+              "id": "P110_IDACIASecSubtotal",
+              "name": "P110_IDACIASecSubtotal"
+            },
+            {
+              "description": "The 'DEP_IDACI_B6_SEC_SEN' has been obtained from 'APT Proforma dataset - IDACI 6 Secondary Notional SEN'.  This has been used to calculate the 'DEP_IDACI_B6_SEC_SEN'",
+              "id": "P111_NSENIDACIASec",
+              "name": "P111_NSENIDACIASec"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - IDACI6 Sec Notional SEN'",
+              "id": "P111a_NSENIDACIASec_Percent",
+              "name": "P111a_NSENIDACIASec_Percent"
+            },
+            {
+              "description": "This calculation determines the actual Secondary IDACI6 allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P112_InYearIDACIASecSubtotal",
+              "name": "P112_InYearIDACIASecSubtotal"
+            }
+          ],
+          "subPolicies": [],
+          "id": "86e2181721da4a669a09cccbafc502f1",
+          "name": "IDACI"
+        },
+        {
+          "description": "This is an optional pupil led factor. Where LAs choose to use this factor, a unit value applies for the percentage of children who have been looked after for one day or more as at 31 March 2016. This measure uses data collected from the SSDA903 Children Looked After statistical output and mapped to schools using the spring 2016 School Census. The data is used in the calculation from the census (or as amended on ‘Inputs and Adjustments’ within the APT)\n",
+          "calculations": [
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('LAC_X_Proportion') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then defaults to zero.",
+              "id": "P114_LACFactor",
+              "name": "P114_LACFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Looked After Children Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P116_LACRate",
+              "name": "P116_LACRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of LAC for academies, where the LA has applied this factor.",
+              "id": "P117_LACSubtotal",
+              "name": "P117_LACSubtotal"
+            },
+            {
+              "description": "The 'LAC_SEN' has been obtained from 'APT Proforma dataset - LAC Notional SEN'.  This has been used to calculate the 'LAC_NSEN'",
+              "id": "P118_NSENLAC",
+              "name": "P118_NSENLAC"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - LAC Notional SEN'",
+              "id": "P118a_NSENLAC_Percent",
+              "name": "P118a_NSENLAC_Percent"
+            },
+            {
+              "description": "This calculation determines the actual LAC allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P119_InYearLACSubtotal",
+              "name": "P119_InYearLACSubtotal"
+            }
+          ],
+          "subPolicies": [],
+          "id": "3e4d786c0a984c6c9eb92a959ef1e5f5",
+          "name": "LAC"
+        },
+        {
+          "description": "Mobility is an optional pupil led factor that counts pupils who entered school during the last three academic years, but did not start in August or September (or January for reception pupils) and is an amount per qualifying pupil, only applied to schools where at least 10% of pupils are defined as mobile. This mobility is recorded in the Schools Block dataset. For example, an Academy with 15% mobility will receive funding for the 5% of pupils above the threshold (15%-10%). A separate unit value can be applied to primary and secondary phases. The data and rates applied relate to primary and secondary ‘phases’ – so a middle school receives funding for their primary age pupils at the primary rate (using their primary data) and, likewise, secondary age pupils at the secondary rate.\n",
+          "calculations": [
+            {
+              "description": "This figure is obtained from the '1718 Census Pupil Characteristics dataset - Mobility Primary Proportion' or from '1718 APT Inputs and Adjustments dataset - Mobility Primary Proportion' if the LA applied an adjustment within the APT. If both are blank, factor defaults to ZERO.  The  mobility factor calculated (the proportion funded) is the amount above the 10% threshold (e.g. for a mobility proportion of 12%, funding is provided for 2%), and 0 for any less than or equal to 10%",
+              "id": "P174_MobPriFactor",
+              "name": "P174_MobPriFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Mobility Primary Amount Per Pupil'.",
+              "id": "P176_MobPriRate",
+              "name": "P176_MobPriRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of Mobility (over 10% threshold) for academies with primary pupils, where the LA has applied this factor.",
+              "id": "P177_MobPriSubtotal",
+              "name": "P177_MobPriSubtotal"
+            },
+            {
+              "description": "Proportion of primary mobility funding attributed to NSEN.",
+              "id": "P178_NSENMobPri",
+              "name": "P178_NSENMobPri"
+            },
+            {
+              "description": "The 'MOB_PRIM_SEN' has been obtained from 'APT Proforma dataset - Mobility Primary Notional SEN'.",
+              "id": "P178a_NSENMobPri_Percent",
+              "name": "P178a_NSENMobPri_Percent"
+            },
+            {
+              "description": "This calculation determines the in-year amount of Mobility (over 10% threshold) for academies with primary pupils, where the LA has applied this factor.",
+              "id": "P179_InYearMobPriSubtotal",
+              "name": "P179_InYearMobPriSubtotal"
+            },
+            {
+              "description": "This figure is obtained from the '1718 Census Pupil Characteristics dataset - Mobility Secondary Proportion' or from '1718 APT Inputs and Adjustments dataset - Mobility Secondary Proportion' if the LA applied an adjustment within the APT. If both are blank, factor defaults to ZERO. The  mobility factor calculated (the proportion funded) is the amount above the 10% threshold (e.g. for a mobility proportion of 12%, funding is provided for 2%), and 0 for any less than or equal to 10%",
+              "id": "P180_MobSecFactor",
+              "name": "P180_MobSecFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Mobility Secondary Amount Per Pupil'.",
+              "id": "P182_MobSecRate",
+              "name": "P182_MobSecRate"
+            },
+            {
+              "description": "This calculation determines the full year amount of Mobility (over 10% threshold) for academies with Secondary pupils, where the LA has applied this factor.",
+              "id": "P183_MobSecSubtotal",
+              "name": "P183_MobSecSubtotal"
+            },
+            {
+              "description": "Proportion of secondary mobility funding attributed to NSEN.",
+              "id": "P184_NSENMobSec",
+              "name": "P184_NSENMobSec"
+            },
+            {
+              "description": "The 'MOB_SEC_SEN' has been obtained from 'APT Proforma dataset - Mobility Secondary Notional SEN'.",
+              "id": "P184a_NSENMobSec_Percent",
+              "name": "P184a_NSENMobSec_Percent"
+            },
+            {
+              "description": "This calculation determines the in-year amount of Mobility (over 10% threshold) for academies with Secondary pupils, where the LA has applied this factor.",
+              "id": "P185_InYearMobSecSubtotal",
+              "name": "P185_InYearMobSecSubtotal"
+            }
+          ],
+          "subPolicies": [],
+          "id": "41e8854d7b7e4ecdb46bbc643a62d19e",
+          "name": "Mobility"
+        },
+        {
+          "description": "Private Finance Initiative (PFI)\nThis is an optional non pupil led factor, where LAs choose to include a factor for funding the additional costs to a school of being in a PFI contract and / or to cover situations where the PFI “Affordability Gap” is delegated and paid back to the LA. Similarly to the provision of split site funding, the LA must set out a clear methodology for calculating funding so that it can be replicated for any academy in the area. Also as with split sites, allocations for recoupable academies are taken directly from the LA’s APT return ISB dataset. Allocations for any non-recoupable academies will default to zero.\n\nLondon Fringe \nThis factor is an optional non pupil led factor but may be used by only 5 authorities (Buckinghamshire, Essex, Hertfordshire, Kent and West Sussex) for academies within the London fringe areas within those authorities. The factor provides an uplift to enable higher teacher pay scales in affected schools to be reflected.The uplift is calculated using the specific cost of teaching staff within the different pay band areas and the proportion of school expenditure that goes on teaching staff. This is then applied to the proportion of school expenditure that goes on teaching staff costs. The uplift is applied to total schools block factors excluding those premises factors that will remain actuals i.e. PFI, split-site, and approved exceptional funding factors. The uplift will also apply to any additional lump sum applied, but not to any additional sparsity amount.\nThe London Fringe indicator is set to 1.0156 for establishments within the London Fringe and 1.00 for all others (resulting in an allocation of zero).\n\nExceptional Circumstances funding\nLocal authorities can request the inclusion of additional non pupil led premises factors in their formula for exceptional circumstances (e.g. rents, joint-use facilities). Additional factors may be approved by the EFA in cases where the nature of the school premises gives rise to a significant additional cost greater than 1% of the school’s total budget, and where such costs affect fewer than 5% of the schools (including academies) in the authority. Any allocations are taken from the LA APT return New ISB data set.\nNon-recoupable academies (Free Schools in the first year of opening), are unlikely to qualify for funding in the year of opening. Their exceptional circumstances allocations will be defaulted to zero unless information is passed across from project leads to confirm that they are applicable.\n\nAdjustments relating to prior year funding\nLocal authorities can apply an adjustment to total funding where they wish to make an amendment relating to funding paid in the prior year that will be added to or deducted from the current year’s allocation, e.g. where they failed to identify that a school was no longer eligible for split site funding in the prior year and paid them that funding in error.Any such adjustments are shown in the ‘Other Adjustments to 16-17 Budget shares’ field of the Local Factors sheet. Data and Quality Assurance Unit will review these adjustments and provide a dataset of relevant adjustments, e.g. an adjustment may not be relevant if the EFA had made that adjustment in-year.  Similarly, it would not be appropriate to apply an adjustment if it relates to the local authority having wrongly estimated growing pupil numbers but the academy was funded on estimates (taken from the RFDC) in 2016/17. Relevant adjustments will be uploaded to the ‘EFA adjustments’ dataset and picked up by the Store from there.\nNotional SEN funding As outlined earlier in this document, academies will be notified of their ‘Notional SEN’ allocation and the pupil led elements are uplifted by the London Fringe factor (where applicable).  \nThe calculation takes the total of each SBS funding factor and multiplies it by the percentage indicated on the LA’s APT, then totals these figures to give a Notional SEN budget.\n",
+          "calculations": [
+            {
+              "description": "This calculation determines the proportion the primary lump sum that the school is eligible for, dependent on phase. Primary school result = 1 (100%), while middle schools receive proportion based on primary year groups over total year groups.",
+              "id": "P239_PriLumpSumFactor",
+              "name": "P239_PriLumpSumFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Primary Lump Sum'.",
+              "id": "P240_PriLumpSumRate",
+              "name": "P240_PriLumpSumRate"
+            },
+            {
+              "description": "This calculation determines the lump sum amount for academies with primary pupils.",
+              "id": "P241_Primary_Lump_Sum",
+              "name": "P241_Primary_Lump_Sum"
+            },
+            {
+              "description": "This calculation determines the lump sum amount for academies with primary pupils.",
+              "id": "P242_InYearPriLumpSumSubtotal",
+              "name": "P242_InYearPriLumpSumSubtotal"
+            },
+            {
+              "description": "This calculation determines the proportion the secondary lump sum that the school is eligible for, dependent on phase. Secondary/All-thru school result = 1 (100%), while middle schools receive proportion based on secondary year groups over total year groups.",
+              "id": "P243_SecLumpSumFactor",
+              "name": "P243_SecLumpSumFactor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Secondary Lump Sum'.",
+              "id": "P244_SecLumpSumRate",
+              "name": "P244_SecLumpSumRate"
+            },
+            {
+              "description": "This calculation determines the lump sum amount for academies with secondary pupils.",
+              "id": "P245_Secondary_Lump_Sum",
+              "name": "P245_Secondary_Lump_Sum"
+            },
+            {
+              "description": "This calculation determines the lump sum amount for academies with secondary pupils.",
+              "id": "P246_In YearSecLumpSumSubtotal",
+              "name": "P246_In YearSecLumpSumSubtotal"
+            },
+            {
+              "description": "Proportion of primary lump sum funding attributed to NSEN.",
+              "id": "P247_NSENLumpSumPri",
+              "name": "P247_NSENLumpSumPri"
+            },
+            {
+              "description": "The 'LUMPSUM_PRI_SEN' has been obtained from 'APT Proforma dataset - Lump Sum Primary Notional SEN'.",
+              "id": "P247a_NSENLumpSumPri_Percent",
+              "name": "P247a_NSENLumpSumPri_Percent"
+            },
+            {
+              "description": "Proportion of secondary lump sum funding attributed to NSEN.",
+              "id": "P248_NSENLumpSumSec",
+              "name": "P248_NSENLumpSumSec"
+            },
+            {
+              "description": "The 'LUMPSUM_SEC_SEN' has been obtained from 'APT Proforma dataset - Lump Sum Secondary Notional SEN'.",
+              "id": "P248a_NSENLumpSumSec_Percent",
+              "name": "P248a_NSENLumpSumSec_Percent"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT New ISB dataset - PFI', where the LA has applied this factor.",
+              "id": "P252_PFISubtotal",
+              "name": "P252_PFISubtotal"
+            },
+            {
+              "description": "Proportion of PFI funding attributed to NSEN.",
+              "id": "P253_NSENPFI",
+              "name": "P253_NSENPFI"
+            },
+            {
+              "description": "The 'PFI_SEN' has been obtained from 'APT Proforma dataset - PFI Notional SEN'.",
+              "id": "P253a_NSENPFI_Percent",
+              "name": "P253a_NSENPFI_Percent"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT New ISB dataset - PFI' and pro-rated.",
+              "id": "P254_InYearPFISubtotal",
+              "name": "P254_InYearPFISubtotal"
+            },
+            {
+              "description": "The London Fringe indicator (uplift) is set to 1.0156360164 for academies within the London Fringe area and 1.00 for all others and this is obtained from '1718 Census Pupil Characteristics dataset - London Fringe' or from '1718 APT Inputs and Adjustments dataset - London Fringe', if the LA has applied an adjustment within the APT.  This calculation provides the total London Fringe amount for all academies within the London Frige area.  P261_Ex1Subtotal is included as this is reserved for additional lump sum funding.",
+              "id": "P255_FringeSubtotal",
+              "name": "P255_FringeSubtotal"
+            },
+            {
+              "description": " This calculation provides the total London Fringe amount and pro-rated for all academies within the London Fringe area.  ",
+              "id": "P257_InYearFringeSubtotal",
+              "name": "P257_InYearFringeSubtotal"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT New ISB dataset - 17-18 Approved Exceptional Circumstance 1'.  Please note this is reserved for additional lump sum for schools amalgamated during FY16-17.",
+              "id": "P261_Ex1Subtotal",
+              "name": "P261_Ex1Subtotal"
+            },
+            {
+              "description": "The amount of Ex1 (additional lump sum) attributed to notional SEN funding. Calculation apportions additional lump sum using the primary and secondary lump sum factor products to ensure correct split is applied for middle schools and correct NSEN% is applied depending if primary, secondary or all-through.",
+              "id": "P262_NSENEx1",
+              "name": "P262_NSENEx1"
+            },
+            {
+              "description": "The 'Ex1_SEN' has been obtained from 'APT Proforma dataset - Exceptional Circumstances 1  Notional SEN'.",
+              "id": "P262a_NSENEx1_Percent",
+              "name": "P262a_NSENEx1_Percent"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT New ISB dataset - 17-18 Approved Exceptional Circumstance 1' and is pro-rated for in year opening academies.  Please note this is reserved for additional lump sum for schools amalgamated during FY15-16.",
+              "id": "P264_InYearEx1Subtotal",
+              "name": "P264_InYearEx1Subtotal"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT New ISB dataset - 16-17 Approved Exceptional Circumstance 2'.  Please note this is reserved for additional sparsity lump sum.  ",
+              "id": "P265_Ex2Subtotal",
+              "name": "P265_Ex2Subtotal"
+            },
+            {
+              "description": "The 'EXC_CIRC_2_SEN' has been obtained from 'APT Proforma dataset - Exceptional Circs 2 Notional SEN'. ",
+              "id": "P266_NSENEx2",
+              "name": "P266_NSENEx2"
+            },
+            {
+              "description": "The 'Ex2_SEN' has been obtained from 'APT Proforma dataset - Exceptional Circumstances 2 Notional SEN'.",
+              "id": "P266a_NSENEx2_Percent",
+              "name": "P266a_NSENEx2_Percent"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT New ISB dataset - 17-18 Approved Exceptional Circumstance 2' and is pro-rated for in year opening academies.  Please note this is reserved for additional sparsity lump sum.",
+              "id": "P267_InYearEx2Subtotal",
+              "name": "P267_InYearEx2Subtotal"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT New ISB dataset - 17-18 Approved Exceptional Circumstance 3'.",
+              "id": "P269_Ex3Subtotal",
+              "name": "P269_Ex3Subtotal"
+            },
+            {
+              "description": "The 'EXC_CIRC_3_SEN' has been obtained from 'APT Proforma dataset - Exceptional Circs 3 Notional SEN'. ",
+              "id": "P270_NSENEx3",
+              "name": "P270_NSENEx3"
+            },
+            {
+              "description": "The 'Ex3_SEN' has been obtained from 'APT Proforma dataset - Exceptional Circumstances 3 Notional SEN'.",
+              "id": "P270a_NSENEx3_Percent",
+              "name": "P270a_NSENEx3_Percent"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT New ISB dataset - 17-18 Approved Exceptional Circumstance 3' pro-rated for in-year openers.",
+              "id": "P271_InYearEx3Subtotal",
+              "name": "P271_InYearEx3Subtotal"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT New ISB dataset - 17-18 Approved Exceptional Circumstance 4'.",
+              "id": "P273_Ex4Subtotal",
+              "name": "P273_Ex4Subtotal"
+            },
+            {
+              "description": "The 'EXC_CIRC_4_SEN' has been obtained from 'APT Proforma dataset - Exceptional Circs 4 Notional SEN'.  ",
+              "id": "P274_NSENEx4",
+              "name": "P274_NSENEx4"
+            },
+            {
+              "description": "The 'Ex4_SEN' has been obtained from 'APT Proforma dataset - Exceptional Circumstances 4 Notional SEN'.",
+              "id": "P274a_NSENEx4_Percent",
+              "name": "P274a_NSENEx4_Percent"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT New ISB dataset - 17-18 Approved Exceptional Circumstance 4' pro-rated for in-year openers.",
+              "id": "P275_InYearEx4Subtotal",
+              "name": "P275_InYearEx4Subtotal"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT New ISB dataset - 17-18 Approved Exceptional Circumstance 5'.",
+              "id": "P277_Ex5Subtotal",
+              "name": "P277_Ex5Subtotal"
+            },
+            {
+              "description": "The 'EXC_CIRC_5_SEN' has been obtained from 'APT Proforma dataset - Exceptional Circs 5 Notional SEN'. ",
+              "id": "P278_NSENEx5",
+              "name": "P278_NSENEx5"
+            },
+            {
+              "description": "The 'Ex5_SEN' has been obtained from 'APT Proforma dataset - Exceptional Circumstances 5 Notional SEN'.",
+              "id": "P278a_NSENEx5_Percent",
+              "name": "P278a_NSENEx5_Percent"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT New ISB dataset - 17-18 Approved Exceptional Circumstance 5' pro-rated for in-year openers.",
+              "id": "P279_InYearEx5Subtotal",
+              "name": "P279_InYearEx5Subtotal"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT New ISB dataset - 17-18 Approved Exceptional Circumstance 6'.",
+              "id": "P281_Ex6Subtotal",
+              "name": "P281_Ex6Subtotal"
+            },
+            {
+              "description": "The 'EXC_CIRC_6_SEN' has been obtained from 'APT Proforma dataset - Exceptional Circs 6 Notional SEN'. ",
+              "id": "P282_NSENEx6",
+              "name": "P282_NSENEx6"
+            },
+            {
+              "description": "The 'Ex6_SEN' has been obtained from 'APT Proforma dataset - Exceptional Circumstances 6 Notional SEN'.",
+              "id": "P282a_NSENEx6_Percent",
+              "name": "P282a_NSENEx6_Percent"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT New ISB dataset - 17-18 Approved Exceptional Circumstance 6' pro-rated for in-year openers.",
+              "id": "P283_InYearEx6Subtotal",
+              "name": "P283_InYearEx6Subtotal"
+            },
+            {
+              "description": "This calculation determines the total SBS NSEN for existing academies. Factors that attract London Fringe uplift (where applicable) are uplifted by Fringe amount (factor  = 1 for those not in receipt of fringe) where applicable.",
+              "id": "P284_NSENSubtotal",
+              "name": "P284_NSENSubtotal"
+            },
+            {
+              "description": "This calculation detemines the total SBS NSEN for in-year opening academies.",
+              "id": "P285_InYearNSENSubtotal",
+              "name": "P285_InYearNSENSubtotal"
+            },
+            {
+              "description": "Any relavant 'prior year adjustment' is taken from the EFA Adjustments dataset (LA's provide this data via the ‘Other Adjustments to 16-17 Budget shares’ field of the Local Factors sheet, but colleagues in the Data and Quality Assurance Unit will review these adjustments and provide those adjustments that are relevant to academies via the EFA adjustments dataset)",
+              "id": "P286_PriorYearAdjustmentSubtotal",
+              "name": "P286_PriorYearAdjustmentSubtotal"
+            },
+            {
+              "description": "above value, pro-rated for in-year openers",
+              "id": "P287_InYearPriorYearAdjsutmentSubtotal",
+              "name": "P287_InYearPriorYearAdjsutmentSubtotal"
+            },
+            {
+              "description": "If EFA approves any exceptional growth funding it will be uploaded to this field in the EFA adjustments dataset and included in the SBS total.",
+              "id": "P298_Growth",
+              "name": "P298_Growth"
+            },
+            {
+              "description": "above value, pro-rated for in-year openers",
+              "id": "P299_InYearGrowth",
+              "name": "P299_InYearGrowth"
+            },
+            {
+              "description": "No calculation.  This product offers the flexibility to make adjustments to the total SBS allocation e.g. to ensure a total balances when merging allocations for an academy merger case.  This is more transparent than the previous approach where such adjustments were applied by amending data in the Exception 6 field of the New ISB dataset.",
+              "id": "P300_SBSOutcomeAdjustment",
+              "name": "P300_SBSOutcomeAdjustment"
+            },
+            {
+              "description": "above value, pro-rated for in-year openers",
+              "id": "P301_InYearSBSOutcomeAdjustment",
+              "name": "P301_InYearSBSOutcomeAdjustment"
+            }
+          ],
+          "subPolicies": [],
+          "id": "41080d8da69046e3a26ff4fb6894eaa8",
+          "name": "Other Factors"
+        },
+        {
+          "description": "Prior attainment is an optional pupil led factor. Local authorities can choose between two separate measures of attainment for primary pupils. These are either:\n• Low Prior Attainment Primary (73) which is derived from the number of pupils in years 5 to 6 who achieved fewer than 73 points, and pupils in year 1 to 4 who did not achieve a good level of development, or\n• Low Prior Attainment Primary (78) which is derived from the number of pupils in years 5 to 6 who achieved fewer than 78 points, and pupils in year 1 to 4 who did not achieve a good level of development.\nThe primary calculation includes a scaling option for year 1 to 4 pupils.\nFor secondary pupils, funding is targeted at all pupils who did not achieve the expected standard in either English or mathematics at Key Stage 2. \nThe calculation for secondary low prior attainment will include a national weighting applied to the proportion of year 7 LPA pupils, for the reasons outlined at paragraphs 10 and 11. The weighting will be included in the APT in December. The local authority will set a single unit value as usual..\n",
+          "calculations": [
+            {
+              "description": "This indicator is obtained from the '1718 APT Proforma dataset - Prior Attainment Primary Y5-6 73/78/NA'. There is no calculation but the indicator is used further down and also required for the PPA table on the FAP.",
+              "id": "P120_PPAindicator",
+              "name": "P120_PPAindicator"
+            },
+            {
+              "description": "This figure is obtained from the '1718 Census Pupil Characteristics dataset - Low Attainment Y5-6 Proportion 73' or from '1718 APT Inputs and Adjustments dataset - Low Attainment Primary Proportion 73' if the LA applied an adjustment within the APT. If both are blank, LA average is applied.",
+              "id": "P121_PPAY5to6Proportion73",
+              "name": "P121_PPAY5to6Proportion73"
+            },
+            {
+              "description": "This figure is obtained from the '1718 Census Pupil Characteristics dataset - Low Attainment Y5-6 Proportion 78' or from '1718 APT Inputs and Adjustments dataset - Low Attainment Primary Proportion 78' if the LA applied an adjustment within the APT. If both are blank, LA average is applied.",
+              "id": "P122_PPAY5to6Proportion78",
+              "name": "P122_PPAY5to6Proportion78"
+            },
+            {
+              "description": "Calculates the actual weighting applied to Y5 and 6 pupils in the primary prior attainment calculation. Required for presentation in the primary prior attainment table in the FAP.",
+              "id": "P122a_PPAY7378forFAPOnly",
+              "name": "P122a_PPAY7378forFAPOnly"
+            },
+            {
+              "description": "This figure is obtained from the '1718 Census Pupil Characteristics dataset - Low Attainment Y1-4 Proportion under new EYFSP' or from '1718 APT Inputs and Adjustments dataset - Low Attainment Y1-4 Proportion under new EYFSP' if the LA applied an adjustment within the APT. If both are blank, LA average is applied.",
+              "id": "P123_PPAY1to4ProportionUnder",
+              "name": "P123_PPAY1to4ProportionUnder"
+            },
+            {
+              "description": "This figure is obtained from the '1718 Number on Roll products - NOR_P04_Y5-Y6'. There is no calculation in this product but value is required for FAP.",
+              "id": "P124_PPAY5to6NOR",
+              "name": "P124_PPAY5to6NOR"
+            },
+            {
+              "description": "This figure is obtained from the '1718 Number on Roll products - NOR_P03_Y1-Y4'. There is no calculation in this product but value is required for FAP.",
+              "id": "P125_PPAY1to4NOR",
+              "name": "P125_PPAY1to4NOR"
+            },
+            {
+              "description": "This figure is obtained from the '1718 Number on Roll products - NOR_P22_PRI' (looks to Inputs and Adjustments and includes Reception Uplift if applied). There is no calculation in this product but value is required for FAP.",
+              "id": "P126_PPAPriNOR",
+              "name": "P126_PPAPriNOR"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Prior Attainment Primary Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P127_PPARate",
+              "name": "P127_PPARate"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Prior Attainment Primary Weighting'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P128_PPAWeighting",
+              "name": "P128_PPAWeighting"
+            },
+            {
+              "description": "This calculation determines the full year amount of Y4 to 6 pupils eligible for Prior Attainment Primary, where the LA has applied this factor.",
+              "id": "P129_PPAPupilsY5to6NotAchieving",
+              "name": "P129_PPAPupilsY5to6NotAchieving"
+            },
+            {
+              "description": "This calculation determines the full year amount of Y1 to 3 pupils eligible for Prior Attainment Primary, where the LA has applied this factor.",
+              "id": "P130_PPAPupilsY1to4NotAchieving",
+              "name": "P130_PPAPupilsY1to4NotAchieving"
+            },
+            {
+              "description": "This calculation determines the total full year amount of Y1 to 6 pupils eligible for Prior Attainment Primary, where the LA has applied this factor.",
+              "id": "P131_PPATotalPupilsY1to6NotAchieving",
+              "name": "P131_PPATotalPupilsY1to6NotAchieving"
+            },
+            {
+              "description": "This calculation determines the total full year proportion of Y1 to 6 pupils eligible for Prior Attainment Primary, where the LA has applied this factor.",
+              "id": "P132_PPATotalProportionNotAchieving",
+              "name": "P132_PPATotalProportionNotAchieving"
+            },
+            {
+              "description": "This calculation determines the full year amount of Primary Prior Attainment for academies with primary pupils, where the LA has applied this factor.",
+              "id": "P133_PPATotalFunding",
+              "name": "P133_PPATotalFunding"
+            },
+            {
+              "description": "Total PPA funding multiplied by NSEN percentage gives the amount of NSEN atttributable to PPA funding.",
+              "id": "P134_NSENPPA",
+              "name": "P134_NSENPPA"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Primary Prior Attainment Notional SEN'",
+              "id": "P134a_NSENPPA_Percent",
+              "name": "P134a_NSENPPA_Percent"
+            },
+            {
+              "description": "This calculation determines the actual PPA allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P135_InYearPPASubtotal",
+              "name": "P135_InYearPPASubtotal"
+            },
+            {
+              "description": "If the LA has applied an adjustment within the APT, this figure ('Low_Attainment_Secondary_Proportion Y7') is taken from '1718 APT Inputs and Adjustments dataset', otherwise it will usually be obtained from the '1718 Census Pupil Characteristics dataset'. If both are blank (e.g. for a brand new opener with no predecessor data), then defaults to zero.",
+              "id": "P136_SecPA_Y7Factor",
+              "name": "P136_SecPA_Y7Factor"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Secondary Low Attainment (Year 7) Weighting'. There is no calculation.",
+              "id": "P136a_SecPA_Y7NationalWeight",
+              "name": "P136a_SecPA_Y7NationalWeight"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Low Attainment Secondary Amount Per Pupil'. There is no calculation but the rate is required on it's own for inclusion in the FAP.",
+              "id": "P138_SecPARate",
+              "name": "P138_SecPARate"
+            },
+            {
+              "description": "This calculation determines the total full year proportion of Y7 to 11 pupils eligible for Prior Attainment Secondary funding.  NB The pupil counts included in this calculation do not have high needs places deducted.",
+              "id": "P138a_SecPA_AdjustedSecFactor",
+              "name": "P138a_SecPA_AdjustedSecFactor"
+            },
+            {
+              "description": "This calculation determines the full year amount of Secondary Prior Attainment for academies, where the LA has applied this factor.",
+              "id": "P139_SecPASubtotal",
+              "name": "P139_SecPASubtotal"
+            },
+            {
+              "description": "Total Sec PA funding multiplied by Sec PA NSEN percentage gives the amount of NSEN atttributable to Sec PA funding.",
+              "id": "P140_NSENSecPA",
+              "name": "P140_NSENSecPA"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT Proforma dataset - Secondary Prior Attainment Notional SEN'",
+              "id": "P140a_NSENSecPA_Percent",
+              "name": "P140a_NSENSecPA_Percent"
+            },
+            {
+              "description": "This calculation determines the actual Secondary Prior Attainment allocation due for the Academic Year 17/18, pro-rating the allocation if an academy opened in-year.",
+              "id": "P141_InYearSecPASubtotal",
+              "name": "P141_InYearSecPASubtotal"
+            }
+          ],
+          "subPolicies": [],
+          "id": "c6b57f57424c494fb0ed394ffb1af34c",
+          "name": "Prior Attainment"
+        },
+        {
+          "description": "This is an optional non-pupil led factor. This factor measures the distance that pupils live from their second nearest school. This has been calculated using pupil and school postcode coordinates from the autumn 2016 School Census. Funding may be targeted at schools that have been identified by the Department’s measure of sparsity. \nFor each school the Department has identified the pupils that live nearest to it (though they need not necessarily attend that school), and have then calculated the distance they live from their second nearest school (selective grammar schools are not considered when identifying the second nearest). The Department then calculates the average distance for these pupils, and this is the school’s sparsity distance. A school may attract sparsity funding if it is a:\n• Primary, and has an average year group size (see below) of fewer than 21.4 pupils and an average distance greater than or equal to 2 miles;\n• Middle, and has an average year group size of fewer than 69.2 pupils and an average distance greater than or equal to 2 miles;\n• Secondary, and has an average year group size of fewer than 120 pupils and an average distance greater than or equal to 3 miles;\n• An All-through, and has an average year group size of fewer than 62.5 pupils and an average distance greater than or equal to 2 miles. ‘Average year group size’ is required to be calculated before determining whether the criteria has been met. This is calculated as follows:-\n• Reception to Yr 11 NOR (including reception uplift if applied, and with HN places deducted) / (number of primary year groups + number of secondary year groups)\nThe local authority can choose to narrow the criteria applied to this factor but not widen them, i.e. they can increase the minimum distances for each type of school (but not reduce them) and / or can choose to decrease the year groups size threshold applied for each school type (but not increase them). This change would be outlined on the APT proforma sheet.\nThe maximum permitted value of the sparsity factor calculation is £100,000 per school (including London Fringe uplift). Authorities can either allocate this as a lump sum per qualifying school, or apply a tapered amount relating to the year group size.\nThe LA can separately choose whether to use a lump sum approach or tapering for primary, middle, secondary and/or all-through establishments. \nWhere the lump sum approach is used the school receives the lump sum (for that school type) if they meet the agreed criteria.\nWhere the tapered approach is used the calculation will be as follows (provided the school meets the criteria agreed by the LA):\n• Primary schools: \nPri Sparsity Unit Value * (1-(average YG size/ Pri average YG size threshold))\n• Middle Schools: \nMid Sparsity Unit Value * (1-(average YG size/ Mid average YG size threshold))\n• Secondary schools: \nSec Sparsity Unit Value * (1-(average YG size / Sec average YG size threshold))\n• All-through schools: \nAll Thru Unit Value * (1-(average YG size/All-through average YG size threshold))\nIn summary, the calculation will be informed by the phase of education which is indicated on the school block dataset and the criteria and methodology indicated by the LA on the APT. ",
+          "calculations": [
+            {
+              "description": "this calculation determines a number for each Phase of establishment (using I&A if present)",
+              "id": "P185a_Phase",
+              "name": "P185a_Phase"
+            },
+            {
+              "description": "This indicator is obtained from the '1718 APT Proforma dataset - Fixed or Tapered Sparsity Primary Lump Sum'. If the indicator shows \"Tapered\" then the result returned is 1",
+              "id": "P186_SparsityTaperFlagPri",
+              "name": "P186_SparsityTaperFlagPri"
+            },
+            {
+              "description": "This indicator is obtained from the '1718 APT Proforma dataset - Fixed or Tapered Sparsity Middle Lump Sum'. If the indicator shows \"Tapered\" then the result returned is 1",
+              "id": "P187_SparsityTaperFlagMid",
+              "name": "P187_SparsityTaperFlagMid"
+            },
+            {
+              "description": "This indicator is obtained from the '1718 APT Proforma dataset - Fixed or Tapered Sparsity Secondary Lump Sum'. If the indicator shows \"Tapered\" then the result returned is 1",
+              "id": "P188_SparsityTaperFlagSec",
+              "name": "P188_SparsityTaperFlagSec"
+            },
+            {
+              "description": "This indicator is obtained from the '1718 APT Proforma dataset - Fixed or Tapered Sparsity All-Through Lump Sum'. If the indicator shows \"Tapered\" then the result returned is 1",
+              "id": "P189_SparsityTaperFlagAllThru",
+              "name": "P189_SparsityTaperFlagAllThru"
+            },
+            {
+              "description": "This amount is obtained from the '1718 APT Proforma dataset, dependent on the phase identified at product P185a_Phase",
+              "id": "P190_SparsityUnit",
+              "name": "P190_SparsityUnit"
+            },
+            {
+              "description": "For primaries, this figure is obtained from the '1718 Census Pupil Characteristics dataset - Primary Sparsity av. Distance to 2nd School (miles)' or from '1718 APT Inputs and Adjustments dataset - Primary Sparsity av. Distance to 2nd School (miles)' if the LA applied an adjustment within the APT. For middle, secondary and all-throughs, this figure is obtained from the '1718 Census Pupil Characteristics dataset - Secondary Sparsity av. Distance to 2nd School (miles)' or from '1718 APT Inputs and Adjustments dataset - Secondary Sparsity av. Distance to 2nd School (miles)' if the LA applied an adjustment within the APT.",
+              "id": "P191_SparsityDistance",
+              "name": "P191_SparsityDistance"
+            },
+            {
+              "description": "This value is obtained from the '1718 APT Proforma dataset - Primary Distance Threshold' for primary, '1718 APT Proforma dataset - Middle School Distance Threshold' for middle and '1718 APT Proforma dataset - All Through Distance Threshold' for all-throughs and default to 2 if  blank. Similarly, secondaries use '1718 APT Proforma dataset -Secondary Distance Threshold' and default to 3 miles if dataset is blank.",
+              "id": "P192_SparsityDistThreshold",
+              "name": "P192_SparsityDistThreshold"
+            },
+            {
+              "description": "This calculation determines whether or not the sparsity distance threshold has been met for academies with primary pupils, where the LA has applied this factor.",
+              "id": "P193_SparsityDistMet_YN",
+              "name": "P193_SparsityDistMet_YN"
+            },
+            {
+              "description": "This calculation determines the average year group size for academies, where the LA has applied this factor.",
+              "id": "P194_SparsityAveYGSize",
+              "name": "P194_SparsityAveYGSize"
+            },
+            {
+              "description": "This value is obtained from the '1718 APT Proforma dataset - Primary average year group Threshold' for primary, '1718 APT Proforma dataset - Middle School average year group Threshold' for middle and '1718 APT Proforma dataset - All Through average year group Threshold' for all-throughs and default to 21.4, 69.2, 62.5 resp if  blank. Similarly, secondaries use '1718 APT Proforma dataset -Secondary average year group Threshold' and default to 120 pupils if dataset is blank.",
+              "id": "P195_SparsityYGThreshold",
+              "name": "P195_SparsityYGThreshold"
+            },
+            {
+              "description": "This calculation determines whether or not the sparsity year group threshold has been met, where the LA has applied this factor.",
+              "id": "P196_SparsityYGThresholdMet_YN",
+              "name": "P196_SparsityYGThresholdMet_YN"
+            },
+            {
+              "description": "This calculation determines the full year amount of Sparsity lump sum, where the LA has applied this factor.  For in-year openers on census, total sparsity funding is included here, regardless of whether LA applies taper or not (to prevent double funding through both factors).",
+              "id": "P197_SparsityLumpSumSubtotal",
+              "name": "P197_SparsityLumpSumSubtotal"
+            },
+            {
+              "description": "This calculation determines the full year amount of Sparsity tapered sum for academies, where the LA has applied this factor. For in-year openers on census, total sparsity funding is included in P197 and defaults to zero for this calculation, regardless of whether LA applies taper or not (to prevent double funding through both products).",
+              "id": "P198_SparsityTaperSubtotal",
+              "name": "P198_SparsityTaperSubtotal"
+            },
+            {
+              "description": "combines lump sum and tapered totals for inclusion in the FAP report",
+              "id": "P198a_SubtotalLump_Taper_For_FAP_Only",
+              "name": "P198a_SubtotalLump_Taper_For_FAP_Only"
+            },
+            {
+              "description": "This calculation determines the in-year amount of Sparsity lump sum for academies, where the LA has applied this factor.",
+              "id": "P199_InYearSparsityLumpSumSubtotal",
+              "name": "P199_InYearSparsityLumpSumSubtotal"
+            },
+            {
+              "description": "This calculation determines the in-year amount of Sparsity tapered sum for academies, where the LA has applied this factor.",
+              "id": "P200_InYearSparsityTaperSubtotal",
+              "name": "P200_InYearSparsityTaperSubtotal"
+            },
+            {
+              "description": "combines IY lump sum and IY tapered totals for inclusion in the FAP report",
+              "id": "P200a_InYear_SubtotalLump_Taper_for_FAP_Only",
+              "name": "P200a_InYear_SubtotalLump_Taper_for_FAP_Only"
+            },
+            {
+              "description": "The pupil count numbers are obtained from the '1718 Census Number Counts' dataset and this calculation determines the number of primary year groups for sparsity, where the LA has applied this factor.",
+              "id": "P212_PYG",
+              "name": "P212_PYG"
+            },
+            {
+              "description": "The pupil count numbers are obtained from the '1718 Census Number Counts' dataset and this calculation determinesthe number of secondary year groups for sparsity, where the LA has applied this factor.",
+              "id": "P213_SYG",
+              "name": "P213_SYG"
+            },
+            {
+              "description": "Proportion of sparsity funding attributed to NSEN.",
+              "id": "P236_NSENSparsity",
+              "name": "P236_NSENSparsity"
+            },
+            {
+              "description": "The primary and secondary NSEN percentages  are obtained from 'APT Proforma dataset'. The secondary percentage is applied to middle, secondary and all-through calculations, as these rely on the secondary sparsity distance measure. This reflects the APT calculation.",
+              "id": "P236a_NSENSparsity_Percent",
+              "name": "P236a_NSENSparsity_Percent"
+            }
+          ],
+          "subPolicies": [],
+          "id": "4eda722dff5b4f6f9e3d13eae928be8a",
+          "name": "Sparsity"
+        },
+        {
+          "description": "The split site factor is an optional non-pupil led factor but where LAs choose to have such a factor they must set out clear criteria and calculation methodologies.\nAs criteria and methodology vary greatly across Local Authorities, allocations for recoupable academies will be taken directly from the APT returns ‘New ISB sheet’ aggregation dataset. As the only non-recoupable academies are to be new Free Schools in first year of operation, split site funding allocations will default to zero as they are highly unlikely to be based on multiple sites. If this element is required it would be provided by Free Schools Group colleagues and this funding would be uploaded to the New ISB dataset.\n",
+          "calculations": [
+            {
+              "description": "This figure is obtained from the '1718 APT New ISB dataset - Split Sites'.",
+              "id": "P249_SplitSiteSubtotal",
+              "name": "P249_SplitSiteSubtotal"
+            },
+            {
+              "description": "Proportion of split site funding attributed to NSEN.",
+              "id": "P250_NSENSplitSites",
+              "name": "P250_NSENSplitSites"
+            },
+            {
+              "description": "The 'SPLIT SITE_SEN' has been obtained from 'APT Proforma dataset - Split Site Notional SEN'.",
+              "id": "P250a_NSENSplitSites_Percent",
+              "name": "P250a_NSENSplitSites_Percent"
+            },
+            {
+              "description": "This figure is obtained from the '1718 APT New ISB dataset - Split Sites' and pro-rated.",
+              "id": "P251_InYearSplitSitesSubtotal",
+              "name": "P251_InYearSplitSitesSubtotal"
+            }
+          ],
+          "subPolicies": [],
+          "id": "6857aab8747c4d699b69bba5858b98a3",
+          "name": "Split Sites"
+        },
+        {
+          "description": "Totals used for statement publication",
+          "calculations": [
+            {
+              "description": "This calculation relates to the number of days an academy has been open in the Academic Year, taken from the Global Variables scenario.",
+              "id": "P001_1718DaysOpen",
+              "name": "P001_1718DaysOpen"
+            },
+            {
+              "description": "Single Lump sum product required for FAP only.  The calculation simply added the primary and secondary totals ",
+              "id": "Lump_Sum_Total",
+              "name": "Lump_Sum_Total"
+            },
+            {
+              "description": "similar to above value, this product sums the pro-rated totals for in-year openers. Required for the FAP.",
+              "id": "InYearLumpSum",
+              "name": "InYearLumpSum"
+            },
+            {
+              "description": "This calculation determines the total amount of SBS funding for existing academies.",
+              "id": "P288_SBSFundingTotal",
+              "name": "P288_SBSFundingTotal"
+            },
+            {
+              "description": "This calculation determines the total amount of SBS funding for in-year opening academies.  This is the total that is used to feed payments.",
+              "id": "P289_InYearSBSFundingTotal",
+              "name": "P289_InYearSBSFundingTotal"
+            },
+            {
+              "description": "Rates' figures is obtained from '1718 APT New ISB' dataset.  This calculation determines the total SBS allocation minus rates for all academies, taken from the APT - for comparison purposes.",
+              "id": "P290_ISBTotalSBSFunding",
+              "name": "P290_ISBTotalSBSFunding"
+            },
+            {
+              "description": "This calculation determines the total amount of pupil led factors funding for existing academies.",
+              "id": "P291_TotalPupilLedFactors",
+              "name": "P291_TotalPupilLedFactors"
+            },
+            {
+              "description": "This calculation determines the total amount of pupil led factors funding for in-year opening academies.  This total feeds payments.",
+              "id": "P292_InYearTotalPupilLedfactors",
+              "name": "P292_InYearTotalPupilLedfactors"
+            },
+            {
+              "description": "This calculation determines the total amount of other factors funding for existing academies.",
+              "id": "P293_TotalOtherFactors",
+              "name": "P293_TotalOtherFactors"
+            },
+            {
+              "description": "Product for mainstream FAP production. Totals other factors, excluding exceptions.",
+              "id": "P293a_TotalOtherFactors_NoExc",
+              "name": "P293a_TotalOtherFactors_NoExc"
+            },
+            {
+              "description": "This calculation determines the total amount of other factors funding for in-year opening academies. This total feeds payments.",
+              "id": "P294_InYearTotalOtherFactors",
+              "name": "P294_InYearTotalOtherFactors"
+            },
+            {
+              "description": "Product for IY openers mainstream FAP production. Totals other factors, excluding exceptions.",
+              "id": "P294a_InYearTotalOtherFactors_NoExc",
+              "name": "P294a_InYearTotalOtherFactors_NoExc"
+            },
+            {
+              "description": "this calculation determines the funding identified as de-delegated for existing academies.",
+              "id": "P295_Dedelegation",
+              "name": "P295_Dedelegation"
+            },
+            {
+              "description": "this calculation determines the funding identified as de-delegated for in-year academies.",
+              "id": "P296_InYearDedelegation",
+              "name": "P296_InYearDedelegation"
+            }
+          ],
+          "subPolicies": [],
+          "id": "b2e46eab20374cd1864365a94a7ab9b3",
+          "name": "Totals"
+        }
+      ],
+      "id": "93f568b56656481ab43ac14119890c7f",
+      "name": "School Budget Share"
+    }
+  ],
+  "id": "852f8537474e405c93924a197f72617b",
+  "name": "General Annual Grant 18-19"
+}

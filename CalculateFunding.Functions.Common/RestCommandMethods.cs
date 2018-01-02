@@ -7,12 +7,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace CalculateFunding.Functions.Common
 {
-    public class RestCommandMethods<TEntity, TCommand> : RestCommandMethods<TEntity, TCommand, TEntity> where TEntity : IIdentifiable where TCommand : Command<TEntity>
+    public class RestCommandMethods<TEntity, TCommand> : RestCommandMethods<TEntity, TCommand, TEntity> where TEntity : class, IIdentifiable where TCommand : Command<TEntity>
     {
         public RestCommandMethods()
         {
@@ -20,7 +21,7 @@ namespace CalculateFunding.Functions.Common
         }
     }
 
-    public class RestCommandMethods<TEntity, TCommand, TCommandEntity> where TEntity : IIdentifiable where TCommandEntity : IIdentifiable where TCommand : Command<TCommandEntity>
+    public class RestCommandMethods<TEntity, TCommand, TCommandEntity> where TEntity : class, IIdentifiable where TCommandEntity : IIdentifiable where TCommand : Command<TCommandEntity>
     {
         public RestCommandMethods()
         {
@@ -32,7 +33,7 @@ namespace CalculateFunding.Functions.Common
             Formatting = Formatting.Indented
 
         };
-        public async Task<IActionResult> Run(HttpRequest req, TraceWriter log)
+        public async Task<IActionResult> Run(HttpRequest req, ILogger log)
         {
             var json = await req.ReadAsStringAsync();
             var command = JsonConvert.DeserializeObject<TCommand>(json, SerializerSettings);
@@ -59,11 +60,11 @@ namespace CalculateFunding.Functions.Common
         private async Task<IActionResult> OnPost(TCommand command)
         {
             var repository = ServiceFactory.GetService<CosmosRepository>();
-            var messenger = ServiceFactory.GetService<Messenger>();
+            var messenger = ServiceFactory.GetService<IMessenger>();
 
             await repository.EnsureCollectionExists();
             var current = await repository.ReadAsync<TEntity>(GetEntityId(command));
-            if (current.Content != null)
+            if (current?.Content != null)
             {
                 TEntity updatedContent = UpdateTarget(current.Content, command);
                 if (!IsModified(current.Content, updatedContent))
@@ -86,7 +87,7 @@ namespace CalculateFunding.Functions.Common
         private async Task<IActionResult> OnDelete(TCommand command)
         {
             var repository = ServiceFactory.GetService<CosmosRepository>();
-            var messenger = ServiceFactory.GetService<Messenger>();
+            var messenger = ServiceFactory.GetService<IMessenger>();
             await repository.EnsureCollectionExists();
             var current = await repository.ReadAsync<TEntity>(GetEntityId(command));
             if (current.Content != null)

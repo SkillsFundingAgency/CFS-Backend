@@ -1,25 +1,25 @@
-﻿using CalculateFunding.Bootstrapper;
-using CalculateFunding.Functions.Common;
+﻿using CalculateFunding.Functions.Common;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Providers;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.DataImporter;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using AutoMapper;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Repositories.Common.Sql;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Functions.Specs.Http;
+using CalculateFunding.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging.Console;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.EndToEnd
 {
@@ -32,7 +32,16 @@ namespace CalculateFunding.EndToEnd
             var importer = ServiceFactory.GetService<DataImporterService>();
             Task.Run(async () =>
             {
-                //await GenerateBudgetModel();
+                var specJson = File.ReadAllText(Path.Combine("SourceData", "spec.json"));
+
+                ConsoleLogger logger = new ConsoleLogger("Default", (s, level) => true, true);
+                await Specifications.RunCommands(GetHttpRequest(new SpecificationCommand
+                {
+                    Content =JsonConvert.DeserializeObject<Specification>(specJson),
+                    Method = "POST",
+                    Id = Guid.NewGuid().ToString("N"),
+                    User = new Reference("matt.hammond@education.gov.uk", "Matt Hammond")
+                }), logger);
 
                 var files = Directory.GetFiles("SourceData");
                 foreach (var file in files.Where(x => x.ToLowerInvariant().EndsWith(".csv")))
@@ -110,9 +119,46 @@ namespace CalculateFunding.EndToEnd
         ).GetAwaiter().GetResult();
         }
 
+        private static HttpRequest GetHttpRequest<T>(T payload) 
+        {
+            var httpRequest = new FakeHttpRequest{Method = "POST"};
+            var json = JsonConvert.SerializeObject(payload);
+            var buffer = Encoding.UTF8.GetBytes(json);
+            var ms = new MemoryStream(buffer);
+            ms.Seek(0, SeekOrigin.Begin);
+            httpRequest.Body = ms;
+
+            return httpRequest;
+        }
+
         public static IConfigurationRoot Configuration { get; set; }
 
 
     }
 
+    public class FakeHttpRequest : HttpRequest
+    {
+        public override Task<IFormCollection> ReadFormAsync(CancellationToken cancellationToken = new CancellationToken())
+        {
+            throw new NotImplementedException();
+        }
+
+        public override HttpContext HttpContext { get; }
+        public override string Method { get; set; }
+        public override string Scheme { get; set; }
+        public override bool IsHttps { get; set; }
+        public override HostString Host { get; set; }
+        public override PathString PathBase { get; set; }
+        public override PathString Path { get; set; }
+        public override QueryString QueryString { get; set; }
+        public override IQueryCollection Query { get; set; }
+        public override string Protocol { get; set; }
+        public override IHeaderDictionary Headers { get; }
+        public override IRequestCookieCollection Cookies { get; set; }
+        public override long? ContentLength { get; set; }
+        public override string ContentType { get; set; }
+        public override Stream Body { get; set; }
+        public override bool HasFormContentType { get; }
+        public override IFormCollection Form { get; set; }
+    }
 }

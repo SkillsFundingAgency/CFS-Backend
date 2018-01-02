@@ -45,11 +45,24 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                     collection.PartitionKey.Paths.Add(_partitionKey);
                 }
 
-                await _documentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = _databaseName });
+                try
+                {
+                    await _documentClient.ReadDatabaseAsync(UriFactory.CreateDatabaseUri(_databaseName));
+                }
+                catch (DocumentClientException e)
+                {
+                    await _documentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = _databaseName });
+                }
+
+
                 _collection = await _documentClient.CreateDocumentCollectionIfNotExistsAsync(
                     UriFactory.CreateDatabaseUri(_databaseName), collection);
             }
+
+
         }
+
+
 
         public async Task SetThroughput(int requestUnits)
         {

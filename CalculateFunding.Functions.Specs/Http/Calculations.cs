@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -21,7 +22,7 @@ namespace CalculateFunding.Functions.Specs.Http
 
         [FunctionName("calculations-commands")]
         public static async Task<IActionResult> RunCommands(
-            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, TraceWriter log)
+            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
         {
             var restMethods =
                 new RestCommandMethods<Specification, CalculationSpecificationCommand, CalculationSpecification>

@@ -21,7 +21,7 @@ namespace CalculateFunding.Models.Datasets
 
         public ProviderCommand(string verb, Provider item)
         {
-            Verb = verb;
+            Method = verb;
             Item = item;
         }
     }
@@ -31,24 +31,6 @@ namespace CalculateFunding.Models.Datasets
 
     }
 
-    public class Command<T> : Reference
-    {
-
-        [JsonProperty("eventDate")]
-        public DateTime EventDate { get; set; }
-
-        [JsonProperty("username")]
-        public string UserName { get; set; }
-
-        [JsonProperty("datasetName")]
-        public string DatasetName { get; set; }
-
-        [JsonProperty("verb")]
-        public string Verb { get; set; }
-
-        [JsonProperty("data")]
-        public object Data { get; set; }
-    }
 
     public class Provider : Reference
     {

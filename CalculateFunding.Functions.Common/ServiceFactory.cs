@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repositories.Common.Cosmos;
@@ -51,7 +52,7 @@ namespace CalculateFunding.Functions.Common
                     CollectionName = config["CosmosDBCollectionName"]
                     
                 }, null))
-                .AddSingleton(new Messenger(config["ServiceBusConnectionString"]))
+                .AddSingleton<IMessenger>(new Messenger(config["ServiceBusConnectionString"]))
                 .AddSingleton(new SearchRepository<ProviderIndex>(new SearchRepositorySettings
                 {
                     SearchServiceName = config["SearchServiceName"],
@@ -69,6 +70,15 @@ namespace CalculateFunding.Functions.Common
                 .MinimumLevel.Debug()
                 .Enrich.FromLogContext()
                 .CreateLogger();
+        }
+    }
+
+    internal class FakeMessenger : IMessenger
+    {
+
+        public async Task SendAsync<T>(string topicName, T command)
+        {
+           // throw new NotImplementedException();
         }
     }
 }
