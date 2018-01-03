@@ -53,6 +53,7 @@ namespace CalculateFunding.Functions.Common
                     
                 }, null))
                 .AddSingleton<IMessenger>(new Messenger(config["ServiceBusConnectionString"]))
+                .AddSingleton(new MessagePump(config["ServiceBusConnectionString"]))
                 .AddSingleton(new SearchRepository<ProviderIndex>(new SearchRepositorySettings
                 {
                     SearchServiceName = config["SearchServiceName"],

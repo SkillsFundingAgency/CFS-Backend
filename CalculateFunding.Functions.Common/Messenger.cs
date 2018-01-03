@@ -33,6 +33,7 @@ namespace CalculateFunding.Functions.Common
             
             var json = JsonConvert.SerializeObject(command);
             await topicClient.SendAsync(new Message(Encoding.UTF8.GetBytes(json)));
+
         }
     }
 }

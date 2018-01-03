@@ -26,7 +26,7 @@ namespace CalculateFunding.Functions.Datasets
             var importer = new EdubaseImporterService();
             using (var reader = new StreamReader(blob))
             {
-                var providers = importer.ImportEdubaseCsv(name, reader);
+                var providers = importer.ImportEdubaseCsv(reader);
 
                 await repository.BulkCreateAsync(providers.ToList(), 100);
 

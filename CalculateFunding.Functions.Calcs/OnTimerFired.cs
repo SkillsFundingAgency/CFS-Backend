@@ -1,17 +1,28 @@
 using System;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using CalculateFunding.Functions.Calcs.ServiceBus;
+using CalculateFunding.Functions.Common;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
 
 namespace CalculateFunding.Functions.Calcs
 {
     public static class OnTimerFired
     {
         [FunctionName("on-timer-fired")]
-        public static async Task Run([TimerTrigger("0 */5 * * * *")]TimerInfo myTimer, TraceWriter log)
+        public static async Task Run([TimerTrigger("0 */5 * * * *")]TimerInfo myTimer, ILogger log)
         {
-            log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
+            var messagePump = ServiceFactory.GetService<MessagePump>();
+
+            await messagePump.ReceiveAsync("spec-events", "spec-events-calcs", async json =>
+            {
+                await OnSpecEvent.Run(json, log);
+            });
+           
 
             //  var dataset = new Repository<ProviderSourceDataset>();
 

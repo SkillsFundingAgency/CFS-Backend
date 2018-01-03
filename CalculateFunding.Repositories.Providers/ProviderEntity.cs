@@ -11,7 +11,7 @@ namespace CalculateFunding.Repositories.Providers
 
     public class EdubaseImporterService
     {
-        public IEnumerable<Provider> ImportEdubaseCsv(string name, StreamReader reader)
+        public IEnumerable<Provider> ImportEdubaseCsv(StreamReader reader)
         {
 
             using (var csvReader = new CsvReader(reader))

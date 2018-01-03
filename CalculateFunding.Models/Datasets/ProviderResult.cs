@@ -4,34 +4,6 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Datasets
 {
-
-
-    public class ProviderService
-    {
-        public ProviderCommand Create(Provider item)
-        {
-            return new ProviderCommand("CREATE", item);
-        }
-
-    }
-
-    public class ProviderCommand : Command<Provider>
-    {
-        public Provider Item { get; }
-
-        public ProviderCommand(string verb, Provider item)
-        {
-            Method = verb;
-            Item = item;
-        }
-    }
-
-    public class ProviderBulkCommand : Command<Provider>
-    {
-
-    }
-
-
     public class Provider : Reference
     {
         [Key]

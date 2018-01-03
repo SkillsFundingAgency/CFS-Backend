@@ -33,13 +33,14 @@ namespace CalculateFunding.Functions.Common
             Formatting = Formatting.Indented
 
         };
-        public async Task<IActionResult> Run(HttpRequest req, ILogger log)
+        public async Task<IActionResult> Run(HttpRequest req, ILogger logger)
         {
             var json = await req.ReadAsStringAsync();
             var command = JsonConvert.DeserializeObject<TCommand>(json, SerializerSettings);
 
             if (command == null)
             {
+                logger.LogInformation("command is null");
                 return new BadRequestErrorMessageResult("Please ensure command is passed in the request body");
             }
 
@@ -47,9 +48,9 @@ namespace CalculateFunding.Functions.Common
             {
                 case "post":
                 case "put":
-                    return await OnPost(command);
+                    return await OnPost(command, logger);
                 case "delete":
-                    return await OnDelete(command);
+                    return await OnDelete(command, logger);
                 default:
                     return new BadRequestErrorMessageResult($"{command.Method} is not a supported method");
 
@@ -57,8 +58,9 @@ namespace CalculateFunding.Functions.Common
 
         }
 
-        private async Task<IActionResult> OnPost(TCommand command)
+        private async Task<IActionResult> OnPost(TCommand command, ILogger logger)
         {
+            logger.LogInformation("Processing POST command");
             var repository = ServiceFactory.GetService<CosmosRepository>();
             var messenger = ServiceFactory.GetService<IMessenger>();
 
@@ -69,12 +71,14 @@ namespace CalculateFunding.Functions.Common
                 TEntity updatedContent = UpdateTarget(current.Content, command);
                 if (!IsModified(current.Content, updatedContent))
                 {
+                    logger.LogInformation($"{command.TargetDocumentType}:{command.Content.Id} has not been modified");
                     return new StatusCodeResult(304);
                 }
             }
             await repository.CreateAsync(command.Content);
             await repository.CreateAsync(command);
             await messenger.SendAsync("spec-events", command);
+            logger.LogInformation($"{command.TargetDocumentType}:{command.Content.Id} has been updated");
             // send SB message
 
             return new AcceptedResult();
@@ -84,7 +88,7 @@ namespace CalculateFunding.Functions.Common
         public Func<TCommand, string> GetEntityId { get; set; }
 
 
-        private async Task<IActionResult> OnDelete(TCommand command)
+        private async Task<IActionResult> OnDelete(TCommand command, ILogger logger)
         {
             var repository = ServiceFactory.GetService<CosmosRepository>();
             var messenger = ServiceFactory.GetService<IMessenger>();

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
 
 namespace CalculateFunding.Functions.Datasets.Http
 {
@@ -23,6 +24,14 @@ namespace CalculateFunding.Functions.Datasets.Http
             var searchResults = await searchRepository.Search(searchTerm);
 
             return new JsonResult(searchResults);
+        }
+
+        [FunctionName("providers-commands")]
+        public static async Task<IActionResult> RunCommands(
+            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        {
+            var restMethods = new RestCommandMethods<Provider, ProviderCommand>();
+            return await restMethods.Run(req, log);
         }
 
     }
