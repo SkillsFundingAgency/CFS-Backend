@@ -317,6 +317,16 @@
           "resources": [
             {
               "apiVersion": "2015-08-01",
+              "name": "calc-events-calcs",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "calc-events"
+              ],
+              "properties": {},
+              "resources": []
+            },
+            {
+              "apiVersion": "2015-08-01",
               "name": "calc-events-scenarios",
               "type": "Subscriptions",
               "dependsOn": [
