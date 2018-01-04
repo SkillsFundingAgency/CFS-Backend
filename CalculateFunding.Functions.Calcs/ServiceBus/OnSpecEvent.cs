@@ -31,8 +31,8 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             var repository = ServiceFactory.GetService<CosmosRepository>();
             var messenger = ServiceFactory.GetService<IMessenger>();
 
-            var entity = await repository.ReadAsync<Implementation>(command.Id);
-            var impl = entity?.Content ?? new Implementation{Id = command.Content.Id, TargetLanguage = TargetLanguage.VisualBasic};
+            var entity = repository.Query<Implementation>().FirstOrDefault(x => x.Specification.Id == command.Content.Id);
+            var impl = entity ?? new Implementation{Id = command.Content.Id, TargetLanguage = TargetLanguage.VisualBasic};
             impl.Name = command.Content.Name;
             impl.Calculations = impl.Calculations ?? new List<CalculationImplementation>();
             impl.DatasetDefinitions = new List<DatasetDefinition>();
@@ -41,7 +41,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             impl.Calculations.AddRange(command.Content.GetCalculations()
                 .Where(x => impl.Calculations.All(existing => existing.CalculationSpecification.Id != x.Id)).Select(x => new CalculationImplementation
             {
-                Id = Guid.NewGuid().ToString("N"),
+                Id = Reference.NewId(),
                 Name = x.Name,
                 CalculationSpecification = x,
                 Implementation = new Reference(impl.Id, impl.Name),
@@ -51,14 +51,14 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             }));
 
             if (JsonConvert.SerializeObject(impl) !=
-                JsonConvert.SerializeObject(entity?.Content ?? new Implementation()))
+                JsonConvert.SerializeObject(entity ?? new Implementation()))
             {
                 log.LogInformation($"Changes detected for implementation:{impl.Id}");
                 var implCommand = new ImplementationCommand
                 {
-                    Id = Guid.NewGuid().ToString("N"),
+                    Id = Reference.NewId(),
                     Content = impl,
-                    Method = "POST",
+                    Method = CommandMethod.Post,
                     User = command.User
                 };
                 await repository.CreateAsync(impl);

@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Compiler
             Compilers.Add(TargetLanguage.CSharp, cSharpCompiler);
             Compilers.Add(TargetLanguage.VisualBasic, visualBasicCompiler);
         }
-        public CompilerOutput GenerateAssembly(Implementation implementation)
+        public Build GenerateAssembly(Implementation implementation)
         {
             if (Compilers.TryGetValue(implementation.TargetLanguage, out var compiler))
             {

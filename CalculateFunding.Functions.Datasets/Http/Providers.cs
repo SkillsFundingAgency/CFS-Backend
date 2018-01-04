@@ -30,7 +30,7 @@ namespace CalculateFunding.Functions.Datasets.Http
         public static async Task<IActionResult> RunCommands(
             [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
         {
-            var restMethods = new RestCommandMethods<Provider, ProviderCommand>();
+            var restMethods = new RestCommandMethods<Provider, ProviderCommand>("dataset-events");
             return await restMethods.Run(req, log);
         }
 

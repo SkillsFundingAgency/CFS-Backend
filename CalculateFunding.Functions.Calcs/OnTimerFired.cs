@@ -18,11 +18,12 @@ namespace CalculateFunding.Functions.Calcs
         {
             var messagePump = ServiceFactory.GetService<MessagePump>();
 
-            await messagePump.ReceiveAsync("spec-events", "spec-events-calcs", async json =>
-            {
-                await OnSpecEvent.Run(json, log);
-            });
-           
+            await Task.WhenAll(
+                messagePump.ReceiveAsync("spec-events", "spec-events-calcs", (Func<string, Task>)(async json => await OnSpecEvent.Run(json, log))),
+                messagePump.ReceiveAsync("datasets-events", "dataset-events-calcs", (Func<string, Task>)(async json => await OnDatasetEvent.Run(json, log))),
+                messagePump.ReceiveAsync("calc-events", "calc-events-calcs", (Func<string, Task>)(async json => await OnCalcEvent.Run(json, log)))
+            );
+
 
             //  var dataset = new Repository<ProviderSourceDataset>();
 

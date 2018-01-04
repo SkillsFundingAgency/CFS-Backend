@@ -7,14 +7,14 @@ namespace CalculateFunding.Models.Results
 {
     public class ProductTestScenarioResult
     {
-        [JsonProperty("fundingPolicy")]
-        public Reference FundingPolicy { get; set; }
+        [JsonProperty("policy")]
+        public Reference Policy { get; set; }
         [JsonProperty("allocationLine")]
         public Reference AllocationLine { get; set; }
-        [JsonProperty("productFolder")]
-        public Reference ProductFolder { get; set; }
-        [JsonProperty("product")]
-        public CalculationImplementation Product { get; set; }
+        [JsonProperty("calculation")]
+        public Reference Calculation { get; set; }
+        [JsonProperty("Value")]
+        public decimal? Value { get; set; }
         [JsonProperty("scenarioName")]
         public Reference Scenario { get; set; }
         [JsonProperty("testResult")]
@@ -34,7 +34,6 @@ namespace CalculateFunding.Models.Results
         public int TotalSteps { get; set; }
         [JsonProperty("datasetReferences")]
         public DatasetReference[] DatasetReferences { get; set; }
-        [JsonProperty("productValue")]
-        public decimal? ProductValue { get; set; }
+
     }
 }

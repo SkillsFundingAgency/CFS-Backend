@@ -69,8 +69,11 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
 
         protected static SyntaxList<ImportsStatementSyntax> StandardImports()
         {
-            var imports = SyntaxFactory.SingletonList(
-                SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System")))));
+            var imports = SyntaxFactory.List( new[] {
+                SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System"))))
+                    
+                }
+                );
             var str = imports.ToFullString();
             return imports;
         }

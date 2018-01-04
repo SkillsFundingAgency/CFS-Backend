@@ -6,6 +6,7 @@ using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.DataImporter;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -25,6 +26,8 @@ using CalculateFunding.Functions.Calcs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Timers;
 using CalculateFunding.Functions.Datasets.Http;
+using CalculateFunding.Functions.Results.Http;
+using CalculateFunding.Models.Results;
 
 namespace CalculateFunding.EndToEnd
 {
@@ -33,18 +36,53 @@ namespace CalculateFunding.EndToEnd
     {
         static void Main(string[] args)
         {
-            var budgetDefinition = new Implementation();
             var importer = ServiceFactory.GetService<DataImporterService>();
             ConsoleLogger logger = new ConsoleLogger("Default", (s, level) => true, true);
 
             var user = new Reference("matt.hammond@education.gov.uk", "Matt Hammond");
             Task.Run(async () =>
             {
-                await ImportProviders(user, logger);
-                await ImportSpecification(user, logger);
 
 
-                OnTimerFired.Run(null, logger);
+                var spec = await ImportSpecification(user, logger);
+
+
+                var scopeJson = File.ReadAllText(Path.Combine("SourceData", "scope.json"));
+
+                var scope = JsonConvert.DeserializeObject<SpecificationScope>(scopeJson);
+
+
+                var compiler = ServiceFactory.GetService<BudgetCompiler>();
+
+                var impl = new Implementation
+                {
+                    Id = Reference.NewId(),
+                    TargetLanguage = TargetLanguage.VisualBasic,
+                    Name = spec.Name
+                };
+                impl.Calculations = impl.Calculations ?? new List<CalculationImplementation>();
+                impl.DatasetDefinitions = new List<DatasetDefinition>();
+
+
+                impl.Calculations.AddRange(spec.GetCalculations()
+                    .Where(x => impl.Calculations.All(existing => existing.CalculationSpecification.Id != x.Id)).Select(x => new CalculationImplementation
+                    {
+                        Id = Reference.NewId(),
+                        Name = x.Name,
+                        CalculationSpecification = x,
+                        Implementation = new Reference(impl.Id, impl.Name),
+                        Specification = spec.GetReference(),
+                    }));
+
+                impl.Build = compiler.GenerateAssembly(impl);
+                File.WriteAllText(@"..\Spikes\VisualBasicCore\VisualBasicCore\Calculations.vb", impl.Build.CalculationSourceCode);
+
+                var calc = ServiceFactory.GetService<CalculationEngine>();
+                var results = calc.GenerateAllocations(impl, scope).ToList();
+
+
+
+                //OnTimerFired.Run(null, logger);
 
 
 
@@ -59,8 +97,7 @@ namespace CalculateFunding.EndToEnd
                 //        await importer.GetSourceDataAsync(Path.GetFileName(file), stream, budgetDefinition.Id);
                 //    }
                 //}
-                //var compiler = ServiceFactory.GetService<BudgetCompiler>();
-                //var compilerOutput = compiler.GenerateAssembly(budgetDefinition);
+
 
                 //if (compilerOutput.Success)
                 //{
@@ -86,56 +123,83 @@ namespace CalculateFunding.EndToEnd
         ).GetAwaiter().GetResult();
         }
 
-        private static async Task ImportSpecification(Reference user, ConsoleLogger logger)
+        private static async Task<Specification> ImportSpecification(Reference user, ConsoleLogger logger)
         {
             var specJson = File.ReadAllText(Path.Combine("SourceData", "spec.json"));
 
-            await Specifications.RunCommands(GetHttpRequest(new SpecificationCommand
-            {
-                Content = JsonConvert.DeserializeObject<Specification>(specJson),
-                Method = "POST",
-                Id = Guid.NewGuid().ToString("N"),
-                User = user
-            }), logger);
+            var spec = JsonConvert.DeserializeObject<Specification>(specJson);
+
+            //await Specifications.RunCommands(GetHttpRequest(new SpecificationCommand
+            //{
+            //    Content = spec,
+            //    Method = CommandMethod.Post,
+            //    Id = Reference.NewId(),
+            //    User = user
+            //}), logger);
+
+            return spec;
         }
 
-        private static async Task ImportProviders(Reference user, ConsoleLogger logger)
-        {
-            using (var blob = File.Open(Path.Combine("SourceData", "edubasealldata20171122.csv"), FileMode.Open))
-            {
-                try
-                {
-                    var searchRepository = ServiceFactory.GetService<SearchRepository<ProviderIndex>>();
-                    var stopWatch = new Stopwatch();
-                    stopWatch.Start();
 
-                    using (var reader = new StreamReader(blob))
-                    {
-                        var providers = new EdubaseImporterService().ImportEdubaseCsv(reader).ToList();
+        //private static async Task<SpecificationScope> ImportProviders(Specification specification, Reference user, ConsoleLogger logger)
+        //{
+        //    using (var blob = File.Open(Path.Combine("SourceData", "edubasealldata20171122.csv"), FileMode.Open))
+        //    {
+
+        //        var stopWatch = new Stopwatch();
+        //        stopWatch.Start();
+
+        //        using (var reader = new StreamReader(blob))
+        //        {
+        //           // var providers = new EdubaseImporterService().ImportEdubaseCsv(reader).ToList();
 
 
-                        stopWatch.Stop();
-                        Console.WriteLine($"Read {providers.Count} providers in {stopWatch.ElapsedMilliseconds}ms");
-                        stopWatch.Restart();
+        //            //stopWatch.Stop();
+        //            //Console.WriteLine($"Read {providers.Count} providers in {stopWatch.ElapsedMilliseconds}ms");
+        //            //stopWatch.Restart();
 
-                        foreach (var provider in providers.Take(5))
-                        {
-                            await Providers.RunCommands(GetHttpRequest(new ProviderCommand
-                            {
-                                Content = provider,
-                                Method = "POST",
-                                Id = Guid.NewGuid().ToString("N"),
-                                User = user
-                            }), logger);
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
-            }
-        }
+        //            //var scope = new SpecificationScope
+        //            //{
+        //            //    Id = Reference.NewId(),
+        //            //    Name = specification.Name,
+        //            //    Specification = specification.GetReference(),
+        //            //    Providers = providers.Select(x => new ProviderSummary
+        //            //    {
+        //            //        Id = x.Id,
+        //            //        URN = x.URN,
+        //            //        Name = x.Name,
+        //            //        Authority = x.Authority,
+        //            //        Phase = x.PhaseOfEducation,
+        //            //        Tags = new List<string>()
+        //            //    }).ToList()
+        //            //};
+
+        //            //await SpecificationScopes.RunCommands(GetHttpRequest(new SpecificationScopeCommand
+        //            //{
+        //            //    Content = scope,
+        //            //    Method = CommandMethod.Post,
+        //            //    Id = Reference.NewId(),
+        //            //    User = user
+        //            //}), logger);
+        //            File.WriteAllText("scope.json", JsonConvert.SerializeObject(scope));
+        //            return scope;
+
+
+
+        //            //foreach (var provider in providers.Take(5))
+        //            //{
+        //            //    await Providers.RunCommands(GetHttpRequest(new ProviderCommand
+        //            //    {
+        //            //        Content = provider,
+        //            //        Method = CommandMethod.Post,
+        //            //        Id =  Reference.NewId(),
+        //            //        User = user
+        //            //    }), logger);
+        //            //}
+        //        }
+
+        //    }
+        //}
 
         private static HttpRequest GetHttpRequest<T>(T payload) 
         {

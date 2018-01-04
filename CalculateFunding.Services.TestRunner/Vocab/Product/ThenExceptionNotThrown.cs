@@ -7,11 +7,11 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
 {
     public class ThenExceptionNotThrown : GherkinStepAction
     {
-        public override GherkinResult Execute(ProductResult productResult, List<object> datasets, TestStep step)
+        public override GherkinResult Execute(CalculationResult calculationResult, List<object> datasets, TestStep step)
         {
-            if (productResult.Exception != null)
+            if (calculationResult.Exception != null)
             {
-                return new GherkinResult($"{productResult.Exception.GetType().Name} thrown: {productResult.Exception.Message} ");
+                return new GherkinResult($"{calculationResult.Exception.GetType().Name} thrown: {calculationResult.Exception.Message} ");
 
             }
             return new GherkinResult();

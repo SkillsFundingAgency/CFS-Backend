@@ -12,6 +12,7 @@ namespace CalculateFunding.Models.Datasets
         public string Urn { get; set; }
 
         [IsSearchable]
+        [Display(Name = "hello", Description = "yoohoo")]
         public string UKPRN { get; set; }
 
         public string Name { get; set; }

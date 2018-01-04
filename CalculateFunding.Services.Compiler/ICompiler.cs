@@ -5,7 +5,7 @@ namespace CalculateFunding.Services.Compiler
 {
     public interface ICompiler
     {
-        CompilerOutput GenerateCode(Implementation implementation);
+        Build GenerateCode(Implementation implementation);
         string GetIdentifier(string name);
     }
 }

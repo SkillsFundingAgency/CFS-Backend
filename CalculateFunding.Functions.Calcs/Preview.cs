@@ -1,12 +1,15 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using CalculateFunding.Functions.Calcs.Models;
 using CalculateFunding.Functions.Common;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
@@ -63,17 +66,18 @@ namespace CalculateFunding.Functions.Calcs
 
             if (compilerOutput.Success)
             {
-                var allocationFactory = new AllocationFactory(compilerOutput.Assembly);
+                var assembly = Assembly.Load(Convert.FromBase64String(compilerOutput.AssemblyBase64));
+                var allocationFactory = new AllocationFactory(assembly);
 
                 var calc = ServiceFactory.GetService<CalculationEngine>();
-
-                foreach (var testProvider in testSuite.TestProviders ?? new List<Reference>())
+                var testEngine = ServiceFactory.GetService<TestEngine>();
+                foreach (var testProvider in testSuite.TestProviders ?? new List<ProviderSummary>())
                 {
                     var typedDatasets = await calc.GetProviderDatasets(allocationFactory, testProvider, request.BudgetId);
 
 
-                    var providerResult = calc.CalculateProviderProducts(allocationFactory, compilerOutput, testProvider, typedDatasets);
-                    var testResult = calc.RunProviderTests(testSuite, testProvider, typedDatasets, providerResult);
+                    var providerResult = calc.CalculateProviderResults(allocationFactory.CreateAllocationModel(), budget.Content, testProvider, typedDatasets);
+                    var testResult = testEngine.RunProviderTests(testSuite, providerResult);
                     viewModel.TestResults.Add(testResult);
                 }
             }

@@ -4,20 +4,14 @@ namespace CalculateFunding.Models
 {
     public class CalculationResult
     {
-        public CalculationResult(string productName, decimal value)
-        {
-            ProductName = productName;
-            Value = value;
-        }
+        public string CalculationId { get; set; }
+        public string CalculationName { get; set; }
+        public string PolicyId { get; set; }
+        public string PolicyName { get; set; }
+        public string AllocationLineId { get; set; }
+        public string AllocationLineName { get; set; }
+        public decimal Value { get; set; }
 
-        public CalculationResult(Exception exception)
-        {
-            Exception = exception;
-        }
-
-        public string ProductName { get; }
-        public decimal Value { get; }
-
-        public Exception Exception { get; }
+        public Exception Exception { get; set; }
     }
 }

@@ -1,66 +1,51 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Repositories.Common.Cosmos;
-using CalculateFunding.Services.Compiler;
-using CalculateFunding.Services.TestRunner;
-using CalculateFunding.Services.TestRunner.Vocab;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using CalculationResult = CalculateFunding.Models.Results.CalculationResult;
 
 namespace CalculateFunding.Services.Calculator
 {
+    public interface IDatasetProvider
+    {
+        //var datasetsAsJson = _repository.QueryAsJson($"SELECT * FROM ds WHERE ds.providerUrn='{provider.URN}' AND ds.deleted = false");
+        IEnumerable<string> GetDatasetsAsJson(string providerId);
+    }
     public class CalculationEngine
     {
-        private readonly CosmosRepository _repository;
-        private readonly ILangugeSyntaxProvider _langugeSyntaxProvider;
+        private readonly IDatasetProvider _datasetProvider = null;
 
-        public CalculationEngine(CosmosRepository repository, ILangugeSyntaxProvider langugeSyntaxProvider)
+        public IEnumerable<ProviderResult> GenerateAllocations(Implementation implementation, SpecificationScope scope)
         {
-            _repository = repository;
-            _langugeSyntaxProvider = langugeSyntaxProvider;
-        }
+            var assembly = Assembly.Load(Convert.FromBase64String(implementation.Build.AssemblyBase64));
+            var allocationFactory = new AllocationFactory(assembly);
+            var allocationModel = allocationFactory.CreateAllocationModel();
 
-        public async Task GenerateAllocations(CompilerOutput compilerOutput)
-        {
-            var allocationFactory = new AllocationFactory(compilerOutput.Assembly);
-
-                var datasetsByUrn = _repository.Query<ProviderSourceDataset>().Where(x =>  x.BudgetId == compilerOutput.Implementation.Id).ToArray().GroupBy(x => x.ProviderUrn);
-
-                foreach (var urn in datasetsByUrn)
+                foreach (var provider in scope.Providers)
                 {
                     var typedDatasets = new List<object>();
 
-                    string providerName = urn.Key;
-                    var datasets = urn.ToArray();
-                    foreach (var dataset in datasets)
+
+                    var datasetsAsJson = _datasetProvider?.GetDatasetsAsJson(provider.Id) ?? new string[0];
+                    foreach (var datasetAsJson in datasetsAsJson)
                     {
-                       
-                        var type = allocationFactory.GetDatasetType(dataset.DatasetName);
-                        var nameField = typeof(ProviderSourceDataset).GetProperty("ProviderName");
-                        if (nameField != null)
-                        {
-                            providerName = nameField.GetValue(dataset)?.ToString();
-                        }
+                        
+                        var type = allocationFactory.GetDatasetType(JsonConvert.DeserializeObject<ProviderSourceDataset>(datasetAsJson).DatasetName);
 
-                        var datasetAsJson = _repository.QueryAsJson($"SELECT * FROM ds WHERE ds.id='{dataset.Id}' AND ds.deleted = false").First();
-
-
-                        object blah = JsonConvert.DeserializeObject(datasetAsJson, type, new JsonSerializerSettings{ContractResolver = new CamelCasePropertyNamesContractResolver()});
+                        var blah = JsonConvert.DeserializeObject(datasetAsJson, type, new JsonSerializerSettings{ContractResolver = new CamelCasePropertyNamesContractResolver()});
                         typedDatasets.Add(blah);
                     }
 
-                    var provider = new Reference(urn.Key, providerName);
-                    var result = CalculateProviderProducts(allocationFactory, compilerOutput, provider, typedDatasets);
-                    var testResult = RunProviderTests(new TestSuite(), provider, typedDatasets, result); // TODO
 
-                    await _repository.CreateAsync(testResult);    
-                    await _repository.CreateAsync(result);
+                    var result = CalculateProviderResults(allocationModel, implementation, provider, typedDatasets);
+                    yield return result;
                    
                 }
             
@@ -69,10 +54,8 @@ namespace CalculateFunding.Services.Calculator
         public async Task<List<object>> GetProviderDatasets(AllocationFactory allocationFactory, Reference provider, string budgetId)
         {
             var typedDatasets = new List<object>();
-
-                var datasetsAsJson = _repository.QueryAsJson($"SELECT * FROM ds WHERE ds.budgetId='{budgetId}' AND ds.providerUrn='{provider.Id}' AND ds.deleted = false").ToList();
-
-                foreach (var datasetAsJson in datasetsAsJson)
+            var datasetsAsJson = _datasetProvider?.GetDatasetsAsJson(provider.Id) ?? new string[0];
+            foreach (var datasetAsJson in datasetsAsJson)
                 {
                     var dataset = JsonConvert.DeserializeObject<ProviderSourceDataset>(datasetAsJson);
                     var type = allocationFactory.GetDatasetType(dataset.DatasetName);
@@ -84,36 +67,42 @@ namespace CalculateFunding.Services.Calculator
             return typedDatasets;
         }
 
-        public ProviderResult CalculateProviderProducts(AllocationFactory allocationFactory, CompilerOutput compilerOutput, Reference provider, List<object> typedDatasets)
+        public ProviderResult CalculateProviderResults(AllocationModel model, Implementation implementation, ProviderSummary provider, List<object> typedDatasets)
         {
-            var model = allocationFactory.CreateAllocationModel();
-
-            var calculationResults = model.Execute(compilerOutput.Implementation.Name, typedDatasets.ToArray());
-
-            var providerAllocations = calculationResults.ToDictionary(x => x.ProductName);
+            var calculationResults = model.Execute(typedDatasets.ToArray());
+            var providerAllocations = calculationResults.ToDictionary(x => x.CalculationId);
 
             var result = new ProviderResult
             {
                 Provider = provider,
-                Budget = new Reference(compilerOutput.Implementation.Id, compilerOutput.Implementation.Name),
-                SourceDatasets = typedDatasets.ToArray()
+                Specification = new Reference(implementation.Specification.Id, implementation.Specification.Name),
+                SourceDatasets = typedDatasets.ToList()
             };
-            var productResults = new List<ProductResult>();
+            var productResults = new List<CalculationResult>();
 
-            foreach (var product in compilerOutput.Implementation.Calculations)
+            foreach (var product in implementation.Calculations)
             {
 
-                var productResult = new ProductResult
+                var productResult = new CalculationResult
                 {
                     //FundingPolicy = new Reference(fundingPolicy.Id, fundingPolicy.Name),
                     //AllocationLine = new Reference(allocationLine.Id, allocationLine.Name),
                     //ProductFolder = new Reference(productFolder.Id, productFolder.Name),
-                    Product = product
+                    Calculation = product.GetReference()
                 };
-                var productIdentifier = _langugeSyntaxProvider.GetIdentitier(product.Name, compilerOutput.Implementation.TargetLanguage);
-                if (providerAllocations.ContainsKey(productIdentifier))
+                if (providerAllocations.ContainsKey(product.CalculationSpecification.Id))
                 {
-                    var calculationResult = providerAllocations[productIdentifier];
+                    var calculationResult = providerAllocations[product.CalculationSpecification.Id];
+                    productResult.Calculation = calculationResult.CalculationId != null
+                        ? new Reference(calculationResult.CalculationId, calculationResult.CalculationName)
+                        : null;
+                    productResult.Calculation = calculationResult.CalculationId != null
+                        ? new Reference(calculationResult.CalculationId, calculationResult.CalculationName)
+                        : null;
+                    productResult.Calculation = calculationResult.CalculationId != null
+                        ? new Reference(calculationResult.CalculationId, calculationResult.CalculationName)
+                        : null;
+                    // TODO - add all attributes
                     productResult.Value = calculationResult.Value;
                     productResult.Exception = calculationResult.Exception;
                 }
@@ -121,60 +110,11 @@ namespace CalculateFunding.Services.Calculator
                 productResults.Add(productResult);
                         
             }
-            result.ProductResults = productResults.ToArray();
+            result.CalculationResults = productResults.ToList();
             return result;
         }
 
-        public ProviderTestResult RunProviderTests(TestSuite testsuite, Reference provider, List<object> typedDatasets, ProviderResult providerResult)
-        {
-            var gherkinExecutor = new GherkinExecutor(new ProductGherkinVocabulary());
 
-            var testResult = new ProviderTestResult
-            {
-                Provider = provider,
-                Budget = testsuite.Specification,
-            };
-            var scenarioResults = new List<ProductTestScenarioResult>();
-            foreach (var productResult in providerResult.ProductResults)
-            {
-                var test = testsuite.CalculationTests?.FirstOrDefault(x => x.Id == productResult.Product.Id);
-                if (test?.TestScenarios != null)
-                {
-                    var gherkinScenarioResults =
-                        gherkinExecutor.Execute(productResult, typedDatasets, test.TestScenarios);
-
-                    foreach (var executeResult in gherkinScenarioResults)
-                    {
-                        scenarioResults.Add(new ProductTestScenarioResult
-                        {
-                            FundingPolicy = productResult.FundingPolicy,
-                            AllocationLine = productResult.AllocationLine,
-                            ProductFolder = productResult.ProductFolder,
-                            Product = productResult.Product,
-                            ProductValue = productResult.Value,
-                            Scenario = executeResult.Scenario,
-                            TestResult =
-                                executeResult.StepsExecuted < executeResult.TotalSteps
-                                    ? TestResult.Ignored
-                                    : executeResult.HasErrors
-                                        ? TestResult.Failed
-                                        : TestResult.Passed,
-                            StepExected = executeResult.StepsExecuted,
-                            TotalSteps = executeResult.TotalSteps,
-                            DatasetReferences = executeResult.Dependencies.Select(x => new DatasetReference
-                            {
-                                DatasetName = x.DatasetName,
-                                FieldName = x.FieldName,
-                                Value = x.Value
-                            }).ToArray()
-                        });
-                    }
-                }
-            }
-
-            testResult.ScenarioResults = scenarioResults.ToArray();
-            return testResult;
-        }
 
     }
 }

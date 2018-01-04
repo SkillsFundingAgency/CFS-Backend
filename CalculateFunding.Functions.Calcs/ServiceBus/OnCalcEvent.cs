@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using CalculateFunding.Functions.Common;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calculator;
@@ -38,16 +39,16 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
 
 
             var compiler = ServiceFactory.GetService<BudgetCompiler>();
-            var compilerOutput = compiler.GenerateAssembly(command.Content);
+            impl.Build = compiler.GenerateAssembly(command.Content);
 
-            if (compilerOutput.Success)
+            if (impl.Build.Success)
             {
                 var calc = ServiceFactory.GetService<CalculationEngine>();
-                await calc.GenerateAllocations(compilerOutput);
+                var results = calc.GenerateAllocations(impl, new SpecificationScope());
             }
             else
             {
-                foreach (var compilerMessage in compilerOutput.CompilerMessages)
+                foreach (var compilerMessage in impl.Build.CompilerMessages)
                 {
 
                 }

@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using System.Globalization;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Models
 {
@@ -23,10 +25,24 @@ namespace CalculateFunding.Models
         /// <summary>
         /// Provide debugging help!
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A string representing the reference</returns>
         public override string ToString()
         {
             return $"({Id}, {Name})";
+        }
+
+        /// <summary>
+        /// This is designed to be used by subclasses to obtain a reference. If you just assign the subclass JSON.NET can try to serialize the whole object, not just the reference
+        /// </summary>
+        /// <returns>A new reference</returns>
+        public Reference GetReference()
+        {
+            return new Reference(Id, Name);
+        }
+
+        public static string NewId()
+        {
+            return Guid.NewGuid().ToString("N");
         }
     }
 }

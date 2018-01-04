@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
 
     public class ThenSourceField : GherkinStepAction
     {
-        public override GherkinResult Execute(ProductResult productResult, List<object> datasets, TestStep step)
+        public override GherkinResult Execute(CalculationResult calculationResult, List<object> datasets, TestStep step)
         {
             var givenStep = step as ThenStep;
             var actualValue = GetActualValue(datasets, givenStep.Dataset, givenStep.Field);

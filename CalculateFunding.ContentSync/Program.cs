@@ -92,8 +92,8 @@ namespace CalculateFunding.ContentSync
                     var result = apiClient.PostSpecificationCommand(new SpecificationCommand
                     {
                         Content = specification,
-                        Method = "POST",
-                        Id = Guid.NewGuid().ToString("N"),
+                        Method = CommandMethod.Post,
+                        Id = Reference.NewId(),
                         User = new Reference("matt.hammond@education.gov.uk", "Matt Hammond")
                     }).Result;
 

@@ -23,14 +23,14 @@ namespace CalculateFunding.Functions.Datasets
             var repository = ServiceFactory.GetService<CosmosRepository>();
             var stopWatch = new Stopwatch();
             stopWatch.Start();
-            var importer = new EdubaseImporterService();
-            using (var reader = new StreamReader(blob))
-            {
-                var providers = importer.ImportEdubaseCsv(reader);
+            ////var importer = new EdubaseImporterService();
+            ////using (var reader = new StreamReader(blob))
+            ////{
+            ////    var providers = importer.ImportEdubaseCsv(reader);
 
-                await repository.BulkCreateAsync(providers.ToList(), 100);
+            ////    await repository.BulkCreateAsync(providers.ToList(), 100);
 
-            }
+            ////}
 
             log.Info($"C# Blob trigger function Processed blob\n Name:{name} \n Size: {blob.Length} Bytes");
 

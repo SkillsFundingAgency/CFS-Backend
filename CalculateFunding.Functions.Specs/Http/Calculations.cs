@@ -25,7 +25,7 @@ namespace CalculateFunding.Functions.Specs.Http
             [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
         {
             var restMethods =
-                new RestCommandMethods<Specification, CalculationSpecificationCommand, CalculationSpecification>
+                new RestCommandMethods<Specification, CalculationSpecificationCommand, CalculationSpecification>("spec-events")
                 {
                     GetEntityId = command => command.SpecificationId,
                     UpdateTarget = (specification, command) =>
