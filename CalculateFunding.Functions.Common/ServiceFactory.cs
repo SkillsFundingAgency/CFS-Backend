@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Models.Datasets;
@@ -29,6 +30,7 @@ namespace CalculateFunding.Functions.Common
         {
             var vars = Environment.GetEnvironmentVariables();
             var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("local.settings.json", optional: true)
                 .AddJsonFile("appsettings.json", optional:true)
                 .AddEnvironmentVariables();
