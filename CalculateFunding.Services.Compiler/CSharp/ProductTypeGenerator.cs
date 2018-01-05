@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Compiler.CSharp
                                 SyntaxFactory.Token(SyntaxKind.PublicKeyword),
                                 SyntaxFactory.Token(SyntaxKind.PartialKeyword)))
                         .WithMembers(
-                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(GetMethod(calc)));
+                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(GetMethod(calc).WithAttributeLists(GetMethodAttributes(calc))));
                     if (partialClass == null)
                     {
                         partialClass = SyntaxFactory.ClassDeclaration(Identifier("ProductCalculations"))
@@ -81,6 +81,7 @@ namespace CalculateFunding.Services.Compiler.CSharp
                                     .WithModifiers(
                                         SyntaxFactory.TokenList(
                                             SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                                    .WithAttributeLists(GetMethodAttributes(calc))
                                     .WithBody(
                                         SyntaxFactory.Block(
                                             SyntaxFactory.SingletonList<StatementSyntax>(
@@ -104,6 +105,23 @@ namespace CalculateFunding.Services.Compiler.CSharp
 
                   
         }
+
+        private static SyntaxList<AttributeListSyntax> GetMethodAttributes(CalculationImplementation calc)
+        {
+            return SyntaxFactory.SingletonList(SyntaxFactory.AttributeList(
+                SyntaxFactory.SingletonSeparatedList(
+                    SyntaxFactory.Attribute(
+                        SyntaxFactory.ParseName("Display"),
+                        SyntaxFactory.AttributeArgumentList(SyntaxFactory.SeparatedList(new []
+                        {
+                            SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("ShortName"), SyntaxFactory.NameColon("what"), SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(calc.Implementation.Id))),
+                            SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("Name"), SyntaxFactory.NameColon("what"), SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(calc.Name))),
+                            SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("Description"), SyntaxFactory.NameColon("what"), SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(calc.Name)))
+
+                        })))
+                        )));
+        }
+
 
         private static PropertyDeclarationSyntax GetMembers(DatasetDefinition datasetDefinition)
         {

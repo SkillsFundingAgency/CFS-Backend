@@ -5,6 +5,7 @@ using CalculateFunding.Repositories.Common.Cosmos;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -18,7 +19,7 @@ namespace CalculateFunding.Functions.Common
             Formatting = Formatting.Indented
 
         };
-        public async Task<IActionResult> Run(HttpRequest req, TraceWriter log, string idName)
+        public async Task<IActionResult> Run(HttpRequest req, ILogger log, string idName)
         {
             req.Query.TryGetValue(idName, out var id);
 

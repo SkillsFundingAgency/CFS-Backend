@@ -7,23 +7,29 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace CalculateFunding.Functions.Common
 {
-    public class RestCommandMethods<TEntity, TCommand> : RestCommandMethods<TEntity, TCommand, TEntity> where TEntity : IIdentifiable where TCommand : Command<TEntity>
+    public class RestCommandMethods<TEntity, TCommand> : RestCommandMethods<TEntity, TCommand, TEntity> where TEntity : class, IIdentifiable where TCommand : Command<TEntity>
     {
-        public RestCommandMethods()
+
+        public RestCommandMethods(string topicName) : base(topicName)
         {
+
             UpdateTarget = (source, target) => target.Content;
         }
     }
 
-    public class RestCommandMethods<TEntity, TCommand, TCommandEntity> where TEntity : IIdentifiable where TCommandEntity : IIdentifiable where TCommand : Command<TCommandEntity>
+    public class RestCommandMethods<TEntity, TCommand, TCommandEntity> where TEntity : class, IIdentifiable where TCommandEntity : IIdentifiable where TCommand : Command<TCommandEntity>
     {
-        public RestCommandMethods()
+        private readonly string _topicName;
+
+        public RestCommandMethods(string topicName)
         {
+            _topicName = topicName;
             GetEntityId = command => command.Content.Id;
         }
         private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
@@ -32,23 +38,24 @@ namespace CalculateFunding.Functions.Common
             Formatting = Formatting.Indented
 
         };
-        public async Task<IActionResult> Run(HttpRequest req, TraceWriter log)
+        public async Task<IActionResult> Run(HttpRequest req, ILogger logger)
         {
             var json = await req.ReadAsStringAsync();
             var command = JsonConvert.DeserializeObject<TCommand>(json, SerializerSettings);
 
             if (command == null)
             {
+                logger.LogInformation("command is null");
                 return new BadRequestErrorMessageResult("Please ensure command is passed in the request body");
             }
 
-            switch (command.Method?.ToLowerInvariant())
+            switch (command.Method)
             {
-                case "post":
-                case "put":
-                    return await OnPost(command);
-                case "delete":
-                    return await OnDelete(command);
+                case CommandMethod.Post:
+                case CommandMethod.Put:
+                    return await OnPost(command, logger);
+                case CommandMethod.Delete:
+                    return await OnDelete(command, logger);
                 default:
                     return new BadRequestErrorMessageResult($"{command.Method} is not a supported method");
 
@@ -56,24 +63,27 @@ namespace CalculateFunding.Functions.Common
 
         }
 
-        private async Task<IActionResult> OnPost(TCommand command)
+        private async Task<IActionResult> OnPost(TCommand command, ILogger logger)
         {
+            logger.LogInformation($"Processing {typeof(TCommand).Name} POST command {command.Id}");
             var repository = ServiceFactory.GetService<CosmosRepository>();
-            var messenger = ServiceFactory.GetService<Messenger>();
+            var messenger = ServiceFactory.GetService<IMessenger>();
 
             await repository.EnsureCollectionExists();
             var current = await repository.ReadAsync<TEntity>(GetEntityId(command));
-            if (current.Content != null)
+            if (current?.Content != null)
             {
                 TEntity updatedContent = UpdateTarget(current.Content, command);
                 if (!IsModified(current.Content, updatedContent))
                 {
+                    logger.LogInformation($"{command.TargetDocumentType}:{command.Content.Id} has not been modified");
                     return new StatusCodeResult(304);
                 }
             }
             await repository.CreateAsync(command.Content);
             await repository.CreateAsync(command);
-            await messenger.SendAsync("spec-events", command);
+            await messenger.SendAsync(_topicName, command);
+            logger.LogInformation($"{command.TargetDocumentType}:{command.Content.Id} has been updated");
             // send SB message
 
             return new AcceptedResult();
@@ -83,10 +93,11 @@ namespace CalculateFunding.Functions.Common
         public Func<TCommand, string> GetEntityId { get; set; }
 
 
-        private async Task<IActionResult> OnDelete(TCommand command)
+        private async Task<IActionResult> OnDelete(TCommand command, ILogger logger)
         {
+            logger.LogInformation($"Processing {typeof(TCommand).Name} DELETE command {command.Id}");
             var repository = ServiceFactory.GetService<CosmosRepository>();
-            var messenger = ServiceFactory.GetService<Messenger>();
+            var messenger = ServiceFactory.GetService<IMessenger>();
             await repository.EnsureCollectionExists();
             var current = await repository.ReadAsync<TEntity>(GetEntityId(command));
             if (current.Content != null)
@@ -99,7 +110,7 @@ namespace CalculateFunding.Functions.Common
             current.Deleted = true;
             await repository.CreateAsync(current.Content);
             await repository.CreateAsync(command);
-            await messenger.SendAsync("spec-events", command);
+            await messenger.SendAsync(_topicName, command);
             // send SB messageB
 
             return new AcceptedResult();

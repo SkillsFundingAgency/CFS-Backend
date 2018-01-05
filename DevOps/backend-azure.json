@@ -30,56 +30,13 @@
       "metadata": {
         "description": "Describes plan's instance count"
       }
-    },
-    "sqlServerAdminLogin": {
-      "type": "string",
-      "minLength": 1,
-      "metadata": {
-        "description": "The SQL server admin username."
-      }
-    },
-    "sqlServerAdminLoginPassword": {
-      "type": "securestring",
-      "metadata": {
-        "description": "The SQL server admin password"
-      }
-    },
-    "sqlDatabaseEdition": {
-      "type": "string",
-      "defaultValue": "Standard",
-      "allowedValues": [
-        "Basic",
-        "Standard",
-        "Premium"
-      ],
-      "metadata": {
-        "description": "The SQL server edition"
-      }
-    },
-    "sqldatabaseRequestedServiceObjectiveName": {
-      "type": "string",
-      "defaultValue": "S2",
-      "allowedValues": [
-        "Basic",
-        "S0",
-        "S1",
-        "S2",
-        "P1",
-        "P2",
-        "P3"
-      ],
-      "metadata": {
-        "description": "Describes the performance level for Edition"
-      }
     }
   },
   "variables": {
     "offerType": "Standard",
     "applicationInsightsName": "[concat(resourceGroup().name, '-ai')]",
     "documentDatabaseName": "[concat(resourceGroup().name, '-db')]",
-    "sqlServerName": "[concat(resourceGroup().name, '-sql')]",
     "serviceBusNamespaceName": "[concat(resourceGroup().name, 'bus')]",
-    "datasetsDatabaseName": "Datasets",
     "azureSearchName": "[concat(resourceGroup().name, '-search')]",
     "datasetsFunctionAppName": "[concat(resourceGroup().name, '-fapp-datasets')]",
     "resultsFunctionAppName": "[concat(resourceGroup().name, '-fapp-results')]",
@@ -120,55 +77,6 @@
           }
         ]
       }
-    },
-
-    {
-      "name": "[variables('sqlServerName')]",
-      "type": "Microsoft.Sql/servers",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2014-04-01-preview",
-      "dependsOn": [],
-      "tags": {
-        "displayName": "SQL Server"
-      },
-      "properties": {
-        "administratorLogin": "[parameters('sqlServerAdminLogin')]",
-        "administratorLoginPassword": "[parameters('sqlServerAdminLoginPassword')]",
-        "version": "12.0"
-      },
-      "resources": [
-        {
-          "name": "AllowAllWindowsAzureIps",
-          "type": "firewallrules",
-          "location": "[resourceGroup().location]",
-          "apiVersion": "2014-04-01-preview",
-          "dependsOn": [
-            "[concat('Microsoft.Sql/servers/', variables('sqlServerName'))]"
-          ],
-          "properties": {
-            "startIpAddress": "0.0.0.0",
-            "endIpAddress": "0.0.0.0"
-          }
-        },
-        {
-          "name": "[variables('datasetsDatabaseName')]",
-          "type": "databases",
-          "location": "[resourceGroup().location]",
-          "apiVersion": "2014-04-01-preview",
-          "dependsOn": [
-            "[variables('sqlServerName')]"
-          ],
-          "tags": {
-            "displayName": "SQL Database"
-          },
-          "properties": {
-            "collation": "SQL_Latin1_General_CP1_CI_AS",
-            "edition": "[parameters('sqlDatabaseEdition')]",
-            "maxSizeBytes": "1073741824",
-            "requestedServiceObjectiveName": "[parameters('sqldatabaseRequestedServiceObjectiveName')]"
-          }
-        }
-      ]
     },
 
     {
@@ -317,6 +225,16 @@
           "resources": [
             {
               "apiVersion": "2015-08-01",
+              "name": "calc-events-calcs",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "calc-events"
+              ],
+              "properties": {},
+              "resources": []
+            },
+            {
+              "apiVersion": "2015-08-01",
               "name": "calc-events-scenarios",
               "type": "Subscriptions",
               "dependsOn": [
@@ -448,7 +366,7 @@
               "value": "[variables('azureSearchName')]"
             },
             {
-              "name": "SearchServicePrimaryKey",
+              "name": "SearchServiceKey",
               "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
             },
             {
@@ -471,7 +389,6 @@
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
         "[variables('applicationInsightsName')]",
-        "[variables('sqlServerName')]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]"
 
       ],
@@ -529,16 +446,12 @@
               "value": "[variables('azureSearchName')]"
             },
             {
-              "name": "SearchServicePrimaryKey",
+              "name": "SearchServiceKey",
               "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
             },
             {
               "name": "ProvidersStorage",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('calcsStorageAccountName'), ';AccountKey=', listKeys(variables('calcsStorageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "value": "[concat('Data Source=tcp:', reference(concat('Microsoft.Sql/servers/', variables('sqlserverName'))).fullyQualifiedDomainName, ',1433;Initial Catalog=', 'Datasets', ';User Id=', parameters('sqlServerAdminLogin'), '@', reference(concat('Microsoft.Sql/servers/', variables('sqlserverName'))).fullyQualifiedDomainName, ';Password=', parameters('sqlServerAdminLoginPassword'), ';')]",
-              "name": "ProvidersConnectionString"
             }
           ]
         }
@@ -611,7 +524,7 @@
               "value": "[variables('azureSearchName')]"
             },
             {
-              "name": "SearchServicePrimaryKey",
+              "name": "SearchServiceKey",
               "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
             }
           ]
@@ -686,7 +599,7 @@
               "value": "[variables('azureSearchName')]"
             },
             {
-              "name": "SearchServicePrimaryKey",
+              "name": "SearchServiceKey",
               "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
             }
 
@@ -763,7 +676,7 @@
               "value": "[variables('azureSearchName')]"
             },
             {
-              "name": "SearchServicePrimaryKey",
+              "name": "SearchServiceKey",
               "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
             }
           ]

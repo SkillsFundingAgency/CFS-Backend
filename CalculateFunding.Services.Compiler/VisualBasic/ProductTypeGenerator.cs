@@ -47,16 +47,18 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
         }
 
 
-        private static StatementSyntax GetMethod(CalculationImplementation product)
+        private static StatementSyntax GetMethod(CalculationImplementation calc)
         {
             var builder = new StringBuilder();
-            builder.AppendLine($"Public Function {Identifier(product.Name)} As Decimal");
-            builder.Append(product.SourceCode ?? "Throw new NotImplementedException(\"{product.Name} is not implemented\")");
+            builder.AppendLine($"<Calculation(CalculationId := \"{calc.Id}\", CalculationName := \"{calc.Name}\")>");
+            builder.AppendLine($"Public Function {Identifier(calc.Name)} As Decimal");
+            builder.Append(calc.SourceCode ?? $"Throw new NotImplementedException(\"{calc.Name} is not implemented\")");
             builder.AppendLine();
             builder.AppendLine("End Function");
             builder.AppendLine();
             var tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
 
+            
             return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
                 .FirstOrDefault();
         }

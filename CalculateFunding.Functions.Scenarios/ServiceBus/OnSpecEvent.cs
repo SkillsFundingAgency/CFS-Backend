@@ -7,7 +7,7 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
     {
         [FunctionName("on-spec-event")]
         public static void Run(
-            [ServiceBusTrigger("spec-events", "spec-events-scenarios", Connection = "ServiceBusConnection")]
+            [ServiceBusTrigger("spec-events", "spec-events-scenarios", Connection = "ServiceBusConnectionString")]
             string messageJson,
             TraceWriter log)
         {

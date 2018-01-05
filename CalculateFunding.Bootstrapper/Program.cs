@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Repositories.Providers;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -58,27 +56,7 @@ namespace CalculateFunding.Bootstrapper
                 {
                     Task.Run(async () =>
                     {
-                        try
-                        {
-                            string externalip = new WebClient().DownloadString("http://icanhazip.com");
-                            Console.WriteLine(externalip);
 
-                            var serviceProvider = new ServiceCollection()
-                                .AddSingleton(new LoggerFactory()
-                                    .AddConsole())
-                                .AddLogging()
-                                .AddDbContext<ProvidersDbContext>(options =>
-                                    options.UseSqlServer(providersConnectionString, b => b.MigrationsAssembly("CalculateFunding.Repositories.Providers.Migrations"))).BuildServiceProvider();
-                            var providerDbContext = serviceProvider.GetService<ProvidersDbContext>();
-
-                            Console.WriteLine($"Applying migrations for {providersConnectionString}");
-                            await providerDbContext.Database.MigrateAsync();
-                            Console.WriteLine($"Applied migrations to Providers");
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e);
-                        }
                         //try
                         //{
                         //    var searchInitializer = new SearchInitializer(searchServiceName,

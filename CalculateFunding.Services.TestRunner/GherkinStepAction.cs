@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.TestRunner
     public abstract class GherkinStepAction
     {
 
-        public abstract GherkinResult Execute(ProductResult productResult, List<object> datasets, TestStep step);
+        public abstract GherkinResult Execute(CalculationResult calculationResult, List<object> datasets, TestStep step);
         protected bool TestLogic(object expectedValue, object actualValue, ComparisonOperator logic)
         {
             var expected = expectedValue as IComparable;

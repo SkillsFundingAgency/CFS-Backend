@@ -7,10 +7,10 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
 {
     public class ThenProductValue : GherkinStepAction
     {
-        public override GherkinResult Execute(ProductResult productResult, List<object> datasets, TestStep step)
+        public override GherkinResult Execute(CalculationResult calculationResult, List<object> datasets, TestStep step)
         {
             var thenStep = step as ThenStep;
-            var actualValue = productResult.Value;
+            var actualValue = calculationResult.Value;
             if (decimal.TryParse(thenStep.Value, out var expectedValue))
             {
                 var logicResult = TestLogic(expectedValue, actualValue, thenStep.Operator);
@@ -20,10 +20,10 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
                 }
                 else
                 {
-                    return new GherkinResult($"{productResult.Product.Name}- {actualValue} is not {thenStep.Operator} {expectedValue}");
+                    return new GherkinResult($"{calculationResult.Calculation.Name}- {actualValue} is not {thenStep.Operator} {expectedValue}");
                 }
             }
-            return new GherkinResult($"{productResult.Product.Name}- {actualValue} is not a valid number");
+            return new GherkinResult($"{calculationResult.Calculation.Name}- {actualValue} is not a valid number");
         }
 
         public override bool IsMatch(TestStepType stepType)

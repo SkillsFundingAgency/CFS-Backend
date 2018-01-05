@@ -10,6 +10,7 @@ using CalculateFunding.Models.Specs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using CalculateFunding.Services.DataImporter;
+using Newtonsoft.Json;
 using OfficeOpenXml.Utils;
 
 namespace CalculateFunding.ContentSync
@@ -86,11 +87,13 @@ namespace CalculateFunding.ContentSync
                         Policies = GetPolicies(policies, calcs).ToList()
                     };
 
+                    File.WriteAllText("spec.json", JsonConvert.SerializeObject(specification, Formatting.Indented));
+
                     var result = apiClient.PostSpecificationCommand(new SpecificationCommand
                     {
                         Content = specification,
-                        Method = "POST",
-                        Id = Guid.NewGuid().ToString("N"),
+                        Method = CommandMethod.Post,
+                        Id = Reference.NewId(),
                         User = new Reference("matt.hammond@education.gov.uk", "Matt Hammond")
                     }).Result;
 

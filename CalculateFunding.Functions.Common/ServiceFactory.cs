@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repositories.Common.Cosmos;
@@ -9,7 +10,6 @@ using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.CSharp;
 using CalculateFunding.Services.Compiler.VisualBasic;
 using CalculateFunding.Services.DataImporter;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -27,12 +27,11 @@ namespace CalculateFunding.Functions.Common
         }
         static ServiceFactory()
         {
-            
-            Mapper.Initialize(cfg => cfg.CreateMap<ProviderEventEntity, ProviderIndex>());
-
+            var vars = Environment.GetEnvironmentVariables();
             var builder = new ConfigurationBuilder()
-                .AddEnvironmentVariables()
-                .AddJsonFile("appsettings.json");
+                .AddJsonFile("local.settings.json", optional: true)
+                .AddJsonFile("appsettings.json", optional:true)
+                .AddEnvironmentVariables();
 
             var config = builder.Build();
 
@@ -43,7 +42,6 @@ namespace CalculateFunding.Functions.Common
                     .AddDebug())
                 .AddLogging();
             ServiceProvider = serviceCollection
-                .AddDbContext<ProvidersDbContext>(options => options.UseSqlServer(config["ProvidersConnectionString"], sqlServerOptions => sqlServerOptions.CommandTimeout(60 * 3)))
                 .AddSingleton(new CosmosRepository(new RepositorySettings
                 {
                     ConnectionString = config["CosmosDBConnectionString"],
@@ -51,11 +49,12 @@ namespace CalculateFunding.Functions.Common
                     CollectionName = config["CosmosDBCollectionName"]
                     
                 }, null))
-                .AddSingleton(new Messenger(config["ServiceBusConnectionString"]))
+                .AddSingleton<IMessenger>(new Messenger(config["ServiceBusConnectionString"]))
+                .AddSingleton(new MessagePump(config["ServiceBusConnectionString"]))
                 .AddSingleton(new SearchRepository<ProviderIndex>(new SearchRepositorySettings
                 {
                     SearchServiceName = config["SearchServiceName"],
-                    SearchKey = config["SearchServicePrimaryKey"]
+                    SearchKey = config["SearchServiceKey"]
                 }))
                 .AddTransient<CSharpCompiler>()
                 .AddTransient<VisualBasicCompiler>()
@@ -69,6 +68,15 @@ namespace CalculateFunding.Functions.Common
                 .MinimumLevel.Debug()
                 .Enrich.FromLogContext()
                 .CreateLogger();
+        }
+    }
+
+    internal class FakeMessenger : IMessenger
+    {
+
+        public async Task SendAsync<T>(string topicName, T command)
+        {
+           // throw new NotImplementedException();
         }
     }
 }

@@ -1,7 +1,10 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
@@ -19,54 +22,52 @@ namespace CalculateFunding.Services.Compiler
         {
             Logger = logger;
         }
-        public CompilerOutput GenerateCode(Implementation budget)
+        public Build GenerateCode(Implementation implementation)
         {
             MetadataReference[] references = {
-                AssemblyMetadata.CreateFromFile(typeof(object).Assembly.Location).GetReference()
+                AssemblyMetadata.CreateFromFile(typeof(object).Assembly.Location).GetReference(),
+                AssemblyMetadata.CreateFromFile(typeof(DisplayNameAttribute).Assembly.Location).GetReference(),
             };
 
 
             using (var ms = new MemoryStream())
             {
-                var compilerOutput = GenerateCode(budget, references, ms);
-                if (compilerOutput.Success)
+                var build = GenerateCode(implementation, references, ms);
+                if (build.Success)
                 {
                     ms.Seek(0L, SeekOrigin.Begin);
 
                     byte[] data = new byte[ms.Length];
                     ms.Read(data, 0, data.Length);
-
-
-                    compilerOutput.Assembly = Assembly.Load(data);
+                    build.AssemblyBase64 = Convert.ToBase64String(data);
 
                 }
 
 
-                return compilerOutput;
+                return build;
             }
         }
 
-        protected CompilerOutput GenerateCode(Implementation budget, MetadataReference[] references, MemoryStream ms)
+        protected Build GenerateCode(Implementation implementation, MetadataReference[] references, MemoryStream ms)
         {
             var stopwatch = new Stopwatch();
 
             stopwatch.Start();
-            var datasetSyntaxTree = GenerateDatasetSyntaxTree(budget);
-            var productSyntaxTree = GenerateProductSyntaxTree(budget);
+            var datasetSyntaxTree = GenerateDatasetSyntaxTree(implementation);
+            var productSyntaxTree = GenerateProductSyntaxTree(implementation);
             stopwatch.Stop();
-            Logger.LogInformation($"${budget.Id} created syntax tree ({stopwatch.ElapsedMilliseconds}ms)");
+            Logger.LogInformation($"${implementation.Id} created syntax tree ({stopwatch.ElapsedMilliseconds}ms)");
             stopwatch.Restart();
             var result = GenerateCode(references, ms, datasetSyntaxTree, productSyntaxTree);
 
-            var compilerOutput = new CompilerOutput
+            var compilerOutput = new Build
             {
-                Implementation = budget,
                 //DatasetSourceCode = datasetSyntaxTrees.Select(x => x.ToString()).ToArray(),
                 CalculationSourceCode = productSyntaxTree.ToString()
             };
 
             stopwatch.Stop();
-            Logger.LogInformation($"${budget.Id} compilation complete success = {compilerOutput.Success} ({stopwatch.ElapsedMilliseconds}ms)");
+            Logger.LogInformation($"${implementation.Id} compilation complete success = {compilerOutput.Success} ({stopwatch.ElapsedMilliseconds}ms)");
 
             compilerOutput.Success = result.Success;
             compilerOutput.CompilerMessages = result.Diagnostics.Select(x => new CompilerMessage { Message = x.GetMessage(), Severity = (Severity)x.Severity }).ToList();

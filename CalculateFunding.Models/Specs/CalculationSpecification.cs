@@ -6,5 +6,8 @@ namespace CalculateFunding.Models.Specs
     {
         [JsonProperty("description")]
         public string Description { get; set; }
+
+        [JsonProperty("allocationLine")]
+        public Reference AllocationLine { get; set; }
     }
 }

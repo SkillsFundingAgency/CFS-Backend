@@ -4,6 +4,7 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
+using CalculationResult = CalculateFunding.Models.Results.CalculationResult;
 
 namespace CalculateFunding.Services.TestRunner
 {
@@ -16,12 +17,12 @@ namespace CalculateFunding.Services.TestRunner
             _vocab = vocab;
         }
 
-        public IEnumerable<GherkinScenarioResult> Execute(ProductResult productResult, List<object> datasets, List<TestScenario> testScenarios)
+        public IEnumerable<GherkinScenarioResult> Execute(CalculationResult calculationResult, List<object> datasets, List<TestScenario> testScenarios)
         {
 
             foreach (var scenario in testScenarios)
             {
-                var scenarioResult = new GherkinScenarioResult { Feature = productResult.Product.Name, Scenario = new Reference(scenario.Id, scenario.Name)};
+                var scenarioResult = new GherkinScenarioResult { Feature = calculationResult.Calculation.Name, Scenario = new Reference(scenario.Id, scenario.Name)};
 
                 var testSteps = new List<TestStep>();
                 if (scenario.GivenSteps != null)
@@ -39,7 +40,7 @@ namespace CalculateFunding.Services.TestRunner
                 foreach (var testStep in testSteps)
                 {
                     var action = _vocab.GetAction(testStep.StepType);
-                    var result = action.Execute(productResult, datasets, testStep);
+                    var result = action.Execute(calculationResult, datasets, testStep);
                     if (result.Dependencies.Any())
                     {
                         foreach (var resultDependency in result.Dependencies)

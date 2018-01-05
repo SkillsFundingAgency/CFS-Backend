@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
@@ -11,6 +13,7 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
 {
     public class VisualBasicCompiler : RoslynCompiler
     {
+        
         public VisualBasicCompiler(ILogger<VisualBasicCompiler> logger) : base(logger)
         {         
         }
@@ -23,6 +26,7 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
 
             var compilation = VisualBasicCompilation.Create("budget")
                 .WithOptions(options)
+                .AddSyntaxTrees(GetCodeResourcesSyntaxTree().ToArray())
                 .AddSyntaxTrees(datasetSyntaxTree)
                 .AddSyntaxTrees(calcSyntaxTree)
                 .AddReferences(references);
@@ -30,6 +34,24 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
 
             return compilation.Emit(ms);
         }
+
+        private IEnumerable<SyntaxTree> GetCodeResourcesSyntaxTree()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var codeFiles = assembly.GetManifestResourceNames().Where(x => x.EndsWith(".vb"));
+            foreach (var codeFile in codeFiles)
+            {
+                using (var stream = assembly.GetManifestResourceStream(codeFile))
+                {
+                    using (var reader = new StreamReader(stream))
+                    {
+                        yield return VisualBasicSyntaxTree.ParseText(reader.ReadToEnd());
+                    }
+
+                }
+            }
+        }
+
 
         protected override SyntaxTree GenerateProductSyntaxTree(Implementation budget)
         {

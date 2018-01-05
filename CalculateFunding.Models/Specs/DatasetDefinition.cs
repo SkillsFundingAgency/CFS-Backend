@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CalculateFunding.Models.Datasets;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs
@@ -20,4 +21,5 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("sourceMapping")]
         public DatasetMapping SourceMapping { get; set; }
     }
+
 }

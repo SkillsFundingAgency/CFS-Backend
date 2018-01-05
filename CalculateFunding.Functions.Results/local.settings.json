@@ -1,11 +1,10 @@
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=gvaggxslfcz4gstorage;AccountKey=+HmYeJAg3EB8No7WMciz9Dg5e7EdASTXbFjbe3UWjcgdcvWLw/NgieumiinAUQbVbM30lI/AtcUdj2bgGLSz4A==",
-    "AzureWebJobsDashboard": "DefaultEndpointsProtocol=https;AccountName=gvaggxslfcz4gstorage;AccountKey=+HmYeJAg3EB8No7WMciz9Dg5e7EdASTXbFjbe3UWjcgdcvWLw/NgieumiinAUQbVbM30lI/AtcUdj2bgGLSz4A==",
-   // "CosmosDBConnectionString": "AccountEndpoint=https://gvaggxslfcz4g-db.documents.azure.com:443/;AccountKey=e6UD2EN6ZoZF1WCytE7wqRhVYnpq3GFB71ycQY79Aktp91qGYZ3EU3ENgsILTgUiNYBx020An6it9D1QDD4V9g==;",
-    "CosmosDBConnectionString": "AccountEndpoint=https://localhost:8081;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==;",
-    "SearchServiceName": "gvaggxslfcz4g-search",
-    "SearchServicePrimaryKey": "05A5C91EE3062ADFA9FB656CE309C31B"
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "AzureWebJobsDashboard": "UseDevelopmentStorage=true",
+    "CosmosDBDatabaseName": "calculate-funding",
+    "CosmosDBCollectionName": "results",
+    "ServiceBusTopicName": "result-events"
   }
 }
