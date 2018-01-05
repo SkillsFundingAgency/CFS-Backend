@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CalculateFunding.Models.Calcs;
 
 namespace CalculateFunding.Models.Specs
 {
@@ -16,6 +17,48 @@ namespace CalculateFunding.Models.Specs
         {
             return specification.Policies?.FirstOrDefault(x => x.GetPolicy(id) != null);
         }
+
+        public static IEnumerable<Calculation> GenerateCalculations(this Specification specification)
+        {
+            foreach (var subPolicy in specification.Policies)
+            {
+                foreach (var calculationSpecification in subPolicy.GenerateCalculations(specification))
+                {
+                    yield return calculationSpecification;
+                }
+            }
+        }
+
+        public static IEnumerable<Calculation> GenerateCalculations(this PolicySpecification policy, Specification specification, List<Reference> parentPolicySpecifications = null)
+        {
+            var policies = (parentPolicySpecifications ?? new List<Reference>()).Concat(new[] {policy.GetReference()}).ToList();
+            if (policy.Calculations != null)
+            {
+                foreach (var calculationSpecification in policy.Calculations)
+                {
+                    yield return new Calculation
+                    {
+                        Id = Reference.NewId(),
+                        Name = calculationSpecification.Name,
+                        CalculationSpecification = calculationSpecification,
+                        AllocationLine = calculationSpecification.AllocationLine,
+                        PolicySpecifications = policies
+                    };
+                }
+            }
+            if (policy.SubPolicies != null)
+            {
+                foreach (var subPolicy in policy.SubPolicies)
+                {
+                    foreach (var calculationSpecification in subPolicy.GenerateCalculations(specification, policies))
+                    {
+                        yield return calculationSpecification;
+                    }
+                }
+            }
+        }
+
+
 
         public static IEnumerable<CalculationSpecification> GetCalculations(this Specification specification)
         {

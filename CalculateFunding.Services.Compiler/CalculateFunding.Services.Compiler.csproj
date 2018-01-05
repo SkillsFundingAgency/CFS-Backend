@@ -5,11 +5,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="VisualBasic\CodeResources\AllocationLineAttribute.vb" />
     <None Remove="VisualBasic\CodeResources\CalculationAttribute.vb" />
+    <None Remove="VisualBasic\CodeResources\CalculationSpecificationAttribute.vb" />
+    <None Remove="VisualBasic\CodeResources\PolicySpecificationAttribute.vb" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="VisualBasic\CodeResources\AllocationLineAttribute.vb" />
     <EmbeddedResource Include="VisualBasic\CodeResources\CalculationAttribute.vb" />
+    <EmbeddedResource Include="VisualBasic\CodeResources\PolicySpecificationAttribute.vb" />
+    <EmbeddedResource Include="VisualBasic\CodeResources\CalculationSpecificationAttribute.vb" />
   </ItemGroup>
 
   <ItemGroup>

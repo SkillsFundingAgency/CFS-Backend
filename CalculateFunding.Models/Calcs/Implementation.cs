@@ -13,7 +13,7 @@ namespace CalculateFunding.Models.Calcs
         public TargetLanguage TargetLanguage { get; set; }
 
         [JsonProperty("calculations")]
-        public List<CalculationImplementation> Calculations { get; set; }
+        public List<Calculation> Calculations { get; set; }
 
         [JsonProperty("datasetDefinitions")]
         public List<DatasetDefinition> DatasetDefinitions { get; set; }

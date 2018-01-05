@@ -12,7 +12,7 @@ namespace CalculateFunding.Functions.Calcs.Models
         {
             TestResults = new List<ProviderTestResult>();
         }
-        public CalculationImplementation Product { get; set; }
+        public Calculation Product { get; set; }
         public Build CompilerOutput { get; set; }
         public List<ProviderTestResult> TestResults { get; set; }
     }

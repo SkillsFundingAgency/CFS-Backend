@@ -35,7 +35,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             var entity = await repository.ReadAsync<Implementation>(command.Id);
             var impl = entity?.Content ?? new Implementation{Id = command.Content.Id};
             impl.Name = command.Content.Name;
-            impl.Calculations = impl.Calculations ?? new List<CalculationImplementation>();
+            impl.Calculations = impl.Calculations ?? new List<Calculation>();
 
 
             var compiler = ServiceFactory.GetService<BudgetCompiler>();

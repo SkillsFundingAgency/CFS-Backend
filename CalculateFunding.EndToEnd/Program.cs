@@ -57,22 +57,16 @@ namespace CalculateFunding.EndToEnd
                 var impl = new Implementation
                 {
                     Id = Reference.NewId(),
+                    Specification = spec.GetReference(),
                     TargetLanguage = TargetLanguage.VisualBasic,
                     Name = spec.Name
                 };
-                impl.Calculations = impl.Calculations ?? new List<CalculationImplementation>();
+                impl.Calculations = impl.Calculations ?? new List<Calculation>();
                 impl.DatasetDefinitions = new List<DatasetDefinition>();
 
 
-                impl.Calculations.AddRange(spec.GetCalculations()
-                    .Where(x => impl.Calculations.All(existing => existing.CalculationSpecification.Id != x.Id)).Select(x => new CalculationImplementation
-                    {
-                        Id = Reference.NewId(),
-                        Name = x.Name,
-                        CalculationSpecification = x,
-                        Implementation = new Reference(impl.Id, impl.Name),
-                        Specification = spec.GetReference(),
-                    }));
+
+                impl.Calculations.AddRange(spec.GenerateCalculations());
 
                 impl.Build = compiler.GenerateAssembly(impl);
                 File.WriteAllText(@"..\Spikes\VisualBasicCore\VisualBasicCore\Calculations.vb", impl.Build.CalculationSourceCode);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -30,6 +31,8 @@ namespace CalculateFunding.Services.Calculator
 
                 foreach (var provider in scope.Providers)
                 {
+                    var stopwatch = new Stopwatch();
+                    stopwatch.Start();
                     var typedDatasets = new List<object>();
 
 
@@ -45,6 +48,9 @@ namespace CalculateFunding.Services.Calculator
 
 
                     var result = CalculateProviderResults(allocationModel, implementation, provider, typedDatasets);
+
+                stopwatch.Stop();
+                Console.WriteLine($"Generated result for ${provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
                     yield return result;
                    
                 }
@@ -70,7 +76,7 @@ namespace CalculateFunding.Services.Calculator
         public ProviderResult CalculateProviderResults(AllocationModel model, Implementation implementation, ProviderSummary provider, List<object> typedDatasets)
         {
             var calculationResults = model.Execute(typedDatasets.ToArray());
-            var providerAllocations = calculationResults.ToDictionary(x => x.CalculationId);
+            var providerCalResults = calculationResults.ToDictionary(x => x.CalculationId);
 
             var result = new ProviderResult
             {
@@ -80,29 +86,18 @@ namespace CalculateFunding.Services.Calculator
             };
             var productResults = new List<CalculationResult>();
 
-            foreach (var product in implementation.Calculations)
+            foreach (var calculation in implementation.Calculations)
             {
 
                 var productResult = new CalculationResult
                 {
-                    //FundingPolicy = new Reference(fundingPolicy.Id, fundingPolicy.Name),
-                    //AllocationLine = new Reference(allocationLine.Id, allocationLine.Name),
-                    //ProductFolder = new Reference(productFolder.Id, productFolder.Name),
-                    Calculation = product.GetReference()
+                    Calculation = calculation.GetReference()
                 };
-                if (providerAllocations.ContainsKey(product.CalculationSpecification.Id))
+                if (providerCalResults.TryGetValue(calculation.Id, out var calculationResult))
                 {
-                    var calculationResult = providerAllocations[product.CalculationSpecification.Id];
-                    productResult.Calculation = calculationResult.CalculationId != null
-                        ? new Reference(calculationResult.CalculationId, calculationResult.CalculationName)
-                        : null;
-                    productResult.Calculation = calculationResult.CalculationId != null
-                        ? new Reference(calculationResult.CalculationId, calculationResult.CalculationName)
-                        : null;
-                    productResult.Calculation = calculationResult.CalculationId != null
-                        ? new Reference(calculationResult.CalculationId, calculationResult.CalculationName)
-                        : null;
-                    // TODO - add all attributes
+                    productResult.CalculationSpecification = calculationResult.CalculationSpecification;
+                    productResult.AllocationLine = calculationResult.AllocationLine;
+                    productResult.PolicySpecifications = calculationResult.PolicySpecifications;
                     productResult.Value = calculationResult.Value;
                     productResult.Exception = calculationResult.Exception;
                 }

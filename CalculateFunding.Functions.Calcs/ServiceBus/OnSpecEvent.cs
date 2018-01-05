@@ -34,21 +34,12 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             var entity = repository.Query<Implementation>().FirstOrDefault(x => x.Specification.Id == command.Content.Id);
             var impl = entity ?? new Implementation{Id = command.Content.Id, TargetLanguage = TargetLanguage.VisualBasic};
             impl.Name = command.Content.Name;
-            impl.Calculations = impl.Calculations ?? new List<CalculationImplementation>();
+            impl.Calculations = impl.Calculations ?? new List<Calculation>();
             impl.DatasetDefinitions = new List<DatasetDefinition>();
-            
 
-            impl.Calculations.AddRange(command.Content.GetCalculations()
-                .Where(x => impl.Calculations.All(existing => existing.CalculationSpecification.Id != x.Id)).Select(x => new CalculationImplementation
-            {
-                Id = Reference.NewId(),
-                Name = x.Name,
-                CalculationSpecification = x,
-                Implementation = new Reference(impl.Id, impl.Name),
-                Specification = command.Content,
-               
-                
-            }));
+
+            impl.Calculations.AddRange(command.Content.GenerateCalculations().Where(x =>
+                impl.Calculations.All(existing => existing.CalculationSpecification.Id != x.Id)));
 
             if (JsonConvert.SerializeObject(impl) !=
                 JsonConvert.SerializeObject(entity ?? new Implementation()))

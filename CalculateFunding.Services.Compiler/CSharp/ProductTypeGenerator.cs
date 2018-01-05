@@ -41,7 +41,7 @@ namespace CalculateFunding.Services.Compiler.CSharp
             }
         }
 
-        private static MethodDeclarationSyntax GetMethod(CalculationImplementation product)
+        private static MethodDeclarationSyntax GetMethod(Calculation product)
         {
             if (product?.SourceCode != null)
             {
@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Compiler.CSharp
             return null;
         }
 
-        private static IEnumerable<ClassDeclarationSyntax> GetProductPartials(CalculationImplementation calc)
+        private static IEnumerable<ClassDeclarationSyntax> GetProductPartials(Calculation calc)
         {
                     var partialClass = SyntaxFactory.ClassDeclaration(Identifier("ProductCalculations"))
 
@@ -106,7 +106,7 @@ namespace CalculateFunding.Services.Compiler.CSharp
                   
         }
 
-        private static SyntaxList<AttributeListSyntax> GetMethodAttributes(CalculationImplementation calc)
+        private static SyntaxList<AttributeListSyntax> GetMethodAttributes(Calculation calc)
         {
             return SyntaxFactory.SingletonList(SyntaxFactory.AttributeList(
                 SyntaxFactory.SingletonSeparatedList(
@@ -114,7 +114,7 @@ namespace CalculateFunding.Services.Compiler.CSharp
                         SyntaxFactory.ParseName("Display"),
                         SyntaxFactory.AttributeArgumentList(SyntaxFactory.SeparatedList(new []
                         {
-                            SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("ShortName"), SyntaxFactory.NameColon("what"), SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(calc.Implementation.Id))),
+                            SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("ShortName"), SyntaxFactory.NameColon("what"), SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(calc.Id))),
                             SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("Name"), SyntaxFactory.NameColon("what"), SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(calc.Name))),
                             SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("Description"), SyntaxFactory.NameColon("what"), SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(calc.Name)))
 

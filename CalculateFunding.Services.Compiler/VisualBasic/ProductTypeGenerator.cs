@@ -47,10 +47,26 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
         }
 
 
-        private static StatementSyntax GetMethod(CalculationImplementation calc)
+        private static StatementSyntax GetMethod(Calculation calc)
         {
             var builder = new StringBuilder();
-            builder.AppendLine($"<Calculation(CalculationId := \"{calc.Id}\", CalculationName := \"{calc.Name}\")>");
+            builder.AppendLine($"<Calculation(Id := \"{calc.Id}\")>");
+            if (calc.CalculationSpecification != null)
+            {
+                builder.AppendLine($"<CalculationSpecification(Id := \"{calc.CalculationSpecification.Id}\", Name := \"{calc.CalculationSpecification.Name}\")>");
+            }
+            if (calc.AllocationLine != null)
+            {
+                builder.AppendLine($"<AllocationLine(Id := \"{calc.AllocationLine.Id}\", Name := \"{calc.AllocationLine.Name}\")>");
+            }
+            if (calc.PolicySpecifications != null)
+            {
+                foreach (var policySpecification in calc.PolicySpecifications)
+                {
+                    builder.AppendLine($"<PolicySpecification(Id := \"{policySpecification.Id}\", Name := \"{policySpecification.Name}\")>");
+                }
+            }
+
             builder.AppendLine($"Public Function {Identifier(calc.Name)} As Decimal");
             builder.Append(calc.SourceCode ?? $"Throw new NotImplementedException(\"{calc.Name} is not implemented\")");
             builder.AppendLine();
