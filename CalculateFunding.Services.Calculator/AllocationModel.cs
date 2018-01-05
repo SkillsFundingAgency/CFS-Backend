@@ -9,66 +9,69 @@ namespace CalculateFunding.Services.Calculator
 {
     public class AllocationModel
     {
-        public List<object> AllocationProcessors  = new List<object>();
+        private List<Tuple<MethodInfo, CalculationResult>> _methods = new List<Tuple<MethodInfo, CalculationResult>>();
+        private PropertyInfo[] _setters;
+        private object _instance;
 
+        public AllocationModel(Type allocationType)
+        {
+            _setters = allocationType.GetProperties().Where(x => x.CanWrite).ToArray();
 
+            var executeMethods = allocationType.GetMethods().Where(x => x.ReturnType == typeof(decimal));
+            foreach (var executeMethod in executeMethods)
+            {
+
+                var parameters = executeMethod.GetParameters();
+
+                var attributes = executeMethod.GetCustomAttributesData();
+                var calcAttribute = attributes.FirstOrDefault(x => x.AttributeType.Name == "CalculationAttribute");
+                if (calcAttribute != null)
+                {
+                    var result = new CalculationResult
+                    {
+                        CalculationId = GetProperty(calcAttribute, "Id"),
+                        CalculationSpecification = GetReference(attributes, "CalculationSpecification"),
+                        AllocationLine = GetReference(attributes, "AllocationLine"),
+                        PolicySpecifications = GetReferences(attributes, "PolicySpecification").ToList()
+                    };
+
+                    if (parameters.Length == 0)
+                    {
+                        _methods.Add(new Tuple<MethodInfo, CalculationResult>(executeMethod, result));
+                    }
+                }
+            }
+
+            _instance = Activator.CreateInstance(allocationType);
+        }
 
 
         public IEnumerable<CalculationResult> Execute(object[] datasets)
         {
-            foreach (var allocation in AllocationProcessors)
+
+            foreach (var dataset in datasets)
             {
-                var allocationType = allocation.GetType();
-                var setters = allocationType.GetProperties().Where(x => x.CanWrite).ToArray();
-
-                foreach (var dataset in datasets)
+                foreach (var setter in _setters)
                 {
-                    foreach (var setter in setters.Where(x => x.PropertyType == dataset.GetType()))
-                    {
-                        setter.SetValue(allocation, dataset);
-                    }
+                    setter.SetValue(_instance, dataset);
                 }
-
-                var executeMethods = allocationType.GetMethods().Where(x => x.ReturnType == typeof(decimal));
-                foreach (var executeMethod in executeMethods)
-                {
-
-                    var parameters = executeMethod.GetParameters();
-
-                    var attributes = executeMethod.GetCustomAttributesData();
-                    var calcAttribute = attributes.FirstOrDefault(x => x.AttributeType.Name == "CalculationAttribute");
-                    if (calcAttribute != null)
-                    {
-                        var result = new CalculationResult
-                        {
-                            CalculationId = GetProperty(calcAttribute, "Id"),
-                            CalculationSpecification = GetReference(attributes, "CalculationSpecification"),
-                            AllocationLine = GetReference(attributes, "AllocationLine"),
-                            PolicySpecifications = GetReferences(attributes, "PolicySpecification").ToList()
-                        };
-
-                        if (parameters.Length == 0)
-                        {
-                            try
-                            {
-                                result.Value = (decimal)executeMethod.Invoke(allocation, null);
-                            }
-                            catch (Exception e)
-                            {
-                                result.Exception = e;
-                            }
-
-                        }
-
-  
-                        yield return result;
-                    }
-                }
-
-
             }
 
+            foreach (var executeMethod in _methods)
+            {
+                var result = executeMethod.Item2;
+                try
+                {
+                    result.Value = (decimal) executeMethod.Item1.Invoke(_instance, null);
+                }
+                catch (Exception e)
+                {
+                    result.Exception = e;
+                }
+                yield return result;
+            }
         }
+
 
 
         private static IEnumerable<Reference> GetReferences(IList<CustomAttributeData> attributes, string attributeName)

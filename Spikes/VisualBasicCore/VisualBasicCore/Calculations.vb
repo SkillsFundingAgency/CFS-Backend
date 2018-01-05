@@ -2,2163 +2,2163 @@ Imports System
 
 Public Class ProductCalculations
 
-    <Calculation(Id:="1aae996995ca4e3c8b408e86f9684961")>
+    <Calculation(Id:="b97b978d43a94c3b87bc9e63bf8207de")>
     <CalculationSpecification(Id:="P004_PriRate", Name:="P004_PriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P004_PriRate As Decimal
-        Throw new NotImplementedException("P004_PriRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="290a3e24196d4b72901f52cb90d4cac6")>
+    <Calculation(Id:="13dfe840cf4a4e1fbb2a77d4b0439e3a")>
     <CalculationSpecification(Id:="P005_PriBESubtotal", Name:="P005_PriBESubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P005_PriBESubtotal As Decimal
-        Throw new NotImplementedException("P005_PriBESubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8975d3748bfe428fa914ba7cfa5d4316")>
+    <Calculation(Id:="0de536d9d5fb4898a7a0a70580c27481")>
     <CalculationSpecification(Id:="P006_NSEN_PriBE", Name:="P006_NSEN_PriBE")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P006_NSEN_PriBE As Decimal
-        Throw new NotImplementedException("P006_NSEN_PriBE is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="29d0af06a3084fc3a54889e6332709a5")>
+    <Calculation(Id:="bd30aae688df4893a392b6f4933590a0")>
     <CalculationSpecification(Id:="P006a_NSEN_PriBE_Percent", Name:="P006a_NSEN_PriBE_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P006a_NSEN_PriBE_Percent As Decimal
-        Throw new NotImplementedException("P006a_NSEN_PriBE_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9f2241f83d764100ae17aab6be7d039e")>
+    <Calculation(Id:="13c464c879d843a4bdf2e547cc72b85a")>
     <CalculationSpecification(Id:="P007_InYearPriBE_Subtotal", Name:="P007_InYearPriBE_Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P007_InYearPriBE_Subtotal As Decimal
-        Throw new NotImplementedException("P007_InYearPriBE_Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="14d0d76f5ee84c04bb36a51b86d07a16")>
+    <Calculation(Id:="f0371006f69d4b588e74ca1ea892e613")>
     <CalculationSpecification(Id:="P009_KS3Rate", Name:="P009_KS3Rate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P009_KS3Rate As Decimal
-        Throw new NotImplementedException("P009_KS3Rate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="66db76519f6c43f999114ba841855324")>
+    <Calculation(Id:="5866447713d4498582b8e4e157fc4fef")>
     <CalculationSpecification(Id:="P010_KS3_BESubtotal", Name:="P010_KS3_BESubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P010_KS3_BESubtotal As Decimal
-        Throw new NotImplementedException("P010_KS3_BESubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3932a58f90104bd7a64574efa8b1a587")>
+    <Calculation(Id:="2de72a414ce44c04a1eb02fb49aeb365")>
     <CalculationSpecification(Id:="P011_NSEN_KS3BE_percent", Name:="P011_NSEN_KS3BE_percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P011_NSEN_KS3BE_percent As Decimal
-        Throw new NotImplementedException("P011_NSEN_KS3BE_percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="28d9de4622f14c1f88bb33517fb43ac0")>
+    <Calculation(Id:="deecdb2ab5d5405a859dc25481b87e70")>
     <CalculationSpecification(Id:="P011a_NSEN_KS3BE_Percent", Name:="P011a_NSEN_KS3BE_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P011a_NSEN_KS3BE_Percent As Decimal
-        Throw new NotImplementedException("P011a_NSEN_KS3BE_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="860bec93531349c294211cc87e568504")>
+    <Calculation(Id:="8e82ada98d4e4ba9883b2ec088ad7568")>
     <CalculationSpecification(Id:="P012_InYearKS3_BESubtotal", Name:="P012_InYearKS3_BESubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P012_InYearKS3_BESubtotal As Decimal
-        Throw new NotImplementedException("P012_InYearKS3_BESubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="5c11a4170be14b4d8ad75270b91b1671")>
+    <Calculation(Id:="251fd997be0749adbe8df58cbf7edfd5")>
     <CalculationSpecification(Id:="P014_KS4Rate", Name:="P014_KS4Rate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P014_KS4Rate As Decimal
-        Throw new NotImplementedException("P014_KS4Rate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="30764a641f694b05a20d000cfd2b5ea1")>
+    <Calculation(Id:="09584a919de64fcfa8fcb5c58aefd7a7")>
     <CalculationSpecification(Id:="P015_KS4_BESubtotal", Name:="P015_KS4_BESubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P015_KS4_BESubtotal As Decimal
-        Throw new NotImplementedException("P015_KS4_BESubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="bd52080e6c9f4c579009fda62b201fb5")>
+    <Calculation(Id:="92472888f52944d1914e8c1c91406368")>
     <CalculationSpecification(Id:="P016_NSEN_KS4BE", Name:="P016_NSEN_KS4BE")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P016_NSEN_KS4BE As Decimal
-        Throw new NotImplementedException("P016_NSEN_KS4BE is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c1ec9f01f08c4cd58d1627c58a1ccc13")>
+    <Calculation(Id:="db63bf9a476b46328c3f85d1ef5755b6")>
     <CalculationSpecification(Id:="P016a_NSEN_KS4BE_Percent", Name:="P016a_NSEN_KS4BE_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P016a_NSEN_KS4BE_Percent As Decimal
-        Throw new NotImplementedException("P016a_NSEN_KS4BE_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7db81b746a944337ba427d8a1be85af3")>
+    <Calculation(Id:="8dd403e135d8473c82993e1c134b7824")>
     <CalculationSpecification(Id:="P018_InYearKS4_BESubtotal", Name:="P018_InYearKS4_BESubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P018_InYearKS4_BESubtotal As Decimal
-        Throw new NotImplementedException("P018_InYearKS4_BESubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f490e6b93aa2478ca94b37337fe8b7bb")>
+    <Calculation(Id:="40876a0f1b8249b9beb7241bda09375f")>
     <CalculationSpecification(Id:="P297_DedelegationRetained", Name:="P297_DedelegationRetained")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="cc9eac91ede6480eb46f748efb3a9d11", Name:="Dedelegation Retained by LA")>
     Public Function P297_DedelegationRetained As Decimal
-        Throw new NotImplementedException("P297_DedelegationRetained is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c99959e1d7f7432096caa528e455c5de")>
+    <Calculation(Id:="5e78410ef0fb498cab669c0d71e96a02")>
     <CalculationSpecification(Id:="P142_EAL1PriFactor", Name:="P142_EAL1PriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P142_EAL1PriFactor As Decimal
-        Throw new NotImplementedException("P142_EAL1PriFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="949e7faa1db34acda2bff179c1a2b9a3")>
+    <Calculation(Id:="25f9eb8868874e1194a6389bf51fcc61")>
     <CalculationSpecification(Id:="P144_EAL1PriRate", Name:="P144_EAL1PriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P144_EAL1PriRate As Decimal
-        Throw new NotImplementedException("P144_EAL1PriRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4a45fe82ac1d4efdab01246ea1371466")>
+    <Calculation(Id:="602063a826ad438b93c61a1aeacd21ee")>
     <CalculationSpecification(Id:="P145_EAL1PriSubtotal", Name:="P145_EAL1PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P145_EAL1PriSubtotal As Decimal
-        Throw new NotImplementedException("P145_EAL1PriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="98bd2e3f19dd432db2f7d3234c84e366")>
+    <Calculation(Id:="e097abca7d574bf5ac45cb4c5cd63408")>
     <CalculationSpecification(Id:="P146_InYearEAL1PriSubtotal", Name:="P146_InYearEAL1PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P146_InYearEAL1PriSubtotal As Decimal
-        Throw new NotImplementedException("P146_InYearEAL1PriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c8461c2cc5804ef88113071fc2162fad")>
+    <Calculation(Id:="2b1e1a05832041d99956d92f8a2cf5f6")>
     <CalculationSpecification(Id:="P147_EAL2PriFactor", Name:="P147_EAL2PriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P147_EAL2PriFactor As Decimal
-        Throw new NotImplementedException("P147_EAL2PriFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="07ad90ba0123467e8e3f9252d232c922")>
+    <Calculation(Id:="3dcc2e94e86a461cbae26454867d9973")>
     <CalculationSpecification(Id:="P149_EAL2PriRate", Name:="P149_EAL2PriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P149_EAL2PriRate As Decimal
-        Throw new NotImplementedException("P149_EAL2PriRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="02f12df89bc04e3ba5223d82c5684802")>
+    <Calculation(Id:="0fefc524d3cf429a91cd2a9a527d8c7e")>
     <CalculationSpecification(Id:="P150_EAL2PriSubtotal", Name:="P150_EAL2PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P150_EAL2PriSubtotal As Decimal
-        Throw new NotImplementedException("P150_EAL2PriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="af2345d7502b477ba0f02b9f72af2d78")>
+    <Calculation(Id:="922bb631613846139fa6571be309c348")>
     <CalculationSpecification(Id:="P151_InYearEAL2PriSubtotal", Name:="P151_InYearEAL2PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P151_InYearEAL2PriSubtotal As Decimal
-        Throw new NotImplementedException("P151_InYearEAL2PriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="04a261142a934711a1da81e816d6d18b")>
+    <Calculation(Id:="84686ab6f45f40c88c1736b58e1f7b92")>
     <CalculationSpecification(Id:="P152_EAL3PriFactor", Name:="P152_EAL3PriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P152_EAL3PriFactor As Decimal
-        Throw new NotImplementedException("P152_EAL3PriFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="10c2f0607ebb4b408ec3323dbf6d4be5")>
+    <Calculation(Id:="a5ea6b23358d4c35bc4607f1ce23dea5")>
     <CalculationSpecification(Id:="P154_EAL3PriRate", Name:="P154_EAL3PriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P154_EAL3PriRate As Decimal
-        Throw new NotImplementedException("P154_EAL3PriRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="eb579a43c75c46aaa49dbcdaf1bbe866")>
+    <Calculation(Id:="79f62fba105740a881b62c8ef2cbd419")>
     <CalculationSpecification(Id:="P155_EAL3PriSubtotal", Name:="P155_EAL3PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P155_EAL3PriSubtotal As Decimal
-        Throw new NotImplementedException("P155_EAL3PriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d17dc069167640b49c32d5396357edad")>
+    <Calculation(Id:="574980a088194e2dac45e256e7a38921")>
     <CalculationSpecification(Id:="P156_NSENPriEAL", Name:="P156_NSENPriEAL")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P156_NSENPriEAL As Decimal
-        Throw new NotImplementedException("P156_NSENPriEAL is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="55377be9aa1c4dbd94a5b03395fdfb2e")>
+    <Calculation(Id:="1fe88ebd221c4e42822ca298e43189c6")>
     <CalculationSpecification(Id:="P156a_NSENPriEAL_Percent", Name:="P156a_NSENPriEAL_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P156a_NSENPriEAL_Percent As Decimal
-        Throw new NotImplementedException("P156a_NSENPriEAL_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="cd58e154825246f082c49e5ec5ddc01b")>
+    <Calculation(Id:="6b33146be4be4ae08af91745552c9cbe")>
     <CalculationSpecification(Id:="P157_InYearEAL3PriSubtotal", Name:="P157_InYearEAL3PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P157_InYearEAL3PriSubtotal As Decimal
-        Throw new NotImplementedException("P157_InYearEAL3PriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c78bfacf72c944cabc948388af1d99b6")>
+    <Calculation(Id:="0f76a897ec4f4ee39e9613a2b758f6c7")>
     <CalculationSpecification(Id:="P158_EAL1SecFactor", Name:="P158_EAL1SecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P158_EAL1SecFactor As Decimal
-        Throw new NotImplementedException("P158_EAL1SecFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1388feb26f1741448680c2a0b7c14a4e")>
+    <Calculation(Id:="bee7c1bc55e24175b9b946bb780f7997")>
     <CalculationSpecification(Id:="P160_EAL1SecRate", Name:="P160_EAL1SecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P160_EAL1SecRate As Decimal
-        Throw new NotImplementedException("P160_EAL1SecRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="acf32f3e7b064144a26a9ae7a029d478")>
+    <Calculation(Id:="c8445a8285b04fcdaf171b7010ecf7c3")>
     <CalculationSpecification(Id:="P161_EAL1SecSubtotal", Name:="P161_EAL1SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P161_EAL1SecSubtotal As Decimal
-        Throw new NotImplementedException("P161_EAL1SecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8546f7b87831440c8de56628f6a4cd54")>
+    <Calculation(Id:="6bfb5fdb4e3f401da8b0b0bb6cd8410b")>
     <CalculationSpecification(Id:="P162_InYearEAL1SecSubtotal", Name:="P162_InYearEAL1SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P162_InYearEAL1SecSubtotal As Decimal
-        Throw new NotImplementedException("P162_InYearEAL1SecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="00e48e947f2545ada9d803b108ed3d4a")>
+    <Calculation(Id:="85d7d60cdd88452d9ed82db2c60d27aa")>
     <CalculationSpecification(Id:="P163_EAL2SecFactor", Name:="P163_EAL2SecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P163_EAL2SecFactor As Decimal
-        Throw new NotImplementedException("P163_EAL2SecFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ad6790f8a38349dfba6a0af9cf65581e")>
+    <Calculation(Id:="822c8a427ec649aba1ad3ae6f8530ec6")>
     <CalculationSpecification(Id:="P165_EAL2SecRate", Name:="P165_EAL2SecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P165_EAL2SecRate As Decimal
-        Throw new NotImplementedException("P165_EAL2SecRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="812730644be4472e8bcc6e3042f17bc6")>
+    <Calculation(Id:="704aeb8cedf84fd699b4d38d0fe86a84")>
     <CalculationSpecification(Id:="P166_EAL2SecSubtotal", Name:="P166_EAL2SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P166_EAL2SecSubtotal As Decimal
-        Throw new NotImplementedException("P166_EAL2SecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f8cbc5c6a116462084b8872a3be553f2")>
+    <Calculation(Id:="01f3d0bd8c7043a89a71dc0c041ed4d6")>
     <CalculationSpecification(Id:="P167_InYearEAL2SecSubtotal", Name:="P167_InYearEAL2SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P167_InYearEAL2SecSubtotal As Decimal
-        Throw new NotImplementedException("P167_InYearEAL2SecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="58eb351291254fdda5157e3432458aaf")>
+    <Calculation(Id:="5298454f714b49c28b0ee87af0168cc7")>
     <CalculationSpecification(Id:="P168_EAL3SecFactor", Name:="P168_EAL3SecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P168_EAL3SecFactor As Decimal
-        Throw new NotImplementedException("P168_EAL3SecFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a7e3e1e55fa3483489dcd82d4a6ef2d2")>
+    <Calculation(Id:="df1a128e0d8549959d75e80cabf0b0cc")>
     <CalculationSpecification(Id:="P170_EAL3SecRate", Name:="P170_EAL3SecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P170_EAL3SecRate As Decimal
-        Throw new NotImplementedException("P170_EAL3SecRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e6ab952aef664ef1a6e845fd8d5890c5")>
+    <Calculation(Id:="e1c6af9c013647349fed96d2e09620f1")>
     <CalculationSpecification(Id:="P171_EAL3SecSubtotal", Name:="P171_EAL3SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P171_EAL3SecSubtotal As Decimal
-        Throw new NotImplementedException("P171_EAL3SecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0a1c7b2349aa4c8594c50911c8c432ac")>
+    <Calculation(Id:="f19807ff7c3e4385ae4f241deabec3c9")>
     <CalculationSpecification(Id:="P172_NSENSecEAL", Name:="P172_NSENSecEAL")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P172_NSENSecEAL As Decimal
-        Throw new NotImplementedException("P172_NSENSecEAL is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="89e997d214a64d92818d30de42546b4e")>
+    <Calculation(Id:="cbd0a1656fc6487e9a4019036e05b5d8")>
     <CalculationSpecification(Id:="P172a_NSENSecEAL_Percent", Name:="P172a_NSENSecEAL_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P172a_NSENSecEAL_Percent As Decimal
-        Throw new NotImplementedException("P172a_NSENSecEAL_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a149e5b3d08e49a38ba1ef2e403a4f02")>
+    <Calculation(Id:="97394e96d7a24130b0ac08f13ddbf933")>
     <CalculationSpecification(Id:="P173_InYearEAL3SecSubtotal", Name:="P173_InYearEAL3SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P173_InYearEAL3SecSubtotal As Decimal
-        Throw new NotImplementedException("P173_InYearEAL3SecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3da342a422c44be0aa4c2703d8278d1e")>
+    <Calculation(Id:="29014b06c4404fe3a5e62ad7edf835ef")>
     <CalculationSpecification(Id:="P019_PriFSMFactor", Name:="P019_PriFSMFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P019_PriFSMFactor As Decimal
-        Throw new NotImplementedException("P019_PriFSMFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="b9b1f55623d64acfb90cd28163819299")>
+    <Calculation(Id:="1de883adca604563a26c01f2bc9d8a04")>
     <CalculationSpecification(Id:="P021_PriFSMRate", Name:="P021_PriFSMRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P021_PriFSMRate As Decimal
-        Throw new NotImplementedException("P021_PriFSMRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a1cbbdb0111b4c8bbf87703c2f2c85f9")>
+    <Calculation(Id:="a0dd96beeae54333a3399644efce922f")>
     <CalculationSpecification(Id:="P022_PriFSMSubtotal", Name:="P022_PriFSMSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P022_PriFSMSubtotal As Decimal
-        Throw new NotImplementedException("P022_PriFSMSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e7166660cf104c4f88584d4eb262545a")>
+    <Calculation(Id:="fe8271d42374400a951f2aed73d1b146")>
     <CalculationSpecification(Id:="P023_InYearPriFSMSubtotal", Name:="P023_InYearPriFSMSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P023_InYearPriFSMSubtotal As Decimal
-        Throw new NotImplementedException("P023_InYearPriFSMSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ff24e8e488da4eb59fd532852412c6b2")>
+    <Calculation(Id:="1f46fa0f25854af7a3b42275d5e0c744")>
     <CalculationSpecification(Id:="P024_PriFSM6Factor", Name:="P024_PriFSM6Factor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P024_PriFSM6Factor As Decimal
-        Throw new NotImplementedException("P024_PriFSM6Factor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d4e0934051444c14947d5c2190b7aa63")>
+    <Calculation(Id:="9f126b197dea4a53ba15425f0a6ff20f")>
     <CalculationSpecification(Id:="P026_PriFSM6Rate", Name:="P026_PriFSM6Rate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P026_PriFSM6Rate As Decimal
-        Throw new NotImplementedException("P026_PriFSM6Rate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="736c2cfa436f4d819bdb93a95b5a36ef")>
+    <Calculation(Id:="3097a81b6bf347f985917ff6e90f4c43")>
     <CalculationSpecification(Id:="P027_PriFSM6Subtotal", Name:="P027_PriFSM6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P027_PriFSM6Subtotal As Decimal
-        Throw new NotImplementedException("P027_PriFSM6Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c1975557c1a04a58aa325836de25c099")>
+    <Calculation(Id:="eeee6883f37240589f6679b13d7f43f0")>
     <CalculationSpecification(Id:="P028_NSENFSMPri", Name:="P028_NSENFSMPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P028_NSENFSMPri As Decimal
-        Throw new NotImplementedException("P028_NSENFSMPri is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ce817768da9a4f6bbb1a14ece55d4c79")>
+    <Calculation(Id:="dd790e8e4dd94f0194cc83c71563e9ce")>
     <CalculationSpecification(Id:="P028a_NSENFSMPri_Percent", Name:="P028a_NSENFSMPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P028a_NSENFSMPri_Percent As Decimal
-        Throw new NotImplementedException("P028a_NSENFSMPri_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="619da2d44f354093a7cc796cb3dfd74b")>
+    <Calculation(Id:="db809605b9ae4374abad31433de79b20")>
     <CalculationSpecification(Id:="P029_InYearPriFSM6Subtotal", Name:="P029_InYearPriFSM6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P029_InYearPriFSM6Subtotal As Decimal
-        Throw new NotImplementedException("P029_InYearPriFSM6Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="71656c13f340452ba4368becc7f1c00b")>
+    <Calculation(Id:="157f2cfc277345648082676afbe0a0a7")>
     <CalculationSpecification(Id:="P030_SecFSMFactor", Name:="P030_SecFSMFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P030_SecFSMFactor As Decimal
-        Throw new NotImplementedException("P030_SecFSMFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="6b99837352e442f994fe9f3d0f4c1c3c")>
+    <Calculation(Id:="47978541b2d74558a50347ade13d5b41")>
     <CalculationSpecification(Id:="P032_SecFSMRate", Name:="P032_SecFSMRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P032_SecFSMRate As Decimal
-        Throw new NotImplementedException("P032_SecFSMRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="af98573ea0774931a364949b6696da1d")>
+    <Calculation(Id:="947d264927e445b6a46c1d67df582fff")>
     <CalculationSpecification(Id:="P033_SecFSMSubtotal", Name:="P033_SecFSMSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P033_SecFSMSubtotal As Decimal
-        Throw new NotImplementedException("P033_SecFSMSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7eb80b2fee884528bd1cfc463d485a79")>
+    <Calculation(Id:="0769ac4b73dc42e98630b912fb9376d9")>
     <CalculationSpecification(Id:="P034_InYearSecFSMSubtotal", Name:="P034_InYearSecFSMSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P034_InYearSecFSMSubtotal As Decimal
-        Throw new NotImplementedException("P034_InYearSecFSMSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="20af90780e6d45cebcdeb2509512c42b")>
+    <Calculation(Id:="d7f51f9cfa1742138f5a2da5591a154e")>
     <CalculationSpecification(Id:="P035_SecFSM6Factor", Name:="P035_SecFSM6Factor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P035_SecFSM6Factor As Decimal
-        Throw new NotImplementedException("P035_SecFSM6Factor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2f2a1741050c4b46a2cde259e13035ad")>
+    <Calculation(Id:="72689e1326dc421e96b6928426de6d94")>
     <CalculationSpecification(Id:="P037_SecFSM6Rate", Name:="P037_SecFSM6Rate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P037_SecFSM6Rate As Decimal
-        Throw new NotImplementedException("P037_SecFSM6Rate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="409ad62fbf6047229e17cba164b0b3db")>
+    <Calculation(Id:="f10e35ca3bb94a10822efc742cac4129")>
     <CalculationSpecification(Id:="P038_SecFSM6Subtotal", Name:="P038_SecFSM6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P038_SecFSM6Subtotal As Decimal
-        Throw new NotImplementedException("P038_SecFSM6Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8d2fbc4afaa44ac5bfde51f5645b0397")>
+    <Calculation(Id:="9efdb69f25254fb2abd5f1bb3f346dfa")>
     <CalculationSpecification(Id:="P039_NSENFSMSec", Name:="P039_NSENFSMSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P039_NSENFSMSec As Decimal
-        Throw new NotImplementedException("P039_NSENFSMSec is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="de280c839f094c56b4c112d7bf80f912")>
+    <Calculation(Id:="f1c2b1a8c4884d2898011eb6b8f35f04")>
     <CalculationSpecification(Id:="P039a_NSENFSMSec_Percent", Name:="P039a_NSENFSMSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P039a_NSENFSMSec_Percent As Decimal
-        Throw new NotImplementedException("P039a_NSENFSMSec_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="78376d1e0a4142e9ab38e606aa1eb9a3")>
+    <Calculation(Id:="92fea42526674a24b180a2f0d67250be")>
     <CalculationSpecification(Id:="P040_InYearSecFSM6Subtotal", Name:="P040_InYearSecFSM6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P040_InYearSecFSM6Subtotal As Decimal
-        Throw new NotImplementedException("P040_InYearSecFSM6Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9b76f7b4e78943919e90ea255b84d702")>
+    <Calculation(Id:="0b4cb9b09e3c4e7d98ff9413581ed3cb")>
     <CalculationSpecification(Id:="P041_IDACIFPriFactor", Name:="P041_IDACIFPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P041_IDACIFPriFactor As Decimal
-        Throw new NotImplementedException("P041_IDACIFPriFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9d374e89ad9c4269af4b5ca074daca19")>
+    <Calculation(Id:="b989f6f30eed4f0a949ac3a6d08a0874")>
     <CalculationSpecification(Id:="P043_IDACIFPriRate", Name:="P043_IDACIFPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P043_IDACIFPriRate As Decimal
-        Throw new NotImplementedException("P043_IDACIFPriRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1851c6cd4a7146eea00aa69a7fb47d41")>
+    <Calculation(Id:="807f942f39e940e492dd95e4991b6921")>
     <CalculationSpecification(Id:="P044_IDACIFPriSubtotal", Name:="P044_IDACIFPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P044_IDACIFPriSubtotal As Decimal
-        Throw new NotImplementedException("P044_IDACIFPriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="65de544a78de4c70b84386168df0b2d6")>
+    <Calculation(Id:="3de32b55a894473980134ad26d1495a3")>
     <CalculationSpecification(Id:="P045_NSENIDACIFPri", Name:="P045_NSENIDACIFPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P045_NSENIDACIFPri As Decimal
-        Throw new NotImplementedException("P045_NSENIDACIFPri is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9fad295cf01c4b4a8cd3c526bd33d708")>
+    <Calculation(Id:="1fdbbeffe76542d4a9820302e8cfd243")>
     <CalculationSpecification(Id:="P045a_NSENIDACIFPri_Percent", Name:="P045a_NSENIDACIFPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P045a_NSENIDACIFPri_Percent As Decimal
-        Throw new NotImplementedException("P045a_NSENIDACIFPri_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d50402b369e84f6796305c16deaf1890")>
+    <Calculation(Id:="7a5ec5a0bbc34511b06a557586cb68fd")>
     <CalculationSpecification(Id:="P046_InYearIDACIFPriSubtotal", Name:="P046_InYearIDACIFPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P046_InYearIDACIFPriSubtotal As Decimal
-        Throw new NotImplementedException("P046_InYearIDACIFPriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="81c9c9d249b940babb340de884cc4a26")>
+    <Calculation(Id:="d88fd92ff5fa48c1b1778cc16fc96c78")>
     <CalculationSpecification(Id:="P047_IDACIEPriFactor", Name:="P047_IDACIEPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P047_IDACIEPriFactor As Decimal
-        Throw new NotImplementedException("P047_IDACIEPriFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0dcaf0dd84dd44ba990a2fca5771b4b3")>
+    <Calculation(Id:="02f6009b4b2746468471179add4004fb")>
     <CalculationSpecification(Id:="P049_IDACIEPriRate", Name:="P049_IDACIEPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P049_IDACIEPriRate As Decimal
-        Throw new NotImplementedException("P049_IDACIEPriRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="15c57e2042874812ad4e633d1072f832")>
+    <Calculation(Id:="81c13084e4874b7c851835d9deba2722")>
     <CalculationSpecification(Id:="P050_IDACIEPriSubtotal", Name:="P050_IDACIEPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P050_IDACIEPriSubtotal As Decimal
-        Throw new NotImplementedException("P050_IDACIEPriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="5729c858bf78464ab934b3c2d2934d2d")>
+    <Calculation(Id:="f7768d1927894e3cbd3e8680c04b5139")>
     <CalculationSpecification(Id:="P051_NSENIDACIEPri", Name:="P051_NSENIDACIEPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P051_NSENIDACIEPri As Decimal
-        Throw new NotImplementedException("P051_NSENIDACIEPri is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="6392becefc314db9a35689d4a025162d")>
+    <Calculation(Id:="a2f5d4de7fcc41c9acc7e4d4681f2134")>
     <CalculationSpecification(Id:="P051a_NSENIDACIEPri_Percent", Name:="P051a_NSENIDACIEPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P051a_NSENIDACIEPri_Percent As Decimal
-        Throw new NotImplementedException("P051a_NSENIDACIEPri_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="59055535a2d54b768293a73787300b82")>
+    <Calculation(Id:="1bed65d723434c8a9745cac00df0da12")>
     <CalculationSpecification(Id:="P052_InYearIDACIEPriSubtotal", Name:="P052_InYearIDACIEPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P052_InYearIDACIEPriSubtotal As Decimal
-        Throw new NotImplementedException("P052_InYearIDACIEPriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="adc9df5b77e54841ab387eefca1cda9c")>
+    <Calculation(Id:="e9e6232913844a97bbcd6c302aee26a1")>
     <CalculationSpecification(Id:="P053_IDACIDPriFactor", Name:="P053_IDACIDPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P053_IDACIDPriFactor As Decimal
-        Throw new NotImplementedException("P053_IDACIDPriFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e34a40802efd4c79a8debda23a6d1690")>
+    <Calculation(Id:="caacdde5af7c4c2586f83aeb81b751fe")>
     <CalculationSpecification(Id:="P055_IDACIDPriRate", Name:="P055_IDACIDPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P055_IDACIDPriRate As Decimal
-        Throw new NotImplementedException("P055_IDACIDPriRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="77ddc39cc9f5454cb6b7ab00e037e137")>
+    <Calculation(Id:="fcbb4d6010614b4fa65effc139824ce6")>
     <CalculationSpecification(Id:="P056_IDACIDPriSubtotal", Name:="P056_IDACIDPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P056_IDACIDPriSubtotal As Decimal
-        Throw new NotImplementedException("P056_IDACIDPriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a84f2694f51a4d88b1b399de9cf9beed")>
+    <Calculation(Id:="d60c6f22c59f467f98fecaa37395841a")>
     <CalculationSpecification(Id:="P057_NSENIDACIDPri", Name:="P057_NSENIDACIDPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P057_NSENIDACIDPri As Decimal
-        Throw new NotImplementedException("P057_NSENIDACIDPri is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8161a0590db940bbb470580880e8216f")>
+    <Calculation(Id:="b6b4cab44e7143098ce34b30bce5164f")>
     <CalculationSpecification(Id:="P057a_NSENIDACIDPri_Percent", Name:="P057a_NSENIDACIDPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P057a_NSENIDACIDPri_Percent As Decimal
-        Throw new NotImplementedException("P057a_NSENIDACIDPri_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ca11d56404794713a6632656e8fb8f04")>
+    <Calculation(Id:="833ff3fa73a54a0baa470dda0cf5250b")>
     <CalculationSpecification(Id:="P058_InYearIDACIDPriSubtotal", Name:="P058_InYearIDACIDPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P058_InYearIDACIDPriSubtotal As Decimal
-        Throw new NotImplementedException("P058_InYearIDACIDPriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="512d5a9da2e841c2a0f99a3643e7eca1")>
+    <Calculation(Id:="f571be053e584d899da0286e88349409")>
     <CalculationSpecification(Id:="P059_IDACICPriFactor", Name:="P059_IDACICPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P059_IDACICPriFactor As Decimal
-        Throw new NotImplementedException("P059_IDACICPriFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="82cae046dd9846d5b66bf56922f27458")>
+    <Calculation(Id:="c6a04f90227b44979f2656dd091777e2")>
     <CalculationSpecification(Id:="P061_IDACICPriRate", Name:="P061_IDACICPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P061_IDACICPriRate As Decimal
-        Throw new NotImplementedException("P061_IDACICPriRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="749cca67df954a7083befbebab4c615a")>
+    <Calculation(Id:="bf1c0da6217848f6a3c4d3c7527ae3ab")>
     <CalculationSpecification(Id:="P062_IDACICPriSubtotal", Name:="P062_IDACICPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P062_IDACICPriSubtotal As Decimal
-        Throw new NotImplementedException("P062_IDACICPriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="78078d4555c744febf92baffaa0cf163")>
+    <Calculation(Id:="0618decfe5f344e5b267ed41af0e9f9c")>
     <CalculationSpecification(Id:="P063_NSENIDACICPri", Name:="P063_NSENIDACICPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P063_NSENIDACICPri As Decimal
-        Throw new NotImplementedException("P063_NSENIDACICPri is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="cdaa50e138e54bbbabaa024992facc5d")>
+    <Calculation(Id:="30800cae89294f0aac84c7e98e606ea6")>
     <CalculationSpecification(Id:="P063a_NSENIDACICPri_Percent", Name:="P063a_NSENIDACICPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P063a_NSENIDACICPri_Percent As Decimal
-        Throw new NotImplementedException("P063a_NSENIDACICPri_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e69850ce6aca4cec9437da6f88f9cc61")>
+    <Calculation(Id:="a655342c4263408e925068f5d83987c4")>
     <CalculationSpecification(Id:="P064_InYearIDACICPriSubtotal", Name:="P064_InYearIDACICPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P064_InYearIDACICPriSubtotal As Decimal
-        Throw new NotImplementedException("P064_InYearIDACICPriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3332f6c683734dee931775a7382ffb7a")>
+    <Calculation(Id:="7420252190ff48159b700d5bb570dabb")>
     <CalculationSpecification(Id:="P065_IDACIBPriFactor", Name:="P065_IDACIBPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P065_IDACIBPriFactor As Decimal
-        Throw new NotImplementedException("P065_IDACIBPriFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e57a1cc60f354992b724bf7cf18974f8")>
+    <Calculation(Id:="1024109ab26d431da3175eae6b2c3baf")>
     <CalculationSpecification(Id:="P067_IDACIBPriRate", Name:="P067_IDACIBPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P067_IDACIBPriRate As Decimal
-        Throw new NotImplementedException("P067_IDACIBPriRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="daf1962077184f378376d5d60bf609c9")>
+    <Calculation(Id:="b68443c7062d41978005233d27b1bd70")>
     <CalculationSpecification(Id:="P068_IDACIBPriSubtotal", Name:="P068_IDACIBPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P068_IDACIBPriSubtotal As Decimal
-        Throw new NotImplementedException("P068_IDACIBPriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2f86b316fa78454aaa54e11572339d10")>
+    <Calculation(Id:="6bb6dbe28f2849199b3acd8eb12b4f0e")>
     <CalculationSpecification(Id:="P069_NSENIDACIBPri", Name:="P069_NSENIDACIBPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P069_NSENIDACIBPri As Decimal
-        Throw new NotImplementedException("P069_NSENIDACIBPri is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="207e8645450048f78fbfbf193ec57e9a")>
+    <Calculation(Id:="06a72c70f14245e4927d49fdc736fa22")>
     <CalculationSpecification(Id:="P069a_NSENIDACIBPri_Percent", Name:="P069a_NSENIDACIBPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P069a_NSENIDACIBPri_Percent As Decimal
-        Throw new NotImplementedException("P069a_NSENIDACIBPri_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="907040bfa09045308f12d5cbada0ceb7")>
+    <Calculation(Id:="8a59c8c3eabc44c09429d3176aeeeb23")>
     <CalculationSpecification(Id:="P070_InYearIDACIBPriSubtotal", Name:="P070_InYearIDACIBPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P070_InYearIDACIBPriSubtotal As Decimal
-        Throw new NotImplementedException("P070_InYearIDACIBPriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9a4ca6073ffe4bf7bb606920baf12f65")>
+    <Calculation(Id:="59a6dee0c95e4ad88d21bc55487be7a0")>
     <CalculationSpecification(Id:="P071_IDACIAPriFactor", Name:="P071_IDACIAPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P071_IDACIAPriFactor As Decimal
-        Throw new NotImplementedException("P071_IDACIAPriFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="02c8f324c7144f378d1f816497601d18")>
+    <Calculation(Id:="7b7121cf3b0d4cfcaf36ce5007ffd8e9")>
     <CalculationSpecification(Id:="P073_IDACIAPriRate", Name:="P073_IDACIAPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P073_IDACIAPriRate As Decimal
-        Throw new NotImplementedException("P073_IDACIAPriRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="cbcf0ef90ebf48cdb42516e82c964f8c")>
+    <Calculation(Id:="77fd1d94b1b24089901ba2386ce85940")>
     <CalculationSpecification(Id:="P074_IDACIAPriSubtotal", Name:="P074_IDACIAPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P074_IDACIAPriSubtotal As Decimal
-        Throw new NotImplementedException("P074_IDACIAPriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d8013ab5617c4127a411fac7e046dfa4")>
+    <Calculation(Id:="583bbbb6dfbb4157b37dae335e18bf8e")>
     <CalculationSpecification(Id:="P075_NSENIDACIAPri", Name:="P075_NSENIDACIAPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P075_NSENIDACIAPri As Decimal
-        Throw new NotImplementedException("P075_NSENIDACIAPri is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9ae6b42aaaed4afa943e240c184863fb")>
+    <Calculation(Id:="3a56db1d3c1b432da6ca83c1d14d871f")>
     <CalculationSpecification(Id:="P075a_NSENIDACIAPri_Percent", Name:="P075a_NSENIDACIAPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P075a_NSENIDACIAPri_Percent As Decimal
-        Throw new NotImplementedException("P075a_NSENIDACIAPri_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="fd5748e239694772bd121177b54ba735")>
+    <Calculation(Id:="bcd900a7e20641e699120f7d7cdf2df0")>
     <CalculationSpecification(Id:="P076_InYearIDACIAPriSubtotal", Name:="P076_InYearIDACIAPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P076_InYearIDACIAPriSubtotal As Decimal
-        Throw new NotImplementedException("P076_InYearIDACIAPriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9fabed6ad5834c79b76b79346afdd3be")>
+    <Calculation(Id:="8d981ffd452e4254a2392850311fd0a3")>
     <CalculationSpecification(Id:="P077_IDACIFSecFactor", Name:="P077_IDACIFSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P077_IDACIFSecFactor As Decimal
-        Throw new NotImplementedException("P077_IDACIFSecFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9a303db5c7dc4b159b155b8c89a1de18")>
+    <Calculation(Id:="a948f69339f4455eb1d9ed85ed6a2cb1")>
     <CalculationSpecification(Id:="P079_IDACIFSecRate", Name:="P079_IDACIFSecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P079_IDACIFSecRate As Decimal
-        Throw new NotImplementedException("P079_IDACIFSecRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7a5b48cedb3a4a3b977257134823e5f0")>
+    <Calculation(Id:="09cdabb4d75849df834a0e9523670715")>
     <CalculationSpecification(Id:="P080_IDACIFSecSubtotal", Name:="P080_IDACIFSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P080_IDACIFSecSubtotal As Decimal
-        Throw new NotImplementedException("P080_IDACIFSecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7f306438dd634408b89e35025bd99156")>
+    <Calculation(Id:="580347fa9b0b4155866175f3439f353e")>
     <CalculationSpecification(Id:="P081_NSENIDACIFSec", Name:="P081_NSENIDACIFSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P081_NSENIDACIFSec As Decimal
-        Throw new NotImplementedException("P081_NSENIDACIFSec is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1d55b3483dd045c6b661dccdaf0d5e09")>
+    <Calculation(Id:="45b362cefa9f4056b755c96ca6f29e9a")>
     <CalculationSpecification(Id:="P081a_NSENIDACIFSec_Percent", Name:="P081a_NSENIDACIFSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P081a_NSENIDACIFSec_Percent As Decimal
-        Throw new NotImplementedException("P081a_NSENIDACIFSec_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3645ace7c7504e55bdd08cf2d185506a")>
+    <Calculation(Id:="4c824093768b48a9b8caf88cf61caf11")>
     <CalculationSpecification(Id:="P082_InYearIDACIFSecSubtotal", Name:="P082_InYearIDACIFSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P082_InYearIDACIFSecSubtotal As Decimal
-        Throw new NotImplementedException("P082_InYearIDACIFSecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c52e2ad0c5094679ab30a759bdfcb7d8")>
+    <Calculation(Id:="bd28e24d129e4d27b2eebcf18d79f49a")>
     <CalculationSpecification(Id:="P083_IDACIESecFactor", Name:="P083_IDACIESecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P083_IDACIESecFactor As Decimal
-        Throw new NotImplementedException("P083_IDACIESecFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="78b0c544ee8e48dfb0ef77259d6f9585")>
+    <Calculation(Id:="b72974fe72604dbdb84c26ff814ef451")>
     <CalculationSpecification(Id:="P085_IDACIESecRate", Name:="P085_IDACIESecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P085_IDACIESecRate As Decimal
-        Throw new NotImplementedException("P085_IDACIESecRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ae24b61babcc43f6a114e4cd04302f80")>
+    <Calculation(Id:="1fde14770d204b12ae8c35c17a737077")>
     <CalculationSpecification(Id:="P086_IDACIESecSubtotal", Name:="P086_IDACIESecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P086_IDACIESecSubtotal As Decimal
-        Throw new NotImplementedException("P086_IDACIESecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f963009baef44af8a86428553c13f2ad")>
+    <Calculation(Id:="5a052e01eecc4fe789829cd2a92bbfe3")>
     <CalculationSpecification(Id:="P087_NSENIDACIESec", Name:="P087_NSENIDACIESec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P087_NSENIDACIESec As Decimal
-        Throw new NotImplementedException("P087_NSENIDACIESec is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0021e5ca25b54502a44df3de5e240fc1")>
+    <Calculation(Id:="43f6175e59854974bcfc10137858824f")>
     <CalculationSpecification(Id:="P87a_NSENIDACIESec_Percent", Name:="P87a_NSENIDACIESec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P87a_NSENIDACIESec_Percent As Decimal
-        Throw new NotImplementedException("P87a_NSENIDACIESec_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="5b89baa51ab640b39ba13e8a0032ffe2")>
+    <Calculation(Id:="e852451004ad4cee948b0b5cdd5023ab")>
     <CalculationSpecification(Id:="P088_InYearIDACIESecSubtotal", Name:="P088_InYearIDACIESecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P088_InYearIDACIESecSubtotal As Decimal
-        Throw new NotImplementedException("P088_InYearIDACIESecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2653b8b23d89402287bf226724bd50dc")>
+    <Calculation(Id:="8f0addbd10b74d819a2eca02dc21b090")>
     <CalculationSpecification(Id:="P089_IDACIDSecFactor", Name:="P089_IDACIDSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P089_IDACIDSecFactor As Decimal
-        Throw new NotImplementedException("P089_IDACIDSecFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3f1e77dcf2ba467984f33d93fbb2af52")>
+    <Calculation(Id:="426fcebf5a544525b996a74845ca82b3")>
     <CalculationSpecification(Id:="P091_IDACIDSecRate", Name:="P091_IDACIDSecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P091_IDACIDSecRate As Decimal
-        Throw new NotImplementedException("P091_IDACIDSecRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="cebb2c1ffaad403aa4df3dba6029e000")>
+    <Calculation(Id:="dc21e38c399849c986ffdc710dca4210")>
     <CalculationSpecification(Id:="P092_IDACIDSecSubtotal", Name:="P092_IDACIDSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P092_IDACIDSecSubtotal As Decimal
-        Throw new NotImplementedException("P092_IDACIDSecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="5fc0ac85ef8443f4bc8dfd22e9341b1e")>
+    <Calculation(Id:="949a4f5ba4bb49c1bebe1519e94eb64d")>
     <CalculationSpecification(Id:="P093_NSENIDACIDSec", Name:="P093_NSENIDACIDSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P093_NSENIDACIDSec As Decimal
-        Throw new NotImplementedException("P093_NSENIDACIDSec is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e7ba144b916b4ce7a28f0872f9f4a664")>
+    <Calculation(Id:="adbdee02afdc4f7a852d65f1e9766f51")>
     <CalculationSpecification(Id:="P093a_NSENIDACIDSec_Percent", Name:="P093a_NSENIDACIDSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P093a_NSENIDACIDSec_Percent As Decimal
-        Throw new NotImplementedException("P093a_NSENIDACIDSec_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="53c27136bd0c4bf5b44605319c831e45")>
+    <Calculation(Id:="1bd055b7139d4ade951387f64ba91d0d")>
     <CalculationSpecification(Id:="P094_InYearIDACIDSecSubtotal", Name:="P094_InYearIDACIDSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P094_InYearIDACIDSecSubtotal As Decimal
-        Throw new NotImplementedException("P094_InYearIDACIDSecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="cfc2a4d2db0b4a28a3162aa18362d9f4")>
+    <Calculation(Id:="dde49ff75f3d412aa3f99dd85e3dcfe6")>
     <CalculationSpecification(Id:="P095_IDACICSecFactor", Name:="P095_IDACICSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P095_IDACICSecFactor As Decimal
-        Throw new NotImplementedException("P095_IDACICSecFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="6e02523a82e6450bbbe0742e87ca5d5e")>
+    <Calculation(Id:="70d12dac95414f28940e9f9da88765f2")>
     <CalculationSpecification(Id:="P097_IDACICSecRate", Name:="P097_IDACICSecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P097_IDACICSecRate As Decimal
-        Throw new NotImplementedException("P097_IDACICSecRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="de60318d93f54580bec72c2dd8c72f82")>
+    <Calculation(Id:="ab0bf4f24cd04f9ba6754c6e9809ce1a")>
     <CalculationSpecification(Id:="P098_IDACICSecSubtotal", Name:="P098_IDACICSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P098_IDACICSecSubtotal As Decimal
-        Throw new NotImplementedException("P098_IDACICSecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="73cac3772efb4a9a9f1d4c46c2dee0db")>
+    <Calculation(Id:="a4b9fceb0bed41629abc3eeea4ea6177")>
     <CalculationSpecification(Id:="P099_NSENIDACICSec", Name:="P099_NSENIDACICSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P099_NSENIDACICSec As Decimal
-        Throw new NotImplementedException("P099_NSENIDACICSec is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="fb0dfc45aeaf41d5ab6b8ab262fa6e37")>
+    <Calculation(Id:="07b055876df640ec895200ec449229a3")>
     <CalculationSpecification(Id:="P099a_NSENIDACICSec_Percent", Name:="P099a_NSENIDACICSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P099a_NSENIDACICSec_Percent As Decimal
-        Throw new NotImplementedException("P099a_NSENIDACICSec_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ed8dc09b50a749e9a9dc22fc0ca6df56")>
+    <Calculation(Id:="7c9a41c520094824ae997248385ddee7")>
     <CalculationSpecification(Id:="P100_InYearIDACICSecSubtotal", Name:="P100_InYearIDACICSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P100_InYearIDACICSecSubtotal As Decimal
-        Throw new NotImplementedException("P100_InYearIDACICSecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1c9876a5811a482d90d50b3d09e840e1")>
+    <Calculation(Id:="43b6d262536e4370b146e9a4581fe963")>
     <CalculationSpecification(Id:="P101_IDACIBSecFactor", Name:="P101_IDACIBSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P101_IDACIBSecFactor As Decimal
-        Throw new NotImplementedException("P101_IDACIBSecFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="db5a0e9b523d4233bb3e9c2c8d028834")>
+    <Calculation(Id:="d1479f7719b7438bb9f7db92b62be707")>
     <CalculationSpecification(Id:="P103_IDACIBSecRate", Name:="P103_IDACIBSecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P103_IDACIBSecRate As Decimal
-        Throw new NotImplementedException("P103_IDACIBSecRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9fde21d5bf7f4656b71481dd5b1481f3")>
+    <Calculation(Id:="e603a2cb5c4645e48d6bba87720b9858")>
     <CalculationSpecification(Id:="P104_IDACIBSecSubtotal", Name:="P104_IDACIBSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P104_IDACIBSecSubtotal As Decimal
-        Throw new NotImplementedException("P104_IDACIBSecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4678e7c9d62f4c8cafd9d9ade7673efb")>
+    <Calculation(Id:="b33c725d351142db8965f4dcf917f350")>
     <CalculationSpecification(Id:="P105_NSENIDACIBSec", Name:="P105_NSENIDACIBSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P105_NSENIDACIBSec As Decimal
-        Throw new NotImplementedException("P105_NSENIDACIBSec is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="80a87e73473046a5bfe46897acc1fec9")>
+    <Calculation(Id:="93fd74ad2e134fb2b16555ed287a0e29")>
     <CalculationSpecification(Id:="P105a_NSENIDACIBSec_Percent", Name:="P105a_NSENIDACIBSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P105a_NSENIDACIBSec_Percent As Decimal
-        Throw new NotImplementedException("P105a_NSENIDACIBSec_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1f85c6d47dd34c24971a13dcab31fb9d")>
+    <Calculation(Id:="ff38249ab8fb4af0b96f0ef896f1267a")>
     <CalculationSpecification(Id:="P106_InYearIDACIBSecSubtotal", Name:="P106_InYearIDACIBSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P106_InYearIDACIBSecSubtotal As Decimal
-        Throw new NotImplementedException("P106_InYearIDACIBSecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="eb96829026e24ee69d279a78f5516a63")>
+    <Calculation(Id:="b77e0b323e8a44fabbfba24a29098b2f")>
     <CalculationSpecification(Id:="P107_IDACIASecFactor", Name:="P107_IDACIASecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P107_IDACIASecFactor As Decimal
-        Throw new NotImplementedException("P107_IDACIASecFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="b8fd01640b0c4ee79efef594827b7664")>
+    <Calculation(Id:="ab9e5ef2be794d38bce1079ea67663d8")>
     <CalculationSpecification(Id:="P109_IDACIASecRate", Name:="P109_IDACIASecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P109_IDACIASecRate As Decimal
-        Throw new NotImplementedException("P109_IDACIASecRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="626d7bf63c5e4ac59528f180dcb6ee75")>
+    <Calculation(Id:="e94ffe2b2e024600aafbbf0310021b87")>
     <CalculationSpecification(Id:="P110_IDACIASecSubtotal", Name:="P110_IDACIASecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P110_IDACIASecSubtotal As Decimal
-        Throw new NotImplementedException("P110_IDACIASecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0c8fc911b33f4a15b744418d22e26b95")>
+    <Calculation(Id:="74b98201049349b282f4d7f4e3aaf3f3")>
     <CalculationSpecification(Id:="P111_NSENIDACIASec", Name:="P111_NSENIDACIASec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P111_NSENIDACIASec As Decimal
-        Throw new NotImplementedException("P111_NSENIDACIASec is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="af39093f7fb344e18a84176927a60d11")>
+    <Calculation(Id:="973e9cc154334241b42f9df08fbde2c0")>
     <CalculationSpecification(Id:="P111a_NSENIDACIASec_Percent", Name:="P111a_NSENIDACIASec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P111a_NSENIDACIASec_Percent As Decimal
-        Throw new NotImplementedException("P111a_NSENIDACIASec_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="83da1f5755ad4f8e8880864ad7636639")>
+    <Calculation(Id:="8c0bf80a0d964cd8a3d32dede219eabc")>
     <CalculationSpecification(Id:="P112_InYearIDACIASecSubtotal", Name:="P112_InYearIDACIASecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P112_InYearIDACIASecSubtotal As Decimal
-        Throw new NotImplementedException("P112_InYearIDACIASecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7401516ed8174212b1fc1aba5d4e2645")>
+    <Calculation(Id:="9da7540edc724b89a06f9ab0789d88b6")>
     <CalculationSpecification(Id:="P114_LACFactor", Name:="P114_LACFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
     Public Function P114_LACFactor As Decimal
-        Throw new NotImplementedException("P114_LACFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="39cdf489dae44e91b737a48ed0725cfe")>
+    <Calculation(Id:="ecb385fb174046138020e3c9f2a0bc3d")>
     <CalculationSpecification(Id:="P116_LACRate", Name:="P116_LACRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
     Public Function P116_LACRate As Decimal
-        Throw new NotImplementedException("P116_LACRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c3e88699880d41eca1c65b3ef272b55d")>
+    <Calculation(Id:="29417b24e5c941fcb58605d62a759ad1")>
     <CalculationSpecification(Id:="P117_LACSubtotal", Name:="P117_LACSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
     Public Function P117_LACSubtotal As Decimal
-        Throw new NotImplementedException("P117_LACSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f76fdec0e8284a4da6b47452fc05b5a2")>
+    <Calculation(Id:="91ac30109ac9411e87d48b0512e41963")>
     <CalculationSpecification(Id:="P118_NSENLAC", Name:="P118_NSENLAC")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
     Public Function P118_NSENLAC As Decimal
-        Throw new NotImplementedException("P118_NSENLAC is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="81c0b1297be546c1bf8c1f8f6a3a67ea")>
+    <Calculation(Id:="0aba2721577d4ecf9d364fe4e63be142")>
     <CalculationSpecification(Id:="P118a_NSENLAC_Percent", Name:="P118a_NSENLAC_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
     Public Function P118a_NSENLAC_Percent As Decimal
-        Throw new NotImplementedException("P118a_NSENLAC_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="37234e0893b94898bec2fa786795fc1d")>
+    <Calculation(Id:="57ae1d2c5ffc45c2a59f0ef7560d2cd5")>
     <CalculationSpecification(Id:="P119_InYearLACSubtotal", Name:="P119_InYearLACSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
     Public Function P119_InYearLACSubtotal As Decimal
-        Throw new NotImplementedException("P119_InYearLACSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0943686e779b45e8a133621fdfdd356a")>
+    <Calculation(Id:="a01ee1b14fe14223b2d0b4bfde73ad9e")>
     <CalculationSpecification(Id:="P174_MobPriFactor", Name:="P174_MobPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P174_MobPriFactor As Decimal
-        Throw new NotImplementedException("P174_MobPriFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="09e659b4c5eb45cb9c2704fd984dbeb2")>
+    <Calculation(Id:="bfb8e0d6b98a490fb35427a037c82ecf")>
     <CalculationSpecification(Id:="P176_MobPriRate", Name:="P176_MobPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P176_MobPriRate As Decimal
-        Throw new NotImplementedException("P176_MobPriRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d0611230e46c4bcc8ce2d427d0b5ec70")>
+    <Calculation(Id:="af25848c9c7e4057b40eb53395f05b4c")>
     <CalculationSpecification(Id:="P177_MobPriSubtotal", Name:="P177_MobPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P177_MobPriSubtotal As Decimal
-        Throw new NotImplementedException("P177_MobPriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8c500f8979e2481c91caba544bae3e18")>
+    <Calculation(Id:="a0b6fa2e3ab848a7ba351a240191e0bc")>
     <CalculationSpecification(Id:="P178_NSENMobPri", Name:="P178_NSENMobPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P178_NSENMobPri As Decimal
-        Throw new NotImplementedException("P178_NSENMobPri is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="214b495cc6b44fb78a3b7a07ed75973a")>
+    <Calculation(Id:="7eace07f89574e44896d158ef714fe90")>
     <CalculationSpecification(Id:="P178a_NSENMobPri_Percent", Name:="P178a_NSENMobPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P178a_NSENMobPri_Percent As Decimal
-        Throw new NotImplementedException("P178a_NSENMobPri_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d403ed97a8eb4480bd4489733f2837bb")>
+    <Calculation(Id:="3e242f8a5f5c47ccaf9d8fa9976082ca")>
     <CalculationSpecification(Id:="P179_InYearMobPriSubtotal", Name:="P179_InYearMobPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P179_InYearMobPriSubtotal As Decimal
-        Throw new NotImplementedException("P179_InYearMobPriSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9fd1944615de4b8688261c3564e00a72")>
+    <Calculation(Id:="0eb2746b6a6644cd9932b080fcade602")>
     <CalculationSpecification(Id:="P180_MobSecFactor", Name:="P180_MobSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P180_MobSecFactor As Decimal
-        Throw new NotImplementedException("P180_MobSecFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a67c5927ae3c4b5fb3d43de4379ad222")>
+    <Calculation(Id:="78530d3d5109488587976d5f30fca0de")>
     <CalculationSpecification(Id:="P182_MobSecRate", Name:="P182_MobSecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P182_MobSecRate As Decimal
-        Throw new NotImplementedException("P182_MobSecRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="66fdfb3bda4e45da95992b7ad395e6aa")>
+    <Calculation(Id:="05d973c2e04a4da192658575f141f5bb")>
     <CalculationSpecification(Id:="P183_MobSecSubtotal", Name:="P183_MobSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P183_MobSecSubtotal As Decimal
-        Throw new NotImplementedException("P183_MobSecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="99b277d51e0145d3b9291e9064c5030e")>
+    <Calculation(Id:="6049c4bd7e0e44788ed4fe1b5a2180a0")>
     <CalculationSpecification(Id:="P184_NSENMobSec", Name:="P184_NSENMobSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P184_NSENMobSec As Decimal
-        Throw new NotImplementedException("P184_NSENMobSec is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="bf7e02bf62dc4a869dd902795d3dea04")>
+    <Calculation(Id:="f1d4d63c4528467b800679640c835b6d")>
     <CalculationSpecification(Id:="P184a_NSENMobSec_Percent", Name:="P184a_NSENMobSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P184a_NSENMobSec_Percent As Decimal
-        Throw new NotImplementedException("P184a_NSENMobSec_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="b78e8e136b0943fba08568339535682e")>
+    <Calculation(Id:="60c7e7774d2140d4923042af334e4fef")>
     <CalculationSpecification(Id:="P185_InYearMobSecSubtotal", Name:="P185_InYearMobSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P185_InYearMobSecSubtotal As Decimal
-        Throw new NotImplementedException("P185_InYearMobSecSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2b15a30958ff4410939c626ec63b7bbc")>
+    <Calculation(Id:="a86d2091922a4287853bbdd07bf31095")>
     <CalculationSpecification(Id:="P239_PriLumpSumFactor", Name:="P239_PriLumpSumFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P239_PriLumpSumFactor As Decimal
-        Throw new NotImplementedException("P239_PriLumpSumFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7c9fb47ac81a4ba480a97cec9538a7e5")>
+    <Calculation(Id:="bc7f1c0c52d54461a8656caa28c8bae9")>
     <CalculationSpecification(Id:="P240_PriLumpSumRate", Name:="P240_PriLumpSumRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P240_PriLumpSumRate As Decimal
-        Throw new NotImplementedException("P240_PriLumpSumRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0ab66041e49643bc88b50e0496a2ed0e")>
+    <Calculation(Id:="64948771d1494cf5b063cd82ac0d7003")>
     <CalculationSpecification(Id:="P241_Primary_Lump_Sum", Name:="P241_Primary_Lump_Sum")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P241_Primary_Lump_Sum As Decimal
-        Throw new NotImplementedException("P241_Primary_Lump_Sum is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="308b16e8949e4c158a069b0d4a5414ed")>
+    <Calculation(Id:="c7665f1419a64a0089f0527127e7977b")>
     <CalculationSpecification(Id:="P242_InYearPriLumpSumSubtotal", Name:="P242_InYearPriLumpSumSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P242_InYearPriLumpSumSubtotal As Decimal
-        Throw new NotImplementedException("P242_InYearPriLumpSumSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7c80dc6b11e648aa9fc947d54a7f06e3")>
+    <Calculation(Id:="67b5646d0caa45a5a6a14fd8b680c166")>
     <CalculationSpecification(Id:="P243_SecLumpSumFactor", Name:="P243_SecLumpSumFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P243_SecLumpSumFactor As Decimal
-        Throw new NotImplementedException("P243_SecLumpSumFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a38ba29bb48b4170a6356c3b0f227438")>
+    <Calculation(Id:="07719805a7a447f2904e1ac3464c8d90")>
     <CalculationSpecification(Id:="P244_SecLumpSumRate", Name:="P244_SecLumpSumRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P244_SecLumpSumRate As Decimal
-        Throw new NotImplementedException("P244_SecLumpSumRate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7f32574539614063875804551bad6251")>
+    <Calculation(Id:="359346d2cd314f418bfcca2b4f354cb8")>
     <CalculationSpecification(Id:="P245_Secondary_Lump_Sum", Name:="P245_Secondary_Lump_Sum")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P245_Secondary_Lump_Sum As Decimal
-        Throw new NotImplementedException("P245_Secondary_Lump_Sum is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1cb13a53ab8744e49599fe0429d88c39")>
+    <Calculation(Id:="37460f0067f343ada0ac2615ac403d76")>
     <CalculationSpecification(Id:="P246_In YearSecLumpSumSubtotal", Name:="P246_In YearSecLumpSumSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P246_InYearSecLumpSumSubtotal As Decimal
-        Throw new NotImplementedException("P246_In YearSecLumpSumSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="73266d629525444ca156469f23ba5d94")>
+    <Calculation(Id:="cc0aa3e92d5b40c39d9b94787e971d0d")>
     <CalculationSpecification(Id:="P247_NSENLumpSumPri", Name:="P247_NSENLumpSumPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P247_NSENLumpSumPri As Decimal
-        Throw new NotImplementedException("P247_NSENLumpSumPri is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="bb8f9c0ccc3c41269dbf7e6e7b5632b1")>
+    <Calculation(Id:="6be5f0a840054c4889c5ad7aaa462d82")>
     <CalculationSpecification(Id:="P247a_NSENLumpSumPri_Percent", Name:="P247a_NSENLumpSumPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P247a_NSENLumpSumPri_Percent As Decimal
-        Throw new NotImplementedException("P247a_NSENLumpSumPri_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="5c8cf7b9924145b9a327f39936b41d5e")>
+    <Calculation(Id:="a0c8ccc5a3754b029fe1e3d535072034")>
     <CalculationSpecification(Id:="P248_NSENLumpSumSec", Name:="P248_NSENLumpSumSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P248_NSENLumpSumSec As Decimal
-        Throw new NotImplementedException("P248_NSENLumpSumSec is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="216e2bb8546749969723325a69483124")>
+    <Calculation(Id:="5e741fbc9ffe4758b56bd7147587d331")>
     <CalculationSpecification(Id:="P248a_NSENLumpSumSec_Percent", Name:="P248a_NSENLumpSumSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P248a_NSENLumpSumSec_Percent As Decimal
-        Throw new NotImplementedException("P248a_NSENLumpSumSec_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="bae64a6b4320419db436ab0ca410e8d2")>
+    <Calculation(Id:="23215e8ba6664829946cb5cf6a54bbd5")>
     <CalculationSpecification(Id:="P252_PFISubtotal", Name:="P252_PFISubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P252_PFISubtotal As Decimal
-        Throw new NotImplementedException("P252_PFISubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="afc85ca905134b888068d5efe0c9cba7")>
+    <Calculation(Id:="74e62f0035c349aba38b8574eedaf7e0")>
     <CalculationSpecification(Id:="P253_NSENPFI", Name:="P253_NSENPFI")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P253_NSENPFI As Decimal
-        Throw new NotImplementedException("P253_NSENPFI is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="643cc6764cdd48d48c5d814a64e02480")>
+    <Calculation(Id:="51122112ad82498b93cccd2aa81caae2")>
     <CalculationSpecification(Id:="P253a_NSENPFI_Percent", Name:="P253a_NSENPFI_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P253a_NSENPFI_Percent As Decimal
-        Throw new NotImplementedException("P253a_NSENPFI_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="692d0a46967042fd97e62328d9fb9029")>
+    <Calculation(Id:="5bf7aa32ab0044e18567a31932614b51")>
     <CalculationSpecification(Id:="P254_InYearPFISubtotal", Name:="P254_InYearPFISubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P254_InYearPFISubtotal As Decimal
-        Throw new NotImplementedException("P254_InYearPFISubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3bfee14ac4ab4632b85efa6e3ca1063b")>
+    <Calculation(Id:="7c386494c55d446db624d979c8bc8bc6")>
     <CalculationSpecification(Id:="P255_FringeSubtotal", Name:="P255_FringeSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P255_FringeSubtotal As Decimal
-        Throw new NotImplementedException("P255_FringeSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="550a1c272d31424e83c11466e473b631")>
+    <Calculation(Id:="f4864d7025484641a12ac8bc18803bfa")>
     <CalculationSpecification(Id:="P257_InYearFringeSubtotal", Name:="P257_InYearFringeSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P257_InYearFringeSubtotal As Decimal
-        Throw new NotImplementedException("P257_InYearFringeSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8def5bde69cc49d0b2fe15af97020c3a")>
+    <Calculation(Id:="9e7fafb8f1144291a85da1e12d4a1aab")>
     <CalculationSpecification(Id:="P261_Ex1Subtotal", Name:="P261_Ex1Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P261_Ex1Subtotal As Decimal
-        Throw new NotImplementedException("P261_Ex1Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="175f915d6bc7472c94fdd9809844a6a2")>
+    <Calculation(Id:="2e3e55e6eff94365bb167179aed36271")>
     <CalculationSpecification(Id:="P262_NSENEx1", Name:="P262_NSENEx1")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P262_NSENEx1 As Decimal
-        Throw new NotImplementedException("P262_NSENEx1 is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2c2ba2d10d7f4fbe9011345cf80ce624")>
+    <Calculation(Id:="54c4381935854b56b2c0147b4282c193")>
     <CalculationSpecification(Id:="P262a_NSENEx1_Percent", Name:="P262a_NSENEx1_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P262a_NSENEx1_Percent As Decimal
-        Throw new NotImplementedException("P262a_NSENEx1_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c393980eb27446dd897cc9832cfcbb65")>
+    <Calculation(Id:="ada8c99e731547c2b952fe90697d77c9")>
     <CalculationSpecification(Id:="P264_InYearEx1Subtotal", Name:="P264_InYearEx1Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P264_InYearEx1Subtotal As Decimal
-        Throw new NotImplementedException("P264_InYearEx1Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9f3c6fa59362486198edc25fcd56d32d")>
+    <Calculation(Id:="61652132807941fbaa0b365e26c8a712")>
     <CalculationSpecification(Id:="P265_Ex2Subtotal", Name:="P265_Ex2Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P265_Ex2Subtotal As Decimal
-        Throw new NotImplementedException("P265_Ex2Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="61476f6a048542b49a6eb04a336caa51")>
+    <Calculation(Id:="d53f7a234e1a4bf68ba2b8244362bf43")>
     <CalculationSpecification(Id:="P266_NSENEx2", Name:="P266_NSENEx2")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P266_NSENEx2 As Decimal
-        Throw new NotImplementedException("P266_NSENEx2 is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c858a6e752684c4591a12331eca34964")>
+    <Calculation(Id:="d4f0d5f2d856413d9f52d1e87185c68c")>
     <CalculationSpecification(Id:="P266a_NSENEx2_Percent", Name:="P266a_NSENEx2_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P266a_NSENEx2_Percent As Decimal
-        Throw new NotImplementedException("P266a_NSENEx2_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4c66b4f49b664fe7b3bbcaa40285f40b")>
+    <Calculation(Id:="cca1297d8fbe4cc0aeba5f66583f2e6c")>
     <CalculationSpecification(Id:="P267_InYearEx2Subtotal", Name:="P267_InYearEx2Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P267_InYearEx2Subtotal As Decimal
-        Throw new NotImplementedException("P267_InYearEx2Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f4eb1665b64044c7a7859ee103c06d4b")>
+    <Calculation(Id:="4ac94b0ef6b9484498393302db7c8132")>
     <CalculationSpecification(Id:="P269_Ex3Subtotal", Name:="P269_Ex3Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P269_Ex3Subtotal As Decimal
-        Throw new NotImplementedException("P269_Ex3Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e3079a35eb5240169bba97cf745aa32f")>
+    <Calculation(Id:="03d4cda8a4674c2c9f62c55ffef094b9")>
     <CalculationSpecification(Id:="P270_NSENEx3", Name:="P270_NSENEx3")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P270_NSENEx3 As Decimal
-        Throw new NotImplementedException("P270_NSENEx3 is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="82478b95707e486e8498e9ffb80005d4")>
+    <Calculation(Id:="4b0f7f9fa0e44f0a8afa63874ad20e71")>
     <CalculationSpecification(Id:="P270a_NSENEx3_Percent", Name:="P270a_NSENEx3_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P270a_NSENEx3_Percent As Decimal
-        Throw new NotImplementedException("P270a_NSENEx3_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="b4388147fae042169b465dcb6369eb2a")>
+    <Calculation(Id:="f747abe203a341f19153f8ba61bae38c")>
     <CalculationSpecification(Id:="P271_InYearEx3Subtotal", Name:="P271_InYearEx3Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P271_InYearEx3Subtotal As Decimal
-        Throw new NotImplementedException("P271_InYearEx3Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1c9f3ca5a2a74a2da41593d951a97d1c")>
+    <Calculation(Id:="3dd2adcaac7a44bda24af7f0790eee56")>
     <CalculationSpecification(Id:="P273_Ex4Subtotal", Name:="P273_Ex4Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P273_Ex4Subtotal As Decimal
-        Throw new NotImplementedException("P273_Ex4Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9c0f404315014978be1c20d05a1a0218")>
+    <Calculation(Id:="7884818f8bff4b619027ecf54e9bccdb")>
     <CalculationSpecification(Id:="P274_NSENEx4", Name:="P274_NSENEx4")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P274_NSENEx4 As Decimal
-        Throw new NotImplementedException("P274_NSENEx4 is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="06666926208543438cf4a4f2f1d97806")>
+    <Calculation(Id:="a57ee89141ad43c782d7463aa271b786")>
     <CalculationSpecification(Id:="P274a_NSENEx4_Percent", Name:="P274a_NSENEx4_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P274a_NSENEx4_Percent As Decimal
-        Throw new NotImplementedException("P274a_NSENEx4_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="63753832142a43ac8de60dff498843f8")>
+    <Calculation(Id:="c855e08bdcf24027a9082bd9fed170f9")>
     <CalculationSpecification(Id:="P275_InYearEx4Subtotal", Name:="P275_InYearEx4Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P275_InYearEx4Subtotal As Decimal
-        Throw new NotImplementedException("P275_InYearEx4Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="16bdec4b67b34bbe9f847132668b302b")>
+    <Calculation(Id:="13d6151bd23b42849746a5cd5708d3ba")>
     <CalculationSpecification(Id:="P277_Ex5Subtotal", Name:="P277_Ex5Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P277_Ex5Subtotal As Decimal
-        Throw new NotImplementedException("P277_Ex5Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1644a655d0bc41ee9166159a5330ef79")>
+    <Calculation(Id:="3a9618f8caa7477d83096ad83f99008f")>
     <CalculationSpecification(Id:="P278_NSENEx5", Name:="P278_NSENEx5")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P278_NSENEx5 As Decimal
-        Throw new NotImplementedException("P278_NSENEx5 is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f30664cdcd3a49c6897cb63aa14981c8")>
+    <Calculation(Id:="9908526b77a1457195447e51b3d93e2f")>
     <CalculationSpecification(Id:="P278a_NSENEx5_Percent", Name:="P278a_NSENEx5_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P278a_NSENEx5_Percent As Decimal
-        Throw new NotImplementedException("P278a_NSENEx5_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="282420e2369a4d4190d0e63688add129")>
+    <Calculation(Id:="b4920433449b440ab8145bca283f241a")>
     <CalculationSpecification(Id:="P279_InYearEx5Subtotal", Name:="P279_InYearEx5Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P279_InYearEx5Subtotal As Decimal
-        Throw new NotImplementedException("P279_InYearEx5Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="aae944005f5046ffa9c5bcb4b0f01c4d")>
+    <Calculation(Id:="8ffd372649b94814843f964f920c6aa4")>
     <CalculationSpecification(Id:="P281_Ex6Subtotal", Name:="P281_Ex6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P281_Ex6Subtotal As Decimal
-        Throw new NotImplementedException("P281_Ex6Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="605d55c0fe6849688d4d72a356c9a5b4")>
+    <Calculation(Id:="93ce50fc2ecb4b868b24f6929489cd0c")>
     <CalculationSpecification(Id:="P282_NSENEx6", Name:="P282_NSENEx6")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P282_NSENEx6 As Decimal
-        Throw new NotImplementedException("P282_NSENEx6 is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ccd4536386d34e01bccc81d00c490d78")>
+    <Calculation(Id:="477899f133334f3484c0e389a0f05690")>
     <CalculationSpecification(Id:="P282a_NSENEx6_Percent", Name:="P282a_NSENEx6_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P282a_NSENEx6_Percent As Decimal
-        Throw new NotImplementedException("P282a_NSENEx6_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f9aee4f5edb54e83b6b9be65e0efee75")>
+    <Calculation(Id:="4d82fa3f891144aa84ef64c0e7f7f58a")>
     <CalculationSpecification(Id:="P283_InYearEx6Subtotal", Name:="P283_InYearEx6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P283_InYearEx6Subtotal As Decimal
-        Throw new NotImplementedException("P283_InYearEx6Subtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="6626f0ea94e146bb91e1b435dfd8ba96")>
+    <Calculation(Id:="c89b38be14b940a688044a973af28645")>
     <CalculationSpecification(Id:="P284_NSENSubtotal", Name:="P284_NSENSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P284_NSENSubtotal As Decimal
-        Throw new NotImplementedException("P284_NSENSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7ab209efac8c476782828ca1776a3ce4")>
+    <Calculation(Id:="941410b67bdf431da90e5c4ecad22fe6")>
     <CalculationSpecification(Id:="P285_InYearNSENSubtotal", Name:="P285_InYearNSENSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P285_InYearNSENSubtotal As Decimal
-        Throw new NotImplementedException("P285_InYearNSENSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="092e4ece20934bab98f0ab24bcd7edf6")>
+    <Calculation(Id:="53990a1d954446b4878ad323042d2a26")>
     <CalculationSpecification(Id:="P286_PriorYearAdjustmentSubtotal", Name:="P286_PriorYearAdjustmentSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P286_PriorYearAdjustmentSubtotal As Decimal
-        Throw new NotImplementedException("P286_PriorYearAdjustmentSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8f7286a0d99a43c3b3f9d704c244c035")>
+    <Calculation(Id:="ec4052fe9a64457e815fcdb8c8235013")>
     <CalculationSpecification(Id:="P287_InYearPriorYearAdjsutmentSubtotal", Name:="P287_InYearPriorYearAdjsutmentSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P287_InYearPriorYearAdjsutmentSubtotal As Decimal
-        Throw new NotImplementedException("P287_InYearPriorYearAdjsutmentSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9a370dc404f04f07b4483da0c2c83305")>
+    <Calculation(Id:="4b91ec30c1ad49ecb63aeeee971d802a")>
     <CalculationSpecification(Id:="P298_Growth", Name:="P298_Growth")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P298_Growth As Decimal
-        Throw new NotImplementedException("P298_Growth is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="20676f7ed7ac4585965f5f4d8701cb39")>
+    <Calculation(Id:="d67214a778e24ac4985b5bbc8852f960")>
     <CalculationSpecification(Id:="P299_InYearGrowth", Name:="P299_InYearGrowth")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P299_InYearGrowth As Decimal
-        Throw new NotImplementedException("P299_InYearGrowth is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1e62470569f74a7f8eb7f377ed406f2e")>
+    <Calculation(Id:="d5d6e9721b9a48dea6078cb241a2be96")>
     <CalculationSpecification(Id:="P300_SBSOutcomeAdjustment", Name:="P300_SBSOutcomeAdjustment")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P300_SBSOutcomeAdjustment As Decimal
-        Throw new NotImplementedException("P300_SBSOutcomeAdjustment is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="b877fc89e60946be848277d52e792c5b")>
+    <Calculation(Id:="f6383a3e18c84a148e8101c785da108f")>
     <CalculationSpecification(Id:="P301_InYearSBSOutcomeAdjustment", Name:="P301_InYearSBSOutcomeAdjustment")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P301_InYearSBSOutcomeAdjustment As Decimal
-        Throw new NotImplementedException("P301_InYearSBSOutcomeAdjustment is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1755caceb8ed42a789b32327d6bee25c")>
+    <Calculation(Id:="ce116ff37da0433b896f11f1079a8fc9")>
     <CalculationSpecification(Id:="P120_PPAindicator", Name:="P120_PPAindicator")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P120_PPAindicator As Decimal
-        Throw new NotImplementedException("P120_PPAindicator is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2ea0ea7709ad4db3a655b1c9387e8e9c")>
+    <Calculation(Id:="2f8665393cd1403ba3386173b12e1831")>
     <CalculationSpecification(Id:="P121_PPAY5to6Proportion73", Name:="P121_PPAY5to6Proportion73")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P121_PPAY5to6Proportion73 As Decimal
-        Throw new NotImplementedException("P121_PPAY5to6Proportion73 is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="83b1b4526d2240f5905f0e5e45b23d8d")>
+    <Calculation(Id:="075053d8f71b4506be157f4a7e6209ff")>
     <CalculationSpecification(Id:="P122_PPAY5to6Proportion78", Name:="P122_PPAY5to6Proportion78")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P122_PPAY5to6Proportion78 As Decimal
-        Throw new NotImplementedException("P122_PPAY5to6Proportion78 is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="346ddd94c0c843f99ca3eb7bfef2f85a")>
+    <Calculation(Id:="4e746568002a4221b92083cab01ed19f")>
     <CalculationSpecification(Id:="P122a_PPAY7378forFAPOnly", Name:="P122a_PPAY7378forFAPOnly")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P122a_PPAY7378forFAPOnly As Decimal
-        Throw new NotImplementedException("P122a_PPAY7378forFAPOnly is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d5fe8fc119af497ea48ef6988d458e9a")>
+    <Calculation(Id:="b1e97aa3c0dd4c86a8198793955b8e5e")>
     <CalculationSpecification(Id:="P123_PPAY1to4ProportionUnder", Name:="P123_PPAY1to4ProportionUnder")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P123_PPAY1to4ProportionUnder As Decimal
-        Throw new NotImplementedException("P123_PPAY1to4ProportionUnder is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="6f252102832549fdbf58c90d00d4f427")>
+    <Calculation(Id:="bda6fe29a1724b31b0565c4494b320de")>
     <CalculationSpecification(Id:="P124_PPAY5to6NOR", Name:="P124_PPAY5to6NOR")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P124_PPAY5to6NOR As Decimal
-        Throw new NotImplementedException("P124_PPAY5to6NOR is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="68ffc45787914674872d6b6ad7928dba")>
+    <Calculation(Id:="7f2a40ddeb2444ec86679bcecde503fb")>
     <CalculationSpecification(Id:="P125_PPAY1to4NOR", Name:="P125_PPAY1to4NOR")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P125_PPAY1to4NOR As Decimal
-        Throw new NotImplementedException("P125_PPAY1to4NOR is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="12afbe6e0e5b427f97fbf3b0d6e7891d")>
+    <Calculation(Id:="d2891feafff248f197280498c9e00048")>
     <CalculationSpecification(Id:="P126_PPAPriNOR", Name:="P126_PPAPriNOR")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P126_PPAPriNOR As Decimal
-        Throw new NotImplementedException("P126_PPAPriNOR is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2c8f697f5c5a46b4be3eb51ca1fa4b9e")>
+    <Calculation(Id:="b1941c767f214c7c82403461358ec0ba")>
     <CalculationSpecification(Id:="P127_PPARate", Name:="P127_PPARate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P127_PPARate As Decimal
-        Throw new NotImplementedException("P127_PPARate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="73a013662dea45daacecdd4b25f3a330")>
+    <Calculation(Id:="8654c123c9454202bb46e0b056e149a6")>
     <CalculationSpecification(Id:="P128_PPAWeighting", Name:="P128_PPAWeighting")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P128_PPAWeighting As Decimal
-        Throw new NotImplementedException("P128_PPAWeighting is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d34c4efc90974fb19af92644d1eea552")>
+    <Calculation(Id:="0bbf428dae064745a46d972b0c3717d0")>
     <CalculationSpecification(Id:="P129_PPAPupilsY5to6NotAchieving", Name:="P129_PPAPupilsY5to6NotAchieving")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P129_PPAPupilsY5to6NotAchieving As Decimal
-        Throw new NotImplementedException("P129_PPAPupilsY5to6NotAchieving is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0d41570f0646450a857458c2d59a052c")>
+    <Calculation(Id:="a06a5dd4837346639e3eca8bfaeeef77")>
     <CalculationSpecification(Id:="P130_PPAPupilsY1to4NotAchieving", Name:="P130_PPAPupilsY1to4NotAchieving")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P130_PPAPupilsY1to4NotAchieving As Decimal
-        Throw new NotImplementedException("P130_PPAPupilsY1to4NotAchieving is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="5db4f94ab69a4a898aa8722b583d52c2")>
+    <Calculation(Id:="6cfec3e675364f9b838fe0197cc5ab46")>
     <CalculationSpecification(Id:="P131_PPATotalPupilsY1to6NotAchieving", Name:="P131_PPATotalPupilsY1to6NotAchieving")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P131_PPATotalPupilsY1to6NotAchieving As Decimal
-        Throw new NotImplementedException("P131_PPATotalPupilsY1to6NotAchieving is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="56a8418608564a47b4e3ea236bdfbf9c")>
+    <Calculation(Id:="f6de0d1df63248ba916dbee772a9c948")>
     <CalculationSpecification(Id:="P132_PPATotalProportionNotAchieving", Name:="P132_PPATotalProportionNotAchieving")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P132_PPATotalProportionNotAchieving As Decimal
-        Throw new NotImplementedException("P132_PPATotalProportionNotAchieving is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9420f35c5a974e88974a953fe1456ab8")>
+    <Calculation(Id:="e71827265e7745a699c232a0ffe6fcc3")>
     <CalculationSpecification(Id:="P133_PPATotalFunding", Name:="P133_PPATotalFunding")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P133_PPATotalFunding As Decimal
-        Throw new NotImplementedException("P133_PPATotalFunding is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d06584525e62448782a803f9a14038b3")>
+    <Calculation(Id:="765c95dc1270467283ae390e7e1caca0")>
     <CalculationSpecification(Id:="P134_NSENPPA", Name:="P134_NSENPPA")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P134_NSENPPA As Decimal
-        Throw new NotImplementedException("P134_NSENPPA is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="37f64e7911bd4ca0bdffb8a4d6d9abfe")>
+    <Calculation(Id:="701f094ae0454c338d82ef7e75917bc3")>
     <CalculationSpecification(Id:="P134a_NSENPPA_Percent", Name:="P134a_NSENPPA_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P134a_NSENPPA_Percent As Decimal
-        Throw new NotImplementedException("P134a_NSENPPA_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="24e2438b76fd41bf872f3e0c857adeba")>
+    <Calculation(Id:="a94771b34bd74e76b768249b57c2091e")>
     <CalculationSpecification(Id:="P135_InYearPPASubtotal", Name:="P135_InYearPPASubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P135_InYearPPASubtotal As Decimal
-        Throw new NotImplementedException("P135_InYearPPASubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c2e3a1f673a84f89a785d645b7e0f382")>
+    <Calculation(Id:="61a67b69ae144ee499e15dd213e03b99")>
     <CalculationSpecification(Id:="P136_SecPA_Y7Factor", Name:="P136_SecPA_Y7Factor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P136_SecPA_Y7Factor As Decimal
-        Throw new NotImplementedException("P136_SecPA_Y7Factor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8fb6574ee88f4e659fba6521df342570")>
+    <Calculation(Id:="80d7baed62e048f99d0a7f52058cc9f3")>
     <CalculationSpecification(Id:="P136a_SecPA_Y7NationalWeight", Name:="P136a_SecPA_Y7NationalWeight")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P136a_SecPA_Y7NationalWeight As Decimal
-        Throw new NotImplementedException("P136a_SecPA_Y7NationalWeight is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ba615ce7cc0c493aa05f949a59673e0e")>
+    <Calculation(Id:="c922934e33ae40008fed3b7b7e075cb9")>
     <CalculationSpecification(Id:="P138_SecPARate", Name:="P138_SecPARate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P138_SecPARate As Decimal
-        Throw new NotImplementedException("P138_SecPARate is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="917146ddd40c48a4b591c70a8e6cd98e")>
+    <Calculation(Id:="308b5ec5460a418eabdda004ec602b7f")>
     <CalculationSpecification(Id:="P138a_SecPA_AdjustedSecFactor", Name:="P138a_SecPA_AdjustedSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P138a_SecPA_AdjustedSecFactor As Decimal
-        Throw new NotImplementedException("P138a_SecPA_AdjustedSecFactor is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e6d9a58ef3ad4dc08b6676249a3d84c2")>
+    <Calculation(Id:="c48c600c8a6e4a0da68f71527cf953fa")>
     <CalculationSpecification(Id:="P139_SecPASubtotal", Name:="P139_SecPASubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P139_SecPASubtotal As Decimal
-        Throw new NotImplementedException("P139_SecPASubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9b08a4aa8c7543e3aef930661fa0e9f7")>
+    <Calculation(Id:="a71a9a970e8442a1a599ae214942c3bc")>
     <CalculationSpecification(Id:="P140_NSENSecPA", Name:="P140_NSENSecPA")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P140_NSENSecPA As Decimal
-        Throw new NotImplementedException("P140_NSENSecPA is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="475ef3fcef664437b0d94b99e317969e")>
+    <Calculation(Id:="59a57356b3e744a4a986b1c0932a1d93")>
     <CalculationSpecification(Id:="P140a_NSENSecPA_Percent", Name:="P140a_NSENSecPA_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P140a_NSENSecPA_Percent As Decimal
-        Throw new NotImplementedException("P140a_NSENSecPA_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4557f693fbb74ff282f7ed31ea515419")>
+    <Calculation(Id:="d4adc41f10574c7f9e346d61597472de")>
     <CalculationSpecification(Id:="P141_InYearSecPASubtotal", Name:="P141_InYearSecPASubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P141_InYearSecPASubtotal As Decimal
-        Throw new NotImplementedException("P141_InYearSecPASubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e8de8dd0dea44dc8a40d16e4ec370fac")>
+    <Calculation(Id:="4acdd0a7acb4404ba9f5809a908fa916")>
     <CalculationSpecification(Id:="P185a_Phase", Name:="P185a_Phase")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P185a_Phase As Decimal
-        Throw new NotImplementedException("P185a_Phase is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ade1a05e399a4e489173dd6a809d809a")>
+    <Calculation(Id:="cd8c1a38b7c04b89a93964e50831e639")>
     <CalculationSpecification(Id:="P186_SparsityTaperFlagPri", Name:="P186_SparsityTaperFlagPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P186_SparsityTaperFlagPri As Decimal
-        Throw new NotImplementedException("P186_SparsityTaperFlagPri is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="82d55cfd725b4b0a96a1084e903848a2")>
+    <Calculation(Id:="9f4ec40eae5d4c98b52b9e7db2704cc5")>
     <CalculationSpecification(Id:="P187_SparsityTaperFlagMid", Name:="P187_SparsityTaperFlagMid")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P187_SparsityTaperFlagMid As Decimal
-        Throw new NotImplementedException("P187_SparsityTaperFlagMid is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8cce05fabcc64b5b9c900a151a05a64b")>
+    <Calculation(Id:="7b8d97e59d764afcaff844e40d84eb48")>
     <CalculationSpecification(Id:="P188_SparsityTaperFlagSec", Name:="P188_SparsityTaperFlagSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P188_SparsityTaperFlagSec As Decimal
-        Throw new NotImplementedException("P188_SparsityTaperFlagSec is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e1fa7e28564a40dfaad61a8a6ab238e7")>
+    <Calculation(Id:="cd1333a8046445e5bcaefd317698fcdd")>
     <CalculationSpecification(Id:="P189_SparsityTaperFlagAllThru", Name:="P189_SparsityTaperFlagAllThru")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P189_SparsityTaperFlagAllThru As Decimal
-        Throw new NotImplementedException("P189_SparsityTaperFlagAllThru is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="27d614e8c91d4b0eb25db58a0dadde6f")>
+    <Calculation(Id:="d722aaa57e4b4f099ca04085e4667151")>
     <CalculationSpecification(Id:="P190_SparsityUnit", Name:="P190_SparsityUnit")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P190_SparsityUnit As Decimal
-        Throw new NotImplementedException("P190_SparsityUnit is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="791ee2d258864c89aaa1589a3ab6965d")>
+    <Calculation(Id:="412d814c84bd403fb415cdca89758662")>
     <CalculationSpecification(Id:="P191_SparsityDistance", Name:="P191_SparsityDistance")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P191_SparsityDistance As Decimal
-        Throw new NotImplementedException("P191_SparsityDistance is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d0bf68bb51444f2a85785d86258b4e18")>
+    <Calculation(Id:="bbc2b7b09bf04843b5134936e2a07fab")>
     <CalculationSpecification(Id:="P192_SparsityDistThreshold", Name:="P192_SparsityDistThreshold")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P192_SparsityDistThreshold As Decimal
-        Throw new NotImplementedException("P192_SparsityDistThreshold is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d61166a915684c5197d2b0820b701d95")>
+    <Calculation(Id:="354fa44fe4bc4891b94c038ec020ac6d")>
     <CalculationSpecification(Id:="P193_SparsityDistMet_YN", Name:="P193_SparsityDistMet_YN")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P193_SparsityDistMet_YN As Decimal
-        Throw new NotImplementedException("P193_SparsityDistMet_YN is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0522802f4b884d5ea8e72510ffda55d2")>
+    <Calculation(Id:="b3f51eb028464d19ad0477e57856b373")>
     <CalculationSpecification(Id:="P194_SparsityAveYGSize", Name:="P194_SparsityAveYGSize")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P194_SparsityAveYGSize As Decimal
-        Throw new NotImplementedException("P194_SparsityAveYGSize is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="bd4ab6b50c09476bab3647f65230d030")>
+    <Calculation(Id:="296ec5ccac344ed89fcb8baf1a1f23c3")>
     <CalculationSpecification(Id:="P195_SparsityYGThreshold", Name:="P195_SparsityYGThreshold")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P195_SparsityYGThreshold As Decimal
-        Throw new NotImplementedException("P195_SparsityYGThreshold is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="028136dc36a84db4bb5b34b834faf561")>
+    <Calculation(Id:="ad8570478a2a49f4a1fe6590e602f5bd")>
     <CalculationSpecification(Id:="P196_SparsityYGThresholdMet_YN", Name:="P196_SparsityYGThresholdMet_YN")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P196_SparsityYGThresholdMet_YN As Decimal
-        Throw new NotImplementedException("P196_SparsityYGThresholdMet_YN is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2e67dc39352e42cfa698914ab38582e9")>
+    <Calculation(Id:="768196e012864873bdd15215d3c9a4bf")>
     <CalculationSpecification(Id:="P197_SparsityLumpSumSubtotal", Name:="P197_SparsityLumpSumSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P197_SparsityLumpSumSubtotal As Decimal
-        Throw new NotImplementedException("P197_SparsityLumpSumSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="cf5f7b9e094d42c9867d503606d4bade")>
+    <Calculation(Id:="65fdbcf1bd1047e09a0e095e088d2158")>
     <CalculationSpecification(Id:="P198_SparsityTaperSubtotal", Name:="P198_SparsityTaperSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P198_SparsityTaperSubtotal As Decimal
-        Throw new NotImplementedException("P198_SparsityTaperSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="5c7a29bf7783459b9c9b78c0e584b60e")>
+    <Calculation(Id:="0178ceb8fc7642eea4a06dabd50c4ad0")>
     <CalculationSpecification(Id:="P198a_SubtotalLump_Taper_For_FAP_Only", Name:="P198a_SubtotalLump_Taper_For_FAP_Only")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P198a_SubtotalLump_Taper_For_FAP_Only As Decimal
-        Throw new NotImplementedException("P198a_SubtotalLump_Taper_For_FAP_Only is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="96df0d21ecfc4614873098a3a09bafd7")>
+    <Calculation(Id:="52559502682b4b80aad86239fc3e74cc")>
     <CalculationSpecification(Id:="P199_InYearSparsityLumpSumSubtotal", Name:="P199_InYearSparsityLumpSumSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P199_InYearSparsityLumpSumSubtotal As Decimal
-        Throw new NotImplementedException("P199_InYearSparsityLumpSumSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ea643b10b41a49da86b9859997e59503")>
+    <Calculation(Id:="9e5ff979b49f4fe286a8155334beda5d")>
     <CalculationSpecification(Id:="P200_InYearSparsityTaperSubtotal", Name:="P200_InYearSparsityTaperSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P200_InYearSparsityTaperSubtotal As Decimal
-        Throw new NotImplementedException("P200_InYearSparsityTaperSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9cfb4e78a81a4579b284e2a1c2a07485")>
+    <Calculation(Id:="a2aa0e1ffcba4eaa844e7324583e6c9f")>
     <CalculationSpecification(Id:="P200a_InYear_SubtotalLump_Taper_for_FAP_Only", Name:="P200a_InYear_SubtotalLump_Taper_for_FAP_Only")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P200a_InYear_SubtotalLump_Taper_for_FAP_Only As Decimal
-        Throw new NotImplementedException("P200a_InYear_SubtotalLump_Taper_for_FAP_Only is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0ab0a5fd7ca142439fc1d5a6a7300790")>
+    <Calculation(Id:="1f46bd354aa849beb24b4a6aa90c76a5")>
     <CalculationSpecification(Id:="P212_PYG", Name:="P212_PYG")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P212_PYG As Decimal
-        Throw new NotImplementedException("P212_PYG is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9aeb6c17753d48308e4e54b5fe3a480b")>
+    <Calculation(Id:="e337a13262a2493cbf94f81199e3652b")>
     <CalculationSpecification(Id:="P213_SYG", Name:="P213_SYG")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P213_SYG As Decimal
-        Throw new NotImplementedException("P213_SYG is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="eab69db9b2d147ef92a41bf18cc2109c")>
+    <Calculation(Id:="6ae97096280643dc861eb65d24858257")>
     <CalculationSpecification(Id:="P236_NSENSparsity", Name:="P236_NSENSparsity")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P236_NSENSparsity As Decimal
-        Throw new NotImplementedException("P236_NSENSparsity is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4b0b846ae02b40b0a51c900c5dcc064d")>
+    <Calculation(Id:="1682887fd8c844fca2aa6b657ac84772")>
     <CalculationSpecification(Id:="P236a_NSENSparsity_Percent", Name:="P236a_NSENSparsity_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P236a_NSENSparsity_Percent As Decimal
-        Throw new NotImplementedException("P236a_NSENSparsity_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9ccc36914f37401aa97faf9e635e624e")>
+    <Calculation(Id:="fb82ee920df6464fb5f167874a487001")>
     <CalculationSpecification(Id:="P249_SplitSiteSubtotal", Name:="P249_SplitSiteSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="6857aab8747c4d699b69bba5858b98a3", Name:="Split Sites")>
     Public Function P249_SplitSiteSubtotal As Decimal
-        Throw new NotImplementedException("P249_SplitSiteSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f375fc560fd04b4a8076c842a097341a")>
+    <Calculation(Id:="7a2486ba933a4bcfbf1502938467e7d1")>
     <CalculationSpecification(Id:="P250_NSENSplitSites", Name:="P250_NSENSplitSites")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="6857aab8747c4d699b69bba5858b98a3", Name:="Split Sites")>
     Public Function P250_NSENSplitSites As Decimal
-        Throw new NotImplementedException("P250_NSENSplitSites is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d25b261cca464b63a62087df1c219717")>
+    <Calculation(Id:="95a1647d1c4e4ff98772822f23a128ee")>
     <CalculationSpecification(Id:="P250a_NSENSplitSites_Percent", Name:="P250a_NSENSplitSites_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="6857aab8747c4d699b69bba5858b98a3", Name:="Split Sites")>
     Public Function P250a_NSENSplitSites_Percent As Decimal
-        Throw new NotImplementedException("P250a_NSENSplitSites_Percent is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ee4fd95b4b904affa00d302c0f5bfcd6")>
+    <Calculation(Id:="8c5f6635b04f43dc96dba3a3a562c283")>
     <CalculationSpecification(Id:="P251_InYearSplitSitesSubtotal", Name:="P251_InYearSplitSitesSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="6857aab8747c4d699b69bba5858b98a3", Name:="Split Sites")>
     Public Function P251_InYearSplitSitesSubtotal As Decimal
-        Throw new NotImplementedException("P251_InYearSplitSitesSubtotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="93f1f8216d8f4280b1ca09684f5d672f")>
+    <Calculation(Id:="0279ab7f05e5421b96124706d8c68c72")>
     <CalculationSpecification(Id:="P001_1718DaysOpen", Name:="P001_1718DaysOpen")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
     Public Function P001_1718DaysOpen As Decimal
-        Throw new NotImplementedException("P001_1718DaysOpen is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="cd00cdce55fc489b9c63dfc5d261d170")>
+    <Calculation(Id:="9eb5e50f29d64eb4b53d813c2f5401b6")>
     <CalculationSpecification(Id:="Lump_Sum_Total", Name:="Lump_Sum_Total")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
     Public Function Lump_Sum_Total As Decimal
-        Throw new NotImplementedException("Lump_Sum_Total is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c794a6eddb48459ba5048bde4910d3c7")>
+    <Calculation(Id:="664e3bb46ede42cba933184705a3905f")>
     <CalculationSpecification(Id:="InYearLumpSum", Name:="InYearLumpSum")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
     Public Function InYearLumpSum As Decimal
-        Throw new NotImplementedException("InYearLumpSum is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="87c2cf967bd74f678b6a729b051a0f08")>
+    <Calculation(Id:="bf7b920081b54242b73f51f252745019")>
     <CalculationSpecification(Id:="P288_SBSFundingTotal", Name:="P288_SBSFundingTotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
     Public Function P288_SBSFundingTotal As Decimal
-        Throw new NotImplementedException("P288_SBSFundingTotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f52c16c218714ff3954cd6071362ea2f")>
+    <Calculation(Id:="fa22647201ba44f2af006ba8f18720f2")>
     <CalculationSpecification(Id:="P289_InYearSBSFundingTotal", Name:="P289_InYearSBSFundingTotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
     Public Function P289_InYearSBSFundingTotal As Decimal
-        Throw new NotImplementedException("P289_InYearSBSFundingTotal is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="59fb29ea9d2b4bda80884e166ebcc88f")>
+    <Calculation(Id:="3957681d802b47628bf0f4482bc9b2e1")>
     <CalculationSpecification(Id:="P290_ISBTotalSBSFunding", Name:="P290_ISBTotalSBSFunding")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
     Public Function P290_ISBTotalSBSFunding As Decimal
-        Throw new NotImplementedException("P290_ISBTotalSBSFunding is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0a864fa969294790bdf78af0863f991e")>
+    <Calculation(Id:="0c9facde5b854d54a7fc27d9906b27b1")>
     <CalculationSpecification(Id:="P291_TotalPupilLedFactors", Name:="P291_TotalPupilLedFactors")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
     Public Function P291_TotalPupilLedFactors As Decimal
-        Throw new NotImplementedException("P291_TotalPupilLedFactors is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="db20993c11ec4339b21c4979e0b30731")>
+    <Calculation(Id:="dc2963a07cfc43caa29689d7446e59c4")>
     <CalculationSpecification(Id:="P292_InYearTotalPupilLedfactors", Name:="P292_InYearTotalPupilLedfactors")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
     Public Function P292_InYearTotalPupilLedfactors As Decimal
-        Throw new NotImplementedException("P292_InYearTotalPupilLedfactors is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4219cf78b9d54a7c91ae24086431718b")>
+    <Calculation(Id:="fea56b5c6bee4d3a9fdb35f5167c7417")>
     <CalculationSpecification(Id:="P293_TotalOtherFactors", Name:="P293_TotalOtherFactors")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
     Public Function P293_TotalOtherFactors As Decimal
-        Throw new NotImplementedException("P293_TotalOtherFactors is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f220816c146c408198f0ae8844eb5757")>
+    <Calculation(Id:="df7e13dc4cb04f5782a221ed9a4cd6a4")>
     <CalculationSpecification(Id:="P293a_TotalOtherFactors_NoExc", Name:="P293a_TotalOtherFactors_NoExc")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
     Public Function P293a_TotalOtherFactors_NoExc As Decimal
-        Throw new NotImplementedException("P293a_TotalOtherFactors_NoExc is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3d0e4ee4f3f04c18a07f1087716bc343")>
+    <Calculation(Id:="e781ca96a8a84b0dba8678c14105fd31")>
     <CalculationSpecification(Id:="P294_InYearTotalOtherFactors", Name:="P294_InYearTotalOtherFactors")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
     Public Function P294_InYearTotalOtherFactors As Decimal
-        Throw new NotImplementedException("P294_InYearTotalOtherFactors is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="fa3f905aa521495a8fabf214755f5fc7")>
+    <Calculation(Id:="b9bb80cd876d4e25af4805c3f397d1fa")>
     <CalculationSpecification(Id:="P294a_InYearTotalOtherFactors_NoExc", Name:="P294a_InYearTotalOtherFactors_NoExc")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
     Public Function P294a_InYearTotalOtherFactors_NoExc As Decimal
-        Throw new NotImplementedException("P294a_InYearTotalOtherFactors_NoExc is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="47d7e1cd7e36453d80572820d76bfcbf")>
+    <Calculation(Id:="e7125b2734244c79bac52c2ed721ac6a")>
     <CalculationSpecification(Id:="P295_Dedelegation", Name:="P295_Dedelegation")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
     Public Function P295_Dedelegation As Decimal
-        Throw new NotImplementedException("P295_Dedelegation is not implemented")
+        Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="6600f4d9bf62447da37ab1a3edc45c7b")>
+    <Calculation(Id:="7598e26160684ea6a01c73d46b7cd369")>
     <CalculationSpecification(Id:="P296_InYearDedelegation", Name:="P296_InYearDedelegation")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
     Public Function P296_InYearDedelegation As Decimal
-        Throw new NotImplementedException("P296_InYearDedelegation is not implemented")
+        Return Decimal.MinValue
     End Function
 End Class

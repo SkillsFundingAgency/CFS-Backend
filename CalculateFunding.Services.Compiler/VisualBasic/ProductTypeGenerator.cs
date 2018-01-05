@@ -68,7 +68,8 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
             }
 
             builder.AppendLine($"Public Function {Identifier(calc.Name)} As Decimal");
-            builder.Append(calc.SourceCode ?? $"Throw new NotImplementedException(\"{calc.Name} is not implemented\")");
+            builder.Append(calc.SourceCode ?? "Return Decimal.MinValue");
+            //builder.Append(calc.SourceCode ?? $"Throw new NotImplementedException(\"{calc.Name} is not implemented\")");
             builder.AppendLine();
             builder.AppendLine("End Function");
             builder.AppendLine();

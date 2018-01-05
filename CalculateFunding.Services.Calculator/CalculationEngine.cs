@@ -75,8 +75,12 @@ namespace CalculateFunding.Services.Calculator
 
         public ProviderResult CalculateProviderResults(AllocationModel model, Implementation implementation, ProviderSummary provider, List<object> typedDatasets)
         {
-            var calculationResults = model.Execute(typedDatasets.ToArray());
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            var calculationResults = model.Execute(typedDatasets.ToArray()).ToArray();
             var providerCalResults = calculationResults.ToDictionary(x => x.CalculationId);
+            stopwatch.Stop();
+            Console.WriteLine($"{providerCalResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalResults.Count: 0.0000}ms)");
 
             var result = new ProviderResult
             {
