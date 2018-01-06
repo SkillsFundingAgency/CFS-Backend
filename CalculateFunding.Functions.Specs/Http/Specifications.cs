@@ -7,18 +7,39 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
+using System.Net.Http;
+using System.Linq.Expressions;
+using System;
+using System.Linq;
 
 namespace CalculateFunding.Functions.Specs.Http
 {
     public static class Specifications
     {
-        
         [FunctionName("specifications")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
         {
             var restMethods = new RestGetMethods<Specification>();
             return await restMethods.Run(req, log, "specificationId");
+        }
+
+        [FunctionName("specifications-by-year")]
+        public static async Task<IActionResult> RunSpecificationsByYear(
+            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            var restMethods = new RestGetMethods<Specification>();
+
+            req.Query.TryGetValue("academicYearId", out var yearId);
+
+            var academicYearId = yearId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(academicYearId))
+                return new BadRequestObjectResult("The required academic year id was not provided");
+
+            Expression<Func<Specification, bool>> query = m => m.AcademicYear.Id == academicYearId;
+
+            return await restMethods.Run(log, query);
         }
 
         [FunctionName("specifications-commands")]
