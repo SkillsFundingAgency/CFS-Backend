@@ -71,8 +71,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
             var imports = SyntaxFactory.List( new[] {
                 SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System")))),
-                    SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("Common")))),
-                    SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("Common.Attributes")))),
+
 
                 }
                 );

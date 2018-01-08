@@ -25,6 +25,16 @@ namespace CalculateFunding.ContentSync
         public string Description { get; set; }
     }
 
+    public class DatasetRecord
+    {
+        [SourceColumn("DatasetName")]
+        public string DatasetName { get; set; }
+        [SourceColumn("ColumnName")]
+        public string ColumnName { get; set; }
+        [SourceColumn("ColumnType")]
+        public string ColumnType { get; set; }
+    }
+
     public class SpecificationRecord : BaseSpecificationRecord
     {
         [SourceColumn("Academic Year")]
@@ -74,7 +84,7 @@ namespace CalculateFunding.ContentSync
                     var spec = reader.Read<SpecificationRecord>(blob, "Spec").First();
                     var policies = reader.Read<PolicyRecord>(blob, "Policies").ToList();
                     var calcs = reader.Read<CalculationRecord>(blob, "Calculations").ToList();
-
+                    var datasets = reader.Read<DatasetRecord>(blob, "Datasets").ToList();
 
 
                     var specification = new Specification
@@ -84,7 +94,8 @@ namespace CalculateFunding.ContentSync
                         Description = spec.Description,
                         AcademicYear = new Reference(spec.AcademicYear, spec.AcademicYear),
                         FundingStream = new Reference(spec.FundingStream, spec.FundingStream),
-                        Policies = GetPolicies(policies, calcs).ToList()
+                        Policies = GetPolicies(policies, calcs).ToList(),
+                        DatasetDefinitions = GetDatasets(datasets).ToList()
                     };
 
                     File.WriteAllText("spec.json", JsonConvert.SerializeObject(specification, Formatting.Indented));
@@ -105,6 +116,26 @@ namespace CalculateFunding.ContentSync
 
 
 
+        }
+
+        private static IEnumerable<DatasetDefinition> GetDatasets(List<DatasetRecord> datasets)
+        {
+            var byDatasets = datasets.GroupBy(x => x.DatasetName);
+            foreach (var byDataset in byDatasets)
+            {
+                yield return new DatasetDefinition
+                {
+                    Name = byDataset.Key,
+                    Description = byDataset.Key,
+                    FieldDefinitions = new List<DatasetFieldDefinition>(byDataset.Select(x => new DatasetFieldDefinition
+                    {
+                        Name = x.ColumnName,
+                        Type = Enum.Parse<FieldType>(x.ColumnType)
+
+                    }))
+
+                };
+            }
         }
 
         private static IEnumerable<PolicySpecification> GetPolicies(List<PolicyRecord> policies, List<CalculationRecord> calculations, string parentName = null)

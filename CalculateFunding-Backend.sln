@@ -61,7 +61,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.CodeGeneration", "CalculateFunding.Services.CodeGeneration\CalculateFunding.Services.CodeGeneration.csproj", "{C8FD88F5-E056-4BC6-94DD-5C7C83892D09}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.CodeGeneration.VisualBasic", "CalculateFunding.Services.CodeGeneration.VisualBasic\CalculateFunding.Services.CodeGeneration.VisualBasic.csproj", "{8D7A650B-57D2-4647-9F74-72074CFB5591}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.CodeGeneration.VisualBasic", "CalculateFunding.Services.CodeGeneration.VisualBasic\CalculateFunding.Services.CodeGeneration.VisualBasic.csproj", "{8D7A650B-57D2-4647-9F74-72074CFB5591}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.CodeGeneration.CSharp", "CalculateFunding.Services.CodeGeneration.CSharp\CalculateFunding.Services.CodeGeneration.CSharp.csproj", "{09319E77-C861-4E1C-B047-FB7AA301C74A}"
 EndProject
@@ -179,6 +179,7 @@ Global
 		{95480829-DB9B-45A1-8F51-3D1458DD0F10} = {40D52A2C-3E44-4B5A-917E-2FD2F1E8F689}
 		{311BB52A-A7B5-4C75-8DCB-7E26078BDAD6} = {40D52A2C-3E44-4B5A-917E-2FD2F1E8F689}
 		{0A4543B1-9D9A-4FB8-8F4F-E3B818FD8057} = {539AB1D8-B007-4CB6-8355-918D498486E2}
+		{BAC0BDCA-4752-4D58-B064-43BAF6ED4EE9} = {9E576324-96E4-4582-B5DB-00B0F77D18CB}
 		{80F1BA7D-6575-49F1-9663-38F8F7D085B8} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{C5479D34-C97B-4D38-8470-12B979F43F7A} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{6BE6A018-6AF4-4BCC-BA86-FD5E7DC75F2A} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}

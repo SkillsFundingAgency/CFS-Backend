@@ -64,7 +64,7 @@ namespace CalculateFunding.EndToEnd
                     Name = spec.Name
                 };
                 impl.Calculations = impl.Calculations ?? new List<Calculation>();
-                impl.DatasetDefinitions = new List<DatasetDefinition>();
+                impl.DatasetDefinitions = spec.DatasetDefinitions;
 
 
 

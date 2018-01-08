@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             {
                 var @class =  SyntaxFactory.ClassBlock(
                     SyntaxFactory.ClassStatement(
-                            Identifier($"{dataset.Name}Dataset")
+                            $"{Identifier(dataset.Name)}Dataset"
                         )
                         .WithModifiers(
                             SyntaxFactory.TokenList(
@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     .WithMembers(
                         SyntaxFactory.SingletonList<StatementSyntax>(@class))
                     .NormalizeWhitespace();
-                yield return new SourceFile { FileName = $"{Identifier($"{dataset.Name}Dataset")}.vb", SourceCode = syntaxTree.ToFullString() };
+                yield return new SourceFile { FileName = $"Datsets/{Identifier(dataset.Name)}Dataset.vb", SourceCode = syntaxTree.ToFullString() };
             }
 
 
