@@ -1,7 +1,6 @@
-﻿Imports System
-
+Imports System
 <AttributeUsage(AttributeTargets.Method)> Class CalculationAttribute
-    Inherits Attribute
+    Inherits  System.Attribute
 
     Public Property Id() As String
 

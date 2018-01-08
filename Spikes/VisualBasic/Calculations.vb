@@ -1,8 +1,11 @@
 Imports System
+Imports Common
+Imports Common.Attributes
 
 Public Class Calculations
+    Inherits CalculationBase
 
-    <Calculation(Id:="a6a80e0878b44d6daf0243d4021590f2")>
+    <Calculation(Id:="b2093ed78950477caffc26352e874beb")>
     <CalculationSpecification(Id:="P004_PriRate", Name:="P004_PriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -10,7 +13,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="185118ace0584abd8dfef7f4a5aa1957")>
+    <Calculation(Id:="3024bcafd46e4915a0ebc96640840b7f")>
     <CalculationSpecification(Id:="P005_PriBESubtotal", Name:="P005_PriBESubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -18,7 +21,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d7cda4bbd41e40429919b666e9b088e1")>
+    <Calculation(Id:="2f55616297f2469fb38d602d9b9c1d7a")>
     <CalculationSpecification(Id:="P006_NSEN_PriBE", Name:="P006_NSEN_PriBE")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -26,7 +29,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f89cf29b967f4035bb6c3cda42549fec")>
+    <Calculation(Id:="e944cb9b05b5473ca7f80a1687447b1e")>
     <CalculationSpecification(Id:="P006a_NSEN_PriBE_Percent", Name:="P006a_NSEN_PriBE_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -34,7 +37,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4c1f0f3f4a0b47d19d046ef217da3add")>
+    <Calculation(Id:="1ceb6206829d46daaea53781974128f1")>
     <CalculationSpecification(Id:="P007_InYearPriBE_Subtotal", Name:="P007_InYearPriBE_Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -42,7 +45,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9401c668dea145cabec5a58c1f0016c2")>
+    <Calculation(Id:="410ca2fa416446359b93e5a6f3759fe7")>
     <CalculationSpecification(Id:="P009_KS3Rate", Name:="P009_KS3Rate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -50,7 +53,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="50a572b27a4b4eee8e6839383b589f4a")>
+    <Calculation(Id:="309277375ba64108b1e42f0439ace8d2")>
     <CalculationSpecification(Id:="P010_KS3_BESubtotal", Name:="P010_KS3_BESubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -58,7 +61,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f268068d7d4c4bb2ba032a96479573a4")>
+    <Calculation(Id:="fb5211335b624da492b6f8e542dd0253")>
     <CalculationSpecification(Id:="P011_NSEN_KS3BE_percent", Name:="P011_NSEN_KS3BE_percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -66,7 +69,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e943d577a5aa4c3c9a0b5f3a2d1109ec")>
+    <Calculation(Id:="2278165dc8eb462cac0eb016a6dd60f6")>
     <CalculationSpecification(Id:="P011a_NSEN_KS3BE_Percent", Name:="P011a_NSEN_KS3BE_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -74,7 +77,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="65cd9b11a50f407b9d8cd904ce4569a7")>
+    <Calculation(Id:="31badaa8b6cd49fb850253764da635ff")>
     <CalculationSpecification(Id:="P012_InYearKS3_BESubtotal", Name:="P012_InYearKS3_BESubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -82,7 +85,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="63c743e1fd4443b4bf063b688e4d7137")>
+    <Calculation(Id:="c146fc92e31b4d7aa76c543c9b61d014")>
     <CalculationSpecification(Id:="P014_KS4Rate", Name:="P014_KS4Rate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -90,7 +93,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e86f1f39eac8460788e965f918efd471")>
+    <Calculation(Id:="6691a9b64e074ced99fc5d37308e5b13")>
     <CalculationSpecification(Id:="P015_KS4_BESubtotal", Name:="P015_KS4_BESubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -98,7 +101,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ea40d200a4a241d7aaee94e085cf2837")>
+    <Calculation(Id:="929a1e733bcd450f84fe800f1d8da5eb")>
     <CalculationSpecification(Id:="P016_NSEN_KS4BE", Name:="P016_NSEN_KS4BE")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -106,7 +109,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0164e5d80cd043f8bc2bfdcf44e141af")>
+    <Calculation(Id:="c40d14bc76ec4afb93b7499ff75d479d")>
     <CalculationSpecification(Id:="P016a_NSEN_KS4BE_Percent", Name:="P016a_NSEN_KS4BE_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -114,7 +117,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7e49e8e314e54e7fbef313cf0f40e518")>
+    <Calculation(Id:="74728f154ade4d7ca78f4ee5b085e26b")>
     <CalculationSpecification(Id:="P018_InYearKS4_BESubtotal", Name:="P018_InYearKS4_BESubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -122,7 +125,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f305582dd30d4e32be135800d20fea88")>
+    <Calculation(Id:="f3ff1af271374b6f9a8d8309092d1487")>
     <CalculationSpecification(Id:="P297_DedelegationRetained", Name:="P297_DedelegationRetained")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="cc9eac91ede6480eb46f748efb3a9d11", Name:="Dedelegation Retained by LA")>
@@ -130,7 +133,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0243fedee42649f296ccec7ebecf2c29")>
+    <Calculation(Id:="fd582140734841f6b0ffcc54a989ca17")>
     <CalculationSpecification(Id:="P142_EAL1PriFactor", Name:="P142_EAL1PriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -138,7 +141,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3963b0fdacf749a097e81f8bfbdc54cd")>
+    <Calculation(Id:="ec269ae368194423a10d8ea968fb0bb1")>
     <CalculationSpecification(Id:="P144_EAL1PriRate", Name:="P144_EAL1PriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -146,7 +149,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="b17777c56e2343fbb317076d36e4984f")>
+    <Calculation(Id:="314e41a02912418a9460f6ccfe3a77fa")>
     <CalculationSpecification(Id:="P145_EAL1PriSubtotal", Name:="P145_EAL1PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -154,7 +157,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0ad9926d9af64f4ea51a364ff73b656e")>
+    <Calculation(Id:="54a2a0f6dc004ee2babdf910c024a58f")>
     <CalculationSpecification(Id:="P146_InYearEAL1PriSubtotal", Name:="P146_InYearEAL1PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -162,7 +165,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="fffa920049a94dd19aed178f6f016f68")>
+    <Calculation(Id:="def44e5d0e46465eb9d3ebe1d8dcf128")>
     <CalculationSpecification(Id:="P147_EAL2PriFactor", Name:="P147_EAL2PriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -170,7 +173,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4020adb5d421472793d649e3ce64d58e")>
+    <Calculation(Id:="05368bb7a9f240c8a13e436b413c17a9")>
     <CalculationSpecification(Id:="P149_EAL2PriRate", Name:="P149_EAL2PriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -178,7 +181,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="eefa54ff657b45f696d3e8f2aecdd490")>
+    <Calculation(Id:="e34b300ddc374645b404b1e8204f43bc")>
     <CalculationSpecification(Id:="P150_EAL2PriSubtotal", Name:="P150_EAL2PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -186,7 +189,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="08934353b0494cfc91c1e2711d9c7639")>
+    <Calculation(Id:="d8daa641ccb94652935817d4f193c521")>
     <CalculationSpecification(Id:="P151_InYearEAL2PriSubtotal", Name:="P151_InYearEAL2PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -194,7 +197,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="93cd0c11e9d04f46ada370e589fa3ff5")>
+    <Calculation(Id:="46178020adfd44b19ee09e531af11e9d")>
     <CalculationSpecification(Id:="P152_EAL3PriFactor", Name:="P152_EAL3PriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -202,7 +205,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7f12d60706904b86be5180c0fa049a66")>
+    <Calculation(Id:="adc0d61a2514461b86a634652674f0d4")>
     <CalculationSpecification(Id:="P154_EAL3PriRate", Name:="P154_EAL3PriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -210,7 +213,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ee31072fbcc24d38b51cbbb3997056ec")>
+    <Calculation(Id:="b485bc975536497ebedf2ba1b813224a")>
     <CalculationSpecification(Id:="P155_EAL3PriSubtotal", Name:="P155_EAL3PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -218,7 +221,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4fa9919594704cb9912b7c1e80289243")>
+    <Calculation(Id:="b70c1e616ae24972964c9a3f6df310fe")>
     <CalculationSpecification(Id:="P156_NSENPriEAL", Name:="P156_NSENPriEAL")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -226,7 +229,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a6828778c9ea44be9e4833037c9b0d24")>
+    <Calculation(Id:="7293a2769a834574a6c074bdc3730f2e")>
     <CalculationSpecification(Id:="P156a_NSENPriEAL_Percent", Name:="P156a_NSENPriEAL_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -234,7 +237,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9c83873436c145498d810ceef559b3f1")>
+    <Calculation(Id:="4a5b90d8a9e749d1bb4df32f3e06276d")>
     <CalculationSpecification(Id:="P157_InYearEAL3PriSubtotal", Name:="P157_InYearEAL3PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -242,7 +245,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d26aed29fdf549dd83b82bc6c11a8efe")>
+    <Calculation(Id:="3e4a889e546f497b85b16426c2f9f974")>
     <CalculationSpecification(Id:="P158_EAL1SecFactor", Name:="P158_EAL1SecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -250,7 +253,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="caca0534d8914fb28e94e92301dc53d4")>
+    <Calculation(Id:="e261f4cc4e004534bbf84651e6113bcc")>
     <CalculationSpecification(Id:="P160_EAL1SecRate", Name:="P160_EAL1SecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -258,7 +261,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e93b02e0733540c2ab82e63d2dfc59e9")>
+    <Calculation(Id:="fc406ecf76ea417896b365ee8a6f6b93")>
     <CalculationSpecification(Id:="P161_EAL1SecSubtotal", Name:="P161_EAL1SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -266,7 +269,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="fb16959cfd8447e582b5ad7117deb7ea")>
+    <Calculation(Id:="c66090e0576248f2b039c6527aaaa0f5")>
     <CalculationSpecification(Id:="P162_InYearEAL1SecSubtotal", Name:="P162_InYearEAL1SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -274,7 +277,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="429eccdf33964e5d87f8c822fbb88d7f")>
+    <Calculation(Id:="bd5c92b1e17c48e7a269bc036b66187c")>
     <CalculationSpecification(Id:="P163_EAL2SecFactor", Name:="P163_EAL2SecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -282,7 +285,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="911550e277d34b7bb7d3c0f144d274db")>
+    <Calculation(Id:="5c5246abe6ad4e7b9433f3206d3310e1")>
     <CalculationSpecification(Id:="P165_EAL2SecRate", Name:="P165_EAL2SecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -290,7 +293,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="39cfd04222e74889add35c197b8385b0")>
+    <Calculation(Id:="bdfb0b250d6847e3b97f3bf2cc07cde4")>
     <CalculationSpecification(Id:="P166_EAL2SecSubtotal", Name:="P166_EAL2SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -298,7 +301,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="6cc2531c9c1b4ff39fc821985eafc6b8")>
+    <Calculation(Id:="bf46234be1864b8f882d595d59576ebc")>
     <CalculationSpecification(Id:="P167_InYearEAL2SecSubtotal", Name:="P167_InYearEAL2SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -306,7 +309,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="afaf303876e64478afe076b76695b54a")>
+    <Calculation(Id:="b69ec9bdc88f49329573fa0565e5b239")>
     <CalculationSpecification(Id:="P168_EAL3SecFactor", Name:="P168_EAL3SecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -314,7 +317,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="042a587b09924fdfb3d097b31d9e1a79")>
+    <Calculation(Id:="171823c165564c87882db041a82cb118")>
     <CalculationSpecification(Id:="P170_EAL3SecRate", Name:="P170_EAL3SecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -322,7 +325,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4826f25755994ffd9bba248e43accd1f")>
+    <Calculation(Id:="a237572c14554037a4e212e659587924")>
     <CalculationSpecification(Id:="P171_EAL3SecSubtotal", Name:="P171_EAL3SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -330,7 +333,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="b8d5985449c94c95a6f91c0c8127c792")>
+    <Calculation(Id:="fe0f5fc5d35d406fa50703f053fc04b2")>
     <CalculationSpecification(Id:="P172_NSENSecEAL", Name:="P172_NSENSecEAL")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -338,7 +341,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e58963dfb3804cf29050fac9e9d0fa08")>
+    <Calculation(Id:="1a133b53977b4ccf860ecbf35281d2b2")>
     <CalculationSpecification(Id:="P172a_NSENSecEAL_Percent", Name:="P172a_NSENSecEAL_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -346,7 +349,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3523151089a740ffaa7e60826b1d57a3")>
+    <Calculation(Id:="9eae238aa46e48fbb0cfb13edcf275d2")>
     <CalculationSpecification(Id:="P173_InYearEAL3SecSubtotal", Name:="P173_InYearEAL3SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -354,7 +357,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="821ad81013ef42c68ced2bf20212c75a")>
+    <Calculation(Id:="84395bad63b54cc092b2798f6060bbd3")>
     <CalculationSpecification(Id:="P019_PriFSMFactor", Name:="P019_PriFSMFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -362,7 +365,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="621072dec60c4c98adbaeeedf0e6220b")>
+    <Calculation(Id:="2e165773700f48c0ab613195733271ca")>
     <CalculationSpecification(Id:="P021_PriFSMRate", Name:="P021_PriFSMRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -370,7 +373,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4f79a7e7eca74ebb8c2635339d7d6554")>
+    <Calculation(Id:="c3d6782b6f7e44749c4b890b7393fdb7")>
     <CalculationSpecification(Id:="P022_PriFSMSubtotal", Name:="P022_PriFSMSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -378,7 +381,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="fcc81c458d7645a19187af27f87814ee")>
+    <Calculation(Id:="fb7d334f6d3f433d926c7dea54328045")>
     <CalculationSpecification(Id:="P023_InYearPriFSMSubtotal", Name:="P023_InYearPriFSMSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -386,7 +389,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1ce05fbdb7c5433f97507c8286621369")>
+    <Calculation(Id:="68c911474d71414c8b22f7837f50e388")>
     <CalculationSpecification(Id:="P024_PriFSM6Factor", Name:="P024_PriFSM6Factor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -394,7 +397,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="fed9a838c459422b81e2f8531d0ea6ab")>
+    <Calculation(Id:="2d73695a932b4223877f0f4265a8b35f")>
     <CalculationSpecification(Id:="P026_PriFSM6Rate", Name:="P026_PriFSM6Rate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -402,7 +405,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="6d38a31edfb84efd96e691f2bc6e20fb")>
+    <Calculation(Id:="6b38896579e240da8107681b178ec5ac")>
     <CalculationSpecification(Id:="P027_PriFSM6Subtotal", Name:="P027_PriFSM6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -410,7 +413,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a1630be22be3434480e50abe0b3afbf7")>
+    <Calculation(Id:="b97cbf568bae4be78f451a2bf982b814")>
     <CalculationSpecification(Id:="P028_NSENFSMPri", Name:="P028_NSENFSMPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -418,7 +421,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2c6b3ea90e184fed95dc08c6437c4022")>
+    <Calculation(Id:="bd89a6a81ed44ca4b3b39742a0a68850")>
     <CalculationSpecification(Id:="P028a_NSENFSMPri_Percent", Name:="P028a_NSENFSMPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -426,7 +429,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="b8064caff2ea443c8da6ec19252213ec")>
+    <Calculation(Id:="f3351b14d1894d4297d74568240ecc53")>
     <CalculationSpecification(Id:="P029_InYearPriFSM6Subtotal", Name:="P029_InYearPriFSM6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -434,7 +437,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0df9e6c3a9684d24857a3f88b5747565")>
+    <Calculation(Id:="1a52f454533a4d8ca783805d9f2ddd8c")>
     <CalculationSpecification(Id:="P030_SecFSMFactor", Name:="P030_SecFSMFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -442,7 +445,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d4c763dbb4454656ab22a40a610092a1")>
+    <Calculation(Id:="fd8bae3e2d39467ca012dc9bbe19918e")>
     <CalculationSpecification(Id:="P032_SecFSMRate", Name:="P032_SecFSMRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -450,7 +453,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f0804eb53de443648dd9184ca7c391a0")>
+    <Calculation(Id:="79587230886c47efa8e4d2ae0b4f938a")>
     <CalculationSpecification(Id:="P033_SecFSMSubtotal", Name:="P033_SecFSMSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -458,7 +461,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="632fe88900204514b9259fa3f4f1bc9f")>
+    <Calculation(Id:="30a3e68782b44610b1a611fe023e0e3a")>
     <CalculationSpecification(Id:="P034_InYearSecFSMSubtotal", Name:="P034_InYearSecFSMSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -466,7 +469,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7dbae87ef5194eef909d09a693d3a9de")>
+    <Calculation(Id:="84e33f82be6940b19c0efc73c70aac13")>
     <CalculationSpecification(Id:="P035_SecFSM6Factor", Name:="P035_SecFSM6Factor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -474,7 +477,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="fe4d9b1684f7479ba9060924c499e88e")>
+    <Calculation(Id:="e520dfd9ddc948bc8518217d7a20f175")>
     <CalculationSpecification(Id:="P037_SecFSM6Rate", Name:="P037_SecFSM6Rate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -482,7 +485,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c59cca24761b4cd5911a69a52604feba")>
+    <Calculation(Id:="f19c7e79d2a943b29c73207085beb5d9")>
     <CalculationSpecification(Id:="P038_SecFSM6Subtotal", Name:="P038_SecFSM6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -490,7 +493,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="670e3a0deeaa4409bf8c31b8dc22cb1f")>
+    <Calculation(Id:="c3f085417d6c4d5aa27599c1c44f8701")>
     <CalculationSpecification(Id:="P039_NSENFSMSec", Name:="P039_NSENFSMSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -498,7 +501,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c2a2434564ed4ab990e0375fc874dc83")>
+    <Calculation(Id:="507a0cdadac04291be33b581e552d5f0")>
     <CalculationSpecification(Id:="P039a_NSENFSMSec_Percent", Name:="P039a_NSENFSMSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -506,7 +509,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c633e9ec281744b492eb634747348e2a")>
+    <Calculation(Id:="a613db5a66f04748ac8f68de8b84a244")>
     <CalculationSpecification(Id:="P040_InYearSecFSM6Subtotal", Name:="P040_InYearSecFSM6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
@@ -514,7 +517,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4a29b8f67cec4a698b6a872abcadea72")>
+    <Calculation(Id:="3fe69af8a2054f8e95335cf567dc7420")>
     <CalculationSpecification(Id:="P041_IDACIFPriFactor", Name:="P041_IDACIFPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -522,7 +525,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="bba01069af72479989a92eeb8c683ddb")>
+    <Calculation(Id:="2a9d7f9b93b14ff9a241a1f27d706305")>
     <CalculationSpecification(Id:="P043_IDACIFPriRate", Name:="P043_IDACIFPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -530,7 +533,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="773e3ad429c54f25916a175f1afd232f")>
+    <Calculation(Id:="326d886828f24306860966d5f9e0a037")>
     <CalculationSpecification(Id:="P044_IDACIFPriSubtotal", Name:="P044_IDACIFPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -538,7 +541,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="b724497967c44e4584dae828ea583bb2")>
+    <Calculation(Id:="5e1c226ce6f143c68a6f30b59e8a9c48")>
     <CalculationSpecification(Id:="P045_NSENIDACIFPri", Name:="P045_NSENIDACIFPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -546,7 +549,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a27e90b9fa0b48709ee461cf08d1c163")>
+    <Calculation(Id:="ac1e96eef07242caa8adacde846d1a13")>
     <CalculationSpecification(Id:="P045a_NSENIDACIFPri_Percent", Name:="P045a_NSENIDACIFPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -554,7 +557,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2cb9587da4604e1795e186797299319f")>
+    <Calculation(Id:="bf8b721a669b478cbda5d3c03eec4c3b")>
     <CalculationSpecification(Id:="P046_InYearIDACIFPriSubtotal", Name:="P046_InYearIDACIFPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -562,7 +565,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="aceca99302b04e118698a0319fb4a3f2")>
+    <Calculation(Id:="75c998a46b724455aa9398b757112d2c")>
     <CalculationSpecification(Id:="P047_IDACIEPriFactor", Name:="P047_IDACIEPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -570,7 +573,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="b9f9c8e2b8ae4f85bcd464781d469e90")>
+    <Calculation(Id:="8bb62893ca904403b749f19ffb825abc")>
     <CalculationSpecification(Id:="P049_IDACIEPriRate", Name:="P049_IDACIEPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -578,7 +581,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="b884406b495242da97840f387f95ef18")>
+    <Calculation(Id:="c9a0b3e9432c414a9d36e66835356e88")>
     <CalculationSpecification(Id:="P050_IDACIEPriSubtotal", Name:="P050_IDACIEPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -586,7 +589,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2c18be8f121e4df3b75010b3303b02bf")>
+    <Calculation(Id:="b67c072902c241f697e43b90383d61c4")>
     <CalculationSpecification(Id:="P051_NSENIDACIEPri", Name:="P051_NSENIDACIEPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -594,7 +597,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2977fb8fd8484ce996d55db4f98a103f")>
+    <Calculation(Id:="4b266fc5e66e4ad89171e9cd9b65cb4c")>
     <CalculationSpecification(Id:="P051a_NSENIDACIEPri_Percent", Name:="P051a_NSENIDACIEPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -602,7 +605,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f3951e89050042a0ac2d67895a382c6c")>
+    <Calculation(Id:="f52b06473c4f42889e394cd03f0aa53e")>
     <CalculationSpecification(Id:="P052_InYearIDACIEPriSubtotal", Name:="P052_InYearIDACIEPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -610,7 +613,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0e4386c2a8544eb4a2dcd4b5889aa487")>
+    <Calculation(Id:="0f4156e0bfdc48c180cfadd8ace0ac6e")>
     <CalculationSpecification(Id:="P053_IDACIDPriFactor", Name:="P053_IDACIDPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -618,7 +621,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="26ff395acde44960ae92a871d5f44fde")>
+    <Calculation(Id:="255373b7afb14f7d9f36e71bca93a05f")>
     <CalculationSpecification(Id:="P055_IDACIDPriRate", Name:="P055_IDACIDPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -626,7 +629,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="22d05bd8825642309369750e11e10fc1")>
+    <Calculation(Id:="5ba92cdf0c8845118b3e226176ae82b5")>
     <CalculationSpecification(Id:="P056_IDACIDPriSubtotal", Name:="P056_IDACIDPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -634,7 +637,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f5a0d901a4194548ad1c90cc906fa148")>
+    <Calculation(Id:="6ca5cc7852714ab2a8bd5b5d73659ee3")>
     <CalculationSpecification(Id:="P057_NSENIDACIDPri", Name:="P057_NSENIDACIDPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -642,7 +645,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="b99ad4aa6b54400ba3bc9819300c7df4")>
+    <Calculation(Id:="355c7c590fc84dee914e5c3bda7aa01a")>
     <CalculationSpecification(Id:="P057a_NSENIDACIDPri_Percent", Name:="P057a_NSENIDACIDPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -650,7 +653,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="58ee981a45c344238550a5a0b68ed9f1")>
+    <Calculation(Id:="9e3d442aaaec4c91988274f0fcce3987")>
     <CalculationSpecification(Id:="P058_InYearIDACIDPriSubtotal", Name:="P058_InYearIDACIDPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -658,7 +661,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d385c537c6204994bb6bcbf1db33a21a")>
+    <Calculation(Id:="0965841473e84600a3b6873a6b594037")>
     <CalculationSpecification(Id:="P059_IDACICPriFactor", Name:="P059_IDACICPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -666,7 +669,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="103b2924980d43c4aa5b75a8133ad8b4")>
+    <Calculation(Id:="6b7eb1ed23f447aeb059e3d29c2df5b7")>
     <CalculationSpecification(Id:="P061_IDACICPriRate", Name:="P061_IDACICPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -674,7 +677,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="786ddde248ee48e4b324792f882ed53b")>
+    <Calculation(Id:="225188e07c2f4b038379e61f31507248")>
     <CalculationSpecification(Id:="P062_IDACICPriSubtotal", Name:="P062_IDACICPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -682,7 +685,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e04bcbbd628b47b9a0239dfa3db48e3f")>
+    <Calculation(Id:="217179a94c6f4290b655278042a8bde6")>
     <CalculationSpecification(Id:="P063_NSENIDACICPri", Name:="P063_NSENIDACICPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -690,7 +693,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c037f800d2b84244bdd6ec565c94ce7a")>
+    <Calculation(Id:="6ceb0f2684314d71bf8bb750784c2d9a")>
     <CalculationSpecification(Id:="P063a_NSENIDACICPri_Percent", Name:="P063a_NSENIDACICPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -698,7 +701,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="426b0aedc9a04457b47ebb6186101d40")>
+    <Calculation(Id:="1cd5233aac094a98852b5d5d4fc0466c")>
     <CalculationSpecification(Id:="P064_InYearIDACICPriSubtotal", Name:="P064_InYearIDACICPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -706,7 +709,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="068bd85e910f498d83b2953070129772")>
+    <Calculation(Id:="309b662e418d45afb92c7b778033b500")>
     <CalculationSpecification(Id:="P065_IDACIBPriFactor", Name:="P065_IDACIBPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -714,7 +717,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="292a5f1b9c6047078f29fc7fce9b4de9")>
+    <Calculation(Id:="dbb586eba1484ce5994605a7f9e96dec")>
     <CalculationSpecification(Id:="P067_IDACIBPriRate", Name:="P067_IDACIBPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -722,7 +725,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3a42f6ac543e4ce087e588b767e38fa1")>
+    <Calculation(Id:="34b5aed536c942ad98458ab30abc85af")>
     <CalculationSpecification(Id:="P068_IDACIBPriSubtotal", Name:="P068_IDACIBPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -730,7 +733,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8f44202ba54d4bbfbc78decb72a85b3c")>
+    <Calculation(Id:="756f96c46d5749ceb18446c548242e33")>
     <CalculationSpecification(Id:="P069_NSENIDACIBPri", Name:="P069_NSENIDACIBPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -738,7 +741,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="bb9ae11cd02e4d578a7f1fb9df5e0712")>
+    <Calculation(Id:="0323979443d74b16b80110b21ee8b907")>
     <CalculationSpecification(Id:="P069a_NSENIDACIBPri_Percent", Name:="P069a_NSENIDACIBPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -746,7 +749,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="cba83962c4b9406981ecea801ef78802")>
+    <Calculation(Id:="f64237acc3974dd59e69649e7bb39d24")>
     <CalculationSpecification(Id:="P070_InYearIDACIBPriSubtotal", Name:="P070_InYearIDACIBPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -754,7 +757,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="bf99a9ebc3ae4def8dff45662aac2246")>
+    <Calculation(Id:="8ce1cff1e6db4eb997834a500cdbc670")>
     <CalculationSpecification(Id:="P071_IDACIAPriFactor", Name:="P071_IDACIAPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -762,7 +765,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="22ca5601f601415ab41b21f1f0422250")>
+    <Calculation(Id:="88e43e3439964aeea46c2260448db940")>
     <CalculationSpecification(Id:="P073_IDACIAPriRate", Name:="P073_IDACIAPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -770,7 +773,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="54b03fa5f603491c867b21939767a0f1")>
+    <Calculation(Id:="c4b3c2ad93b741dea5ce907432d97301")>
     <CalculationSpecification(Id:="P074_IDACIAPriSubtotal", Name:="P074_IDACIAPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -778,7 +781,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="dca6de1846b0410a9a1a9a14f203e8e6")>
+    <Calculation(Id:="208eb99879164bf7aa1e923d563d3dcc")>
     <CalculationSpecification(Id:="P075_NSENIDACIAPri", Name:="P075_NSENIDACIAPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -786,7 +789,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="44afb4d1b12d4ef690edb2ed1bb12045")>
+    <Calculation(Id:="0fdec767cf8b41479b65b2404123410e")>
     <CalculationSpecification(Id:="P075a_NSENIDACIAPri_Percent", Name:="P075a_NSENIDACIAPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -794,7 +797,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3c9d068513144a958115fb9bcfb9ce95")>
+    <Calculation(Id:="050053b0cd6d429d81563efa9ef70d4a")>
     <CalculationSpecification(Id:="P076_InYearIDACIAPriSubtotal", Name:="P076_InYearIDACIAPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -802,7 +805,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ed6b5358bae24f15a5c2f14ddf7440a7")>
+    <Calculation(Id:="ff05e0948bfc4e7d82be02222b375984")>
     <CalculationSpecification(Id:="P077_IDACIFSecFactor", Name:="P077_IDACIFSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -810,7 +813,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="04a77792bd2642c3b864f08e91148a76")>
+    <Calculation(Id:="b4f0b9b6d11b4c519e3dbdc6042de7c3")>
     <CalculationSpecification(Id:="P079_IDACIFSecRate", Name:="P079_IDACIFSecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -818,7 +821,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="97bd812166804a74a023fbb880c801d1")>
+    <Calculation(Id:="cc5066185d054fbda23ac71867aa77bb")>
     <CalculationSpecification(Id:="P080_IDACIFSecSubtotal", Name:="P080_IDACIFSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -826,7 +829,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1e5ec22453ca488fa2185df06ef555d8")>
+    <Calculation(Id:="50efcbf211c9401989844145ca7bbf55")>
     <CalculationSpecification(Id:="P081_NSENIDACIFSec", Name:="P081_NSENIDACIFSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -834,7 +837,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="5ba3efa099574299a699010e7900b625")>
+    <Calculation(Id:="4ec150ea1a464e469009f010c8d22820")>
     <CalculationSpecification(Id:="P081a_NSENIDACIFSec_Percent", Name:="P081a_NSENIDACIFSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -842,7 +845,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="87f9fd2db9264461ab0b0a1694699d65")>
+    <Calculation(Id:="83049969c4e6427aa29a2da219bfd505")>
     <CalculationSpecification(Id:="P082_InYearIDACIFSecSubtotal", Name:="P082_InYearIDACIFSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -850,7 +853,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4d623ad6fb4142ceab0c4ea8093664c7")>
+    <Calculation(Id:="4be1c3a508bc43509f67f7c324110917")>
     <CalculationSpecification(Id:="P083_IDACIESecFactor", Name:="P083_IDACIESecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -858,7 +861,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="26b8e23acdb1496484d48b428cf04522")>
+    <Calculation(Id:="213172673fff48b4881046a80ecb2275")>
     <CalculationSpecification(Id:="P085_IDACIESecRate", Name:="P085_IDACIESecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -866,7 +869,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="5f8964359e0945b3894e6e1f12736a1a")>
+    <Calculation(Id:="87711c32299243a3aedde660d28b8b61")>
     <CalculationSpecification(Id:="P086_IDACIESecSubtotal", Name:="P086_IDACIESecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -874,7 +877,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="6759cbb0472748b09a6df03f7c8aecdb")>
+    <Calculation(Id:="90e3f8b28f0f4936b40d48edd22f0fcc")>
     <CalculationSpecification(Id:="P087_NSENIDACIESec", Name:="P087_NSENIDACIESec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -882,7 +885,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="166895663b6641f9b443c91fdd7859f9")>
+    <Calculation(Id:="d1c389ebda8149e4952d7da7903df4bc")>
     <CalculationSpecification(Id:="P87a_NSENIDACIESec_Percent", Name:="P87a_NSENIDACIESec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -890,7 +893,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7fcf4954b9db4f62a5a23d398fa49df1")>
+    <Calculation(Id:="2be1aff3157347a3b0f92c92f798ee62")>
     <CalculationSpecification(Id:="P088_InYearIDACIESecSubtotal", Name:="P088_InYearIDACIESecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -898,7 +901,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="bd74798c93194c8eafef1786f7dbf3d5")>
+    <Calculation(Id:="d264244c7ab846aba1cbb17069d923a4")>
     <CalculationSpecification(Id:="P089_IDACIDSecFactor", Name:="P089_IDACIDSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -906,7 +909,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="94b0270f28774c518ee1031bb3e262d8")>
+    <Calculation(Id:="e155a445df784fa38a72b5a6a262fd3a")>
     <CalculationSpecification(Id:="P091_IDACIDSecRate", Name:="P091_IDACIDSecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -914,7 +917,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d99b842a3a754c8e952621574446b006")>
+    <Calculation(Id:="f23974df45f04a9e9919d89e6fa7e3fb")>
     <CalculationSpecification(Id:="P092_IDACIDSecSubtotal", Name:="P092_IDACIDSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -922,7 +925,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="444a88af7d13498aa3f2b343fa56e02b")>
+    <Calculation(Id:="db5e1208f4d24957ae7c725b062a7114")>
     <CalculationSpecification(Id:="P093_NSENIDACIDSec", Name:="P093_NSENIDACIDSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -930,7 +933,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="b7d955c3850e454fa21053466f61f12d")>
+    <Calculation(Id:="a93010e933814c9e85ef8e526376e02d")>
     <CalculationSpecification(Id:="P093a_NSENIDACIDSec_Percent", Name:="P093a_NSENIDACIDSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -938,7 +941,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="00233ede58284fd58bda0310b5b3c6f1")>
+    <Calculation(Id:="85992c9bad3045cca97ede4bb808fb1b")>
     <CalculationSpecification(Id:="P094_InYearIDACIDSecSubtotal", Name:="P094_InYearIDACIDSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -946,7 +949,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e235b5139c094edc8cb37346486f549a")>
+    <Calculation(Id:="010e6edc558c40efb2555cc229950ab0")>
     <CalculationSpecification(Id:="P095_IDACICSecFactor", Name:="P095_IDACICSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -954,7 +957,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4b8b63f83c6742eaa9ff7a132a808c95")>
+    <Calculation(Id:="fe70f14a601448ab9810229dabe428d2")>
     <CalculationSpecification(Id:="P097_IDACICSecRate", Name:="P097_IDACICSecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -962,7 +965,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c2f9483590f24659be7e4a14d12beb63")>
+    <Calculation(Id:="988f4488ee824f74984a716676acb71c")>
     <CalculationSpecification(Id:="P098_IDACICSecSubtotal", Name:="P098_IDACICSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -970,7 +973,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ed787f2149084009b94b0d2ec12faa6a")>
+    <Calculation(Id:="60ec15d8739d48639db346b9b4056ba1")>
     <CalculationSpecification(Id:="P099_NSENIDACICSec", Name:="P099_NSENIDACICSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -978,7 +981,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="66463e3ba93848ad9af3bde4d84b2c8d")>
+    <Calculation(Id:="52c8a5b6c1b94b1c8915b9878b17e3f0")>
     <CalculationSpecification(Id:="P099a_NSENIDACICSec_Percent", Name:="P099a_NSENIDACICSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -986,7 +989,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="291575e608224b1b868edd64d78a801e")>
+    <Calculation(Id:="3470986e45fe4006b49ae91914b91f9a")>
     <CalculationSpecification(Id:="P100_InYearIDACICSecSubtotal", Name:="P100_InYearIDACICSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -994,7 +997,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f4afaf6e719347608a725ecf29d82cd9")>
+    <Calculation(Id:="502d7e05dc7b4685a1722a665d9577ad")>
     <CalculationSpecification(Id:="P101_IDACIBSecFactor", Name:="P101_IDACIBSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -1002,7 +1005,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="61320b4de8d944b38adc1043c89eb58a")>
+    <Calculation(Id:="f210038b6366414e8c7d6157a6ad08dd")>
     <CalculationSpecification(Id:="P103_IDACIBSecRate", Name:="P103_IDACIBSecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -1010,7 +1013,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="01b5be013a4b4daa914c11a9ff4563fc")>
+    <Calculation(Id:="74ee58fe30814412b46c3d883c23a4f2")>
     <CalculationSpecification(Id:="P104_IDACIBSecSubtotal", Name:="P104_IDACIBSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -1018,7 +1021,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="000767ddb5a644458f47e726d4d998ea")>
+    <Calculation(Id:="78ae2c66d1884fccbc884479dad641a8")>
     <CalculationSpecification(Id:="P105_NSENIDACIBSec", Name:="P105_NSENIDACIBSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -1026,7 +1029,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2b3fbbeab11a43bcb1245ee596979c29")>
+    <Calculation(Id:="ffcb90088b9740c4a32836df2169f8c9")>
     <CalculationSpecification(Id:="P105a_NSENIDACIBSec_Percent", Name:="P105a_NSENIDACIBSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -1034,7 +1037,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a381cf351da044ce8874ed05b76ee8a0")>
+    <Calculation(Id:="ab2cd3b56d17476092145627fe043f92")>
     <CalculationSpecification(Id:="P106_InYearIDACIBSecSubtotal", Name:="P106_InYearIDACIBSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -1042,7 +1045,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="bd76f54c390d4fed812464388b967a59")>
+    <Calculation(Id:="050b03a4e0744dbebf67b94040918b0e")>
     <CalculationSpecification(Id:="P107_IDACIASecFactor", Name:="P107_IDACIASecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -1050,7 +1053,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ccfdcdb3918241e683931facecad2ce8")>
+    <Calculation(Id:="534b8f2d105f45fd8cf80428f996b9bd")>
     <CalculationSpecification(Id:="P109_IDACIASecRate", Name:="P109_IDACIASecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -1058,7 +1061,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ebf3f17517d24565834f96488bca89db")>
+    <Calculation(Id:="217c50da35564162bf4c5df224c226ac")>
     <CalculationSpecification(Id:="P110_IDACIASecSubtotal", Name:="P110_IDACIASecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -1066,7 +1069,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="806b88aca32e4a0ba06723488ccf9294")>
+    <Calculation(Id:="e10e61ee3478452ca2edbbaa0659399c")>
     <CalculationSpecification(Id:="P111_NSENIDACIASec", Name:="P111_NSENIDACIASec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -1074,7 +1077,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1f01f79b1cc14c3abafd844a0408df30")>
+    <Calculation(Id:="b70cc86202d94a17ba69275f49070cb9")>
     <CalculationSpecification(Id:="P111a_NSENIDACIASec_Percent", Name:="P111a_NSENIDACIASec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -1082,7 +1085,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="bf7767e7a05d48ebabda3b9528583cf8")>
+    <Calculation(Id:="9ba6f4bb68704f07b3b2c00757c1ea3c")>
     <CalculationSpecification(Id:="P112_InYearIDACIASecSubtotal", Name:="P112_InYearIDACIASecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -1090,7 +1093,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c7328f65f5b94d53822a60f24455498b")>
+    <Calculation(Id:="e02ec8ef526e416291d47a4d26ee6d51")>
     <CalculationSpecification(Id:="P114_LACFactor", Name:="P114_LACFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
@@ -1098,7 +1101,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1f5068c20a914563b875ee27e12eaab5")>
+    <Calculation(Id:="4ccc14038598442ea508909624609922")>
     <CalculationSpecification(Id:="P116_LACRate", Name:="P116_LACRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
@@ -1106,7 +1109,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a571c853c30b40d9bf74c3035b3b2022")>
+    <Calculation(Id:="55f991a4605b4b308c572d4f2a98ccb1")>
     <CalculationSpecification(Id:="P117_LACSubtotal", Name:="P117_LACSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
@@ -1114,7 +1117,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f86166e6b46b4cff9fe461451f5f5c9d")>
+    <Calculation(Id:="16d5df78214f4f13b3e4cb7f108eed66")>
     <CalculationSpecification(Id:="P118_NSENLAC", Name:="P118_NSENLAC")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
@@ -1122,7 +1125,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="da88f8f436144ad080519ec3c61b8a2e")>
+    <Calculation(Id:="00b2a32df8d8444aad3729797e1264e0")>
     <CalculationSpecification(Id:="P118a_NSENLAC_Percent", Name:="P118a_NSENLAC_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
@@ -1130,7 +1133,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="6ae9ef0d12ed45d9abc1e2649b37acd1")>
+    <Calculation(Id:="a479e47c17b640e8a478adbba2a451e5")>
     <CalculationSpecification(Id:="P119_InYearLACSubtotal", Name:="P119_InYearLACSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
@@ -1138,7 +1141,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="23b2282167c14f1eb8165e81611421a1")>
+    <Calculation(Id:="41044e5770434a0f89a25399b59621b8")>
     <CalculationSpecification(Id:="P174_MobPriFactor", Name:="P174_MobPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -1146,7 +1149,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="630bc5b7958b4a9da788a7db2c5188a2")>
+    <Calculation(Id:="d5b507e73d7f48ff89418fde077cdfa2")>
     <CalculationSpecification(Id:="P176_MobPriRate", Name:="P176_MobPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -1154,7 +1157,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="5a2752e0e8944bd4a5a335f06f191998")>
+    <Calculation(Id:="0eea5ad045da44dd97c53140db792534")>
     <CalculationSpecification(Id:="P177_MobPriSubtotal", Name:="P177_MobPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -1162,7 +1165,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c14d54b3cfc54b558e9b150c8e273f66")>
+    <Calculation(Id:="f77f2c74d3cd44caaae2ccec85c6963e")>
     <CalculationSpecification(Id:="P178_NSENMobPri", Name:="P178_NSENMobPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -1170,7 +1173,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="950477d98c2943358d579b95342ef821")>
+    <Calculation(Id:="ef42ecdd5a3c4b0cb3d4d1db04262048")>
     <CalculationSpecification(Id:="P178a_NSENMobPri_Percent", Name:="P178a_NSENMobPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -1178,7 +1181,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="829b562b4c43476a88f7f1b6f9b61b7b")>
+    <Calculation(Id:="59c3af6ab18043f7a1ed0eaa1845d343")>
     <CalculationSpecification(Id:="P179_InYearMobPriSubtotal", Name:="P179_InYearMobPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -1186,7 +1189,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="29e7de92ef91422886cc387a52e988ef")>
+    <Calculation(Id:="2596d4b2a24740a39070f6fc5f118692")>
     <CalculationSpecification(Id:="P180_MobSecFactor", Name:="P180_MobSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -1194,7 +1197,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2602e49351a146669fe3bfd3aed6eb54")>
+    <Calculation(Id:="7aaba789d43e44269c1b90b20a6e8a2b")>
     <CalculationSpecification(Id:="P182_MobSecRate", Name:="P182_MobSecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -1202,7 +1205,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="299ad62cd9fc40e097305d661fa55495")>
+    <Calculation(Id:="a16781ccbbba430fad9feef9f7cbe19d")>
     <CalculationSpecification(Id:="P183_MobSecSubtotal", Name:="P183_MobSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -1210,7 +1213,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a9e3e8b667ff4ca7a2de2ec771a5202e")>
+    <Calculation(Id:="a8e7f958756b47fead4c17e28dd07e4d")>
     <CalculationSpecification(Id:="P184_NSENMobSec", Name:="P184_NSENMobSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -1218,7 +1221,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="396f89d1ad4a487d90d22fe2f466874d")>
+    <Calculation(Id:="6fae54d4d2d64981b4faabf3471bb082")>
     <CalculationSpecification(Id:="P184a_NSENMobSec_Percent", Name:="P184a_NSENMobSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -1226,7 +1229,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="fdfaa813ce674b238ebd8ccf7910b222")>
+    <Calculation(Id:="75679fa7ffc04ca8acfccd01bf88142b")>
     <CalculationSpecification(Id:="P185_InYearMobSecSubtotal", Name:="P185_InYearMobSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -1234,7 +1237,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2a50a0fc202343a0848db0393cdb1016")>
+    <Calculation(Id:="92c26d41807f4aa79bdb8378cb0e16cf")>
     <CalculationSpecification(Id:="P239_PriLumpSumFactor", Name:="P239_PriLumpSumFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1242,7 +1245,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c72ce6cda634495284713f456e231957")>
+    <Calculation(Id:="4c11505aa4824bed81e8f046c8976a41")>
     <CalculationSpecification(Id:="P240_PriLumpSumRate", Name:="P240_PriLumpSumRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1250,7 +1253,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4d1ed8b10c9f441587be06bdc387413b")>
+    <Calculation(Id:="cce23d89117e455ab5aed81fbebfa9aa")>
     <CalculationSpecification(Id:="P241_Primary_Lump_Sum", Name:="P241_Primary_Lump_Sum")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1258,7 +1261,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3d3a3035a6b0427e9736edcce87c699d")>
+    <Calculation(Id:="7fad1ce3820847d39abdc6ae177dc820")>
     <CalculationSpecification(Id:="P242_InYearPriLumpSumSubtotal", Name:="P242_InYearPriLumpSumSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1266,7 +1269,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="34318303fbaa456b927f69c7d1d8a453")>
+    <Calculation(Id:="a0896fc8afb241718dea513d9fc944dd")>
     <CalculationSpecification(Id:="P243_SecLumpSumFactor", Name:="P243_SecLumpSumFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1274,7 +1277,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0a575ec8b95c4c12b672a292083f009b")>
+    <Calculation(Id:="f4a925ec3fb740b699013dcf8e6a39f3")>
     <CalculationSpecification(Id:="P244_SecLumpSumRate", Name:="P244_SecLumpSumRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1282,7 +1285,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="fb5c1e9dfd604298bed14b5cb8760dde")>
+    <Calculation(Id:="8b8dd57f321c4271b82578a97c6673b3")>
     <CalculationSpecification(Id:="P245_Secondary_Lump_Sum", Name:="P245_Secondary_Lump_Sum")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1290,7 +1293,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a3f19e01b56945529b96490abd8fb909")>
+    <Calculation(Id:="56f365f5f3544d67a547f2a70aadbc80")>
     <CalculationSpecification(Id:="P246_In YearSecLumpSumSubtotal", Name:="P246_In YearSecLumpSumSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1298,7 +1301,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d76f969c634649e190fe0541bc386301")>
+    <Calculation(Id:="383baa568fa0499ba3b740d754eb348b")>
     <CalculationSpecification(Id:="P247_NSENLumpSumPri", Name:="P247_NSENLumpSumPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1306,7 +1309,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4ec7976c4128451e912bd78943829474")>
+    <Calculation(Id:="78702ea7b84c430d97dd1e7f3b56d03e")>
     <CalculationSpecification(Id:="P247a_NSENLumpSumPri_Percent", Name:="P247a_NSENLumpSumPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1314,7 +1317,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a35b8f8d2abb44769b65f7a1b0063534")>
+    <Calculation(Id:="690a1792237743bda10db93798a231f2")>
     <CalculationSpecification(Id:="P248_NSENLumpSumSec", Name:="P248_NSENLumpSumSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1322,7 +1325,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="35997ce6209c449dab777f4509bd0dfb")>
+    <Calculation(Id:="bef5eb963c4f489c8bc6f51e19893ec7")>
     <CalculationSpecification(Id:="P248a_NSENLumpSumSec_Percent", Name:="P248a_NSENLumpSumSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1330,7 +1333,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2e224ca2e5244f1495dbfd383425f766")>
+    <Calculation(Id:="44d966ca26d549508589f237fe0be3c1")>
     <CalculationSpecification(Id:="P252_PFISubtotal", Name:="P252_PFISubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1338,7 +1341,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8fce1c45ca1a41d7b5ed70e6154f72dd")>
+    <Calculation(Id:="06ef6ff54e98433a9c234771277aad71")>
     <CalculationSpecification(Id:="P253_NSENPFI", Name:="P253_NSENPFI")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1346,7 +1349,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0c0c9d7fa8d943aaaf59924e23f609eb")>
+    <Calculation(Id:="d2a58461eb934b24944f19774c7a30e0")>
     <CalculationSpecification(Id:="P253a_NSENPFI_Percent", Name:="P253a_NSENPFI_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1354,7 +1357,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="26df26ff565f488ba4615a4df741a0ad")>
+    <Calculation(Id:="ec7a7c1af10e4141ba03f1485cbe75ef")>
     <CalculationSpecification(Id:="P254_InYearPFISubtotal", Name:="P254_InYearPFISubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1362,7 +1365,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8bbcfa1c49b0496093902c1a8bea1793")>
+    <Calculation(Id:="8ef0d1a177bf4d0aaf1b34ca487492f5")>
     <CalculationSpecification(Id:="P255_FringeSubtotal", Name:="P255_FringeSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1370,7 +1373,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ab3b800b36ce44789c3f684e17fc8453")>
+    <Calculation(Id:="35db1aa3789a48a0bf08cabb2dbdb295")>
     <CalculationSpecification(Id:="P257_InYearFringeSubtotal", Name:="P257_InYearFringeSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1378,7 +1381,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e430800e9cfc41bb953b8e2cc1cf487d")>
+    <Calculation(Id:="249d64718df74b32bdf8b63c12e3d055")>
     <CalculationSpecification(Id:="P261_Ex1Subtotal", Name:="P261_Ex1Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1386,7 +1389,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e9cd8fc5b5d74fc89e71123096fb82ac")>
+    <Calculation(Id:="48e866b62eda401c911d81dec568f6e8")>
     <CalculationSpecification(Id:="P262_NSENEx1", Name:="P262_NSENEx1")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1394,7 +1397,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0e7f8601fc1c48919113fd59ed27de6b")>
+    <Calculation(Id:="55ab319fd50549ccbdd5a1c827b8caa3")>
     <CalculationSpecification(Id:="P262a_NSENEx1_Percent", Name:="P262a_NSENEx1_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1402,7 +1405,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="766eb6fdf92846d4a1644cb7fd809258")>
+    <Calculation(Id:="e34e5ab6fcd74a3eaa6551d89f0d0314")>
     <CalculationSpecification(Id:="P264_InYearEx1Subtotal", Name:="P264_InYearEx1Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1410,7 +1413,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="6800a605436d42c597e7e81c1c183f93")>
+    <Calculation(Id:="05b30f7ea2dd4b768693aa4febc34223")>
     <CalculationSpecification(Id:="P265_Ex2Subtotal", Name:="P265_Ex2Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1418,7 +1421,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3f973e935cc347b9b9ca56c7cb890032")>
+    <Calculation(Id:="a77581789d3e42fdb216715894df709c")>
     <CalculationSpecification(Id:="P266_NSENEx2", Name:="P266_NSENEx2")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1426,7 +1429,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3fcce7738cba48018dc1f24ee47e2e21")>
+    <Calculation(Id:="5a0dc9142c96495cba4b72d37ad61729")>
     <CalculationSpecification(Id:="P266a_NSENEx2_Percent", Name:="P266a_NSENEx2_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1434,7 +1437,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a5b44cb759e44f6fa569046e14ff12ec")>
+    <Calculation(Id:="faa521d55340429abcd0f3a2967d24e9")>
     <CalculationSpecification(Id:="P267_InYearEx2Subtotal", Name:="P267_InYearEx2Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1442,7 +1445,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8686054a7ea740b187fb58356f226690")>
+    <Calculation(Id:="6946bd1cbecc4b638677283b0962257c")>
     <CalculationSpecification(Id:="P269_Ex3Subtotal", Name:="P269_Ex3Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1450,7 +1453,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="41df3e3e84a4476e87f7b9d15e856efd")>
+    <Calculation(Id:="c23f6ae873d94955afecdef290310d82")>
     <CalculationSpecification(Id:="P270_NSENEx3", Name:="P270_NSENEx3")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1458,7 +1461,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="170c04b5707948b591891492e96ea7e4")>
+    <Calculation(Id:="88f4a0b047584d56a1889f4e70f642a1")>
     <CalculationSpecification(Id:="P270a_NSENEx3_Percent", Name:="P270a_NSENEx3_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1466,7 +1469,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3ef3b1c976094ddf9dae20af886d98b7")>
+    <Calculation(Id:="e5ef3cd2856840e9ad4368e76a7ee625")>
     <CalculationSpecification(Id:="P271_InYearEx3Subtotal", Name:="P271_InYearEx3Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1474,7 +1477,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2cc3a03442b84868a00592cbf7d10778")>
+    <Calculation(Id:="0733ce89403445459276a6c977c4c1bf")>
     <CalculationSpecification(Id:="P273_Ex4Subtotal", Name:="P273_Ex4Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1482,7 +1485,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a798fbb9a38347babed1e9008e59c4b5")>
+    <Calculation(Id:="42aaa0dd302a49d69d24afadae1cadc5")>
     <CalculationSpecification(Id:="P274_NSENEx4", Name:="P274_NSENEx4")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1490,7 +1493,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0ef135a05a2e4693aaacfd17370e5f1a")>
+    <Calculation(Id:="4bbbe5fc77dd4321b81f797da3108eeb")>
     <CalculationSpecification(Id:="P274a_NSENEx4_Percent", Name:="P274a_NSENEx4_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1498,7 +1501,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a7d878cbc14945c0b2c7e04a31d56b23")>
+    <Calculation(Id:="3e8df059acd84945b72d00682e05594a")>
     <CalculationSpecification(Id:="P275_InYearEx4Subtotal", Name:="P275_InYearEx4Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1506,7 +1509,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0161ae9a8d384364a547ccbc4988de6d")>
+    <Calculation(Id:="7cd07461b10b45c9bb084cf66eded4e7")>
     <CalculationSpecification(Id:="P277_Ex5Subtotal", Name:="P277_Ex5Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1514,7 +1517,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c9a9d0ab105d42bfbecec10a73566be7")>
+    <Calculation(Id:="189390f3e8a147a78bc44d5ab657e596")>
     <CalculationSpecification(Id:="P278_NSENEx5", Name:="P278_NSENEx5")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1522,7 +1525,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1590092494a447278077017d89978ad8")>
+    <Calculation(Id:="4f50f154f5e94c6999c76c9939e46070")>
     <CalculationSpecification(Id:="P278a_NSENEx5_Percent", Name:="P278a_NSENEx5_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1530,7 +1533,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0c60b3e5fd5e416993540a9b34b79312")>
+    <Calculation(Id:="9fce22377226436a985b0e13581781ea")>
     <CalculationSpecification(Id:="P279_InYearEx5Subtotal", Name:="P279_InYearEx5Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1538,7 +1541,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="78a6a479708c4eca87ce388ddefa44f8")>
+    <Calculation(Id:="f211de4244b84448bb7e06afb7db7684")>
     <CalculationSpecification(Id:="P281_Ex6Subtotal", Name:="P281_Ex6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1546,7 +1549,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1aaa9157844046a9ae11be3d6bc6b4a8")>
+    <Calculation(Id:="23152ec102564ebcb214ceae60b3ffac")>
     <CalculationSpecification(Id:="P282_NSENEx6", Name:="P282_NSENEx6")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1554,7 +1557,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e517f77456ce402fa8b4d8acadcf8686")>
+    <Calculation(Id:="eb55f9dc316e45bbbce3c252ace59bcf")>
     <CalculationSpecification(Id:="P282a_NSENEx6_Percent", Name:="P282a_NSENEx6_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1562,7 +1565,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="5fad1d4f24f047fc8d48da809d9cc332")>
+    <Calculation(Id:="0ad6e220907440439d401f06f9c7cb74")>
     <CalculationSpecification(Id:="P283_InYearEx6Subtotal", Name:="P283_InYearEx6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1570,7 +1573,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7f56782aa7714818aa04f1af438ca93d")>
+    <Calculation(Id:="325636dff08c4bafb81bfc5026fb95ea")>
     <CalculationSpecification(Id:="P284_NSENSubtotal", Name:="P284_NSENSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1578,7 +1581,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="05d78e76dc004315ad7b002e03160d19")>
+    <Calculation(Id:="af04ad1fd7174af3b86d105bce993540")>
     <CalculationSpecification(Id:="P285_InYearNSENSubtotal", Name:="P285_InYearNSENSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1586,7 +1589,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="94658bf6ad7e496193fb5433148e227b")>
+    <Calculation(Id:="73c691f6bf3e44d4b63e1ded5407122f")>
     <CalculationSpecification(Id:="P286_PriorYearAdjustmentSubtotal", Name:="P286_PriorYearAdjustmentSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1594,7 +1597,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="04d4b64cfacc41ad98ed25581ec32860")>
+    <Calculation(Id:="2400f55c491e4a9495e43337e94b04ef")>
     <CalculationSpecification(Id:="P287_InYearPriorYearAdjsutmentSubtotal", Name:="P287_InYearPriorYearAdjsutmentSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1602,7 +1605,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="84b225f7a8bc4159a336aa57f8fa80b2")>
+    <Calculation(Id:="6e7b3d98ca684c52bca3f763de4e047f")>
     <CalculationSpecification(Id:="P298_Growth", Name:="P298_Growth")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1610,7 +1613,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="868105010218474984214b52e1bc00e2")>
+    <Calculation(Id:="dcd5ffbeb04040b0a7c9d7a071e99f36")>
     <CalculationSpecification(Id:="P299_InYearGrowth", Name:="P299_InYearGrowth")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1618,7 +1621,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ea6a3ce499ce4f2db546c9e1ad187120")>
+    <Calculation(Id:="3b7306efa7b041fd880b2d38a5cea0cf")>
     <CalculationSpecification(Id:="P300_SBSOutcomeAdjustment", Name:="P300_SBSOutcomeAdjustment")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1626,7 +1629,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0a7f219c3bca413cb2746f9498587d53")>
+    <Calculation(Id:="b3222cd596b94da5bf44078ae0ab954e")>
     <CalculationSpecification(Id:="P301_InYearSBSOutcomeAdjustment", Name:="P301_InYearSBSOutcomeAdjustment")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -1634,7 +1637,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a988c57637744836ae5c83b102d50cc0")>
+    <Calculation(Id:="b5fdabc016244163936f9240b526e0c7")>
     <CalculationSpecification(Id:="P120_PPAindicator", Name:="P120_PPAindicator")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1642,7 +1645,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7d16dd21fc4f471483dd0df317b26c58")>
+    <Calculation(Id:="2dc925e27792488a965c4736a5de7481")>
     <CalculationSpecification(Id:="P121_PPAY5to6Proportion73", Name:="P121_PPAY5to6Proportion73")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1650,7 +1653,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="21cbf51267be4af49e0fd17d36511778")>
+    <Calculation(Id:="7f0a7b0ede4f49f8a788c4d4f4f3912f")>
     <CalculationSpecification(Id:="P122_PPAY5to6Proportion78", Name:="P122_PPAY5to6Proportion78")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1658,7 +1661,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="59b01738a7b945b2aa359f2a7c2adce8")>
+    <Calculation(Id:="6d6d37965d54493ab470e5d5b344e89d")>
     <CalculationSpecification(Id:="P122a_PPAY7378forFAPOnly", Name:="P122a_PPAY7378forFAPOnly")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1666,7 +1669,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4f857f7b24c549abaccd64da82d2648f")>
+    <Calculation(Id:="49e0bb8333e54a87bb31ce92f124e1db")>
     <CalculationSpecification(Id:="P123_PPAY1to4ProportionUnder", Name:="P123_PPAY1to4ProportionUnder")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1674,7 +1677,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="6f2701e54327469394fda1a46930a74c")>
+    <Calculation(Id:="0e3cd8bf834d4b499f9afc57570a749a")>
     <CalculationSpecification(Id:="P124_PPAY5to6NOR", Name:="P124_PPAY5to6NOR")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1682,7 +1685,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a213b4e624804d7f8fbe5e04926e1ad9")>
+    <Calculation(Id:="138ef123272d4b6ca70dc5f0114db691")>
     <CalculationSpecification(Id:="P125_PPAY1to4NOR", Name:="P125_PPAY1to4NOR")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1690,7 +1693,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e4f071742b474179ab7f67737d3acb17")>
+    <Calculation(Id:="178d14bb7587477081c4c6ccf2b97641")>
     <CalculationSpecification(Id:="P126_PPAPriNOR", Name:="P126_PPAPriNOR")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1698,7 +1701,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e533ad742e4f41a6abec07a3bd1cf147")>
+    <Calculation(Id:="8460c1fe4cff4fb7af5873d2d4fca51d")>
     <CalculationSpecification(Id:="P127_PPARate", Name:="P127_PPARate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1706,7 +1709,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="e72e801d77ee4eab917a97e4a1fa4bac")>
+    <Calculation(Id:="547a2071b94d4484a5cafa95e2853f63")>
     <CalculationSpecification(Id:="P128_PPAWeighting", Name:="P128_PPAWeighting")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1714,7 +1717,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="1e68e1a777cf489fb44be47be1370956")>
+    <Calculation(Id:="d606dbebb3c44f6591d9fbea7eac1372")>
     <CalculationSpecification(Id:="P129_PPAPupilsY5to6NotAchieving", Name:="P129_PPAPupilsY5to6NotAchieving")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1722,7 +1725,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f8b912f7353b4d48aa71011c2e7616de")>
+    <Calculation(Id:="dfc457972da646a99fe82ca9ad271f5c")>
     <CalculationSpecification(Id:="P130_PPAPupilsY1to4NotAchieving", Name:="P130_PPAPupilsY1to4NotAchieving")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1730,7 +1733,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="44d292d761af461f848eba03fdd3c005")>
+    <Calculation(Id:="6220ba2168764543b4083010cb482a83")>
     <CalculationSpecification(Id:="P131_PPATotalPupilsY1to6NotAchieving", Name:="P131_PPATotalPupilsY1to6NotAchieving")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1738,7 +1741,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="56005bcd409a4957bc635e4b6babcbe2")>
+    <Calculation(Id:="bf8bdfdd42944b7ea020b63abbaa3c7e")>
     <CalculationSpecification(Id:="P132_PPATotalProportionNotAchieving", Name:="P132_PPATotalProportionNotAchieving")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1746,7 +1749,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="b04f666b8f984c009c65626a03679207")>
+    <Calculation(Id:="7c901f87327c4d82b265ed651537c0c6")>
     <CalculationSpecification(Id:="P133_PPATotalFunding", Name:="P133_PPATotalFunding")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1754,7 +1757,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="546ba38d1b664d3285c3e1f493d38474")>
+    <Calculation(Id:="94adbf0afdeb4fc2b612f7320c5c7f4f")>
     <CalculationSpecification(Id:="P134_NSENPPA", Name:="P134_NSENPPA")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1762,7 +1765,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8b32f231aff0444abc520408f7ab3309")>
+    <Calculation(Id:="4ea30419c97e4ccebd5175d476ab4fcd")>
     <CalculationSpecification(Id:="P134a_NSENPPA_Percent", Name:="P134a_NSENPPA_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1770,7 +1773,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2af26702cc6e447392bc026be8a2145a")>
+    <Calculation(Id:="f1e88627c5084a2db7cd646e935bf7a4")>
     <CalculationSpecification(Id:="P135_InYearPPASubtotal", Name:="P135_InYearPPASubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1778,7 +1781,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="878d914b4a3b4914bb67eaa38ea619e4")>
+    <Calculation(Id:="904d2ad8919d4a1690b4b7afc3006972")>
     <CalculationSpecification(Id:="P136_SecPA_Y7Factor", Name:="P136_SecPA_Y7Factor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1786,7 +1789,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="b752fedefa7c4e8ab570676f2e0618bb")>
+    <Calculation(Id:="b00cc6c9592b434e98bb73bfc15fca18")>
     <CalculationSpecification(Id:="P136a_SecPA_Y7NationalWeight", Name:="P136a_SecPA_Y7NationalWeight")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1794,7 +1797,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="12a2de1ae9624e3f86a6190cfcb0efb6")>
+    <Calculation(Id:="6b435d2b2845496cb0e71e2dec89aca3")>
     <CalculationSpecification(Id:="P138_SecPARate", Name:="P138_SecPARate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1802,7 +1805,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="6870182b0bee43ffa45746f9a814f0d9")>
+    <Calculation(Id:="e4ffc8ed9db64a158e9f94069bdf6a4b")>
     <CalculationSpecification(Id:="P138a_SecPA_AdjustedSecFactor", Name:="P138a_SecPA_AdjustedSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1810,7 +1813,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0229788061554d8a8391edb2b4da7dd6")>
+    <Calculation(Id:="6d4bf2f891ef418c970f823f26f28493")>
     <CalculationSpecification(Id:="P139_SecPASubtotal", Name:="P139_SecPASubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1818,7 +1821,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="53ab7225e1894abaa2f4b926f7004828")>
+    <Calculation(Id:="a5527e1fe5fb4ce3af83edfd38d7bbf3")>
     <CalculationSpecification(Id:="P140_NSENSecPA", Name:="P140_NSENSecPA")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1826,7 +1829,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f164b88ea044426aa0e7ba2e66f74fc8")>
+    <Calculation(Id:="4d3849e82134400c8b344c7549bfd921")>
     <CalculationSpecification(Id:="P140a_NSENSecPA_Percent", Name:="P140a_NSENSecPA_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1834,7 +1837,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2180e75f3818466caef895acad886ff9")>
+    <Calculation(Id:="da6bdcab4b8f471d9359aaf2f59b7f56")>
     <CalculationSpecification(Id:="P141_InYearSecPASubtotal", Name:="P141_InYearSecPASubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -1842,7 +1845,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="af85d8d1a80b41c08c2d04d243a0e486")>
+    <Calculation(Id:="1c96bb8f699c4353ac3cc744b04125e2")>
     <CalculationSpecification(Id:="P185a_Phase", Name:="P185a_Phase")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1850,7 +1853,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="5c7226cdbb994a9ebdd4a6a6c0d347f1")>
+    <Calculation(Id:="fb1759a08ffb42169268fc2deb2302b8")>
     <CalculationSpecification(Id:="P186_SparsityTaperFlagPri", Name:="P186_SparsityTaperFlagPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1858,7 +1861,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="6c986fc7a80b4da78459b933e87d8683")>
+    <Calculation(Id:="18395849a8424d07b1c343f5a55161c1")>
     <CalculationSpecification(Id:="P187_SparsityTaperFlagMid", Name:="P187_SparsityTaperFlagMid")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1866,7 +1869,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="23ba5a138c444781b4d586b0be4f595d")>
+    <Calculation(Id:="65df19fab4d248518481a95fee775107")>
     <CalculationSpecification(Id:="P188_SparsityTaperFlagSec", Name:="P188_SparsityTaperFlagSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1874,7 +1877,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ed574a5ef04643a4a51239f0a8e1fb71")>
+    <Calculation(Id:="de7b43f0a7db452f92119edde0708673")>
     <CalculationSpecification(Id:="P189_SparsityTaperFlagAllThru", Name:="P189_SparsityTaperFlagAllThru")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1882,7 +1885,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="67fc3b0663574414a42e096d27af2dc9")>
+    <Calculation(Id:="8bfd8d93af984ea28f229cd91358d988")>
     <CalculationSpecification(Id:="P190_SparsityUnit", Name:="P190_SparsityUnit")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1890,7 +1893,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="29560ed08b31493b9a0572ba448f2c9e")>
+    <Calculation(Id:="a2d7470027774d3d99a9720152cdbe48")>
     <CalculationSpecification(Id:="P191_SparsityDistance", Name:="P191_SparsityDistance")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1898,7 +1901,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2b28630a6a8347df950c3b073fbf0caf")>
+    <Calculation(Id:="4573de5693db4dea9a2047c7a54de27f")>
     <CalculationSpecification(Id:="P192_SparsityDistThreshold", Name:="P192_SparsityDistThreshold")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1906,7 +1909,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="add3a6ccbbbf481495c0285ac5845f3b")>
+    <Calculation(Id:="66ef3a1b939041bda40afcdf0094e1f7")>
     <CalculationSpecification(Id:="P193_SparsityDistMet_YN", Name:="P193_SparsityDistMet_YN")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1914,7 +1917,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="ff9e777752ed4633b8cd0255d3f644d0")>
+    <Calculation(Id:="cd5ad383e836420d899b14148fa6efec")>
     <CalculationSpecification(Id:="P194_SparsityAveYGSize", Name:="P194_SparsityAveYGSize")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1922,7 +1925,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="630e1b45129748d9a110490c065b490e")>
+    <Calculation(Id:="8fcdac1a7f5d4f62a0efb552708dbe3c")>
     <CalculationSpecification(Id:="P195_SparsityYGThreshold", Name:="P195_SparsityYGThreshold")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1930,7 +1933,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="85e65ca5b9534f77af9dc1b8f1699894")>
+    <Calculation(Id:="ff666c59cf2b4c99a5d78219fdcd668d")>
     <CalculationSpecification(Id:="P196_SparsityYGThresholdMet_YN", Name:="P196_SparsityYGThresholdMet_YN")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1938,7 +1941,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3bb82f2d3c4d43acb46d4902aa6feff3")>
+    <Calculation(Id:="14cb936d28d248c3bd6bfc153524ccb1")>
     <CalculationSpecification(Id:="P197_SparsityLumpSumSubtotal", Name:="P197_SparsityLumpSumSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1946,7 +1949,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="77f3a2943ee144979cd7ab93f77c0397")>
+    <Calculation(Id:="2c1d4e925d174efe884796a349af2001")>
     <CalculationSpecification(Id:="P198_SparsityTaperSubtotal", Name:="P198_SparsityTaperSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1954,7 +1957,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d46768b1db744eb2bbeb8d431e5ea3fd")>
+    <Calculation(Id:="78bcee0f652e4ec6a9af2d312da17c75")>
     <CalculationSpecification(Id:="P198a_SubtotalLump_Taper_For_FAP_Only", Name:="P198a_SubtotalLump_Taper_For_FAP_Only")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1962,7 +1965,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="83fd0e259ef74410b80b58c5569ac821")>
+    <Calculation(Id:="a64585e3f3304369abcc7ed18b67e10f")>
     <CalculationSpecification(Id:="P199_InYearSparsityLumpSumSubtotal", Name:="P199_InYearSparsityLumpSumSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1970,7 +1973,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d8989be8c5aa45d888c6c1c042f05079")>
+    <Calculation(Id:="e1c65aca144a467b9bbdb6cafb3802a8")>
     <CalculationSpecification(Id:="P200_InYearSparsityTaperSubtotal", Name:="P200_InYearSparsityTaperSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1978,7 +1981,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="3c9bc50d6ffa40398fcf6201b8fab45f")>
+    <Calculation(Id:="2c7552cb1eb244f2b74f9625b6781c10")>
     <CalculationSpecification(Id:="P200a_InYear_SubtotalLump_Taper_for_FAP_Only", Name:="P200a_InYear_SubtotalLump_Taper_for_FAP_Only")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1986,7 +1989,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="95c7f03d53d44412b303997be55d4193")>
+    <Calculation(Id:="6c0c8b2c44364981b09d922dd739de53")>
     <CalculationSpecification(Id:="P212_PYG", Name:="P212_PYG")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -1994,7 +1997,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="95f2604a28354283b62d60c44366378a")>
+    <Calculation(Id:="04bd9b06e641476391658ecc32216024")>
     <CalculationSpecification(Id:="P213_SYG", Name:="P213_SYG")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -2002,7 +2005,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="386ce5fab79741a7a78c399e4a6d13b5")>
+    <Calculation(Id:="7c0a5de08d6b40f3834ffb02f573a0bb")>
     <CalculationSpecification(Id:="P236_NSENSparsity", Name:="P236_NSENSparsity")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -2010,7 +2013,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8912e75815164b509f1cf6de0fc1eee0")>
+    <Calculation(Id:="97d7bfd5fb8347658c7e2933229069ff")>
     <CalculationSpecification(Id:="P236a_NSENSparsity_Percent", Name:="P236a_NSENSparsity_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -2018,7 +2021,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a6a6830b13e345e1b3267b500cd266b7")>
+    <Calculation(Id:="fe44ebd121794883b5f7dd087d643ca1")>
     <CalculationSpecification(Id:="P249_SplitSiteSubtotal", Name:="P249_SplitSiteSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="6857aab8747c4d699b69bba5858b98a3", Name:="Split Sites")>
@@ -2026,7 +2029,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7b176c76b8f44c0997c460d4b49c95ee")>
+    <Calculation(Id:="73633a0203134376907deb08020b8df8")>
     <CalculationSpecification(Id:="P250_NSENSplitSites", Name:="P250_NSENSplitSites")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="6857aab8747c4d699b69bba5858b98a3", Name:="Split Sites")>
@@ -2034,7 +2037,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="fb3d7d547c4c40728d595d211b48cf0a")>
+    <Calculation(Id:="dc86934c17cb4cb6a7642149338e6ea7")>
     <CalculationSpecification(Id:="P250a_NSENSplitSites_Percent", Name:="P250a_NSENSplitSites_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="6857aab8747c4d699b69bba5858b98a3", Name:="Split Sites")>
@@ -2042,7 +2045,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="dcf6aaf78ec74af39d35c19e2efb5d99")>
+    <Calculation(Id:="8be9cb2c16b3453699c96cc89f45b4a1")>
     <CalculationSpecification(Id:="P251_InYearSplitSitesSubtotal", Name:="P251_InYearSplitSitesSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="6857aab8747c4d699b69bba5858b98a3", Name:="Split Sites")>
@@ -2050,7 +2053,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="6be9a2a1d5fe464199e14e624f742745")>
+    <Calculation(Id:="8268a2e5b786495d9966fa5d940d2e0e")>
     <CalculationSpecification(Id:="P001_1718DaysOpen", Name:="P001_1718DaysOpen")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -2058,7 +2061,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="08f1bd09d0994c21ba603a50b9230af0")>
+    <Calculation(Id:="4755a0f73e8f4055b85b15dc7d279e62")>
     <CalculationSpecification(Id:="Lump_Sum_Total", Name:="Lump_Sum_Total")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -2066,7 +2069,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7c1f0e11c8b745f0bf1eaddcc40ca525")>
+    <Calculation(Id:="78e4228727c9450589af55206498c863")>
     <CalculationSpecification(Id:="InYearLumpSum", Name:="InYearLumpSum")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -2074,7 +2077,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="78616c442ee841a8bd74b30b8949faa3")>
+    <Calculation(Id:="69749d36117e4d699ca1151f30bcf20b")>
     <CalculationSpecification(Id:="P288_SBSFundingTotal", Name:="P288_SBSFundingTotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -2082,7 +2085,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="72a3b1e2dbde42bcb662cb6fbd9c9b79")>
+    <Calculation(Id:="3e40f9bd26624c07b5991a1f89326431")>
     <CalculationSpecification(Id:="P289_InYearSBSFundingTotal", Name:="P289_InYearSBSFundingTotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -2090,7 +2093,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="47489129c0c54a60b57efcfb6c83149b")>
+    <Calculation(Id:="f4d978f35fd64e3aa99fe23004282a93")>
     <CalculationSpecification(Id:="P290_ISBTotalSBSFunding", Name:="P290_ISBTotalSBSFunding")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -2098,7 +2101,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="52e64dcea6494ab49fd25bc7bf7e7124")>
+    <Calculation(Id:="609dc41f82e24226b31ee57a0242013b")>
     <CalculationSpecification(Id:="P291_TotalPupilLedFactors", Name:="P291_TotalPupilLedFactors")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -2106,7 +2109,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8464b4aaff3c4ee8bf6bfca34c342ea8")>
+    <Calculation(Id:="70089690fd904dd7b22909f71c155cec")>
     <CalculationSpecification(Id:="P292_InYearTotalPupilLedfactors", Name:="P292_InYearTotalPupilLedfactors")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -2114,7 +2117,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="0248dd0f1c1c4b77a1b002f07bd2b138")>
+    <Calculation(Id:="e147d694dd9a4312be58c97ebc22fb85")>
     <CalculationSpecification(Id:="P293_TotalOtherFactors", Name:="P293_TotalOtherFactors")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -2122,7 +2125,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="c941a80a52bf4efda7afa187178a82a1")>
+    <Calculation(Id:="3ef5e20ba20b43ec99214ebe40aef4b8")>
     <CalculationSpecification(Id:="P293a_TotalOtherFactors_NoExc", Name:="P293a_TotalOtherFactors_NoExc")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -2130,7 +2133,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="5907ea2f4a764a2e8a226cd231f2e042")>
+    <Calculation(Id:="28792fce5fab4e6b91465ba461333c45")>
     <CalculationSpecification(Id:="P294_InYearTotalOtherFactors", Name:="P294_InYearTotalOtherFactors")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -2138,7 +2141,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="359aead344c243f2bf2767ebe5742a0b")>
+    <Calculation(Id:="fa0c4502b6c549fe8d12a321739e4d4c")>
     <CalculationSpecification(Id:="P294a_InYearTotalOtherFactors_NoExc", Name:="P294a_InYearTotalOtherFactors_NoExc")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -2146,7 +2149,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2af9e934d74e4cfcb4bcdad646164b0a")>
+    <Calculation(Id:="61248cbc75d544d9a8d5547e3b04ad57")>
     <CalculationSpecification(Id:="P295_Dedelegation", Name:="P295_Dedelegation")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -2154,7 +2157,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="bde3f6dccd7845778bd44c742b67b27b")>
+    <Calculation(Id:="d84f5013c6fc44bfbc7516d6e8001f19")>
     <CalculationSpecification(Id:="P296_InYearDedelegation", Name:="P296_InYearDedelegation")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>

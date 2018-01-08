@@ -91,7 +91,13 @@ namespace CalculateFunding.EndToEnd
                 impl.Build = compiler.GenerateCode(sourceFiles);
                 foreach (var sourceFile in impl.Build.SourceFiles)
                 {
-                    File.WriteAllText($@"..\Spikes\{impl.TargetLanguage.ToString()}\{sourceFile.FileName}", sourceFile.SourceCode);
+                    var fileName = $@"..\Spikes\{impl.TargetLanguage.ToString()}\{sourceFile.FileName}";
+                    var path = Path.GetDirectoryName(fileName);
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+                    File.WriteAllText(fileName, sourceFile.SourceCode);
                 }
 
 

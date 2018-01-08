@@ -16,16 +16,17 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
             var syntaxTree = SyntaxFactory.CompilationUnit()
                 .WithImports(StandardImports())
-                .WithMembers(
-                    SyntaxFactory.SingletonList<StatementSyntax>(
+                
+                .WithMembers(SyntaxFactory.SingletonList<StatementSyntax>(
             SyntaxFactory.ClassBlock(
                 SyntaxFactory.ClassStatement(
                         Identifier("Calculations")
                     )
+                    
                     .WithModifiers(
                         SyntaxFactory.TokenList(
                             SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
-                new SyntaxList<InheritsStatementSyntax>(),
+                new SyntaxList<InheritsStatementSyntax>(SyntaxFactory.InheritsStatement(SyntaxFactory.ParseTypeName("CalculationBase"))),
                 new SyntaxList<ImplementsStatementSyntax>(),
                 SyntaxFactory.List(Methods(budget)),
                 SyntaxFactory.EndClassStatement()
@@ -37,13 +38,13 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             yield return new SourceFile {FileName = "Calculations.vb", SourceCode = syntaxTree.ToFullString()};
         }
 
-        private static IEnumerable<StatementSyntax> Methods(Implementation budget)
+        private static IEnumerable<StatementSyntax> Methods(Implementation implementation)
         {
-            foreach (var budgetDatasetDefinition in budget.DatasetDefinitions)
+            foreach (var budgetDatasetDefinition in implementation.DatasetDefinitions)
             {
                 yield return GetDatasetProperties(budgetDatasetDefinition);
             }
-            foreach (var calc in budget.Calculations)
+            foreach (var calc in implementation.Calculations)
             {
                 yield return GetMethod(calc);
             }

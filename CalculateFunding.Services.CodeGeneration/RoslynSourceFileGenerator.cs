@@ -35,22 +35,6 @@ namespace CalculateFunding.Services.CodeGeneration
 
         }
 
-        protected IEnumerable<SourceFile> GenerateStaticSourceFiles(Assembly assembly, params string[] sourceFileSuffixes)
-        {
-            var codeFiles = assembly.GetManifestResourceNames().Where(x => sourceFileSuffixes.Any(x.EndsWith));
-            foreach (var codeFile in codeFiles)
-            {
-                using (var stream = assembly.GetManifestResourceStream(codeFile))
-                {
-                    using (var reader = new StreamReader(stream))
-                    {
-                        var split = codeFile.Split('.');
-                        yield return new SourceFile { FileName = $"{split.Reverse().Skip(1).First()}.{split.Last()}", SourceCode = reader.ReadToEnd() };
-                    }
-
-                }
-            }
-        }
 
         protected abstract IEnumerable<SourceFile> GenerateProductSourceFiles(Implementation budget);
         protected abstract IEnumerable<SourceFile> GenerateDatasetSourceFiles(Implementation budget);

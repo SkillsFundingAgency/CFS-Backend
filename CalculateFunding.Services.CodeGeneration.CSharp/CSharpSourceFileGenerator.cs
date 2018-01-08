@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
 
         protected override IEnumerable<SourceFile> GenerateStaticSourceFiles(Implementation budget)
         {
-            return GenerateStaticSourceFiles(Assembly.GetExecutingAssembly(), ".cs", ".csproj");
+            return null;
         }
 
         public override string GetIdentifier(string name)

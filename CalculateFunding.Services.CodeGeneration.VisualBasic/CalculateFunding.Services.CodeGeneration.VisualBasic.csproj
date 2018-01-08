@@ -6,17 +6,19 @@
 
   <ItemGroup>
     <None Remove="CodeResources\AllocationLineAttribute.vb" />
+    <None Remove="CodeResources\BaseCalculation.vb" />
     <None Remove="CodeResources\CalculationAttribute.vb" />
     <None Remove="CodeResources\CalculationSpecificationAttribute.vb" />
     <None Remove="CodeResources\PolicySpecificationAttribute.vb" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="CodeResources\AllocationLineAttribute.vb" />
+    <EmbeddedResource Include="CodeResources\Common\Attributes\AllocationLineAttribute.vb" />
     <EmbeddedResource Include="CodeResources\CalculateFunding.vbproj" />
-    <EmbeddedResource Include="CodeResources\CalculationAttribute.vb" />
-    <EmbeddedResource Include="CodeResources\CalculationSpecificationAttribute.vb" />
-    <EmbeddedResource Include="CodeResources\PolicySpecificationAttribute.vb" />
+    <EmbeddedResource Include="CodeResources\Common\BaseCalculation.vb" />
+    <EmbeddedResource Include="CodeResources\Common\Attributes\CalculationAttribute.vb" />
+    <EmbeddedResource Include="CodeResources\Common\Attributes\CalculationSpecificationAttribute.vb" />
+    <EmbeddedResource Include="CodeResources\Common\Attributes\PolicySpecificationAttribute.vb" />
   </ItemGroup>
 
   <ItemGroup>
