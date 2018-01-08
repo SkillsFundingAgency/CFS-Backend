@@ -63,7 +63,7 @@ namespace CalculateFunding.Functions.Common
 
         }
 
-        private async Task<IActionResult> OnPost(TCommand command, ILogger logger)
+        public async Task<IActionResult> OnPost(TCommand command, ILogger logger)
         {
             logger.LogInformation($"Processing {typeof(TCommand).Name} POST command {command.Id}");
             var repository = ServiceFactory.GetService<CosmosRepository>();

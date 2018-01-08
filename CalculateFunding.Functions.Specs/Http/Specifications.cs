@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Linq.Expressions;
 using System;
 using System.Linq;
+using AutoMapper;
 
 namespace CalculateFunding.Functions.Specs.Http
 {
@@ -46,6 +47,10 @@ namespace CalculateFunding.Functions.Specs.Http
         public static async Task<IActionResult> RunCommands(
             [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
         {
+            //req.HttpContext.RequestServices.GetService(typeof(IMappaer))
+            //var mapper = ServiceFactory.GetService<IMapper>();
+
+            var model = await req.ReadAsStringAsync();
             var restMethods = new RestCommandMethods<Specification, SpecificationCommand>("spec-events");
             return await restMethods.Run(req, log);
         }

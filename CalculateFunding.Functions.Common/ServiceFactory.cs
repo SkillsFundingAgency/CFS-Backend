@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Providers;
@@ -14,6 +15,7 @@ using CalculateFunding.Services.DataImporter;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using CalculateFunding.Services.Specs.Interfaces;
 using Serilog;
 
 namespace CalculateFunding.Functions.Common
@@ -37,6 +39,8 @@ namespace CalculateFunding.Functions.Common
 
             var config = builder.Build();
 
+            MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
+
             var serviceCollection = new ServiceCollection()
                 .AddSingleton(new LoggerFactory()
                     .AddConsole()
@@ -58,11 +62,13 @@ namespace CalculateFunding.Functions.Common
                     SearchServiceName = config["SearchServiceName"],
                     SearchKey = config["SearchServiceKey"]
                 }))
+                .AddSingleton(mappingConfig.CreateMapper())
                 .AddTransient<CSharpCompiler>()
                 .AddTransient<VisualBasicCompiler>()
                 .AddTransient<BudgetCompiler>()
                 .AddTransient<DataImporterService>()
                 .AddTransient<CalculationEngine>()
+                .AddTransient<ISpecificationsService, SpecificationsService>()
                 .BuildServiceProvider();
 
             Log.Logger = new LoggerConfiguration()
