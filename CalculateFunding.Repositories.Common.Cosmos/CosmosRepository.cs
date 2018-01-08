@@ -17,7 +17,6 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 {
     public class CosmosRepository
     {
-        private readonly ILogger _logger;
         private readonly string _collectionName;
         private readonly string _partitionKey;
         private readonly string _databaseName;
@@ -25,9 +24,8 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         private readonly Uri _collectionUri;
         private ResourceResponse<DocumentCollection> _collection;
 
-        public CosmosRepository(RepositorySettings settings, ILogger logger)
+        public CosmosRepository(RepositorySettings settings)
         {
-            _logger = logger;
             _collectionName = settings.CollectionName;
             _partitionKey = settings.PartitionKey;
             _databaseName = settings.DatabaseName;
@@ -61,8 +59,6 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
 
         }
-
-
 
         public async Task SetThroughput(int requestUnits)
         {

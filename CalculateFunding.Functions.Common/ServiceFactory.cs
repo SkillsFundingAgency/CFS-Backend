@@ -15,7 +15,6 @@ using CalculateFunding.Services.DataImporter;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using CalculateFunding.Services.Specs.Interfaces;
 using Serilog;
 
 namespace CalculateFunding.Functions.Common
@@ -39,7 +38,7 @@ namespace CalculateFunding.Functions.Common
 
             var config = builder.Build();
 
-            MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
+           
 
             var serviceCollection = new ServiceCollection()
                 .AddSingleton(new LoggerFactory()
@@ -54,7 +53,7 @@ namespace CalculateFunding.Functions.Common
                     DatabaseName = config["CosmosDBDatabaseName"],
                     CollectionName = config["CosmosDBCollectionName"]
                     
-                }, null))
+                }))
                 .AddSingleton<IMessenger>(new Messenger(config["ServiceBusConnectionString"]))
                 .AddSingleton(new MessagePump(config["ServiceBusConnectionString"]))
                 .AddSingleton(new SearchRepository<ProviderIndex>(new SearchRepositorySettings
@@ -62,13 +61,12 @@ namespace CalculateFunding.Functions.Common
                     SearchServiceName = config["SearchServiceName"],
                     SearchKey = config["SearchServiceKey"]
                 }))
-                .AddSingleton(mappingConfig.CreateMapper())
+               
                 .AddTransient<CSharpCompiler>()
                 .AddTransient<VisualBasicCompiler>()
                 .AddTransient<BudgetCompiler>()
                 .AddTransient<DataImporterService>()
                 .AddTransient<CalculationEngine>()
-                .AddTransient<ISpecificationsService, SpecificationsService>()
                 .BuildServiceProvider();
 
             Log.Logger = new LoggerConfiguration()

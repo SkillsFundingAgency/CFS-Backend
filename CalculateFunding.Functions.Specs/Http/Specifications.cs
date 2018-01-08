@@ -6,53 +6,49 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Linq.Expressions;
 using System;
 using System.Linq;
 using AutoMapper;
+using CalculateFunding.Services.Specs.Interfaces;
 
 namespace CalculateFunding.Functions.Specs.Http
 {
     public static class Specifications
     {
         [FunctionName("specifications")]
-        public static async Task<IActionResult> Run(
+        public static Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
         {
-            var restMethods = new RestGetMethods<Specification>();
-            return await restMethods.Run(req, log, "specificationId");
+            IServiceProvider provider = IocConfig.Build();
+
+            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
+            return svc.GetSpecificationById(req);
         }
 
         [FunctionName("specifications-by-year")]
-        public static async Task<IActionResult> RunSpecificationsByYear(
+        public static Task<IActionResult> RunSpecificationsByYear(
             [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
         {
-            var restMethods = new RestGetMethods<Specification>();
+            IServiceProvider provider = IocConfig.Build();
 
-            req.Query.TryGetValue("academicYearId", out var yearId);
+            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
 
-            var academicYearId = yearId.FirstOrDefault();
-
-            if (string.IsNullOrWhiteSpace(academicYearId))
-                return new BadRequestObjectResult("The required academic year id was not provided");
-
-            Expression<Func<Specification, bool>> query = m => m.AcademicYear.Id == academicYearId;
-
-            return await restMethods.Run(log, query);
+            return svc.GetSpecificationByAcademicYearId(req);
         }
 
-        [FunctionName("specifications-commands")]
-        public static async Task<IActionResult> RunCommands(
+        [FunctionName("specifications-create")]
+        public static async Task<IActionResult> RunCreateSpecification(
             [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
         {
-            //req.HttpContext.RequestServices.GetService(typeof(IMappaer))
-            //var mapper = ServiceFactory.GetService<IMapper>();
+            IServiceProvider provider =   IocConfig.Build();
 
-            var model = await req.ReadAsStringAsync();
-            var restMethods = new RestCommandMethods<Specification, SpecificationCommand>("spec-events");
-            return await restMethods.Run(req, log);
+            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
+
+            return await svc.CreateSpecification(req);
         }
     }
 }
