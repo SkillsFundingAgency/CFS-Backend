@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
@@ -18,28 +20,17 @@ namespace CalculateFunding.Services.Compiler.CSharp
         {
         }
 
-        protected override SyntaxTree GenerateProductSyntaxTree(Implementation implementation)
-        {
-            var productTypeGenerator = new ProductTypeGenerator();
-            var calcSyntaxTree = productTypeGenerator.GenerateCalcs(implementation).SyntaxTree;
-            return calcSyntaxTree;
-        }
 
-        protected override SyntaxTree GenerateDatasetSyntaxTree(Implementation implementation)
-        {
-            var datasetTypeGenerator = new DatasetTypeGenerator();
-            return datasetTypeGenerator.GenerateDataset(implementation).SyntaxTree;
-        }
-
-        protected override EmitResult GenerateCode(MetadataReference[] references, MemoryStream ms, SyntaxTree datasetSyntaxTree,
-            SyntaxTree calcSyntaxTree)
+        protected override EmitResult Compile(MetadataReference[] references, MemoryStream ms, List<SourceFile> sourceFiles)
         {
             var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
+            var syntaxTrees = sourceFiles.Where(x => x.FileName.EndsWith(".cs"))
+                .Select(x => SyntaxFactory.ParseSyntaxTree(x.SourceCode));
+
             var compilation = CSharpCompilation.Create("budget")
                 .WithOptions(options)
-                .AddSyntaxTrees(datasetSyntaxTree)
-                .AddSyntaxTrees(calcSyntaxTree)
+                .AddSyntaxTrees(syntaxTrees)
                 .AddReferences(references);
 
 
@@ -47,9 +38,5 @@ namespace CalculateFunding.Services.Compiler.CSharp
             return result;
         }
 
-        public override string GetIdentifier(string name)
-        {
-            return CSharpTypeGenerator.Identifier(name);
-        }
     }
 }

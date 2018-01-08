@@ -18,56 +18,23 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
         {         
         }
 
-        protected override EmitResult GenerateCode(MetadataReference[] references, MemoryStream ms, SyntaxTree datasetSyntaxTree,
-            SyntaxTree calcSyntaxTree)
+        protected override EmitResult Compile(MetadataReference[] references, MemoryStream ms, List<SourceFile> sourceFiles)
         {
             var options = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
+            var syntaxTrees = sourceFiles.Where(x => x.FileName.EndsWith(".vb"))
+                .Select(x => SyntaxFactory.ParseSyntaxTree(x.SourceCode));
 
-            var compilation = VisualBasicCompilation.Create("budget")
+
+
+            var compilation = VisualBasicCompilation.Create("implementation.dll")
                 .WithOptions(options)
-                .AddSyntaxTrees(GetCodeResourcesSyntaxTree().ToArray())
-                .AddSyntaxTrees(datasetSyntaxTree)
-                .AddSyntaxTrees(calcSyntaxTree)
+                .AddSyntaxTrees(syntaxTrees)
                 .AddReferences(references);
 
 
             return compilation.Emit(ms);
         }
 
-        private IEnumerable<SyntaxTree> GetCodeResourcesSyntaxTree()
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            var codeFiles = assembly.GetManifestResourceNames().Where(x => x.EndsWith(".vb"));
-            foreach (var codeFile in codeFiles)
-            {
-                using (var stream = assembly.GetManifestResourceStream(codeFile))
-                {
-                    using (var reader = new StreamReader(stream))
-                    {
-                        yield return VisualBasicSyntaxTree.ParseText(reader.ReadToEnd());
-                    }
-
-                }
-            }
-        }
-
-
-        protected override SyntaxTree GenerateProductSyntaxTree(Implementation budget)
-        {
-            var productTypeGenerator = new ProductTypeGenerator();
-            return productTypeGenerator.GenerateCalcs(budget).SyntaxTree;
-        }
-
-        protected override SyntaxTree GenerateDatasetSyntaxTree(Implementation budget)
-        {
-            var datasetTypeGenerator = new DatasetTypeGenerator();
-            return datasetTypeGenerator.GenerateDatasets(budget).SyntaxTree;
-        }
-
-        public override string GetIdentifier(string name)
-        {
-            return VisualBasicTypeGenerator.Identifier(name);
-        }
     }
 }

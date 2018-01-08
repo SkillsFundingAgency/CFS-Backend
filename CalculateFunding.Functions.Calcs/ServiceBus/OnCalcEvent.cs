@@ -38,8 +38,19 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             impl.Calculations = impl.Calculations ?? new List<Calculation>();
 
 
-            var compiler = ServiceFactory.GetService<BudgetCompiler>();
-            impl.Build = compiler.GenerateAssembly(command.Content);
+            var generatorFactory = ServiceFactory.GetService<SourceFileGeneratorFactory>();
+
+
+
+            var generator = generatorFactory.GetCompiler(impl.TargetLanguage);
+
+            var sourceFiles = generator.GenerateCode(impl);
+
+            var compilerFactory = ServiceFactory.GetService<CompilerFactory>();
+
+            var compiler = compilerFactory.GetCompiler(sourceFiles);
+
+            impl.Build = compiler.GenerateCode(sourceFiles);
 
             if (impl.Build.Success)
             {

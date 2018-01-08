@@ -58,9 +58,12 @@ namespace CalculateFunding.Functions.Common
                     SearchServiceName = config["SearchServiceName"],
                     SearchKey = config["SearchServiceKey"]
                 }))
+                .AddTransient<CSharpSourceFileGenerator>()
+                .AddTransient<VisualBasicSourceFileGenerator>()
+                .AddTransient<SourceFileGeneratorFactory>()
                 .AddTransient<CSharpCompiler>()
                 .AddTransient<VisualBasicCompiler>()
-                .AddTransient<BudgetCompiler>()
+                .AddTransient<CompilerFactory>()
                 .AddTransient<DataImporterService>()
                 .AddTransient<CalculationEngine>()
                 .BuildServiceProvider();

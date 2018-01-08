@@ -11,22 +11,28 @@ namespace CalculateFunding.Services.Compiler.CSharp
 
     public class DatasetTypeGenerator : CSharpTypeGenerator
     {
-        public CompilationUnitSyntax GenerateDataset(Implementation budget)
+        public IEnumerable<SourceFile> GenerateDataset(Implementation budget)
         {
-            var classes = budget.DatasetDefinitions.Select(datasetDefinition => SyntaxFactory.ClassDeclaration(Identifier($"{datasetDefinition.Name}Dataset"))
-                .WithModifiers(
-                    SyntaxFactory.TokenList(
-                        SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                .WithMembers(
-                    SyntaxFactory.List(GetMembers(datasetDefinition)
-                    ))
-            );
+            foreach (var dataset in budget.DatasetDefinitions)
+            {
+                var @class = SyntaxFactory.ClassDeclaration(Identifier($"{dataset.Name}Dataset"))
+                    .WithModifiers(
+                        SyntaxFactory.TokenList(
+                            SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                    .WithMembers(
+                        SyntaxFactory.List(GetMembers(dataset)
+                        )
+                    );
 
-            return SyntaxFactory.CompilationUnit()
-                .WithUsings(StandardUsings())
-                .WithMembers(
-                    SyntaxFactory.List<MemberDeclarationSyntax>(classes))
-                .NormalizeWhitespace();
+                var syntaxTree =  SyntaxFactory.CompilationUnit()
+                    .WithUsings(StandardUsings())
+                    .WithMembers(
+                        SyntaxFactory.SingletonList<MemberDeclarationSyntax>(@class))
+                    .NormalizeWhitespace();
+
+                yield return new SourceFile { FileName = $"{Identifier($"{dataset.Name}Dataset")}.cs", SourceCode = syntaxTree.ToFullString() };
+            }
+
         }
 
         private static IEnumerable<MemberDeclarationSyntax> GetMembers(DatasetDefinition datasetDefinition)

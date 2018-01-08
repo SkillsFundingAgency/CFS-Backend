@@ -11,29 +11,33 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
 
     public class DatasetTypeGenerator : VisualBasicTypeGenerator
     {
-        public CompilationUnitSyntax GenerateDatasets(Implementation budget)
+        public IEnumerable<SourceFile> GenerateDatasets(Implementation budget)
         {
+            foreach (var dataset in budget.DatasetDefinitions)
+            {
+                var @class =  SyntaxFactory.ClassBlock(
+                    SyntaxFactory.ClassStatement(
+                            Identifier($"{dataset.Name}Dataset")
+                        )
+                        .WithModifiers(
+                            SyntaxFactory.TokenList(
+                                SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
+                    new SyntaxList<InheritsStatementSyntax>(),
+                    new SyntaxList<ImplementsStatementSyntax>(),
+                    SyntaxFactory.List(GetMembers(dataset)),
+                    SyntaxFactory.EndClassStatement()
 
-            var classes = budget.DatasetDefinitions.Select(x => SyntaxFactory.ClassBlock(
-                SyntaxFactory.ClassStatement(
-                        Identifier($"{x.Name}Dataset")
-                    )
-                    .WithModifiers(
-                        SyntaxFactory.TokenList(
-                            SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
-                new SyntaxList<InheritsStatementSyntax>(),
-                new SyntaxList<ImplementsStatementSyntax>(),
-                SyntaxFactory.List(GetMembers(x)),
-                SyntaxFactory.EndClassStatement()
+                );
+
+                var syntaxTree = SyntaxFactory.CompilationUnit()
+                    .WithImports(StandardImports())
+                    .WithMembers(
+                        SyntaxFactory.SingletonList<StatementSyntax>(@class))
+                    .NormalizeWhitespace();
+                yield return new SourceFile { FileName = $"{Identifier($"{dataset.Name}Dataset")}.vb", SourceCode = syntaxTree.ToFullString() };
+            }
 
 
-            ));
-
-            return SyntaxFactory.CompilationUnit()
-                .WithImports(StandardImports())
-                .WithMembers(
-                    SyntaxFactory.List<StatementSyntax>(classes))
-                .NormalizeWhitespace();
 
         }
 

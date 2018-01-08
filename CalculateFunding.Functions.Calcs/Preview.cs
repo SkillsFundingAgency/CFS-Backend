@@ -53,8 +53,18 @@ namespace CalculateFunding.Functions.Calcs
                 // If we are given a scenario then remove everything else
                 calcTest.TestScenarios = new List<TestScenario>{ request.TestScenario};
             }
-            var compiler = ServiceFactory.GetService<BudgetCompiler>();
-            var compilerOutput = compiler.GenerateAssembly(budget.Content);
+            var generatorFactory = ServiceFactory.GetService<SourceFileGeneratorFactory>();
+
+
+            var generator = generatorFactory.GetCompiler(budget.Content.TargetLanguage);
+
+            var sourceFiles = generator.GenerateCode(budget.Content);
+
+            var compilerFactory = ServiceFactory.GetService<CompilerFactory>();
+
+            var compiler = compilerFactory.GetCompiler(sourceFiles);
+
+            var compilerOutput = compiler.GenerateCode(sourceFiles);
                 
 
             var viewModel = new PreviewResponse()

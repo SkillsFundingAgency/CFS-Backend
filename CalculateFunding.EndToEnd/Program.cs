@@ -28,6 +28,7 @@ using Microsoft.Azure.WebJobs.Extensions.Timers;
 using CalculateFunding.Functions.Datasets.Http;
 using CalculateFunding.Functions.Results.Http;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Services.Compiler.VisualBasic;
 
 namespace CalculateFunding.EndToEnd
 {
@@ -52,8 +53,7 @@ namespace CalculateFunding.EndToEnd
                 var scope = JsonConvert.DeserializeObject<SpecificationScope>(scopeJson);
 
 
-                var compiler = ServiceFactory.GetService<BudgetCompiler>();
-
+ 
                 var impl = new Implementation
                 {
                     Id = Reference.NewId(),
@@ -68,8 +68,25 @@ namespace CalculateFunding.EndToEnd
 
                 impl.Calculations.AddRange(spec.GenerateCalculations());
 
-                impl.Build = compiler.GenerateAssembly(impl);
-                File.WriteAllText(@"..\Spikes\VisualBasicCore\VisualBasicCore\Calculations.vb", impl.Build.CalculationSourceCode);
+                var generatorFactory = ServiceFactory.GetService<SourceFileGeneratorFactory>();
+
+
+
+                var generator = generatorFactory.GetCompiler(impl.TargetLanguage);
+
+                var sourceFiles = generator.GenerateCode(impl);
+
+                var compilerFactory = ServiceFactory.GetService<CompilerFactory>();
+
+                var compiler = compilerFactory.GetCompiler(sourceFiles);
+
+
+                impl.Build = compiler.GenerateCode(sourceFiles);
+                foreach (var sourceFile in impl.Build.SourceFiles)
+                {
+                    File.WriteAllText($@"..\Spikes\VisualBasicCore\VisualBasicCore\{sourceFile.FileName}", sourceFile.SourceCode);
+                }
+
 
                 var calc = ServiceFactory.GetService<CalculationEngine>();
                 var results = calc.GenerateAllocations(impl, scope).ToList();

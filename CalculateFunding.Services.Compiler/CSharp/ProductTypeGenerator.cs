@@ -10,15 +10,17 @@ namespace CalculateFunding.Services.Compiler.CSharp
 {
     public class ProductTypeGenerator : CSharpTypeGenerator
     {
-        public CompilationUnitSyntax GenerateCalcs(Implementation budget)
+        public IEnumerable<SourceFile> GenerateCalcs(Implementation budget)
         {
-            return SyntaxFactory.CompilationUnit()
+            var syntaxTree = SyntaxFactory.CompilationUnit()
                 .WithUsings(StandardUsings())
                 .WithMembers(
                     SyntaxFactory.List<MemberDeclarationSyntax>(
                         Classes(budget)
                         ))
                 .NormalizeWhitespace();
+
+            yield return new SourceFile{FileName = "ProductCalculations.cs", SourceCode = syntaxTree.ToFullString()};
         }
 
         private static IEnumerable<ClassDeclarationSyntax> Classes(Implementation budget)

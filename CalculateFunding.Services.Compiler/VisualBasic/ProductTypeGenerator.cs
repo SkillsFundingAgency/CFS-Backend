@@ -11,15 +11,16 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
 {
     public class ProductTypeGenerator : VisualBasicTypeGenerator
     {
-        public CompilationUnitSyntax GenerateCalcs(Implementation budget)
+
+        public IEnumerable<SourceFile> GenerateCalcs(Implementation budget)
         {
-            return SyntaxFactory.CompilationUnit()
+            var syntaxTree = SyntaxFactory.CompilationUnit()
                 .WithImports(StandardImports())
                 .WithMembers(
                     SyntaxFactory.SingletonList<StatementSyntax>(
             SyntaxFactory.ClassBlock(
                 SyntaxFactory.ClassStatement(
-                        Identifier("ProductCalculations")
+                        Identifier("Calculations")
                     )
                     .WithModifiers(
                         SyntaxFactory.TokenList(
@@ -32,6 +33,8 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
   
                     ))
                 .NormalizeWhitespace();
+
+            yield return new SourceFile {FileName = "Calculations.vb", SourceCode = syntaxTree.ToFullString()};
         }
 
         private static IEnumerable<StatementSyntax> Methods(Implementation budget)
