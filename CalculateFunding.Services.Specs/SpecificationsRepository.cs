@@ -20,16 +20,32 @@ namespace CalculateFunding.Services.Specs
 
         public Task<AcademicYear> GetAcademicYearById(string academicYearId)
         {
-            var academicYear = _repository.Query<AcademicYear>().FirstOrDefault(m => m.Id == academicYearId);
+           var years = new[]
+           {
+                new AcademicYear { Id = "1819", Name = "2018/19" },
+                new AcademicYear { Id = "1718", Name = "2017/18" },
+                new AcademicYear { Id = "1617", Name = "2016/17" },
+            };
+
+            var academicYear = years.FirstOrDefault(m => m.Id == academicYearId);
+
+            //var academicYear = _repository.Query<AcademicYear>().FirstOrDefault(m => m.Id == academicYearId);
 
             return Task.FromResult(academicYear);
         }
 
-        public Task<FundingStream> GetFundingStreamById(string fundingStreamId)
+        async public Task<FundingStream> GetFundingStreamById(string fundingStreamId)
         {
-            var fundingStream = _repository.Query<FundingStream>().FirstOrDefault(m => m.Id == fundingStreamId);
+            try
+            {
+                var fundingStream = await _repository.SingleOrDefaultAsync<FundingStream>(m => m.Id == fundingStreamId);
 
-            return Task.FromResult(fundingStream);
+                return fundingStream;
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
         }
 
         public Task CreateSpecification(Specification specification)

@@ -15,7 +15,11 @@ namespace CalculateFunding.Functions.Common.Extensions
                 encoding = Encoding.UTF8;
 
             using (StreamReader reader = new StreamReader(request.Body, encoding))
+            {
+                request.Body.Seek(0, SeekOrigin.Begin);
+
                 return await reader.ReadToEndAsync();
+            }   
         }
     }
 }
