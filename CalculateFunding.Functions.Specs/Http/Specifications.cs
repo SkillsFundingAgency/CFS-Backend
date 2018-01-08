@@ -40,7 +40,7 @@ namespace CalculateFunding.Functions.Specs.Http
             return svc.GetSpecificationByAcademicYearId(req);
         }
 
-        [FunctionName("specifications-create")]
+        [FunctionName("specifications")]
         public static async Task<IActionResult> RunCreateSpecification(
             [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
         {
