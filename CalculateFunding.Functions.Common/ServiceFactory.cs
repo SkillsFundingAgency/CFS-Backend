@@ -7,9 +7,11 @@ using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Providers;
 using CalculateFunding.Services.Calculator;
+using CalculateFunding.Services.CodeGeneration;
+using CalculateFunding.Services.CodeGeneration.CSharp;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
-using CalculateFunding.Services.Compiler.CSharp;
-using CalculateFunding.Services.Compiler.VisualBasic;
+using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.DataImporter;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -60,7 +62,6 @@ namespace CalculateFunding.Functions.Common
                 }))
                 .AddTransient<CSharpSourceFileGenerator>()
                 .AddTransient<VisualBasicSourceFileGenerator>()
-                .AddTransient<SourceFileGeneratorFactory>()
                 .AddTransient<CSharpCompiler>()
                 .AddTransient<VisualBasicCompiler>()
                 .AddTransient<CompilerFactory>()

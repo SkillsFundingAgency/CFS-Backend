@@ -28,7 +28,9 @@ using Microsoft.Azure.WebJobs.Extensions.Timers;
 using CalculateFunding.Functions.Datasets.Http;
 using CalculateFunding.Functions.Results.Http;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Compiler.VisualBasic;
+using CalculateFunding.Services.CodeGeneration;
+using CalculateFunding.Services.CodeGeneration.CSharp;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
 
 namespace CalculateFunding.EndToEnd
 {
@@ -68,11 +70,16 @@ namespace CalculateFunding.EndToEnd
 
                 impl.Calculations.AddRange(spec.GenerateCalculations());
 
-                var generatorFactory = ServiceFactory.GetService<SourceFileGeneratorFactory>();
-
-
-
-                var generator = generatorFactory.GetCompiler(impl.TargetLanguage);
+                ISourceFileGenerator generator = null;
+                switch (impl.TargetLanguage)
+                {
+                    case TargetLanguage.CSharp:
+                        generator = ServiceFactory.GetService<CSharpSourceFileGenerator>();
+                        break;
+                    case TargetLanguage.VisualBasic:
+                        generator = ServiceFactory.GetService<VisualBasicSourceFileGenerator>();
+                        break;
+                }
 
                 var sourceFiles = generator.GenerateCode(impl);
 
@@ -84,7 +91,7 @@ namespace CalculateFunding.EndToEnd
                 impl.Build = compiler.GenerateCode(sourceFiles);
                 foreach (var sourceFile in impl.Build.SourceFiles)
                 {
-                    File.WriteAllText($@"..\Spikes\VisualBasicCore\VisualBasicCore\{sourceFile.FileName}", sourceFile.SourceCode);
+                    File.WriteAllText($@"..\Spikes\{impl.TargetLanguage.ToString()}\{sourceFile.FileName}", sourceFile.SourceCode);
                 }
 
 

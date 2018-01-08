@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace CalculateFunding.Services.Compiler.CSharp
+namespace CalculateFunding.Services.CodeGeneration.CSharp
 {
 
     public class DatasetTypeGenerator : CSharpTypeGenerator

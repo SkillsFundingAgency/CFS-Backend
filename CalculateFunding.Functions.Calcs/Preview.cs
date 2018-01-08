@@ -14,6 +14,9 @@ using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calculator;
+using CalculateFunding.Services.CodeGeneration;
+using CalculateFunding.Services.CodeGeneration.CSharp;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
@@ -53,10 +56,17 @@ namespace CalculateFunding.Functions.Calcs
                 // If we are given a scenario then remove everything else
                 calcTest.TestScenarios = new List<TestScenario>{ request.TestScenario};
             }
-            var generatorFactory = ServiceFactory.GetService<SourceFileGeneratorFactory>();
 
-
-            var generator = generatorFactory.GetCompiler(budget.Content.TargetLanguage);
+            ISourceFileGenerator generator = null;
+            switch (budget.Content.TargetLanguage)
+            {
+                case TargetLanguage.CSharp:
+                    generator = ServiceFactory.GetService<CSharpSourceFileGenerator>();
+                    break;
+                case TargetLanguage.VisualBasic:
+                    generator = ServiceFactory.GetService<VisualBasicSourceFileGenerator>();
+                    break;
+            }
 
             var sourceFiles = generator.GenerateCode(budget.Content);
 

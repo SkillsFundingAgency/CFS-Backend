@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using CalculateFunding.Models.Calcs;
 
-namespace CalculateFunding.Services.Compiler
+namespace CalculateFunding.Services.CodeGeneration
 {
     public interface ISourceFileGenerator
     {

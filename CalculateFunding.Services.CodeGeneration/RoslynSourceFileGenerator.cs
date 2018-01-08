@@ -6,7 +6,7 @@ using System.Reflection;
 using CalculateFunding.Models.Calcs;
 using Microsoft.Extensions.Logging;
 
-namespace CalculateFunding.Services.Compiler
+namespace CalculateFunding.Services.CodeGeneration
 {
     public abstract class RoslynSourceFileGenerator : ISourceFileGenerator
     {
@@ -35,9 +35,8 @@ namespace CalculateFunding.Services.Compiler
 
         }
 
-        protected IEnumerable<SourceFile> GenerateStaticSourceFiles(params string[] sourceFileSuffixes)
+        protected IEnumerable<SourceFile> GenerateStaticSourceFiles(Assembly assembly, params string[] sourceFileSuffixes)
         {
-            var assembly = Assembly.GetExecutingAssembly();
             var codeFiles = assembly.GetManifestResourceNames().Where(x => sourceFileSuffixes.Any(x.EndsWith));
             foreach (var codeFile in codeFiles)
             {

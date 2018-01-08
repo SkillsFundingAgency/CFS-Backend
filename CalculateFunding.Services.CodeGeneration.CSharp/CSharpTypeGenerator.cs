@@ -3,17 +3,17 @@ using System.CodeDom.Compiler;
 using System.Text.RegularExpressions;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace CalculateFunding.Services.Compiler.VisualBasic
+namespace CalculateFunding.Services.CodeGeneration.CSharp
 {
-    public abstract class VisualBasicTypeGenerator
+    public abstract class CSharpTypeGenerator
     {
         public static string Identifier(string value)
         {
             string className = value;
-            bool isValid = CodeDomProvider.CreateProvider("VisualBasic").IsValidIdentifier(className);
+            bool isValid = CodeDomProvider.CreateProvider("C#").IsValidIdentifier(className);
 
             if (!isValid)
             {
@@ -43,13 +43,16 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
             switch (type)
             {
                 case FieldType.Boolean:
-                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BooleanKeyword));
+                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword));
                     break;
                 case FieldType.Char:
                     propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.CharKeyword));
                     break;
+                case FieldType.Byte:
+                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ByteKeyword));
+                    break;
                 case FieldType.Integer:
-                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ULongKeyword));
+                    propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.LongKeyword));
                     break;
                 case FieldType.Float:
                     propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword));
@@ -67,25 +70,14 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
             return propertyType;
         }
 
-        protected static SyntaxList<ImportsStatementSyntax> StandardImports()
+        protected static SyntaxList<UsingDirectiveSyntax> StandardUsings()
         {
-            var imports = SyntaxFactory.List( new[] {
-                SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System"))))
-                    
-                }
-                );
-            var str = imports.ToFullString();
-            return imports;
+            return SyntaxFactory.List(
+                new[]{
+                    SyntaxFactory.UsingDirective(
+                        SyntaxFactory.IdentifierName("System")),
+                    });
         }
-
-        //protected static SyntaxList<ImportsStatementSyntax> StandardUsings()
-        //{
-        //    return SyntaxFactory.List(
-        //        new[]{
-        //            SyntaxFactory.SimpleImportsClause(
-        //                SyntaxFactory.IdentifierName("System")),
-        //            });
-        //}
 
     }
 }

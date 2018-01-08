@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="CodeResources\AllocationLineAttribute.vb" />
+    <None Remove="CodeResources\CalculationAttribute.vb" />
+    <None Remove="CodeResources\CalculationSpecificationAttribute.vb" />
+    <None Remove="CodeResources\PolicySpecificationAttribute.vb" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="CodeResources\AllocationLineAttribute.vb" />
+    <EmbeddedResource Include="CodeResources\CalculateFunding.vbproj" />
+    <EmbeddedResource Include="CodeResources\CalculationAttribute.vb" />
+    <EmbeddedResource Include="CodeResources\CalculationSpecificationAttribute.vb" />
+    <EmbeddedResource Include="CodeResources\PolicySpecificationAttribute.vb" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.CodeGeneration\CalculateFunding.Services.CodeGeneration.csproj" />
+  </ItemGroup>
+
+</Project>

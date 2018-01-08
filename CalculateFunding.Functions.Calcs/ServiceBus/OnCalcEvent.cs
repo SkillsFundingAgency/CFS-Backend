@@ -9,6 +9,9 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calculator;
+using CalculateFunding.Services.CodeGeneration;
+using CalculateFunding.Services.CodeGeneration.CSharp;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -38,11 +41,16 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             impl.Calculations = impl.Calculations ?? new List<Calculation>();
 
 
-            var generatorFactory = ServiceFactory.GetService<SourceFileGeneratorFactory>();
-
-
-
-            var generator = generatorFactory.GetCompiler(impl.TargetLanguage);
+            ISourceFileGenerator generator = null;
+            switch (impl.TargetLanguage)
+            {
+                case TargetLanguage.CSharp:
+                    generator = ServiceFactory.GetService<CSharpSourceFileGenerator>();
+                    break;
+                case TargetLanguage.VisualBasic:
+                    generator = ServiceFactory.GetService<VisualBasicSourceFileGenerator>();
+                    break;
+            }
 
             var sourceFiles = generator.GenerateCode(impl);
 

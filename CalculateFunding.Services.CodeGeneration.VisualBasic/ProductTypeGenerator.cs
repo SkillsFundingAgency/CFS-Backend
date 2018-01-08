@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
-namespace CalculateFunding.Services.Compiler.VisualBasic
+namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
     public class ProductTypeGenerator : VisualBasicTypeGenerator
     {

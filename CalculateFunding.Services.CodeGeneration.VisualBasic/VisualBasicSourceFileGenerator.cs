@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using System.Reflection;
 using CalculateFunding.Models.Calcs;
 using Microsoft.Extensions.Logging;
 
-namespace CalculateFunding.Services.Compiler.VisualBasic
+namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
     public class VisualBasicSourceFileGenerator : RoslynSourceFileGenerator
     {
@@ -25,7 +26,7 @@ namespace CalculateFunding.Services.Compiler.VisualBasic
 
         protected override IEnumerable<SourceFile> GenerateStaticSourceFiles(Implementation budget)
         {
-            return GenerateStaticSourceFiles(".vb", ".vbproj");
+            return GenerateStaticSourceFiles(Assembly.GetExecutingAssembly(), ".vb", ".vbproj");
         }
 
         public override string GetIdentifier(string name)

@@ -1,16 +1,13 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.Extensions.Logging;
 
-namespace CalculateFunding.Services.Compiler.CSharp
+namespace CalculateFunding.Services.Compiler.Languages
 {
     public class CSharpCompiler : RoslynCompiler
     {

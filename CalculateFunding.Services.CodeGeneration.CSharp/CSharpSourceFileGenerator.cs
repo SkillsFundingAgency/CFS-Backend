@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using System.Reflection;
 using CalculateFunding.Models.Calcs;
 using Microsoft.Extensions.Logging;
 
-namespace CalculateFunding.Services.Compiler.CSharp
+namespace CalculateFunding.Services.CodeGeneration.CSharp
 {
 
     public class CSharpSourceFileGenerator : RoslynSourceFileGenerator
@@ -27,7 +28,7 @@ namespace CalculateFunding.Services.Compiler.CSharp
 
         protected override IEnumerable<SourceFile> GenerateStaticSourceFiles(Implementation budget)
         {
-            return GenerateStaticSourceFiles(".cs");
+            return GenerateStaticSourceFiles(Assembly.GetExecutingAssembly(), ".cs", ".csproj");
         }
 
         public override string GetIdentifier(string name)

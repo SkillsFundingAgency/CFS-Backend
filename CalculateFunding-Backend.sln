@@ -57,7 +57,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Scenarios", "CalculateFunding.Functions.Scenarios\CalculateFunding.Functions.Scenarios.csproj", "{C5479D34-C97B-4D38-8470-12B979F43F7A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.LocalDebugProxy", "CalculateFunding.Functions.LocalDebugProxy\CalculateFunding.Functions.LocalDebugProxy.csproj", "{6BE6A018-6AF4-4BCC-BA86-FD5E7DC75F2A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.LocalDebugProxy", "CalculateFunding.Functions.LocalDebugProxy\CalculateFunding.Functions.LocalDebugProxy.csproj", "{6BE6A018-6AF4-4BCC-BA86-FD5E7DC75F2A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.CodeGeneration", "CalculateFunding.Services.CodeGeneration\CalculateFunding.Services.CodeGeneration.csproj", "{C8FD88F5-E056-4BC6-94DD-5C7C83892D09}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.CodeGeneration.VisualBasic", "CalculateFunding.Services.CodeGeneration.VisualBasic\CalculateFunding.Services.CodeGeneration.VisualBasic.csproj", "{8D7A650B-57D2-4647-9F74-72074CFB5591}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.CodeGeneration.CSharp", "CalculateFunding.Services.CodeGeneration.CSharp\CalculateFunding.Services.CodeGeneration.CSharp.csproj", "{09319E77-C861-4E1C-B047-FB7AA301C74A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -141,6 +147,18 @@ Global
 		{6BE6A018-6AF4-4BCC-BA86-FD5E7DC75F2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6BE6A018-6AF4-4BCC-BA86-FD5E7DC75F2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6BE6A018-6AF4-4BCC-BA86-FD5E7DC75F2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8FD88F5-E056-4BC6-94DD-5C7C83892D09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8FD88F5-E056-4BC6-94DD-5C7C83892D09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8FD88F5-E056-4BC6-94DD-5C7C83892D09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8FD88F5-E056-4BC6-94DD-5C7C83892D09}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D7A650B-57D2-4647-9F74-72074CFB5591}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D7A650B-57D2-4647-9F74-72074CFB5591}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D7A650B-57D2-4647-9F74-72074CFB5591}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D7A650B-57D2-4647-9F74-72074CFB5591}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09319E77-C861-4E1C-B047-FB7AA301C74A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09319E77-C861-4E1C-B047-FB7AA301C74A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09319E77-C861-4E1C-B047-FB7AA301C74A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09319E77-C861-4E1C-B047-FB7AA301C74A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -164,6 +182,9 @@ Global
 		{80F1BA7D-6575-49F1-9663-38F8F7D085B8} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{C5479D34-C97B-4D38-8470-12B979F43F7A} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{6BE6A018-6AF4-4BCC-BA86-FD5E7DC75F2A} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
+		{C8FD88F5-E056-4BC6-94DD-5C7C83892D09} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
+		{8D7A650B-57D2-4647-9F74-72074CFB5591} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
+		{09319E77-C861-4E1C-B047-FB7AA301C74A} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2FA36A0A-CA20-41CF-9BC2-FA6545720009}
