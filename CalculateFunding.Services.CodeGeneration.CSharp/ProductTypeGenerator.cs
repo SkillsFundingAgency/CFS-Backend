@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
         private static IEnumerable<ClassDeclarationSyntax> Classes(Implementation budget)
         {
             var members = new List<MemberDeclarationSyntax>();
-            members.AddRange(budget.DatasetDefinitions.Select(GetMembers));
+            members.AddRange(GetStandardMembers());
             members.AddRange(budget.Calculations.Select(GetMethod));
 
                 yield return SyntaxFactory.ClassDeclaration(Identifier("Calculations"))
@@ -47,23 +47,6 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
         private static MethodDeclarationSyntax GetMethod(Calculation calc)
         {
             var builder = new StringBuilder();
-            //builder.AppendLine($"[Calculation(Id = \"{calc.Id}\")]");
-            //if (calc.CalculationSpecification != null)
-            //{
-            //    builder.AppendLine($"[CalculationSpecification(Id = \"{calc.CalculationSpecification.Id}\", Name = \"{calc.CalculationSpecification.Name}\")]");
-            //}
-            //if (calc.AllocationLine != null)
-            //{
-            //    builder.AppendLine($"[AllocationLine(Id = \"{calc.AllocationLine.Id}\", Name = \"{calc.AllocationLine.Name}\")]");
-            //}
-            //if (calc.PolicySpecifications != null)
-            //{
-            //    foreach (var policySpecification in calc.PolicySpecifications)
-            //    {
-            //        builder.AppendLine($"P[olicySpecification(Id = \"{policySpecification.Id}\", Name = \"{policySpecification.Name}\")]");
-            //    }
-            //}
-
             builder.AppendLine($"public decimal {Identifier(calc.Name)}()");
             builder.AppendLine("{");
             builder.Append(calc.SourceCode ?? "return decimal.MinValue;");
@@ -129,10 +112,10 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
         }
 
 
-        private static PropertyDeclarationSyntax GetMembers(DatasetDefinition datasetDefinition)
+        private static IEnumerable<PropertyDeclarationSyntax> GetStandardMembers()
         {
-            return SyntaxFactory.PropertyDeclaration(
-                    SyntaxFactory.IdentifierName(Identifier($"{datasetDefinition.Name}Dataset")), Identifier(datasetDefinition.Name))
+           yield return SyntaxFactory.PropertyDeclaration(
+                    SyntaxFactory.IdentifierName("Datasets"), "Datasets")
                  .WithModifiers(
                     SyntaxFactory.TokenList(
                         SyntaxFactory.Token(SyntaxKind.PublicKeyword)))

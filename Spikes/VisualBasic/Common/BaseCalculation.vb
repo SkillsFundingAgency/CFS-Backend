@@ -1,5 +1,5 @@
-Public Class CalculationBase
+Public Class BaseCalculation
 
-    Public Property Id() As String
+    Public Property Provider() as Provider
 
 End Class

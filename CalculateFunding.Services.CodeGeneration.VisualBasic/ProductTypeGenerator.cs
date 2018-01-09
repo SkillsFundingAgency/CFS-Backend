@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     .WithModifiers(
                         SyntaxFactory.TokenList(
                             SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
-                new SyntaxList<InheritsStatementSyntax>(SyntaxFactory.InheritsStatement(SyntaxFactory.ParseTypeName("CalculationBase"))),
+                new SyntaxList<InheritsStatementSyntax>(SyntaxFactory.InheritsStatement(SyntaxFactory.ParseTypeName("BaseCalculation"))),
                 new SyntaxList<ImplementsStatementSyntax>(),
                 SyntaxFactory.List(Methods(budget)),
                 SyntaxFactory.EndClassStatement()
@@ -40,10 +40,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         private static IEnumerable<StatementSyntax> Methods(Implementation implementation)
         {
-            foreach (var budgetDatasetDefinition in implementation.DatasetDefinitions)
-            {
-                yield return GetDatasetProperties(budgetDatasetDefinition);
-            }
+            yield return GetStandardProperties();
             foreach (var calc in implementation.Calculations)
             {
                 yield return GetMethod(calc);
@@ -85,15 +82,15 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         }
 
 
- 
 
-        private static StatementSyntax GetDatasetProperties(DatasetDefinition datasetDefinition)
+        private static StatementSyntax GetStandardProperties()
         {
-            return SyntaxFactory.PropertyStatement(Identifier(datasetDefinition.Name))
+            return SyntaxFactory.PropertyStatement(Identifier("Datasets"))
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
                 .WithAsClause(
-                    SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(Identifier($"{datasetDefinition.Name}Dataset"))));
+                    SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(Identifier("Datasets"))));
         }
+
 
     }
 }

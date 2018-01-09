@@ -30,8 +30,29 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
                         SyntaxFactory.SingletonList<MemberDeclarationSyntax>(@class))
                     .NormalizeWhitespace();
 
-                yield return new SourceFile { FileName = $"{Identifier($"{dataset.Name}Dataset")}.cs", SourceCode = syntaxTree.ToFullString() };
+                yield return new SourceFile { FileName = $"Datasets\\{Identifier($"{dataset.Name}")}Dataset.cs", SourceCode = syntaxTree.ToFullString() };
+
+
+
             }
+
+            var wrapperClass = SyntaxFactory.ClassDeclaration(Identifier("Datasets"))
+                .WithModifiers(
+                    SyntaxFactory.TokenList(
+                        SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                .WithMembers(
+                    SyntaxFactory.List(GetDatasetMembers(budget)
+                    )
+                );
+            var wrapperSyntaxTree = SyntaxFactory.CompilationUnit()
+                .WithUsings(StandardUsings())
+                .WithMembers(
+                    SyntaxFactory.SingletonList<MemberDeclarationSyntax>(wrapperClass))
+                .NormalizeWhitespace();
+
+            yield return new SourceFile { FileName = $"Datasets\\Datasets.cs", SourceCode = wrapperSyntaxTree.ToFullString() };
+
+
 
         }
 
@@ -101,6 +122,34 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
                                     .WithSemicolonToken(
                                         SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                             })));
+        }
+
+
+        private static IEnumerable<MemberDeclarationSyntax> GetDatasetMembers(Implementation implementation)
+        {
+            foreach (var datasetDefinition in implementation.DatasetDefinitions)
+            {
+                yield return SyntaxFactory.PropertyDeclaration(
+                        SyntaxFactory.IdentifierName(Identifier($"{datasetDefinition.Name}Dataset")), Identifier(datasetDefinition.Name))
+                    .WithModifiers(
+                        SyntaxFactory.TokenList(
+                            SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                    .WithAccessorList(
+                        SyntaxFactory.AccessorList(
+                            SyntaxFactory.List(
+                                new[]
+                                {
+                                    SyntaxFactory.AccessorDeclaration(
+                                            SyntaxKind.GetAccessorDeclaration)
+                                        .WithSemicolonToken(
+                                            SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                                    SyntaxFactory.AccessorDeclaration(
+                                            SyntaxKind.SetAccessorDeclaration)
+                                        .WithSemicolonToken(
+                                            SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                                })));
+            }
+
         }
 
     }

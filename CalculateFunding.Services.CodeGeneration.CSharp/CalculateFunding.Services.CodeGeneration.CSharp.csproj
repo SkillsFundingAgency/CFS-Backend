@@ -10,6 +10,7 @@
     <Compile Remove="CodeResources\Common\Attributes\CalculationSpecificationAttribute.cs" />
     <Compile Remove="CodeResources\Common\Attributes\PolicySpecificationAttribute.cs" />
     <Compile Remove="CodeResources\Common\BaseCalculation.cs" />
+    <Compile Remove="CodeResources\Common\Provider.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,6 +19,7 @@
     <EmbeddedResource Include="CodeResources\Common\Attributes\CalculationAttribute.cs" />
     <EmbeddedResource Include="CodeResources\Common\Attributes\CalculationSpecificationAttribute.cs" />
     <EmbeddedResource Include="CodeResources\Common\Attributes\PolicySpecificationAttribute.cs" />
+    <EmbeddedResource Include="CodeResources\Common\Provider.cs" />
     <EmbeddedResource Include="CodeResources\Common\BaseCalculation.cs" />
   </ItemGroup>
 

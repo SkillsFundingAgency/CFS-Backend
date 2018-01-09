@@ -10,12 +10,15 @@ namespace CalculateFunding.Services.Calculator
     public class AllocationModel
     {
         private List<Tuple<MethodInfo, CalculationResult>> _methods = new List<Tuple<MethodInfo, CalculationResult>>();
-        private PropertyInfo[] _setters;
+        private PropertyInfo[] _datasetSetters;
         private object _instance;
+        private object _datasetsInstance;
 
         public AllocationModel(Type allocationType)
         {
-            _setters = allocationType.GetProperties().Where(x => x.CanWrite).ToArray();
+            var datasetsSetter = allocationType.GetProperty("Datasets");
+            var datasetType = datasetsSetter.PropertyType;
+            _datasetSetters = datasetType.GetProperties().Where(x => x.CanWrite).ToArray();
 
             var executeMethods = allocationType.GetMethods().Where(x => x.ReturnType == typeof(decimal));
             foreach (var executeMethod in executeMethods)
@@ -43,6 +46,8 @@ namespace CalculateFunding.Services.Calculator
             }
 
             _instance = Activator.CreateInstance(allocationType);
+            _datasetsInstance = Activator.CreateInstance(datasetType);
+            datasetsSetter.SetValue(_instance, _datasetsInstance);
         }
 
 
@@ -51,9 +56,9 @@ namespace CalculateFunding.Services.Calculator
 
             foreach (var dataset in datasets)
             {
-                foreach (var setter in _setters)
+                foreach (var setter in _datasetSetters)
                 {
-                    setter.SetValue(_instance, dataset);
+                    setter.SetValue(_datasetsInstance, dataset);
                 }
             }
 

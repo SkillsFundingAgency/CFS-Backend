@@ -34,9 +34,16 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     .WithMembers(
                         SyntaxFactory.SingletonList<StatementSyntax>(@class))
                     .NormalizeWhitespace();
-                yield return new SourceFile { FileName = $"Datsets/{Identifier(dataset.Name)}Dataset.vb", SourceCode = syntaxTree.ToFullString() };
+                yield return new SourceFile { FileName = $"Datasets/{Identifier(dataset.Name)}.vb", SourceCode = syntaxTree.ToFullString() };
             }
 
+            var wrapperSyntaxTree = SyntaxFactory.ClassBlock(SyntaxFactory.ClassStatement("Datasets").WithModifiers(
+                SyntaxFactory.TokenList(
+                    SyntaxFactory.Token(SyntaxKind.PublicKeyword))))
+                    .WithMembers(SyntaxFactory.List(budget.DatasetDefinitions.Select(GetDatasetProperties)))
+                    .NormalizeWhitespace(); 
+
+            yield return new SourceFile { FileName = $"Datasets/Datasets.vb", SourceCode = wrapperSyntaxTree.ToFullString() };
 
 
         }
@@ -88,6 +95,14 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             return SyntaxFactory.PropertyStatement(Identifier(fieldDefinition.Name))
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
                 .WithAsClause(SyntaxFactory.SimpleAsClause(propertyType));
+        }
+
+        private static StatementSyntax GetDatasetProperties(DatasetDefinition datasetDefinition)
+        {
+            return SyntaxFactory.PropertyStatement(Identifier(datasetDefinition.Name))
+                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                .WithAsClause(
+                    SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(Identifier($"{datasetDefinition.Name}Dataset"))));
         }
 
     }
