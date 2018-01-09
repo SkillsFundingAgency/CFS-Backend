@@ -95,7 +95,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         public async Task<DocumentEntity<T>> ReadAsync<T>(string id) where T : IIdentifiable
         {
             // Here we find the Andersen family via its LastName
-            var response = Read<T>(maxItemCount: 1).Where(x => x.Id == id);
+            var response = await Read<T>(maxItemCount: 1).Where(x => x.Id == id).AsDocumentQuery().ExecuteNextAsync<DocumentEntity<T>>();
             return response.FirstOrDefault();
         }
 

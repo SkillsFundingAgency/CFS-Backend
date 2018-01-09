@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,6 +21,18 @@ namespace CalculateFunding.Functions.Common.Extensions
 
                 return await reader.ReadToEndAsync();
             }   
+        }
+
+        public static string GetCorrelationId(this HttpRequest request)
+        {
+            const string sfaCorellationId = "sfa-correlationId";
+
+            if (request.Headers.ContainsKey(sfaCorellationId))
+            {
+                return request.Headers[sfaCorellationId].FirstOrDefault();
+            }
+
+            return string.Empty;
         }
     }
 }

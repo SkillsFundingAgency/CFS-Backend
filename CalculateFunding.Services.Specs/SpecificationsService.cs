@@ -9,6 +9,7 @@ using AutoMapper;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Models;
 using System.Linq;
+using CalculateFunding.Functions.Common.Interfaces.Logging;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -16,11 +17,13 @@ namespace CalculateFunding.Services.Specs
     {
         private readonly IMapper _mapper;
         private readonly ISpecificationsRepository _specifcationsRepository;
+        private readonly ILoggingService _logs;
 
-        public SpecificationsService(IMapper mapper, ISpecificationsRepository specifcationsRepository)
+        public SpecificationsService(IMapper mapper, ISpecificationsRepository specifcationsRepository, ILoggingService logs)
         {
             _mapper = mapper;
             _specifcationsRepository = specifcationsRepository;
+            _logs = logs;
         }
 
         public async Task<IActionResult> GetSpecificationById(HttpRequest request)

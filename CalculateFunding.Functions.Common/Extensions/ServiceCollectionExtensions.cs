@@ -1,4 +1,7 @@
-﻿using CalculateFunding.Repositories.Common.Cosmos;
+﻿using CalculateFunding.Functions.Common.Interfaces.Logging;
+using CalculateFunding.Functions.Common.Logging;
+using CalculateFunding.Functions.Common.Options;
+using CalculateFunding.Repositories.Common.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
@@ -19,6 +22,20 @@ namespace CalculateFunding.Functions.Common.Extensions
 
             builder
                 .AddScoped<CosmosRepository>();
+
+            return builder;
+        }
+
+        public static IServiceCollection AddLogging(this IServiceCollection builder, IConfigurationRoot config)
+        {
+            builder
+                .AddScoped<ILoggingService, ApplicationInsightsService>();
+
+            ApplicationInsightsOptions appInsightsOptions = new ApplicationInsightsOptions();
+
+            config.Bind("ApplicationInsightsOptions", appInsightsOptions);
+
+            builder.AddSingleton<ApplicationInsightsOptions>(appInsightsOptions);
 
             return builder;
         }
