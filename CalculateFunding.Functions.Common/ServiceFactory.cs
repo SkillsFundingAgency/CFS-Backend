@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Providers;
@@ -37,6 +38,8 @@ namespace CalculateFunding.Functions.Common
 
             var config = builder.Build();
 
+           
+
             var serviceCollection = new ServiceCollection()
                 .AddSingleton(new LoggerFactory()
                     .AddConsole()
@@ -50,7 +53,7 @@ namespace CalculateFunding.Functions.Common
                     DatabaseName = config["CosmosDBDatabaseName"],
                     CollectionName = config["CosmosDBCollectionName"]
                     
-                }, null))
+                }))
                 .AddSingleton<IMessenger>(new Messenger(config["ServiceBusConnectionString"]))
                 .AddSingleton(new MessagePump(config["ServiceBusConnectionString"]))
                 .AddSingleton(new SearchRepository<ProviderIndex>(new SearchRepositorySettings
@@ -58,6 +61,7 @@ namespace CalculateFunding.Functions.Common
                     SearchServiceName = config["SearchServiceName"],
                     SearchKey = config["SearchServiceKey"]
                 }))
+               
                 .AddTransient<CSharpCompiler>()
                 .AddTransient<VisualBasicCompiler>()
                 .AddTransient<BudgetCompiler>()

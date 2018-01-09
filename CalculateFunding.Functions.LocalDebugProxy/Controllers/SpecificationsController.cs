@@ -17,22 +17,28 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpGet]
         public async Task<IActionResult>RunSpecifications()
         {
-            return await Specifications.Run(ControllerContext.HttpContext.Request, ServiceFactory.GetService<ILogger>());
+            return await Specifications.Run(ControllerContext.HttpContext.Request, null);
         }
 
-        [Route("api/specs/commands/specifications")]
+        [Route("api/specs/specifications-by-year")]
+        [HttpGet]
+        public async Task<IActionResult> RunSpecificationsByYear()
+        {
+            return await Specifications.RunSpecificationsByYear(ControllerContext.HttpContext.Request, null);
+        }
+
+        [Route("api/specs/specifications")]
         [HttpPost]
-        [HttpDelete]
         public async Task<IActionResult> RunSpecificationsCommands([FromBody]string value)
         {
-            return await Specifications.RunCommands(ControllerContext.HttpContext.Request, ServiceFactory.GetService<ILogger>());
+            return await Specifications.RunCreateSpecification(ControllerContext.HttpContext.Request, null);
         }
 
         [Route("api/specs/academic-years")]
         [HttpGet]
         public async Task<IActionResult> RunAcademicYears()
         {
-            return await AcademicYears.Run(ControllerContext.HttpContext.Request, ServiceFactory.GetService<ILogger>());
+            return await AcademicYears.Run(ControllerContext.HttpContext.Request, null);
         }
 
         [Route("api/specs/commands/academic-years")]
@@ -40,7 +46,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpDelete]
         public async Task<IActionResult> RunAcademicYearsCommands([FromBody]string value)
         {
-            return await AcademicYears.RunCommands(ControllerContext.HttpContext.Request, ServiceFactory.GetService<ILogger>());
+            return await AcademicYears.RunCommands(ControllerContext.HttpContext.Request, null);
         }
 
 
@@ -48,7 +54,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpGet]
         public async Task<IActionResult> RunFundingStreams()
         {
-            return await FundingStreams.Run(ControllerContext.HttpContext.Request, ServiceFactory.GetService<ILogger>());
+            return await FundingStreams.Run(ControllerContext.HttpContext.Request, null);
         }
 
         [Route("api/specs/commands/funding-streams")]
@@ -56,7 +62,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpDelete]
         public async Task<IActionResult> RunFundingStreamsCommands([FromBody]string value)
         {
-            return await FundingStreams.RunCommands(ControllerContext.HttpContext.Request, ServiceFactory.GetService<ILogger>());
+            return await FundingStreams.RunCommands(ControllerContext.HttpContext.Request, null);
         }
 
 

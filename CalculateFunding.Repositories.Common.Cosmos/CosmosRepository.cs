@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
@@ -17,7 +18,6 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 {
     public class CosmosRepository
     {
-        private readonly ILogger _logger;
         private readonly string _collectionName;
         private readonly string _partitionKey;
         private readonly string _databaseName;
@@ -25,9 +25,8 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         private readonly Uri _collectionUri;
         private ResourceResponse<DocumentCollection> _collection;
 
-        public CosmosRepository(RepositorySettings settings, ILogger logger)
+        public CosmosRepository(RepositorySettings settings)
         {
-            _logger = logger;
             _collectionName = settings.CollectionName;
             _partitionKey = settings.PartitionKey;
             _databaseName = settings.DatabaseName;
@@ -61,8 +60,6 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
 
         }
-
-
 
         public async Task SetThroughput(int requestUnits)
         {
@@ -98,8 +95,20 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         public async Task<DocumentEntity<T>> ReadAsync<T>(string id) where T : IIdentifiable
         {
             // Here we find the Andersen family via its LastName
-            var response = await Read<T>(maxItemCount: 1).Where(x => x.Id == id).AsDocumentQuery().ExecuteNextAsync< DocumentEntity<T>>();
+            var response = await Read<T>(maxItemCount: 1).Where(x => x.Id == id).AsDocumentQuery().ExecuteNextAsync<DocumentEntity<T>>();
             return response.FirstOrDefault();
+        }
+
+        public async Task<T> SingleOrDefaultAsync<T>(Expression<Func<T, bool>> where)
+        {
+            var results = _documentClient.CreateDocumentQuery<T>(_collectionUri, new FeedOptions { MaxItemCount = 1 })
+                .Where(where)
+                .AsEnumerable();
+
+            if (results.Any())
+                return results.ElementAt(0);
+
+            return default(T);
         }
 
         public IQueryable<T> Query<T>(string directSql = null, int maxItemCount = -1) where T : IIdentifiable

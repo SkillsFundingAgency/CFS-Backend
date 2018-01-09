@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
 using CalculateFunding.Repositories.Common.Cosmos;
@@ -27,6 +29,11 @@ namespace CalculateFunding.Functions.Common
 
         }
 
+        public async Task<IActionResult> Run(ILogger log, Expression<Func<T, bool>> query)
+        {
+            return await OnGetQueryAsync(query);
+        }
+
         private async Task<IActionResult> OnGet(string id)
         {
             var repository = ServiceFactory.GetService<CosmosRepository>();
@@ -42,6 +49,14 @@ namespace CalculateFunding.Functions.Common
             var entities = repository.Query<T>().ToList();
             return new JsonResult(entities, SerializerSettings);
 
+        }
+
+        private async Task<IActionResult> OnGetQueryAsync(Expression<Func<T, bool>> query)
+        {
+            var repository = ServiceFactory.GetService<CosmosRepository>();
+
+            var entities = repository.Query<T>().Where(query).ToList();
+            return new JsonResult(entities, SerializerSettings);
         }
 
     }
