@@ -14,11 +14,11 @@ namespace CalculateFunding.Functions.Common.Extensions
     {
         public static IServiceCollection AddCosmosDb(this IServiceCollection builder, IConfigurationRoot config)
         {
-            CosmosDbSettings repositorySettings = new CosmosDbSettings();
+            CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
-            config.Bind("CosmosDbSettings", repositorySettings);
+            config.Bind("CosmosDbSettings", cosmosDbSettings);
 
-            builder.AddSingleton<CosmosDbSettings>(repositorySettings);
+            builder.AddSingleton<CosmosDbSettings>(cosmosDbSettings);
 
             builder
                 .AddScoped<CosmosRepository>();
