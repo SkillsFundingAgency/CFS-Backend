@@ -47,7 +47,7 @@ namespace CalculateFunding.Functions.Common
                     .AddDebug())
                 .AddLogging();
             ServiceProvider = serviceCollection
-                .AddSingleton(new CosmosRepository(new RepositorySettings
+                .AddSingleton(new CosmosRepository(new CosmosDbSettings
                 {
                     ConnectionString = config["CosmosDBConnectionString"],
                     DatabaseName = config["CosmosDBDatabaseName"],

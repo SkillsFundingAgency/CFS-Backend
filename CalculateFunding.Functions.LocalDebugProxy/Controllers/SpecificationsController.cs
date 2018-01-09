@@ -27,6 +27,13 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return await Specifications.RunSpecificationsByYear(ControllerContext.HttpContext.Request, null);
         }
 
+        [Route("api/specs/specification-by-name")]
+        [HttpGet]
+        public async Task<IActionResult> RunSpecificationByName()
+        {
+            return await Specifications.RunSpecificationByName(ControllerContext.HttpContext.Request, null);
+        }
+
         [Route("api/specs/specifications")]
         [HttpPost]
         public async Task<IActionResult> RunSpecificationsCommands([FromBody]string value)

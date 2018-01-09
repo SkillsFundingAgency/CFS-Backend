@@ -25,7 +25,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         private readonly Uri _collectionUri;
         private ResourceResponse<DocumentCollection> _collection;
 
-        public CosmosRepository(RepositorySettings settings)
+        public CosmosRepository(CosmosDbSettings settings)
         {
             _collectionName = settings.CollectionName;
             _partitionKey = settings.PartitionKey;

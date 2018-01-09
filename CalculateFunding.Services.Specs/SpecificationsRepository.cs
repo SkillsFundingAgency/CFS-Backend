@@ -36,16 +36,20 @@ namespace CalculateFunding.Services.Specs
 
         async public Task<FundingStream> GetFundingStreamById(string fundingStreamId)
         {
-            try
-            {
-                var fundingStream = await _repository.SingleOrDefaultAsync<FundingStream>(m => m.Id == fundingStreamId);
+            var fundingStreams = new[]
+           {
+                new FundingStream
+                {
+                    Id = "gag",
+                    Name = "General Annual Grant"
+                }
+            };
 
-                return fundingStream;
-            }
-            catch(Exception ex)
-            {
-                throw ex;
-            }
+            var fundingStream = fundingStreams.FirstOrDefault(m => m.Id == fundingStreamId);
+            //var fundingStream = await _repository.SingleOrDefaultAsync<FundingStream>(m => m.Id == fundingStreamId);
+
+            return fundingStream;
+
         }
 
         public Task CreateSpecification(Specification specification)
@@ -76,7 +80,17 @@ namespace CalculateFunding.Services.Specs
 
         public Task<IEnumerable<FundingStream>> GetFundingStreams()
         {
-            var fundingStreams = _repository.Query<FundingStream>();
+            //var fundingStreams = _repository.Query<FundingStream>();
+            //return Task.FromResult(fundingStreams.AsEnumerable());
+
+            var fundingStreams = new[]
+            {
+                new FundingStream
+                {
+                    Id = "gag",
+                    Name = "General Annual Grant"
+                }
+            };
 
             return Task.FromResult(fundingStreams.AsEnumerable());
         }
