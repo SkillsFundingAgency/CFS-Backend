@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Specs
             if (string.IsNullOrWhiteSpace(specName))
                 return new BadRequestObjectResult("Null or empty specification name provided");
 
-            IEnumerable<Specification> specifications = await _specifcationsRepository.GetSpecificationsByQuery(m => m.Name == specificationName);
+            IEnumerable<Specification> specifications = await _specifcationsRepository.GetSpecificationsByQuery(m => m.Name.ToLower() == specificationName.ToLower());
 
             if (!specifications.Any())
                 return new NotFoundResult();
