@@ -16,6 +16,12 @@ namespace CalculateFunding.Functions.Common
                 .AddJsonFile("appsettings.json", optional: true)
                 .AddEnvironmentVariables();
 
+            if(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                // Add user secrets for CalculateFunding.Functions.LocalDebugProxy
+                configBuilder.AddUserSecrets("df0d69d5-a6db-4598-909f-262fc39cb8c8");
+            }
+
             return configBuilder.Build();
         }
     }
