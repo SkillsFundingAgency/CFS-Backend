@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs
 {
-    public class PolicySpecification : Reference
+    public class Policy : Reference
     {
         [JsonProperty("description")]
         public string Description { get; set; }
@@ -12,6 +12,6 @@ namespace CalculateFunding.Models.Specs
         public List<CalculationSpecification> Calculations { get; set; }
 
         [JsonProperty("subPolicies")]
-        public List<PolicySpecification> SubPolicies { get; set; }
+        public IEnumerable<Policy> SubPolicies { get; set; }
     }
 }

@@ -24,7 +24,7 @@ namespace CalculateFunding.Functions.Specs.Http
             [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
         {
             var restMethods =
-                new RestCommandMethods<Specification, PolicySpecificationCommand, PolicySpecification>("spec-events")
+                new RestCommandMethods<Specification, PolicySpecificationCommand, Policy>("spec-events")
                 {
                     GetEntityId = command => command.SpecificationId,
                     UpdateTarget = (specification, command) =>
@@ -38,12 +38,12 @@ namespace CalculateFunding.Functions.Specs.Http
                         var parent = specification?.GetPolicy(command.ParentPolicyId);
                         if (parent != null)
                         {
-                            parent.SubPolicies = parent.SubPolicies ?? new List<PolicySpecification>();
+                            parent.SubPolicies = parent.SubPolicies ?? new List<Policy>();
                             parent.SubPolicies.Add(command.Content);
                         }
                         else
                         {
-                            specification.Policies = specification.Policies ?? new List<PolicySpecification>();
+                            specification.Policies = specification.Policies ?? new List<Policy>();
                             specification.Policies.Add(command.Content);
                         }
 

@@ -16,7 +16,7 @@ namespace CalculateFunding.Models.Specs
         public string Description { get; set; }
 
         [JsonProperty("policies")]
-        public List<PolicySpecification> Policies { get; set; }
+        public List<Policy> Policies { get; set; }
 
     }
 }

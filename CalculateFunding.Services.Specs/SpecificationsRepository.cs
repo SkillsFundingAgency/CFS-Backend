@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
+using System.Net;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -49,19 +50,26 @@ namespace CalculateFunding.Services.Specs
             //var fundingStream = await _repository.SingleOrDefaultAsync<FundingStream>(m => m.Id == fundingStreamId);
 
             return fundingStream;
-
         }
 
-        public Task CreateSpecification(Specification specification)
+        public Task<HttpStatusCode> CreateSpecification(Specification specification)
         {
             return _repository.CreateAsync(specification);
         }
 
-        public async Task<Specification> GetSpecification(string specificationId)
+        public Task<HttpStatusCode> UpdateSpecification(Specification specification)
         {
-            var documentEntity = await _repository.ReadAsync<Specification>(specificationId);
+            return _repository.UpdateAsync(specification);
+        }
 
-            return documentEntity.Content;
+        public Task<Specification> GetSpecificationById(string specificationId)
+        {
+            return _repository.SingleOrDefaultAsync<Specification>(m => m.Id == specificationId);
+        }
+
+        public Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query)
+        {
+            return _repository.SingleOrDefaultAsync(query);
         }
 
         public Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query)

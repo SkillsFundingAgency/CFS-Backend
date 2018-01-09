@@ -10,6 +10,7 @@ using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Models;
 using System.Linq;
 using CalculateFunding.Functions.Common.Interfaces.Logging;
+using System.Net;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -35,7 +36,7 @@ namespace CalculateFunding.Services.Specs
             if (string.IsNullOrWhiteSpace(specificationId))
                 return new BadRequestObjectResult("Null or empty specification Id provided");
 
-            Specification specification = await _specifcationsRepository.GetSpecification(specificationId);
+            Specification specification = await _specifcationsRepository.GetSpecificationById(specificationId);
 
             if (specification == null)
                 return new NotFoundResult();
@@ -74,6 +75,29 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specifications.FirstOrDefault());
         }
 
+        public async Task<IActionResult> GetPolicyByName(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            PolicyGetModel model = JsonConvert.DeserializeObject<PolicyGetModel>(json);
+
+            if (string.IsNullOrWhiteSpace(model.SpecificationId))
+                return new BadRequestObjectResult("Null or empty specification id provided");
+
+            if (string.IsNullOrWhiteSpace(model.Name))
+                return new BadRequestObjectResult("Null or empty policy name provided");
+
+            Specification specification = await _specifcationsRepository.GetSpecificationByQuery(
+                m => m.Id == model.SpecificationId && m.Policies.Any(p => p.Name.ToLower() == model.Name.ToLower()));
+
+            if (specification == null)
+                return new NotFoundResult();
+
+            Policy policy = specification.Policies.FirstOrDefault(m => m.Name == model.Name);
+
+            return new OkObjectResult(policy);
+        }
+
         public async Task<IActionResult> GetAcademicYears(HttpRequest request)
         {
             IEnumerable<AcademicYear> academicYears = await _specifcationsRepository.GetAcademicYears();
@@ -83,6 +107,27 @@ namespace CalculateFunding.Services.Specs
         {
             IEnumerable<FundingStream> fundingStreams = await _specifcationsRepository.GetFundingStreams();
             return new OkObjectResult(fundingStreams);
+        }
+
+        public async Task<IActionResult> CreatePolicy(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            PolicyCreateModel createModel = JsonConvert.DeserializeObject<PolicyCreateModel>(json);
+
+            Specification specification = await _specifcationsRepository.GetSpecificationById(createModel.SpecificationId);
+
+            if (specification == null)
+                return new NotFoundResult();
+
+            Policy policy = _mapper.Map<Policy>(createModel);
+
+            var statusCode = await _specifcationsRepository.UpdateSpecification(specification);
+
+            if(statusCode != HttpStatusCode.OK)
+                 return new StatusCodeResult((int)statusCode);
+
+            return new OkObjectResult(policy);
         }
 
         public async Task<IActionResult> CreateSpecification(HttpRequest request)
@@ -101,14 +146,14 @@ namespace CalculateFunding.Services.Specs
 
             specification.FundingStream = new Reference(fundingStream.Id, fundingStream.Name);
 
-            await _specifcationsRepository.CreateSpecification(specification);
+            var statusCode = await _specifcationsRepository.CreateSpecification(specification);
 
-            //var restMethods = new RestCommandMethods<Specification, SpecificationCommand>("spec-events");
+            if (statusCode != HttpStatusCode.OK)
+                return new StatusCodeResult((int)statusCode);
 
             return new OkObjectResult(specification);
         }
 
-       
     }
 
 
