@@ -51,11 +51,11 @@ namespace CalculateFunding.Functions.Specs.Http
             return svc.GetSpecificationByName(req);
         }
 
-        [FunctionName("specifications")]
+        [FunctionName("specification-create")]
         public static async Task<IActionResult> RunCreateSpecification(
             [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
         {
-            IServiceProvider provider =   IocConfig.Build();
+            IServiceProvider provider = IocConfig.Build();
 
             ISpecificationsService svc = provider.GetService<ISpecificationsService>();
 
