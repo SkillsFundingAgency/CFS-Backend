@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Calculator
                 DatasetTypes.Add(definitionName, type);
             }
 
-            var allocationType = budgetAssembly.GetTypes().FirstOrDefault(x => x.IsClass && x.Name == "Calculations");
+            var allocationType = budgetAssembly.GetTypes().FirstOrDefault(x => x.IsClass && x.BaseType.Name == "BaseCalculation");
             AllocationModel = new AllocationModel(allocationType);
         }
 

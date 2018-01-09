@@ -60,7 +60,7 @@ namespace CalculateFunding.EndToEnd
                 {
                     Id = Reference.NewId(),
                     Specification = spec.GetReference(),
-                    TargetLanguage = TargetLanguage.VisualBasic,
+                    TargetLanguage = TargetLanguage.CSharp,
                     Name = spec.Name
                 };
                 impl.Calculations = impl.Calculations ?? new List<Calculation>();

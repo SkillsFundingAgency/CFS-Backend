@@ -27,40 +27,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             return datasetTypeGenerator.GenerateDatasets(budget);
         }
 
-        protected override IEnumerable<SourceFile> GenerateStaticSourceFiles(Implementation budget)
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            var codeFiles = Assembly.GetExecutingAssembly().GetManifestResourceNames();
-
-            var prefix = $"{GetType().Namespace}.CodeResources.";
-            foreach (var codeFile in codeFiles)
-            {
-                var relative = codeFile.Replace(prefix, string.Empty);
-
-                var split = relative.Split('.');
-                if (split.Length >= 2)
-                {
-                    var fileName = $"{split[split.Length - 2]}.{split[split.Length - 1]}";
-                    var folderPath = "";
-                    if (split.Length > 2)
-                    {
-                        folderPath = string.Join("\\", split.Take(split.Length - 2));
-                    }
-
-                    using (var stream = assembly.GetManifestResourceStream(codeFile))
-                    {
-                        using (var reader = new StreamReader(stream))
-                        {
-                            yield return new SourceFile { FileName = Path.Combine(folderPath, fileName), SourceCode = reader.ReadToEnd() };
-                        }
-
-                    }
-                }
-
-                
-
-            }
-        }
 
         public override string GetIdentifier(string name)
         {

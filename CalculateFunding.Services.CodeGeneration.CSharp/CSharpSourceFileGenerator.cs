@@ -26,10 +26,6 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
             return datasetTypeGenerator.GenerateDataset(implementation);
         }
 
-        protected override IEnumerable<SourceFile> GenerateStaticSourceFiles(Implementation budget)
-        {
-            return null;
-        }
 
         public override string GetIdentifier(string name)
         {

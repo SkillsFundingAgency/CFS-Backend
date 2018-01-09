@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
@@ -20,108 +22,110 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
                         ))
                 .NormalizeWhitespace();
 
-            yield return new SourceFile{FileName = "ProductCalculations.cs", SourceCode = syntaxTree.ToFullString()};
+            yield return new SourceFile{FileName = "Calculations.cs", SourceCode = syntaxTree.ToFullString()};
         }
 
         private static IEnumerable<ClassDeclarationSyntax> Classes(Implementation budget)
         {
-            foreach (var calculation in budget.Calculations)
-            {
-                yield return SyntaxFactory.ClassDeclaration(Identifier("ProductCalculations"))
+            var members = new List<MemberDeclarationSyntax>();
+            members.AddRange(budget.DatasetDefinitions.Select(GetMembers));
+            members.AddRange(budget.Calculations.Select(GetMethod));
+
+                yield return SyntaxFactory.ClassDeclaration(Identifier("Calculations"))
+                    .AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName("BaseCalculation")))
                     .WithModifiers(
                         SyntaxFactory.TokenList(
                             SyntaxFactory.Token(SyntaxKind.PublicKeyword),
                             SyntaxFactory.Token(SyntaxKind.PartialKeyword)))
                     .WithMembers(
-                        SyntaxFactory.List<MemberDeclarationSyntax>(budget.DatasetDefinitions.Select(GetMembers)
-                        ));
+                        SyntaxFactory.List(members)
+                        );
 
-                foreach (var partialClass in GetProductPartials(calculation))
-                {
-                    yield return partialClass;
-                }
-            }
+            
         }
 
-        private static MethodDeclarationSyntax GetMethod(Calculation product)
+        private static MethodDeclarationSyntax GetMethod(Calculation calc)
         {
-            if (product?.SourceCode != null)
-            {
-                var tree = SyntaxFactory.ParseSyntaxTree(product.SourceCode);
+            var builder = new StringBuilder();
+            //builder.AppendLine($"[Calculation(Id = \"{calc.Id}\")]");
+            //if (calc.CalculationSpecification != null)
+            //{
+            //    builder.AppendLine($"[CalculationSpecification(Id = \"{calc.CalculationSpecification.Id}\", Name = \"{calc.CalculationSpecification.Name}\")]");
+            //}
+            //if (calc.AllocationLine != null)
+            //{
+            //    builder.AppendLine($"[AllocationLine(Id = \"{calc.AllocationLine.Id}\", Name = \"{calc.AllocationLine.Name}\")]");
+            //}
+            //if (calc.PolicySpecifications != null)
+            //{
+            //    foreach (var policySpecification in calc.PolicySpecifications)
+            //    {
+            //        builder.AppendLine($"P[olicySpecification(Id = \"{policySpecification.Id}\", Name = \"{policySpecification.Name}\")]");
+            //    }
+            //}
 
-                var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>()
-                    .FirstOrDefault();
+            builder.AppendLine($"public decimal {Identifier(calc.Name)}()");
+            builder.AppendLine("{");
+            builder.Append(calc.SourceCode ?? "return decimal.MinValue;");
+            builder.AppendLine("}");
+            //builder.Append(calc.SourceCode ?? $"Throw new NotImplementedException(\"{calc.Name} is not implemented\")");
+            builder.AppendLine();
+            var tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
 
 
-                return method;
-            }
-            return null;
+            return tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>()
+                .First().WithAttributeLists(GetMethodAttributes(calc));
         }
 
-        private static IEnumerable<ClassDeclarationSyntax> GetProductPartials(Calculation calc)
-        {
-                    var partialClass = SyntaxFactory.ClassDeclaration(Identifier("ProductCalculations"))
-
-                        .WithModifiers(
-                            SyntaxFactory.TokenList(
-                                SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                                SyntaxFactory.Token(SyntaxKind.PartialKeyword)))
-                        .WithMembers(
-                            SyntaxFactory.SingletonList<MemberDeclarationSyntax>(GetMethod(calc).WithAttributeLists(GetMethodAttributes(calc))));
-                    if (partialClass == null)
-                    {
-                        partialClass = SyntaxFactory.ClassDeclaration(Identifier("ProductCalculations"))
-
-                            .WithModifiers(
-                                SyntaxFactory.TokenList(
-                                    SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                                    SyntaxFactory.Token(SyntaxKind.PartialKeyword)))
-                            .WithMembers(
-                                SyntaxFactory.SingletonList<MemberDeclarationSyntax>(SyntaxFactory.MethodDeclaration(
-                                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DecimalKeyword)),
-                                        Identifier(Identifier(calc.Name)))
-                                    .WithModifiers(
-                                        SyntaxFactory.TokenList(
-                                            SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                                    .WithAttributeLists(GetMethodAttributes(calc))
-                                    .WithBody(
-                                        SyntaxFactory.Block(
-                                            SyntaxFactory.SingletonList<StatementSyntax>(
-                                                SyntaxFactory.ThrowStatement(
-                                                    SyntaxFactory.ObjectCreationExpression(
-                                                            SyntaxFactory.IdentifierName("NotImplementedException"))
-                                                        .WithArgumentList(
-                                                            SyntaxFactory.ArgumentList(
-                                                                SyntaxFactory.SingletonSeparatedList(
-                                                                    SyntaxFactory.Argument(
-                                                                        SyntaxFactory.LiteralExpression(
-                                                                            SyntaxKind.StringLiteralExpression,
-                                                                            SyntaxFactory.Literal(
-                                                                                $"{calc.Name} is not implemented"))))))))))
-                            ));
-
-
- 
-                    }
-                    yield return partialClass;
-
-                  
-        }
 
         private static SyntaxList<AttributeListSyntax> GetMethodAttributes(Calculation calc)
         {
-            return SyntaxFactory.SingletonList(SyntaxFactory.AttributeList(
-                SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Attribute(
-                        SyntaxFactory.ParseName("Display"),
-                        SyntaxFactory.AttributeArgumentList(SyntaxFactory.SeparatedList(new []
-                        {
-                            SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("ShortName"), SyntaxFactory.NameColon("what"), SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(calc.Id))),
-                            SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("Name"), SyntaxFactory.NameColon("what"), SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(calc.Name))),
-                            SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("Description"), SyntaxFactory.NameColon("what"), SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(calc.Name)))
+            var list = new List<AttributeSyntax>
+            {
+                SyntaxFactory.Attribute(
+                    SyntaxFactory.ParseName("Calculation"),
+                    SyntaxFactory.AttributeArgumentList(SyntaxFactory.SeparatedList(new[]
+                    {
+                        SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("Id"), null,
+                            SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression,
+                                SyntaxFactory.Literal(calc.Id)))
+                    })))
+            };
 
-                        })))
-                        )));
+            if (calc.CalculationSpecification != null)
+            {
+                list.Add(GetAttribute("CalculationSpecification", calc.CalculationSpecification));
+            }
+            if (calc.AllocationLine != null)
+            {
+                list.Add(GetAttribute("AllocationLine", calc.AllocationLine));
+            }
+            if (calc.PolicySpecifications != null)
+            {
+                foreach (var policySpecification in calc.PolicySpecifications)
+                {
+                    list.Add(GetAttribute("PolicySpecification", policySpecification));
+                }
+            }
+
+
+            return SyntaxFactory.SingletonList(SyntaxFactory.AttributeList(
+                SyntaxFactory.SeparatedList(list)));
+        }
+
+        private static AttributeSyntax GetAttribute(string attributeName, Reference reference)
+        {
+            return SyntaxFactory.Attribute(
+                SyntaxFactory.ParseName(attributeName),
+                SyntaxFactory.AttributeArgumentList(SyntaxFactory.SeparatedList(new[]
+                {
+                    SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("Id"), null,
+                        SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression,
+                            SyntaxFactory.Literal(reference.Id))),
+                    SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("Name"), null,
+                        SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression,
+                            SyntaxFactory.Literal(reference.Name))),
+                })));
         }
 
 

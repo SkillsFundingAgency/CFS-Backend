@@ -5,6 +5,23 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="CodeResources\Common\Attributes\AllocationLineAttribute.cs" />
+    <Compile Remove="CodeResources\Common\Attributes\CalculationAttribute.cs" />
+    <Compile Remove="CodeResources\Common\Attributes\CalculationSpecificationAttribute.cs" />
+    <Compile Remove="CodeResources\Common\Attributes\PolicySpecificationAttribute.cs" />
+    <Compile Remove="CodeResources\Common\BaseCalculation.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="CodeResources\CalculateFunding.csproj" />
+    <EmbeddedResource Include="CodeResources\Common\Attributes\AllocationLineAttribute.cs" />
+    <EmbeddedResource Include="CodeResources\Common\Attributes\CalculationAttribute.cs" />
+    <EmbeddedResource Include="CodeResources\Common\Attributes\CalculationSpecificationAttribute.cs" />
+    <EmbeddedResource Include="CodeResources\Common\Attributes\PolicySpecificationAttribute.cs" />
+    <EmbeddedResource Include="CodeResources\Common\BaseCalculation.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.CodeGeneration\CalculateFunding.Services.CodeGeneration.csproj" />
   </ItemGroup>
