@@ -1,14 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
 using FluentValidation.Results;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Functions.Common.Extensions
 {
     public static class FluentValidation
     {
-        public static void PopulateModelState(this ValidationResult validationResult, ModelStateDictionary modelStateDictionary)
+        public static BadRequestObjectResult PopulateModelState(this ValidationResult validationResult)
         {
-            foreach (var error in validationResult.Errors)
-                modelStateDictionary.AddModelError(error.PropertyName, error.ErrorMessage);
+            if (!validationResult.IsValid) {
+                ModelStateDictionary modelStateDictionary = new ModelStateDictionary();
+
+                foreach (var error in validationResult.Errors)
+                    modelStateDictionary.AddModelError(error.PropertyName, error.ErrorMessage);
+
+                return new BadRequestObjectResult(modelStateDictionary);
+            }
+
+            return null;
         }
     }
 }

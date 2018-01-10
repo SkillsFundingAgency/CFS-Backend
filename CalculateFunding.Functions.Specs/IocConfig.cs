@@ -31,6 +31,7 @@ namespace CalculateFunding.Functions.Specs
             builder.AddScoped<ISpecificationsRepository, SpecificationsRepository>();
             builder.AddScoped<ISpecificationsService, SpecificationsService>();
             builder.AddScoped<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
+            builder.AddScoped<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
 
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
 

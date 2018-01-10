@@ -15,7 +15,7 @@ namespace CalculateFunding.Models.Specs
         public string Description { get; set; }
 
         [JsonProperty("calculations")]
-        public List<CalculationSpecification> Calculations { get; set; }
+        public IEnumerable<Calculation> Calculations { get; set; }
 
         [JsonProperty("subPolicies")]
         public IEnumerable<Policy> SubPolicies { get; set; }

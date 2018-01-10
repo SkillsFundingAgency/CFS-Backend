@@ -111,10 +111,17 @@ namespace CalculateFunding.Services.Specs
             IEnumerable<AcademicYear> academicYears = await _specifcationsRepository.GetAcademicYears();
             return new OkObjectResult(academicYears);
         }
+
         public async Task<IActionResult> GetFundingStreams(HttpRequest request)
         {
             IEnumerable<FundingStream> fundingStreams = await _specifcationsRepository.GetFundingStreams();
             return new OkObjectResult(fundingStreams);
+        }
+
+        public async Task<IActionResult> GetAllocationLines(HttpRequest request)
+        {
+            IEnumerable<AllocationLine> allocationLines = await _specifcationsRepository.GetAllocationLines();
+            return new OkObjectResult(allocationLines);
         }
 
         public async Task<IActionResult> CreatePolicy(HttpRequest request)
@@ -125,17 +132,11 @@ namespace CalculateFunding.Services.Specs
 
             if (createModel == null)
                 return new BadRequestObjectResult("Null policy create model provided");
-            
-            var validationResult = await _policyCreateModelValidator.ValidateAsync(createModel);
 
-            if (!validationResult.IsValid)
-            {
-                ModelStateDictionary modelStateDictionary = new ModelStateDictionary();
+            var validationResult = (await _policyCreateModelValidator.ValidateAsync(createModel)).PopulateModelState();
 
-                validationResult.PopulateModelState(modelStateDictionary);
-
-                return new BadRequestObjectResult(modelStateDictionary);
-            }
+            if (validationResult != null)
+                return validationResult;
 
             //Policy existingPolicy = await GetPolicyByName()
             Specification specification = await _specifcationsRepository.GetSpecificationById(createModel.SpecificationId);
@@ -195,6 +196,43 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specification);
         }
 
+        public async Task<IActionResult> CreateCalculation(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            CalculationCreateModel createModel = JsonConvert.DeserializeObject<CalculationCreateModel>(json);
+
+            if (createModel == null)
+                return new BadRequestObjectResult("Null policy create model provided");
+
+            var validationResult = (await _policyCreateModelValidator.ValidateAsync(createModel)).PopulateModelState();
+
+            if (validationResult != null)
+                return validationResult;
+
+            Specification specification = await _specifcationsRepository.GetSpecificationById(createModel.SpecificationId);
+
+            if (specification == null)
+                return new NotFoundResult();
+
+            Calculation calculation = _mapper.Map<Calculation>(createModel);
+
+            Policy policy = specification.GetPolicy(createModel.PolicyId);
+
+            if (policy == null)
+                return new NotFoundResult();
+
+            policy.Calculations = (policy.Calculations == null
+                ? new[] { calculation }
+                : policy.Calculations.Concat(new[] { calculation }));
+
+            var statusCode = await _specifcationsRepository.UpdateSpecification(specification);
+
+            if (statusCode != HttpStatusCode.OK)
+                return new StatusCodeResult((int)statusCode);
+
+            return new OkObjectResult(specification);
+        }
     }
 
 

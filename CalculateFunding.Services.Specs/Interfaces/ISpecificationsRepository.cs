@@ -18,5 +18,9 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IEnumerable<FundingStream>> GetFundingStreams();
         Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query);
         Task<HttpStatusCode> UpdateSpecification(Specification specification);
+        Task<AllocationLine> GetAllocationLineById(string lineId);
+        Task<IEnumerable<AllocationLine>> GetAllocationLines();
+
+        Task<Calculation> GetCalculationByName(string specificationId, string calculationName);
     }
 }

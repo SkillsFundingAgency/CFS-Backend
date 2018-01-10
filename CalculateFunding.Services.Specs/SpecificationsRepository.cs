@@ -19,6 +19,25 @@ namespace CalculateFunding.Services.Specs
             _repository = cosmosRepository;
         }
 
+        public async Task<IEnumerable<AllocationLine>> GetAllocationLines()
+        {
+            var lines = new[]
+            {
+                new AllocationLine { Id = "YPA01", Name = "16-19 Low Level Learners Programme funding" },
+                new AllocationLine { Id = "YPA02", Name = "16-19 Learner Responsive Low Level ALS" },
+                new AllocationLine { Id = "YPA03", Name = "216-19 Learner Responsive High Level ALS" },
+            };
+
+            return lines;
+        }
+
+        public async Task<AllocationLine> GetAllocationLineById(string lineId)
+        {
+            var lines = await GetAllocationLines();
+
+            return lines.FirstOrDefault(m => m.Id == lineId);
+        }
+
         public async Task<AcademicYear> GetAcademicYearById(string academicYearId)
         {
            var years = new[]
@@ -101,6 +120,17 @@ namespace CalculateFunding.Services.Specs
             };
 
             return Task.FromResult(fundingStreams.AsEnumerable());
+        }
+
+        async public Task<Calculation> GetCalculationByName(string specificationId, string calculationName)
+        {
+            var specification = await GetSpecificationById(specificationId);
+            if (specification == null)
+                return null;
+
+            Calculation calculation = specification.GetCalculations().FirstOrDefault(m => m.Name == calculationName);
+
+            return calculation;
         }
     }
 }

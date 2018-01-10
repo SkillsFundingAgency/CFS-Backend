@@ -29,7 +29,7 @@ namespace CalculateFunding.Models.Specs
             return specification.Policies?.FirstOrDefault(x => x.GetPolicyByName(name) != null);
         }
 
-        public static IEnumerable<CalculationSpecification> GetCalculations(this Specification specification)
+        public static IEnumerable<Calculation> GetCalculations(this Specification specification)
         {
             if (specification.Policies != null)
             {
@@ -44,7 +44,7 @@ namespace CalculateFunding.Models.Specs
             }
         }
 
-        public static IEnumerable<CalculationSpecification> GetCalculations(this Policy policy)
+        public static IEnumerable<Calculation> GetCalculations(this Policy policy)
         {
             if (policy.Calculations != null)
             {
@@ -65,9 +65,14 @@ namespace CalculateFunding.Models.Specs
             }
         }
 
-        public static CalculationSpecification GetCalculation(this Policy policy, string id)
+        public static Calculation GetCalculation(this Policy policy, string id)
         {
             return policy.Calculations?.FirstOrDefault(x => x.Id == id);
+        }
+
+        public static Calculation GetCalculationByName(this Policy policy, string name)
+        {
+            return policy.Calculations?.FirstOrDefault(x => x.Name == name);
         }
     }
 }

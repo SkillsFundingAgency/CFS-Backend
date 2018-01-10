@@ -113,7 +113,7 @@ namespace CalculateFunding.ContentSync
                     Description = policyRecord.Description,
                     SubPolicies = GetPolicies(policies, calculations, policyRecord.Name).ToList(),
                     Calculations = calculations.Where(x => x.Policy == policyRecord.Name).Select(x =>
-                        new CalculationSpecification
+                        new Calculation
                         {
                             Id = x.Id,
                             Name = x.Name,
