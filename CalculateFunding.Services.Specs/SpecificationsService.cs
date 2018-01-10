@@ -11,6 +11,9 @@ using CalculateFunding.Models;
 using System.Linq;
 using CalculateFunding.Functions.Common.Interfaces.Logging;
 using System.Net;
+using System;
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -19,12 +22,15 @@ namespace CalculateFunding.Services.Specs
         private readonly IMapper _mapper;
         private readonly ISpecificationsRepository _specifcationsRepository;
         private readonly ILoggingService _logs;
+        private readonly IValidator<PolicyCreateModel> _policyCreateModelValidator;
 
-        public SpecificationsService(IMapper mapper, ISpecificationsRepository specifcationsRepository, ILoggingService logs)
+        public SpecificationsService(IMapper mapper, 
+            ISpecificationsRepository specifcationsRepository, ILoggingService logs, IValidator<PolicyCreateModel> policyCreateModelValidator)
         {
             _mapper = mapper;
             _specifcationsRepository = specifcationsRepository;
             _logs = logs;
+            _policyCreateModelValidator = policyCreateModelValidator;
         }
 
         public async Task<IActionResult> GetSpecificationById(HttpRequest request)
@@ -87,15 +93,17 @@ namespace CalculateFunding.Services.Specs
             if (string.IsNullOrWhiteSpace(model.Name))
                 return new BadRequestObjectResult("Null or empty policy name provided");
 
-            Specification specification = await _specifcationsRepository.GetSpecificationByQuery(
-                m => m.Id == model.SpecificationId && m.Policies.Any(p => p.Name.ToLower() == model.Name.ToLower()));
+            Specification specification = await _specifcationsRepository.GetSpecificationById(model.SpecificationId);
 
             if (specification == null)
                 return new NotFoundResult();
 
-            Policy policy = specification.Policies.FirstOrDefault(m => m.Name == model.Name);
+            Policy policy = specification.GetPolicyByName(model.Name);
 
-            return new OkObjectResult(policy);
+            if (policy != null)
+                return new OkObjectResult(policy);
+
+            return new NotFoundResult();
         }
 
         public async Task<IActionResult> GetAcademicYears(HttpRequest request)
@@ -115,6 +123,21 @@ namespace CalculateFunding.Services.Specs
 
             PolicyCreateModel createModel = JsonConvert.DeserializeObject<PolicyCreateModel>(json);
 
+            if (createModel == null)
+                return new BadRequestObjectResult("Null policy create model provided");
+            
+            var validationResult = await _policyCreateModelValidator.ValidateAsync(createModel);
+
+            if (!validationResult.IsValid)
+            {
+                ModelStateDictionary modelStateDictionary = new ModelStateDictionary();
+
+                validationResult.PopulateModelState(modelStateDictionary);
+
+                return new BadRequestObjectResult(modelStateDictionary);
+            }
+
+            //Policy existingPolicy = await GetPolicyByName()
             Specification specification = await _specifcationsRepository.GetSpecificationById(createModel.SpecificationId);
 
             if (specification == null)
@@ -122,12 +145,30 @@ namespace CalculateFunding.Services.Specs
 
             Policy policy = _mapper.Map<Policy>(createModel);
 
+            if (!string.IsNullOrWhiteSpace(createModel.ParentPolicyId))
+            {
+                Policy parentPolicy = specification.GetPolicy(createModel.ParentPolicyId);
+
+                if (parentPolicy == null)
+                    return new NotFoundResult();
+
+                parentPolicy.SubPolicies = (parentPolicy.SubPolicies == null
+                    ? new[] { policy }
+                    : parentPolicy.SubPolicies.Concat(new[] { policy }));
+            }
+            else
+            {
+                specification.Policies = (specification.Policies == null
+                   ? new[] { policy }
+                   : specification.Policies.Concat(new[] { policy }));
+            }
+
             var statusCode = await _specifcationsRepository.UpdateSpecification(specification);
 
             if(statusCode != HttpStatusCode.OK)
                  return new StatusCodeResult((int)statusCode);
 
-            return new OkObjectResult(policy);
+            return new OkObjectResult(specification);
         }
 
         public async Task<IActionResult> CreateSpecification(HttpRequest request)

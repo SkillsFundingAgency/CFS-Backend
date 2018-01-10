@@ -53,7 +53,6 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                     await _documentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = _databaseName });
                 }
 
-
                 _collection = await _documentClient.CreateDocumentCollectionIfNotExistsAsync(
                     UriFactory.CreateDatabaseUri(_databaseName), collection);
             }
@@ -99,18 +98,6 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return response.FirstOrDefault();
         }
 
-        public async Task<T> SingleOrDefaultAsync<T>(Expression<Func<T, bool>> where)
-        {
-            var results = _documentClient.CreateDocumentQuery<T>(_collectionUri, new FeedOptions { MaxItemCount = 1 })
-                .Where(where)
-                .AsEnumerable();
-
-            if (results.Any())
-                return results.ElementAt(0);
-
-            return default(T);
-        }
-
         public IQueryable<T> Query<T>(string directSql = null, int maxItemCount = -1) where T : IIdentifiable
         {
             // Set some common query options
@@ -123,7 +110,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                     directSql,
                     queryOptions).Select(x => x.Content).AsQueryable();
             }
-            return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Select(x => x.Content).AsQueryable();
+            return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted).Select(x => x.Content).AsQueryable();
         }
 
         public IEnumerable<string> QueryAsJson(string directSql = null, int maxItemCount = -1)

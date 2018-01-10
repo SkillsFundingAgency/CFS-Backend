@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Specs
             _repository = cosmosRepository;
         }
 
-        public Task<AcademicYear> GetAcademicYearById(string academicYearId)
+        public async Task<AcademicYear> GetAcademicYearById(string academicYearId)
         {
            var years = new[]
            {
@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Specs
 
             //var academicYear = _repository.Query<AcademicYear>().FirstOrDefault(m => m.Id == academicYearId);
 
-            return Task.FromResult(academicYear);
+            return academicYear;
         }
 
         async public Task<FundingStream> GetFundingStreamById(string fundingStreamId)
@@ -64,12 +64,12 @@ namespace CalculateFunding.Services.Specs
 
         public Task<Specification> GetSpecificationById(string specificationId)
         {
-            return _repository.SingleOrDefaultAsync<Specification>(m => m.Id == specificationId);
+            return GetSpecificationByQuery(m => m.Id == specificationId);
         }
 
-        public Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query)
+        async public Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query)
         {
-            return _repository.SingleOrDefaultAsync(query);
+            return (await GetSpecificationsByQuery(query)).FirstOrDefault();
         }
 
         public Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query)
@@ -81,9 +81,9 @@ namespace CalculateFunding.Services.Specs
 
         public Task<IEnumerable<AcademicYear>> GetAcademicYears()
         {
-            var academeicYears = _repository.Query<AcademicYear>();
+            var academicYears = _repository.Query<AcademicYear>();
 
-            return Task.FromResult(academeicYears.AsEnumerable());
+            return Task.FromResult(academicYears.ToList().AsEnumerable());
         }
 
         public Task<IEnumerable<FundingStream>> GetFundingStreams()

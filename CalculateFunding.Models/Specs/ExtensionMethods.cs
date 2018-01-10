@@ -12,9 +12,21 @@ namespace CalculateFunding.Models.Specs
             if (policy.Id == id) return policy;
             return policy.SubPolicies?.FirstOrDefault(x => x.GetPolicy(id) != null);
         }
+
         public static Policy GetPolicy(this Specification specification, string id)
         {
             return specification.Policies?.FirstOrDefault(x => x.GetPolicy(id) != null);
+        }
+
+        public static Policy GetPolicyByName(this Policy policy, string name)
+        {
+            if (policy.Name == name) return policy;
+            return policy.SubPolicies?.FirstOrDefault(x => x.GetPolicyByName(name) != null);
+        }
+
+        public static Policy GetPolicyByName(this Specification specification, string name)
+        {
+            return specification.Policies?.FirstOrDefault(x => x.GetPolicyByName(name) != null);
         }
 
         public static IEnumerable<CalculationSpecification> GetCalculations(this Specification specification)

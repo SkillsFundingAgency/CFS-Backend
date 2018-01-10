@@ -17,7 +17,8 @@ namespace CalculateFunding.Functions.Common.Extensions
 
             using (StreamReader reader = new StreamReader(request.Body, encoding))
             {
-                request.Body.Seek(0, SeekOrigin.Begin);
+                if(request.Body.CanSeek)
+                    request.Body.Seek(0, SeekOrigin.Begin);
 
                 return await reader.ReadToEndAsync();
             }   
