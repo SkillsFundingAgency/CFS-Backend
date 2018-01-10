@@ -41,6 +41,7 @@
     "datasetsFunctionAppName": "[concat(resourceGroup().name, '-fapp-datasets')]",
     "resultsFunctionAppName": "[concat(resourceGroup().name, '-fapp-results')]",
     "specsFunctionAppName": "[concat(resourceGroup().name, '-fapp-specs')]",
+    "environmentFunctionAppName": "[concat(resourceGroup().name, '-fapp-environment')]",
     "calcsFunctionAppName": "[concat(resourceGroup().name, '-fapp-calcs')]",
     "scenariosFunctionAppName": "[concat(resourceGroup().name, '-fapp-scenarios')]",
     "hostingPlanName": "[concat(resourceGroup().name, '-plan')]",
@@ -673,6 +674,64 @@
       }
     },
 
+
+    {
+      "apiVersion": "2016-08-01",
+      "type": "Microsoft.Web/sites",
+      "name": "[variables('environmentFunctionAppName')]",
+      "location": "[resourceGroup().location]",
+      "kind": "functionapp",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+        "[variables('applicationInsightsName')]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "siteConfig": {
+          "alwaysOn": true,
+          "appSettings": [
+            {
+              "name": "AzureWebJobsDashboard",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTSHARE",
+              "value": "[toLower(variables('environmentFunctionAppName'))]"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "beta"
+            },
+            {
+              "name": "ROUTING_EXTENSION_VERSION",
+              "value": "~.2"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "ApplicationInsightsOptions:InstrumentationKey",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "CosmosDbSettings:ConnectionString",
+              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+            }
+          ]
+        }
+      }
+    },
 
     {
       "apiVersion": "2016-08-01",
