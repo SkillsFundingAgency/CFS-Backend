@@ -17,22 +17,18 @@ namespace CalculateFunding.Services.Specs.Validators
 
             RuleFor(model => model.Description)
                .NotEmpty()
-               .NotNull()
                .WithMessage("You must give a description for the specification");
 
             RuleFor(model => model.AcademicYearId)
                .NotEmpty()
-               .NotNull()
                .WithMessage("Null or empty academic year id provided");
 
             RuleFor(model => model.FundingStreamId)
               .NotEmpty()
-              .NotNull()
               .WithMessage("You must select at least one funding stream");
 
             RuleFor(model => model.Name)
                .NotEmpty()
-               .NotNull()
                .WithMessage("You must give a unique specification name")
                .Custom((name, context) => {
                    PolicyCreateModel model = context.ParentContext.InstanceToValidate as PolicyCreateModel;

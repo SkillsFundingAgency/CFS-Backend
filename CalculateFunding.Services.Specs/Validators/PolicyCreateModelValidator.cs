@@ -14,24 +14,24 @@ namespace CalculateFunding.Services.Specs.Validators
 
             RuleFor(model => model.Description)
                .NotEmpty()
-               .NotNull()
                .WithMessage("You must give a description for the policy");
-
             RuleFor(model => model.SpecificationId)
                .NotEmpty()
-               .NotNull()
                .WithMessage("Null or empty specification id provided");
-
             RuleFor(model => model.Name)
-               .NotEmpty()
-               .NotNull()
-               .WithMessage("You must give a unique policy name")
+               .NotEmpty().WithMessage("You must give a unique policy name")
                .Custom((name, context) => {
                    PolicyCreateModel model = context.ParentContext.InstanceToValidate as PolicyCreateModel;
-                   Specification specification = _specificationsRepository.GetSpecificationById(model.SpecificationId).Result;
-                   Policy policy = specification.GetPolicyByName(name);
-                   if (policy != null)
-                       context.AddFailure($"You must give a unique policy name");
+                   if (!string.IsNullOrEmpty(model.SpecificationId))
+                   {
+                       Specification specification = _specificationsRepository.GetSpecificationById(model.SpecificationId).Result;
+                       if (specification != null)
+                       {
+                           Policy policy = specification.GetPolicyByName(name);
+                           if (policy != null)
+                               context.AddFailure($"You must give a unique policy name");
+                       }
+                   }
                });
         }
     }

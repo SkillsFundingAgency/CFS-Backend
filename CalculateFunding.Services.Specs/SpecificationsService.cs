@@ -255,6 +255,8 @@ namespace CalculateFunding.Services.Specs
             if (policy == null)
                 return new NotFoundResult();
 
+            calculation.AllocationLine = await _specifcationsRepository.GetAllocationLineById(createModel.AllocationLineId);
+
             policy.Calculations = (policy.Calculations == null
                 ? new[] { calculation }
                 : policy.Calculations.Concat(new[] { calculation }));

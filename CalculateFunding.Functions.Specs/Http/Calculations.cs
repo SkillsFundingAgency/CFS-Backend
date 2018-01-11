@@ -74,7 +74,18 @@ namespace CalculateFunding.Functions.Specs.Http
 
             ISpecificationsService svc = provider.GetService<ISpecificationsService>();
 
-            return svc.GetPolicyByName(req);
+            return svc.GetCalculationByName(req);
+        }
+
+        [FunctionName("allocation-lines")]
+        public static Task<IActionResult> RunAllocationLines(
+         [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            IServiceProvider provider = IocConfig.Build();
+
+            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
+
+            return svc.GetAllocationLines(req);
         }
 
     }

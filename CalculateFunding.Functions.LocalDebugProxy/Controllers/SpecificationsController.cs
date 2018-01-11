@@ -72,6 +72,27 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return Policies.RunCreatePolicy(ControllerContext.HttpContext.Request, null);
         }
 
+        [Route("api/specs/calculation-by-name")]
+        [HttpPost]
+        public Task<IActionResult> RunCalculationByName()
+        {
+            return Calculations.RunCalculationByName(ControllerContext.HttpContext.Request, null);
+        }
+
+        [Route("api/specs/calculations")]
+        [HttpPost]
+        public Task<IActionResult> RunCreateCalculation()
+        {
+            return Calculations.RunCreateCalculation(ControllerContext.HttpContext.Request, null);
+        }
+
+        [Route("api/specs/allocation-lines")]
+        [HttpGet]
+        public Task<IActionResult> RunAllocationLines()
+        {
+            return Calculations.RunAllocationLines(ControllerContext.HttpContext.Request, null);
+        }
+
         [Route("api/specs/commands/funding-streams")]
         [HttpPost]
         [HttpDelete]
