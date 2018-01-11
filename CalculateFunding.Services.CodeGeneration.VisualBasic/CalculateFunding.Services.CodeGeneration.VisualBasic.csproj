@@ -10,12 +10,14 @@
     <None Remove="CodeResources\CalculationAttribute.vb" />
     <None Remove="CodeResources\CalculationSpecificationAttribute.vb" />
     <None Remove="CodeResources\Common\Provider.vb" />
+    <None Remove="CodeResources\Common\Scenario.vb" />
     <None Remove="CodeResources\PolicySpecificationAttribute.vb" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="CodeResources\Common\Attributes\AllocationLineAttribute.vb" />
     <EmbeddedResource Include="CodeResources\CalculateFunding.vbproj" />
+    <EmbeddedResource Include="CodeResources\Common\Scenario.vb" />
     <EmbeddedResource Include="CodeResources\Common\Provider.vb" />
     <EmbeddedResource Include="CodeResources\Common\BaseCalculation.vb" />
     <EmbeddedResource Include="CodeResources\Common\Attributes\CalculationAttribute.vb" />

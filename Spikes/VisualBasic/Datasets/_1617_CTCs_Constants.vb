@@ -14,23 +14,23 @@ Public Class _1617_CTCs_ConstantsDataset
 
     Public Property DatasetName As String
 
-    Public Property _1516Insurancetopupunitvalue As String
+    Public Property _1516Insurancetopupunitvalue As Decimal
 
-    Public Property _1617Insurancetopupunitvalue As String
+    Public Property _1617Insurancetopupunitvalue As Decimal
 
-    Public Property _1617ESGunitvalue As String
+    Public Property _1617ESGunitvalue As Decimal
 
-    Public Property _1516TotalBaseGrant As String
+    Public Property _1516TotalBaseGrant As Decimal
 
-    Public Property _1516TotalESG As String
+    Public Property _1516TotalESG As Decimal
 
-    Public Property _1516TotalMFG As String
+    Public Property _1516TotalMFG As Decimal
 
-    Public Property _1617MFGtakeuprate As String
+    Public Property _1617MFGtakeuprate As Decimal
 
-    Public Property _1516CommunityGrantunitvalue As String
+    Public Property _1516CommunityGrantunitvalue As Decimal
 
-    Public Property _1617CommunityGrantunitvalue As String
+    Public Property _1617CommunityGrantunitvalue As Decimal
 
-    Public Property _1516Post16tosecondayfundingratio As String
+    Public Property _1516Post16tosecondayfundingratio As Decimal
 End Class

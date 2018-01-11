@@ -14,51 +14,51 @@ Public Class APTFinalBaselinesdatasetDataset
 
     Public Property DatasetName As String
 
-    Public Property _1617MFGNOR As String
+    Public Property _1617MFGNOR As Decimal
 
-    Public Property _1617HistoricalCommitmentsof6thFormFundingfromDSG As String
+    Public Property _1617HistoricalCommitmentsof6thFormFundingfromDSG As Decimal
 
-    Public Property _1617Rates As String
+    Public Property _1617Rates As Decimal
 
-    Public Property _1617PostMFGBudget As String
+    Public Property _1617PostMFGBudget As Decimal
 
-    Public Property _1617OpeningClosing As String
+    Public Property _1617OpeningClosing As Decimal
 
-    Public Property AdditionallumpsumforschoolsamalgamatedduringFY1516 As String
+    Public Property AdditionallumpsumforschoolsamalgamatedduringFY1516 As Decimal
 
-    Public Property Adjusted1617MFGNOR As String
+    Public Property Adjusted1617MFGNOR As Decimal
 
-    Public Property Adjusted1617HistoricalCommitmentsof6thFormFundingfromDSG As String
+    Public Property Adjusted1617HistoricalCommitmentsof6thFormFundingfromDSG As Decimal
 
-    Public Property Adjusted1617Rates As String
+    Public Property Adjusted1617Rates As Decimal
 
-    Public Property Adjustmentto1617PostMFGBudget As String
+    Public Property Adjustmentto1617PostMFGBudget As Decimal
 
-    Public Property Adjusted1617PostMFGBudget As String
+    Public Property Adjusted1617PostMFGBudget As Decimal
 
-    Public Property Adjusted1617OpeningClosing As String
+    Public Property Adjusted1617OpeningClosing As Decimal
 
-    Public Property AdjustedAdditionallumpsumforschoolsamalgamatedduringFY1516 As String
+    Public Property AdjustedAdditionallumpsumforschoolsamalgamatedduringFY1516 As Decimal
 
-    Public Property Comments As String
+    Public Property Comments As Decimal
 
-    Public Property _1617ApprovedMFGExemptions1 As String
+    Public Property _1617ApprovedMFGExemptions1 As Decimal
 
-    Public Property _1617ApprovedMFGExemptions2 As String
+    Public Property _1617ApprovedMFGExemptions2 As Decimal
 
-    Public Property _1617ApprovedMFGExemptions3 As String
+    Public Property _1617ApprovedMFGExemptions3 As Decimal
 
-    Public Property _1617Technicaladjustment1 As String
+    Public Property _1617Technicaladjustment1 As Decimal
 
-    Public Property _1617Technicaladjustment2 As String
+    Public Property _1617Technicaladjustment2 As Decimal
 
-    Public Property _1617Technicaladjustment3 As String
+    Public Property _1617Technicaladjustment3 As Decimal
 
-    Public Property _1617LumpsumandSparsityfunding1617additionallumpsumtobeexcludedfromtheMFGbaseline As String
+    Public Property _1617LumpsumandSparsityfunding1617additionallumpsumtobeexcludedfromtheMFGbaseline As Decimal
 
-    Public Property _1617PostMFGperpupilSBS As String
+    Public Property _1617PostMFGperpupilSBS As Decimal
 
-    Public Property _1617MFGSBSTotal As String
+    Public Property _1617MFGSBSTotal As Decimal
 
-    Public Property _1617MFGSBSPerPupil As String
+    Public Property _1617MFGSBSPerPupil As Decimal
 End Class

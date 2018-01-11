@@ -14,115 +14,115 @@ Public Class APTAdjustedFactorsdatasetDataset
 
     Public Property DatasetName As String
 
-    Public Property Phase As String
+    Public Property Phase As Decimal
 
-    Public Property AcademyType As String
+    Public Property AcademyType As Decimal
 
-    Public Property LondonFringe As String
+    Public Property LondonFringe As Decimal
 
-    Public Property NumberofPrimaryyeargroupsformiddleschools As String
+    Public Property NumberofPrimaryyeargroupsformiddleschools As Decimal
 
-    Public Property NumberofSecondaryyeargroupsformiddleschools As String
+    Public Property NumberofSecondaryyeargroupsformiddleschools As Decimal
 
-    Public Property NumberofPrimaryyeargroupsforallschools As String
+    Public Property NumberofPrimaryyeargroupsforallschools As Decimal
 
-    Public Property NumberofSecondaryyeargroupsforallschools As String
+    Public Property NumberofSecondaryyeargroupsforallschools As Decimal
 
-    Public Property NOR As String
+    Public Property NOR As Decimal
 
-    Public Property NORPrimary As String
+    Public Property NORPrimary As Decimal
 
-    Public Property NOR14forcalculationoftheeligiblepupilsfortheprimarypriorattainmentfactor As String
+    Public Property NOR14forcalculationoftheeligiblepupilsfortheprimarypriorattainmentfactor As Decimal
 
-    Public Property NOR56forcalculationoftheeligiblepupilsfortheprimarypriorattainmentfactor As String
+    Public Property NOR56forcalculationoftheeligiblepupilsfortheprimarypriorattainmentfactor As Decimal
 
-    Public Property NORSecondary As String
+    Public Property NORSecondary As Decimal
 
-    Public Property NORKS3 As String
+    Public Property NORKS3 As Decimal
 
-    Public Property NORKS4 As String
+    Public Property NORKS4 As Decimal
 
-    Public Property ReceptionDifference As String
+    Public Property ReceptionDifference As Decimal
 
-    Public Property _1617BaseNOR As String
+    Public Property _1617BaseNOR As Decimal
 
-    Public Property AverageYearGroupSize As String
+    Public Property AverageYearGroupSize As Decimal
 
-    Public Property PrimaryFSMUnits As String
+    Public Property PrimaryFSMUnits As Decimal
 
-    Public Property PrimaryEver6Units As String
+    Public Property PrimaryEver6Units As Decimal
 
-    Public Property SecondaryFSMUnits As String
+    Public Property SecondaryFSMUnits As Decimal
 
-    Public Property SecondaryEver6Units As String
+    Public Property SecondaryEver6Units As Decimal
 
-    Public Property IDACIPrimaryProportionBandG As String
+    Public Property IDACIPrimaryProportionBandG As Decimal
 
-    Public Property IDACIPrimaryProportionBandF As String
+    Public Property IDACIPrimaryProportionBandF As Decimal
 
-    Public Property IDACIPrimaryProportionBandE As String
+    Public Property IDACIPrimaryProportionBandE As Decimal
 
-    Public Property IDACIPrimaryProportionBandD As String
+    Public Property IDACIPrimaryProportionBandD As Decimal
 
-    Public Property IDACIPrimaryProportionBandC As String
+    Public Property IDACIPrimaryProportionBandC As Decimal
 
-    Public Property IDACIPrimaryProportionBandB As String
+    Public Property IDACIPrimaryProportionBandB As Decimal
 
-    Public Property IDACIPrimaryProportionBandA As String
+    Public Property IDACIPrimaryProportionBandA As Decimal
 
-    Public Property IDACISecondaryProportionBandG As String
+    Public Property IDACISecondaryProportionBandG As Decimal
 
-    Public Property IDACISecondaryProportionBandF As String
+    Public Property IDACISecondaryProportionBandF As Decimal
 
-    Public Property IDACISecondaryProportionBandE As String
+    Public Property IDACISecondaryProportionBandE As Decimal
 
-    Public Property IDACISecondaryProportionBandD As String
+    Public Property IDACISecondaryProportionBandD As Decimal
 
-    Public Property IDACISecondaryProportionBandC As String
+    Public Property IDACISecondaryProportionBandC As Decimal
 
-    Public Property IDACISecondaryProportionBandB As String
+    Public Property IDACISecondaryProportionBandB As Decimal
 
-    Public Property IDACISecondaryProportionBandA As String
+    Public Property IDACISecondaryProportionBandA As Decimal
 
-    Public Property EAL1PrimaryUnits As String
+    Public Property EAL1PrimaryUnits As Decimal
 
-    Public Property EAL2PrimaryUnits As String
+    Public Property EAL2PrimaryUnits As Decimal
 
-    Public Property EAL3PrimaryUnits As String
+    Public Property EAL3PrimaryUnits As Decimal
 
-    Public Property EAL1SecondaryUnits As String
+    Public Property EAL1SecondaryUnits As Decimal
 
-    Public Property EAL2SecondaryUnits As String
+    Public Property EAL2SecondaryUnits As Decimal
 
-    Public Property EAL3SecondaryUnits As String
+    Public Property EAL3SecondaryUnits As Decimal
 
-    Public Property LACXUnits As String
+    Public Property LACXUnits As Decimal
 
-    Public Property LowattainmentY12UnitsundernewEYFSP As String
+    Public Property LowattainmentY12UnitsundernewEYFSP As Decimal
 
-    Public Property LowAttainmentunderoldFSPProportion73 As String
+    Public Property LowAttainmentunderoldFSPProportion73 As Decimal
 
-    Public Property LowAttainmentunderoldFSPProportion78 As String
+    Public Property LowAttainmentunderoldFSPProportion78 As Decimal
 
-    Public Property LowattainmenttotalPrimaryUnits As String
+    Public Property LowattainmenttotalPrimaryUnits As Decimal
 
-    Public Property LowAttainmentSecondaryUnits As String
+    Public Property LowAttainmentSecondaryUnits As Decimal
 
-    Public Property MobilityPrimaryUnits As String
+    Public Property MobilityPrimaryUnits As Decimal
 
-    Public Property MobilitySecondaryUnits As String
+    Public Property MobilitySecondaryUnits As Decimal
 
-    Public Property PrimarysparsityavDistanceto2ndschoolmiles As String
+    Public Property PrimarysparsityavDistanceto2ndschoolmiles As Decimal
 
-    Public Property SecondarysparsityavDistanceto2ndschoolmiles As String
+    Public Property SecondarysparsityavDistanceto2ndschoolmiles As Decimal
 
-    Public Property Sparsityflag As String
+    Public Property Sparsityflag As Decimal
 
-    Public Property NORY7forcalculationoftheeligiblepupilsforthesecondarypriorattainmentfactorONLY As String
+    Public Property NORY7forcalculationoftheeligiblepupilsforthesecondarypriorattainmentfactorONLY As Decimal
 
-    Public Property NORY811forcalculationoftheeligiblepupilsforthesecondarypriorattainmentfactorONLY As String
+    Public Property NORY811forcalculationoftheeligiblepupilsforthesecondarypriorattainmentfactorONLY As Decimal
 
-    Public Property LowAttainmentsecondaryunitsY7 As String
+    Public Property LowAttainmentsecondaryunitsY7 As Decimal
 
-    Public Property LowAttainmentSecondaryUnitsY811 As String
+    Public Property LowAttainmentSecondaryUnitsY811 As Decimal
 End Class

@@ -14,85 +14,85 @@ Public Class LocalAuthorityAveragesDataset
 
     Public Property DatasetName As String
 
-    Public Property PrimaryFSMProportion As String
+    Public Property PrimaryFSMProportion As Decimal
 
-    Public Property PrimaryEver6Proportion As String
+    Public Property PrimaryEver6Proportion As Decimal
 
-    Public Property SecondaryFSMProportion As String
+    Public Property SecondaryFSMProportion As Decimal
 
-    Public Property SecondaryEver6Proportion As String
+    Public Property SecondaryEver6Proportion As Decimal
 
-    Public Property IDACIPrimaryProportionBandG As String
+    Public Property IDACIPrimaryProportionBandG As Decimal
 
-    Public Property IDACIPrimaryProportionBandF As String
+    Public Property IDACIPrimaryProportionBandF As Decimal
 
-    Public Property IDACIPrimaryProportionBandE As String
+    Public Property IDACIPrimaryProportionBandE As Decimal
 
-    Public Property IDACIPrimaryProportionBandD As String
+    Public Property IDACIPrimaryProportionBandD As Decimal
 
-    Public Property IDACIPrimaryProportionBandC As String
+    Public Property IDACIPrimaryProportionBandC As Decimal
 
-    Public Property IDACIPrimaryProportionBandB As String
+    Public Property IDACIPrimaryProportionBandB As Decimal
 
-    Public Property IDACIPrimaryProportionBandA As String
+    Public Property IDACIPrimaryProportionBandA As Decimal
 
-    Public Property IDACISecondaryProportionBandG As String
+    Public Property IDACISecondaryProportionBandG As Decimal
 
-    Public Property IDACISecondaryProportionBandF As String
+    Public Property IDACISecondaryProportionBandF As Decimal
 
-    Public Property IDACISecondaryProportionBandE As String
+    Public Property IDACISecondaryProportionBandE As Decimal
 
-    Public Property IDACISecondaryProportionBandD As String
+    Public Property IDACISecondaryProportionBandD As Decimal
 
-    Public Property IDACISecondaryProportionBandC As String
+    Public Property IDACISecondaryProportionBandC As Decimal
 
-    Public Property IDACISecondaryProportionBandB As String
+    Public Property IDACISecondaryProportionBandB As Decimal
 
-    Public Property IDACISecondaryProportionBandA As String
+    Public Property IDACISecondaryProportionBandA As Decimal
 
-    Public Property EAL1PrimaryProportion As String
+    Public Property EAL1PrimaryProportion As Decimal
 
-    Public Property EAL2PrimaryProportion As String
+    Public Property EAL2PrimaryProportion As Decimal
 
-    Public Property EAL3PrimaryProportion As String
+    Public Property EAL3PrimaryProportion As Decimal
 
-    Public Property EAL1SecondaryProportion As String
+    Public Property EAL1SecondaryProportion As Decimal
 
-    Public Property EAL2SecondaryProportion As String
+    Public Property EAL2SecondaryProportion As Decimal
 
-    Public Property EAL3SecondaryProportion As String
+    Public Property EAL3SecondaryProportion As Decimal
 
-    Public Property LACXProportion As String
+    Public Property LACXProportion As Decimal
 
-    Public Property LowAttainmentProportionundernewEYFSP As String
+    Public Property LowAttainmentProportionundernewEYFSP As Decimal
 
-    Public Property LowAttainmentunderoldEYFSPProportion73 As String
+    Public Property LowAttainmentunderoldEYFSPProportion73 As Decimal
 
-    Public Property LowAttainmentunderoldEYFSPProportion78 As String
+    Public Property LowAttainmentunderoldEYFSPProportion78 As Decimal
 
-    Public Property LowAttainentSecondaryProportionY7 As String
+    Public Property LowAttainentSecondaryProportionY7 As Decimal
 
-    Public Property LowAttainentSecondaryProportionY811 As String
+    Public Property LowAttainentSecondaryProportionY811 As Decimal
 
-    Public Property LowAttainmentSecondaryProportion As String
+    Public Property LowAttainmentSecondaryProportion As Decimal
 
-    Public Property MobilityPrimaryProportion As String
+    Public Property MobilityPrimaryProportion As Decimal
 
-    Public Property MobilitySecondaryProportion As String
+    Public Property MobilitySecondaryProportion As Decimal
 
-    Public Property PrimarysparsityavDistanceto2ndschool As String
+    Public Property PrimarysparsityavDistanceto2ndschool As Decimal
 
-    Public Property SecondarysparsityavDistanceto2ndschool As String
+    Public Property SecondarysparsityavDistanceto2ndschool As Decimal
 
-    Public Property NORY14 As String
+    Public Property NORY14 As Decimal
 
-    Public Property NORY56 As String
+    Public Property NORY56 As Decimal
 
-    Public Property NORY16 As String
+    Public Property NORY16 As Decimal
 
-    Public Property NORY811 As String
+    Public Property NORY811 As Decimal
 
-    Public Property LowAttainmentY13weightingfactor As String
+    Public Property LowAttainmentY13weightingfactor As Decimal
 
-    Public Property NORY7 As String
+    Public Property NORY7 As Decimal
 End Class

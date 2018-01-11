@@ -1,4 +1,4 @@
-Public Class BaseCalculation
+Public Class Provider
 
     Public Property Id() As String
 

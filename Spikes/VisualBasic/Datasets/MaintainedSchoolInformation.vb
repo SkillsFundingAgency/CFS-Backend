@@ -1,8 +1,8 @@
 Imports System
 
-Public Class _1617_BasketLAsDataset
+Public Class MaintainedSchoolInformationDataset
 
-    Public Shared DatasetDefinitionName As String = "1617_Basket LAs"
+    Public Shared DatasetDefinitionName As String = "Maintained School Information"
 
     Public Property Id As String
 
@@ -14,5 +14,5 @@ Public Class _1617_BasketLAsDataset
 
     Public Property DatasetName As String
 
-    Public Property BasketLA As Decimal
+    Public Property MaintainedSchoolinformation As String
 End Class

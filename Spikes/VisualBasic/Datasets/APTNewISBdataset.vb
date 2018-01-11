@@ -14,119 +14,119 @@ Public Class APTNewISBdatasetDataset
 
     Public Property DatasetName As String
 
-    Public Property BasicEntitlementPrimary As String
+    Public Property BasicEntitlementPrimary As Decimal
 
-    Public Property BasicEntitlementKS3 As String
+    Public Property BasicEntitlementKS3 As Decimal
 
-    Public Property BasicEntitlementKS4 As String
+    Public Property BasicEntitlementKS4 As Decimal
 
-    Public Property FreeSchoolMealsPrimary As String
+    Public Property FreeSchoolMealsPrimary As Decimal
 
-    Public Property FreeSchoolMealsSecondary As String
+    Public Property FreeSchoolMealsSecondary As Decimal
 
-    Public Property IDACIP0 As String
+    Public Property IDACIP0 As Decimal
 
-    Public Property IDACIPF As String
+    Public Property IDACIPF As Decimal
 
-    Public Property IDACIPE As String
+    Public Property IDACIPE As Decimal
 
-    Public Property IDACIPD As String
+    Public Property IDACIPD As Decimal
 
-    Public Property IDACIPC As String
+    Public Property IDACIPC As Decimal
 
-    Public Property IDACIPB As String
+    Public Property IDACIPB As Decimal
 
-    Public Property IDACIPA As String
+    Public Property IDACIPA As Decimal
 
-    Public Property IDACIS0 As String
+    Public Property IDACIS0 As Decimal
 
-    Public Property IDACISF As String
+    Public Property IDACISF As Decimal
 
-    Public Property IDACISE As String
+    Public Property IDACISE As Decimal
 
-    Public Property IDACISD As String
+    Public Property IDACISD As Decimal
 
-    Public Property IDACISC As String
+    Public Property IDACISC As Decimal
 
-    Public Property IDACISB As String
+    Public Property IDACISB As Decimal
 
-    Public Property IDACISA As String
+    Public Property IDACISA As Decimal
 
-    Public Property EALP As String
+    Public Property EALP As Decimal
 
-    Public Property EALS As String
+    Public Property EALS As Decimal
 
-    Public Property LAC As String
+    Public Property LAC As Decimal
 
-    Public Property LowAttainmentP As String
+    Public Property LowAttainmentP As Decimal
 
-    Public Property LowAttainmentS As String
+    Public Property LowAttainmentS As Decimal
 
-    Public Property MobilityP As String
+    Public Property MobilityP As Decimal
 
-    Public Property MobilityS As String
+    Public Property MobilityS As Decimal
 
-    Public Property LumpSum As String
+    Public Property LumpSum As Decimal
 
-    Public Property SparsityFunding As String
+    Public Property SparsityFunding As Decimal
 
-    Public Property LondonFringe As String
+    Public Property LondonFringe As Decimal
 
-    Public Property SplitSites As String
+    Public Property SplitSites As Decimal
 
-    Public Property Rates As String
+    Public Property Rates As Decimal
 
-    Public Property PFI As String
+    Public Property PFI As Decimal
 
-    Public Property _1718ApprovedExceptionalCircumstance1ReservedforAdditionallumpsumforschoolsamalgamatedduringFY1617 As String
+    Public Property _1718ApprovedExceptionalCircumstance1ReservedforAdditionallumpsumforschoolsamalgamatedduringFY1617 As Decimal
 
-    Public Property _1718ApprovedExceptionalCircumstance2Reservedforadditionalsparsitylumpsum As String
+    Public Property _1718ApprovedExceptionalCircumstance2Reservedforadditionalsparsitylumpsum As Decimal
 
-    Public Property _1718ApprovedExceptionalCircumstance3 As String
+    Public Property _1718ApprovedExceptionalCircumstance3 As Decimal
 
-    Public Property _1718ApprovedExceptionalCircumstance4 As String
+    Public Property _1718ApprovedExceptionalCircumstance4 As Decimal
 
-    Public Property _1718ApprovedExceptionalCircumstance5 As String
+    Public Property _1718ApprovedExceptionalCircumstance5 As Decimal
 
-    Public Property _1718ApprovedExceptionalCircumstance6 As String
+    Public Property _1718ApprovedExceptionalCircumstance6 As Decimal
 
-    Public Property BasicEntitlementTotal As String
+    Public Property BasicEntitlementTotal As Decimal
 
-    Public Property AENTotal As String
+    Public Property AENTotal As Decimal
 
-    Public Property SchoolFactorstotal As String
+    Public Property SchoolFactorstotal As Decimal
 
-    Public Property NotionalSENBudget As String
+    Public Property NotionalSENBudget As Decimal
 
-    Public Property TotalAllocation As String
+    Public Property TotalAllocation As Decimal
 
-    Public Property PrimaryFunding As String
+    Public Property PrimaryFunding As Decimal
 
-    Public Property SecondaryFunding As String
+    Public Property SecondaryFunding As Decimal
 
-    Public Property _1718MFGBudget As String
+    Public Property _1718MFGBudget As Decimal
 
-    Public Property _1718MFGUnitValue As String
+    Public Property _1718MFGUnitValue As Decimal
 
-    Public Property _1617MFGUnitValue As String
+    Public Property _1617MFGUnitValue As Decimal
 
-    Public Property MFGchange As String
+    Public Property MFGchange As Decimal
 
-    Public Property MFGValueadjustment As String
+    Public Property MFGValueadjustment As Decimal
 
-    Public Property _1718MFGAdjustment As String
+    Public Property _1718MFGAdjustment As Decimal
 
-    Public Property _1718PostMFGBudget As String
+    Public Property _1718PostMFGBudget As Decimal
 
-    Public Property _1718PostMFGperpupilBudget As String
+    Public Property _1718PostMFGperpupilBudget As Decimal
 
-    Public Property YearonyearChange As String
+    Public Property YearonyearChange As Decimal
 
-    Public Property Dedelegation As String
+    Public Property Dedelegation As Decimal
 
-    Public Property PostDedelegationbudget As String
+    Public Property PostDedelegationbudget As Decimal
 
-    Public Property Educationfunctionsformaintainedschools As String
+    Public Property Educationfunctionsformaintainedschools As Decimal
 
-    Public Property PostDedelegationandEducationfunctionsbudget As String
+    Public Property PostDedelegationandEducationfunctionsbudget As Decimal
 End Class

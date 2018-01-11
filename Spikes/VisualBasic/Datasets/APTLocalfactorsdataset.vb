@@ -14,57 +14,57 @@ Public Class APTLocalfactorsdatasetDataset
 
     Public Property DatasetName As String
 
-    Public Property GrowingSchool As String
+    Public Property GrowingSchool As Decimal
 
-    Public Property HighNeedsUnit As String
+    Public Property HighNeedsUnit As Decimal
 
-    Public Property TotalnumberofHighNeedsplacesin201617 As String
+    Public Property TotalnumberofHighNeedsplacesin201617 As Decimal
 
-    Public Property NumberofprimarypupilsonrollattheschoolinHighNeedsplacesin201617 As String
+    Public Property NumberofprimarypupilsonrollattheschoolinHighNeedsplacesin201617 As Decimal
 
-    Public Property NumberofKS3pupilsonrollattheschoolinHighNeedsplacesin201617 As String
+    Public Property NumberofKS3pupilsonrollattheschoolinHighNeedsplacesin201617 As Decimal
 
-    Public Property NumberofKS4pupilsonrollattheschoolinHighNeedsplacesin201617 As String
+    Public Property NumberofKS4pupilsonrollattheschoolinHighNeedsplacesin201617 As Decimal
 
-    Public Property Reasonforvarianceinplacesprovidedcomparedtoacademic2016to2017highneedsplacesagreedwiththeEFA As String
+    Public Property Reasonforvarianceinplacesprovidedcomparedtoacademic2016to2017highneedsplacesagreedwiththeEFA As Decimal
 
-    Public Property _1718SplitSites As String
+    Public Property _1718SplitSites As Decimal
 
-    Public Property _1718Rates As String
+    Public Property _1718Rates As Decimal
 
-    Public Property Adjustmentto1617Rates As String
+    Public Property Adjustmentto1617Rates As Decimal
 
-    Public Property _1718PFI As String
+    Public Property _1718PFI As Decimal
 
-    Public Property _1718SixthFormFundingFromDSG As String
+    Public Property _1718SixthFormFundingFromDSG As Decimal
 
-    Public Property OtherAdjustmentto1617Budgetshares As String
+    Public Property OtherAdjustmentto1617Budgetshares As Decimal
 
-    Public Property _1718ApprovedExceptionalCircumstance1ReservedforAdditionallumpsumforschoolsamalgamatedduringFY1617 As String
+    Public Property _1718ApprovedExceptionalCircumstance1ReservedforAdditionallumpsumforschoolsamalgamatedduringFY1617 As Decimal
 
-    Public Property _1718ApprovedExceptionalCircumstance2Reservedforadditionalsparsitylumpsum As String
+    Public Property _1718ApprovedExceptionalCircumstance2Reservedforadditionalsparsitylumpsum As Decimal
 
-    Public Property _1718ApprovedExceptionalCircumstance3 As String
+    Public Property _1718ApprovedExceptionalCircumstance3 As Decimal
 
-    Public Property _1718ApprovedExceptionalCircumstance4 As String
+    Public Property _1718ApprovedExceptionalCircumstance4 As Decimal
 
-    Public Property _1718ApprovedExceptionalCircumstance5 As String
+    Public Property _1718ApprovedExceptionalCircumstance5 As Decimal
 
-    Public Property _1718ApprovedExceptionalCircumstance6 As String
+    Public Property _1718ApprovedExceptionalCircumstance6 As Decimal
 
-    Public Property _1718ApprovedMFGExemptions1 As String
+    Public Property _1718ApprovedMFGExemptions1 As Decimal
 
-    Public Property _1718ApprovedMFGExemptions2 As String
+    Public Property _1718ApprovedMFGExemptions2 As Decimal
 
-    Public Property _1718ApprovedMFGExemptions3 As String
+    Public Property _1718ApprovedMFGExemptions3 As Decimal
 
-    Public Property _1718Technicaladjustments1ReservedforNewdelegation As String
+    Public Property _1718Technicaladjustments1ReservedforNewdelegation As Decimal
 
-    Public Property _1718Technicaladjustments2 As String
+    Public Property _1718Technicaladjustments2 As Decimal
 
-    Public Property _1718Technicaladjustments3 As String
+    Public Property _1718Technicaladjustments3 As Decimal
 
-    Public Property _1718TotalApprovedMFGExemptionsandtechnicaladjustments As String
+    Public Property _1718TotalApprovedMFGExemptionsandtechnicaladjustments As Decimal
 
-    Public Property OpeningClosing As String
+    Public Property OpeningClosing As Decimal
 End Class

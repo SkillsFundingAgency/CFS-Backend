@@ -14,13 +14,13 @@ Public Class RecoupmentDataset
 
     Public Property DatasetName As String
 
-    Public Property Anomaliespositive As String
+    Public Property Anomaliespositive As Decimal
 
-    Public Property Anomaliesnegative As String
+    Public Property Anomaliesnegative As Decimal
 
-    Public Property Anomaliesareapproved As String
+    Public Property Anomaliesareapproved As Decimal
 
-    Public Property Positive_anomalies_comment As String
+    Public Property Positive_anomalies_comment As Decimal
 
-    Public Property Negative_anomalies_comment As String
+    Public Property Negative_anomalies_comment As Decimal
 End Class

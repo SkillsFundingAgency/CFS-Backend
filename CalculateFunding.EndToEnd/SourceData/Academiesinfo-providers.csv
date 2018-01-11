@@ -1,0 +1,24 @@
+﻿Administration_Providers,Providers,Dataset,Provider Information,UPIN
+Administration_Providers,Providers,Dataset,Provider Information,Provider Name
+Administration_Providers,Providers,Dataset,Provider Information,Provider Type
+Administration_Providers,Providers,Dataset,Provider Information,Provider Subtype
+Administration_Providers,Providers,Dataset,Provider Information,Date Opened
+Administration_Providers,Providers,Dataset,Provider Information,URN
+Administration_Providers,Providers,Dataset,Provider Information,Establishment Number
+Administration_Providers,Providers,Dataset,Provider Information,Local Authority
+Administration_Providers,Providers,Dataset,Provider Information,UKPRN
+Administration_Providers,Providers,Dataset,Provider Information,Convert Date
+Administration_Providers,Providers,Dataset,Provider Information,LA Change Date
+Administration_Providers,Providers,Dataset,Provider Information,Previous Local Authority
+Administration_Providers,Providers,Dataset,Provider Information,Date Closed
+Administration_Providers,Providers,Dataset,Funding Streams,Period ID
+Administration_Providers,Providers,Dataset,Funding Streams,Budget
+Administration_Providers,Providers,Dataset,Academy Information,Academy Type
+Administration_Providers,Providers,Dataset,Academy Information,Funding Agreement Type
+Administration_Providers,Providers,Dataset,Academy Information,Funding Methodology
+Administration_Providers,Providers,Dataset,Academy Information,Academy New Opener
+Administration_Providers,Providers,Dataset,Academy Information,Recoupment Status
+Administration_Providers,Providers,Dataset,Academy Information,Academy Previously Maintained
+Administration_Providers,Providers,Dataset,Predecessor Information,Pre UPIN
+Administration_Providers,Providers,Dataset,Predecessor Information,DatePicker
+Administration_Providers,Providers,Dataset,Maintained School Information,Maintained School information

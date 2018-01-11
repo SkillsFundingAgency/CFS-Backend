@@ -14,11 +14,11 @@ Public Class _1617_CTCs_DataDataset
 
     Public Property DatasetName As String
 
-    Public Property _1516_pre16_PN As String
+    Public Property _1516_pre16_PN As Decimal
 
-    Public Property _1516_post16_PN As String
+    Public Property _1516_post16_PN As Decimal
 
-    Public Property _1617_pre16_PN As String
+    Public Property _1617_pre16_PN As Decimal
 
-    Public Property _1617_post16_PN As String
+    Public Property _1617_post16_PN As Decimal
 End Class

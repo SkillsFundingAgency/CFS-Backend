@@ -14,393 +14,393 @@ Public Class APTProformadatasetDataset
 
     Public Property DatasetName As String
 
-    Public Property BasicEntitlementPrimaryAmountPerPupil As String
+    Public Property BasicEntitlementPrimaryAmountPerPupil As Decimal
 
-    Public Property BasicEntitlementPrimaryPupilUnits As String
+    Public Property BasicEntitlementPrimaryPupilUnits As Decimal
 
-    Public Property BasicEntitlementPrimarySubtotal As String
+    Public Property BasicEntitlementPrimarySubtotal As Decimal
 
-    Public Property BasicEntitlementPrimaryProportion As String
+    Public Property BasicEntitlementPrimaryProportion As Decimal
 
-    Public Property BasicEntitlementPrimaryNotionalSEN As String
+    Public Property BasicEntitlementPrimaryNotionalSEN As Decimal
 
-    Public Property BasicEntitlementKS3AmountPerPupil As String
+    Public Property BasicEntitlementKS3AmountPerPupil As Decimal
 
-    Public Property BasicEntitlementKS3PupilUnits As String
+    Public Property BasicEntitlementKS3PupilUnits As Decimal
 
-    Public Property BasicEntitlementKS3Subtotal As String
+    Public Property BasicEntitlementKS3Subtotal As Decimal
 
-    Public Property BasicEntitlementKS3Proportion As String
+    Public Property BasicEntitlementKS3Proportion As Decimal
 
-    Public Property BasicEntitlementKS3NotionalSEN As String
+    Public Property BasicEntitlementKS3NotionalSEN As Decimal
 
-    Public Property BasicEntitlementKS4AmountPerPupil As String
+    Public Property BasicEntitlementKS4AmountPerPupil As Decimal
 
-    Public Property BasicEntitlementKS4PupilUnits As String
+    Public Property BasicEntitlementKS4PupilUnits As Decimal
 
-    Public Property BasicEntitlementKS4Subtotal As String
+    Public Property BasicEntitlementKS4Subtotal As Decimal
 
-    Public Property BasicEntitlementKS4Proportion As String
+    Public Property BasicEntitlementKS4Proportion As Decimal
 
-    Public Property BasicEntitlementKS4NotionalSEN As String
+    Public Property BasicEntitlementKS4NotionalSEN As Decimal
 
-    Public Property BasicEntitlementTotal As String
+    Public Property BasicEntitlementTotal As Decimal
 
-    Public Property FSMPrimaryFSMFSM6 As String
+    Public Property FSMPrimaryFSMFSM6 As Decimal
 
-    Public Property FSMPrimaryAmountPerPupil As String
+    Public Property FSMPrimaryAmountPerPupil As Decimal
 
-    Public Property FSMPrimaryNumberonRoll As String
+    Public Property FSMPrimaryNumberonRoll As Decimal
 
-    Public Property FSMPrimarySubtotal As String
+    Public Property FSMPrimarySubtotal As Decimal
 
-    Public Property FSMPrimaryNotionalSEN As String
+    Public Property FSMPrimaryNotionalSEN As Decimal
 
-    Public Property FSMSecondaryFSMFSM6 As String
+    Public Property FSMSecondaryFSMFSM6 As Decimal
 
-    Public Property FSMSecondaryAmountPerPupil As String
+    Public Property FSMSecondaryAmountPerPupil As Decimal
 
-    Public Property FSMSecondaryNumberOnRoll As String
+    Public Property FSMSecondaryNumberOnRoll As Decimal
 
-    Public Property FSMSecondarySubtotal As String
+    Public Property FSMSecondarySubtotal As Decimal
 
-    Public Property FSMSecondaryNotionalSEN As String
+    Public Property FSMSecondaryNotionalSEN As Decimal
 
-    Public Property IDACIPrimaryBFAmountPerPupil As String
+    Public Property IDACIPrimaryBFAmountPerPupil As Decimal
 
-    Public Property IDACISecondaryBFAmountPerPupil As String
+    Public Property IDACISecondaryBFAmountPerPupil As Decimal
 
-    Public Property IDACIPrimaryBFNumberOnRoll As String
+    Public Property IDACIPrimaryBFNumberOnRoll As Decimal
 
-    Public Property IDACISecondaryBFNumberonRoll As String
+    Public Property IDACISecondaryBFNumberonRoll As Decimal
 
-    Public Property IDACIBFSubtotal As String
+    Public Property IDACIBFSubtotal As Decimal
 
-    Public Property IDACIBFPrimaryNotionalSEN As String
+    Public Property IDACIBFPrimaryNotionalSEN As Decimal
 
-    Public Property IDACIBFSecondaryNotionalSEN As String
+    Public Property IDACIBFSecondaryNotionalSEN As Decimal
 
-    Public Property IDACIPrimaryBEAmountPerPupil As String
+    Public Property IDACIPrimaryBEAmountPerPupil As Decimal
 
-    Public Property IDACISecondaryBEAmountperPupil As String
+    Public Property IDACISecondaryBEAmountperPupil As Decimal
 
-    Public Property IDACIPrimaryBENumberonRoll As String
+    Public Property IDACIPrimaryBENumberonRoll As Decimal
 
-    Public Property IDACISecondaryBENumberonRoll As String
+    Public Property IDACISecondaryBENumberonRoll As Decimal
 
-    Public Property IDACIBESubtotal As String
+    Public Property IDACIBESubtotal As Decimal
 
-    Public Property IDACIBEPrimaryNotionalSEN As String
+    Public Property IDACIBEPrimaryNotionalSEN As Decimal
 
-    Public Property IDACIBESecondaryNotionalSEN As String
+    Public Property IDACIBESecondaryNotionalSEN As Decimal
 
-    Public Property IDACIPrimaryBDAmountPerPupil As String
+    Public Property IDACIPrimaryBDAmountPerPupil As Decimal
 
-    Public Property IDACISecondaryBDAmountperPupil As String
+    Public Property IDACISecondaryBDAmountperPupil As Decimal
 
-    Public Property IDACIPrimaryBDNumberonRoll As String
+    Public Property IDACIPrimaryBDNumberonRoll As Decimal
 
-    Public Property IDACISecondaryBDNumberonRoll As String
+    Public Property IDACISecondaryBDNumberonRoll As Decimal
 
-    Public Property IDACIBDSubtotal As String
+    Public Property IDACIBDSubtotal As Decimal
 
-    Public Property IDACIBDPrimaryNotionalSEN As String
+    Public Property IDACIBDPrimaryNotionalSEN As Decimal
 
-    Public Property IDACIBDSecondaryNotionalSEN As String
+    Public Property IDACIBDSecondaryNotionalSEN As Decimal
 
-    Public Property IDACIPrimaryBCAmountPerPupil As String
+    Public Property IDACIPrimaryBCAmountPerPupil As Decimal
 
-    Public Property IDACISecondaryBCAmountperPupil As String
+    Public Property IDACISecondaryBCAmountperPupil As Decimal
 
-    Public Property IDACIPrimaryBCNumberonRoll As String
+    Public Property IDACIPrimaryBCNumberonRoll As Decimal
 
-    Public Property IDACISecondaryBCNumberonRoll As String
+    Public Property IDACISecondaryBCNumberonRoll As Decimal
 
-    Public Property IDACIBCSubtotal As String
+    Public Property IDACIBCSubtotal As Decimal
 
-    Public Property IDACIBCPrimaryNotionalSEN As String
+    Public Property IDACIBCPrimaryNotionalSEN As Decimal
 
-    Public Property IDACIBCSecondaryNotionalSEN As String
+    Public Property IDACIBCSecondaryNotionalSEN As Decimal
 
-    Public Property IDACIPrimaryBBAmountPerPupil As String
+    Public Property IDACIPrimaryBBAmountPerPupil As Decimal
 
-    Public Property IDACISecondaryBBAmountperPupil As String
+    Public Property IDACISecondaryBBAmountperPupil As Decimal
 
-    Public Property IDACIPrimaryBBNumberonRoll As String
+    Public Property IDACIPrimaryBBNumberonRoll As Decimal
 
-    Public Property IDACISecondaryBBNumberonRoll As String
+    Public Property IDACISecondaryBBNumberonRoll As Decimal
 
-    Public Property IDACIBBSubtotal As String
+    Public Property IDACIBBSubtotal As Decimal
 
-    Public Property IDACIBBPrimaryNotionalSEN As String
+    Public Property IDACIBBPrimaryNotionalSEN As Decimal
 
-    Public Property IDACIBBSecondaryNotionalSEN As String
+    Public Property IDACIBBSecondaryNotionalSEN As Decimal
 
-    Public Property IDACIPrimaryBAAmountPerPupil As String
+    Public Property IDACIPrimaryBAAmountPerPupil As Decimal
 
-    Public Property IDACISecondaryBAAmountperPupil As String
+    Public Property IDACISecondaryBAAmountperPupil As Decimal
 
-    Public Property IDACIPrimaryBANumberonRoll As String
+    Public Property IDACIPrimaryBANumberonRoll As Decimal
 
-    Public Property IDACISecondaryBANumberonRoll As String
+    Public Property IDACISecondaryBANumberonRoll As Decimal
 
-    Public Property IDACIBASubtotal As String
+    Public Property IDACIBASubtotal As Decimal
 
-    Public Property IDACIBAPrimaryNotionalSEN As String
+    Public Property IDACIBAPrimaryNotionalSEN As Decimal
 
-    Public Property IDACIBASecondaryNotionalSEN As String
+    Public Property IDACIBASecondaryNotionalSEN As Decimal
 
-    Public Property DeprivationTotal As String
+    Public Property DeprivationTotal As Decimal
 
-    Public Property DeprivationProportion As String
+    Public Property DeprivationProportion As Decimal
 
-    Public Property LookedAfterChildrenDescripton As String
+    Public Property LookedAfterChildrenDescripton As Decimal
 
-    Public Property LookedAfterChildrenAmountPerPupil As String
+    Public Property LookedAfterChildrenAmountPerPupil As Decimal
 
-    Public Property LookedAfterChildrenNumberOnRoll As String
+    Public Property LookedAfterChildrenNumberOnRoll As Decimal
 
-    Public Property LookedAfterChildrenSubtotal As String
+    Public Property LookedAfterChildrenSubtotal As Decimal
 
-    Public Property LookedAfterChildrenProportion As String
+    Public Property LookedAfterChildrenProportion As Decimal
 
-    Public Property LookedAfterChildrenNotionalSEN As String
+    Public Property LookedAfterChildrenNotionalSEN As Decimal
 
-    Public Property EALPrimary123NA As String
+    Public Property EALPrimary123NA As Decimal
 
-    Public Property EALPrimaryAmountPerPupil As String
+    Public Property EALPrimaryAmountPerPupil As Decimal
 
-    Public Property EALPrimaryNumberOnRoll As String
+    Public Property EALPrimaryNumberOnRoll As Decimal
 
-    Public Property EALPrimarySubtotal As String
+    Public Property EALPrimarySubtotal As Decimal
 
-    Public Property EALPrimaryNotionalSEN As String
+    Public Property EALPrimaryNotionalSEN As Decimal
 
-    Public Property EALSecondary123NA As String
+    Public Property EALSecondary123NA As Decimal
 
-    Public Property EALSecondaryAmountPerPupil As String
+    Public Property EALSecondaryAmountPerPupil As Decimal
 
-    Public Property EALSecondaryNumberOnRoll As String
+    Public Property EALSecondaryNumberOnRoll As Decimal
 
-    Public Property EALSecondarySubtotal As String
+    Public Property EALSecondarySubtotal As Decimal
 
-    Public Property EALSecondaryNotionalSEN As String
+    Public Property EALSecondaryNotionalSEN As Decimal
 
-    Public Property EALProportion As String
+    Public Property EALProportion As Decimal
 
-    Public Property MobilityPrimaryAmountPerPupil As String
+    Public Property MobilityPrimaryAmountPerPupil As Decimal
 
-    Public Property MobilitySecondaryAmountPerPupil As String
+    Public Property MobilitySecondaryAmountPerPupil As Decimal
 
-    Public Property MobilityPrimaryNumberOnRoll As String
+    Public Property MobilityPrimaryNumberOnRoll As Decimal
 
-    Public Property MobilitySecondaryNumberOnRoll As String
+    Public Property MobilitySecondaryNumberOnRoll As Decimal
 
-    Public Property MobilitySubtotal As String
+    Public Property MobilitySubtotal As Decimal
 
-    Public Property MobilityProportion As String
+    Public Property MobilityProportion As Decimal
 
-    Public Property MobilityPrimaryNotionalSEN As String
+    Public Property MobilityPrimaryNotionalSEN As Decimal
 
-    Public Property MobilitySecondaryNotionalSEN As String
+    Public Property MobilitySecondaryNotionalSEN As Decimal
 
-    Public Property PriorAttainmentPrimary7378NA As String
+    Public Property PriorAttainmentPrimary7378NA As Decimal
 
-    Public Property PriorAttainmentPrimarynewEFSPWeighting As String
+    Public Property PriorAttainmentPrimarynewEFSPWeighting As Decimal
 
-    Public Property PriorAttainmentPrimaryAmountPerPupil As String
+    Public Property PriorAttainmentPrimaryAmountPerPupil As Decimal
 
-    Public Property PriorAttainmentofeligibleY14 As String
+    Public Property PriorAttainmentofeligibleY14 As Decimal
 
-    Public Property PriorAttainmentofeligibleY56 As String
+    Public Property PriorAttainmentofeligibleY56 As Decimal
 
-    Public Property PriorAttainmenteligibleofNumberOnRollPrimary As String
+    Public Property PriorAttainmenteligibleofNumberOnRollPrimary As Decimal
 
-    Public Property PriorAttainmentPrimarySubtotal As String
+    Public Property PriorAttainmentPrimarySubtotal As Decimal
 
-    Public Property PriorAttainmentPrimaryNotionalSEN As String
+    Public Property PriorAttainmentPrimaryNotionalSEN As Decimal
 
-    Public Property PriorAttainmentSecondaryAmountPerPupil As String
+    Public Property PriorAttainmentSecondaryAmountPerPupil As Decimal
 
-    Public Property PriorAttainmentSecondaryNumberOnRoll As String
+    Public Property PriorAttainmentSecondaryNumberOnRoll As Decimal
 
-    Public Property PriorAttainmentSecondarySubtotal As String
+    Public Property PriorAttainmentSecondarySubtotal As Decimal
 
-    Public Property PriorAttainmentTotal As String
+    Public Property PriorAttainmentTotal As Decimal
 
-    Public Property PriorAttainmentProportion As String
+    Public Property PriorAttainmentProportion As Decimal
 
-    Public Property PriorAttainmentSecondaryNotionalSEN As String
+    Public Property PriorAttainmentSecondaryNotionalSEN As Decimal
 
-    Public Property PrimaryLumpSum As String
+    Public Property PrimaryLumpSum As Decimal
 
-    Public Property SecondaryLumpSum As String
+    Public Property SecondaryLumpSum As Decimal
 
-    Public Property TotalLumpSum As String
+    Public Property TotalLumpSum As Decimal
 
-    Public Property LumpSumProportion As String
+    Public Property LumpSumProportion As Decimal
 
-    Public Property PrimaryLumpSumNotionalSEN As String
+    Public Property PrimaryLumpSumNotionalSEN As Decimal
 
-    Public Property SecondaryLumpSumNotionalSEN As String
+    Public Property SecondaryLumpSumNotionalSEN As Decimal
 
-    Public Property SparsityPrimaryLumpSum As String
+    Public Property SparsityPrimaryLumpSum As Decimal
 
-    Public Property SparsitySecondaryLumpSum As String
+    Public Property SparsitySecondaryLumpSum As Decimal
 
-    Public Property SparsityMiddleSchoolLumpSum As String
+    Public Property SparsityMiddleSchoolLumpSum As Decimal
 
-    Public Property SparsityAllThroughLumpSum As String
+    Public Property SparsityAllThroughLumpSum As Decimal
 
-    Public Property SparsityLumpSumTotal As String
+    Public Property SparsityLumpSumTotal As Decimal
 
-    Public Property SparsityProportion As String
+    Public Property SparsityProportion As Decimal
 
-    Public Property PrimarySparsityNotionalSEN As String
+    Public Property PrimarySparsityNotionalSEN As Decimal
 
-    Public Property SecondarySparsityNotionalSEN As String
+    Public Property SecondarySparsityNotionalSEN As Decimal
 
-    Public Property Fixedortaperedsparsityprimarylumpsum As String
+    Public Property Fixedortaperedsparsityprimarylumpsum As Decimal
 
-    Public Property Fixedortaperedsparsitysecondarylumpsum As String
+    Public Property Fixedortaperedsparsitysecondarylumpsum As Decimal
 
-    Public Property Fixedortaperedsparsitymiddleschoollumpsum As String
+    Public Property Fixedortaperedsparsitymiddleschoollumpsum As Decimal
 
-    Public Property Fixedortaperedsparsityallthroughlumpsum As String
+    Public Property Fixedortaperedsparsityallthroughlumpsum As Decimal
 
-    Public Property PrimaryDistanceThreshold As String
+    Public Property PrimaryDistanceThreshold As Decimal
 
-    Public Property SecondaryDistanceThreshold As String
+    Public Property SecondaryDistanceThreshold As Decimal
 
-    Public Property MiddleSchoolDistanceThreshold As String
+    Public Property MiddleSchoolDistanceThreshold As Decimal
 
-    Public Property AllThroughDistanceThreshold As String
+    Public Property AllThroughDistanceThreshold As Decimal
 
-    Public Property Primarypupilnumberaverageyeargroupthreshold As String
+    Public Property Primarypupilnumberaverageyeargroupthreshold As Decimal
 
-    Public Property Secondarypupilnumberaverageyeargroupthreshold As String
+    Public Property Secondarypupilnumberaverageyeargroupthreshold As Decimal
 
-    Public Property MiddleSchoolpupilnumberaverageyeargroupthreshold As String
+    Public Property MiddleSchoolpupilnumberaverageyeargroupthreshold As Decimal
 
-    Public Property AllThroughpupilnumberaverageyeargroupthreshold As String
+    Public Property AllThroughpupilnumberaverageyeargroupthreshold As Decimal
 
-    Public Property FringePaymentsTotal As String
+    Public Property FringePaymentsTotal As Decimal
 
-    Public Property FringePaymentsProportion As String
+    Public Property FringePaymentsProportion As Decimal
 
-    Public Property SplitSitesTotal As String
+    Public Property SplitSitesTotal As Decimal
 
-    Public Property SplitSitesProportion As String
+    Public Property SplitSitesProportion As Decimal
 
-    Public Property SplitSitesNotionalSEN As String
+    Public Property SplitSitesNotionalSEN As Decimal
 
-    Public Property RatesTotal As String
+    Public Property RatesTotal As Decimal
 
-    Public Property RatesProportion As String
+    Public Property RatesProportion As Decimal
 
-    Public Property RatesNotionalSEN As String
+    Public Property RatesNotionalSEN As Decimal
 
-    Public Property PFIFundingTotal As String
+    Public Property PFIFundingTotal As Decimal
 
-    Public Property PFIFundingProportion As String
+    Public Property PFIFundingProportion As Decimal
 
-    Public Property PFINotionalSEN As String
+    Public Property PFINotionalSEN As Decimal
 
-    Public Property AdditionallumpsumforschoolsamalgamatedduringFY1516 As String
+    Public Property AdditionallumpsumforschoolsamalgamatedduringFY1516 As Decimal
 
-    Public Property ExceptionalCircumstance1Total As String
+    Public Property ExceptionalCircumstance1Total As Decimal
 
-    Public Property ExceptionalCircumstance1Proportion As String
+    Public Property ExceptionalCircumstance1Proportion As Decimal
 
-    Public Property ExceptionalCircumstance1PrimaryNotionalSEN As String
+    Public Property ExceptionalCircumstance1PrimaryNotionalSEN As Decimal
 
-    Public Property ExceptionalCircumstance1SecondaryNotionalSEN As String
+    Public Property ExceptionalCircumstance1SecondaryNotionalSEN As Decimal
 
-    Public Property Additionalsparsitylumpsumforsmallschools As String
+    Public Property Additionalsparsitylumpsumforsmallschools As Decimal
 
-    Public Property ExceptionalCircumstance2Total As String
+    Public Property ExceptionalCircumstance2Total As Decimal
 
-    Public Property ExceptionalCircumstance2Proportion As String
+    Public Property ExceptionalCircumstance2Proportion As Decimal
 
-    Public Property ExceptionalCircumstance2NotionalSEN As String
+    Public Property ExceptionalCircumstance2NotionalSEN As Decimal
 
-    Public Property ExceptionalCircumstance3 As String
+    Public Property ExceptionalCircumstance3 As Decimal
 
-    Public Property ExceptionalCircumstance3Total As String
+    Public Property ExceptionalCircumstance3Total As Decimal
 
-    Public Property ExceptionalCircumstance3Proportion As String
+    Public Property ExceptionalCircumstance3Proportion As Decimal
 
-    Public Property ExceptionalCircumstance3NotionalSEN As String
+    Public Property ExceptionalCircumstance3NotionalSEN As Decimal
 
-    Public Property ExceptionalCircumstance4 As String
+    Public Property ExceptionalCircumstance4 As Decimal
 
-    Public Property ExceptionalCircumstance4Total As String
+    Public Property ExceptionalCircumstance4Total As Decimal
 
-    Public Property ExceptionalCircumstance4Proportion As String
+    Public Property ExceptionalCircumstance4Proportion As Decimal
 
-    Public Property ExceptionalCircumstance4NotionalSEN As String
+    Public Property ExceptionalCircumstance4NotionalSEN As Decimal
 
-    Public Property ExceptionalCircumstance5 As String
+    Public Property ExceptionalCircumstance5 As Decimal
 
-    Public Property ExceptionalCircumstance5Total As String
+    Public Property ExceptionalCircumstance5Total As Decimal
 
-    Public Property ExceptionalCircumstance5Proportion As String
+    Public Property ExceptionalCircumstance5Proportion As Decimal
 
-    Public Property ExceptionalCircumstance5NotionalSEN As String
+    Public Property ExceptionalCircumstance5NotionalSEN As Decimal
 
-    Public Property ExceptionalCircumstance6 As String
+    Public Property ExceptionalCircumstance6 As Decimal
 
-    Public Property ExceptionalCircumstance6Total As String
+    Public Property ExceptionalCircumstance6Total As Decimal
 
-    Public Property ExceptionalCircumstance6Proportion As String
+    Public Property ExceptionalCircumstance6Proportion As Decimal
 
-    Public Property ExceptionalCircumstance6NotionalSEN As String
+    Public Property ExceptionalCircumstance6NotionalSEN As Decimal
 
-    Public Property TotalFundingforSchoolsBlockFormulaExcludingMFGFundingTotal As String
+    Public Property TotalFundingforSchoolsBlockFormulaExcludingMFGFundingTotal As Decimal
 
-    Public Property TotalFundingforSchoolsBlockFormulaExcludingMFGProportion As String
+    Public Property TotalFundingforSchoolsBlockFormulaExcludingMFGProportion As Decimal
 
-    Public Property TotalFundingforSchoolsBlockFormulaExcludingMFGNotionalSEN As String
+    Public Property TotalFundingforSchoolsBlockFormulaExcludingMFGNotionalSEN As Decimal
 
-    Public Property MinimumFundingGuarantee As String
+    Public Property MinimumFundingGuarantee As Decimal
 
-    Public Property ApplyingCappingandScalingFactors As String
+    Public Property ApplyingCappingandScalingFactors As Decimal
 
-    Public Property CappingFactor As String
+    Public Property CappingFactor As Decimal
 
-    Public Property ScalingFactor As String
+    Public Property ScalingFactor As Decimal
 
-    Public Property Totaldeductionifcappingandscalingfactorsareapplied As String
+    Public Property Totaldeductionifcappingandscalingfactorsareapplied As Decimal
 
-    Public Property MFGNetTotalFundingTotal As String
+    Public Property MFGNetTotalFundingTotal As Decimal
 
-    Public Property MFGNetTotalFundingProportion As String
+    Public Property MFGNetTotalFundingProportion As Decimal
 
-    Public Property HighNeedsThreshold As String
+    Public Property HighNeedsThreshold As Decimal
 
-    Public Property Additionalfundingfromthehighneedsbudget As String
+    Public Property Additionalfundingfromthehighneedsbudget As Decimal
 
-    Public Property GrowthFund As String
+    Public Property GrowthFund As Decimal
 
-    Public Property FundingRollsFund As String
+    Public Property FundingRollsFund As Decimal
 
-    Public Property TotalFundingforSchoolsBlockFormula As String
+    Public Property TotalFundingforSchoolsBlockFormula As Decimal
 
-    Public Property DistributedthroughBasicEntitlement As String
+    Public Property DistributedthroughBasicEntitlement As Decimal
 
-    Public Property PupilLedFunding As String
+    Public Property PupilLedFunding As Decimal
 
-    Public Property PrimaryRatio As String
+    Public Property PrimaryRatio As Decimal
 
-    Public Property SecondaryRatio As String
+    Public Property SecondaryRatio As Decimal
 
-    Public Property ReceptionUpliftYesNo As String
+    Public Property ReceptionUpliftYesNo As Decimal
 
-    Public Property ReceptionUpliftPupilUnits As String
+    Public Property ReceptionUpliftPupilUnits As Decimal
 
-    Public Property PriorAttainmentofeligibleY7 As String
+    Public Property PriorAttainmentofeligibleY7 As Decimal
 
-    Public Property PriorAttainmentofeligibleY811 As String
+    Public Property PriorAttainmentofeligibleY811 As Decimal
 
-    Public Property Secondarylowattainmentyear7weighting As String
+    Public Property Secondarylowattainmentyear7weighting As Decimal
 End Class

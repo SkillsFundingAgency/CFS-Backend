@@ -14,11 +14,11 @@ Public Class APTRecoupmentdatasetDataset
 
     Public Property DatasetName As String
 
-    Public Property PostMFGBudget As String
+    Public Property PostMFGBudget As Decimal
 
-    Public Property GrowthfundingadjustmentforApril2017August2017 As String
+    Public Property GrowthfundingadjustmentforApril2017August2017 As Decimal
 
-    Public Property Justificationforgrowthfundadjustment As String
+    Public Property Justificationforgrowthfundadjustment As Decimal
 
-    Public Property Totalrecoupment As String
+    Public Property Totalrecoupment As Decimal
 End Class
