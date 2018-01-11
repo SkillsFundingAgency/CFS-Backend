@@ -21,6 +21,14 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetFundingStreams(HttpRequest request);
 
+        Task<IActionResult> GetAllocationLines(HttpRequest request);
 
+        Task<IActionResult> GetPolicyByName(HttpRequest request);
+
+        Task<IActionResult> CreatePolicy(HttpRequest request);
+
+        Task<IActionResult> CreateCalculation(HttpRequest request);
+
+        Task<IActionResult> GetCalculationByName(HttpRequest request);
     }
 }

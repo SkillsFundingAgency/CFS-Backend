@@ -1,6 +1,4 @@
 ﻿using System.Threading.Tasks;
-using CalculateFunding.Functions.Common;
-using CalculateFunding.Models.Specs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -8,11 +6,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Net.Http;
-using System.Linq.Expressions;
 using System;
-using System.Linq;
-using AutoMapper;
 using CalculateFunding.Services.Specs.Interfaces;
 
 namespace CalculateFunding.Functions.Specs.Http

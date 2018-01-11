@@ -100,25 +100,20 @@ namespace CalculateFunding.ContentSync
                     Console.WriteLine(result);
                 }
             }
-
-
-
-
-
         }
 
-        private static IEnumerable<PolicySpecification> GetPolicies(List<PolicyRecord> policies, List<CalculationRecord> calculations, string parentName = null)
+        private static IEnumerable<Policy> GetPolicies(List<PolicyRecord> policies, List<CalculationRecord> calculations, string parentName = null)
         {
             foreach (var policyRecord in policies.Where(x => x.Parent == parentName))
             {
-                yield return new PolicySpecification
+                yield return new Policy
                 {
                     Id = policyRecord.Id,
                     Name = policyRecord.Name,
                     Description = policyRecord.Description,
                     SubPolicies = GetPolicies(policies, calculations, policyRecord.Name).ToList(),
                     Calculations = calculations.Where(x => x.Policy == policyRecord.Name).Select(x =>
-                        new CalculationSpecification
+                        new Calculation
                         {
                             Id = x.Id,
                             Name = x.Name,
