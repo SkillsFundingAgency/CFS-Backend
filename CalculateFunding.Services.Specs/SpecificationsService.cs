@@ -23,14 +23,19 @@ namespace CalculateFunding.Services.Specs
         private readonly ISpecificationsRepository _specifcationsRepository;
         private readonly ILoggingService _logs;
         private readonly IValidator<PolicyCreateModel> _policyCreateModelValidator;
+        private readonly IValidator<SpecificationCreateModel> _specificationCreateModelvalidator;
+        private readonly IValidator<CalculationCreateModel> _calculationCreateModelValidator;
 
         public SpecificationsService(IMapper mapper, 
-            ISpecificationsRepository specifcationsRepository, ILoggingService logs, IValidator<PolicyCreateModel> policyCreateModelValidator)
+            ISpecificationsRepository specifcationsRepository, ILoggingService logs, IValidator<PolicyCreateModel> policyCreateModelValidator,
+            IValidator<SpecificationCreateModel> specificationCreateModelvalidator, IValidator<CalculationCreateModel> calculationCreateModelValidator)
         {
             _mapper = mapper;
             _specifcationsRepository = specifcationsRepository;
             _logs = logs;
             _policyCreateModelValidator = policyCreateModelValidator;
+            _specificationCreateModelvalidator = specificationCreateModelvalidator;
+            _calculationCreateModelValidator = calculationCreateModelValidator;
         }
 
         public async Task<IActionResult> GetSpecificationById(HttpRequest request)
@@ -102,6 +107,26 @@ namespace CalculateFunding.Services.Specs
 
             if (policy != null)
                 return new OkObjectResult(policy);
+
+            return new NotFoundResult();
+        }
+
+        public async Task<IActionResult> GetCalculationByName(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            CalculationGetModel model = JsonConvert.DeserializeObject<CalculationGetModel>(json);
+
+            if (string.IsNullOrWhiteSpace(model.SpecificationId))
+                return new BadRequestObjectResult("Null or empty specification id provided");
+
+            if (string.IsNullOrWhiteSpace(model.Name))
+                return new BadRequestObjectResult("Null or empty calculation name provided");
+
+            Calculation calculation = await _specifcationsRepository.GetCalculationByName(model.SpecificationId, model.Name);
+
+            if (calculation != null)
+                return new OkObjectResult(calculation);
 
             return new NotFoundResult();
         }
@@ -178,6 +203,14 @@ namespace CalculateFunding.Services.Specs
 
             SpecificationCreateModel createModel = JsonConvert.DeserializeObject<SpecificationCreateModel>(json);
 
+            if (createModel == null)
+                return new BadRequestObjectResult("Null policy create model provided");
+
+            var validationResult = (await _specificationCreateModelvalidator.ValidateAsync(createModel)).PopulateModelState();
+
+            if (validationResult != null)
+                return validationResult;
+
             AcademicYear academicYear = await _specifcationsRepository.GetAcademicYearById(createModel.AcademicYearId);
 
             FundingStream fundingStream = await _specifcationsRepository.GetFundingStreamById(createModel.FundingStreamId);
@@ -205,7 +238,7 @@ namespace CalculateFunding.Services.Specs
             if (createModel == null)
                 return new BadRequestObjectResult("Null policy create model provided");
 
-            var validationResult = (await _policyCreateModelValidator.ValidateAsync(createModel)).PopulateModelState();
+            var validationResult = (await _calculationCreateModelValidator.ValidateAsync(createModel)).PopulateModelState();
 
             if (validationResult != null)
                 return validationResult;
@@ -234,6 +267,4 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specification);
         }
     }
-
-
 }

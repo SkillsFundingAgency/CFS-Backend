@@ -15,34 +15,34 @@ namespace CalculateFunding.Services.Specs.Validators
             RuleFor(model => model.Description)
                .NotEmpty()
                .NotNull()
-               .WithMessage("Null or empty description provided");
+               .WithMessage("You must give a description for the calculation");
 
             RuleFor(model => model.SpecificationId)
                .NotEmpty()
                .NotNull()
-               .WithMessage("Null or empty description provided");
+               .WithMessage("Null or empty specification Id provided");
 
             RuleFor(model => model.AllocationLineId)
                .NotEmpty()
                .NotNull()
-               .WithMessage("Null or empty allocation line provided");
+               .WithMessage("You must select an allocation line");
 
             RuleFor(model => model.PolicyId)
                .NotEmpty()
                .NotNull()
-               .WithMessage("Null or empty policy id provided");
+               .WithMessage("You must select a policy or a sub policy");
 
             RuleFor(model => model.Name)
                .NotEmpty()
                .NotNull()
-               .WithMessage("Null or empty name provided")
+               .WithMessage("You must give a unique calculation name")
                .Custom((name, context) => {
                    CalculationCreateModel model = context.ParentContext.InstanceToValidate as CalculationCreateModel;
 
                    Calculation calculation = _specificationsRepository.GetCalculationByName(model.SpecificationId, model.Name).Result;
 
                    if (calculation != null)
-                       context.AddFailure($"A calculation for this specification with name {name} already exists");
+                       context.AddFailure($"You must give a unique calculation name");
                });
         }
     }
