@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Specs.Validators
                .Custom((name, context) => {
                    CalculationCreateModel model = context.ParentContext.InstanceToValidate as CalculationCreateModel;
 
-                   Calculation calculation = _specificationsRepository.GetCalculationByName(model.SpecificationId, model.Name).Result;
+                   Calculation calculation = _specificationsRepository.GetCalculationBySpecificationIdAndCalculationName(model.SpecificationId, model.Name).Result;
 
                    if (calculation != null)
                        context.AddFailure($"You must give a unique calculation name");

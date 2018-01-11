@@ -15,22 +15,35 @@ namespace CalculateFunding.Services.Specs.Validators
             RuleFor(model => model.Description)
                .NotEmpty()
                .WithMessage("You must give a description for the policy");
+
             RuleFor(model => model.SpecificationId)
                .NotEmpty()
                .WithMessage("Null or empty specification id provided");
+
+            RuleFor(model => model.ParentPolicyId)
+              .Custom((name, context) =>
+              {
+                  PolicyCreateModel model = context.ParentContext.InstanceToValidate as PolicyCreateModel;
+                  if (!string.IsNullOrEmpty(model.ParentPolicyId))
+                  {
+                      Policy policy = _specificationsRepository.GetPolicyBySpecificationIdAndPolicyId(model.SpecificationId, model.ParentPolicyId).Result;
+
+                      if (policy == null)
+                          context.AddFailure($"The parent policy does not exist");
+                  }
+              });
+
             RuleFor(model => model.Name)
-               .NotEmpty().WithMessage("You must give a unique policy name")
+               .NotEmpty()
+               .WithMessage("You must give a unique policy name")
                .Custom((name, context) => {
                    PolicyCreateModel model = context.ParentContext.InstanceToValidate as PolicyCreateModel;
                    if (!string.IsNullOrEmpty(model.SpecificationId))
                    {
-                       Specification specification = _specificationsRepository.GetSpecificationById(model.SpecificationId).Result;
-                       if (specification != null)
-                       {
-                           Policy policy = specification.GetPolicyByName(name);
-                           if (policy != null)
-                               context.AddFailure($"You must give a unique policy name");
-                       }
+                        Policy policy = _specificationsRepository.GetPolicyBySpecificationIdAndPolicyName(model.SpecificationId, model.Name).Result;
+                      
+                        if (policy != null)
+                            context.AddFailure($"You must give a unique policy name");
                    }
                });
         }

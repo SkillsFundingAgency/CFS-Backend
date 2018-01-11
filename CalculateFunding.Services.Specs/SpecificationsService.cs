@@ -123,7 +123,7 @@ namespace CalculateFunding.Services.Specs
             if (string.IsNullOrWhiteSpace(model.Name))
                 return new BadRequestObjectResult("Null or empty calculation name provided");
 
-            Calculation calculation = await _specifcationsRepository.GetCalculationByName(model.SpecificationId, model.Name);
+            Calculation calculation = await _specifcationsRepository.GetCalculationBySpecificationIdAndCalculationName(model.SpecificationId, model.Name);
 
             if (calculation != null)
                 return new OkObjectResult(calculation);
@@ -163,7 +163,6 @@ namespace CalculateFunding.Services.Specs
             if (validationResult != null)
                 return validationResult;
 
-            //Policy existingPolicy = await GetPolicyByName()
             Specification specification = await _specifcationsRepository.GetSpecificationById(createModel.SpecificationId);
 
             if (specification == null)
@@ -174,9 +173,6 @@ namespace CalculateFunding.Services.Specs
             if (!string.IsNullOrWhiteSpace(createModel.ParentPolicyId))
             {
                 Policy parentPolicy = specification.GetPolicy(createModel.ParentPolicyId);
-
-                if (parentPolicy == null)
-                    return new NotFoundResult();
 
                 parentPolicy.SubPolicies = (parentPolicy.SubPolicies == null
                     ? new[] { policy }

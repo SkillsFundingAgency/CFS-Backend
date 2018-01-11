@@ -20,7 +20,8 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<HttpStatusCode> UpdateSpecification(Specification specification);
         Task<AllocationLine> GetAllocationLineById(string lineId);
         Task<IEnumerable<AllocationLine>> GetAllocationLines();
-
-        Task<Calculation> GetCalculationByName(string specificationId, string calculationName);
+        Task<Policy> GetPolicyBySpecificationIdAndPolicyName(string specificationId, string policyByName);
+        Task<Policy> GetPolicyBySpecificationIdAndPolicyId(string specificationId, string policyId);
+        Task<Calculation> GetCalculationBySpecificationIdAndCalculationName(string specificationId, string calculationName);
     }
 }

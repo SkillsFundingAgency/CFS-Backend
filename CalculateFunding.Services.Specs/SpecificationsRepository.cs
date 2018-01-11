@@ -122,15 +122,31 @@ namespace CalculateFunding.Services.Specs
             return Task.FromResult(fundingStreams.AsEnumerable());
         }
 
-        async public Task<Calculation> GetCalculationByName(string specificationId, string calculationName)
+        async public Task<Calculation> GetCalculationBySpecificationIdAndCalculationName(string specificationId, string calculationName)
         {
             var specification = await GetSpecificationById(specificationId);
             if (specification == null)
                 return null;
 
-            Calculation calculation = specification.GetCalculations().FirstOrDefault(m => m.Name == calculationName);
+            return specification.GetCalculations().FirstOrDefault(m => m.Name == calculationName);
+        }
 
-            return calculation;
+        async public Task<Policy> GetPolicyBySpecificationIdAndPolicyName(string specificationId, string policyByName)
+        {
+            var specification = await GetSpecificationById(specificationId);
+            if (specification == null)
+                return null;
+
+            return specification.GetPolicyByName(policyByName);
+        }
+
+        async public Task<Policy> GetPolicyBySpecificationIdAndPolicyId(string specificationId, string policyId)
+        {
+            var specification = await GetSpecificationById(specificationId);
+            if (specification == null)
+                return null;
+
+            return specification.GetPolicy(policyId);
         }
     }
 }
