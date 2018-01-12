@@ -190,7 +190,7 @@ namespace CalculateFunding.Services.Specs
             if(statusCode != HttpStatusCode.OK)
                  return new StatusCodeResult((int)statusCode);
 
-            return new OkObjectResult(specification);
+            return new OkObjectResult(policy);
         }
 
         public async Task<IActionResult> CreateSpecification(HttpRequest request)
@@ -262,7 +262,7 @@ namespace CalculateFunding.Services.Specs
             if (statusCode != HttpStatusCode.OK)
                 return new StatusCodeResult((int)statusCode);
 
-            return new OkObjectResult(specification);
+            return new OkObjectResult(calculation);
         }
     }
 }
