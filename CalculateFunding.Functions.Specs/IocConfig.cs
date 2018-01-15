@@ -9,6 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using CalculateFunding.Functions.Common;
+using FluentValidation;
+using CalculateFunding.Services.Specs.Validators;
+using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Functions.Specs
 {
@@ -27,6 +30,9 @@ namespace CalculateFunding.Functions.Specs
         {
             builder.AddScoped<ISpecificationsRepository, SpecificationsRepository>();
             builder.AddScoped<ISpecificationsService, SpecificationsService>();
+            builder.AddScoped<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
+            builder.AddScoped<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
+            builder.AddScoped<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
 
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
 

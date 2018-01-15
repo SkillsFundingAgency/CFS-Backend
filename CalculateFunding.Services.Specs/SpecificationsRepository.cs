@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
+using System.Net;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -18,7 +19,26 @@ namespace CalculateFunding.Services.Specs
             _repository = cosmosRepository;
         }
 
-        public Task<AcademicYear> GetAcademicYearById(string academicYearId)
+        public async Task<IEnumerable<AllocationLine>> GetAllocationLines()
+        {
+            var lines = new[]
+            {
+                new AllocationLine { Id = "YPA01", Name = "16-19 Low Level Learners Programme funding" },
+                new AllocationLine { Id = "YPA02", Name = "16-19 Learner Responsive Low Level ALS" },
+                new AllocationLine { Id = "YPA03", Name = "216-19 Learner Responsive High Level ALS" },
+            };
+
+            return lines;
+        }
+
+        public async Task<AllocationLine> GetAllocationLineById(string lineId)
+        {
+            var lines = await GetAllocationLines();
+
+            return lines.FirstOrDefault(m => m.Id == lineId);
+        }
+
+        public async Task<AcademicYear> GetAcademicYearById(string academicYearId)
         {
            var years = new[]
            {
@@ -31,7 +51,7 @@ namespace CalculateFunding.Services.Specs
 
             //var academicYear = _repository.Query<AcademicYear>().FirstOrDefault(m => m.Id == academicYearId);
 
-            return Task.FromResult(academicYear);
+            return academicYear;
         }
 
         async public Task<FundingStream> GetFundingStreamById(string fundingStreamId)
@@ -49,19 +69,26 @@ namespace CalculateFunding.Services.Specs
             //var fundingStream = await _repository.SingleOrDefaultAsync<FundingStream>(m => m.Id == fundingStreamId);
 
             return fundingStream;
-
         }
 
-        public Task CreateSpecification(Specification specification)
+        public Task<HttpStatusCode> CreateSpecification(Specification specification)
         {
             return _repository.CreateAsync(specification);
         }
 
-        public async Task<Specification> GetSpecification(string specificationId)
+        public Task<HttpStatusCode> UpdateSpecification(Specification specification)
         {
-            var documentEntity = await _repository.ReadAsync<Specification>(specificationId);
+            return _repository.UpdateAsync(specification);
+        }
 
-            return documentEntity.Content;
+        public Task<Specification> GetSpecificationById(string specificationId)
+        {
+            return GetSpecificationByQuery(m => m.Id == specificationId);
+        }
+
+        async public Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query)
+        {
+            return (await GetSpecificationsByQuery(query)).FirstOrDefault();
         }
 
         public Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query)
@@ -73,9 +100,9 @@ namespace CalculateFunding.Services.Specs
 
         public Task<IEnumerable<AcademicYear>> GetAcademicYears()
         {
-            var academeicYears = _repository.Query<AcademicYear>();
+            var academicYears = _repository.Query<AcademicYear>();
 
-            return Task.FromResult(academeicYears.AsEnumerable());
+            return Task.FromResult(academicYears.ToList().AsEnumerable());
         }
 
         public Task<IEnumerable<FundingStream>> GetFundingStreams()
@@ -93,6 +120,33 @@ namespace CalculateFunding.Services.Specs
             };
 
             return Task.FromResult(fundingStreams.AsEnumerable());
+        }
+
+        async public Task<Calculation> GetCalculationBySpecificationIdAndCalculationName(string specificationId, string calculationName)
+        {
+            var specification = await GetSpecificationById(specificationId);
+            if (specification == null)
+                return null;
+
+            return specification.GetCalculations().FirstOrDefault(m => m.Name == calculationName);
+        }
+
+        async public Task<Policy> GetPolicyBySpecificationIdAndPolicyName(string specificationId, string policyByName)
+        {
+            var specification = await GetSpecificationById(specificationId);
+            if (specification == null)
+                return null;
+
+            return specification.GetPolicyByName(policyByName);
+        }
+
+        async public Task<Policy> GetPolicyBySpecificationIdAndPolicyId(string specificationId, string policyId)
+        {
+            var specification = await GetSpecificationById(specificationId);
+            if (specification == null)
+                return null;
+
+            return specification.GetPolicy(policyId);
         }
     }
 }

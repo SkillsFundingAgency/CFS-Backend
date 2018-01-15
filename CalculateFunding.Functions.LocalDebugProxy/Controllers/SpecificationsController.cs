@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CalculateFunding.Functions.Common;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Functions.Specs.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 {
@@ -19,61 +13,96 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         /// <returns></returns>
         [Route("api/specs/specifications")]
         [HttpGet]
-        public async Task<IActionResult>RunSpecifications()
+        public Task<IActionResult>RunSpecifications()
         {
-            return await Specifications.Run(ControllerContext.HttpContext.Request, null);
+            return Specifications.Run(ControllerContext.HttpContext.Request, null);
         }
 
         [Route("api/specs/specifications-by-year")]
         [HttpGet]
-        public async Task<IActionResult> RunSpecificationsByYear()
+        public Task<IActionResult> RunSpecificationsByYear()
         {
-            return await Specifications.RunSpecificationsByYear(ControllerContext.HttpContext.Request, null);
+            return Specifications.RunSpecificationsByYear(ControllerContext.HttpContext.Request, null);
         }
 
         [Route("api/specs/specification-by-name")]
         [HttpGet]
-        public async Task<IActionResult> RunSpecificationByName()
+        public Task<IActionResult> RunSpecificationByName()
         {
-            return await Specifications.RunSpecificationByName(ControllerContext.HttpContext.Request, null);
+            return Specifications.RunSpecificationByName(ControllerContext.HttpContext.Request, null);
         }
 
         [Route("api/specs/specifications")]
         [HttpPost]
-        public async Task<IActionResult> RunSpecificationsCommands([FromBody]string value)
+        public Task<IActionResult> RunSpecificationsCommands([FromBody]string value)
         {
-            return await Specifications.RunCreateSpecification(ControllerContext.HttpContext.Request, null);
+            return Specifications.RunCreateSpecification(ControllerContext.HttpContext.Request, null);
         }
 
         [Route("api/specs/academic-years")]
         [HttpGet]
-        public async Task<IActionResult> RunAcademicYears()
+        public Task<IActionResult> RunAcademicYears()
         {
-            return await AcademicYears.Run(ControllerContext.HttpContext.Request, null);
+            return AcademicYears.Run(ControllerContext.HttpContext.Request, null);
         }
 
         [Route("api/specs/commands/academic-years")]
         [HttpPost]
         [HttpDelete]
-        public async Task<IActionResult> RunAcademicYearsCommands([FromBody]string value)
+        public Task<IActionResult> RunAcademicYearsCommands([FromBody]string value)
         {
-            return await AcademicYears.RunCommands(ControllerContext.HttpContext.Request, null);
+            return AcademicYears.RunCommands(ControllerContext.HttpContext.Request, null);
         }
 
 
         [Route("api/specs/funding-streams")]
         [HttpGet]
-        public async Task<IActionResult> RunFundingStreams()
+        public Task<IActionResult> RunFundingStreams()
         {
-            return await FundingStreams.Run(ControllerContext.HttpContext.Request, null);
+            return FundingStreams.Run(ControllerContext.HttpContext.Request, null);
+        }
+
+        [Route("api/specs/policy-by-name")]
+        [HttpPost]
+        public Task<IActionResult> RunPolicyByName()
+        {
+            return Policies.RunPolicyByName(ControllerContext.HttpContext.Request, null);
+        }
+
+        [Route("api/specs/policies")]
+        [HttpPost]
+        public Task<IActionResult> RunCreatePolicy()
+        {
+            return Policies.RunCreatePolicy(ControllerContext.HttpContext.Request, null);
+        }
+
+        [Route("api/specs/calculation-by-name")]
+        [HttpPost]
+        public Task<IActionResult> RunCalculationByName()
+        {
+            return Calculations.RunCalculationByName(ControllerContext.HttpContext.Request, null);
+        }
+
+        [Route("api/specs/calculations")]
+        [HttpPost]
+        public Task<IActionResult> RunCreateCalculation()
+        {
+            return Calculations.RunCreateCalculation(ControllerContext.HttpContext.Request, null);
+        }
+
+        [Route("api/specs/allocation-lines")]
+        [HttpGet]
+        public Task<IActionResult> RunAllocationLines()
+        {
+            return Calculations.RunAllocationLines(ControllerContext.HttpContext.Request, null);
         }
 
         [Route("api/specs/commands/funding-streams")]
         [HttpPost]
         [HttpDelete]
-        public async Task<IActionResult> RunFundingStreamsCommands([FromBody]string value)
+        public Task<IActionResult> RunFundingStreamsCommands([FromBody]string value)
         {
-            return await FundingStreams.RunCommands(ControllerContext.HttpContext.Request, null);
+            return FundingStreams.RunCommands(ControllerContext.HttpContext.Request, null);
         }
 
 

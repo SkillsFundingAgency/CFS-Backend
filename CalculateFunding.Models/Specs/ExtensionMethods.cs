@@ -7,17 +7,29 @@ namespace CalculateFunding.Models.Specs
 {
     public static class ExtensionMethods
     {
-        public static PolicySpecification GetPolicy(this PolicySpecification policy, string id)
+        public static Policy GetPolicy(this Policy policy, string id)
         {         
             if (policy.Id == id) return policy;
             return policy.SubPolicies?.FirstOrDefault(x => x.GetPolicy(id) != null);
         }
-        public static PolicySpecification GetPolicy(this Specification specification, string id)
+
+        public static Policy GetPolicy(this Specification specification, string id)
         {
             return specification.Policies?.FirstOrDefault(x => x.GetPolicy(id) != null);
         }
 
-        public static IEnumerable<CalculationSpecification> GetCalculations(this Specification specification)
+        public static Policy GetPolicyByName(this Policy policy, string name)
+        {
+            if (policy.Name == name) return policy;
+            return policy.SubPolicies?.FirstOrDefault(x => x.GetPolicyByName(name) != null);
+        }
+
+        public static Policy GetPolicyByName(this Specification specification, string name)
+        {
+            return specification.Policies?.FirstOrDefault(x => x.GetPolicyByName(name) != null);
+        }
+
+        public static IEnumerable<Calculation> GetCalculations(this Specification specification)
         {
             if (specification.Policies != null)
             {
@@ -32,7 +44,7 @@ namespace CalculateFunding.Models.Specs
             }
         }
 
-        public static IEnumerable<CalculationSpecification> GetCalculations(this PolicySpecification policy)
+        public static IEnumerable<Calculation> GetCalculations(this Policy policy)
         {
             if (policy.Calculations != null)
             {
@@ -53,9 +65,14 @@ namespace CalculateFunding.Models.Specs
             }
         }
 
-        public static CalculationSpecification GetCalculation(this PolicySpecification policy, string id)
+        public static Calculation GetCalculation(this Policy policy, string id)
         {
             return policy.Calculations?.FirstOrDefault(x => x.Id == id);
+        }
+
+        public static Calculation GetCalculationByName(this Policy policy, string name)
+        {
+            return policy.Calculations?.FirstOrDefault(x => x.Name == name);
         }
     }
 }
