@@ -1,6 +1,5 @@
 ﻿using System;
 using AutoMapper;
-using CalculateFunding.Functions.Common.Extensions;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
@@ -12,6 +11,7 @@ using CalculateFunding.Functions.Common;
 using FluentValidation;
 using CalculateFunding.Services.Specs.Validators;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Functions.Specs
 {
