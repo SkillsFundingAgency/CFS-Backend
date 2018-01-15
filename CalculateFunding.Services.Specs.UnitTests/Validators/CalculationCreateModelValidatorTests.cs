@@ -10,21 +10,22 @@ using System.Linq.Expressions;
 namespace CalculateFunding.Services.Specs.Validators
 {
     [TestClass]
-    public class SpecificationCreateModelValidatorTests
+    public class CalculationCreateModelValidatorTests
     {
-        static string academicYearId = Guid.NewGuid().ToString();
-        static string fundingStreamId = Guid.NewGuid().ToString();
+        static string specificationId = Guid.NewGuid().ToString();
+        static string allocationLineid = Guid.NewGuid().ToString();
+        static string policyId = Guid.NewGuid().ToString();
         static string description = "A test description";
         static string name = "A test name";
 
         [TestMethod]
-        public void Validate_GivenEmptyAcademicYearId_ValidIsFalse()
+        public void Validate_GivenEmptySpecificationId_ValidIsFalse()
         {
             //Arrange
-            SpecificationCreateModel model = CreateModel();
-            model.AcademicYearId = string.Empty;
+            CalculationCreateModel model = CreateModel();
+            model.SpecificationId = string.Empty;
 
-            SpecificationCreateModelValidator validator = CreateValidator();
+            CalculationCreateModelValidator validator = CreateValidator();
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -43,13 +44,38 @@ namespace CalculateFunding.Services.Specs.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenEmptyFundingStreamId_ValidIsFalse()
+        public void Validate_GivenEmptyAllocationLineId_ValidIsFalse()
         {
             //Arrange
-            SpecificationCreateModel model = CreateModel();
-            model.FundingStreamId = string.Empty;
+            CalculationCreateModel model = CreateModel();
+            model.AllocationLineId = string.Empty;
 
-            SpecificationCreateModelValidator validator = CreateValidator();
+            CalculationCreateModelValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public void Validate_GivenEmptyPolicyId_ValidIsFalse()
+        {
+            //Arrange
+            CalculationCreateModel model = CreateModel();
+            model.PolicyId = string.Empty;
+
+            CalculationCreateModelValidator validator = CreateValidator();
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -71,10 +97,10 @@ namespace CalculateFunding.Services.Specs.Validators
         public void Validate_GivenEmptyDescription_ValidIsFalse()
         {
             //Arrange
-            SpecificationCreateModel model = CreateModel();
+            CalculationCreateModel model = CreateModel();
             model.Description = string.Empty;
 
-            SpecificationCreateModelValidator validator = CreateValidator();
+            CalculationCreateModelValidator validator = CreateValidator();
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -96,10 +122,10 @@ namespace CalculateFunding.Services.Specs.Validators
         public void Validate_GivenEmptyName_ValidIsFalse()
         {
             //Arrange
-            SpecificationCreateModel model = CreateModel();
+            CalculationCreateModel model = CreateModel();
             model.Name = string.Empty;
 
-            SpecificationCreateModelValidator validator = CreateValidator();
+            CalculationCreateModelValidator validator = CreateValidator();
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -121,11 +147,11 @@ namespace CalculateFunding.Services.Specs.Validators
         public void Validate_GivenNameAlreadyExists_ValidIsFalse()
         {
             //Arrange
-            SpecificationCreateModel model = CreateModel();
+            CalculationCreateModel model = CreateModel();
 
             ISpecificationsRepository repository = CreateSpecificationsRepository(true);
 
-            SpecificationCreateModelValidator validator = CreateValidator(repository);
+            CalculationCreateModelValidator validator = CreateValidator(repository);
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -147,9 +173,9 @@ namespace CalculateFunding.Services.Specs.Validators
         public void Validate_GivenValidModel_ValidIsTrue()
         {
             //Arrange
-            SpecificationCreateModel model = CreateModel();
+            CalculationCreateModel model = CreateModel();
 
-            SpecificationCreateModelValidator validator = CreateValidator();
+            CalculationCreateModelValidator validator = CreateValidator();
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -162,31 +188,32 @@ namespace CalculateFunding.Services.Specs.Validators
         }
 
 
-        static SpecificationCreateModel CreateModel()
+        static CalculationCreateModel CreateModel()
         {
-            return new SpecificationCreateModel
+            return new CalculationCreateModel
             {
-                AcademicYearId = academicYearId,
-                FundingStreamId = fundingStreamId,
+                SpecificationId = specificationId,
+                AllocationLineId = allocationLineid,
+                PolicyId = policyId,
                 Description = description,
                 Name = name
             };
         }
 
-        static ISpecificationsRepository CreateSpecificationsRepository(bool hasSpecification = false)
+        static ISpecificationsRepository CreateSpecificationsRepository(bool hasCalculation = false)
         {
             ISpecificationsRepository repository = Substitute.For<ISpecificationsRepository>();
 
             repository
-                .GetSpecificationByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
-                .Returns(hasSpecification ? new Specification() : null);
+                .GetCalculationBySpecificationIdAndCalculationName(Arg.Is(specificationId), Arg.Is(name))
+                .Returns(hasCalculation ? new Calculation() : null);
 
             return repository;
         }
 
-        static SpecificationCreateModelValidator CreateValidator(ISpecificationsRepository repository = null)
+        static CalculationCreateModelValidator CreateValidator(ISpecificationsRepository repository = null)
         {
-            return new SpecificationCreateModelValidator(repository ?? CreateSpecificationsRepository());
+            return new CalculationCreateModelValidator(repository ?? CreateSpecificationsRepository());
         }
     }
 }
