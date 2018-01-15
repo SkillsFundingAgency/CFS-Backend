@@ -23,9 +23,9 @@ namespace CalculateFunding.Services.Calculator
     {
         private readonly IDatasetProvider _datasetProvider = null;
 
-        public IEnumerable<ProviderResult> GenerateAllocations(Implementation implementation, SpecificationScope scope)
+        public IEnumerable<ProviderResult> GenerateAllocations(BuildProject buildProject, SpecificationScope scope)
         {
-            var assembly = Assembly.Load(Convert.FromBase64String(implementation.Build.AssemblyBase64));
+            var assembly = Assembly.Load(Convert.FromBase64String(buildProject.Build.AssemblyBase64));
             var allocationFactory = new AllocationFactory(assembly);
             var allocationModel = allocationFactory.CreateAllocationModel();
 
@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Calculator
                     }
 
 
-                    var result = CalculateProviderResults(allocationModel, implementation, provider, typedDatasets);
+                    var result = CalculateProviderResults(allocationModel, buildProject, provider, typedDatasets);
 
                 stopwatch.Stop();
                 Console.WriteLine($"Generated result for ${provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
@@ -73,7 +73,7 @@ namespace CalculateFunding.Services.Calculator
             return typedDatasets;
         }
 
-        public ProviderResult CalculateProviderResults(AllocationModel model, Implementation implementation, ProviderSummary provider, List<object> typedDatasets)
+        public ProviderResult CalculateProviderResults(AllocationModel model, BuildProject buildProject, ProviderSummary provider, List<object> typedDatasets)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -85,12 +85,12 @@ namespace CalculateFunding.Services.Calculator
             var result = new ProviderResult
             {
                 Provider = provider,
-                Specification = new Reference(implementation.Specification.Id, implementation.Specification.Name),
+                Specification = new Reference(buildProject.Specification.Id, buildProject.Specification.Name),
                 SourceDatasets = typedDatasets.ToList()
             };
             var productResults = new List<CalculationResult>();
 
-            foreach (var calculation in implementation.Calculations)
+            foreach (var calculation in buildProject.Calculations)
             {
 
                 var productResult = new CalculationResult

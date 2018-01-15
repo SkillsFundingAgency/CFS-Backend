@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
 
     public class DatasetTypeGenerator : CSharpTypeGenerator
     {
-        public IEnumerable<SourceFile> GenerateDataset(Implementation budget)
+        public IEnumerable<SourceFile> GenerateDataset(BuildProject budget)
         {
             foreach (var dataset in budget.DatasetDefinitions)
             {
@@ -125,9 +125,9 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
         }
 
 
-        private static IEnumerable<MemberDeclarationSyntax> GetDatasetMembers(Implementation implementation)
+        private static IEnumerable<MemberDeclarationSyntax> GetDatasetMembers(BuildProject buildProject)
         {
-            foreach (var datasetDefinition in implementation.DatasetDefinitions)
+            foreach (var datasetDefinition in buildProject.DatasetDefinitions)
             {
                 yield return SyntaxFactory.PropertyDeclaration(
                         SyntaxFactory.IdentifierName(Identifier($"{datasetDefinition.Name}Dataset")), Identifier(datasetDefinition.Name))

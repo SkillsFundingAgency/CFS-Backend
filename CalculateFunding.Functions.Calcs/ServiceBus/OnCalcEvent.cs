@@ -35,8 +35,8 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             var repository = ServiceFactory.GetService<CosmosRepository>();
             var messenger = ServiceFactory.GetService<IMessenger>();
 
-            var entity = await repository.ReadAsync<Implementation>(command.Id);
-            var impl = entity?.Content ?? new Implementation{Id = command.Content.Id};
+            var entity = await repository.ReadAsync<BuildProject>(command.Id);
+            var impl = entity?.Content ?? new BuildProject{Id = command.Content.Id};
             impl.Name = command.Content.Name;
             impl.Calculations = impl.Calculations ?? new List<Calculation>();
 

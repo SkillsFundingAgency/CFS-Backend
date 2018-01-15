@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
     public class ProductTypeGenerator : VisualBasicTypeGenerator
     {
 
-        public IEnumerable<SourceFile> GenerateCalcs(Implementation budget)
+        public IEnumerable<SourceFile> GenerateCalcs(BuildProject budget)
         {
             var syntaxTree = SyntaxFactory.CompilationUnit()
                 .WithImports(StandardImports())
@@ -38,10 +38,10 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             yield return new SourceFile {FileName = "Calculations.vb", SourceCode = syntaxTree.ToFullString()};
         }
 
-        private static IEnumerable<StatementSyntax> Methods(Implementation implementation)
+        private static IEnumerable<StatementSyntax> Methods(BuildProject buildProject)
         {
             yield return GetStandardProperties();
-            foreach (var calc in implementation.Calculations)
+            foreach (var calc in buildProject.Calculations)
             {
                 yield return GetMethod(calc);
             }
@@ -69,7 +69,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             }
 
             builder.AppendLine($"Public Function {Identifier(calc.Name)} As Decimal");
-            builder.Append(calc.SourceCode ?? "Return Decimal.MinValue");
+            builder.Append(calc.Published?.SourceCode ?? "Return Decimal.MinValue");
             //builder.Append(calc.SourceCode ?? $"Throw new NotImplementedException(\"{calc.Name} is not implemented\")");
             builder.AppendLine();
             builder.AppendLine("End Function");

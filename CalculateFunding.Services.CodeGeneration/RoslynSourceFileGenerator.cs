@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.CodeGeneration
             Logger = logger;
         }
 
-        public List<SourceFile> GenerateCode(Implementation implementation)
+        public List<SourceFile> GenerateCode(BuildProject buildProject)
         {
             var stopwatch = new Stopwatch();
 
@@ -27,17 +27,17 @@ namespace CalculateFunding.Services.CodeGeneration
 
             List<SourceFile> sourceFiles = new List<SourceFile>();
             sourceFiles.AddRange(GenerateStaticSourceFiles());
-            sourceFiles.AddRange(GenerateDatasetSourceFiles(implementation));
-            sourceFiles.AddRange(GenerateProductSourceFiles(implementation));
+            sourceFiles.AddRange(GenerateDatasetSourceFiles(buildProject));
+            sourceFiles.AddRange(GenerateProductSourceFiles(buildProject));
             stopwatch.Stop();
-            Logger.LogInformation($"${implementation.Id} created syntax tree ({stopwatch.ElapsedMilliseconds}ms)");
+            Logger.LogInformation($"${buildProject.Id} created syntax tree ({stopwatch.ElapsedMilliseconds}ms)");
             return sourceFiles;
 
         }
 
 
-        protected abstract IEnumerable<SourceFile> GenerateProductSourceFiles(Implementation budget);
-        protected abstract IEnumerable<SourceFile> GenerateDatasetSourceFiles(Implementation budget);
+        protected abstract IEnumerable<SourceFile> GenerateProductSourceFiles(BuildProject budget);
+        protected abstract IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject budget);
         protected IEnumerable<SourceFile> GenerateStaticSourceFiles()
         {
             var assembly = GetType().Assembly;

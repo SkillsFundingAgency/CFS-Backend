@@ -15,13 +15,13 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
         }
 
-        protected override IEnumerable<SourceFile> GenerateProductSourceFiles(Implementation budget)
+        protected override IEnumerable<SourceFile> GenerateProductSourceFiles(BuildProject budget)
         {
             var productTypeGenerator = new ProductTypeGenerator();
             return productTypeGenerator.GenerateCalcs(budget);
         }
 
-        protected override IEnumerable<SourceFile> GenerateDatasetSourceFiles(Implementation budget)
+        protected override IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject budget)
         {
             var datasetTypeGenerator = new DatasetTypeGenerator();
             return datasetTypeGenerator.GenerateDatasets(budget);

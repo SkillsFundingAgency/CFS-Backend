@@ -64,7 +64,7 @@ namespace CalculateFunding.EndToEnd
 
 
  
-                var impl = new Implementation
+                var impl = new BuildProject
                 {
                     Id = Reference.NewId(),
                     Specification = spec.GetReference(),
@@ -84,7 +84,11 @@ namespace CalculateFunding.EndToEnd
                     {
                         Id = Reference.NewId(),
                         Name = product.Name,
-                        SourceCode = ConvertTheStoreScript(product)
+                        Published = new CalculationVersion
+                        {
+                            SourceCode = ConvertTheStoreScript(product)
+                        }
+                        
                     });
                 }
 
@@ -94,7 +98,11 @@ namespace CalculateFunding.EndToEnd
                     {
                         Id = Reference.NewId(),
                         Name = product.Name,
-                        SourceCode = ConvertTheStoreScript(product)
+                        Published = new CalculationVersion
+                        {
+                            SourceCode = ConvertTheStoreScript(product)
+                        }
+
                     });
                 }
 
@@ -103,7 +111,11 @@ namespace CalculateFunding.EndToEnd
                     var sbsProducts = products.Where(x => x.ScenarioName == "1718_SBS").ToDictionary(x => x.Name);
                     if (sbsProducts.TryGetValue(calculation.Name, out var product))
                     {
-                        calculation.SourceCode = ConvertTheStoreScript(product);
+                        calculation.Published = new CalculationVersion
+                        {
+                            SourceCode = ConvertTheStoreScript(product)
+                        };
+
                     }
                 }
 

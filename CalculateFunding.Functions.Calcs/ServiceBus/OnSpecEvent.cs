@@ -31,8 +31,8 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             var repository = ServiceFactory.GetService<CosmosRepository>();
             var messenger = ServiceFactory.GetService<IMessenger>();
 
-            var entity = repository.Query<Implementation>().FirstOrDefault(x => x.Specification.Id == command.Content.Id);
-            var impl = entity ?? new Implementation{Id = command.Content.Id, TargetLanguage = TargetLanguage.VisualBasic};
+            var entity = repository.Query<BuildProject>().FirstOrDefault(x => x.Specification.Id == command.Content.Id);
+            var impl = entity ?? new BuildProject{Id = command.Content.Id, TargetLanguage = TargetLanguage.VisualBasic};
             impl.Name = command.Content.Name;
             impl.Calculations = impl.Calculations ?? new List<Calculation>();
             impl.DatasetDefinitions = new List<DatasetDefinition>();
@@ -42,7 +42,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
                 impl.Calculations.All(existing => existing.CalculationSpecification.Id != x.Id)));
 
             if (JsonConvert.SerializeObject(impl) !=
-                JsonConvert.SerializeObject(entity ?? new Implementation()))
+                JsonConvert.SerializeObject(entity ?? new BuildProject()))
             {
                 log.LogInformation($"Changes detected for implementation:{impl.Id}");
                 var implCommand = new ImplementationCommand

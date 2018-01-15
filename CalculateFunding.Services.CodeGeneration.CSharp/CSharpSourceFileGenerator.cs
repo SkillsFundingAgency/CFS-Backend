@@ -13,17 +13,17 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
         {
         }
 
-        protected override IEnumerable<SourceFile> GenerateProductSourceFiles(Implementation implementation)
+        protected override IEnumerable<SourceFile> GenerateProductSourceFiles(BuildProject buildProject)
         {
             var productTypeGenerator = new ProductTypeGenerator();
-            var calcSyntaxTree = productTypeGenerator.GenerateCalcs(implementation);
+            var calcSyntaxTree = productTypeGenerator.GenerateCalcs(buildProject);
             return calcSyntaxTree;
         }
 
-        protected override IEnumerable<SourceFile> GenerateDatasetSourceFiles(Implementation implementation)
+        protected override IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject buildProject)
         {
             var datasetTypeGenerator = new DatasetTypeGenerator();
-            return datasetTypeGenerator.GenerateDataset(implementation);
+            return datasetTypeGenerator.GenerateDataset(buildProject);
         }
 
 

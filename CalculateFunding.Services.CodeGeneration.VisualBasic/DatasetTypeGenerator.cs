@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
     public class DatasetTypeGenerator : VisualBasicTypeGenerator
     {
-        public IEnumerable<SourceFile> GenerateDatasets(Implementation budget)
+        public IEnumerable<SourceFile> GenerateDatasets(BuildProject budget)
         {
             foreach (var dataset in budget.DatasetDefinitions)
             {

@@ -39,13 +39,13 @@ namespace CalculateFunding.Functions.Calcs
             var json = await req.Content.ReadAsStringAsync();
 
             var request = JsonConvert.DeserializeObject<PreviewRequest>(json, SerializerSettings);
-            var budget = await budgetRepository.ReadAsync<Implementation>(request.BudgetId);
+            var budget = await budgetRepository.ReadAsync<BuildProject>(request.BudgetId);
             var product = budget?.Content?.Calculations.FirstOrDefault(x => x.Id == request.ProductId);
             if (product == null) return new HttpResponseMessage(HttpStatusCode.NotFound);
 
             if (!string.IsNullOrWhiteSpace(request.Calculation))
             {
-                product.SourceCode  = request.Calculation;
+                product.Current.SourceCode  = request.Calculation;
             }
 
             var testSuite = new TestSuite();

@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
 {
     public class ProductTypeGenerator : CSharpTypeGenerator
     {
-        public IEnumerable<SourceFile> GenerateCalcs(Implementation budget)
+        public IEnumerable<SourceFile> GenerateCalcs(BuildProject budget)
         {
             var syntaxTree = SyntaxFactory.CompilationUnit()
                 .WithUsings(StandardUsings())
@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
             yield return new SourceFile{FileName = "Calculations.cs", SourceCode = syntaxTree.ToFullString()};
         }
 
-        private static IEnumerable<ClassDeclarationSyntax> Classes(Implementation budget)
+        private static IEnumerable<ClassDeclarationSyntax> Classes(BuildProject budget)
         {
             var members = new List<MemberDeclarationSyntax>();
             members.AddRange(GetStandardMembers());
@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
             var builder = new StringBuilder();
             builder.AppendLine($"public decimal {Identifier(calc.Name)}()");
             builder.AppendLine("{");
-            builder.Append(calc.SourceCode ?? "return decimal.MinValue;");
+            builder.Append(calc.Published?.SourceCode ?? "return decimal.MinValue;");
             builder.AppendLine("}");
             //builder.Append(calc.SourceCode ?? $"Throw new NotImplementedException(\"{calc.Name} is not implemented\")");
             builder.AppendLine();
