@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Functions.Common.Extensions
+namespace CalculateFunding.Services.Core.Extensions
 {
     public static class HttpRequestExtensions
     {

@@ -3,17 +3,15 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Functions.Common.Extensions;
 using Newtonsoft.Json;
 using AutoMapper;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Models;
 using System.Linq;
-using CalculateFunding.Functions.Common.Interfaces.Logging;
 using System.Net;
-using System;
 using FluentValidation;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using CalculateFunding.Services.Core.Logging;
+using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Services.Specs
 {

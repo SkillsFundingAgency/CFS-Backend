@@ -1,10 +1,9 @@
-﻿using CalculateFunding.Functions.Common.Interfaces.Logging;
-using CalculateFunding.Functions.Common.Options;
+﻿using CalculateFunding.Services.Core.Options;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using System;
 
-namespace CalculateFunding.Functions.Common.Logging
+namespace CalculateFunding.Services.Core.Logging
 {
     public class ApplicationInsightsService : ILoggingService
     {

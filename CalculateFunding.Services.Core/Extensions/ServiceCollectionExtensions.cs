@@ -1,14 +1,13 @@
-﻿using CalculateFunding.Functions.Common.Interfaces.Logging;
-using CalculateFunding.Functions.Common.Logging;
-using CalculateFunding.Functions.Common.Options;
-using CalculateFunding.Repositories.Common.Cosmos;
+﻿using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.Core.Logging;
+using CalculateFunding.Services.Core.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System.Reflection;
 using System.Text;
 
-namespace CalculateFunding.Functions.Common.Extensions
+namespace CalculateFunding.Services.Core.Extensions
 {
     public static class ServiceCollectionExtensions
     {

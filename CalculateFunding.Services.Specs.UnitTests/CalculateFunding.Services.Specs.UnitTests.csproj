@@ -14,8 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Functions.Specs\CalculateFunding.Functions.Specs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Specs\CalculateFunding.Services.Specs.csproj" />
   </ItemGroup>
 
 </Project>

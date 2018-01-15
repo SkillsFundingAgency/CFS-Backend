@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Functions.Common.Interfaces.Logging
+namespace CalculateFunding.Services.Core.Logging
 {
     public interface ILoggingService
     {
