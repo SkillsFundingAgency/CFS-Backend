@@ -28,7 +28,6 @@ namespace CalculateFunding.Services.Compiler.Languages
                 .AddSyntaxTrees(syntaxTrees)
                 .AddReferences(references);
 
-
             return compilation.Emit(ms);
         }
 

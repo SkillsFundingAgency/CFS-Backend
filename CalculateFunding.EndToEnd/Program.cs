@@ -207,27 +207,12 @@ namespace CalculateFunding.EndToEnd
 
 
 
-                        var decl = statement as LocalDeclarationStatementSyntax;
-                        if (decl != null)
-                        {
-                            foreach (var declarator in decl.Declarators)
-                            {
-                                if (declarator.Names.Count == 1 && declarator.Initializer != null)
-                                {
-                                    if (declarator.Names[0].Identifier.ToString() ==
-                                        declarator.Initializer.Value.ToString())
-                                    {
-                                        Console.WriteLine("match");
-                                    }
-                                }
-                            }
-                        }
-
-
 
                         line = Regex.Replace(line, @"\[Datasets.(\S+)\]", "Datasets.$1", RegexOptions.IgnoreCase);
                         line = line.Replace("Products.1718_Global_Variables.", "");
                         line = line.Replace("products.1718_Global_Variables.", "");
+
+                       
 
                         line = line.Replace("Products.1718_SBS.", "");
 
@@ -246,6 +231,7 @@ namespace CalculateFunding.EndToEnd
                             "Datasets.Administration.Providers.Academy_Information.Academy_Parameters.Funding_Basis(2017181)",
                             "Datasets.AcademyInformation.FundingBasis");
 
+ 
 
                         var matches = Regex.Matches(line, @"Datasets.(\S+).(\S+).(\S+).(\S+).(\S+)", RegexOptions.IgnoreCase);
                         if (matches.Count > 0)
@@ -266,6 +252,38 @@ namespace CalculateFunding.EndToEnd
 
                             line = Regex.Replace(line, @"Datasets.(\S+).(\S+).(\S+).(\S+).(\S+)", "$4.$5");
                         }
+
+                        line = line.Replace("Datasets.ProviderInformation.", "Provider.");
+
+                        var dimAsMatch = Regex.Match(line, @"Dim (\w*) As \w* = (\w*)");
+
+                        if (dimAsMatch.Success)
+                        {
+                            if (dimAsMatch.Groups[1].Value == dimAsMatch.Groups[2].Value)
+                            {
+                                break;
+                            }
+
+                        }
+
+
+                        line = line.Replace("APTNewISBdataset.17–18", "APTNewISBdataset._1718");
+
+
+                        dimAsMatch = Regex.Match(line, @"Dim (\w*) = (\w*)");
+
+                        if (dimAsMatch.Success)
+                        {
+                            if (dimAsMatch.Groups[1].Value == dimAsMatch.Groups[2].Value)
+                            {
+                                break;
+                            }
+
+                        }
+
+                        line = line.Replace(product.Name, $"{product.Name}_Local");
+
+
                         builder.AppendLine(line);
                         break;
                 }

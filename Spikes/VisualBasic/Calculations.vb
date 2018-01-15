@@ -5,7 +5,7 @@ Public Class Calculations
 
     Public Property Datasets As Datasets
 
-    <Calculation(Id:="d5f641cb2a634618b803117390cad833")>
+    <Calculation(Id:="3da67347421d46cfb6fa0538459819f0")>
     <CalculationSpecification(Id:="P004_PriRate", Name:="P004_PriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -13,12 +13,12 @@ Public Class Calculations
         Dim result As Decimal = 0
         Dim acadfilter As Decimal = F100_AllAcademies
         Dim FundingBasis As String = Datasets.AcademyInformation.FundingBasis
-        Dim P004_PriRate As Decimal = LAtoProv(Datasets.APTProformadataset.BasicEntitlementPrimaryAmountPerPupil)
+        Dim P004_PriRate_Local As Decimal = LAtoProv(Datasets.APTProformadataset.BasicEntitlementPrimaryAmountPerPupil)
         If FundingBasis = "Place" Then
             exclude(rid)
         Else
             If acadfilter = 17181 Or acadfilter = 1712 Or acadfilter = 17183 Then
-                result = P004_PriRate
+                result = P004_PriRate_Local
             Else
                 exclude(rid)
             End If
@@ -27,7 +27,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="88bd354144974c57b6d584c0d4d90675")>
+    <Calculation(Id:="141cf361fbe942938e7d966263d53b1a")>
     <CalculationSpecification(Id:="P005_PriBESubtotal", Name:="P005_PriBESubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -62,22 +62,21 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="bfcd6d3694374effaeb28f2d3eecd5d7")>
+    <Calculation(Id:="e31d5084077846d58ed2681d0cecd41f")>
     <CalculationSpecification(Id:="P006_NSEN_PriBE", Name:="P006_NSEN_PriBE")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P006_NSEN_PriBE As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim P005_PriBESubtotal As Decimal = P005_PriBESubtotal
-        Dim P006a_NSEN_PriBE_percent As Decimal = P006a_NSEN_PriBE_percent / 100
-        Dim P006_NSEN_PriBE As Decimal = P005_PriBESubtotal * P006a_NSEN_PriBE_percent
+        Dim P006_NSEN_PriBE_Local As Decimal = P005_PriBESubtotal * P006a_NSEN_PriBE_percent
         Dim acadfilter As Decimal = F100_AllAcademies
         Dim FundingBasis As String = Datasets.AcademyInformation.FundingBasis
         If FundingBasis = "Place" Then
             exclude(rid)
         Else
             If acadfilter = 17181 Or acadfilter = 17182 Or acadfilter = 17183 Then
-                Result = P006_NSEN_PriBE
+                Result = P006_NSEN_PriBE_Local
             Else
                 exclude(rid)
             End If
@@ -86,7 +85,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="39dca1a7f9884a83873e14d11f589ade")>
+    <Calculation(Id:="dc8dfdd6b305447680630404cb4b494f")>
     <CalculationSpecification(Id:="P006a_NSEN_PriBE_Percent", Name:="P006a_NSEN_PriBE_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -94,16 +93,13 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="9a24096d1794405397edf7aeb0440af6")>
+    <Calculation(Id:="294d81ab8a5840f4841de8cbcd398ef2")>
     <CalculationSpecification(Id:="P007_InYearPriBE_Subtotal", Name:="P007_InYearPriBE_Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P007_InYearPriBE_Subtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P005_PriBESubtotal As Decimal = P005_PriBESubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim P25_YearDays_1718 As Decimal = P025_YearDays_1718
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Print(P005_PriBESubtotal, "P005_PriBESubtotal", rid)
         Print(P001_1718DaysOpen, "P001_1718DaysOpen", rid)
         Print(P25_YearDays_1718, "P25_YearDays_1718", rid)
@@ -112,7 +108,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e103d951e52e42f0bb8289e1702db277")>
+    <Calculation(Id:="c2dce700c37b41efbc84eae66c1d0d10")>
     <CalculationSpecification(Id:="P009_KS3Rate", Name:="P009_KS3Rate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -120,12 +116,12 @@ Public Class Calculations
         Dim result = Decimal.Zero
         Dim acadfilter As Decimal = F100_AllAcademies
         Dim FundingBasis As String = Datasets.AcademyInformation.FundingBasis
-        Dim P009_KS3Rate As Decimal = LAtoProv(Datasets.APTProformadataset.BasicEntitlementKS3AmountPerPupil)
+        Dim P009_KS3Rate_Local As Decimal = LAtoProv(Datasets.APTProformadataset.BasicEntitlementKS3AmountPerPupil)
         If FundingBasis = "Place" Then
             exclude(rid)
         Else
             If acadfilter = 17181 Or acadfilter = 17182 Or acadfilter = 17183 Then
-                result = P009_KS3Rate
+                result = P009_KS3Rate_Local
             Else
                 Exclude(rid)
             End If
@@ -134,19 +130,17 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="eec61e38ead7447a8dcc7d09f86bfd9e")>
+    <Calculation(Id:="edaf7b6c9fe34dae9b485b37953ab569")>
     <CalculationSpecification(Id:="P010_KS3_BESubtotal", Name:="P010_KS3_BESubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P010_KS3_BESubtotal As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As String = Datasets.AcademyInformation.FundingBasis
         Dim AcadFilter As Decimal = F200_SBS_Academies
         Dim P008_KS3Pupils As Decimal = NOR_P23_Total_NOR_KS3_SBS
-        Dim P009_KS3Rate As Decimal = P009_KS3Rate
-        Dim P010_KS3_BESubtotal As Decimal =(P008_KS3Pupils * P009_KS3Rate)
-        Dim P010_KS3_BESubtotalAPT As Decimal = Datasets.APTNewISBdataset.BasicEntitlementKS3
+        Dim P010_KS3_BESubtotal_Local As Decimal =(P008_KS3Pupils * P009_KS3Rate)
+        Dim P010_KS3_BESubtotal_LocalAPT As Decimal = Datasets.APTNewISBdataset.BasicEntitlementKS3
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(FundingBasis, "FundingBasis", rid)
         Print(P008_KS3Pupils, "P008_KS3Pupils", rid)
@@ -155,11 +149,11 @@ Public Class Calculations
             exclude(rid)
         Else
             If F100_AllAcademies = 17181 Or (F100_AllAcademies = 17182 And FundingBasis = "Estimate") Or (F100_AllAcademies = 17183 And FundingBasis = "Estimate") THEN
-                Result = P010_KS3_BESubtotal
+                Result = P010_KS3_BESubtotal_Local
             Else
                 If(F100_AllAcademies = 17182 And FundingBasis = "Census") Or (F100_AllAcademies = 17183 And FundingBasis = "Census") THEN
-                    Print(P010_KS3_BESubtotalAPT, "P010_KS3_BESubtotalAPT", rid)
-                    Result = P010_KS3_BESubtotalAPT
+                    Print(P010_KS3_BESubtotal_LocalAPT, "P010_KS3_BESubtotal_LocalAPT", rid)
+                    Result = P010_KS3_BESubtotal_LocalAPT
                 Else
                     exclude(rid)
                 End If
@@ -169,7 +163,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="cf0c84312b044b5da4e3fbeea455d469")>
+    <Calculation(Id:="63fac834245a40e698f14e5499704999")>
     <CalculationSpecification(Id:="P011_NSEN_KS3BE_percent", Name:="P011_NSEN_KS3BE_percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -178,7 +172,6 @@ Public Class Calculations
         Dim acadfilter As Decimal = F100_AllAcademies
         Dim FundingBasis As String = Datasets.AcademyInformation.FundingBasis
         Dim P010_KS3_BESubtotal As Decimal = P010_KS3_BESubtotal
-        Dim P011a_NSEN_KS3BE_percent As Decimal = P011a_NSEN_KS3BE_percent / 100
         Dim P011_NSEN_KS3BE As Decimal = P010_KS3_BESubtotal * P011a_NSEN_KS3BE_percent
         Print(P010_KS3_BESubtotal, "P010_KS3_BESubtotal", rid)
         Print(P011a_NSEN_KS3BE_percent, "P011a_NSEN_KS3BE_percent", rid)
@@ -195,7 +188,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="97ac3d4190cf4f7f8bdc882bd8790d22")>
+    <Calculation(Id:="7590504d07fa4d60b7a31bac686db594")>
     <CalculationSpecification(Id:="P011a_NSEN_KS3BE_Percent", Name:="P011a_NSEN_KS3BE_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -204,12 +197,12 @@ Public Class Calculations
         Dim acadfilter As Decimal = F100_AllAcademies
         Dim FundingBasis As String = Datasets.AcademyInformation.FundingBasis
         Dim NSEN_KS3BE_Percent As Decimal = LAtoProv(Datasets.APTProformadataset.BasicEntitlementKS3NotionalSEN)
-        Dim P011a_NSEN_KS3BE_Percent As Decimal = NSEN_KS3BE_Percent * 100
+        Dim P011a_NSEN_KS3BE_Percent_Local As Decimal = NSEN_KS3BE_Percent * 100
         If FundingBasis = "Place" Then
             exclude(rid)
         Else
             If acadfilter = 17181 Or acadfilter = 17182 Or acadfilter = 17183 Then
-                Result = P011a_NSEN_KS3BE_Percent
+                Result = P011a_NSEN_KS3BE_Percent_Local
             Else
                 Exclude(rid)
             End If
@@ -218,7 +211,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="53aaf7728382490885caec1e24c109df")>
+    <Calculation(Id:="45a4c85151d347469e3254c1273910e0")>
     <CalculationSpecification(Id:="P012_InYearKS3_BESubtotal", Name:="P012_InYearKS3_BESubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -226,7 +219,6 @@ Public Class Calculations
         Dim result = Decimal.Zero
         Dim acadfilter As Decimal = F100_AllAcademies
         Dim FundingBasis As String = Datasets.AcademyInformation.FundingBasis
-        Dim P010_KS3_BESubtotal As Decimal = P010_KS3_BESubtotal
         Dim Days_Open As Decimal = P001_1718DaysOpen
         Dim Year_Days As Decimal = 365
         Print(P010_KS3_BESubtotal, "P010_KS3_BESubtotal", rid)
@@ -245,7 +237,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="202e12c941024a32b2f8368fe484f58d")>
+    <Calculation(Id:="33be9dd24f6d46c98f4152577903f5f6")>
     <CalculationSpecification(Id:="P014_KS4Rate", Name:="P014_KS4Rate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -253,12 +245,12 @@ Public Class Calculations
         Dim result = Decimal.Zero
         Dim acadfilter As Decimal = F100_AllAcademies
         Dim FundingBasis As String = Datasets.AcademyInformation.FundingBasis
-        Dim P014_KS4Rate As Decimal = LAtoProv(Datasets.APTProformadataset.BasicEntitlementKS4AmountPerPupil)
+        Dim P014_KS4Rate_Local As Decimal = LAtoProv(Datasets.APTProformadataset.BasicEntitlementKS4AmountPerPupil)
         If FundingBasis = "Place" Then
             exclude(rid)
         Else
             If acadfilter = 17181 Or acadfilter = 17182 Or acadfilter = 17183 Then
-                result = P014_KS4Rate
+                result = P014_KS4Rate_Local
             Else
                 Exclude(rid)
             End If
@@ -267,30 +259,28 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="c3d7248be3164d58af594dbc1b9b37dd")>
+    <Calculation(Id:="9993eec9654d4b62ab997df53b483278")>
     <CalculationSpecification(Id:="P015_KS4_BESubtotal", Name:="P015_KS4_BESubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P015_KS4_BESubtotal As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As String = Datasets.AcademyInformation.FundingBasis
         Dim P013_KS4Pupils As Decimal = NOR_P24_Total_NOR_KS4_SBS
-        Dim P014_KS4Rate As Decimal = P014_KS4Rate
-        Dim P015_KS4_BESubtotal As Decimal =(P013_KS4Pupils * P014_KS4Rate)
-        Dim P015_KS4_BESubtotalAPT As Decimal = Datasets.APTNewISBdataset.BasicEntitlementKS4
+        Dim P015_KS4_BESubtotal_Local As Decimal =(P013_KS4Pupils * P014_KS4Rate)
+        Dim P015_KS4_BESubtotal_LocalAPT As Decimal = Datasets.APTNewISBdataset.BasicEntitlementKS4
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(P013_KS4Pupils, "P013_KS4Pupils", rid)
         Print(P014_KS4Rate, "P014_KS4Rate", rid)
-        Print(P015_KS4_BESubtotal, "P015_KS4_BESubtotal", rid)
+        Print(P015_KS4_BESubtotal_Local, "P015_KS4_BESubtotal_Local", rid)
         If FundingBasis = "Place" Then
             exclude(rid)
         Else
             If F100_AllAcademies = 17181 Or (F100_AllAcademies = 17182 And FundingBasis = "Estimate") Or (F100_AllAcademies = 17183 And FundingBasis = "Estimate") THEN
-                Result = P015_KS4_BESubtotal
+                Result = P015_KS4_BESubtotal_Local
             Else
                 If(F100_AllAcademies = 17182 And FundingBasis = "Census") Or (F100_AllAcademies = 17183 And FundingBasis = "Census") THEN
-                    Result = P015_KS4_BESubtotalAPT
+                    Result = P015_KS4_BESubtotal_LocalAPT
                 Else
                     exclude(rid)
                 End If
@@ -300,7 +290,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="7d2909411c13419c8ebb10ee19a8f2c4")>
+    <Calculation(Id:="40e1a7bdadf44122a03823cd2a8a3a2b")>
     <CalculationSpecification(Id:="P016_NSEN_KS4BE", Name:="P016_NSEN_KS4BE")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -309,15 +299,14 @@ Public Class Calculations
         Dim acadfilter As Decimal = F100_AllAcademies
         Dim FundingBasis As String = Datasets.AcademyInformation.FundingBasis
         Dim P015_KS4_BESubtotal As Decimal = P015_KS4_BESubtotal
-        Dim P016a_NSEN_KS4BE_percent As Decimal = P016a_NSEN_KS4BE_percent
-        Dim P016_NSEN_KS4BE As Decimal = P015_KS4_BESubtotal * P016a_NSEN_KS4BE_percent
+        Dim P016_NSEN_KS4BE_Local As Decimal = P015_KS4_BESubtotal * P016a_NSEN_KS4BE_percent
         Print(P015_KS4_BESubtotal, "P015_KS4_BESubtotal", rid)
         Print(P016a_NSEN_KS4BE_percent, "P016a_NSEN_KS4BE_percent", rid)
         If FundingBasis = "Place" Then
             exclude(rid)
         Else
             If acadfilter = 17181 Or acadfilter = 17182 Or acadfilter = 17183 Then
-                Result = P016_NSEN_KS4BE / 100
+                Result = P016_NSEN_KS4BE_Local / 100
             Else
                 Exclude(rid)
             End If
@@ -326,28 +315,27 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="faa31659578742dba28ce8ee8e4cc91f")>
+    <Calculation(Id:="e7cd8b1704514f2cbbd21c90c4129385")>
     <CalculationSpecification(Id:="P016a_NSEN_KS4BE_Percent", Name:="P016a_NSEN_KS4BE_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
     Public Function P016a_NSEN_KS4BE_Percent As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim NSEN_KS4BE_Percent As Decimal = LAtoProv(Datasets.APTProformadataset.BasicEntitlementKS4NotionalSEN)
-        Dim P016a_NSEN_KS4BE_Percent As Decimal = NSEN_KS4BE_Percent * 100
+        Dim P016a_NSEN_KS4BE_Percent_Local As Decimal = NSEN_KS4BE_Percent * 100
         If(F200_SBS_Academies = 1) Then
-            Result = P016a_NSEN_KS4BE_Percent
+            Result = P016a_NSEN_KS4BE_Percent_Local
         Else
             Exclude(rid)
         End if
 
         Print(F200_SBS_Academies, "F200_SBS_Academies", rid)
         Print(NSEN_KS4BE_Percent, "NSEN_KS4BE_Percent", rid)
-        Print(P016a_NSEN_KS4BE_Percent, "P016a_NSEN_KS4BE_Percent", rid)
+        Print(P016a_NSEN_KS4BE_Percent_Local, "P016a_NSEN_KS4BE_Percent_Local", rid)
         Return result
     End Function
 
-    <Calculation(Id:="f1974392fb6a410fa4a883ef6e8a315e")>
+    <Calculation(Id:="19cb38d1e93843678a0123ae79daaead")>
     <CalculationSpecification(Id:="P018_InYearKS4_BESubtotal", Name:="P018_InYearKS4_BESubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="bb411f3c107a40a8a71ff57604296e0e", Name:="Basic Entitlement")>
@@ -355,7 +343,6 @@ Public Class Calculations
         Dim result = Decimal.Zero
         Dim acadfilter As Decimal = F100_AllAcademies
         Dim FundingBasis As String = Datasets.AcademyInformation.FundingBasis
-        Dim P015_KS4_BESubtotal As Decimal = P015_KS4_BESubtotal
         Dim Days_Open As Decimal = P001_1718DaysOpen
         Dim Year_Days As Decimal = 365
         Print(P015_KS4_BESubtotal, "P015_KS4_BESubtotal", rid)
@@ -374,17 +361,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="6a32253606db4c0bb88d052fd47e9775")>
+    <Calculation(Id:="dd0af51a61f3467ca194245359656960")>
     <CalculationSpecification(Id:="P297_DedelegationRetained", Name:="P297_DedelegationRetained")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="cc9eac91ede6480eb46f748efb3a9d11", Name:="Dedelegation Retained by LA")>
     Public Function P297_DedelegationRetained As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As String = Datasets.AcademyInformation.FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P295_Dedelegation As Decimal = P295_Dedelegation
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days As Decimal = 365
         If F200_SBS_Academies = 1 then
             If F100_AllAcademies = 17183 then
@@ -411,7 +394,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="0b610777b6464c2d908dd6a050521526")>
+    <Calculation(Id:="84630a99352a4cda95daea7b35e8fd31")>
     <CalculationSpecification(Id:="P142_EAL1PriFactor", Name:="P142_EAL1PriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -450,7 +433,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="9c444ba706db449aa2f034656fb4866a")>
+    <Calculation(Id:="756fe0d91e454525a6879f31fdbff03b")>
     <CalculationSpecification(Id:="P144_EAL1PriRate", Name:="P144_EAL1PriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -479,7 +462,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e4cd10f9f4eb4449b9caf91cbfb13aec")>
+    <Calculation(Id:="3a40523062d84ad98287b19211477891")>
     <CalculationSpecification(Id:="P145_EAL1PriSubtotal", Name:="P145_EAL1PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -520,7 +503,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e11834caaaea4929ba06edfe189bf83a")>
+    <Calculation(Id:="f6a821b15b554fde9864a909db25bf99")>
     <CalculationSpecification(Id:="P146_InYearEAL1PriSubtotal", Name:="P146_InYearEAL1PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -547,7 +530,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="5ec0e225bc494dd3abb8715e9c55469b")>
+    <Calculation(Id:="306fa1ded2374f0c8ca3205024411536")>
     <CalculationSpecification(Id:="P147_EAL2PriFactor", Name:="P147_EAL2PriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -589,15 +572,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="37fae1af9ff04ab090cebd8ab7910d10")>
+    <Calculation(Id:="eb2643c2182b49239403a368694fa141")>
     <CalculationSpecification(Id:="P149_EAL2PriRate", Name:="P149_EAL2PriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P149_EAL2PriRate As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim EAL_Primary As String = LaToProv(Datasets.APTProformadataset.EALPrimary123NA)
         Dim EAL_Primary_Amount_Per_Pupil As Decimal = LaToProv(Datasets.APTProformadataset.EALPrimaryAmountPerPupil)
         If F200_SBS_Academies = 1 then
@@ -618,7 +599,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="a60d657f7dbb4c43914d2fa9bc34c5c1")>
+    <Calculation(Id:="a9db2ddec8a74376a832e08b0ba1413c")>
     <CalculationSpecification(Id:="P150_EAL2PriSubtotal", Name:="P150_EAL2PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -653,17 +634,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="db33cc22084b45cbb96321c464379b81")>
+    <Calculation(Id:="3e48982700a942ddba217c743f4f5d99")>
     <CalculationSpecification(Id:="P151_InYearEAL2PriSubtotal", Name:="P151_InYearEAL2PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P151_InYearEAL2PriSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P150_EAL2PriSubtotal As Decimal = P150_EAL2PriSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days As Decimal = 365
         If F200_SBS_Academies = 1 then
             Result = P150_EAL2PriSubtotal * P001_1718DaysOpen / Year_Days
@@ -680,15 +657,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="035d60ec3bed404bb072f6c27baf91a3")>
+    <Calculation(Id:="168634538f8e40fdbdd79c956d037bea")>
     <CalculationSpecification(Id:="P152_EAL3PriFactor", Name:="P152_EAL3PriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P152_EAL3PriFactor As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim EALPrimP3PupilCharac_String As String = Datasets.CensusPupilCharacteristics.EAL3PrimaryProportion
         Dim EALPrimaryP3Adj_String As String = Datasets.APTInputsandAdjustments.EAL3PrimaryProportion
         Dim LAAV_EALPrimP3 As Decimal = LaToProv(Datasets.LocalAuthorityAverages.EAL3PrimaryProportion)
@@ -719,15 +694,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="94ebb1d013614ed7b1677d6f9ca35e5e")>
+    <Calculation(Id:="b2b9125d4b3047e49b80082487aa1178")>
     <CalculationSpecification(Id:="P154_EAL3PriRate", Name:="P154_EAL3PriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P154_EAL3PriRate As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim EAL_Primary As String = LaToProv(Datasets.APTProformadataset.EALPrimary123NA)
         Dim EAL_Primary_Amount_Per_Pupil As Decimal = LaToProv(Datasets.APTProformadataset.EALPrimaryAmountPerPupil)
         If F200_SBS_Academies = 1 then
@@ -748,7 +721,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="db9a5e96b34d494e88a5cf2ebc8b268f")>
+    <Calculation(Id:="93854f294239450f9c81ce6e0dc2e2bf")>
     <CalculationSpecification(Id:="P155_EAL3PriSubtotal", Name:="P155_EAL3PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
@@ -782,19 +755,16 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="9ae77b8916474c9d9a707e7830583935")>
+    <Calculation(Id:="1c12128f532548ebaf44403bc11d34bd")>
     <CalculationSpecification(Id:="P156_NSENPriEAL", Name:="P156_NSENPriEAL")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P156_NSENPriEAL As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim P145_EAL1PriSubtotal As Decimal = P145_EAL1PriSubtotal
         Dim P150_EAL2PriSubtotal As Decimal = P150_EAL2PriSubtotal
         Dim P155_EAL3PriSubtotal As Decimal = P155_EAL3PriSubtotal
-        Dim P156a_NSENPriEAL_Percent As Decimal = P156a_NSENPriEAL_Percent / 100
         If F200_SBS_Academies = 1 then
             Result =(P145_EAL1PriSubtotal + P150_EAL2PriSubtotal + P155_EAL3PriSubtotal) * P156a_NSENPriEAL_Percent
         Else
@@ -811,15 +781,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="15cb5d4bcf46439785f0c764dfdf7a02")>
+    <Calculation(Id:="6eba0adf99f045f7a518d44219fdaf3c")>
     <CalculationSpecification(Id:="P156a_NSENPriEAL_Percent", Name:="P156a_NSENPriEAL_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P156a_NSENPriEAL_Percent As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim EAL_Primary_Notional_SEN As Decimal = LaToProv(Datasets.APTProformadataset.EALPrimaryNotionalSEN)
         If F200_SBS_Academies = 1 then
             Result = EAL_Primary_Notional_SEN * 100
@@ -834,17 +802,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="0a7b33b3a3644334a7b1968028bbec67")>
+    <Calculation(Id:="7708986f8c65463e8083b94a07cea6be")>
     <CalculationSpecification(Id:="P157_InYearEAL3PriSubtotal", Name:="P157_InYearEAL3PriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P157_InYearEAL3PriSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P155_EAL3PriSubtotal As Decimal = P155_EAL3PriSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days As Decimal = 365
         If F200_SBS_Academies = 1 then
             Result = P155_EAL3PriSubtotal * P001_1718DaysOpen / Year_Days
@@ -861,15 +825,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="7e8f5ab9ce034212bfc55086c9cd0bcd")>
+    <Calculation(Id:="9748c63a7cf34efe9074b778298c14c1")>
     <CalculationSpecification(Id:="P158_EAL1SecFactor", Name:="P158_EAL1SecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P158_EAL1SecFactor As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim EALSecP1PupilCharac_String As String = Datasets.CensusPupilCharacteristics.EAL1SecondaryProportion
         Dim EALSecondaryP1Adj_String As String = Datasets.APTInputsandAdjustments.EAL1SecondaryProportion
         Dim LAAV_EALSecP1 As Decimal = LaToProv(Datasets.LocalAuthorityAverages.EAL1SecondaryProportion)
@@ -900,15 +862,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="9dd20892fed3402893a1aca883a60b1c")>
+    <Calculation(Id:="65681f90d1e54c7d9010a750417d6f19")>
     <CalculationSpecification(Id:="P160_EAL1SecRate", Name:="P160_EAL1SecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P160_EAL1SecRate As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim EAL_Secondary As String = LaToProv(Datasets.APTProformadataset.EALSecondary123NA)
         Dim EAL_Secondary_Amount_Per_Pupil As Decimal = LaToProv(Datasets.APTProformadataset.EALSecondaryAmountPerPupil)
         If F200_SBS_Academies = 1 then
@@ -929,17 +889,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="92a66eed34e043c995f96f9742f7322b")>
+    <Calculation(Id:="3026e7dece674f7a9a76a3b56037b806")>
     <CalculationSpecification(Id:="P161_EAL1SecSubtotal", Name:="P161_EAL1SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P161_EAL1SecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P160_EAL1SecRate As Decimal = P160_EAL1SecRate
-        Dim P158_EAL1SecFactor As Decimal = P158_EAL1SecFactor
         Dim P25_Total_NOR_SEC_SBS As Decimal = NOR_P25_Total_NOR_SEC_SBS
         Dim calc As Decimal = P25_Total_NOR_SEC_SBS * P160_EAL1SecRate * P158_EAL1SecFactor
         Dim EAL_S As Decimal = LAToProv(Datasets.APTNewISBdataset.EALS)
@@ -970,17 +926,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="5dbb6f2fc1704471a203bb3494e2bd3d")>
+    <Calculation(Id:="8c24963cebd44f349c466e71150eeb2e")>
     <CalculationSpecification(Id:="P162_InYearEAL1SecSubtotal", Name:="P162_InYearEAL1SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P162_InYearEAL1SecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P161_EAL1SecSubtotal As Decimal = P161_EAL1SecSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days As Decimal = 365
         If F200_SBS_Academies = 1 then
             Result = P161_EAL1SecSubtotal * P001_1718DaysOpen / Year_Days
@@ -997,15 +949,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="536bac6e23b54298ba0acb2c6255648b")>
+    <Calculation(Id:="01da8581dda7425bbca22c12bc241dd1")>
     <CalculationSpecification(Id:="P163_EAL2SecFactor", Name:="P163_EAL2SecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P163_EAL2SecFactor As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim EALSecP2PupilCharac_String As String = Datasets.CensusPupilCharacteristics.EAL2SecondaryProportion
         Dim EALSecondaryP2Adj_String As String = Datasets.APTInputsandAdjustments.EAL2SecondaryProportion
         Dim LAAV_EALSecP2 As Decimal = LaToProv(Datasets.LocalAuthorityAverages.EAL2SecondaryProportion)
@@ -1036,15 +986,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="a487e5f8681e40038b6f6540b84c1284")>
+    <Calculation(Id:="2acfaaf855fd4de7af94850bfa37eeaf")>
     <CalculationSpecification(Id:="P165_EAL2SecRate", Name:="P165_EAL2SecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P165_EAL2SecRate As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim EAL_Secondary As String = LaToProv(Datasets.APTProformadataset.EALSecondary123NA)
         Dim EAL_Secondary_Amount_Per_Pupil As Decimal = LaToProv(Datasets.APTProformadataset.EALSecondaryAmountPerPupil)
         If F200_SBS_Academies = 1 then
@@ -1065,17 +1013,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="56f7642445f442dbaea1413b0e6ec873")>
+    <Calculation(Id:="7e84d94834194e57ae04915cc432b665")>
     <CalculationSpecification(Id:="P166_EAL2SecSubtotal", Name:="P166_EAL2SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P166_EAL2SecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P165_EAL2SecRate As Decimal = P165_EAL2SecRate
-        Dim P163_EAL2SecFactor As Decimal = P163_EAL2SecFactor
         Dim P25_Total_NOR_SEC_SBS As Decimal = NOR_P25_Total_NOR_SEC_SBS
         Dim calc As Decimal = P25_Total_NOR_SEC_SBS * P165_EAL2SecRate * P163_EAL2SecFactor
         Dim EAL_S As Decimal = LAToProv(Datasets.APTNewISBdataset.EALS)
@@ -1106,17 +1050,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="0cefe103451140a3b3257f010feefbcf")>
+    <Calculation(Id:="8d7407e2f00d4dc2b8281e81d8e61de5")>
     <CalculationSpecification(Id:="P167_InYearEAL2SecSubtotal", Name:="P167_InYearEAL2SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P167_InYearEAL2SecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P166_EAL2SecSubtotal As Decimal = P166_EAL2SecSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days As Decimal = 365
         If F200_SBS_Academies = 1 then
             Result = P166_EAL2SecSubtotal * P001_1718DaysOpen / Year_Days
@@ -1133,15 +1073,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="2559c0232e94461d9be2c9de477c33ef")>
+    <Calculation(Id:="2edc02fd39b44e919ce2100c8dd093a6")>
     <CalculationSpecification(Id:="P168_EAL3SecFactor", Name:="P168_EAL3SecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P168_EAL3SecFactor As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim EALSecP3PupilCharac_String As String = Datasets.CensusPupilCharacteristics.EAL3SecondaryProportion
         Dim EALSecondaryP3Adj_String As String = Datasets.APTInputsandAdjustments.EAL3SecondaryProportion
         Dim LAAV_EALSecP3 As Decimal = LaToProv(Datasets.LocalAuthorityAverages.EAL3SecondaryProportion)
@@ -1172,15 +1110,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="2b150ebbe2f94273bbaf75388b4a9200")>
+    <Calculation(Id:="b18dc06ea85241f3828e5ffd2d4e9d49")>
     <CalculationSpecification(Id:="P170_EAL3SecRate", Name:="P170_EAL3SecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P170_EAL3SecRate As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim EAL_Secondary As String = LaToProv(Datasets.APTProformadataset.EALSecondary123NA)
         Dim EAL_Secondary_Amount_Per_Pupil As Decimal = LaToProv(Datasets.APTProformadataset.EALSecondaryAmountPerPupil)
         If F200_SBS_Academies = 1 then
@@ -1201,17 +1137,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="5135c14ddc414dffbf9ab5fdf3f23916")>
+    <Calculation(Id:="14214059ed3b424b98b06776a9b84ebe")>
     <CalculationSpecification(Id:="P171_EAL3SecSubtotal", Name:="P171_EAL3SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P171_EAL3SecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P170_EAL3SecRate As Decimal = P170_EAL3SecRate
-        Dim P168_EAL3SecFactor As Decimal = P168_EAL3SecFactor
         Dim P25_Total_NOR_SEC_SBS As Decimal = NOR_P25_Total_NOR_SEC_SBS
         Dim calc As Decimal = P25_Total_NOR_SEC_SBS * P170_EAL3SecRate * P168_EAL3SecFactor
         Dim EAL_S As Decimal = LAToProv(Datasets.APTNewISBdataset.EALS)
@@ -1242,19 +1174,16 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d9bd1daab6724e148b5986df9c626d43")>
+    <Calculation(Id:="6b4f48f2ac7e4a689917ed454b75c433")>
     <CalculationSpecification(Id:="P172_NSENSecEAL", Name:="P172_NSENSecEAL")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P172_NSENSecEAL As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim P161_EAL1SecSubtotal As Decimal = P161_EAL1SecSubtotal
         Dim P166_EAL2SecSubtotal As Decimal = P166_EAL2SecSubtotal
         Dim P171_EAL3SecSubtotal As Decimal = P171_EAL3SecSubtotal
-        Dim P172a_NSENSecEAL_Percent As Decimal = P172a_NSENSecEAL_Percent / 100
         If F200_SBS_Academies = 1 then
             Result =(P161_EAL1SecSubtotal + P166_EAL2SecSubtotal + P171_EAL3SecSubtotal) * P172a_NSENSecEAL_Percent
         Else
@@ -1271,15 +1200,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e7e6599b52504ce3854778dde243f8c5")>
+    <Calculation(Id:="672229baba3244a7baea308b61c1ebc6")>
     <CalculationSpecification(Id:="P172a_NSENSecEAL_Percent", Name:="P172a_NSENSecEAL_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P172a_NSENSecEAL_Percent As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As String = Datasets.AcademyInformation.FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim EAL_Secondary_Notional_SEN As Decimal = LaToProv(Datasets.APTProformadataset.EALSecondaryNotionalSEN)
         If F200_SBS_Academies = 1 then
             Result = EAL_Secondary_Notional_SEN * 100
@@ -1294,17 +1221,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="6af25ad8ed4b4c06b9f21ddac9d3d41a")>
+    <Calculation(Id:="3b60045024a94eadbda78bef02528a17")>
     <CalculationSpecification(Id:="P173_InYearEAL3SecSubtotal", Name:="P173_InYearEAL3SecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="dfd825e4a5784fa188379b080fa0c4ae", Name:="EAL")>
     Public Function P173_InYearEAL3SecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P171_EAL3SecSubtotal As Decimal = P171_EAL3SecSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days As Decimal = 365
         If F200_SBS_Academies = 1 then
             Result = P171_EAL3SecSubtotal * P001_1718DaysOpen / Year_Days
@@ -1321,13 +1244,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="0d947e712b264e288fb02d5ab1faa7f1")>
+    <Calculation(Id:="f9cf61877d604e1e96d361cddae9ac7c")>
     <CalculationSpecification(Id:="P019_PriFSMFactor", Name:="P019_PriFSMFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P019_PriFSMFactor As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim FSMCensus As Decimal = Datasets.CensusPupilCharacteristics.PrimaryFSMProportion
         Dim FSMAdj As Decimal = Datasets.APTInputsandAdjustments.PrimaryFSMProportion
         Dim FSMAdjString as string = Datasets.APTInputsandAdjustments.PrimaryFSMProportion
@@ -1351,20 +1273,19 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="35cbaa6b1d84461bba50e385715b3a46")>
+    <Calculation(Id:="18ac1784c82841cfb45aa21f2dfb45f3")>
     <CalculationSpecification(Id:="P021_PriFSMRate", Name:="P021_PriFSMRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P021_PriFSMRate As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         If(F200_SBS_Academies = 1) Then
-            Dim P021_PriFSMRate As Decimal = LAtoProv(i.)
+            Dim P021_PriFSMRate_Local As Decimal = LAtoProv(i.)
             Dim LAMethod as string = LAtoProv(datasets.Academy_Allocations.AY_2017 / 18.APT.APT_Proforma_dataset.APT_Proforma_dataset.FSM_Primary_FSM / FSM6)
-            Print(P021_PriFSMRate, "Pri FSM Per Pupil", rid)
+            Print(P021_PriFSMRate_Local, "Pri FSM Per Pupil", rid)
             Print(LAMethod, "FSM/FSM6?", rid)
             If LAMethod = "FSM % Primary" then
-                Result = P021_PriFSMRate
+                Result = P021_PriFSMRate_Local
             Else
                 Result = 0
             end if
@@ -1375,20 +1296,17 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="fd1dbad17c2945c087a4641e6d58d9dc")>
+    <Calculation(Id:="b679bd10fd674113becfae5e588798e7")>
     <CalculationSpecification(Id:="P022_PriFSMSubtotal", Name:="P022_PriFSMSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P022_PriFSMSubtotal As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim F900_FundingBasis As String = F900_FundingBasis
         Dim P22_Total_NOR_Pri_SBS As Decimal = NOR_P22_Total_NOR_PRI_SBS
         Dim P021_PriFSMRate As Decimal = P021_PriFSMRate
-        Dim P019_PriFSMFactor As Decimal = P019_PriFSMFactor
-        Dim P022_PriFSMSubtotal As Decimal = P22_Total_NOR_Pri_SBS * P021_PriFSMRate * P019_PriFSMFactor
+        Dim P022_PriFSMSubtotal_Local As Decimal = P22_Total_NOR_Pri_SBS * P021_PriFSMRate * P019_PriFSMFactor
         Dim FSMSelectedbyLA As String = LaToProv(Datasets.APTProformadataset.FSMPrimaryFSMFSM6)
-        Dim P022_PriFSMSubtotalAPT As Decimal = Datasets.APTNewISBdataset.FreeSchoolMealsPrimary
+        Dim P022_PriFSMSubtotal_LocalAPT As Decimal = Datasets.APTNewISBdataset.FreeSchoolMealsPrimary
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(F900_FundingBasis, "F900_FundingBasis", rid)
         Print(P22_Total_NOR_Pri_SBS, "P22_Total_NOR_Pri_SBS", rid)
@@ -1398,11 +1316,11 @@ Public Class Calculations
             exclude(rid)
         Else
             If(F100_AllAcademies = 17181) Or (F100_AllAcademies = 17182 And F900_FundingBasis = 2) Or (F100_AllAcademies = 17183 And F900_FundingBasis = 2) Then
-                Result = P022_PriFSMSubtotal
+                Result = P022_PriFSMSubtotal_Local
             Else
                 If(F100_AllAcademies = 17182 And F900_FundingBasis = 1) Or (F100_AllAcademies = 17183 And F900_FundingBasis = 1) Then
                     If FSMSelectedbyLA = "FSM % Primary" Then
-                        Result = P022_PriFSMSubtotalAPT
+                        Result = P022_PriFSMSubtotal_LocalAPT
                     End If
                 Else
                 End If
@@ -1414,16 +1332,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="910ec2516e05414f81e527f7f900ff31")>
+    <Calculation(Id:="487dab7855284a4ebfdc8f1426562290")>
     <CalculationSpecification(Id:="P023_InYearPriFSMSubtotal", Name:="P023_InYearPriFSMSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P023_InYearPriFSMSubtotal As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim F900_FundingBasis As String = F900_FundingBasis
-        Dim P022_PriFSMSubtotal As Decimal = P022_PriFSMSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days As Decimal = 365
         Print(F200_SBS_Academies, "F200_SBS_Academies", rid)
         Print(F900_FundingBasis, "F900_FundingBasis", rid)
@@ -1438,14 +1352,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="efda4d93d365441985d46f93db684f33")>
+    <Calculation(Id:="789a0c4f37fc4454a1612ae69fe2eb23")>
     <CalculationSpecification(Id:="P024_PriFSM6Factor", Name:="P024_PriFSM6Factor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P024_PriFSM6Factor As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim F900_FundingBasis As String = F900_FundingBasis
         Dim FSM6Census As Decimal = Datasets.CensusPupilCharacteristics.PrimaryEver6Proportion
         Dim FSM6Adj As Decimal = Datasets.APTInputsandAdjustments.PrimaryEver6Proportion
         Dim FSM6AdjString as string = Datasets.APTInputsandAdjustments.PrimaryEver6Proportion
@@ -1477,26 +1389,24 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="218989d47c7d4fce97397b4b5d39db34")>
+    <Calculation(Id:="4fe68dab86104dd5afd6ac8c2ddfc4fe")>
     <CalculationSpecification(Id:="P026_PriFSM6Rate", Name:="P026_PriFSM6Rate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P026_PriFSM6Rate As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim F900_FundingBasis As String = F900_FundingBasis
-        Dim P026_PriFSM6Rate As Decimal = LAtoProv(Datasets.APTProformadataset.FSMPrimaryAmountPerPupil)
+        Dim P026_PriFSM6Rate_Local As Decimal = LAtoProv(Datasets.APTProformadataset.FSMPrimaryAmountPerPupil)
         Dim LAMethod as string = LAtoProv(Datasets.APTProformadataset.FSMPrimaryFSMFSM6)
         Print(F200_SBS_Academies, "F200_SBS_Academies", rid)
         Print(F900_FundingBasis, "F900_FundingBasis", rid)
-        Print(P026_PriFSM6Rate, "Pri FSM6 Per Pupil", rid)
+        Print(P026_PriFSM6Rate_Local, "Pri FSM6 Per Pupil", rid)
         Print(LAMethod, "FSM/FSM6?", rid)
         If F900_FundingBasis = 3 Then
             exclude(rid)
         Else
             If F200_SBS_Academies = 1 Then
                 If LAMethod = "FSM6 % Primary" then
-                    Result = P026_PriFSM6Rate
+                    Result = P026_PriFSM6Rate_Local
                 Else
                     Result = 0
                 End if
@@ -1508,20 +1418,17 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="285ee6902a3a4b11bcaea27ceb2c420a")>
+    <Calculation(Id:="a658b64f9b8e4399b51b172203dcd488")>
     <CalculationSpecification(Id:="P027_PriFSM6Subtotal", Name:="P027_PriFSM6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P027_PriFSM6Subtotal As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim F900_FundingBasis As String = F900_FundingBasis
         Dim P22_Total_NOR_Pri_SBS As Decimal = NOR_P22_Total_NOR_PRI_SBS
         Dim P026_PriFSM6Rate As Decimal = P026_PriFSM6Rate
-        Dim P024_PriFSM6Factor As Decimal = P024_PriFSM6Factor
-        Dim P027_PriFSM6Subtotal As Decimal = P22_Total_NOR_Pri_SBS * P026_PriFSM6Rate * P024_PriFSM6Factor
+        Dim P027_PriFSM6Subtotal_Local As Decimal = P22_Total_NOR_Pri_SBS * P026_PriFSM6Rate * P024_PriFSM6Factor
         Dim FSM6SelectedbyLA As String = LaToProv(Datasets.APTProformadataset.FSMPrimaryFSMFSM6)
-        Dim P027_PriFSM6SubtotalAPT As Decimal = Datasets.APTNewISBdataset.FreeSchoolMealsPrimary
+        Dim P027_PriFSM6Subtotal_LocalAPT As Decimal = Datasets.APTNewISBdataset.FreeSchoolMealsPrimary
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(F900_FundingBasis, "F900_FundingBasis", rid)
         Print(P22_Total_NOR_Pri_SBS, "P22_Total_NOR_Pri_SBS", rid)
@@ -1531,11 +1438,11 @@ Public Class Calculations
             exclude(rid)
         Else
             If(F100_AllAcademies = 17181) Or (F100_AllAcademies = 17182 And F900_FundingBasis = 2) Or (F100_AllAcademies = 17183 And F900_FundingBasis = 2) Then
-                Result = P027_PriFSM6Subtotal
+                Result = P027_PriFSM6Subtotal_Local
             Else
                 If(F100_AllAcademies = 17182 And F900_FundingBasis = 1) Or (F100_AllAcademies = 17183 And F900_FundingBasis = 2) Then
                     If FSM6SelectedbyLA = "FSM6 % Primary" Then
-                        Result = P027_PriFSM6SubtotalAPT
+                        Result = P027_PriFSM6Subtotal_LocalAPT
                     End If
                 Else
                 End If
@@ -1547,14 +1454,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="04abb412cefd45db8af379ad69055fa2")>
+    <Calculation(Id:="67b4ac18106545a7a87283b6d632e6e5")>
     <CalculationSpecification(Id:="P028_NSENFSMPri", Name:="P028_NSENFSMPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P028_NSENFSMPri As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim F900_FundingBasis As String = F900_FundingBasis
         Dim PriFSMSubtotal As Decimal = P022_PriFSMSubtotal
         Dim PriFSM6Subtotal As Decimal = P027_PriFSM6Subtotal
         Dim FSM_Pri_SEN As Decimal = P028a_NSENFSMPri_Percent / 100
@@ -1577,14 +1482,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="ab7657ed01b34b8290f3c541fda73232")>
+    <Calculation(Id:="ae4898ce222a4588bb6d513d6117566d")>
     <CalculationSpecification(Id:="P028a_NSENFSMPri_Percent", Name:="P028a_NSENFSMPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P028a_NSENFSMPri_Percent As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim F900_FundingBasis As String = F900_FundingBasis
         Dim FSM_Pri_SEN As Decimal = LaToProv(Datasets.APTProformadataset.FSMPrimaryNotionalSEN)
         Dim NSENFSMPri_Percent As Decimal = FSM_Pri_SEN
         Print(F200_SBS_Academies, "F200_SBS_Academies", rid)
@@ -1602,16 +1505,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="6afcc5151ddb4bd59fddb724b279268c")>
+    <Calculation(Id:="d07a9713c3df46618275dc8865a42c84")>
     <CalculationSpecification(Id:="P029_InYearPriFSM6Subtotal", Name:="P029_InYearPriFSM6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P029_InYearPriFSM6Subtotal As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim F900_FundingBasis As String = F900_FundingBasis
-        Dim P027_PriFSM6Subtotal As Decimal = P027_PriFSM6Subtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days As Decimal = 365
         Print(F200_SBS_Academies, "F200_SBS_Academies", rid)
         Print(F900_FundingBasis, "F900_FundingBasis", rid)
@@ -1630,14 +1529,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e44d20ab226448b18e675c3678aa42e0")>
+    <Calculation(Id:="0dffbb472c194fb7be923edea1c5fd5c")>
     <CalculationSpecification(Id:="P030_SecFSMFactor", Name:="P030_SecFSMFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P030_SecFSMFactor As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim F900_FundingBasis As String = F900_FundingBasis
         Dim FSMCensus As Decimal = Datasets.CensusPupilCharacteristics.SecondaryFSMProportion
         Dim FSMAdj As Decimal = Datasets.APTInputsandAdjustments.SecondaryFSMProportion
         Dim FSMAdjString as string = Datasets.APTInputsandAdjustments.SecondaryFSMProportion
@@ -1667,26 +1564,24 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="7f49b25a2a3445b2864f23b4abf3f718")>
+    <Calculation(Id:="676302c2b9c1493d9f343707d9fb98de")>
     <CalculationSpecification(Id:="P032_SecFSMRate", Name:="P032_SecFSMRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P032_SecFSMRate As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim F900_FundingBasis As String = F900_FundingBasis
-        Dim P032_SecFSMRate As Decimal = LAtoProv(Datasets.APTProformadataset.FSMSecondaryAmountPerPupil)
+        Dim P032_SecFSMRate_Local As Decimal = LAtoProv(Datasets.APTProformadataset.FSMSecondaryAmountPerPupil)
         Dim LAMethod as string = LAtoProv(Datasets.APTProformadataset.FSMSecondaryFSMFSM6)
         Print(F200_SBS_Academies, "F200_SBS_Academies", rid)
         Print(F900_FundingBasis, "F900_FundingBasis", rid)
-        Print(P032_SecFSMRate, "Sec FSM Per Pupil", rid)
+        Print(P032_SecFSMRate_Local, "Sec FSM Per Pupil", rid)
         Print(LAMethod, "FSM/FSM6?", rid)
         If F900_FundingBasis = 3 Then
             exclude(rid)
         Else
             If F200_SBS_Academies = 1 Then
                 If LAMethod = "FSM % Secondary" then
-                    Result = P032_SecFSMRate
+                    Result = P032_SecFSMRate_Local
                 Else
                     Result = 0
                 End if
@@ -1698,39 +1593,35 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="8ee714be039f47dcb1e73384f235de7b")>
+    <Calculation(Id:="3d82bf1fae93405e910462305a6023a9")>
     <CalculationSpecification(Id:="P033_SecFSMSubtotal", Name:="P033_SecFSMSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P033_SecFSMSubtotal As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim F900_FundingBasis As String = F900_FundingBasis
         Dim P25_TotalNORSecSBS As Decimal = NOR_P25_Total_NOR_SEC_SBS
         Dim P032_SecFSMRate As Decimal = P032_SecFSMRate
-        Dim P030_SecFSMFactor As Decimal = P030_SecFSMFactor
-        Dim P033_SecFSMSubtotal As Decimal = P25_TotalNORSecSBS * P032_SecFSMRate * P030_SecFSMFactor
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
+        Dim P033_SecFSMSubtotal_Local As Decimal = P25_TotalNORSecSBS * P032_SecFSMRate * P030_SecFSMFactor
         Dim FSMSelectedbyLA As String = LaToProv(Datasets.APTProformadataset.FSMSecondaryFSMFSM6)
-        Dim P033_SecFSMSubtotalAPT As Decimal = Datasets.APTNewISBdataset.FreeSchoolMealsSecondary
+        Dim P033_SecFSMSubtotal_LocalAPT As Decimal = Datasets.APTNewISBdataset.FreeSchoolMealsSecondary
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(F900_FundingBasis, "F900_FundingBasis", rid)
         Print(P25_TotalNORSecSBS, "P25_TotalNORSecSBS", rid)
         Print(P032_SecFSMRate, "P032_SecFSMRate", rid)
         Print(P030_SecFSMFactor, "P030_SecFSMFactor", rid)
         Print(FSMSelectedbyLA, "FSMSelectedbyLA", rid)
-        Print(P033_SecFSMSubtotalAPT, "P033_SecFSMSubtotalAPT", rid)
+        Print(P033_SecFSMSubtotal_LocalAPT, "P033_SecFSMSubtotal_LocalAPT", rid)
         If F900_FundingBasis = 3 Then
             Exclude(rid)
         Else
         End if
 
         If F100_AllAcademies = 17181 Or (F100_AllAcademies = 17182 And F900_FundingBasis = 2) Or (F100_AllAcademies = 17183 And F900_FundingBasis = 2) Then
-            Result = P033_SecFSMSubtotal
+            Result = P033_SecFSMSubtotal_Local
         Else
             If(F100_AllAcademies = 17182 And F900_FundingBasis = 1) Or (F100_AllAcademies = 17183 And F900_FundingBasis = 1) Then
                 If FSMSelectedbyLA = "FSM % Secondary" Then
-                    Result = P033_SecFSMSubtotalAPT
+                    Result = P033_SecFSMSubtotal_LocalAPT
                 Else
                     Result = 0
                 End If
@@ -1742,16 +1633,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e023312986c64b2e92d29ae770c002a4")>
+    <Calculation(Id:="837fd74f01b64645b1589eef74f9e980")>
     <CalculationSpecification(Id:="P034_InYearSecFSMSubtotal", Name:="P034_InYearSecFSMSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P034_InYearSecFSMSubtotal As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim F900_FundingBasis As String = F900_FundingBasis
-        Dim P033_SecFSMSubtotal As Decimal = P033_SecFSMSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days As Decimal = 365
         Print(F200_SBS_Academies, "F200_SBS_Academies", rid)
         Print(F900_FundingBasis, "F900_FundingBasis", rid)
@@ -1770,14 +1657,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="dd549875e9994f2da5d315350e6205af")>
+    <Calculation(Id:="c98e058478da453b86bc436e20d50d0d")>
     <CalculationSpecification(Id:="P035_SecFSM6Factor", Name:="P035_SecFSM6Factor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P035_SecFSM6Factor As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim F900_FundingBasis As String = F900_FundingBasis
         Dim FSM6Census As Decimal = Datasets.CensusPupilCharacteristics.SecondaryEver6Proportion
         Dim FSM6Adj As Decimal = Datasets.APTInputsandAdjustments.SecondaryEver6Proportion
         Dim FSM6AdjString as string = Datasets.APTInputsandAdjustments.SecondaryEver6Proportion
@@ -1809,26 +1694,24 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="33bc705fb9dd4f06b9ceb56ee2c86a73")>
+    <Calculation(Id:="8384dc1db45e43209d5dba6d2dcec88d")>
     <CalculationSpecification(Id:="P037_SecFSM6Rate", Name:="P037_SecFSM6Rate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P037_SecFSM6Rate As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim F900_FundingBasis As String = F900_FundingBasis
-        Dim P037_SecFSM6Rate As Decimal = LAtoProv(Datasets.APTProformadataset.FSMSecondaryAmountPerPupil)
+        Dim P037_SecFSM6Rate_Local As Decimal = LAtoProv(Datasets.APTProformadataset.FSMSecondaryAmountPerPupil)
         Dim LAMethod as string = LAtoProv(Datasets.APTProformadataset.FSMSecondaryFSMFSM6)
         Print(F200_SBS_Academies, "F200_SBS_Academies", rid)
         Print(F900_FundingBasis, "F900_FundingBasis", rid)
-        Print(P037_SecFSM6Rate, "Sec FSM6 Per Pupil", rid)
+        Print(P037_SecFSM6Rate_Local, "Sec FSM6 Per Pupil", rid)
         Print(LAMethod, "FSM/FSM6?", rid)
         If F900_FundingBasis = 3 Then
             exclude(rid)
         Else
             If F200_SBS_Academies = 1 Then
                 If LAMethod = "FSM6 % Secondary" Then
-                    Result = P037_SecFSM6Rate
+                    Result = P037_SecFSM6Rate_Local
                 Else
                     Result = 0
                 End if
@@ -1840,21 +1723,18 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="b751295ade1945df8c7c32addede1d21")>
+    <Calculation(Id:="143aa25bb5c04ecbb1dc52b2b987df59")>
     <CalculationSpecification(Id:="P038_SecFSM6Subtotal", Name:="P038_SecFSM6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P038_SecFSM6Subtotal As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim F900_FundingBasis As String = F900_FundingBasis
         Dim P25_Total_NOR_Sec_SBS As Decimal = NOR_P25_Total_NOR_SEC_SBS
         Dim P037_SecFSM6Rate As Decimal = P037_SecFSM6Rate
-        Dim P035_SecFSM6Factor As Decimal = P035_SecFSM6Factor
-        Dim P038_SecFSM6Subtotal As Decimal = P25_Total_NOR_Sec_SBS * P037_SecFSM6Rate * P035_SecFSM6Factor
+        Dim P038_SecFSM6Subtotal_Local As Decimal = P25_Total_NOR_Sec_SBS * P037_SecFSM6Rate * P035_SecFSM6Factor
         Dim FSMSelectedbyLA As String = LaToProv(Datasets.APTProformadataset.FSMSecondaryFSMFSM6)
-        Dim P038_SecFSM6SubtotalAPT As Decimal = Datasets.APTNewISBdataset.FreeSchoolMealsSecondary
-        Print(P038_SecFSM6SubtotalAPT, "P038_SecFSM6SubtotalAPT", rid)
+        Dim P038_SecFSM6Subtotal_LocalAPT As Decimal = Datasets.APTNewISBdataset.FreeSchoolMealsSecondary
+        Print(P038_SecFSM6Subtotal_LocalAPT, "P038_SecFSM6Subtotal_LocalAPT", rid)
         Print(FSMSelectedbyLA, "FSMSelectedbyLA", rid)
         Print(P25_Total_NOR_Sec_SBS, "P25_Total_NOR_Sec_SBS", rid)
         Print(P037_SecFSM6Rate, "P037_SecFSM6Rate", rid)
@@ -1867,11 +1747,11 @@ Public Class Calculations
         End if
 
         If F100_AllAcademies = 17181 Or (F100_AllAcademies = 17182 And F900_FundingBasis = 2) Or (F100_AllAcademies = 17183 And F900_FundingBasis = 2) Then
-            Result = P038_SecFSM6Subtotal
+            Result = P038_SecFSM6Subtotal_Local
         Else
             If(F100_AllAcademies = 17182 And F900_FundingBasis = 1) Or (F100_AllAcademies = 17183 And F900_FundingBasis = 1) Then
                 If FSMSelectedbyLA = "FSM6 % Secondary" Then
-                    Result = P038_SecFSM6SubtotalAPT
+                    Result = P038_SecFSM6Subtotal_LocalAPT
                 Else
                     Result = 0
                 End If
@@ -1883,14 +1763,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="24fa088656804aceab4de2d8b3b46025")>
+    <Calculation(Id:="9f6011998fd641f688eccd9878c61326")>
     <CalculationSpecification(Id:="P039_NSENFSMSec", Name:="P039_NSENFSMSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P039_NSENFSMSec As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim F900_FundingBasis As String = F900_FundingBasis
         Dim SecFSMSubtotal As Decimal = P033_SecFSMSubtotal
         Dim SecFSM6Subtotal As Decimal = P038_SecFSM6Subtotal
         Dim FSM_Sec_SEN As Decimal = P039a_NSENFSMSec_Percent / 100
@@ -1913,14 +1791,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="6e67872d8c574959881603e8c152f989")>
+    <Calculation(Id:="d4415fd3ca3148f0afb914a364654849")>
     <CalculationSpecification(Id:="P039a_NSENFSMSec_Percent", Name:="P039a_NSENFSMSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P039a_NSENFSMSec_Percent As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim F900_FundingBasis As String = F900_FundingBasis
         Dim FSM_Sec_SEN As Decimal = LaToProv(Datasets.APTProformadataset.FSMSecondaryNotionalSEN)
         Dim NSENFSMSec_Percent As Decimal = FSM_Sec_SEN * 100
         Print(F200_SBS_Academies, "F200_SBS_Academies", rid)
@@ -1938,16 +1814,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="8c27c257acf04b2cbcb07db8832b7f5b")>
+    <Calculation(Id:="4d5654e1dfd94e4e904d617639b0ff63")>
     <CalculationSpecification(Id:="P040_InYearSecFSM6Subtotal", Name:="P040_InYearSecFSM6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="524c10bb461b46f3b351b86403168379", Name:="FSM")>
     Public Function P040_InYearSecFSM6Subtotal As Decimal
         Dim result = Decimal.Zero
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim F900_FundingBasis As String = F900_FundingBasis
-        Dim P038_SecFSM6Subtotal As Decimal = P038_SecFSM6Subtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days As Decimal = 365
         Print(P001_1718DaysOpen, "P001_1718DaysOpen", rid)
         Print(Year_Days, "Year_Days", rid)
@@ -1966,7 +1838,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="5cd6440d4cc746cfaff39b433b66ded2")>
+    <Calculation(Id:="d263f6f44eb0449bba1520e2f479efd1")>
     <CalculationSpecification(Id:="P041_IDACIFPriFactor", Name:="P041_IDACIFPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -1998,7 +1870,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="092611e1ca334fe881c6a0a19274b3fa")>
+    <Calculation(Id:="2237e9a9ea2343f790f04f711bdbd8ea")>
     <CalculationSpecification(Id:="P043_IDACIFPriRate", Name:="P043_IDACIFPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2016,17 +1888,14 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="1aae30a7354b45edb44a2389094c3493")>
+    <Calculation(Id:="ce3f19a096f24ae8a809308300d2adc0")>
     <CalculationSpecification(Id:="P044_IDACIFPriSubtotal", Name:="P044_IDACIFPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P044_IDACIFPriSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim SBS_P22 As Decimal = NOR_P22_Total_NOR_PRI_SBS
-        Dim P043_IDACIFPriRate As Decimal = P043_IDACIFPriRate
-        Dim P041_IDACIFPriFactor As Decimal = P041_IDACIFPriFactor
         Dim APT_ISB_IDACIF_Primary As Decimal = Datasets.APTNewISBdataset.IDACI(PF)
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim AcadFilter As Decimal = F200_SBS_Academies
         Dim FundingBasis As decimal = F900_FundingBasis
         If AcadFilter = 1 then
@@ -2050,14 +1919,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="51f110d2b05a40fc883f4b26e5e8604f")>
+    <Calculation(Id:="ff486d8ef9d5408e8ee8f223866f7c0f")>
     <CalculationSpecification(Id:="P045_NSENIDACIFPri", Name:="P045_NSENIDACIFPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P045_NSENIDACIFPri As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P044_IDACIFPriSubtotal As Decimal = P044_IDACIFPriSubtotal
-        Dim P045a_NSENIDACIFPri_Percent As Decimal = P045a_NSENIDACIFPri_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P044_IDACIFPriSubtotal * P045a_NSENIDACIFPri_Percent
@@ -2070,7 +1937,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="132e0a1c0d1f409d902d5d27a7547eae")>
+    <Calculation(Id:="3671a2dc24424da3b6dc23319079a46a")>
     <CalculationSpecification(Id:="P045a_NSENIDACIFPri_Percent", Name:="P045a_NSENIDACIFPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2088,14 +1955,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="6503b906122d4c70b5f4af20bf19785e")>
+    <Calculation(Id:="f2ae61bf0a954e3180126b6931093bdc")>
     <CalculationSpecification(Id:="P046_InYearIDACIFPriSubtotal", Name:="P046_InYearIDACIFPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P046_InYearIDACIFPriSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P044_IDACIFPriSubtotal As Decimal = P044_IDACIFPriSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -2110,7 +1975,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="2d8691c700b9432d9a6661bc41ce8aae")>
+    <Calculation(Id:="1edbaf7f1a664feb9d828c319f2cc106")>
     <CalculationSpecification(Id:="P047_IDACIEPriFactor", Name:="P047_IDACIEPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2142,7 +2007,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="2d95663144af4ceb86c92442234210fa")>
+    <Calculation(Id:="be4985f86d17440f834eec523d629baf")>
     <CalculationSpecification(Id:="P049_IDACIEPriRate", Name:="P049_IDACIEPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2160,17 +2025,14 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="332dc0621bda4a77bfd3f119bd2ad2c4")>
+    <Calculation(Id:="41da0b6d772f44f6afde336cc2595929")>
     <CalculationSpecification(Id:="P050_IDACIEPriSubtotal", Name:="P050_IDACIEPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P050_IDACIEPriSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim SBS_P22 As Decimal = NOR_P22_Total_NOR_PRI_SBS
-        Dim P049_IDACIEPriRate As Decimal = P049_IDACIEPriRate
-        Dim P047_IDACIEPriFactor As Decimal = P047_IDACIEPriFactor
         Dim APT_ISB_IDACIE_Primary As Decimal = Datasets.APTNewISBdataset.IDACI(PE)
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim AcadFilter As Decimal = F200_SBS_Academies
         Dim FundingBasis As decimal = F900_FundingBasis
         If AcadFilter = 1 then
@@ -2194,14 +2056,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="7d4a76bc3f994bc4b10d22e154366c85")>
+    <Calculation(Id:="c9584d9b2ebe4443aaa9d33360484297")>
     <CalculationSpecification(Id:="P051_NSENIDACIEPri", Name:="P051_NSENIDACIEPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P051_NSENIDACIEPri As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P050_IDACIEPriSubtotal As Decimal = P050_IDACIEPriSubtotal
-        Dim P051a_NSENIDACIEPri_Percent As Decimal = P051a_NSENIDACIEPri_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P050_IDACIEPriSubtotal * P051a_NSENIDACIEPri_Percent
@@ -2214,7 +2074,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="c4ffe65186fb416cb5dcd19cf1a1d93e")>
+    <Calculation(Id:="16d43c13aab641b1b8d40852da824aff")>
     <CalculationSpecification(Id:="P051a_NSENIDACIEPri_Percent", Name:="P051a_NSENIDACIEPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2232,14 +2092,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="6bc6eb1a77fb49c0af9651d59a5b5065")>
+    <Calculation(Id:="170a54a688c14c72bb68771aa09e43b6")>
     <CalculationSpecification(Id:="P052_InYearIDACIEPriSubtotal", Name:="P052_InYearIDACIEPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P052_InYearIDACIEPriSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P050_IDACIEPriSubtotal As Decimal = P050_IDACIEPriSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -2254,7 +2112,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="412091ed3d2b42ba8a6a5a48b32a77be")>
+    <Calculation(Id:="79d8be41e1b24164b6b88ff9b93ff576")>
     <CalculationSpecification(Id:="P053_IDACIDPriFactor", Name:="P053_IDACIDPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2286,7 +2144,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="355a1ddc7619482e8be1a6bf4267cde1")>
+    <Calculation(Id:="7a9c0e3c89cf419483353040b7edb5df")>
     <CalculationSpecification(Id:="P055_IDACIDPriRate", Name:="P055_IDACIDPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2304,17 +2162,14 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="0d9e50e8310e4440bbc200b8e4021605")>
+    <Calculation(Id:="6d631f5240624c88ab62ee4473dc9fb5")>
     <CalculationSpecification(Id:="P056_IDACIDPriSubtotal", Name:="P056_IDACIDPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P056_IDACIDPriSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim SBS_P22 As Decimal = NOR_P22_Total_NOR_PRI_SBS
-        Dim P055_IDACIDPriRate As Decimal = P055_IDACIDPriRate
-        Dim P053_IDACIDPriFactor As Decimal = P053_IDACIDPriFactor
         Dim APT_ISB_IDACID_Primary As Decimal = Datasets.APTNewISBdataset.IDACI(PD)
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim AcadFilter As Decimal = F200_SBS_Academies
         Dim FundingBasis As decimal = F900_FundingBasis
         If AcadFilter = 1 then
@@ -2342,14 +2197,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="ab1b3f43646a4f6eb6e0593c911ee5cd")>
+    <Calculation(Id:="0381c020fe4f4594a101ca57e8a32b67")>
     <CalculationSpecification(Id:="P057_NSENIDACIDPri", Name:="P057_NSENIDACIDPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P057_NSENIDACIDPri As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P056_IDACIDPriSubtotal As Decimal = P056_IDACIDPriSubtotal
-        Dim P057a_NSENIDACIDPri_Percent As Decimal = P057a_NSENIDACIDPri_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P056_IDACIDPriSubtotal * P057a_NSENIDACIDPri_Percent
@@ -2362,7 +2215,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="6b2eac66fbf24fc0b645502bbe2fdfd9")>
+    <Calculation(Id:="2356931b3e6149acb474b07039951ece")>
     <CalculationSpecification(Id:="P057a_NSENIDACIDPri_Percent", Name:="P057a_NSENIDACIDPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2380,14 +2233,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="5f91876552fe4b188c745658e3156ef5")>
+    <Calculation(Id:="40659e10b3f04aa5b3800259ed253f83")>
     <CalculationSpecification(Id:="P058_InYearIDACIDPriSubtotal", Name:="P058_InYearIDACIDPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P058_InYearIDACIDPriSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P056_IDACIDPriSubtotal As Decimal = P056_IDACIDPriSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -2402,7 +2253,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="ece1f7c724f645be97161d1a69e0b146")>
+    <Calculation(Id:="80feefc52c254a098d16801772949eb9")>
     <CalculationSpecification(Id:="P059_IDACICPriFactor", Name:="P059_IDACICPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2434,7 +2285,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="a4d8244f218f4e1fbb3fc26f7e6a3471")>
+    <Calculation(Id:="7ba462b833ff4fa888de89f665094496")>
     <CalculationSpecification(Id:="P061_IDACICPriRate", Name:="P061_IDACICPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2452,17 +2303,14 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="91de4fd68fca4f05983f06901de5e44d")>
+    <Calculation(Id:="5b23a7812fc54395a7d17ae0ffde5255")>
     <CalculationSpecification(Id:="P062_IDACICPriSubtotal", Name:="P062_IDACICPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P062_IDACICPriSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim SBS_P22 As Decimal = NOR_P22_Total_NOR_PRI_SBS
-        Dim P061_IDACICPriRate As Decimal = P061_IDACICPriRate
-        Dim P059_IDACICPriFactor As Decimal = P059_IDACICPriFactor
         Dim APT_ISB_IDACIC_Primary As Decimal = Datasets.APTNewISBdataset.IDACI(PC)
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim AcadFilter As Decimal = F200_SBS_Academies
         Dim FundingBasis As decimal = F900_FundingBasis
         If AcadFilter = 1 then
@@ -2486,14 +2334,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="ef5dabe1b8584307890c8533ea519752")>
+    <Calculation(Id:="1d53d1a5b33b457c8e1caf522dbedc0b")>
     <CalculationSpecification(Id:="P063_NSENIDACICPri", Name:="P063_NSENIDACICPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P063_NSENIDACICPri As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P062_IDACICPriSubtotal As Decimal = P062_IDACICPriSubtotal
-        Dim P063a_NSENIDACICPri_Percent As Decimal = P063a_NSENIDACICPri_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P062_IDACICPriSubtotal * P063a_NSENIDACICPri_Percent
@@ -2506,7 +2352,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="0767bd9f2dc945d19b79d050d45ecde6")>
+    <Calculation(Id:="f5f5c7fbde2b4f8abece27c6b2ca6ffc")>
     <CalculationSpecification(Id:="P063a_NSENIDACICPri_Percent", Name:="P063a_NSENIDACICPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2524,14 +2370,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="07d675a781614b578f1212807d3df6f1")>
+    <Calculation(Id:="dfdfe133049541ec9404867dd5e7baa0")>
     <CalculationSpecification(Id:="P064_InYearIDACICPriSubtotal", Name:="P064_InYearIDACICPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P064_InYearIDACICPriSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P062_IDACICPriSubtotal As Decimal = P062_IDACICPriSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -2546,7 +2390,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="aada298b96974270a650952181538d73")>
+    <Calculation(Id:="bceae22ac43544148e71a2261d90febf")>
     <CalculationSpecification(Id:="P065_IDACIBPriFactor", Name:="P065_IDACIBPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2578,7 +2422,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="539548a8021048f2bbc8a77ac1573394")>
+    <Calculation(Id:="6926b471bb594f2aa31a8539123e1b2d")>
     <CalculationSpecification(Id:="P067_IDACIBPriRate", Name:="P067_IDACIBPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2596,17 +2440,14 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="b6c465ed28c5407796ca71837be2415e")>
+    <Calculation(Id:="13c9c405e65c48b1a664d28056ca48cc")>
     <CalculationSpecification(Id:="P068_IDACIBPriSubtotal", Name:="P068_IDACIBPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P068_IDACIBPriSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim SBS_P22 As Decimal = NOR_P22_Total_NOR_PRI_SBS
-        Dim P067_IDACIBPriRate As Decimal = P067_IDACIBPriRate
-        Dim P065_IDACIBPriFactor As Decimal = P065_IDACIBPriFactor
         Dim APT_ISB_IDACIB_Primary As Decimal = Datasets.APTNewISBdataset.IDACI(PB)
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim AcadFilter As Decimal = F200_SBS_Academies
         Dim FundingBasis As decimal = F900_FundingBasis
         If AcadFilter = 1 then
@@ -2630,14 +2471,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="3020a1411f894ab99827904a41514963")>
+    <Calculation(Id:="568507a8be8e4d00bb57ec77189ffe92")>
     <CalculationSpecification(Id:="P069_NSENIDACIBPri", Name:="P069_NSENIDACIBPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P069_NSENIDACIBPri As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P068_IDACIBPriSubtotal As Decimal = P068_IDACIBPriSubtotal
-        Dim P069a_NSENIDACIBPri_Percent As Decimal = P069a_NSENIDACIBPri_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P068_IDACIBPriSubtotal * P069a_NSENIDACIBPri_Percent
@@ -2650,7 +2489,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="c055c049bdce442cb5cc4aaa56d0b031")>
+    <Calculation(Id:="792cdbad9a7944d99e8a392d5653bb95")>
     <CalculationSpecification(Id:="P069a_NSENIDACIBPri_Percent", Name:="P069a_NSENIDACIBPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2668,14 +2507,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="9a1ee4146382426f9ba251eb3ab4057d")>
+    <Calculation(Id:="1c5bb7611c304c72a0892148898eba99")>
     <CalculationSpecification(Id:="P070_InYearIDACIBPriSubtotal", Name:="P070_InYearIDACIBPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P070_InYearIDACIBPriSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P068_IDACIBPriSubtotal As Decimal = P068_IDACIBPriSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -2690,7 +2527,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="39b42b51af7f43b0bc038f36e00ee263")>
+    <Calculation(Id:="2128ef4526bb42d5a4a96b4b8ee4a913")>
     <CalculationSpecification(Id:="P071_IDACIAPriFactor", Name:="P071_IDACIAPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2722,7 +2559,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d37ebf5271f14b0f8ae369f29222446b")>
+    <Calculation(Id:="a78355351398430785559135a4572a10")>
     <CalculationSpecification(Id:="P073_IDACIAPriRate", Name:="P073_IDACIAPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2740,17 +2577,14 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="c215b1f498a94ed683d2f3357e38771e")>
+    <Calculation(Id:="ccc1a410988a4656b41973693d4bc345")>
     <CalculationSpecification(Id:="P074_IDACIAPriSubtotal", Name:="P074_IDACIAPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P074_IDACIAPriSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim SBS_P22 As Decimal = NOR_P22_Total_NOR_PRI_SBS
-        Dim P073_IDACIAPriRate As Decimal = P073_IDACIAPriRate
-        Dim P071_IDACIAPriFactor As Decimal = P071_IDACIAPriFactor
         Dim APT_ISB_IDACIA_Primary As Decimal = Datasets.APTNewISBdataset.IDACI(PA)
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim AcadFilter As Decimal = F200_SBS_Academies
         Dim FundingBasis As decimal = F900_FundingBasis
         If AcadFilter = 1 then
@@ -2774,14 +2608,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="22e479c6d5b24210a9fffb0cce179992")>
+    <Calculation(Id:="71bdcecced584e6f9697dcfcf2342600")>
     <CalculationSpecification(Id:="P075_NSENIDACIAPri", Name:="P075_NSENIDACIAPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P075_NSENIDACIAPri As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P074_IDACIAPriSubtotal As Decimal = P074_IDACIAPriSubtotal
-        Dim P075a_NSENIDACIAPri_Percent As Decimal = P075a_NSENIDACIAPri_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P074_IDACIAPriSubtotal * P075a_NSENIDACIAPri_Percent
@@ -2794,7 +2626,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="6657206e824c4f18bb8c241e76959432")>
+    <Calculation(Id:="412c22ac1ed94d8eaccb83f20ba69b56")>
     <CalculationSpecification(Id:="P075a_NSENIDACIAPri_Percent", Name:="P075a_NSENIDACIAPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2812,14 +2644,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="8ce6d121e62f4f279f3149db9b54588f")>
+    <Calculation(Id:="67f275fcf8a943ae9b45f206af8a82ab")>
     <CalculationSpecification(Id:="P076_InYearIDACIAPriSubtotal", Name:="P076_InYearIDACIAPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P076_InYearIDACIAPriSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P074_IDACIAPriSubtotal As Decimal = P074_IDACIAPriSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -2834,7 +2664,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="8e6e592433964d088d0c1b5e533d1549")>
+    <Calculation(Id:="af5f2750a3b044288af5a4e6dede06c4")>
     <CalculationSpecification(Id:="P077_IDACIFSecFactor", Name:="P077_IDACIFSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2866,7 +2696,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="70ec20c6ba104977969db687ec0a1d52")>
+    <Calculation(Id:="e86abb17a95049d4b8de98806c8467cb")>
     <CalculationSpecification(Id:="P079_IDACIFSecRate", Name:="P079_IDACIFSecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2884,17 +2714,14 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="4242d7e4a24f461c9f324cf80e7043e3")>
+    <Calculation(Id:="35b0a47b8d8a4b22bfe25d78b279cc21")>
     <CalculationSpecification(Id:="P080_IDACIFSecSubtotal", Name:="P080_IDACIFSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P080_IDACIFSecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim SBS_P25 As Decimal = NOR_P25_Total_NOR_SEC_SBS
-        Dim P079_IDACIFSecRate As Decimal = P079_IDACIFSecRate
-        Dim P077_IDACIFSecFactor As Decimal = P077_IDACIFSecFactor
         Dim APT_ISB_IDACIF_Secondary As Decimal = Datasets.APTNewISBdataset.IDACI(SF)
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim AcadFilter As Decimal = F200_SBS_Academies
         Dim FundingBasis As decimal = F900_FundingBasis
         If AcadFilter = 1 then
@@ -2918,14 +2745,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="6334987a240f4bb7a69df02dddbf074f")>
+    <Calculation(Id:="565687dfb4684c3b95eac6a443a118cd")>
     <CalculationSpecification(Id:="P081_NSENIDACIFSec", Name:="P081_NSENIDACIFSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P081_NSENIDACIFSec As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P080_IDACIFSecSubtotal As Decimal = P080_IDACIFSecSubtotal
-        Dim P081a_NSENIDACIFSec_Percent As Decimal = P081a_NSENIDACIFSec_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P080_IDACIFSecSubtotal * P081a_NSENIDACIFSec_Percent
@@ -2938,7 +2763,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="556b159544f94f5c9bca7d37550fa93b")>
+    <Calculation(Id:="85106b181dc1441dbf8ed52af9ca1235")>
     <CalculationSpecification(Id:="P081a_NSENIDACIFSec_Percent", Name:="P081a_NSENIDACIFSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -2956,14 +2781,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="bc90ad44732641a0af986ef3dd4c650b")>
+    <Calculation(Id:="11fc99ed8906465f8aa4a29a37fc6dbe")>
     <CalculationSpecification(Id:="P082_InYearIDACIFSecSubtotal", Name:="P082_InYearIDACIFSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P082_InYearIDACIFSecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P080_IDACIFSecSubtotal As Decimal = P080_IDACIFSecSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -2978,7 +2801,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="62fbf653867d4acca555511864d89ece")>
+    <Calculation(Id:="8a90aad5864b4b448f6bce1246b4ed28")>
     <CalculationSpecification(Id:="P083_IDACIESecFactor", Name:="P083_IDACIESecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -3010,7 +2833,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="081edc6b605f45368995b979f954dd79")>
+    <Calculation(Id:="8c2b7ccfbfe746a7aa1f3104fe537341")>
     <CalculationSpecification(Id:="P085_IDACIESecRate", Name:="P085_IDACIESecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -3028,17 +2851,14 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="dcab7731347a4d70834c0c22369ba940")>
+    <Calculation(Id:="5ed5c79fd9ae40a2879c3721618eea5a")>
     <CalculationSpecification(Id:="P086_IDACIESecSubtotal", Name:="P086_IDACIESecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P086_IDACIESecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim SBS_P25 As Decimal = NOR_P25_Total_NOR_SEC_SBS
-        Dim P085_IDACIESecRate As Decimal = P085_IDACIESecRate
-        Dim P083_IDACIESecFactor As Decimal = P083_IDACIESecFactor
         Dim APT_ISB_IDACIE_Secondary As Decimal = Datasets.APTNewISBdataset.IDACI(SE)
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim AcadFilter As Decimal = F200_SBS_Academies
         Dim FundingBasis As decimal = F900_FundingBasis
         If AcadFilter = 1 then
@@ -3062,14 +2882,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="9dd47ba9ec314b1f9fb726ebc3b2c687")>
+    <Calculation(Id:="a027c88e0f594e87b2b56be0e2f85036")>
     <CalculationSpecification(Id:="P087_NSENIDACIESec", Name:="P087_NSENIDACIESec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P087_NSENIDACIESec As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P086_IDACIESecSubtotal As Decimal = P086_IDACIESecSubtotal
-        Dim P087a_NSENIDACIESec_Percent As Decimal = P087a_NSENIDACIESec_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P086_IDACIESecSubtotal * P087a_NSENIDACIESec_Percent
@@ -3082,7 +2900,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="0650c4adf32a4d47ac3dfc07ef76899a")>
+    <Calculation(Id:="61090a73c3d64a698dfa2ba621e439c5")>
     <CalculationSpecification(Id:="P87a_NSENIDACIESec_Percent", Name:="P87a_NSENIDACIESec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -3090,14 +2908,12 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f0a60cf1ba1d458d8f7df3f42d4c69e7")>
+    <Calculation(Id:="af2b3d15c4fc4b08966cb51ba2150ef5")>
     <CalculationSpecification(Id:="P088_InYearIDACIESecSubtotal", Name:="P088_InYearIDACIESecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P088_InYearIDACIESecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P086_IDACIESecSubtotal As Decimal = P086_IDACIESecSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -3112,7 +2928,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="b9ea4e1799b441f8b148e586cd5d067d")>
+    <Calculation(Id:="8df8ea44e25044d7a0fb045f39e5a34c")>
     <CalculationSpecification(Id:="P089_IDACIDSecFactor", Name:="P089_IDACIDSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -3144,7 +2960,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="97ed8586b34149da848ac01071f39b8c")>
+    <Calculation(Id:="a5d90c6023a44ad6846ec4159961f853")>
     <CalculationSpecification(Id:="P091_IDACIDSecRate", Name:="P091_IDACIDSecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -3162,17 +2978,14 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e5a044b537bc4be9a4d27379ebf75623")>
+    <Calculation(Id:="521ba90295244ed48e6490d6433966f2")>
     <CalculationSpecification(Id:="P092_IDACIDSecSubtotal", Name:="P092_IDACIDSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P092_IDACIDSecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim SBS_P25 As Decimal = NOR_P25_Total_NOR_SEC_SBS
-        Dim P091_IDACIDSecRate As Decimal = P091_IDACIDSecRate
-        Dim P089_IDACIDSecFactor As Decimal = P089_IDACIDSecFactor
         Dim APT_ISB_IDACID_Secondary As Decimal = Datasets.APTNewISBdataset.IDACI(SD)
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim AcadFilter As Decimal = F200_SBS_Academies
         Dim FundingBasis As decimal = F900_FundingBasis
         If AcadFilter = 1 then
@@ -3196,14 +3009,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="ac9bd5b143684baf89d733e87f355f45")>
+    <Calculation(Id:="2b6a0a0ffa944253a196384628d8285f")>
     <CalculationSpecification(Id:="P093_NSENIDACIDSec", Name:="P093_NSENIDACIDSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P093_NSENIDACIDSec As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P092_IDACIDSecSubtotal As Decimal = P092_IDACIDSecSubtotal
-        Dim P093a_NSENIDACIDSec_Percent As Decimal = P093a_NSENIDACIDSec_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P092_IDACIDSecSubtotal * P093a_NSENIDACIDSec_Percent
@@ -3216,7 +3027,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="206fb0ef38dc4a08a4299def3c2a7580")>
+    <Calculation(Id:="d0727c102a0c499c8bcaceec29951570")>
     <CalculationSpecification(Id:="P093a_NSENIDACIDSec_Percent", Name:="P093a_NSENIDACIDSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -3234,14 +3045,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="59956adc5a73470dbcdbeb2193fd7f80")>
+    <Calculation(Id:="d54c8c1368bd459eb09bf88e6db28145")>
     <CalculationSpecification(Id:="P094_InYearIDACIDSecSubtotal", Name:="P094_InYearIDACIDSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P094_InYearIDACIDSecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P092_IDACIDSecSubtotal As Decimal = P092_IDACIDSecSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -3256,7 +3065,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="2b0a22b457f944d5b4302802df607dde")>
+    <Calculation(Id:="a73a226bf9494a20a734af7dd787cc78")>
     <CalculationSpecification(Id:="P095_IDACICSecFactor", Name:="P095_IDACICSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -3288,7 +3097,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="5c11c1fc79c84be3be4663eee4151b00")>
+    <Calculation(Id:="2bcbb7dd0b44483db70831947b9f9da0")>
     <CalculationSpecification(Id:="P097_IDACICSecRate", Name:="P097_IDACICSecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -3306,17 +3115,14 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="f50deb5b1f594e4481a67d7085bde7db")>
+    <Calculation(Id:="0bc8794cb3c44cb8b9b34a4ff377429d")>
     <CalculationSpecification(Id:="P098_IDACICSecSubtotal", Name:="P098_IDACICSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P098_IDACICSecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim SBS_P25 As Decimal = NOR_P25_Total_NOR_SEC_SBS
-        Dim P097_IDACICSecRate As Decimal = P097_IDACICSecRate
-        Dim P095_IDACICSecFactor As Decimal = P095_IDACICSecFactor
         Dim APT_ISB_IDACIC_Secondary As Decimal = Datasets.APTNewISBdataset.IDACI(SC)
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim AcadFilter As Decimal = F200_SBS_Academies
         Dim FundingBasis As Decimal = F900_FundingBasis
         If AcadFilter = 1 then
@@ -3340,13 +3146,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="fdbd7f8c364949e7a7186c814de9169e")>
+    <Calculation(Id:="0cb4f5d09ae745d39429549c7aff7a57")>
     <CalculationSpecification(Id:="P099_NSENIDACICSec", Name:="P099_NSENIDACICSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P099_NSENIDACICSec As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P098_IDACICSecSubtotal As Decimal = P098_IDACICSecSubtotal
         Dim P099a_NSENIDACICSec_Percent As Decimal = P099a_NSENIDACISec_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -3360,7 +3165,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e4c726dc90f94c25b719c52c96890427")>
+    <Calculation(Id:="a090117aa4bc498c9a42245b528dbe3e")>
     <CalculationSpecification(Id:="P099a_NSENIDACICSec_Percent", Name:="P099a_NSENIDACICSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -3368,14 +3173,12 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="90ca9129bf214b53af0cceb3e373f13d")>
+    <Calculation(Id:="c252027622f14764ade3088a4a8fab24")>
     <CalculationSpecification(Id:="P100_InYearIDACICSecSubtotal", Name:="P100_InYearIDACICSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P100_InYearIDACICSecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P098_IDACICSecSubtotal As Decimal = P098_IDACICSecSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -3390,7 +3193,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="fa0540c8433f4527b02bfe72850d67a3")>
+    <Calculation(Id:="a109a989c97149bc82bb513e5f119042")>
     <CalculationSpecification(Id:="P101_IDACIBSecFactor", Name:="P101_IDACIBSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -3422,7 +3225,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="79882f324ffe433eb2b0525de291bc17")>
+    <Calculation(Id:="52614392a0104832a1688203d62aac33")>
     <CalculationSpecification(Id:="P103_IDACIBSecRate", Name:="P103_IDACIBSecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -3440,17 +3243,14 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="5e958f6f5e854efdb3b4b9ef796ef94a")>
+    <Calculation(Id:="83a194f92d6d48638e6db375b2332630")>
     <CalculationSpecification(Id:="P104_IDACIBSecSubtotal", Name:="P104_IDACIBSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P104_IDACIBSecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim SBS_P25 As Decimal = NOR_P25_Total_NOR_SEC_SBS
-        Dim P103_IDACIBSecRate As Decimal = P103_IDACIBSecRate
-        Dim P101_IDACIBSecFactor As Decimal = P101_IDACIBSecFactor
         Dim APT_ISB_IDACIB_Secondary As Decimal = Datasets.APTNewISBdataset.IDACI(SB)
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim AcadFilter As Decimal = F200_SBS_Academies
         Dim FundingBasis As decimal = F900_FundingBasis
         If AcadFilter = 1 then
@@ -3474,14 +3274,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="81c6d19663bc4e12a52cadbed657ccbc")>
+    <Calculation(Id:="3c51c9b844e44064b8fb466485f854eb")>
     <CalculationSpecification(Id:="P105_NSENIDACIBSec", Name:="P105_NSENIDACIBSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P105_NSENIDACIBSec As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P104_IDACIBSecSubtotal As Decimal = P104_IDACIBSecSubtotal
-        Dim P105a_NSENIDACIBSec_Percent As Decimal = P105a_NSENIDACIBSec_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P104_IDACIBSecSubtotal * P105a_NSENIDACIBSec_Percent
@@ -3494,7 +3292,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="ed7c46941e6d466f9075c163433462d4")>
+    <Calculation(Id:="adb280a88566482cba38cc5d581b2824")>
     <CalculationSpecification(Id:="P105a_NSENIDACIBSec_Percent", Name:="P105a_NSENIDACIBSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -3512,14 +3310,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="71d934d70d3e473386290ad2e08e3759")>
+    <Calculation(Id:="191b31ad45294ac1a747c502cb3af7db")>
     <CalculationSpecification(Id:="P106_InYearIDACIBSecSubtotal", Name:="P106_InYearIDACIBSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P106_InYearIDACIBSecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P104_IDACIBSecSubtotal As Decimal = P104_IDACIBSecSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -3534,7 +3330,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="145c7dac6e3347558d2ed30298b6afec")>
+    <Calculation(Id:="7ea83295d266432dbe93c6e6b31af7c2")>
     <CalculationSpecification(Id:="P107_IDACIASecFactor", Name:="P107_IDACIASecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -3566,7 +3362,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="38b95cd95ceb43da940cf377c8ace5e4")>
+    <Calculation(Id:="d2c48c501e6a451d9c84a61035bf8b21")>
     <CalculationSpecification(Id:="P109_IDACIASecRate", Name:="P109_IDACIASecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -3584,7 +3380,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="632c4b7d4428481d897486540f6d0ec6")>
+    <Calculation(Id:="c3a5a64d89c446f38841b44812dfcbb2")>
     <CalculationSpecification(Id:="P110_IDACIASecSubtotal", Name:="P110_IDACIASecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -3592,14 +3388,12 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="bfee28185e414cc383d32a6fbfbe6e19")>
+    <Calculation(Id:="8e9530c9a59142d8bd76730d91a7a547")>
     <CalculationSpecification(Id:="P111_NSENIDACIASec", Name:="P111_NSENIDACIASec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P111_NSENIDACIASec As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P110_IDACIASecSubtotal As Decimal = P110_IDACIASecSubtotal
-        Dim P111a_NSENIDACIASec_Percent As Decimal = P111a_NSENIDACIASec_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P110_IDACIASecSubtotal * P111a_NSENIDACIASec_Percent
@@ -3612,7 +3406,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="72b731f7bc2a4c1eaeeb2227fe197ed1")>
+    <Calculation(Id:="93170cc8c1c84bddbea2fd6ea703e32e")>
     <CalculationSpecification(Id:="P111a_NSENIDACIASec_Percent", Name:="P111a_NSENIDACIASec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
@@ -3630,14 +3424,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d41e012c4ecd46d0bf268bb1b77a9dec")>
+    <Calculation(Id:="1a751b14331e45799267b3857cbf6627")>
     <CalculationSpecification(Id:="P112_InYearIDACIASecSubtotal", Name:="P112_InYearIDACIASecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="86e2181721da4a669a09cccbafc502f1", Name:="IDACI")>
     Public Function P112_InYearIDACIASecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P110_IDACIASecSubtotal As Decimal = P110_IDACIASecSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -3652,15 +3444,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="9574dd23000c4ac3b81888efc14d584b")>
+    <Calculation(Id:="69c5168b5bdf4ba8b9c6acf873f42b62")>
     <CalculationSpecification(Id:="P114_LACFactor", Name:="P114_LACFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
     Public Function P114_LACFactor As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As String = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim LACCensus As Decimal = Datasets.CensusPupilCharacteristics.LACXProportion
         Dim LACAdj As Decimal = Datasets.APTInputsandAdjustments.LACXProportion
         Dim LACAdjString as string = Datasets.APTInputsandAdjustments.LACXProportion
@@ -3690,15 +3480,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="ef7a5397b43a4a9e966734fad4ff0f45")>
+    <Calculation(Id:="194d6c6978374d77aabeb1b0cecf6476")>
     <CalculationSpecification(Id:="P116_LACRate", Name:="P116_LACRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
     Public Function P116_LACRate As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As String = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim Looked_After_Children_Amount_Per_Pupil As Decimal = LatoProv(Datasets.APTProformadataset.LookedAfterChildrenAmountPerPupil)
         If F200_SBS_Academies = 1 then
             Result = Looked_After_Children_Amount_Per_Pupil
@@ -3713,26 +3501,22 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e445010f517f46758944a7d83c350d24")>
+    <Calculation(Id:="9634621640ab4f8295e07939db5dca89")>
     <CalculationSpecification(Id:="P117_LACSubtotal", Name:="P117_LACSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
     Public Function P117_LACSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P114_LACFactor As Decimal = P114_LACFactor
-        Dim P116_LACRate As Decimal = P116_LACRate
         Dim P26_Total_NOR_SBS As Decimal = NOR_P26_Total_NOR_SBS
-        Dim P117_LACSubtotal As Decimal = P26_Total_NOR_SBS * P116_LACRate * P114_LACFactor
+        Dim P117_LACSubtotal_Local As Decimal = P26_Total_NOR_SBS * P116_LACRate * P114_LACFactor
         Dim LAC As Decimal = Datasets.APTNewISBdataset.IDACI(SA)
         If F200_SBS_Academies <> 1 Then
             exclude(rid)
         End if
 
         If(F100_AllAcademies = 17181) Or (FundingBasis = 2 And F100_AllAcademies = 17182) Or (FundingBasis = 2 And F100_AllAcademies = 17183) then
-            result = P117_LACSubtotal
+            result = P117_LACSubtotal_Local
         Else
             If(FundingBasis = 1 And F100_AllAcademies = 17182) Or (FundingBasis = 1 And F100_AllAcademies = 17183) then 'new opener
                 Result = LAC
@@ -3749,17 +3533,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="a1915bf39d5242959f272f6ff5f762f5")>
+    <Calculation(Id:="bdb886abe8004acb843dbb31ff22ceec")>
     <CalculationSpecification(Id:="P118_NSENLAC", Name:="P118_NSENLAC")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
     Public Function P118_NSENLAC As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As String = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P117_LACSubtotal As Decimal = P117_LACSubtotal
-        Dim P118a_NSENLAC_Percent As Decimal = P118a_NSENLAC_Percent / 100
         If F200_SBS_Academies = 1 Then
             Result = P117_LACSubtotal * P118a_NSENLAC_Percent
         Else
@@ -3774,15 +3554,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="78d4c63196614e51b0815a389573fc2c")>
+    <Calculation(Id:="029a378f2af14caeb5be59a16c37d773")>
     <CalculationSpecification(Id:="P118a_NSENLAC_Percent", Name:="P118a_NSENLAC_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
     Public Function P118a_NSENLAC_Percent As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As String = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim Looked_After_Children_Notional_SEN As Decimal = LatoProv(Datasets.APTProformadataset.LookedAfterChildrenNotionalSEN)
         If F200_SBS_Academies = 1 then
             Result = Looked_After_Children_Notional_SEN * 100
@@ -3797,16 +3575,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="4f682331d1b0409cb1fccc37a33a728a")>
+    <Calculation(Id:="4896c518cce34965a4e1cd7ab38708df")>
     <CalculationSpecification(Id:="P119_InYearLACSubtotal", Name:="P119_InYearLACSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="3e4d786c0a984c6c9eb92a959ef1e5f5", Name:="LAC")>
     Public Function P119_InYearLACSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As String = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P117_LACSubtotal As Decimal = P117_LACSubtotal
         Dim Days_Open As Decimal = P001_1718DaysOpen
         Dim Year_Days As Decimal = 365
         If F200_SBS_Academies = 1 Then
@@ -3824,7 +3599,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="6307dbb64d2940daaab34784b46fcd4a")>
+    <Calculation(Id:="da63f0048e914d36ac4ba74677c1ea16")>
     <CalculationSpecification(Id:="P174_MobPriFactor", Name:="P174_MobPriFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -3857,7 +3632,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e23977cabdf3441b98ade465117975d6")>
+    <Calculation(Id:="59b09f2f3b2f439dbca50657ea6ae662")>
     <CalculationSpecification(Id:="P176_MobPriRate", Name:="P176_MobPriRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -3875,17 +3650,14 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="bc653b86c1b4486fb1807c508e9b5953")>
+    <Calculation(Id:="0987c37322a24325afcae452a93c448c")>
     <CalculationSpecification(Id:="P177_MobPriSubtotal", Name:="P177_MobPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P177_MobPriSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim SBS_P22 As Decimal = NOR_P22_Total_NOR_PRI_SBS
-        Dim P174_MobPriFactor As Decimal = P174_MobPriFactor
-        Dim P176_MobPriRate As Decimal = P176_MobPriRate
         Dim APT_ISB_Mobility_Primary As Decimal = Datasets.APTNewISBdataset.MobilityP
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
         Dim F200 As Decimal = F200_SBS_Academies
         If F200 = 1 then
@@ -3909,14 +3681,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="03a959e60df54699a77ef50214135286")>
+    <Calculation(Id:="5956a61d6db34744885e13f51c4988b5")>
     <CalculationSpecification(Id:="P178_NSENMobPri", Name:="P178_NSENMobPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P178_NSENMobPri As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P177_MobPriSubtotal As Decimal = P177_MobPriSubtotal
-        Dim P178a_NSENMobPri_Percent As Decimal = P178a_NSENMobPri_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P177_MobPriSubtotal * P178a_NSENMobPri_Percent
@@ -3929,7 +3699,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="38a11a4fee7d4865b714c6b6edcacfb1")>
+    <Calculation(Id:="83c37040b4554787b82cc25dcd08f345")>
     <CalculationSpecification(Id:="P178a_NSENMobPri_Percent", Name:="P178a_NSENMobPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -3947,14 +3717,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="02af0e75936241bf87bdfa04715762b1")>
+    <Calculation(Id:="9843dd7ae88047d699d987987723b358")>
     <CalculationSpecification(Id:="P179_InYearMobPriSubtotal", Name:="P179_InYearMobPriSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P179_InYearMobPriSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P177_MobPriSubtotal As Decimal = P177_MobPriSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -3969,7 +3737,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="48a163962ec04780bd82bbfea4267a23")>
+    <Calculation(Id:="a59d0c54adfa48c980fc2be305d334e8")>
     <CalculationSpecification(Id:="P180_MobSecFactor", Name:="P180_MobSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -4002,7 +3770,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="54a9c124d47e4bdda2427bcddeea3939")>
+    <Calculation(Id:="0a6727cb41244ebd9296e6867e3a596d")>
     <CalculationSpecification(Id:="P182_MobSecRate", Name:="P182_MobSecRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -4020,17 +3788,14 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="b8e94cf936504e69a58a19f726c0fb44")>
+    <Calculation(Id:="2cfc2c0af2d44a96ad0645b90416dd57")>
     <CalculationSpecification(Id:="P183_MobSecSubtotal", Name:="P183_MobSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P183_MobSecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim SBS_P25 As Decimal = NOR_P25_Total_NOR_SEC_SBS
-        Dim P180_MobSecFactor As Decimal = P180_MobSecFactor
-        Dim P182_MobSecRate As Decimal = P182_MobSecRate
         Dim APT_ISB_Mobility_Secondary As Decimal = Datasets.APTNewISBdataset.MobilityS
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
         Dim F200 As Decimal = F200_SBS_Academies
         If F200 = 1 then
@@ -4054,14 +3819,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="4c7142eff0ee4399a51560bd3ca7ddba")>
+    <Calculation(Id:="61e5bb2ad8c543ac976891bf1e776d3c")>
     <CalculationSpecification(Id:="P184_NSENMobSec", Name:="P184_NSENMobSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P184_NSENMobSec As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P183_MobSecSubtotal As Decimal = P183_MobSecSubtotal
-        Dim P184a_NSENMobSec_Percent As Decimal = P184a_NSENMobSec_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P184a_NSENMobSec_Percent * P183_MobSecSubtotal
@@ -4074,7 +3837,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="9f3b7732e4ca454386e47812beef8038")>
+    <Calculation(Id:="355a6bac2c6047378013bb0bd5e26210")>
     <CalculationSpecification(Id:="P184a_NSENMobSec_Percent", Name:="P184a_NSENMobSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
@@ -4092,14 +3855,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="2f2cbe3d03124cb3814bb96494746cb0")>
+    <Calculation(Id:="7830734bad8f476b9fc2969f9b0e6433")>
     <CalculationSpecification(Id:="P185_InYearMobSecSubtotal", Name:="P185_InYearMobSecSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41e8854d7b7e4ecdb46bbc643a62d19e", Name:="Mobility")>
     Public Function P185_InYearMobSecSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P183_MobSecSubtotal As Decimal = P183_MobSecSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -4114,15 +3875,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="78e47df516624023943553ea8e2fa937")>
+    <Calculation(Id:="78b724fc9d3744c9aca29f884726b575")>
     <CalculationSpecification(Id:="P239_PriLumpSumFactor", Name:="P239_PriLumpSumFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P239_PriLumpSumFactor As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim AcadFilter As Decimal = F200_SBS_Academies
-        Dim P212_PYG As Decimal = P212_PYG
-        Dim P213_SYG As Decimal = P213_SYG
         Dim Phase As Decimal = P185a_Phase
         If AcadFilter = 1 Then
             If P212_PYG = 0 And P213_SYG = 0 Then
@@ -4146,7 +3905,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="8f8a51340d054e06adc1e80bbd5cdd4a")>
+    <Calculation(Id:="1fdf234a749240f3a2e7fd82fc347e24")>
     <CalculationSpecification(Id:="P240_PriLumpSumRate", Name:="P240_PriLumpSumRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4164,7 +3923,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="6ef99204c60e4a84ac2981ba623ab2e2")>
+    <Calculation(Id:="10d8dece03d349efadc6d0028e30cdbf")>
     <CalculationSpecification(Id:="P241_Primary_Lump_Sum", Name:="P241_Primary_Lump_Sum")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4172,14 +3931,12 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="fbe97c50ea364e24af418eeccafafcde")>
+    <Calculation(Id:="9375cc3ae4564434ba79268e0a66df6d")>
     <CalculationSpecification(Id:="P242_InYearPriLumpSumSubtotal", Name:="P242_InYearPriLumpSumSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P242_InYearPriLumpSumSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P241_PriLumpSumSubtotal As Decimal = P241_PriLumpSumSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -4194,15 +3951,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="bac03e506bff4c318040707999277d81")>
+    <Calculation(Id:="e272b547bba3484eb6fd130cef91df43")>
     <CalculationSpecification(Id:="P243_SecLumpSumFactor", Name:="P243_SecLumpSumFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P243_SecLumpSumFactor As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim AcadFilter As Decimal = F200_SBS_Academies
-        Dim P212_PYG As Decimal = P212_PYG
-        Dim P213_SYG As Decimal = P213_SYG
         Dim Phase As Decimal = P185a_Phase
         If AcadFilter = 1 Then
             If P212_PYG = 0 And P213_SYG = 0 Then
@@ -4226,7 +3981,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="b6de99ad44b949cbb67d26fc5b46050b")>
+    <Calculation(Id:="bb22c0d7b1194b9b913c82bd4e038deb")>
     <CalculationSpecification(Id:="P244_SecLumpSumRate", Name:="P244_SecLumpSumRate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4244,7 +3999,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d3891eb75b074373a3c83f4d011ede44")>
+    <Calculation(Id:="35e627d7fc7f43fdb55384753b10031a")>
     <CalculationSpecification(Id:="P245_Secondary_Lump_Sum", Name:="P245_Secondary_Lump_Sum")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4252,7 +4007,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a9f66d6873e140a3996505ebc2c87572")>
+    <Calculation(Id:="f1c09ce7868c4ffa97cdd57962f1ea18")>
     <CalculationSpecification(Id:="P246_In YearSecLumpSumSubtotal", Name:="P246_In YearSecLumpSumSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4260,14 +4015,12 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="72b866cf1666421198bf837e04dded8d")>
+    <Calculation(Id:="f3362704fe3646308b891a1ffa790cc6")>
     <CalculationSpecification(Id:="P247_NSENLumpSumPri", Name:="P247_NSENLumpSumPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P247_NSENLumpSumPri As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P241_PriLumpSumSubtotal As Decimal = P241_PriLumpSumSubtotal
-        Dim P247a_NSENLumpSumPri_Percent As Decimal = P247a_NSENLumpSumPri_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P241_PriLumpSumSubtotal * P247a_NSENLumpSumPri_Percent
@@ -4280,7 +4033,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="f5c83bb476194c3dab18c1330ad390d3")>
+    <Calculation(Id:="4ea50d64d77d4f45991ae8958e931ae0")>
     <CalculationSpecification(Id:="P247a_NSENLumpSumPri_Percent", Name:="P247a_NSENLumpSumPri_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4298,14 +4051,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="57ab7ec0ac384e06a3b07b42ba95c225")>
+    <Calculation(Id:="e79b730a64a44f2f9f7cddd8f0641843")>
     <CalculationSpecification(Id:="P248_NSENLumpSumSec", Name:="P248_NSENLumpSumSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P248_NSENLumpSumSec As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P245_SecLumpSumSubtotal As Decimal = P245_SecLumpSumSubtotal
-        Dim P248a_NSENLumpSumSec_Percent As Decimal = P248a_NSENLumpSumSec_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P245_SecLumpSumSubtotal * P248a_NSENLumpSumSec_Percent
@@ -4318,7 +4069,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="5d83169e36a446d888dd24ccc6055262")>
+    <Calculation(Id:="7032cd32f05d49f4b79accd346f4b2e7")>
     <CalculationSpecification(Id:="P248a_NSENLumpSumSec_Percent", Name:="P248a_NSENLumpSumSec_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4336,7 +4087,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e6930c5a9c044f8288c25bd94ccf7055")>
+    <Calculation(Id:="0d7caee9958c4a41bb0c14b919de69b5")>
     <CalculationSpecification(Id:="P252_PFISubtotal", Name:="P252_PFISubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4359,14 +4110,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="c7a417d0acb842c8ab0d45c8cdfdbb02")>
+    <Calculation(Id:="99baeb9cfd1e416db62f55c65f94813c")>
     <CalculationSpecification(Id:="P253_NSENPFI", Name:="P253_NSENPFI")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P253_NSENPFI As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P252_PFISubtotal As Decimal = P252_PFISubtotal
-        Dim P253a_NSENPFI_Percent As Decimal = P253a_NSENPFI_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P252_PFISubtotal * P253a_NSENPFI_Percent
@@ -4379,7 +4128,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="2ed32818f8dd4aabaccd2ad43fb5c860")>
+    <Calculation(Id:="ae5b6bc4dfb34ba8bae21aac259dd639")>
     <CalculationSpecification(Id:="P253a_NSENPFI_Percent", Name:="P253a_NSENPFI_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4397,14 +4146,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="833750cb454c44369cce1d5461ad893d")>
+    <Calculation(Id:="15e28b2f34cf4d43b6e8f6a0d561e8c9")>
     <CalculationSpecification(Id:="P254_InYearPFISubtotal", Name:="P254_InYearPFISubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P254_InYearPFISubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P252_PFISubtotal As Decimal = P252_PFISubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -4419,14 +4166,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e1629bfae37d47a3bed0a42be199d31b")>
+    <Calculation(Id:="fd63d4deb28348e69c7b78bf4fcda6aa")>
     <CalculationSpecification(Id:="P255_FringeSubtotal", Name:="P255_FringeSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P255_FringeSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim APT_ISB_LondonFringe As Decimal = Datasets.APTNewISBdataset.LondonFringe
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
         Dim LondonFringeIandA As Decimal = Datasets.APTInputsandAdjustments.LondonFringe
         Dim LondonFringeCensus As Decimal = Datasets.CensusPupilCharacteristics.LondonFringe
@@ -4539,14 +4285,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="2506b128c51241a29918eb9b869e872e")>
+    <Calculation(Id:="a3b536ff2a13473e8eefa311c09ee8b2")>
     <CalculationSpecification(Id:="P257_InYearFringeSubtotal", Name:="P257_InYearFringeSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P257_InYearFringeSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P255_FringeSubtotal As Decimal = P255_FringeSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -4561,7 +4305,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="4eda9bbfb0784f808bf33a7e26c16db4")>
+    <Calculation(Id:="c6a0bf7fa93340699d6e20c35a219456")>
     <CalculationSpecification(Id:="P261_Ex1Subtotal", Name:="P261_Ex1Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4586,18 +4330,14 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="87ee1ba60845417b8e1100a57db7b047")>
+    <Calculation(Id:="2a9efe9277d9450ea6cefab698f91c33")>
     <CalculationSpecification(Id:="P262_NSENEx1", Name:="P262_NSENEx1")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P262_NSENEx1 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim AcadFilter As Decimal = F200_SBS_Academies
-        Dim P239_PriLumpSumFactor As Decimal = P239_PriLumpSumFactor
-        Dim P243_SecLumpSumFactor As Decimal = P243_SecLumpSumFactor
-        Dim P247a_NSENLumpSumPri_Percent As Decimal = P247a_NSENLumpSumPri_Percent / 100
         Dim P248a_NSENLumpSumSec_Percent As Decimal = P248a_NSENLumpSumSec_Percent / 100
-        Dim P261_Ex1Subtotal As Decimal = P261_Ex1Subtotal
         If AcadFilter = 1 Then
             result =(P261_Ex1Subtotal * P239_PriLumpSumFactor * P247a_NSENLumpSumPri_Percent) + (P261_Ex1Subtotal * P243_SecLumpSumFactor * P248a_NSENLumpSumSec_Percent)
         Else
@@ -4612,7 +4352,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="2268eaf4cbee4eca874f23853dcef809")>
+    <Calculation(Id:="82c1e5e5cbec40f6a20d2d2feb45a808")>
     <CalculationSpecification(Id:="P262a_NSENEx1_Percent", Name:="P262a_NSENEx1_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4620,14 +4360,12 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4fa5257d2f5943f3a078dab7da804699")>
+    <Calculation(Id:="01444512a932458aa97a2af1d3dffd1a")>
     <CalculationSpecification(Id:="P264_InYearEx1Subtotal", Name:="P264_InYearEx1Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P264_InYearEx1Subtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P261_Ex1Subtotal As Decimal = P261_Ex1Subtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -4642,7 +4380,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="9cbc940fd5554096871e3ca1432b182f")>
+    <Calculation(Id:="7d33681cac4046fbba120499ad2975dc")>
     <CalculationSpecification(Id:="P265_Ex2Subtotal", Name:="P265_Ex2Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4650,9 +4388,9 @@ Public Class Calculations
         Dim result As Decimal = 0 'change to As String if text product
         Dim AcadFilter As Decimal = F200_SBS_Academies
         Dim Ex2String As String =
-         [Datasets.APTNewISBdataset .17 – 18 ApprovedExceptionalCircumstance2  : _Reserved_for_additional_sparsity_lump_sum ] 
+         [Datasets.APTNewISBdataset._1718ApprovedExceptionalCircumstance2  : _Reserved_for_additional_sparsity_lump_sum ] 
         Dim ISB_Ex2 As Decimal =
-         [Datasets.APTNewISBdataset .17 – 18 ApprovedExceptionalCircumstance2  : _Reserved_for_additional_sparsity_lump_sum ] 
+         [Datasets.APTNewISBdataset._1718ApprovedExceptionalCircumstance2  : _Reserved_for_additional_sparsity_lump_sum ] 
         If AcadFilter = 1 Then
             If string.IsNullOrEmpty(Ex2String) Then
                 result = 0
@@ -4667,14 +4405,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="75ae74b2aee54105afe2e6da7d8fea8e")>
+    <Calculation(Id:="9bcc8af76c664c83832ead22dbaf5d9c")>
     <CalculationSpecification(Id:="P266_NSENEx2", Name:="P266_NSENEx2")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P266_NSENEx2 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P265_Ex2Subtotal As Decimal = P265_Ex2Subtotal
-        Dim P266a_NSENEx2_Percent As Decimal = P266a_NSENEx2_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P265_Ex2Subtotal * P266a_NSENEx2_Percent
@@ -4687,7 +4423,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d986a8e1e7214234a626fce3f8f6175a")>
+    <Calculation(Id:="ffa96ea6840e44578656b0859e67664d")>
     <CalculationSpecification(Id:="P266a_NSENEx2_Percent", Name:="P266a_NSENEx2_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4705,14 +4441,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="7563d9c7ced64e798cfcbaef796c4706")>
+    <Calculation(Id:="6b3cf45f2c7c4542958f6c4802d75e7b")>
     <CalculationSpecification(Id:="P267_InYearEx2Subtotal", Name:="P267_InYearEx2Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P267_InYearEx2Subtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P265_Ex2Subtotal As Decimal = P265_Ex2Subtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -4727,15 +4461,15 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="5c1b174eca06422db5af2268dd5ce7a4")>
+    <Calculation(Id:="e97d37fdd05749da9f5537e35c6d8c45")>
     <CalculationSpecification(Id:="P269_Ex3Subtotal", Name:="P269_Ex3Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P269_Ex3Subtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim AcadFilter As Decimal = F200_SBS_Academies
-        Dim Ex3String As Decimal = Datasets.APTNewISBdataset .17 – 18 ApprovedExceptionalCircumstance3 
-        Dim ISB_Ex3 As Decimal = Datasets.APTNewISBdataset .17 – 18 ApprovedExceptionalCircumstance3 
+        Dim Ex3String As Decimal = Datasets.APTNewISBdataset._1718ApprovedExceptionalCircumstance3
+        Dim ISB_Ex3 As Decimal = Datasets.APTNewISBdataset._1718ApprovedExceptionalCircumstance3
         If AcadFilter = 1 Then
             If string.IsNullOrEmpty(Ex3String) Then
                 result = 0
@@ -4750,13 +4484,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="af07d29db4794ad58be9aa96042a762e")>
+    <Calculation(Id:="f48c6a2f9364462198cbe09cb794399a")>
     <CalculationSpecification(Id:="P270_NSENEx3", Name:="P270_NSENEx3")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P270_NSENEx3 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P269_Ex3Subtotal As Decimal = P269_Ex3Subtotal
         Dim P270a_NSENEx3_Percent As Decimal = P270a_NSENEx3Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -4770,7 +4503,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="65bca997e2ce4a21a90483a30570c79a")>
+    <Calculation(Id:="c32d95fdcfb14909a624b23b8a59d431")>
     <CalculationSpecification(Id:="P270a_NSENEx3_Percent", Name:="P270a_NSENEx3_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4778,14 +4511,12 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="6809a2470ff14f92a293a99ef6ee84ca")>
+    <Calculation(Id:="183ee0fdd6664f3393e2d763ae5e8876")>
     <CalculationSpecification(Id:="P271_InYearEx3Subtotal", Name:="P271_InYearEx3Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P271_InYearEx3Subtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P269_Ex3Subtotal As Decimal = P269_Ex3Subtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -4800,15 +4531,15 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="741aad6423574b3faf96e7c3027e9160")>
+    <Calculation(Id:="bdc0d6f54e76416890c8c77b5c2beaa0")>
     <CalculationSpecification(Id:="P273_Ex4Subtotal", Name:="P273_Ex4Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P273_Ex4Subtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim AcadFilter As Decimal = F200_SBS_Academies
-        Dim Ex4String As Decimal = Datasets.APTNewISBdataset .17 – 18 ApprovedExceptionalCircumstance4 
-        Dim ISB_Ex4 As Decimal = Datasets.APTNewISBdataset .17 – 18 ApprovedExceptionalCircumstance4 
+        Dim Ex4String As Decimal = Datasets.APTNewISBdataset._1718ApprovedExceptionalCircumstance4
+        Dim ISB_Ex4 As Decimal = Datasets.APTNewISBdataset._1718ApprovedExceptionalCircumstance4
         If AcadFilter = 1 Then
             If string.IsNullOrEmpty(Ex4String) Then
                 result = 0
@@ -4823,15 +4554,15 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="47a196ad6a454e94914d2b6cbb2de4f6")>
+    <Calculation(Id:="2f1e6c7d27f949ada8a9e59307a57e3a")>
     <CalculationSpecification(Id:="P274_NSENEx4", Name:="P274_NSENEx4")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P274_NSENEx4 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim AcadFilter As Decimal = F200_SBS_Academies
-        Dim Ex4String As String = Datasets.APTNewISBdataset .17 – 18 ApprovedExceptionalCircumstance4 
-        Dim ISB_Ex4 As Decimal = Datasets.APTNewISBdataset .17 – 18 ApprovedExceptionalCircumstance4 
+        Dim Ex4String As String = Datasets.APTNewISBdataset._1718ApprovedExceptionalCircumstance4
+        Dim ISB_Ex4 As Decimal = Datasets.APTNewISBdataset._1718ApprovedExceptionalCircumstance4
         Dim Ex4NSEN As Decimal = P274a_NSENEx4_Percent / 100
         If AcadFilter = 1 Then
             If string.IsNullOrEmpty(Ex4String) Then
@@ -4847,7 +4578,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="677867fb9258464a8f97e149e069ed1a")>
+    <Calculation(Id:="489dce102f39480e9a77c37936e12db4")>
     <CalculationSpecification(Id:="P274a_NSENEx4_Percent", Name:="P274a_NSENEx4_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4865,7 +4596,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="51026e4074544f59b971f10f993475eb")>
+    <Calculation(Id:="197ade5d745b4284b1195e031b58a2d9")>
     <CalculationSpecification(Id:="P275_InYearEx4Subtotal", Name:="P275_InYearEx4Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4873,15 +4604,15 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="21bdb02fb26741b1b1c01ef02d115c71")>
+    <Calculation(Id:="d01220fd76e3485290fb6732e1566020")>
     <CalculationSpecification(Id:="P277_Ex5Subtotal", Name:="P277_Ex5Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P277_Ex5Subtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim AcadFilter As Decimal = F200_SBS_Academies
-        Dim Ex5String As String = Datasets.APTNewISBdataset .17 – 18 ApprovedExceptionalCircumstance5 
-        Dim ISB_Ex5 As Decimal = Datasets.APTNewISBdataset .17 – 18 ApprovedExceptionalCircumstance5 
+        Dim Ex5String As String = Datasets.APTNewISBdataset._1718ApprovedExceptionalCircumstance5
+        Dim ISB_Ex5 As Decimal = Datasets.APTNewISBdataset._1718ApprovedExceptionalCircumstance5
         If AcadFilter = 1 Then
             If string.IsNullOrEmpty(Ex5String) Then
                 result = 0
@@ -4896,14 +4627,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="956d160201364b8684a4fd7e04a1769c")>
+    <Calculation(Id:="daf12bf289a44fc78154e3a02779f647")>
     <CalculationSpecification(Id:="P278_NSENEx5", Name:="P278_NSENEx5")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P278_NSENEx5 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P277_Ex5Subtotal As Decimal = P277_Ex5Subtotal
-        Dim P278a_NSENEx5_Percent As Decimal = P278a_NSENEx5_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
             result = P277_Ex5Subtotal * P278a_NSENEx5_Percent
@@ -4916,7 +4645,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="8ae43c7d0bba4513a932e3fc2d868200")>
+    <Calculation(Id:="a8e2180e24484c579f4e87e1abd12960")>
     <CalculationSpecification(Id:="P278a_NSENEx5_Percent", Name:="P278a_NSENEx5_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -4934,14 +4663,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="714db9ff9c7845f8b4cc2c06cc5511d9")>
+    <Calculation(Id:="34dc593cc74d4848b7ee5b64a95571d2")>
     <CalculationSpecification(Id:="P279_InYearEx5Subtotal", Name:="P279_InYearEx5Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P279_InYearEx5Subtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P277_Ex5Subtotal As Decimal = P277_Ex5Subtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -4956,15 +4683,15 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="51738c7b847d44d8ada242690a470073")>
+    <Calculation(Id:="cad416450c284dd88c9ad14b2ba6c343")>
     <CalculationSpecification(Id:="P281_Ex6Subtotal", Name:="P281_Ex6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P281_Ex6Subtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim AcadFilter As Decimal = F200_SBS_Academies
-        Dim Ex6String As String = Datasets.APTNewISBdataset .17 – 18 ApprovedExceptionalCircumstance6 
-        Dim ISB_Ex6 As Decimal = Datasets.APTNewISBdataset .17 – 18 ApprovedExceptionalCircumstance6 
+        Dim Ex6String As String = Datasets.APTNewISBdataset._1718ApprovedExceptionalCircumstance6
+        Dim ISB_Ex6 As Decimal = Datasets.APTNewISBdataset._1718ApprovedExceptionalCircumstance6
         Dim SBSP286 As Decimal = P286_PriorYearAdjustmentSubtotal
         If AcadFilter = 1 Then
             If string.IsNullOrEmpty(Ex6String) Then
@@ -4980,14 +4707,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="eb995bb071c24aa3a326596182336964")>
+    <Calculation(Id:="5b7e33d5967c4e21ad5593220d7086b7")>
     <CalculationSpecification(Id:="P282_NSENEx6", Name:="P282_NSENEx6")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P282_NSENEx6 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P281_Ex6Subtotal As Decimal = P281_Ex6Subtotal
-        Dim P282a_NSENEx6_Percent As Decimal = P282a_NSENEx6_Percent / 100
         Dim AcadFilter As Decimal = F200_SBS_Academies
         Dim SBSP286 As Decimal = P286_PriorYearAdjustmentSubtotal
         If AcadFilter = 1 Then
@@ -5001,7 +4726,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="65a82c765f024a6d92a53108746236e2")>
+    <Calculation(Id:="6c374724a4834307974f8699b3cb3008")>
     <CalculationSpecification(Id:="P282a_NSENEx6_Percent", Name:="P282a_NSENEx6_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -5019,14 +4744,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="572458fea7654593a0485862b5061204")>
+    <Calculation(Id:="d85ce0a34b4847febc77134ad63458a7")>
     <CalculationSpecification(Id:="P283_InYearEx6Subtotal", Name:="P283_InYearEx6Subtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P283_InYearEx6Subtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P281_Ex6Subtotal As Decimal = P281_Ex6Subtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -5041,14 +4764,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="2f63de878e364251aa4ee0773ae454f4")>
+    <Calculation(Id:="5515dcc401674c1fb061d7ed0efff89d")>
     <CalculationSpecification(Id:="P284_NSENSubtotal", Name:="P284_NSENSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P284_NSENSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim APT_NSENSubtotal As Decimal = Datasets.APTNewISBdataset.NotionalSENBudget
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
         Dim LondonFringeIandA As Decimal = Datasets.APTInputsandAdjustments.LondonFringe
         Dim LondonFringeIandAString As String = Datasets.APTInputsandAdjustments.LondonFringe
@@ -5114,14 +4836,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="7ccbeeae8fef4570ae1461ede6ad63c0")>
+    <Calculation(Id:="1ce8ea95ee0b4747b4faf99cbd1814f8")>
     <CalculationSpecification(Id:="P285_InYearNSENSubtotal", Name:="P285_InYearNSENSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P285_InYearNSENSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P284_NSENSubtotal As Decimal = P284_NSENSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -5136,7 +4856,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="f0a21e6b3f9240bdbdd50d67bfc42b39")>
+    <Calculation(Id:="851c6a53080c4c9baf85d0396f2ebc74")>
     <CalculationSpecification(Id:="P286_PriorYearAdjustmentSubtotal", Name:="P286_PriorYearAdjustmentSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -5154,7 +4874,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e4e210b99ebd420dbed00395a88068c1")>
+    <Calculation(Id:="36eb9e6d4af84c7c996d0cb4b8eabe49")>
     <CalculationSpecification(Id:="P287_InYearPriorYearAdjsutmentSubtotal", Name:="P287_InYearPriorYearAdjsutmentSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -5162,7 +4882,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="beb41e53c2b24bb4a7d1b51cab279562")>
+    <Calculation(Id:="a18c64b8f3744a849408c2baac11dedb")>
     <CalculationSpecification(Id:="P298_Growth", Name:="P298_Growth")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -5184,14 +4904,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="8a9f6bdce36f4a8da969aa9e607222a3")>
+    <Calculation(Id:="3645dfa3225a49719a05370118fcc4f7")>
     <CalculationSpecification(Id:="P299_InYearGrowth", Name:="P299_InYearGrowth")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P299_InYearGrowth As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim P298Growth As Decimal = P298_Growth
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -5206,7 +4925,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d258897fa1494725b2479b4cc61728f4")>
+    <Calculation(Id:="c5ebb1c61816465194c5d63f9030c59c")>
     <CalculationSpecification(Id:="P300_SBSOutcomeAdjustment", Name:="P300_SBSOutcomeAdjustment")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
@@ -5228,14 +4947,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="c61c227697c74e3da9c0bbff231798b2")>
+    <Calculation(Id:="b2e722787f2446a6a6d3dd9a3f0b1e26")>
     <CalculationSpecification(Id:="P301_InYearSBSOutcomeAdjustment", Name:="P301_InYearSBSOutcomeAdjustment")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="41080d8da69046e3a26ff4fb6894eaa8", Name:="Other Factors")>
     Public Function P301_InYearSBSOutcomeAdjustment As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim P300SBSAdj As Decimal = P300_SBSOutcomeAdjustment
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -5250,7 +4968,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="f754e9f67dd6459aa9b1547fa2bded77")>
+    <Calculation(Id:="ecd8600ed9ea4e75bb543e4ed2bbce41")>
     <CalculationSpecification(Id:="P120_PPAindicator", Name:="P120_PPAindicator")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -5258,15 +4976,13 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="264a36ab57784c2ab575cfed16f7f5be")>
+    <Calculation(Id:="f68cf771cc8f4fdf8da98199343a9076")>
     <CalculationSpecification(Id:="P121_PPAY5to6Proportion73", Name:="P121_PPAY5to6Proportion73")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P121_PPAY5to6Proportion73 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As String = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim LowAttP73PupilCharac_String As String = Datasets.CensusPupilCharacteristics.LowAttainnmentunderoldEYFSPproportion73
         Dim LowAttPrimaryP73Adj_String As String = Datasets.APTInputsandAdjustments.LowAttainmentunderoldFSPProportion73
         Dim LAAV_Y25P73 As Decimal = LaToProv(Datasets.LocalAuthorityAverages.LowAttainmentunderoldEYFSPProportion73)
@@ -5297,15 +5013,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="4eb5c82aea9145ac85cb8af91c5e6e53")>
+    <Calculation(Id:="56ae3d7bf5ce49b4b8e97fb67fbd1263")>
     <CalculationSpecification(Id:="P122_PPAY5to6Proportion78", Name:="P122_PPAY5to6Proportion78")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P122_PPAY5to6Proportion78 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As String = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim LowAttP78PupilCharac_String As String = Datasets.CensusPupilCharacteristics.LowAttainnmentunderoldEYFSPproportion78
         Dim LowAttPrimaryP78Adj_String As String = Datasets.APTInputsandAdjustments.LowAttainmentunderoldFSPProportion78
         Dim LAAV_Y25P78 As Decimal = LaToProv(Datasets.LocalAuthorityAverages.LowAttainmentunderoldEYFSPProportion78)
@@ -5336,7 +5050,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="c967c9dbbc3340aa8e1503ecc3e045a3")>
+    <Calculation(Id:="d384f1bbfe5c4f71a5fa6dbb7f14b099")>
     <CalculationSpecification(Id:="P122a_PPAY7378forFAPOnly", Name:="P122a_PPAY7378forFAPOnly")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -5344,15 +5058,13 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="2373b1422804466897cff3988c31cc7b")>
+    <Calculation(Id:="2283d82dd2d844ccaad3c79df0d3f51f")>
     <CalculationSpecification(Id:="P123_PPAY1to4ProportionUnder", Name:="P123_PPAY1to4ProportionUnder")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P123_PPAY1to4ProportionUnder As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As String = F900_FUndingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim LowAttPEYPupilCharac_String As String = Datasets.CensusPupilCharacteristics.LowAttainmentProportionundernewEYFSP
         Dim LowAttPrimaryPEYAdj_String As String = Datasets.APTInputsandAdjustments.LowattainmentProportionundernewEYFSP
         Dim LAAV_PEY As Decimal = LaToProv(Datasets.LocalAuthorityAverages.LowattainmentProportionundernewEYFSP)
@@ -5383,16 +5095,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="2597e18a2e4841acbce6937574ec5782")>
+    <Calculation(Id:="0950572a33d54042a616db278575ab84")>
     <CalculationSpecification(Id:="P124_PPAY5to6NOR", Name:="P124_PPAY5to6NOR")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P124_PPAY5to6NOR As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim NOR_P04_Y5Y6 As Decimal = NOR_P04_Y5Y6
         If F200_SBS_Academies = 1 then
             Result = NOR_P04_Y5Y6
         Else
@@ -5406,16 +5115,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="175361f3e3a240e4a2ee44148ca1f82c")>
+    <Calculation(Id:="b89be2d4f9ba4397a320be368288f5c8")>
     <CalculationSpecification(Id:="P125_PPAY1to4NOR", Name:="P125_PPAY1to4NOR")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P125_PPAY1to4NOR As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FUndingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim NOR_P03_Y1Y4 As Decimal = NOR_P03_Y1Y4
         If F200_SBS_Academies = 1 then
             Result = NOR_P03_Y1Y4
         Else
@@ -5429,15 +5135,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="88cdcd3af8dd4a9d87337c77d2c9ab7a")>
+    <Calculation(Id:="a376479853244c4f88fffe38bcc2da0d")>
     <CalculationSpecification(Id:="P126_PPAPriNOR", Name:="P126_PPAPriNOR")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P126_PPAPriNOR As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim P22_Total_NOR_PRI_SBS As Decimal = NOR_P22_Total_NOR_PRI_SBS
         If F200_SBS_Academies = 1 then
             Result = P22_Total_NOR_PRI_SBS
@@ -5452,15 +5156,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="7eed900275f648e791b001cd4fee6fcc")>
+    <Calculation(Id:="3f0c0c079eba46e7a79f6f6a83a9e082")>
     <CalculationSpecification(Id:="P127_PPARate", Name:="P127_PPARate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P127_PPARate As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FUndingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim PA_PrimAmountPerPupil As Decimal = LaToProv(Datasets.APTProformadataset.PriorAttainmentPrimaryAmountPerPupil)
         If F200_SBS_Academies = 1 then
             Result = PA_PrimAmountPerPupil
@@ -5475,15 +5177,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="52143580dc4e4114b8481927f13211b6")>
+    <Calculation(Id:="a8460e188a1f4710815c05d92e2f7b9e")>
     <CalculationSpecification(Id:="P128_PPAWeighting", Name:="P128_PPAWeighting")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P128_PPAWeighting As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim PAPriY1Weight As Decimal = LaToProv(Datasets.APTProformadataset.PriorAttainmentPrimarynewEFSPWeighting)
         If F200_SBS_Academies = 1 then
             Result = PAPriY1Weight
@@ -5498,19 +5198,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="0a747d3cbe8749ae8a14bef223e106a7")>
+    <Calculation(Id:="1bd6edee23e54d63a6ae5e0a1cbb0d73")>
     <CalculationSpecification(Id:="P129_PPAPupilsY5to6NotAchieving", Name:="P129_PPAPupilsY5to6NotAchieving")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P129_PPAPupilsY5to6NotAchieving As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P120_PPAindicator As string = P120_PPAindicator
-        Dim P121_PPAY5to6Proportion73 As Decimal = P121_PPAY5to6Proportion73
-        Dim P124_PPAY5to6NOR As Decimal = P124_PPAY5to6NOR
-        Dim P122_PPAY5to6Proportion78 As Decimal = P122_PPAY5to6Proportion78
         If F200_SBS_Academies = 1 then
             IF P120_PPAindicator = "73" THEN
                 Result = P121_PPAY5to6Proportion73 * P124_PPAY5to6NOR
@@ -5533,18 +5227,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e7f55407a8034ba5a887e9ad83e02c1c")>
+    <Calculation(Id:="06469d17d13b41deab8f37a07285888c")>
     <CalculationSpecification(Id:="P130_PPAPupilsY1to4NotAchieving", Name:="P130_PPAPupilsY1to4NotAchieving")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P130_PPAPupilsY1to4NotAchieving As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P123_PPAY1to4ProportionUnder As Decimal = P123_PPAY1to4ProportionUnder
-        Dim P125_PPAY1to4NOR As Decimal = P125_PPAY1to4NOR
-        Dim P128_PPAWeighting As Decimal = P128_PPAWeighting
         If F200_SBS_Academies = 1 then
             Result = P123_PPAY1to4ProportionUnder * P128_PPAWeighting * P125_PPAY1to4NOR
         ELSE
@@ -5560,17 +5249,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="aa45c4ec78764d2db54b52743fec03dd")>
+    <Calculation(Id:="810b35bb8f5f4ff28658c23282869dc7")>
     <CalculationSpecification(Id:="P131_PPATotalPupilsY1to6NotAchieving", Name:="P131_PPATotalPupilsY1to6NotAchieving")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P131_PPATotalPupilsY1to6NotAchieving As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P130_PPAPupilsY1to4NotAchieving As Decimal = P130_PPAPupilsY1to4NotAchieving
-        Dim P129_PPAPupilsY5to6NotAchieving As Decimal = P129_PPAPupilsY5to6NotAchieving
         If F200_SBS_Academies = 1 then
             Result = P130_PPAPupilsY1to4NotAchieving + P129_PPAPupilsY5to6NotAchieving
         ELSE
@@ -5585,18 +5270,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="fc3a63d2586d4f549fc1b4368b16e251")>
+    <Calculation(Id:="438970196ab5499587d04bb59ebbe253")>
     <CalculationSpecification(Id:="P132_PPATotalProportionNotAchieving", Name:="P132_PPATotalProportionNotAchieving")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P132_PPATotalProportionNotAchieving As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P131_PPATotalPupilsY1to6NotAchieving As Decimal = P131_PPATotalPupilsY1to6NotAchieving
-        Dim P124_PPAY5to6NOR As Decimal = P124_PPAY5to6NOR
-        Dim P125_PPAY1to4NOR As Decimal = P125_PPAY1to4NOR
         If F200_SBS_Academies = 1 then
             Result = P131_PPATotalPupilsY1to6NotAchieving / (P124_PPAY5to6NOR + P125_PPAY1to4NOR)
         ELSE
@@ -5612,18 +5292,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="6b06729c01454890b45b3b977d78f126")>
+    <Calculation(Id:="9215aab95fca4a6ea21dbd799148c4b5")>
     <CalculationSpecification(Id:="P133_PPATotalFunding", Name:="P133_PPATotalFunding")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P133_PPATotalFunding As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P126_PPAPriNOR As Decimal = P126_PPAPriNOR
-        Dim P127_PPARate As Decimal = P127_PPARate
-        Dim P132_PPATotalProportionNotAchieving As Decimal = P132_PPATotalProportionNotAchieving
         If F200_SBS_Academies = 1 then
             Result = P126_PPAPriNOR * P127_PPARate * P132_PPATotalProportionNotAchieving
         ELSE
@@ -5639,17 +5314,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="a2ae1c9e06584e6bb5cccd314397ddc4")>
+    <Calculation(Id:="bda03b5fc4d448d6a676e898c6376e24")>
     <CalculationSpecification(Id:="P134_NSENPPA", Name:="P134_NSENPPA")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P134_NSENPPA As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P133_PPATotalFunding As Decimal = P133_PPATotalFunding
-        Dim P134a_NSENPPA_Percent As Decimal = P134a_NSENPPA_Percent / 100
         If F200_SBS_Academies = 1 then
             Result = P133_PPATotalFunding * P134a_NSENPPA_Percent
         ELSE
@@ -5664,14 +5335,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="55907ab0a10344a88cad1fcbcd785621")>
+    <Calculation(Id:="4b311d3f675940f1b2d805ba8c1ceab9")>
     <CalculationSpecification(Id:="P134a_NSENPPA_Percent", Name:="P134a_NSENPPA_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P134a_NSENPPA_Percent As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim PAPrimaryNotionalSEN As Decimal = LaToProv(Datasets.APTProformadataset.PriorAttainmentPrimaryNotionalSEN) * 100
         If F200_SBS_Academies = 1 then
             Result = PAPrimaryNotionalSEN
@@ -5685,17 +5354,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="96756073c0eb4a5db71fdf92deb6d72c")>
+    <Calculation(Id:="000eea9ee3c84e7797f5d0866af2031a")>
     <CalculationSpecification(Id:="P135_InYearPPASubtotal", Name:="P135_InYearPPASubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P135_InYearPPASubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P133_PPATotalFunding As Decimal = P133_PPATotalFunding
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days As Decimal = 365
         If F200_SBS_Academies = 1 then
             Result = P133_PPATotalFunding * P001_1718DaysOpen / Year_Days
@@ -5712,7 +5377,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="71929431726b4b8faa1d0e478b31b56c")>
+    <Calculation(Id:="578ef2824b4d4e75b518d7540a54281b")>
     <CalculationSpecification(Id:="P136_SecPA_Y7Factor", Name:="P136_SecPA_Y7Factor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -5720,7 +5385,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="27782db6929945a9981c7b4be100b9d1")>
+    <Calculation(Id:="1eb73965e38845919c663cc1aa1e924e")>
     <CalculationSpecification(Id:="P136a_SecPA_Y7NationalWeight", Name:="P136a_SecPA_Y7NationalWeight")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -5737,15 +5402,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="7cd18451c1254fb5b8b44944792df421")>
+    <Calculation(Id:="f0b783ebc7704534b91f0cb14104305c")>
     <CalculationSpecification(Id:="P138_SecPARate", Name:="P138_SecPARate")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P138_SecPARate As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim PA_SecAmountPerPupil As Decimal = LaToProv(Datasets.APTProformadataset.PriorAttainmentSecondaryAmountPerPupil)
         If F200_SBS_Academies = 1 then
             Result = PA_SecAmountPerPupil
@@ -5760,7 +5423,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="13e2b24bd66241b9a86538b8b41f43ea")>
+    <Calculation(Id:="e649ac17e4ce4fe2a2069650c0b49034")>
     <CalculationSpecification(Id:="P138a_SecPA_AdjustedSecFactor", Name:="P138a_SecPA_AdjustedSecFactor")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
@@ -5769,9 +5432,7 @@ Public Class Calculations
         Dim F200 As Decimal = F200_SBS_Academies
         Dim P08a_Y7 As Decimal = NOR_P08a_Y7
         Dim P08b_Y8to11 As Decimal = NOR_P08b_Y8to11
-        Dim P136_SecPA_Y7Factor As Decimal = P136_SecPAFactor_Y7Factor
-        Dim P136a_SecPA_Y7NationalWeight As Decimal = P136a_SecPA_Y7NationalWeight
-        Dim P137_SecPA_Y8to11Factor As Decimal = P137_SecPA_Y8to11Factor
+        Dim P136_SecPA_Y7Factor As Decimal = P136a_SecPA_Y7NationalWeight()
         If F200 = 1 then
             result =((P136_SecPA_Y7Factor * P08a_Y7 * P136a_SecPA_Y7NationalWeight) + (P137_SecPA_Y8to11Factor * P08b_Y8to11)) / (P08a_Y7 + P08b_Y8to11)
         Else
@@ -5781,16 +5442,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="75ee41419d4f43bb92966b471507cb4e")>
+    <Calculation(Id:="96d7655ed18242dbbf93fbd368c7382d")>
     <CalculationSpecification(Id:="P139_SecPASubtotal", Name:="P139_SecPASubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P139_SecPASubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P138_SecPARate As Decimal = P138_SecPARate
         Dim P138a_SecPA_Y7Factor As Decimal = P138a_SecPA_AdjustedSecFactor
         Dim P25_Total_NOR_SEC_SBS As Decimal = NOR_P25_Total_NOR_SEC_SBS
         Dim calc As Decimal = P25_Total_NOR_SEC_SBS * P138_SecPARate * P138a_SecPA_Y7Factor
@@ -5817,17 +5475,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="f2ebc74ef73e4848a9c11b9f2dc8d5ba")>
+    <Calculation(Id:="9377fea9e293430f8a95f49f7771fa50")>
     <CalculationSpecification(Id:="P140_NSENSecPA", Name:="P140_NSENSecPA")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P140_NSENSecPA As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P139_SecPASubtotal As Decimal = P139_SecPASubtotal
-        Dim P140a_NSENSecPA_Percent As Decimal = P140a_NSENSecPA_Percent / 100
         If F200_SBS_Academies = 1 then
             Result = P139_SecPASubtotal * P140a_NSENSecPA_Percent
         Else
@@ -5842,15 +5496,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="9253a4f3ac9f4909924f6ab15d1d858e")>
+    <Calculation(Id:="91c164a0696249f9b87ae1694f6b3569")>
     <CalculationSpecification(Id:="P140a_NSENSecPA_Percent", Name:="P140a_NSENSecPA_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P140a_NSENSecPA_Percent As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
         Dim PA_SecNotionalSEN As Decimal = LaToProv(Datasets.APTProformadataset.PriorAttainmentSecondaryNotionalSEN) * 100
         If F200_SBS_Academies = 1 then
             Result = PA_SecNotionalSEN
@@ -5865,17 +5517,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="383246f6551d45369f006e3ad1edc499")>
+    <Calculation(Id:="a5f73df774ee4520afc2ac389db560d9")>
     <CalculationSpecification(Id:="P141_InYearSecPASubtotal", Name:="P141_InYearSecPASubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="c6b57f57424c494fb0ed394ffb1af34c", Name:="Prior Attainment")>
     Public Function P141_InYearSecPASubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P139_SecPASubtotal As Decimal = P139_SecPASubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days As Decimal = 365
         If F200_SBS_Academies = 1 then
             Result = P139_SecPASubtotal * P001_1718DaysOpen / Year_Days
@@ -5892,7 +5540,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="615ca661108540d9b8f7f3974a0329a9")>
+    <Calculation(Id:="6b3a09aebce74f5691c0eeda31c5effe")>
     <CalculationSpecification(Id:="P185a_Phase", Name:="P185a_Phase")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -5941,7 +5589,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="47f42a40914b4c0fa0141d20c08b348e")>
+    <Calculation(Id:="8e68ced0e1a043abbc118833fd72006c")>
     <CalculationSpecification(Id:="P186_SparsityTaperFlagPri", Name:="P186_SparsityTaperFlagPri")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -5963,7 +5611,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="c0c02645afe44d1d97760e26b155a364")>
+    <Calculation(Id:="5c1f53baf4ac44e5af45aa51175ce8bb")>
     <CalculationSpecification(Id:="P187_SparsityTaperFlagMid", Name:="P187_SparsityTaperFlagMid")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -5985,7 +5633,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="3c3fd088667f465596b0be7504bf9334")>
+    <Calculation(Id:="f893de014ba144d98cfad22d065ba3dd")>
     <CalculationSpecification(Id:="P188_SparsityTaperFlagSec", Name:="P188_SparsityTaperFlagSec")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -6007,7 +5655,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="623e40f3c3e34ef8b5d86b031cf34553")>
+    <Calculation(Id:="e6cb66ae5d724d5ca34a6aa1e93526e9")>
     <CalculationSpecification(Id:="P189_SparsityTaperFlagAllThru", Name:="P189_SparsityTaperFlagAllThru")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -6015,7 +5663,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="f47c481a387e4b7596900a8c159d9bbb")>
+    <Calculation(Id:="ec5a23ff31e8477183bb53282a8907d7")>
     <CalculationSpecification(Id:="P190_SparsityUnit", Name:="P190_SparsityUnit")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -6051,7 +5699,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="72b14cc1caea4fea853e359e1871a8c3")>
+    <Calculation(Id:="b4e3cfa7829a4520a2e5ab78ae2ec186")>
     <CalculationSpecification(Id:="P191_SparsityDistance", Name:="P191_SparsityDistance")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -6091,7 +5739,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="b3c435bd39614c6a9dfb5f9a9af3b83b")>
+    <Calculation(Id:="753685f914a64170a74abfbfa008f7c8")>
     <CalculationSpecification(Id:="P192_SparsityDistThreshold", Name:="P192_SparsityDistThreshold")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -6099,7 +5747,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="df328142a8584a7c81095d91ce3e1500")>
+    <Calculation(Id:="7d3e1e8358e6451da860eff97c638609")>
     <CalculationSpecification(Id:="P193_SparsityDistMet_YN", Name:="P193_SparsityDistMet_YN")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -6107,7 +5755,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="7db2e04733564c17a7b91fe65159ef9d")>
+    <Calculation(Id:="cb754d447859448b8e8315d42c348f31")>
     <CalculationSpecification(Id:="P194_SparsityAveYGSize", Name:="P194_SparsityAveYGSize")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -6115,8 +5763,6 @@ Public Class Calculations
         Dim result As Decimal = 0 'change to As String if text product
         Dim NOR26 As Decimal = NOR_P26_Total_NOR_SBS
         Dim AcadFilter As Decimal = F200_SBS_Academies
-        Dim P212_PYG As Decimal = P212_PYG
-        Dim P213_SYG As Decimal = P213_SYG
         If AcadFilter = 1 Then
             result = NOR26 / (P212_PYG + P213_SYG)
         Else
@@ -6129,7 +5775,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="4c0f2c31cf9e47f69b57a3ffd88b854e")>
+    <Calculation(Id:="af6c5f7cc8f5452dad4b26125a45fe3d")>
     <CalculationSpecification(Id:="P195_SparsityYGThreshold", Name:="P195_SparsityYGThreshold")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -6185,15 +5831,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="79728cc8f11546eca59c56f6140110f0")>
+    <Calculation(Id:="527172e7872641a4b76cbd3fa42bede8")>
     <CalculationSpecification(Id:="P196_SparsityYGThresholdMet_YN", Name:="P196_SparsityYGThresholdMet_YN")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P196_SparsityYGThresholdMet_YN As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim AcadFilter As Decimal = F200_SBS_Academies
-        Dim P194_SparsityAveYGSize As Decimal = P194_SparsityAveYGSize
-        Dim P195_SparsityYGThreshold As Decimal = P195_SparsityYGThreshold
         If AcadFilter = 1 Then
             If P194_SparsityAveYGSize <= P195_SparsityYGThreshold And P194_SparsityAveYGSize > 0 Then
                 result = 1
@@ -6209,7 +5853,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="db2c8816cdbc4237b26a74d57b3db3c6")>
+    <Calculation(Id:="2fe37c0587fd424db69ddc240363052d")>
     <CalculationSpecification(Id:="P197_SparsityLumpSumSubtotal", Name:="P197_SparsityLumpSumSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -6217,25 +5861,18 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="8e939fffab794c61938747623acaaf2f")>
+    <Calculation(Id:="fe732dd2bcd44abebbc6cf9cf34fad46")>
     <CalculationSpecification(Id:="P198_SparsityTaperSubtotal", Name:="P198_SparsityTaperSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P198_SparsityTaperSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim Phase As Decimal = P185a_Phase
-        Dim P186_SparsityTaperFlagPri As Decimal = P186_SparsityTaperFlagPri
         Dim P193_SparsityDistMet_YN As Decimal = P193_SparsityDistMet_YN
         Dim P196_SparsityYGThresholdMet_YN As Decimal = P196_SparsityYGThresholdMet_YN
         Dim P190_SparsityUnit As Decimal = P190_SparsityUnit
-        Dim P187_SparsityTaperFlagMid As Decimal = P187_SparsityTaperFlagMid
-        Dim P188_SparsityTaperFlagSec As Decimal = P188_SparsityTaperFlagSec
-        Dim P189_SparsityTaperFlagAllthru As Decimal = P189_SparsityTaperFlagAllthru
         Dim APT_ISB_SparsityFunding As Decimal = Datasets.APTNewISBdataset.SparsityFunding
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim P194_SparsityAveYGSize As Decimal = P194_SparsityAveYGSize
-        Dim P195_SparsityYGThreshold As Decimal = P195_SparsityYGThreshold
         If F100_AllAcademies = 17181 Or (F100_AllAcademies = 17182 And FundingBasis = 2) Or (F100_AllAcademies = 17183 And FundingBasis = 2) Then
             If Phase = 1 And P186_SparsityTaperFlagPri = 1 And P193_SparsityDistMet_YN = 1 And P196_SparsityYGThresholdMet_YN = 1 then
                 result = P190_SparsityUnit * (1 - (P194_SparsityAveYGSize / P195_SparsityYGThreshold))
@@ -6281,15 +5918,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="7cbba95815ce40ab85e61727042e0962")>
+    <Calculation(Id:="75e83b59a1884ec2b44fcdd9de63ccf2")>
     <CalculationSpecification(Id:="P198a_SubtotalLump_Taper_For_FAP_Only", Name:="P198a_SubtotalLump_Taper_For_FAP_Only")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P198a_SubtotalLump_Taper_For_FAP_Only As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim AcadFilter As Decimal = F200_SBS_Academies
-        Dim P197_SparsityLumpSumSubtotal As Decimal = P197_SparsityLumpSumSubtotal
-        Dim P198_SparsityTaperSubtotal As Decimal = P198_SparsityTaperSubtotal
         If AcadFilter = 1 Then
             result = P197_SparsityLumpSumSubtotal + P198_SparsityTaperSubtotal
         Else
@@ -6301,7 +5936,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="5aab131f17ec450a998b5a3c2970f0dd")>
+    <Calculation(Id:="170362c015754db5991fbf2a6e55c442")>
     <CalculationSpecification(Id:="P199_InYearSparsityLumpSumSubtotal", Name:="P199_InYearSparsityLumpSumSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -6309,14 +5944,12 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="4607e635f7424839893c02bf25c54bd8")>
+    <Calculation(Id:="0dd52b40e9884566b8ca32b2b1f9de96")>
     <CalculationSpecification(Id:="P200_InYearSparsityTaperSubtotal", Name:="P200_InYearSparsityTaperSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P200_InYearSparsityTaperSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P198_SparsityTaperSubtotal As Decimal = P198_SparsityTaperSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -6331,7 +5964,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="9fa4ee77b368405cb77537665505d7bf")>
+    <Calculation(Id:="a027521d361c4d9c88f4d0aa5492d7c8")>
     <CalculationSpecification(Id:="P200a_InYear_SubtotalLump_Taper_for_FAP_Only", Name:="P200a_InYear_SubtotalLump_Taper_for_FAP_Only")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -6339,7 +5972,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="b374095dea004505a9f843795ae07bb5")>
+    <Calculation(Id:="93807b1eae754f49817336ee6268d8ed")>
     <CalculationSpecification(Id:="P212_PYG", Name:="P212_PYG")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -6357,7 +5990,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="4bba3366d8d547c19b6e3dd58f3ffa48")>
+    <Calculation(Id:="9d5dc150df054bfa9b59fb2895a3e620")>
     <CalculationSpecification(Id:="P213_SYG", Name:="P213_SYG")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -6375,16 +6008,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="24755b0c594e4327a5b5d39a2f7241fc")>
+    <Calculation(Id:="97d29cd83a794af1b045c78add30cd11")>
     <CalculationSpecification(Id:="P236_NSENSparsity", Name:="P236_NSENSparsity")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
     Public Function P236_NSENSparsity As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim AcadFilter As Decimal = F200_SBS_Academies
-        Dim P197_SparsityLumpSumSubtotal As Decimal = P197_SparsityLumpSumSubtotal
-        Dim P198_SparsityTaperSubtotal As Decimal = P198_SparsityTaperSubtotal
-        Dim P236a_NSENSparsity_Percent As Decimal = P236a_NSENSparsity_Percent / 100
         If AcadFilter = 1 Then
             result =(P197_SparsityLumpSumSubtotal + P198_SparsityTaperSubtotal) * P236a_NSENSparsity_Percent
         Else
@@ -6397,7 +6027,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="9bf39d6a528b4d76b9a3098e4fe62945")>
+    <Calculation(Id:="f70f57850562441092a774281324e4b7")>
     <CalculationSpecification(Id:="P236a_NSENSparsity_Percent", Name:="P236a_NSENSparsity_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="4eda722dff5b4f6f9e3d13eae928be8a", Name:="Sparsity")>
@@ -6425,7 +6055,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="8e5875634cf542eaa7464e69c7a9c1b7")>
+    <Calculation(Id:="24b27747e6494434b13dddb68e51fe6c")>
     <CalculationSpecification(Id:="P249_SplitSiteSubtotal", Name:="P249_SplitSiteSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="6857aab8747c4d699b69bba5858b98a3", Name:="Split Sites")>
@@ -6433,15 +6063,13 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="d994c2dcb48445bf946b4ef30acf328e")>
+    <Calculation(Id:="571d965f95ab4e3faf2ee83d1f2db1e0")>
     <CalculationSpecification(Id:="P250_NSENSplitSites", Name:="P250_NSENSplitSites")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="6857aab8747c4d699b69bba5858b98a3", Name:="Split Sites")>
     Public Function P250_NSENSplitSites As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim AcadFilter As Decimal = F200_SBS_Academies
-        Dim P249_SplitSitesSubtotal As Decimal = P249_SplitSitesSubtotal
-        Dim P250a_NSENSplitSites_Percent As Decimal = P250a_NSENSplitSites_Percent / 100
         If AcadFilter = 1 then
             Result = P249_SplitSitesSubtotal * P250a_NSENSplitSites_Percent
         Else
@@ -6453,7 +6081,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="f7cbb6fe06d340fb9fd585fafa820f8d")>
+    <Calculation(Id:="09f947ca8e6e4866b2ec052bbac076f9")>
     <CalculationSpecification(Id:="P250a_NSENSplitSites_Percent", Name:="P250a_NSENSplitSites_Percent")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="6857aab8747c4d699b69bba5858b98a3", Name:="Split Sites")>
@@ -6471,14 +6099,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="f7b3038b083c4d00b24e7ca22c215aec")>
+    <Calculation(Id:="90ec5de9654046f49d001204b5fa4f85")>
     <CalculationSpecification(Id:="P251_InYearSplitSitesSubtotal", Name:="P251_InYearSplitSitesSubtotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="6857aab8747c4d699b69bba5858b98a3", Name:="Split Sites")>
     Public Function P251_InYearSplitSitesSubtotal As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim P249_SplitSitesSubtotal As Decimal = P249_SplitSitesSubtotal
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days1718 As Decimal = P025_YearDays_1718
         Dim AcadFilter As Decimal = F200_SBS_Academies
         If AcadFilter = 1 Then
@@ -6493,18 +6119,17 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="89c6f336dfd742f7aa8987a57bdc3de1")>
+    <Calculation(Id:="0fe6ce5cdd5c44a0a6671dd3458b9eaa")>
     <CalculationSpecification(Id:="P001_1718DaysOpen", Name:="P001_1718DaysOpen")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
     Public Function P001_1718DaysOpen As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P001_1718DaysOpen As Decimal = P027_DaysOpen
-        Print(P001_1718DaysOpen, "Days Open", rid)
+        Dim P001_1718DaysOpen_Local As Decimal = P027_DaysOpen
+        Print(P001_1718DaysOpen_Local, "Days Open", rid)
         Print(F200_SBS_Academies, "F200_SBS_Academies", rid)
         If F200_SBS_Academies = 1 Then
-            Result = P001_1718DaysOpen
+            Result = P001_1718DaysOpen_Local
         Else
             Exclude(rid)
         End If
@@ -6512,7 +6137,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="1325b353789f4c94beba1df554a47d22")>
+    <Calculation(Id:="d83728c6a790448f93e508aa8d93fa0c")>
     <CalculationSpecification(Id:="Lump_Sum_Total", Name:="Lump_Sum_Total")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -6530,7 +6155,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="865ed926a3b54479bb3e1e87f6d9d913")>
+    <Calculation(Id:="ed88533502044d9aac7a1c2b42511d29")>
     <CalculationSpecification(Id:="InYearLumpSum", Name:="InYearLumpSum")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -6548,7 +6173,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="0951759ae6784044ae5f101d678d0d8a")>
+    <Calculation(Id:="3ab04d99f3414a678f4b7d2d1badf35d")>
     <CalculationSpecification(Id:="P288_SBSFundingTotal", Name:="P288_SBSFundingTotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -6609,7 +6234,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e5276896bfe444cd8bb451da9b6ed01c")>
+    <Calculation(Id:="bd25fbd737b54aceb9d1af3b245d8f17")>
     <CalculationSpecification(Id:="P289_InYearSBSFundingTotal", Name:="P289_InYearSBSFundingTotal")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -6715,7 +6340,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="0e70f394e1444ea988481d3604c9940f")>
+    <Calculation(Id:="142dbc5f45914a1a857315760826b1b8")>
     <CalculationSpecification(Id:="P290_ISBTotalSBSFunding", Name:="P290_ISBTotalSBSFunding")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -6735,7 +6360,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d03e869defe24f8a9f88af36f75f565e")>
+    <Calculation(Id:="9c76e99f03da4ff6be0755e269531ee0")>
     <CalculationSpecification(Id:="P291_TotalPupilLedFactors", Name:="P291_TotalPupilLedFactors")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -6781,7 +6406,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="7fa3eb29e0594772b3f2245104ab2d1e")>
+    <Calculation(Id:="a9562a3348554a2fb5fe84f9107f42e5")>
     <CalculationSpecification(Id:="P292_InYearTotalPupilLedfactors", Name:="P292_InYearTotalPupilLedfactors")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -6827,7 +6452,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="037883d744bd4ffd87fcab8c9a2a5fc1")>
+    <Calculation(Id:="ac83991ff50142eca1963870516453e7")>
     <CalculationSpecification(Id:="P293_TotalOtherFactors", Name:="P293_TotalOtherFactors")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -6858,7 +6483,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="7b17d38aeed740c790f1c5634fefbdf3")>
+    <Calculation(Id:="bff72d7756994846a10a2431c6bf9463")>
     <CalculationSpecification(Id:="P293a_TotalOtherFactors_NoExc", Name:="P293a_TotalOtherFactors_NoExc")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -6881,7 +6506,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e32e7f2b8a9144149830727f39b5dc9f")>
+    <Calculation(Id:="a809d60dbb094e27901b6476556bd6ec")>
     <CalculationSpecification(Id:="P294_InYearTotalOtherFactors", Name:="P294_InYearTotalOtherFactors")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -6912,7 +6537,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="a4bf1bb312e74b9fa97633617c5f9cc6")>
+    <Calculation(Id:="d125113a7e7545c0bfb06b39d022cb97")>
     <CalculationSpecification(Id:="P294a_InYearTotalOtherFactors_NoExc", Name:="P294a_InYearTotalOtherFactors_NoExc")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -6920,7 +6545,7 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="a014042ca3be432fa3d2b25f52c3d91d")>
+    <Calculation(Id:="24a3b72d477847bf829a6baf57e98a6c")>
     <CalculationSpecification(Id:="P295_Dedelegation", Name:="P295_Dedelegation")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
@@ -6928,17 +6553,13 @@ Public Class Calculations
         Return Decimal.MinValue
     End Function
 
-    <Calculation(Id:="43aa56a8fd394c53a633ba6d9285dcf1")>
+    <Calculation(Id:="ab0351cb96e74d7489ba1e5b05057ad4")>
     <CalculationSpecification(Id:="P296_InYearDedelegation", Name:="P296_InYearDedelegation")>
     <PolicySpecification(Id:="93f568b56656481ab43ac14119890c7f", Name:="School Budget Share")>
     <PolicySpecification(Id:="b2e46eab20374cd1864365a94a7ab9b3", Name:="Totals")>
     Public Function P296_InYearDedelegation As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As Decimal = F900_FundingBasis
-        Dim F200_SBS_Academies As Decimal = F200_SBS_Academies
-        Dim P295_Dedelegation As Decimal = P295_Dedelegation
-        Dim P001_1718DaysOpen As Decimal = P001_1718DaysOpen
         Dim Year_Days As Decimal = 365
         If F200_SBS_Academies = 1 then
             Result =(P295_Dedelegation) * P001_1718DaysOpen / Year_Days
@@ -6955,16 +6576,16 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="59508343ac954286baeef1cf07a0709c")>
+    <Calculation(Id:="6af48855d80d441abc39d3c926a1325a")>
     Public Function F100_AllAcademies As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim Date_Opened as date = Datasets.ProviderInformation.DateOpened
+        Dim Date_Opened as date = Provider.DateOpened
         Dim Budget_ID1718 as String = Datasets.FundingStreams.Budget(2017181)
-        Dim ProviderType as string = Datasets.ProviderInformation.ProviderType
+        Dim ProviderType as string = Provider.ProviderType
         Dim Funding_Basis1718 as String = Datasets.AcademyInformation.FundingBasis
-        Dim SubType As String = Datasets.ProviderInformation.ProviderSubtype
+        Dim SubType As String = Provider.ProviderSubtype
         Dim PrevMain As Boolean = Datasets.AcademyInformation.AcademyPreviouslyMaintained
-        Dim ConvertDate As Date = Datasets.ProviderInformation.ConvertDate
+        Dim ConvertDate As Date = Provider.ConvertDate
         Dim Budget_ID1617 as String = Datasets.FundingStreams.Budget(2016171)
         Dim Funding_Basis1617 as String = Datasets.Administration.Providers.Academy_Information.Academy_Parameters.Funding_Basis(2016171)
         print(Date_Opened, "DateOpen", rid)
@@ -7005,10 +6626,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="0d90243918104ee7b5366ca45fd9d6a5")>
+    <Calculation(Id:="dc7fa18cd6494a5c862083eec828f6b1")>
     Public Function F200_SBS_Academies As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(FundingBasis, "Funding_Basis", rid)
@@ -7021,10 +6641,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="fe8b5a3f0b164a568efc50f531485188")>
+    <Calculation(Id:="cc36b9f5408c4121a739b18ab7db91f0")>
     Public Function F300_ESG_Academies_All As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim FundingBasis As String = Datasets.AcademyInformation.FundingBasis
         Dim NOR_SBS As Decimal = NOR_P26_Total_NOR_SBS
         Dim PrevMaintained As String = Datasets.AcademyInformation.AcademyPreviouslyMaintained
@@ -7044,10 +6663,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="228390a2828a48d7b114d345f78bb90d")>
+    <Calculation(Id:="26962654ceef4c429573c368d707d3e4")>
     Public Function F301_ESG_Academies_Mainstream As Decimal
         Dim result = Decimal.Zero
-        Dim F300_ESG_Academies_All As Decimal = F300_ESG_Academies_All
         Dim FundingBasis As String = Datasets.AcademyInformation.FundingBasis
         Print(F300_ESG_Academies_All, F300_ESG_Academies_All, rid)
         Print(FundingBasis, FundingBasis, rid)
@@ -7060,7 +6678,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="73c3427f13434afc8577a8c908114b4e")>
+    <Calculation(Id:="55440ea0b9e9440a85484f3f6f482880")>
     Public Function F302_ESG_Academies_PlacesLed As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim F300_ESG_AcademiesAll As Decimal = F300_ESG_Academies_All
@@ -7077,10 +6695,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="143902f3edeb48e4ad141a309462a5e6")>
+    <Calculation(Id:="4945698562c54b33a7d034328ff3eca9")>
     Public Function F400_HN_Academies As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) Then
             Result = 1
         Else
@@ -7090,10 +6707,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="ebc816d6175d4e8ba4e68b2f15ad68c3")>
+    <Calculation(Id:="dbc59ce7980f48f8b682097585e59913")>
     Public Function F500_MFG_Academies As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7106,10 +6722,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d95500390dac424c97b3131e4fe13638")>
+    <Calculation(Id:="9293670a096742448c132cae3d0b2a97")>
     Public Function F600_ESGProtection_Academies As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         If(F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) Then
             Result = 1
@@ -7120,11 +6735,11 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="b3671ad280ad4014bc27cfceb0e6e56e")>
+    <Calculation(Id:="9dbddee76dc9409ab4ee5ded4c514190")>
     Public Function F601_ESGProtection_Post16onlyAP As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim F600_ESGProtection_Academies As Decimal = F600_ESGProtection_Academies
-        Dim Subtype As String = Datasets.ProviderInformation.ProviderSubtype
+        Dim Subtype As String = Provider.ProviderSubtype
         Dim BudgetID As String = Datasets.FundingStreams.Budget(2017181)
         Print(F600_ESGProtection_Academies, "F600_ESGProtection_Academies", rid)
         Print(Subtype, "Subtype", rid)
@@ -7142,7 +6757,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="72af94f064b34d5fb1b925fc0b93fab8")>
+    <Calculation(Id:="a0967461b5b045d1bfcd3c2626f90fc6")>
     Public Function F602_ESGProtection_Mainstream As Decimal
         Dim result As Decimal = 0
         Dim ESGProtectionAll As Decimal = Products.AY1718_Acad_GlobalVariables.F600_ESGProtection_Academies
@@ -7174,10 +6789,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="69cb4d39512048f09e905edfaffcd42e")>
+    <Calculation(Id:="ff5fea155a824deba815560585fb24d9")>
     Public Function F603_ESGProtection_PlaceLed As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F600_ESGProtection_Academies As Decimal = F600_ESGProtection_Academies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F600_ESGProtection_Academies, "F600_ESGProtection_Academies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7194,12 +6808,11 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="65cd96c1780c4f37aff640e4e87a9db2")>
+    <Calculation(Id:="3fb910aaf2b74a93b266d70307484565")>
     Public Function F800_FSProtection_Academies As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As string = Datasets.AcademyInformation.FundingBasis
-        Dim SubType As String = Datasets.ProviderInformation.ProviderSubtype
+        Dim SubType As String = Provider.ProviderSubtype
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
         Print(SubType, "SubType", rid)
@@ -7212,12 +6825,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="a7744f8203e84dec819706b32098ef7a")>
+    <Calculation(Id:="00fc99ec1eca4e40b79095a2c46710b8")>
     Public Function F900_FundingBasis As Decimal
         Dim result As Decimal = 0 'change to As String if text product
-        Dim Date_Opened as date = Datasets.ProviderInformation.DateOpened
+        Dim Date_Opened as date = Provider.DateOpened
         Dim Budget_ID as String = Datasets.FundingStreams.Budget(2017181)
-        Dim ProviderType as string = Datasets.ProviderInformation.ProviderType
+        Dim ProviderType as string = Provider.ProviderType
         Dim Funding_Basis as String = Datasets.AcademyInformation.FundingBasis
         Print(Funding_Basis, "ABCD Type", rid)
         If Budget_ID isnot nothing then
@@ -7237,7 +6850,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="517b2836a2fd45198390151da0557c52")>
+    <Calculation(Id:="22bb4a0c91f44c0b9a78c0a9894b6319")>
     Public Function Post16Filter As Decimal
         Dim result As Decimal = 0
         Dim AcademyFilter As Decimal = Products.AY1718_GlobalVariables.F100_AllAcademies
@@ -7264,10 +6877,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="9929dadb3f0b454980558788e6611db3")>
+    <Calculation(Id:="f3d01fd234694439b18279b5ad1ae5de")>
     Public Function P001_ESG_MAIN_APP As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7280,10 +6892,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="df9174c7a815442ba34de841a9b4134a")>
+    <Calculation(Id:="de46d125e5c54a608647f3c87eebf238")>
     Public Function P010_ESGP_Main_Thresh1 As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7296,10 +6907,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="5c139ac48c9244daa8f125c8178e2b96")>
+    <Calculation(Id:="46746898a2d54b52b4618edd28898ab2")>
     Public Function P011_ESGP_Main_Thresh2 As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7312,10 +6922,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="3e4d665805584606bc441ffcbd7ed870")>
+    <Calculation(Id:="5752d755ecd54917bfeec89e3a90b77f")>
     Public Function P012_ESGP_AP_Thresh1 As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7328,10 +6937,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e18efdb6dcac441ca31eed93b6d08c62")>
+    <Calculation(Id:="67ffa4277c814c12b4bb0a652e5d2f0a")>
     Public Function P013_ESGP_AP_Thresh2 As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7344,10 +6952,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="632593232f0a41c0bd23e45604bcee41")>
+    <Calculation(Id:="b53680c55cee40949add8d0285d86065")>
     Public Function P014_ESGP_Special_Thresh1 As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7360,10 +6967,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="b599e4ca9b304e19ac62ee142fd60abc")>
+    <Calculation(Id:="2e769b60d87f41b1b532efbad306198a")>
     Public Function P015_ESGP_Special_Thresh2 As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7376,10 +6982,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e68e36e643b345d39305a38e15e5e731")>
+    <Calculation(Id:="7c0bb48813464a0f853f95003727a298")>
     Public Function P016_MathsTopUp_APP As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7392,10 +6997,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="87610919b56948f39716a262a66d7009")>
+    <Calculation(Id:="92085b2a68d54a3fa3bc3328890195f9")>
     Public Function P017_MFG_Level As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7408,10 +7012,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="aa338b8ee4a14d27a68a6b53d471d6fb")>
+    <Calculation(Id:="e7272643b4534cfc82e10b60f270a3f1")>
     Public Function P018_ESG_Main_APP_1617 As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7424,10 +7027,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="ee8fe7355a6d47caae442be21344a98f")>
+    <Calculation(Id:="cfc4f913d1d2403ba6bbaf5168ce9f3c")>
     Public Function P019_ESGP_Main_Rate_Change As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7440,10 +7042,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="0bb26cd977b347a093f349ec58b7ab11")>
+    <Calculation(Id:="af84ec52c231408fb55f27d54e70c77b")>
     Public Function P002_ESG_AP_APP As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7456,10 +7057,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="0e885637042f4ea39f066d57ca81fb18")>
+    <Calculation(Id:="d0d71a5a50ae45dbb2afc16cebd0c7c7")>
     Public Function P020_ESGP_Special_Rate_Change As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7472,10 +7072,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="aa7173d37f8b4a3b828909f6511a1c1e")>
+    <Calculation(Id:="2a9aadc9a1d14977942c34ea3a882735")>
     Public Function P021_ESGP_AP_Rate_Change As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7488,10 +7087,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="7c69375590274d0cb75df25300fc1828")>
+    <Calculation(Id:="b3f279aaffdb47a5b7becee6b604a133")>
     Public Function P022_RPA_Rate As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7504,10 +7102,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="674a718c17ff487a94f7c5b4f40b8d9b")>
+    <Calculation(Id:="91160eb5444f4411978d38d9f8cf2225")>
     Public Function P023_ESG_HN_APP_1617 As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7520,10 +7117,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="dbd7e6d748b34ef4adbf495882ea40ca")>
+    <Calculation(Id:="1d9fa8310d7a4190b1bfa2dc273ddc21")>
     Public Function P024_ESG_AP_APP_1617 As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7536,10 +7132,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e88e128777f94921b3fe87f9c2cc0bb5")>
+    <Calculation(Id:="0fb266e4166946ad9957251424c5b1aa")>
     Public Function P025_YearDays_1718 As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7552,10 +7147,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="696b85d2ed5741cf8b8bd8da05a80478")>
+    <Calculation(Id:="45830d210bd24fd7b5395e083b2f518c")>
     Public Function P026_YearDays_1617 As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7568,13 +7162,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="9ee0c1519dfd44228e2ef25ef9f86603")>
+    <Calculation(Id:="da2adec7b0c04e16837e92205f217dce")>
     Public Function P027_DaysOpen As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
-        Dim DateOpened As Date = Datasets.ProviderInformation.DateOpened
-        Dim ConvertDate As Date = Datasets.ProviderInformation.ConvertDate
+        Dim DateOpened As Date = Provider.DateOpened
+        Dim ConvertDate As Date = Provider.ConvertDate
         Dim DateUsed As Date
         Dim Days_Open As Decimal = 0
         If ConvertDate >= DateOpened Then
@@ -7603,12 +7196,11 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="54977ba7980d4cefa71e37aded9a2cb9")>
+    <Calculation(Id:="1a27b86c180b4134a896a250793b44c5")>
     Public Function P028_MonthsOpen As Decimal
         Dim result As Decimal = 0
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim DateOpened As Date = Datasets.ProviderInformation.DateOpened
-        Dim ConvertDate As Date = Datasets.ProviderInformation.ConvertDate
+        Dim DateOpened As Date = Provider.DateOpened
+        Dim ConvertDate As Date = Provider.ConvertDate
         Dim DateUsed As Date
         Dim Months_Open As Decimal = 0
         If ConvertDate >= DateOpened Then
@@ -7635,10 +7227,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="422cb930ef01499ea103f1eccbcb0045")>
+    <Calculation(Id:="899fe9c2c00040ce8b43edb29cb88a8a")>
     Public Function P029_FSP_Level As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7651,10 +7242,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d0986776c4964300a2801a8f73baa0e4")>
+    <Calculation(Id:="3cd0fd3464ee488ba991e914e96d7180")>
     Public Function P003_ESG_HN_APP As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7667,10 +7257,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="b6e67fb486874edcb1b42b9a0d57a657")>
+    <Calculation(Id:="4026d57d4d8f4527a4b46f66562f31d0")>
     Public Function P004_Pre16_HN_APP As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7683,10 +7272,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="2503e48bb2e74d56877ffdb3f48c5142")>
+    <Calculation(Id:="bae0b25794854a6bbc6927735f187477")>
     Public Function P005_Pre16_AP_APP As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7699,10 +7287,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d5c33c1eec0947358600c0ec01ba195b")>
+    <Calculation(Id:="b61daf68dca84769a5130d017176977f")>
     Public Function P006_Post16_HN_APP As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7715,10 +7302,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="82ae56e9d5ab457bbda82d6a5b77b471")>
+    <Calculation(Id:="0ab9fa44d170408f9d9519343ef5f07b")>
     Public Function P007_ESGP_Cond1 As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7731,10 +7317,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="861195b5aefb40faae4458be453e3339")>
+    <Calculation(Id:="c7ffaa014b1146899359e9481289e60e")>
     Public Function P008_ESGP_Cond2 As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7747,10 +7332,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="bcf02330f1be45e3b56b949cbe3b0cd1")>
+    <Calculation(Id:="5e4d5f5ec9824186a321d43745a10615")>
     Public Function P009_ESGP_Cond3 As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Funding_Basis As String = Datasets.AcademyInformation.FundingBasis
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         Print(Funding_Basis, "Funding_Basis", rid)
@@ -7763,7 +7347,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d118b0d80d6749a78bd6cccc9a840d53")>
+    <Calculation(Id:="ee486779c3714cfea4b78b676f5fd60d")>
     Public Function POG_PPR_P03_FundingRate As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -7777,7 +7361,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e1bedcefc4cd4567ad71a95e8313dbac")>
+    <Calculation(Id:="30bf2321802b4742841df03084900f2e")>
     Public Function POG_PPR_P05_Sec_FundingRate As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -7791,7 +7375,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="3a14898e914745d5bb8c55616de26df3")>
+    <Calculation(Id:="f1c11ff1cb86487b945a507e78795a37")>
     Public Function POG_PPR_P08_PriPlace_FundingRate As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -7805,7 +7389,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="afe86ae8ba6b48bd90943dd28c36906a")>
+    <Calculation(Id:="ff6b6126d2894fa59133243e1e0b7d98")>
     Public Function POG_PPR_P10_SecPlace_FundingRate As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -7819,7 +7403,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="ccb760e1f2e9476e91c278744c465295")>
+    <Calculation(Id:="6e909913734f4ec2939da3e107fc7466")>
     Public Function POG_LD_P19_SecEmptyCohort1 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -7833,7 +7417,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="85b1f8322263414b88633d106459e1ca")>
+    <Calculation(Id:="d4eac75dd894488faddf3a505bb92fe1")>
     Public Function POG_LD_P13_PriEmptyCohort2 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -7847,7 +7431,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="166512959f294e3cab1489ade0629376")>
+    <Calculation(Id:="9ab20f7f616547718ed44eb33decc52f")>
     Public Function POG_LD_P14_PriEmptyCohort3 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -7861,7 +7445,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d4d3c87781774a70ab5fc57869962954")>
+    <Calculation(Id:="dadaa30c62a4426a95c5ebf3f761e741")>
     Public Function POG_LD_P15_PriEmptyCohort4 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -7875,7 +7459,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="39525b718ad54793960f36213cd472ce")>
+    <Calculation(Id:="a697fe80d65f449f9dea2b3bcb0d3040")>
     Public Function POG_LD_P16_PriEmptyCohort5 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -7889,7 +7473,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="4367dcb708ab44a697c9bb84d35d7053")>
+    <Calculation(Id:="c981c4c81c6e44faa8b93bbaa364b94e")>
     Public Function POG_LD_P17_PriEmptyCohort6 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -7903,7 +7487,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="375c79b75e9c45ab8d5c32abaeb8420c")>
+    <Calculation(Id:="a65a7bfa6186482a9ca3e488ce640b00")>
     Public Function POG_LD_P18_Pri_Max_Cap As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -7917,7 +7501,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="615b0b17a340437c8e8f1a3ff051bef5")>
+    <Calculation(Id:="f85bd9f207c14838912b2187c5881d12")>
     Public Function POG_LD_P12_PriEmptyCohort1 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -7931,7 +7515,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="3d7cf0e3050b41029069c4298d25ef01")>
+    <Calculation(Id:="5b7e4abe8bed4e8e97739834cc5bf6a3")>
     Public Function POG_LD_P20_SecEmptyCohort2 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -7945,7 +7529,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="f0c42450de974c81bf1a7f451e3a74d2")>
+    <Calculation(Id:="db96a15ce40c44d18f1b44a88a6faa1d")>
     Public Function POG_LD_P21_SecEmptyCohort3 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -7959,7 +7543,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="ced528d1e33f420c9569cacfb96993d1")>
+    <Calculation(Id:="e26614346e89460fa8ca36feea826896")>
     Public Function POG_LD_P22_SecEmptyCohort4 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -7973,7 +7557,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="452ca3edad374d828aca5406a4e17649")>
+    <Calculation(Id:="78dce8901605497fac69a647573bbb11")>
     Public Function POG_LD_P23_Sec_Max_Cap As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -7987,7 +7571,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="c384863aa18047d1b4bca48d12c1e746")>
+    <Calculation(Id:="b4b809bd63d24eb0864f7de4cfbaec79")>
     Public Function POG_LD_P24_AllThruEmptyCohort1 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8001,7 +7585,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="0adb17a45a2248f8b7a9ccdb56448aee")>
+    <Calculation(Id:="73cea0d890554e669f3434a0e542f720")>
     Public Function POG_LD_P25_AllThruEmptyCohort2 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8015,7 +7599,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="c7e4d5e27abf471eac422a1cb7f2e91d")>
+    <Calculation(Id:="2375df5f790e4308b5d26a1dbec43c91")>
     Public Function POG_LD_P26_AllThruEmptyCohort3 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8029,7 +7613,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="89891e1480c246a6bc96d1607cd7df02")>
+    <Calculation(Id:="57b452b3eaca4253ac780d8d5113cc94")>
     Public Function POG_LD_P27_AllThruEmptyCohort4 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8043,7 +7627,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e6dd93470d7a473aad60f2551d9d2a6e")>
+    <Calculation(Id:="18e0154ecf08413eb89ea8fda2d583aa")>
     Public Function POG_LD_P28_AllThruEmptyCohort5 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8057,7 +7641,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="dde9a5d3820040628b178036d63b162a")>
+    <Calculation(Id:="faf5dbda092c435e88530ae0ba896fc5")>
     Public Function POG_LD_P29_AllThruEmptyCohorts6 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8071,7 +7655,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="9a212823429d4a0c99a1e619cc35a44c")>
+    <Calculation(Id:="43712a61b3384b30ad08856f2106771e")>
     Public Function POG_LD_P30_AllThru_Max_Cap As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8085,7 +7669,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="b84e7abeb5fe4a41861174b68afaee4f")>
+    <Calculation(Id:="4e128aafc71c4d33a24a2f8d4504db9e")>
     Public Function POG_LD_P31_1619FS_Year1 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8099,7 +7683,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="25f098d4aca04750b3255a6872324c30")>
+    <Calculation(Id:="915ef4c72ce94e7ea731deaa2e92a783")>
     Public Function POG_LD_P32_1619FS_Year2 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8113,7 +7697,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="5cf8b160f20b491ca8034777920b9b55")>
+    <Calculation(Id:="e52af6eaa56141ae86ae9c9c066a7f92")>
     Public Function POG_LD_P33_UTC_Year1 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8127,7 +7711,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="a1f4d1f92693433a825a8ad9a1de93f1")>
+    <Calculation(Id:="a19cd8b4ff9942e48974b0d7c1e72643")>
     Public Function POG_LD_P34_UTC_Year2 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8141,7 +7725,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="ae1dae49dfa84c4dbc2026b84ee63344")>
+    <Calculation(Id:="8d435fdf307041cdb360af0431e5eff3")>
     Public Function POG_LD_P35_UTC_Year3 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8155,7 +7739,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="5c8c8e5467294d01b5cd99c228d9b182")>
+    <Calculation(Id:="af7811c1cd2a4300b1ad04f0aaa87c10")>
     Public Function POG_LD_P36_StudioSchool_Year1 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8169,7 +7753,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="a6f257de5a2a4c7ab0f56bd196e36d6d")>
+    <Calculation(Id:="1d138cccea2a4c91b28f82098677f4ce")>
     Public Function POG_LD_P37_StudioSchool_Year2 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8183,7 +7767,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="7b73197c0b4049d4a069829dade1e123")>
+    <Calculation(Id:="bfe94b7435c6475fa91425899a94b04f")>
     Public Function POG_LD_P38_StudioSchool_Year3 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8197,7 +7781,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="bcb9cb2c616a49aea9d32ac70110e23f")>
+    <Calculation(Id:="4d59974ff7c3488781bd608b6ae23d14")>
     Public Function POG_LD_P39_SpecialSchool_Year1 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8211,7 +7795,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="9bcd879e7d1a4029b146467deff55062")>
+    <Calculation(Id:="fad3818025964ee490963654882a86dc")>
     Public Function POG_LD_P40_SpecialSchool_Year2 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8225,7 +7809,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="c8dfe7ad4b6b4aab815c04a86ab4ec62")>
+    <Calculation(Id:="4c5763ea9c14447fa1bf619b05674fcb")>
     Public Function POG_LD_P41_SpecialSchool_Year3 As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8239,7 +7823,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="a07aa8f880014bfeaa927679604bfc66")>
+    <Calculation(Id:="1a229d3b307c40ecb46b969ef8746606")>
     Public Function SUG_P03_Class_Size As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8253,7 +7837,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e53d3f001cfb4d0fb4784e030055a6db")>
+    <Calculation(Id:="ddc8a6149c944bbbac0c639c5cc82049")>
     Public Function SUG_P05_Pri_SUGA_Min As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8267,7 +7851,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="f2882a9873ed4da38d091bf4edd9e22f")>
+    <Calculation(Id:="db11e6615c2f4238a0b7d4763a1a0e31")>
     Public Function SUG_P06_Pri_SUGA_Max As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8281,7 +7865,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="44cd9bc88e434c18b3c3116ad807dffb")>
+    <Calculation(Id:="4724d01268d84cb39be14d27853ba2d9")>
     Public Function SUGA_P08_Sec_Per_Pupil_Funding_Rate As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8295,7 +7879,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="b07c1b090f89499eb1450bb208c24513")>
+    <Calculation(Id:="c0615b574ceb4d879e323392b699232f")>
     Public Function SUGA_P08a_Per_Place_Funding_Rate As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8309,7 +7893,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="8726ea489155432d840dae509f37062e")>
+    <Calculation(Id:="4e3bf4fc5d194025ae63fefdca1c32c3")>
     Public Function SUGB_P12_Pri_MinCap As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8323,7 +7907,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="3d712a5566d3447d9b3802308531c4ac")>
+    <Calculation(Id:="e637cbcef000422ba8048415b96a3011")>
     Public Function SUGB_P13_Pri_MaxCap As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8337,7 +7921,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d15d4026218145ea9272de9c282a456c")>
+    <Calculation(Id:="455a455129174dbca2cdc31c27079d17")>
     Public Function SUGB_P14_PerPercentRate As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8351,7 +7935,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="f62397c70d80471a97f8f6f85d999fb6")>
+    <Calculation(Id:="24bf94554abd4ab68c79ab37afab9669")>
     Public Function SUGB_P15_CapacityPerCentMin As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8365,7 +7949,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="72a24329e524468bb4a1e00456707273")>
+    <Calculation(Id:="00619ca0c39f402f91ee7b9bb4c23424")>
     Public Function SUGB_P16_FundingPerCentMin As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8379,7 +7963,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e2bc85a823d84ee29e4aee829c73029c")>
+    <Calculation(Id:="98046897833a4fbeb7871ac6255d0701")>
     Public Function SUGB_P22_SecMinCap As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8393,7 +7977,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="4b9c427b13004d6582c6679bf5648f1f")>
+    <Calculation(Id:="e55f19845f8a47b68530279502154434")>
     Public Function SUGB_P23_SecMaxCapSmall As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8407,7 +7991,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="ea9156b96d5f4a0ba6b116ca59e8b2ce")>
+    <Calculation(Id:="b603eb86228d40c2827cf45d7881db43")>
     Public Function SUGB_P24_SecMaxCapLarge As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8421,7 +8005,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="86f87425cf3f4abfa04d10392e88836b")>
+    <Calculation(Id:="383381c8dc804838987ec0136c2d4892")>
     Public Function SUGB_P25_PerPercentRateSmall As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8435,7 +8019,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="43a0c51ba6db4adbaf42c24703809742")>
+    <Calculation(Id:="47cadf51401f41c3a9375e7f00a5f0e5")>
     Public Function SUGB_P26_PerPercentRateLarge As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8449,7 +8033,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="3a8ca4f5283d4843a9614b70b449be2d")>
+    <Calculation(Id:="1f87d7cb9fc6459db9f5bed3c93ebc09")>
     Public Function SUGB_P32_MaxCapSmall As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8463,7 +8047,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="cb2ead62b8b041d79fb0be3b7aba1790")>
+    <Calculation(Id:="2989dd179cd542c08721e6661dba833b")>
     Public Function SUGB_P33_MinCapLarge As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8477,7 +8061,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="2442b91c63174ae7907c4846860ea065")>
+    <Calculation(Id:="e520354942f143f68b8aaf8cbd3e8c10")>
     Public Function SUGB_P34_MedPupilRange As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8491,7 +8075,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="90c1a7c3ea244c6ca811d1620a0f55b4")>
+    <Calculation(Id:="409c7760a94d4a109c223468d03f0785")>
     Public Function SUGB_P35_MaxCapDiff As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8505,7 +8089,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="047b7514056f4fcdba9439822aa00f21")>
+    <Calculation(Id:="43ddc6bfabfc4a5b8638a1bbf862c8d7")>
     Public Function SUGB_P36_DiseconPerCentDiff As Decimal
         Dim result = Decimal.Zero
         Dim AcademyFilter As Decimal = F100_AllAcademies
@@ -8519,7 +8103,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="c552310bca6f4fc19c940971c5f42bfa")>
+    <Calculation(Id:="61a7abcbf8d94d639bc21b39caa50f8e")>
     Public Function HN_Unit_Flag As Decimal
         Dim result As Decimal = 0
         Dim HN_UNIT As String = Datasets.APTLocalfactorsdataset.HighNeedsUnit
@@ -8540,7 +8124,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="f6ba5becac3c4c6e9df798280a870244")>
+    <Calculation(Id:="df521259956a4e0c99741fe558a83a82")>
     Public Function Reception_Uplift_Flag As Decimal
         Dim Result = 0
         Dim RU_Applicable As String = LAtoProv(Datasets.APTProformadataset.ReceptionUpliftYesNo)
@@ -8560,7 +8144,7 @@ Public Class Calculations
         Return Result
     End Function
 
-    <Calculation(Id:="0cabd4d4185847a4844864a2afccc2a9")>
+    <Calculation(Id:="d188a90740cb4b83a608d04a5b0e251d")>
     Public Function NOR_P01_RU As Decimal
         Dim result = Decimal.Zero
         Dim RU_Flag as Single = LAtoProv(Reception_Uplift_Flag)
@@ -8573,8 +8157,6 @@ Public Class Calculations
         Dim NOR_RFDC As Decimal = Datasets.EstimateNumberCounts.EstNOR
         Dim Guaranteed As String = Datasets.APTInputsandAdjustments.Amendedpupilnumbersguaranteed ? 
         Dim NOR_InpAdj As Decimal = Datasets.APTInputsandAdjustments.NOR
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim F900_FundingBasis As Decimal = F900_FundingBasis
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181) Then
             If RU_Flag = 1 And F900_FundingBasis = 1 And IsNull = False Then
                 Result = RU_InpAdj
@@ -8604,7 +8186,7 @@ Public Class Calculations
         return result
     End Function
 
-    <Calculation(Id:="89b68a96a15e49c58e16f76588dcbc45")>
+    <Calculation(Id:="bdccfdd298d743928fcad3c75fda266d")>
     Public Function NOR_P02_PRI As Decimal
         Dim result = Decimal.Zero
         Dim IsNull As Boolean = iif(Datasets.APTInputsandAdjustments.NORPrimary, false, true)
@@ -8615,8 +8197,6 @@ Public Class Calculations
         Dim NOR_InpAdj As Decimal = Datasets.APTInputsandAdjustments.NOR
         Dim NOR_Pri_InpAdj As Decimal = Datasets.APTInputsandAdjustments.NORPrimary
         Dim NOR_Pri_Census As Decimal = Datasets.CensusNumberCounts.NORPrimary
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim F900_FundingBasis As Decimal = F900_FundingBasis
         Dim NOR_Pri_APT_Adj As Decimal = Datasets.APTAdjustedFactorsdataset.NORPrimary
         Dim NOR_P01_RU As Decimal = Products .1617_ NOR.NOR_P01_RU 
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181) Then
@@ -8644,12 +8224,12 @@ Public Class Calculations
         return result
     End Function
 
-    <Calculation(Id:="a9e6fda418d6490fb7524be4930e9605")>
+    <Calculation(Id:="81ccbad8f98c4be5967eb5a245f40762")>
     Public Function NOR_P03_Y1Y4 As Decimal
         Dim result = Decimal.Zero
         Dim IsNull As Boolean
         IsNull = IIf(Datasets.APTInputsandAdjustments.NORYr14, false, true)
-        Dim DateOpened as date = Datasets.ProviderInformation.DateOpened
+        Dim DateOpened as date = Provider.DateOpened
         Dim NOR_Y1Y4_Census As Decimal = Datasets.CensusNumberCounts.NORY14
         Dim NOR_Y1Y4_InpAdj As Decimal = Datasets.APTInputsandAdjustments.NORYr14
         Dim NOR_InpAdj As Decimal = Datasets.APTInputsandAdjustments.NOR
@@ -8658,8 +8238,6 @@ Public Class Calculations
         Dim NOR_P008 As double = P008_NOR_Est_RtoY11
         Dim NOR_P002 As double = P002_NOR_Est_Y1to4
         Dim Guaranteed As String = Datasets.APTInputsandAdjustments.Amendedpupilnumbersguaranteed ? 
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim F900_FundingBasis As String = F900_FundingBasis
         Print(IsNull, "IsNull", rid)
         Print(NOR_InpAdj, "NOR InputsAdj", rid)
         Print(NOR_Y1Y4_Census, "NORY1Y4 Census", rid)
@@ -8690,21 +8268,19 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="3c2c967da96d45c29d5d08cef2c9309b")>
+    <Calculation(Id:="86bac971bfd643528e88edfdbbbc910b")>
     Public Function NOR_P04_Y5Y6 As Decimal
         Dim result = Decimal.Zero
         Dim IsNull As Boolean
         IsNull = IIf(Datasets.APTInputsandAdjustments.NORYr56, false, true)
         Dim NOR_Y5Y6_InpAdj As Decimal = Datasets.APTInputsandAdjustments.NORYr56
-        Dim DateOpened as date = Datasets.ProviderInformation.DateOpened
+        Dim DateOpened as date = Provider.DateOpened
         Dim NOR_Y5Y6_Census As Decimal = Datasets.CensusNumberCounts.NORY56
         Dim NOR_P008 As Decimal = P008_NOR_Est_RtoY11
         Dim NOR_P003 As Decimal = P003_NOR_Est_Y5to6
         Dim NOR_Y5Y6_APT As Decimal = Datasets.APTAdjustedFactorsdataset.NOR56forcalculationoftheeligiblepupilsfortheprimarypriorattainmentfactor
         Dim Guaranteed As String = Datasets.APTInputsandAdjustments.Amendedpupilnumbersguaranteed ? 
         Dim NOR_InpAdj As Decimal = Datasets.APTInputsandAdjustments.NOR
-        Dim F100_AllAcademies = F100_AllAcademies
-        Dim F900_FundingBasis As String = F900_FundingBasis
         Print(IsNull, "IsNull", rid)
         Print(NOR_InpAdj, "NOR Inp Adj", rid)
         Print(NOR_Y5Y6_Census, "NOR Y5Y6 Census", rid)
@@ -8737,14 +8313,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="8e7c02c3717642eca4697e8fa4bf98c9")>
+    <Calculation(Id:="e2658634882847cd922a1f621d157c05")>
     Public Function NOR_P05_NUR As Decimal
         Dim result = Decimal.Zero
         Dim IsNull As Boolean
         Dim NOR_Nursery_Census = Datasets.CensusNumberCounts.FTENursery
         Dim NOR_Nursery_RFDC = Datasets.EstimateNumberCounts.EstFTENursery
-        Dim F100_AllAcademies = F100_AllAcademies
-        Dim F900_FundingBasis = F900_FundingBasis
         Print(F900_FundingBasis, "F900_FundingBasis", rid)
         Print(NOR_Nursery_Census, "Nursery_NOR", rid)
         Print(NOR_Nursery_RFDC, "Nur_est", rid)
@@ -8769,13 +8343,11 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d36417f06dda4eebae1435ea2c27f84e")>
+    <Calculation(Id:="3e74eb4484864a4195018b2fc5d0b317")>
     Public Function NOR_P06_SEC As Decimal
         Dim result = Decimal.Zero
         Dim NOR_P07 As Decimal = NOR_P07_KS3
         Dim NOR_P08 As Decimal = NOR_P08_KS4
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim F900_FundingBasis As Decimal = F900_FundingBasis
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = NOR_P07 + NOR_P08
         Else
@@ -8787,11 +8359,11 @@ Public Class Calculations
         Return Result
     End Function
 
-    <Calculation(Id:="1aa0065af37c436191cd14c9767d2e53")>
+    <Calculation(Id:="00abb6a8523f4c26a42ed189a535bba4")>
     Public Function NOR_P07_KS3 As Decimal
         Dim result = Decimal.Zero
         Dim IsNull As Boolean = iif(Datasets.APTInputsandAdjustments.NORKS3, false, true)
-        Dim DateOpened As Date = Datasets.ProviderInformation.DateOpened
+        Dim DateOpened As Date = Provider.DateOpened
         Dim NOR_KS3_InpAdj As Decimal = Datasets.APTInputsandAdjustments.NORKS3
         Dim NOR_InpAdj As Decimal = Datasets.APTInputsandAdjustments.NOR
         Dim NOR_KS3_Cen As Decimal = Datasets.CensusNumberCounts.NORKS3
@@ -8799,8 +8371,6 @@ Public Class Calculations
         Dim NOR_P008 As Decimal = P008_NOR_Est_RtoY11
         Dim NOR_KS3_AdjFact As Decimal = Datasets.APTAdjustedFactorsdataset.NORKS3
         Dim Guaranteed As String = Datasets.APTInputsandAdjustments.Amendedpupilnumbersguaranteed ? 
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim F900_FundingBasis As Decimal = F900_FundingBasis
         Print(NOR_InpAdj, "NOR InpAdj", rid)
         Print(DateOpened, "Date Opened", rid)
         Print(F900_FundingBasis, "F900_FundingBasis", rid)
@@ -8832,10 +8402,10 @@ Public Class Calculations
         Return Result
     End Function
 
-    <Calculation(Id:="446b133077794c0f8ec76ad7594cab40")>
+    <Calculation(Id:="1c8b8e67c24c47f3b1fe62e3bb61b8a7")>
     Public Function NOR_P08_KS4 As Decimal
         Dim result = Decimal.Zero
-        Dim DateOpened As Date = Datasets.ProviderInformation.DateOpened
+        Dim DateOpened As Date = Provider.DateOpened
         Dim IsNull As Boolean
         IsNull = IIf(Datasets.APTInputsandAdjustments.NORKS4, false, true)
         Dim NOR_KS4_InpAdj As Decimal = Datasets.APTInputsandAdjustments.NORKS4
@@ -8845,8 +8415,6 @@ Public Class Calculations
         Dim NOR_P008 As Decimal = P008_NOR_Est_RtoY11
         Dim NOR_KS4_AdjFact As Decimal = Datasets.APTAdjustedFactorsdataset.NORKS4
         Dim Guaranteed As String = Datasets.APTInputsandAdjustments.Amendedpupilnumbersguaranteed ? 
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim F900_FundingBasis As Decimal = F900_FundingBasis
         Print(IsNull, "IsNull", rid)
         Print(NOR_InpAdj, "NOR InpAdj", rid)
         Print(DateOpened, "Date Opened", rid)
@@ -8879,11 +8447,10 @@ Public Class Calculations
         Return Result
     End Function
 
-    <Calculation(Id:="2966289b71074759b98c58fc0a577a84")>
+    <Calculation(Id:="5d3de3b0d75044fba037bf93708b6c01")>
     Public Function NOR_P09_APT_HN_PRI As Decimal
         Dim result = Decimal.Zero
         Dim NOR_APT_HN_Pri As Decimal = Datasets.APTLocalfactorsdataset.NumberofprimarypupilsonrollattheschoolinHighNeedsplacesin201617
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Print(NOR_APT_HN_Pri, "APT HN Pri", rid)
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = NOR_APT_HN_Pri
@@ -8894,11 +8461,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="49c45ef61b754a2da94133c662cc54d5")>
+    <Calculation(Id:="82b2966186fc405dbc6f19e74248aa00")>
     Public Function NOR_P10_APT_HN_KS3 As Decimal
         Dim result = Decimal.Zero
         Dim NOR_APT_HN_KS3 As Decimal = Datasets.APTLocalfactorsdataset.NumberofKS3pupilsonrollattheschoolinHighNeedsplacesin201617
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = NOR_APT_HN_KS3
         Else
@@ -8908,11 +8474,10 @@ Public Class Calculations
         return Result
     End Function
 
-    <Calculation(Id:="436f9a8540c24189b11fa097a0fdb008")>
+    <Calculation(Id:="8548a3adad79436a851a715abe6acc0b")>
     Public Function NOR_P11_APT_HN_KS4 As Decimal
         Dim result = Decimal.Zero
         Dim NOR_APT_HN_KS4 As Decimal = Datasets.APTLocalfactorsdataset.NumberofKS4pupilsonrollattheschoolinHighNeedsplacesin201617
-        Dim F100_AllAcademies = F100_AllAcademies
         Print(NOR_APT_HN_KS4, "APT_HN_HN_KS4", rid)
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = NOR_APT_HN_KS4
@@ -8923,14 +8488,10 @@ Public Class Calculations
         return Result
     End Function
 
-    <Calculation(Id:="6b434062edb24d03975dc001a8b5c12e")>
+    <Calculation(Id:="856988ba4c774984921b66c1986ed424")>
     Public Function NOR_P12_HND_HNP_HN_PRI As Decimal
         Dim result = Decimal.Zero
         Dim HNs_Places_Total As Decimal = Datasets.HighNeedsPlaces.Totalpre16HNsplaces
-        Dim NOR_P02_PRI As Decimal = NOR_P02_PRI
-        Dim NOR_P07_KS3 As Decimal = NOR_P07_KS3
-        Dim NOR_P08_KS4 As Decimal = NOR_P08_KS4
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Pri_Unadj_Split As Decimal = math.round(HNs_Places_Total * NOR_P02_PRI / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
         Dim KS3_Unadj_Split As Decimal = math.round(HNs_Places_Total * NOR_P07_KS3 / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
         Dim KS4_Unadj_Split As Decimal = math.round(HNs_Places_Total * NOR_P08_KS4 / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
@@ -8945,14 +8506,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="4a1b7b120b6f450b89a8757fdcf6d739")>
+    <Calculation(Id:="d51aac88f2144daba0c78ef4e5708b96")>
     Public Function NOR_P13_HND_HNP_HN_KS3 As Decimal
         Dim result = Decimal.Zero
         Dim HNs_Places_Total As Decimal = Datasets.HighNeedsPlaces.Totalpre16HNsplaces
-        Dim NOR_P02_PRI As Decimal = NOR_P02_PRI
-        Dim NOR_P07_KS3 As Decimal = NOR_P07_KS3
-        Dim NOR_P08_KS4 As Decimal = NOR_P08_KS4
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Pri_Unadj_Split As Decimal = math.round(HNs_Places_Total * NOR_P02_PRI / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
         Dim KS3_Unadj_Split As Decimal = math.round(HNs_Places_Total * NOR_P07_KS3 / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
         Dim KS4_Unadj_Split As Decimal = math.round(HNs_Places_Total * NOR_P08_KS4 / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
@@ -8967,14 +8524,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="5726ea3451e644a2bd5108bec4ec03f4")>
+    <Calculation(Id:="62b949374c6a4b82b67441de1e22fb89")>
     Public Function NOR_P14_HND_HNP_HN_KS4 As Decimal
         Dim result = Decimal.Zero
         Dim HNs_Places_Total As Decimal = Datasets.HighNeedsPlaces.Totalpre16HNsplaces
-        Dim NOR_P02_PRI As Decimal = NOR_P02_PRI
-        Dim NOR_P07_KS3 As Decimal = NOR_P07_KS3
-        Dim NOR_P08_KS4 As Decimal = NOR_P08_KS4
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Pri_Unadj_Split As Decimal = math.round(HNs_Places_Total * NOR_P02_PRI / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
         Dim KS3_Unadj_Split As Decimal = math.round(HNs_Places_Total * NOR_P07_KS3 / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
         Dim KS4_Unadj_Split As Decimal = math.round(HNs_Places_Total * NOR_P08_KS4 / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
@@ -8989,14 +8542,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="ee38859654084a7bb41acbe2da959084")>
+    <Calculation(Id:="e30b09a2e2c748ee8a09c2f6ad36f334")>
     Public Function NOR_P15_HND_HNP_AP_PRI As Decimal
         Dim result = Decimal.Zero
         Dim AP_Places_Total As Decimal = Datasets.HighNeedsPlaces.Totalpre16APplaces
-        Dim NOR_P02_PRI As Decimal = NOR_P02_PRI
-        Dim NOR_P07_KS3 As Decimal = NOR_P07_KS3
-        Dim NOR_P08_KS4 As Decimal = NOR_P08_KS4
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Pri_Unadj_Split As Decimal = math.round(AP_Places_Total * NOR_P02_PRI / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
         Dim KS3_Unadj_Split As Decimal = math.round(AP_Places_Total * NOR_P07_KS3 / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
         Dim KS4_Unadj_Split As Decimal = math.round(AP_Places_Total * NOR_P08_KS4 / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
@@ -9011,14 +8560,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="f5baca5ede8e483099d244b17372966b")>
+    <Calculation(Id:="552ce1fdf94c4a5aac1161d2ac99e141")>
     Public Function NOR_P16_HND_HNP_AP_KS3 As Decimal
         Dim result = Decimal.Zero
         Dim AP_Places_Total As Decimal = Datasets.HighNeedsPlaces.Totalpre16APplaces
-        Dim NOR_P02_PRI As Decimal = NOR_P02_PRI
-        Dim NOR_P07_KS3 As Decimal = NOR_P07_KS3
-        Dim NOR_P08_KS4 As Decimal = NOR_P08_KS4
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Pri_Unadj_Split As Decimal = math.round(AP_Places_Total * NOR_P02_PRI / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
         Dim KS3_Unadj_Split As Decimal = math.round(AP_Places_Total * NOR_P07_KS3 / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
         Dim KS4_Unadj_Split As Decimal = math.round(AP_Places_Total * NOR_P08_KS4 / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
@@ -9033,14 +8578,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="ed13b225693e44b5926bbaf3c8c3d1b7")>
+    <Calculation(Id:="a850eff038ef4faba9020e1aae9719c2")>
     Public Function NOR_P17_HND_HNP_AP_KS4 As Decimal
         Dim result = Decimal.Zero
         Dim AP_Places_Total As Decimal = Datasets.HighNeedsPlaces.Totalpre16APplaces
-        Dim NOR_P02_PRI As Decimal = NOR_P02_PRI
-        Dim NOR_P07_KS3 As Decimal = NOR_P07_KS3
-        Dim NOR_P08_KS4 As Decimal = NOR_P08_KS4
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Pri_Unadj_Split As Decimal = math.round(AP_Places_Total * NOR_P02_PRI / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
         Dim KS3_Unadj_Split As Decimal = math.round(AP_Places_Total * NOR_P07_KS3 / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
         Dim KS4_Unadj_Split As Decimal = math.round(AP_Places_Total * NOR_P08_KS4 / (NOR_P02_PRI + NOR_P07_KS3 + NOR_P08_KS4), 0)
@@ -9055,10 +8596,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="b73f801f1d974edf994baaa3d4729853")>
+    <Calculation(Id:="00a156e73041494da3f262d3e1875724")>
     Public Function NOR_P18_HND_HN_Pre16 As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Total_HNs_Places_Pre16 As Decimal = Datasets.HighNeedsPlaces.Totalpre16HNsplaces
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) Then
             Result = Total_HNs_Places_Pre16
@@ -9069,10 +8609,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e827ee0fce3740049ea1a21ff559ebf4")>
+    <Calculation(Id:="d48ec2a6f023454c995648810f9e412c")>
     Public Function NOR_P19_HND_AP_Pre16 As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies = F100_AllAcademies
         Dim Total_AP_Places_Pre16 As Decimal = Datasets.HighNeedsPlaces.Totalpre16APplaces
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) Then
             Result = Total_AP_Places_Pre16
@@ -9083,10 +8622,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="6338ff5ac268480caa3fd9916a568b7b")>
+    <Calculation(Id:="76f79709d7d44f77a28399066eb4b388")>
     Public Function NOR_P20_HND_Hosp_Pl As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies = F100_AllAcademies
         Dim NOR_HND_Hosp_Pl As Decimal = Datasets.HighNeedsPlaces.Hospitalprovisionplaces
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             Result = NOR_HND_Hosp_Pl
@@ -9097,13 +8635,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="275efe39668748899b247bac88876ea9")>
+    <Calculation(Id:="0800e35726c8459eb11663dafa531fb6")>
     Public Function NOR_P21_P16 As Decimal
         Dim result = Decimal.Zero
-        Dim NOR_P21_P16 As Decimal = Products.AY1718_Acad_Post16.P03_Learners
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
+        Dim NOR_P21_P16_Local As Decimal = Products.AY1718_Acad_Post16.P03_Learners
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
-            Result = NOR_P21_P16
+            Result = NOR_P21_P16_Local
         Else
             Exclude(rid)
         End If
@@ -9111,11 +8648,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="5d8eea88210b42c387d0ea82f084e732")>
+    <Calculation(Id:="f855bb467d7940ff808f7eeeb3dacae0")>
     Public Function NOR_P21b_P16_HN As Decimal
         Dim result = Decimal.Zero
         Dim NOR_P21_P16 As Decimal = Products.AY1718_Acad_Post16.P04_HNPlaces
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             Result = NOR_P21_P16
         Else
@@ -9125,7 +8661,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="1b97b37ba4f44b0d8cf9dd68be2113a9")>
+    <Calculation(Id:="51d1562f141c449f944dbc1763d60dde")>
     Public Function AY1718_FundingBasis As Decimal
         Dim result = Decimal.Zero
         Dim AcadFilter As Decimal = F100_AllAcademies
@@ -9139,12 +8675,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="afbd3b455d254f998902de8335b66ad9")>
+    <Calculation(Id:="efa33de905ad4233944b8a8e8d9cb699")>
     Public Function NOR_P42a_Year_Groups_Primary As Decimal
         Dim result = Decimal.Zero
         Dim IsNull As Boolean = iif(Datasets.APTInputsandAdjustments.NumberofPrimaryyeargroupsforallschools, false, true)
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim F900_FundingBasis As Decimal = F900_FundingBasis
         Dim Primary_YP_InAdj As Decimal = Datasets.APTInputsandAdjustments.NumberofPrimaryyeargroupsforallschools
         Dim Primary_YG_Census As Decimal = Datasets.CensusPupilCharacteristics.NumberofPrimaryyeargroupsforallschools
         Dim Primary_Middle_YG_Census As Decimal = Datasets.CensusPupilCharacteristics.NumberofPrimaryyeargroupsformiddleschools
@@ -9172,12 +8706,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="c231a378e57c47b883b7f20c29910407")>
+    <Calculation(Id:="4f4886cc65d94f239799b8fde4b03bc5")>
     Public Function NOR_P42b_Year_Groups_Secondary As Decimal
         Dim result = Decimal.Zero
         Dim IsNull = iif(Datasets.APTInputsandAdjustments.NumberofSecondaryyeargroupsforallschools, false, true)
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim F900_FundingBasis = F900_FundingBasis
         Dim Sec_YG_InAdj = Datasets.APTInputsandAdjustments.NumberofSecondaryyeargroupsforallschools
         Dim Sec_YG_Census = Datasets.CensusPupilCharacteristics.NumberofSecondaryyeargroupsforallschools
         Dim Sec_Middle_YG_Census = Datasets.CensusPupilCharacteristics.NumberofSecondaryyeargroupsformiddleschools
@@ -9205,7 +8737,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="fdc0b649f1bb4e61991a957b82b964db")>
+    <Calculation(Id:="21c954f89bc146a781e38a2879e7010c")>
     Public Function NOR_P08a_Y7 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim IandANOR_Y7 As Decimal = Datasets.APTInputsandAdjustments.NORY7
@@ -9233,7 +8765,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="60ba9a1c98454061a99a345713560661")>
+    <Calculation(Id:="c5dbc5e9fe5240d69d737647b3308c4a")>
     Public Function NOR_P08b_Y8to11 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim IandANOR_Y8to11 As Decimal = Datasets.APTInputsandAdjustments.NORY811
@@ -9269,7 +8801,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d3e492c246394f94a8e1aeed8248c742")>
+    <Calculation(Id:="1eaeed4f28ca433999867a1ab20712b9")>
     Public Function P001_NOR_Est_Pri As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim Reception As Decimal = Datasets.EstimateNumberCounts.EstNORReception
@@ -9290,7 +8822,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="b46ba673d6a14b659c0899aec3cf4c35")>
+    <Calculation(Id:="40024e729e1449788cb2bde4f85586df")>
     Public Function P002_NOR_Est_Y1to4 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim Y1 As Decimal = Datasets.EstimateNumberCounts.EstNORY1
@@ -9301,7 +8833,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="3a11d9b73a0e43768b0b67460febf644")>
+    <Calculation(Id:="0adec3bfc4014ad0ba9d01484b1695d8")>
     Public Function P003_NOR_Est_Y5to6 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim Y5 As Decimal = Datasets.EstimateNumberCounts.EstNORY5
@@ -9310,7 +8842,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="36b32bfef441490da07887fe87fd3d32")>
+    <Calculation(Id:="ff68de461ce948c5bc1bb141b04481b8")>
     Public Function P004_NOR_Est_Sec As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim Y7 As Decimal = Datasets.EstimateNumberCounts.EstNORY7
@@ -9322,7 +8854,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="598e6685df064b44b654f85ba4e5eb68")>
+    <Calculation(Id:="39586586c26a435da01a69241e2af771")>
     Public Function P005_NOR_Est_Y8to11 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim Y8 As Decimal = Datasets.EstimateNumberCounts.EstNORY8
@@ -9333,7 +8865,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="efde086ab1e14254afc815b2ae7dc541")>
+    <Calculation(Id:="49b389acf52440779383868b31cb09b6")>
     Public Function P006_NOR_Est_KS3 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim Y7 As Decimal = Datasets.EstimateNumberCounts.EstNORY7
@@ -9343,7 +8875,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="2c6dd629902447c986f9fe70913ad821")>
+    <Calculation(Id:="1df3afc97cc84946a37fa8bfabd7d107")>
     Public Function P007_NOR_Est_KS4 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim Y10 As Decimal = Datasets.EstimateNumberCounts.EstNORY10
@@ -9352,7 +8884,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="ead8aadf416a4fec8a5e7e25bae0ee37")>
+    <Calculation(Id:="e050313a6d5a4c31b587ee9db1be80ab")>
     Public Function P008_NOR_Est_RtoY11 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim Pri As Decimal = P001_NOR_Est_Pri
@@ -9361,7 +8893,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="32ced350872c49a49b7a9c8409f667d7")>
+    <Calculation(Id:="a51fee5afc0f4504aa0a745a148f605d")>
     Public Function P009_NOR_Est_Y12toY14 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim Y12 As Decimal = Datasets.EstimateNumberCounts.EstNORY12
@@ -9371,7 +8903,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="4d77cadefbc1498ab8991cf637f9e7f3")>
+    <Calculation(Id:="d99751234d424de18e0766c374abd504")>
     Public Function P010_NOR_TotalPri_YG As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim Reception As Decimal = Datasets.EstimateNumberCounts.EstNORReception
@@ -9434,7 +8966,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="a709b44507d440b9a9294bd7b715472f")>
+    <Calculation(Id:="b44408fafa684f41b38217d896823bc8")>
     Public Function P011_NOR_TotalSec_YG As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim Y7 As Decimal = Datasets.EstimateNumberCounts.EstNORY7
@@ -9481,7 +9013,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="faa37f236705484a9c066124b771f941")>
+    <Calculation(Id:="02570a81fbef4631b009c181dd7a924f")>
     Public Function P012_NOR_Total_YG_R_Y11 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim P010 As Decimal = P010_NOR_TotalPri_YG
@@ -9490,13 +9022,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="3863b89a5a0541709fc5e88251537a19")>
+    <Calculation(Id:="bf5337cc8e374c5387929d7ad01ede09")>
     Public Function NOR_P23_Total_NOR_KS3_SBS As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim NOR_P07_KS3 As Decimal = NOR_P07_KS3
-        Dim F900_FundingBasis As Decimal = F900_FundingBasis
-        Dim NOR_P23b_Actual_HN_KS3_Deducted As Decimal = NOR_P23b_Actual_HN_KS3_Deducted
         IF currentscenario.periodID = 2017181 AND (F100_AllAcademies = 17182 OR F100_AllAcademies = 17183) AND F900_FundingBasis = 1 THEN
             Result = NOR_P07_KS3
         ELSE
@@ -9509,10 +9037,9 @@ Public Class Calculations
         Return Result
     End Function
 
-    <Calculation(Id:="dcdd24caf71345cb84362183ec2a4b06")>
+    <Calculation(Id:="6ec5783930784c0aa270eae7406b407b")>
     Public Function NOR_P23b_Actual_HN_KS3_Deducted As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim TotalPlacesAPT As Decimal = Datasets.APTLocalfactorsdataset.TotalnumberofHighNeedsplacesin201617
         Dim APT As Boolean
         APT = IIf(Datasets.APTLocalfactorsdataset.TotalnumberofHighNeedsplacesin201617, false, true)
@@ -9520,11 +9047,9 @@ Public Class Calculations
         Dim Pre16HNData As Decimal = Datasets.HighNeedsPlaces.Totalpre16HNsplaces
         Dim Pre16APData As Decimal = Datasets.HighNeedsPlaces.Totalpre16APplaces
         Dim TotalPlacesHNData As Decimal = Pre16HNData + Pre16APData
-        Dim NOR_P10_APT_HN_KS3 As Decimal = NOR_P10_APT_HN_KS3
         Dim NOR_P16_HND_HNP_AP_KS3 As Decimal = NOR_P16_HND_HNP_AP_KS3
         Dim NOR_P13_HND_HNP_HN_KS3 As Decimal = NOR_P13_HND_HNP_HN_KS3
         Dim HND_HN_KS3 As Decimal = NOR_P16_HND_HNP_AP_KS3 + NOR_P13_HND_HNP_HN_KS3
-        Dim F900_FundingBasis As Decimal = F900_FundingBasis
         Dim HN_to_Deduct As Decimal
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             If(APT = True Or TotalPlacesAPT = 0) And TotalPlacesHNData > 0 Then
@@ -9554,13 +9079,9 @@ Public Class Calculations
         Return Result
     End Function
 
-    <Calculation(Id:="44cff3f96fe24aaeb8b08340f17b7d0c")>
+    <Calculation(Id:="6166f6cceb1e46269fcf7ee11200de67")>
     Public Function NOR_P24_Total_NOR_KS4_SBS As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim NOR_P08_KS4 As Decimal = NOR_P08_KS4
-        Dim NOR_P24b_Actual_HN_KS4_Deducted As Decimal = NOR_P24b_Actual_HN_KS4_Deducted
-        Dim F900_FundingBasis As Decimal = F900_FundingBasis
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) And F900_FundingBasis = 1 Then
             Result = NOR_P08_KS4
         Else
@@ -9570,10 +9091,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="1010cec5746f44208af3ef282096232d")>
+    <Calculation(Id:="cae122f81e0f43c8ae513abc0bd90da6")>
     Public Function NOR_P24b_Actual_HN_KS4_Deducted As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim TotalPlacesAPT As Decimal = Datasets.APTLocalfactorsdataset.TotalnumberofHighNeedsplacesin201617
         Dim APT As Boolean
         APT = IIf(Datasets.APTLocalfactorsdataset.TotalnumberofHighNeedsplacesin201617, false, true)
@@ -9581,12 +9101,9 @@ Public Class Calculations
         Dim Pre16HNData As Decimal = Datasets.HighNeedsPlaces.Totalpre16HNsplaces
         Dim Pre16APData As Decimal = Datasets.HighNeedsPlaces.Totalpre16APplaces
         Dim TotalPlacesHNData As Decimal = Pre16HNData + Pre16APData
-        Dim NOR_P08_KS4 As Decimal = NOR_P08_KS4
-        Dim NOR_P11_APT_HN_KS4 As Decimal = NOR_P11_APT_HN_KS4
         Dim NOR_P17_HND_HNP_AP_KS4 As Decimal = NOR_P17_HND_HNP_AP_KS4
         Dim NOR_P14_HND_HNP_HN_KS4 As Decimal = NOR_P14_HND_HNP_HN_KS4
         Dim HND_HN_KS4 As Decimal = [NOR_P14_HND_HNP_HN_KS4] + [NOR_P17_HND_HNP_AP_KS4]
-        Dim F900_FundingBasis As Decimal = F900_FundingBasis
         Dim HN_to_Deduct As Decimal
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) Then
             If(APT = True Or TotalPlacesAPT = 0) And TotalPlacesHNData > 0 Then
@@ -9617,10 +9134,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="f242ac7024bd4a3898c4d07f18326c8c")>
+    <Calculation(Id:="636246bc12104700bdff6ee480aa3ede")>
     Public Function NOR_P25_Total_NOR_SEC_SBS As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim P23_Total_NOR_KS3_SBS As Decimal = NOR_P23_Total_NOR_KS3_SBS
         Dim P24_Total_NOR_KS4_SBS As Decimal = NOR_P24_Total_NOR_KS4_SBS
         Print(P23_Total_NOR_KS3_SBS, "P23_Total_NOR_KS3_SBS", rid)
@@ -9634,10 +9150,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="994afe64060c4c6b9e3d30000d67e930")>
+    <Calculation(Id:="f269915f6c9b4256bff5a31a06952d94")>
     Public Function NOR_P25b_Actual_HN_Sec_deducted As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies = F100_AllAcademies
         Dim P23b_Actual_HN_KS3_Deduct As Decimal = NOR_P23b_Actual_HN_KS3_Deducted
         Dim P24b_Actual_HN_KS4_Deduct As Decimal = NOR_P24b_Actual_HN_KS4_deducted
         Print(P23b_Actual_HN_KS3_Deduct, "P23b_Actual_HN_KS3_Deduct", rid)
@@ -9651,10 +9166,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="513a3129b0b4408ea81e014cd4212fe1")>
+    <Calculation(Id:="e2ec3fcc14b042dfb89e45a4a3ddb74f")>
     Public Function NOR_P26_Total_NOR_SBS As Decimal
         Dim result = Decimal.Zero
-
         Dim P22_Total_NOR_Pri_SBS As Decimal = NOR_P22_Total_NOR_PRI_SBS
         Dim P25_Total_NOR_Sec_SBS As Decimal = NOR_P25_Total_NOR_SEC_SBS
         Dim P26b_Total_Actual_HN_Deducted As Decimal = NOR_P26b_Total_Actual_HN_deducted
@@ -9671,10 +9185,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="3add8cd82c0640b9ae014e637e4414a7")>
+    <Calculation(Id:="de1eccf0c7f84219b23cae830483e37e")>
     Public Function NOR_P26b_Total_Actual_HN_deducted As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim P22b_Actual_HN_Pri_Deduct As Decimal = NOR_P22b_Actual_HN_Pri_deducted
         Dim P23b_Actual_HN_KS3_Deduct As Decimal = NOR_P23b_Actual_HN_KS3_deducted
         Dim P24b_Actual_HN_KS4_Deduct As Decimal = NOR_P24b_Actual_HN_KS4_deducted
@@ -9695,14 +9208,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="258d5f933f2a4896bfcb9e3a3986b63b")>
+    <Calculation(Id:="687d921897174a009205e9afa27b9bf6")>
     Public Function NOR_P22_Total_NOR_PRI_SBS As Decimal
         Dim result = Decimal.Zero
         Dim NOR_P02_Pri As Decimal = NOR_P02_PRI
-        Dim NOR_P01_RU As Decimal = NOR_P01_RU
-        Dim NOR_P22b_Actual_HN_Pri_Deducted As Decimal = NOR_P22b_Actual_HN_Pri_Deducted
-        Dim F900_FundingBasis As Decimal = F900_FundingBasis
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Print(NOR_P01_RU, "NOR P01 RU", rid)
         Print(NOR_P02_Pri, "NOR P02 Pri", rid)
         Print(NOR_P22b_Actual_HN_Pri_Deducted, "NOR P02 Pri", rid)
@@ -9715,10 +9224,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="676a94f915064ed4944226446d98d589")>
+    <Calculation(Id:="6edd932d77854db8a4533c163404b889")>
     Public Function NOR_P22b_Actual_HN_Pri_Deducted As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim TotalPlacesAPT As Decimal = Datasets.APTLocalfactorsdataset.TotalnumberofHighNeedsplacesin201617
         Dim APT As Boolean
         APT = IIf(Datasets.APTLocalfactorsdataset.TotalnumberofHighNeedsplacesin201617, false, true)
@@ -9727,12 +9235,10 @@ Public Class Calculations
         Dim Pre16APData As Decimal = Datasets.HighNeedsPlaces.Totalpre16APplaces
         Dim TotalPlacesHNData As Decimal = Pre16HNData + Pre16APData
         Dim NOR_P02_Pri As Decimal = NOR_P02_PRI
-        Dim NOR_P01_RU As Decimal = NOR_P01_RU
         Dim NOR_P09_APT_HN_Pri As Decimal = NOR_P09_APT_HN_PRI
         Dim NOR_P15_HND_HNP_AP_Pri As Decimal = NOR_P15_HND_HNP_AP_PRI
         Dim NOR_P12_HND_HNP_HN_Pri As Decimal = NOR_P12_HND_HNP_HN_PRI
         Dim HND_HN_Pri As Decimal = NOR_P12_HND_HNP_HN_Pri + NOR_P15_HND_HNP_AP_Pri
-        Dim F900_FundingBasis As Decimal = F900_FundingBasis
         Dim HN_to_Deduct As Decimal
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             If(APT = True Or TotalPlacesAPT = 0) And TotalPlacesHNData > 0 Then
@@ -9764,12 +9270,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="684215f229604e8ab82d13574f588e65")>
+    <Calculation(Id:="c969e2db24f54183b6fadcfd98cd0ae5")>
     Public Function NOR_P27a_Total_NOR_MFG As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim NOR_P02_PRI As Decimal = NOR_P02_PRI
-        Dim NOR_P06_SEC As Decimal = NOR_P06_SEC
         Print(F100_AllAcademies, "F100_AllAcademies", rid)
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) Then
             Result = NOR_P02_PRI + NOR_P06_SEC
@@ -9780,11 +9283,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="970fbc1809a045778f7308d7728bb3b6")>
+    <Calculation(Id:="efe11231c80945caabcfd1002fe12804")>
     Public Function NOR_P27b_Total_HN_MFG As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim F900_FundingBasis As Decimal = F900_FundingBasis
         Dim P22b_Actual_HN_Pri_deduct As Decimal = NOR_P22b_Actual_HN_Pri_deducted
         Dim P23b_Actual_HN_KS3_deduct As Decimal = NOR_P23b_Actual_HN_KS3_deducted
         Dim P24b_Actual_HN_KS4_deduct As Decimal = NOR_P24b_Actual_HN_KS4_deducted
@@ -9805,13 +9306,11 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="69f8ec02afb54f4eaaf860dcfae7df64")>
+    <Calculation(Id:="dd9c840103e041e79bd0f12610a6c30b")>
     Public Function NOR_P27c_total_NOR_MFG_forPupilMatrix As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim P22_Total_NOR_Pri_SBS As Decimal = NOR_P22_Total_NOR_PRI_SBS
         Dim P25_Total_NOR_Sec_SBS As Decimal = NOR_P25_Total_NOR_SEC_SBS
-        Dim NOR_P01_RU As Decimal = NOR_P01_RU
         Dim NOR_P26b_Total_Actual_HN_Deducted As Decimal = NOR_P26b_Total_Actual_HN_deducted
         Print(P22_Total_NOR_Pri_SBS, "P22_Total_NOR_Pri_SBS", rid)
         Print(P25_Total_NOR_Sec_SBS, "P25_Total_NOR_Sec_SBS", rid)
@@ -9827,17 +9326,12 @@ Public Class Calculations
         Return Result
     End Function
 
-    <Calculation(Id:="f8c77500ab2648a9b468d555325dc38d")>
+    <Calculation(Id:="cae4fcc17d9147faa3f1d5002d28e55c")>
     Public Function NOR_P28_Total_NOR_Mainstream_ESG As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies = F100_AllAcademies
         Dim NOR_P05_Nur As Decimal = NOR_P05_NUR
         Dim NOR_P02_Pri As Decimal = NOR_P02_PRI
         Dim NOR_P06_Sec As Decimal = NOR_P06_SEC
-        Dim NOR_P21_P16 As Decimal = NOR_P21_P16
-        Dim NOR_P01_RU As Decimal = NOR_P01_RU
-        Dim NOR_P18_HND_HN_Pre16 As Decimal = NOR_P18_HND_HN_Pre16
-        Dim NOR_P19_HND_AP_Pre16 As Decimal = NOR_P19_HND_AP_Pre16
         Dim NOR_P20_HND_Hosp_Plc As Decimal = NOR_P20_HND_Hosp_Pl
         'ESG does Not exist In 1718, so these have been Set To zero
         'if currentscenario.periodid = 2017181 And F100_AllAcademies = 17181 Then    
@@ -9855,11 +9349,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="b6faa21b020d4cd7b6417279f9f424f3")>
+    <Calculation(Id:="66d57d267949456aa0f1a239cdcea215")>
     Public Function NOR_P29_Total_NOR_HNPlaces_ESG As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim NOR_P18_HND_HN_Pre16 = NOR_P18_HND_HN_Pre16
         'ESG does Not exist In 1718 so this has been Set To zero
         'If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then    
         '  Result = NOR_P18_HND_HN_Pre16
@@ -9869,11 +9361,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d8f887c22e3e4afe94aea527ad776618")>
+    <Calculation(Id:="23a5668de57d4fd4ab2fd03a7ac0ea3b")>
     Public Function NOR_P30_Total_NOR_APPlaces_ESG As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies = F100_AllAcademies
-        Dim NOR_P19_HND_AP_Pre16 = NOR_P19_HND_AP_Pre16
         'ESG does Not exist In 1718 so this has been Set To zero
         'If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then    
         '   Result = NOR_P19_HND_AP_Pre16
@@ -9883,11 +9373,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="c64f08e8f2bf4805a047fe10fe385147")>
+    <Calculation(Id:="40662c1d337b406189466ef231b9c654")>
     Public Function NOR_P31_Total_NOR_HospitalPlaces_ESG As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim NOR_P20_HND_Hosp_Pl = NOR_P20_HND_Hosp_Pl
         'ESG does Not exist In 1718 so this has been Set To zero
         'If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then    
         '   Result = NOR_P20_HND_Hosp_Pl
@@ -9897,10 +9385,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="42deae38bb0d4ddfb90c4f76bdf0a62b")>
+    <Calculation(Id:="39747377743a4816aa224fddd0b7e3f0")>
     Public Function NOR_P33_1617_Base_NOR As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Scenario_Report_P26 As Decimal = Persisted.Report_AY1617_Acad_NOR : NOR_AY201617_Report.P26_Total_NOR_SBS
         Dim Scenario_Report_P01 As Decimal = Persisted.Report_AY1617_Acad_NOR : NOR_AY201617_Report.P01_NOR_RU
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
@@ -9912,10 +9399,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="46f4ba7a38b74e11af9971dfea98d519")>
+    <Calculation(Id:="b7f8685a92b3470487ef6c919993f4be")>
     Public Function NOR_P34_1617_Base_RU As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Scenario_Report_P01 As Decimal = Persisted.Report_AY1617_Acad_NOR : NOR_AY201617_Report.P01_NOR_RU
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = Scenario_Report_P01
@@ -9926,10 +9412,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="695f7fcf052d44799f79edebb128d359")>
+    <Calculation(Id:="cbce4b4eed0144ab9b9ca1e0dad2f1bf")>
     Public Function NOR_P36_1617_pre16_HN As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Scenario_Report_P18 As Decimal = Persisted.Report_AY1617_Acad_NOR : NOR_AY201617_Report.P18_NOR_HNP_HN_Pre16
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = Scenario_Report_P18
@@ -9940,10 +9425,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="e1708739a1424988b835d4efef873eb4")>
+    <Calculation(Id:="7d340baa040343d0831042b3e9f5573a")>
     Public Function NOR_P37_1617_pre16_AP As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Scenario_Report_P19 As Decimal = Persisted.Report_AY1617_Acad_NOR : NOR_AY201617_Report.P19_NOR_HNP_AP_Pre16
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = Scenario_Report_P19
@@ -9954,10 +9438,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="883e84ff60f9440c93f930ddf23c79cb")>
+    <Calculation(Id:="d65d89712df84ddc8fa23ee0e69799b1")>
     Public Function NOR_P38_1617_HN_Hosp_Pl As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Scenario_Report_P20 As Decimal = Persisted.Report_AY1617_Acad_NOR : NOR_AY201617_Report.P20_NOR_HNP_Hosp_Pl
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = Scenario_Report_P20
@@ -9968,10 +9451,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="a5ca5a16c1f0418d9c89a9cb842bc2e7")>
+    <Calculation(Id:="91d0e7b2c84b4199aed380b8ebb2e818")>
     Public Function NOR_P39_1617_MFG_NOR As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Scenario_Report_P35 As Decimal = Persisted.Report_AY1617_Acad_MFG : MFG_AY201617_Report.P35_1617AdjNOR
         Dim Scenario_Report_P60 As Decimal = Persisted.Report_AY1617_Acad_MFG : MFG_AY201617_Report.P60_IY1617AdjNOR
         Dim Scenario_Report_P34 As Decimal = Persisted.Report_AY1617_Acad_MFG : MFG_AY201617_Report.P34_1617EFAPosAdjNOR
@@ -9985,10 +9467,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="3b6aa4903a1b44c6bdcb28727e445ba4")>
+    <Calculation(Id:="526e0a552b3e4af1ab559a6c0e04c08e")>
     Public Function NOR_P40_1617_Post16_NOR As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Scenario_Report_P03 As Decimal = Persisted.Report_AY1617_Acad_Post16 : Post16_AY201617_Report.P03_Learners
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = Scenario_Report_P03
@@ -9999,10 +9480,9 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="541f72cc910e4b1bb38d7dd2c2a7d9ca")>
+    <Calculation(Id:="95a34730babb488d92b694d62f892125")>
     Public Function NOR_P41_1617_Post16_HN As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         Dim Scenario_Report_P04 As Decimal = Persisted.Report_AY1617_Acad_Post16 : Post16_AY201617_Report.P04_HNPlaces
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = Scenario_Report_P04
@@ -10013,14 +9493,13 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="fbe141af54f24467bbec6ba6081b3a8d")>
+    <Calculation(Id:="fd752d78c0fa4be5b40cf66e33b9ad96")>
     Public Function NOR_P51_Total_NOR_Mainstream As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim NOR_P02 As Decimal = NOR_P02_PRI
         Dim NOR_P05 As Decimal = NOR_P05_NUR
         Dim NOR_P06 As Decimal = NOR_P06_SEC
         Dim NOR_P21 As Decimal = NOR_P21_P16
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         If currentscenario.periodid = 2017181 And F100_AllAcademies = 17181
             result = NOR_P02 + NOR_P05 + NOR_P06 + NOR_P21
         ElseIf currentscenario.periodid = 2017181 And (F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
@@ -10032,11 +9511,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="a0d67eaf492b4972b3cb4d73bc71f7d5")>
+    <Calculation(Id:="342b8021a49042f2bcb28f856128692e")>
     Public Function NOR_P52_Total_NOR_HN_Places As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim NOR_P18 As Decimal = NOR_P18_HND_HN_Pre16
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = NOR_P18
         Else
@@ -10046,11 +9524,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="4c5c489b147a4b28bb047bb7187f6c64")>
+    <Calculation(Id:="53c87ae6c5be4c408540f4e5b13f2c1b")>
     Public Function NOR_P53_Total_NOR_AP_Places As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim NOR_P19 As Decimal = NOR_P19_HND_AP_Pre16
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = NOR_P19
         Else
@@ -10060,11 +9537,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="f69c26075798447a831a89b5ce3da8b2")>
+    <Calculation(Id:="8e303c98b2d54cabbef47823b8d4d226")>
     Public Function NOR_P54_Total_NOR_Hospital_Places As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim NOR_P20 As Decimal = NOR_P20_HND_Hosp_Pl
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = NOR_P20
         Else
@@ -10074,14 +9550,11 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="d9b7d90fe0ee426a97c766afbb441bee")>
+    <Calculation(Id:="a2841376bdfb4bd88934745d7e2260e3")>
     Public Function NOR_P32_Total_NOR_ESGProt As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim NOR_P01_RU As Decimal = NOR_P01_RU
         Dim P22_Total_NOR_Pri_SBS As Decimal = NOR_P22_Total_NOR_PRI_SBS
         Dim P25_Total_NOR_Sec_SBS As Decimal = NOR_P25_Total_NOR_SEC_SBS
-        Dim NOR_P21_P16 As Decimal = NOR_P21_P16
         Dim P26b_Total_Actual_HN_Deducted As Decimal = NOR_P26b_Total_Actual_HN_deducted
         Print(NOR_P01_RU, "NOR_P01_RU", rid)
         Print(P22_Total_NOR_Pri_SBS, "P22_Total_NOR_Pri_SBS", rid)
@@ -10100,19 +9573,12 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="817f9f7fca1f4e24acedd353f6a4652f")>
+    <Calculation(Id:="cf97958488f84c729247823a2ac1dbc1")>
     Public Function NOR_P32b_TOTAL_ESGProt_incHN As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim NOR_P01_RU As Decimal = NOR_P01_RU
         Dim NOR_P02_Pri As Decimal = NOR_P02_PRI
         Dim NOR_P06_Sec As Decimal = NOR_P06_SEC
-        Dim NOR_P21_P16 As Decimal = NOR_P21_P16
-        Dim NOR_P18_HND_HN_Pre16 As Decimal = NOR_P18_HND_HN_Pre16
-        Dim NOR_P20_HND_Hosp_Pl As Decimal = NOR_P20_HND_Hosp_Pl
-        Dim NOR_P19_HND_AP_Pre16 As Decimal = NOR_P19_HND_AP_Pre16
         Dim Tot_Places As Decimal = NOR_P18_HND_HN_Pre16 + NOR_P20_HND_Hosp_Pl + NOR_P19_HND_AP_Pre16
-        Dim F900_FundingBasis As Decimal = F900_FundingBasis
         Print(Tot_Places, "Tot_Places", rid)
         Print(NOR_P18_HND_HN_Pre16, "NOR_P18_HND_HN_Pre16", rid)
         Print(NOR_P19_HND_AP_Pre16, "NOR_P19_HND_AP_Pre16", rid)
@@ -10132,11 +9598,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="0d25cdeb84184a9dbb451cb81ace0d81")>
+    <Calculation(Id:="f58e84ec82ae48f6a6164c24d529257e")>
     Public Function NOR_P35_1617_BaseNOR_ESGProt As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim Date_Opened As Date = Datasets.ProviderInformation.DateOpened
+        Dim Date_Opened As Date = Provider.DateOpened
         Dim NOR_1617_Scenario_Report_P32_Total_NOR_ALP As Decimal = Persisted.Report_AY1617_Acad_NOR : NOR_AY201617_Report.P32_Total_NOR_ALP
         Print(Date_Opened, "Date Opened", rid)
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
@@ -10148,11 +9613,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="113294a39b2545a6b392f717cba402bb")>
+    <Calculation(Id:="c347491556354828964a0c2490a4f351")>
     Public Function NOR_P35b_1617_BaseNOR_ESGProtincHN As Decimal
         Dim result = Decimal.Zero
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
-        Dim Date_Opened As Date = Datasets.ProviderInformation.DateOpened
+        Dim Date_Opened As Date = Provider.DateOpened
         Dim NOR_1617_Scenario_Report_P32b_Total_NOR_ALPincHN As Decimal = Persisted.Report_AY1617_Acad_NOR : NOR_AY201617_Report.P32b_Total_NOR_ALP_incHN
         Print(Date_Opened, "Date Opened", rid)
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
@@ -10164,7 +9628,7 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="2d7839afe6114a5e86c02c6b6caacdaf")>
+    <Calculation(Id:="c7e3592320af427e87d97314f5ddbbd7")>
     Public Function NOR_P43_PRI As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim NOR_P22 As Decimal = NOR_P22_Total_NOR_PRI_SBS
@@ -10178,11 +9642,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="6a5a8fc8bc504fdb8ad9c89e376cbffb")>
+    <Calculation(Id:="350ba3bcf15f4450bf81de04bdb239d3")>
     Public Function NOR_P46_SEC As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim NOR_P25 As Decimal = NOR_P25_Total_NOR_SEC_SBS
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = NOR_P25
         Else
@@ -10192,11 +9655,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="9c91c3eb4d394639bd76eb4c8c2a672c")>
+    <Calculation(Id:="158f3550b13745629df471bf61cf78f0")>
     Public Function NOR_P47_KS3 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim NOR_P23 As Decimal = NOR_P23_Total_NOR_KS3_SBS
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = NOR_P23
         Else
@@ -10206,11 +9668,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="29f3aa595db648b08849c7aa6b3679ef")>
+    <Calculation(Id:="29c88072a49d478882c1a6b32d21bc9b")>
     Public Function NOR_P48_KS4 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim NOR_P24 As Decimal = NOR_P24_Total_NOR_KS4_SBS
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = NOR_P24
         Else
@@ -10220,11 +9681,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="02c61627382846f791042fdfeb652257")>
+    <Calculation(Id:="caedefe8ac574ab69e529ba65b498a69")>
     Public Function NOR_P49_Y1toY4 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim NOR_P03 As Decimal = NOR_P03_Y1Y4
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = NOR_P03
         Else
@@ -10234,11 +9694,10 @@ Public Class Calculations
         Return result
     End Function
 
-    <Calculation(Id:="36d6dc0a709e4ae78f4a038200b525ba")>
+    <Calculation(Id:="9d7accfacff5419ca3f30ddfd31b65a8")>
     Public Function NOR_P50_Y5toY6 As Decimal
         Dim result As Decimal = 0 'change to As String if text product
         Dim NOR_P04 As Decimal = NOR_P04_Y5Y6
-        Dim F100_AllAcademies As Decimal = F100_AllAcademies
         If currentscenario.periodid = 2017181 And (F100_AllAcademies = 17181 Or F100_AllAcademies = 17182 Or F100_AllAcademies = 17183) then
             result = NOR_P04
         Else
