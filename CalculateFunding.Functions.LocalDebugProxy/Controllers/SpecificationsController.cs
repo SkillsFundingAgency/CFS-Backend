@@ -13,6 +13,10 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
     public class SpecificationsController : Controller
     {
+        /// <summary>
+        /// Get Specification By ID
+        /// </summary>
+        /// <returns></returns>
         [Route("api/specs/specifications")]
         [HttpGet]
         public async Task<IActionResult>RunSpecifications()
