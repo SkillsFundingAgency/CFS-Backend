@@ -286,3 +286,6 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+/CalculateFunding-Backend.v3.ncrunchsolution
+/CalculateFunding.Functions.EnvironmentSetup/CalculateFunding.Functions.EnvironmentSetup.v3.ncrunchproject
+/CalculateFunding.Functions.Common/CalculateFunding.Functions.Common.v3.ncrunchproject
