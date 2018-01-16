@@ -31,9 +31,12 @@ namespace CalculateFunding.Functions.Specs.Http
         {
             using (var scope = IocConfig.Build().CreateHttpScope(req))
             {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
-
-                return svc.GetSpecificationByAcademicYearId(req);
+                return DoAsync(() =>
+                {
+                    ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+                    return svc.GetSpecificationByAcademicYearId(req);
+                });
+               
             }
         }
 
@@ -60,5 +63,21 @@ namespace CalculateFunding.Functions.Specs.Http
                 return await svc.CreateSpecification(req);
             }
         }
+
+        async static public Task<T> DoAsync<T>(Func<Task<T>> func,  Func<T, Task> test = null)
+        {
+            try
+            {
+                var result = await func().ConfigureAwait(false);
+                if (test != null)
+                    await test.Invoke(result).ConfigureAwait(false);
+
+                return result;
+            }
+            catch
+            {
+                throw new ApplicationException("Knifed");
+            }
+         }
     }
 }
