@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Functions.Specs.Http
 {
@@ -28,7 +29,7 @@ namespace CalculateFunding.Functions.Specs.Http
         public static Task<IActionResult> RunSpecificationsByYear(
             [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
         {
-            using (var scope = IocConfig.Build().CreateScope())
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
             {
                 ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 

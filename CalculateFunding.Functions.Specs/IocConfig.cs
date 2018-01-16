@@ -38,12 +38,6 @@ namespace CalculateFunding.Functions.Specs
 
             builder.AddSingleton(mappingConfig.CreateMapper());
 
-            //builder.AddSingleton(new LoggerFactory()
-            //       .AddConsole()
-            //       .AddSerilog()
-            //        .AddDebug())
-            //    .AddLogging();
-
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
             builder.AddCosmosDb(config);
