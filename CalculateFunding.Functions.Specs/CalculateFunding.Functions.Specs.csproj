@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="6.2.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.0.2" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="1.7.1" />
     <PackageReference Include="Microsoft.Azure.ServiceBus" Version="3.0.0-preview-01" />
     <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.0-beta4" />
