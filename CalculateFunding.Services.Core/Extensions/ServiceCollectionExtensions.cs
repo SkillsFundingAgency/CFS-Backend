@@ -56,18 +56,21 @@ namespace CalculateFunding.Services.Core.Extensions
 
             correlationIdProvider.SetCorrelationId(correlationId);
 
+            if(!request.HttpContext.Response.Headers.ContainsKey("sfa-correlationId"))
+                request.HttpContext.Response.Headers.Add("sfa-correlationId", correlationId);
+
             return serviceProvider.CreateScope();
         }
 
-        public static LoggerConfiguration GetLoggerConfiguration(ICorrelationIdProvider correlationLookup, ApplicationInsightsOptions options, string serviceName)
+        public static LoggerConfiguration GetLoggerConfiguration(ICorrelationIdProvider correlationIdProvider, ApplicationInsightsOptions options, string serviceName)
         {
-            if (correlationLookup == null)
+            if (correlationIdProvider == null)
             {
-                throw new ArgumentNullException("correlationLookup");
+                throw new ArgumentNullException(nameof(correlationIdProvider));
             }
             if (options == null)
             {
-                throw new ArgumentNullException("options");
+                throw new ArgumentNullException(nameof(correlationIdProvider));
             }
             string appInsightsKey = options.InstrumentationKey;
 
@@ -77,7 +80,7 @@ namespace CalculateFunding.Services.Core.Extensions
             }
             return new LoggerConfiguration().Enrich.With(new ILogEventEnricher[]
             {
-                new CorrelationIdLogEnricher(correlationLookup)
+                new CorrelationIdLogEnricher(correlationIdProvider)
             }).Enrich.With(new ILogEventEnricher[]
             {
                 new ServiceNameLogEnricher(serviceName)

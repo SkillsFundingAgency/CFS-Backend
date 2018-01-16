@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Core.Logging
         {
             if (string.IsNullOrWhiteSpace(_correlationId))
             {
-                return Guid.NewGuid().ToString();
+                _correlationId = Guid.NewGuid().ToString();
             }
             return _correlationId;
         }

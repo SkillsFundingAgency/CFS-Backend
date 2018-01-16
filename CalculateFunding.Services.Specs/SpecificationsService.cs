@@ -10,9 +10,7 @@ using CalculateFunding.Models;
 using System.Linq;
 using System.Net;
 using FluentValidation;
-using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.Logging;
 using Serilog;
 
 namespace CalculateFunding.Services.Specs
@@ -21,7 +19,7 @@ namespace CalculateFunding.Services.Specs
     {
         private readonly IMapper _mapper;
         private readonly ISpecificationsRepository _specifcationsRepository;
-        private readonly Serilog.ILogger _logs;
+        private readonly ILogger _logs;
         private readonly IValidator<PolicyCreateModel> _policyCreateModelValidator;
         private readonly IValidator<SpecificationCreateModel> _specificationCreateModelvalidator;
         private readonly IValidator<CalculationCreateModel> _calculationCreateModelValidator;
@@ -42,7 +40,6 @@ namespace CalculateFunding.Services.Specs
         {
             request.Query.TryGetValue("specificationId", out var specId);
 
-           
             var specificationId = specId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specificationId))
