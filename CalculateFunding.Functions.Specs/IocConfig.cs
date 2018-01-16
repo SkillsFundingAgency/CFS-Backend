@@ -42,7 +42,7 @@ namespace CalculateFunding.Functions.Specs
 
             builder.AddCosmosDb(config);
 
-            builder.AddLogging(config);
+            builder.AddLogging(config, "CalculateFunding.Functions.Specs");
         }
     }
 }

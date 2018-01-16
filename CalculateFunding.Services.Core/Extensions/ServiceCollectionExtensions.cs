@@ -32,16 +32,16 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddLogging(this IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceCollection AddLogging(this IServiceCollection builder, IConfigurationRoot config, string serviceName)
         {
             //builder
             //    .AddScoped<ILoggingService, ApplicationInsightsService>();
 
-            //ApplicationInsightsOptions appInsightsOptions = new ApplicationInsightsOptions();
+            ApplicationInsightsOptions appInsightsOptions = new ApplicationInsightsOptions();
 
-            //config.Bind("ApplicationInsightsOptions", appInsightsOptions);
+            config.Bind("ApplicationInsightsOptions", appInsightsOptions);
 
-            //builder.AddSingleton<ApplicationInsightsOptions>(appInsightsOptions);
+            builder.AddSingleton<ApplicationInsightsOptions>(appInsightsOptions);
 
             //builder.AddSingleton(new LoggerFactory()
             //       .AddConsole()
@@ -49,9 +49,9 @@ namespace CalculateFunding.Services.Core.Extensions
             //        .AddDebug())
             //    .AddLogging();
 
+            builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
 
-            builder.AddScoped<Serilog.ILogger>(c => GetLoggerConfiguration(c.GetService<ICorrelationIdProvider>(), null).CreateLogger());
-            builder.AddScoped<ICorrelationIdProvider, CorrelationIdProvider>();
+            builder.AddScoped<Serilog.ILogger>(c => GetLoggerConfiguration(c.GetService<ICorrelationIdProvider>(), appInsightsOptions, serviceName).CreateLogger());
 
             return builder;
         }
@@ -67,7 +67,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return serviceProvider.CreateScope();
         }
 
-        public static LoggerConfiguration GetLoggerConfiguration(ICorrelationIdProvider correlationLookup, ApplicationInsightsOptions options)
+        public static LoggerConfiguration GetLoggerConfiguration(ICorrelationIdProvider correlationLookup, ApplicationInsightsOptions options, string serviceName)
         {
             if (correlationLookup == null)
             {
@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Core.Extensions
             }
             if (options == null)
             {
-                throw new ArgumentNullException("configProvider");
+                throw new ArgumentNullException("options");
             }
             string configurationValue = options.InstrumentationKey;
 
@@ -88,7 +88,7 @@ namespace CalculateFunding.Services.Core.Extensions
                 new CorrelationIdLogEnricher(correlationLookup)
             }).Enrich.With(new ILogEventEnricher[]
             {
-                new ServiceNameLogEnricher(null)
+                new ServiceNameLogEnricher(serviceName)
             }).WriteTo.ApplicationInsightsTraces(configurationValue, LogEventLevel.Verbose, null, null);
         }
     }

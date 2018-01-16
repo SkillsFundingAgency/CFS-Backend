@@ -5,26 +5,14 @@ using System;
 
 namespace CalculateFunding.Services.Core.Logging
 {
-    /// <summary>
-    /// Creates a new instance of CorrelationIdLogEnricher
-    /// </summary>
+
     public class ServiceNameLogEnricher : ILogEventEnricher
     {
-        private IConfigurationProvider configProvider;
+        private string _serviceName;
 
-        private string serviceName;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="T:Weir.Synertrex.Common.Logging.ServiceNameLogEnricher" /> class.
-        /// </summary>
-        /// <param name="configProvider">Correlation ID Lookup Provider</param>
-        public ServiceNameLogEnricher(IConfigurationProvider configProvider)
+        public ServiceNameLogEnricher(string serviceName)
         {
-            if (configProvider == null)
-            {
-               // throw new ArgumentNullException("configProvider");
-            }
-            this.configProvider = configProvider;
+            _serviceName = serviceName;
         }
 
         /// <summary>
@@ -42,15 +30,14 @@ namespace CalculateFunding.Services.Core.Logging
             {
                 throw new ArgumentNullException("propertyFactory");
             }
-            if (string.IsNullOrWhiteSpace(this.serviceName))
+            if (string.IsNullOrWhiteSpace(_serviceName))
             {
-                this.serviceName = "specs";
-                if (string.IsNullOrWhiteSpace(this.serviceName))
+                if (string.IsNullOrWhiteSpace(_serviceName))
                 {
-                    this.serviceName = "N/A";
+                    _serviceName = "N/A";
                 }
             }
-            LogEventProperty property = propertyFactory.CreateProperty("Service", this.serviceName, false);
+            LogEventProperty property = propertyFactory.CreateProperty("Service", _serviceName, false);
             logEvent.AddOrUpdateProperty(property);
         }
     }

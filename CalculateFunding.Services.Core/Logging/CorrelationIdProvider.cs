@@ -22,7 +22,10 @@ namespace CalculateFunding.Services.Core.Logging
 
         public void SetCorrelationId(string correlationId)
         {
-            _correlationId = correlationId;
+            if (string.IsNullOrWhiteSpace(_correlationId))
+            {
+                _correlationId = correlationId;
+            }
         }
 
     }
