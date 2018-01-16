@@ -2,7 +2,7 @@
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CalculateFunding.Functions.Common.Extensions
+namespace CalculateFunding.Services.Core.Extensions
 {
     public static class FluentValidation
     {

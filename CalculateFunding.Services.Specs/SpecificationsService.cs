@@ -3,17 +3,15 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Functions.Common.Extensions;
 using Newtonsoft.Json;
 using AutoMapper;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Models;
 using System.Linq;
-using CalculateFunding.Functions.Common.Interfaces.Logging;
 using System.Net;
-using System;
 using FluentValidation;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using CalculateFunding.Services.Core.Extensions;
+using Serilog;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -21,13 +19,13 @@ namespace CalculateFunding.Services.Specs
     {
         private readonly IMapper _mapper;
         private readonly ISpecificationsRepository _specifcationsRepository;
-        private readonly ILoggingService _logs;
+        private readonly ILogger _logs;
         private readonly IValidator<PolicyCreateModel> _policyCreateModelValidator;
         private readonly IValidator<SpecificationCreateModel> _specificationCreateModelvalidator;
         private readonly IValidator<CalculationCreateModel> _calculationCreateModelValidator;
 
         public SpecificationsService(IMapper mapper, 
-            ISpecificationsRepository specifcationsRepository, ILoggingService logs, IValidator<PolicyCreateModel> policyCreateModelValidator,
+            ISpecificationsRepository specifcationsRepository, ILogger logs, IValidator<PolicyCreateModel> policyCreateModelValidator,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator, IValidator<CalculationCreateModel> calculationCreateModelValidator)
         {
             _mapper = mapper;
@@ -45,18 +43,28 @@ namespace CalculateFunding.Services.Specs
             var specificationId = specId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logs.Error("No specification Id was provided to GetSpecificationById");
+
                 return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
 
             Specification specification = await _specifcationsRepository.GetSpecificationById(specificationId);
 
             if (specification == null)
+            {
+                _logs.Warning($"A specification for id {specificationId} could not found");
+
                 return new NotFoundResult();
+            }
 
             return new OkObjectResult(specification);
         }
 
         public async Task<IActionResult> GetSpecificationByAcademicYearId(HttpRequest request)
         {
+            _logs.Information("Whaye this should be logged out");
+
             request.Query.TryGetValue("academicYearId", out var yearId);
 
             var academicYearId = yearId.FirstOrDefault();
