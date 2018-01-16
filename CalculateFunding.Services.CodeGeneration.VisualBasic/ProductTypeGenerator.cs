@@ -6,6 +6,7 @@ using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
+using Calculation = CalculateFunding.Models.Calcs.Calculation;
 
 namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
@@ -52,7 +53,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
             var builder = new StringBuilder();
             builder.AppendLine($"<Calculation(Id := \"{calc.Id}\")>");
-            if (calc.CalculationSpecification != null)
+            if (calc.CalculationSpecification!= null)
             {
                 builder.AppendLine($"<CalculationSpecification(Id := \"{calc.CalculationSpecification.Id}\", Name := \"{calc.CalculationSpecification.Name}\")>");
             }
@@ -60,9 +61,9 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             {
                 builder.AppendLine($"<AllocationLine(Id := \"{calc.AllocationLine.Id}\", Name := \"{calc.AllocationLine.Name}\")>");
             }
-            if (calc.PolicySpecifications != null)
+            if (calc.Policies != null)
             {
-                foreach (var policySpecification in calc.PolicySpecifications)
+                foreach (var policySpecification in calc.Policies)
                 {
                     builder.AppendLine($"<PolicySpecification(Id := \"{policySpecification.Id}\", Name := \"{policySpecification.Name}\")>");
                 }

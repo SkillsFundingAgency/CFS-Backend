@@ -21,6 +21,5 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("build")]
         public Build Build { get; set; }
 
-
     }
 }

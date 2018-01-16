@@ -7,6 +7,7 @@ using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Calculation = CalculateFunding.Models.Calcs.Calculation;
 
 namespace CalculateFunding.Services.CodeGeneration.CSharp
 {
@@ -83,9 +84,9 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
             {
                 list.Add(GetAttribute("AllocationLine", calc.AllocationLine));
             }
-            if (calc.PolicySpecifications != null)
+            if (calc.Policies != null)
             {
-                foreach (var policySpecification in calc.PolicySpecifications)
+                foreach (var policySpecification in calc.Policies)
                 {
                     list.Add(GetAttribute("PolicySpecification", policySpecification));
                 }

@@ -30,49 +30,49 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             string messageJson,
             ILogger log)
         {
-            var command = JsonConvert.DeserializeObject<ImplementationCommand>(messageJson);
+            //var command = JsonConvert.DeserializeObject<ImplementationCommand>(messageJson);
 
-            var repository = ServiceFactory.GetService<CosmosRepository>();
-            var messenger = ServiceFactory.GetService<IMessenger>();
+            //var repository = ServiceFactory.GetService<CosmosRepository>();
+            //var messenger = ServiceFactory.GetService<IMessenger>();
 
-            var entity = await repository.ReadAsync<BuildProject>(command.Id);
-            var impl = entity?.Content ?? new BuildProject{Id = command.Content.Id};
-            impl.Name = command.Content.Name;
-            impl.Calculations = impl.Calculations ?? new List<Calculation>();
+            //var entity = await repository.ReadAsync<BuildProject>(command.Id);
+            //var impl = entity?.Content ?? new BuildProject{Id = command.Content.Id};
+            //impl.Name = command.Content.Name;
+            //impl.Calculations = impl.Calculations ?? new List<CalculationImplementation>();
 
 
-            ISourceFileGenerator generator = null;
-            switch (impl.TargetLanguage)
-            {
-                case TargetLanguage.CSharp:
-                    generator = ServiceFactory.GetService<CSharpSourceFileGenerator>();
-                    break;
-                case TargetLanguage.VisualBasic:
-                    generator = ServiceFactory.GetService<VisualBasicSourceFileGenerator>();
-                    break;
-            }
+            //ISourceFileGenerator generator = null;
+            //switch (impl.TargetLanguage)
+            //{
+            //    case TargetLanguage.CSharp:
+            //        generator = ServiceFactory.GetService<CSharpSourceFileGenerator>();
+            //        break;
+            //    case TargetLanguage.VisualBasic:
+            //        generator = ServiceFactory.GetService<VisualBasicSourceFileGenerator>();
+            //        break;
+            //}
 
-            var sourceFiles = generator.GenerateCode(impl);
+            //var sourceFiles = generator.GenerateCode(impl);
 
-            var compilerFactory = ServiceFactory.GetService<CompilerFactory>();
+            //var compilerFactory = ServiceFactory.GetService<CompilerFactory>();
 
-            var compiler = compilerFactory.GetCompiler(sourceFiles);
+            //var compiler = compilerFactory.GetCompiler(sourceFiles);
 
-            impl.Build = compiler.GenerateCode(sourceFiles);
+            //impl.Build = compiler.GenerateCode(sourceFiles);
 
-            if (impl.Build.Success)
-            {
-                var calc = ServiceFactory.GetService<CalculationEngine>();
-                var results = calc.GenerateAllocations(impl, new SpecificationScope());
-            }
-            else
-            {
-                foreach (var compilerMessage in impl.Build.CompilerMessages)
-                {
+            //if (impl.Build.Success)
+            //{
+            //    var calc = ServiceFactory.GetService<CalculationEngine>();
+            //    var results = calc.GenerateAllocations(impl, new SpecificationScope());
+            //}
+            //else
+            //{
+            //    foreach (var compilerMessage in impl.Build.CompilerMessages)
+            //    {
 
-                }
+            //    }
 
-            }
+            //}
         }
 
     }

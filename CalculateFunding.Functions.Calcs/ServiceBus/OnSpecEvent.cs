@@ -14,6 +14,7 @@ using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
+using Calculation = CalculateFunding.Models.Calcs.Calculation;
 
 namespace CalculateFunding.Functions.Calcs.ServiceBus
 {
@@ -38,23 +39,23 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             impl.DatasetDefinitions = new List<DatasetDefinition>();
 
 
-            impl.Calculations.AddRange(command.Content.GenerateCalculations().Where(x =>
-                impl.Calculations.All(existing => existing.CalculationSpecification.Id != x.Id)));
+            //impl.Calculations.AddRange(command.Content.GenerateCalculations().Where(x =>
+            //    impl.Calculations.All(existing => existing.CalculationSpecification.Id != x.Id)));
 
             if (JsonConvert.SerializeObject(impl) !=
                 JsonConvert.SerializeObject(entity ?? new BuildProject()))
             {
                 log.LogInformation($"Changes detected for implementation:{impl.Id}");
-                var implCommand = new ImplementationCommand
-                {
-                    Id = Reference.NewId(),
-                    Content = impl,
-                    Method = CommandMethod.Post,
-                    User = command.User
-                };
+                //var implCommand = new ImplementationCommand
+                //{
+                //    Id = Reference.NewId(),
+                //    Content = impl,
+                //    Method = CommandMethod.Post,
+                //    User = command.User
+                //};
                 await repository.CreateAsync(impl);
-                await repository.CreateAsync(implCommand);
-                await messenger.SendAsync("calc-events", implCommand);
+                //await repository.CreateAsync(implCommand);
+                //await messenger.SendAsync("calc-events", implCommand);
                 log.LogInformation($"Updated implementation:{impl.Id}");
 
             }

@@ -8,6 +8,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
+using Calculation = CalculateFunding.Models.Specs.Calculation;
 
 namespace CalculateFunding.Functions.Calcs.Http
 {
