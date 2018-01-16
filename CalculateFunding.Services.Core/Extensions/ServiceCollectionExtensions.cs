@@ -2,6 +2,7 @@
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,20 +35,11 @@ namespace CalculateFunding.Services.Core.Extensions
 
         public static IServiceCollection AddLogging(this IServiceCollection builder, IConfigurationRoot config, string serviceName)
         {
-            //builder
-            //    .AddScoped<ILoggingService, ApplicationInsightsService>();
-
             ApplicationInsightsOptions appInsightsOptions = new ApplicationInsightsOptions();
 
             config.Bind("ApplicationInsightsOptions", appInsightsOptions);
 
             builder.AddSingleton<ApplicationInsightsOptions>(appInsightsOptions);
-
-            //builder.AddSingleton(new LoggerFactory()
-            //       .AddConsole()
-            //       .AddSerilog()
-            //        .AddDebug())
-            //    .AddLogging();
 
             builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
 
@@ -77,9 +69,9 @@ namespace CalculateFunding.Services.Core.Extensions
             {
                 throw new ArgumentNullException("options");
             }
-            string configurationValue = options.InstrumentationKey;
+            string appInsightsKey = options.InstrumentationKey;
 
-            if (string.IsNullOrWhiteSpace(configurationValue))
+            if (string.IsNullOrWhiteSpace(appInsightsKey))
             {
                 throw new InvalidOperationException("Unable to lookup Application Insights Configuration key from Configuration Provider. The value returned was empty string");
             }
@@ -89,7 +81,11 @@ namespace CalculateFunding.Services.Core.Extensions
             }).Enrich.With(new ILogEventEnricher[]
             {
                 new ServiceNameLogEnricher(serviceName)
-            }).WriteTo.ApplicationInsightsTraces(configurationValue, LogEventLevel.Verbose, null, null);
+            }).WriteTo.ApplicationInsightsTraces(new TelemetryConfiguration
+            {
+                InstrumentationKey = appInsightsKey,
+
+            }, LogEventLevel.Verbose, null, null);
         }
     }
 }

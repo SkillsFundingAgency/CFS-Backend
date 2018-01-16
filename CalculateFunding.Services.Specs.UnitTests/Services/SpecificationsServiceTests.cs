@@ -4,9 +4,10 @@ using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
-using Microsoft.Extensions.Logging;
+using Serilog;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using Serilog.Debugging;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,9 +17,6 @@ namespace CalculateFunding.Services.Specs.Services
     [TestClass]
     public class SpecificationsServiceTests
     {
-
-
-
 
         static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null, 
             ILogger logs = null, IValidator<PolicyCreateModel> policyCreateModelValidator = null,

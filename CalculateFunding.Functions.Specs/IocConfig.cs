@@ -5,8 +5,6 @@ using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Serilog;
 using CalculateFunding.Functions.Common;
 using FluentValidation;
 using CalculateFunding.Services.Specs.Validators;

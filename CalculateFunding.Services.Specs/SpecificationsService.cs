@@ -12,8 +12,8 @@ using System.Net;
 using FluentValidation;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Extensions;
-using Microsoft.Extensions.Logging;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using Serilog;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IValidator<CalculationCreateModel> _calculationCreateModelValidator;
 
         public SpecificationsService(IMapper mapper, 
-            ISpecificationsRepository specifcationsRepository, Serilog.ILogger logs, IValidator<PolicyCreateModel> policyCreateModelValidator,
+            ISpecificationsRepository specifcationsRepository, ILogger logs, IValidator<PolicyCreateModel> policyCreateModelValidator,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator, IValidator<CalculationCreateModel> calculationCreateModelValidator)
         {
             _mapper = mapper;
@@ -42,6 +42,7 @@ namespace CalculateFunding.Services.Specs
         {
             request.Query.TryGetValue("specificationId", out var specId);
 
+           
             var specificationId = specId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specificationId))
@@ -57,6 +58,7 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetSpecificationByAcademicYearId(HttpRequest request)
         {
+            _logs.Information("Whaye this should be logged out");
 
             request.Query.TryGetValue("academicYearId", out var yearId);
 
