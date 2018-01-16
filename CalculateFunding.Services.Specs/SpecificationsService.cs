@@ -43,12 +43,20 @@ namespace CalculateFunding.Services.Specs
             var specificationId = specId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logs.Error("No specification Id was provided to GetSpecificationById");
+
                 return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
 
             Specification specification = await _specifcationsRepository.GetSpecificationById(specificationId);
 
             if (specification == null)
+            {
+                _logs.Warning($"A specification for id {specificationId} could not found");
+
                 return new NotFoundResult();
+            }
 
             return new OkObjectResult(specification);
         }
