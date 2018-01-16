@@ -6,11 +6,13 @@ using System.Web.Http;
 using CalculateFunding.Functions.Common;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -25,7 +27,7 @@ namespace CalculateFunding.Functions.Specs.Http
             [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
         {
             var restMethods =
-                new RestCommandMethods<Specification, CalculationSpecificationCommand, CalculationSpecification>("spec-events")
+                new RestCommandMethods<Specification, CalculationSpecificationCommand, Calculation>("spec-events")
                 {
                     GetEntityId = command => command.SpecificationId,
                     UpdateTarget = (specification, command) =>
@@ -41,8 +43,8 @@ namespace CalculateFunding.Functions.Specs.Http
                             }
                             else
                             {
-                                policy.Calculations = policy.Calculations ?? new List<CalculationSpecification>();
-                                policy.Calculations.Add(command.Content);
+                                policy.Calculations = policy.Calculations ?? new List<Calculation>();
+                                policy.Calculations = policy.Calculations.Concat(new []{ command.Content });
                             }
                         }
 
@@ -51,6 +53,39 @@ namespace CalculateFunding.Functions.Specs.Http
                     }
                 };
             return await restMethods.Run(req, log);
+        }
+
+        [FunctionName("calculation-create")]
+        public static Task<IActionResult> RunCreateCalculation(
+           [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        {
+            IServiceProvider provider = IocConfig.Build();
+
+            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
+
+            return svc.CreateCalculation(req);
+        }
+
+        [FunctionName("calculation-by-name")]
+        public static Task<IActionResult> RunCalculationByName(
+          [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        {
+            IServiceProvider provider = IocConfig.Build();
+
+            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
+
+            return svc.GetCalculationByName(req);
+        }
+
+        [FunctionName("allocation-lines")]
+        public static Task<IActionResult> RunAllocationLines(
+         [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            IServiceProvider provider = IocConfig.Build();
+
+            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
+
+            return svc.GetAllocationLines(req);
         }
 
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
@@ -17,7 +18,6 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 {
     public class CosmosRepository
     {
-        private readonly ILogger _logger;
         private readonly string _collectionName;
         private readonly string _partitionKey;
         private readonly string _databaseName;
@@ -25,9 +25,8 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         private readonly Uri _collectionUri;
         private ResourceResponse<DocumentCollection> _collection;
 
-        public CosmosRepository(RepositorySettings settings, ILogger logger)
+        public CosmosRepository(CosmosDbSettings settings)
         {
-            _logger = logger;
             _collectionName = settings.CollectionName;
             _partitionKey = settings.PartitionKey;
             _databaseName = settings.DatabaseName;
@@ -54,15 +53,12 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                     await _documentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = _databaseName });
                 }
 
-
                 _collection = await _documentClient.CreateDocumentCollectionIfNotExistsAsync(
                     UriFactory.CreateDatabaseUri(_databaseName), collection);
             }
 
 
         }
-
-
 
         public async Task SetThroughput(int requestUnits)
         {
@@ -98,7 +94,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         public async Task<DocumentEntity<T>> ReadAsync<T>(string id) where T : IIdentifiable
         {
             // Here we find the Andersen family via its LastName
-            var response = await Read<T>(maxItemCount: 1).Where(x => x.Id == id).AsDocumentQuery().ExecuteNextAsync< DocumentEntity<T>>();
+            var response = await Read<T>(maxItemCount: 1).Where(x => x.Id == id).AsDocumentQuery().ExecuteNextAsync<DocumentEntity<T>>();
             return response.FirstOrDefault();
         }
 
@@ -114,7 +110,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                     directSql,
                     queryOptions).Select(x => x.Content).AsQueryable();
             }
-            return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Select(x => x.Content).AsQueryable();
+            return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted).Select(x => x.Content).AsQueryable();
         }
 
         public IEnumerable<string> QueryAsJson(string directSql = null, int maxItemCount = -1)

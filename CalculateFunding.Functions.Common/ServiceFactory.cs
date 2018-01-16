@@ -3,15 +3,14 @@ using System.IO;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Providers;
 using CalculateFunding.Services.Calculator;
-using CalculateFunding.Services.CodeGeneration;
-using CalculateFunding.Services.CodeGeneration.CSharp;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
-using CalculateFunding.Services.Compiler.Languages;
+using CalculateFunding.Services.Compiler.CSharp;
+using CalculateFunding.Services.Compiler.VisualBasic;
 using CalculateFunding.Services.DataImporter;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,6 +38,8 @@ namespace CalculateFunding.Functions.Common
 
             var config = builder.Build();
 
+           
+
             var serviceCollection = new ServiceCollection()
                 .AddSingleton(new LoggerFactory()
                     .AddConsole()
@@ -46,13 +47,13 @@ namespace CalculateFunding.Functions.Common
                     .AddDebug())
                 .AddLogging();
             ServiceProvider = serviceCollection
-                .AddSingleton(new CosmosRepository(new RepositorySettings
+                .AddSingleton(new CosmosRepository(new CosmosDbSettings
                 {
                     ConnectionString = config["CosmosDBConnectionString"],
                     DatabaseName = config["CosmosDBDatabaseName"],
                     CollectionName = config["CosmosDBCollectionName"]
                     
-                }, null))
+                }))
                 .AddSingleton<IMessenger>(new Messenger(config["ServiceBusConnectionString"]))
                 .AddSingleton(new MessagePump(config["ServiceBusConnectionString"]))
                 .AddSingleton(new SearchRepository<ProviderIndex>(new SearchRepositorySettings
@@ -60,11 +61,10 @@ namespace CalculateFunding.Functions.Common
                     SearchServiceName = config["SearchServiceName"],
                     SearchKey = config["SearchServiceKey"]
                 }))
-                .AddTransient<CSharpSourceFileGenerator>()
-                .AddTransient<VisualBasicSourceFileGenerator>()
+               
                 .AddTransient<CSharpCompiler>()
                 .AddTransient<VisualBasicCompiler>()
-                .AddTransient<CompilerFactory>()
+                .AddTransient<BudgetCompiler>()
                 .AddTransient<DataImporterService>()
                 .AddTransient<CalculationEngine>()
                 .BuildServiceProvider();

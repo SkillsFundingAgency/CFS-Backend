@@ -2,65 +2,34 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CalculateFunding.Models.Calcs;
 
 namespace CalculateFunding.Models.Specs
 {
     public static class ExtensionMethods
     {
-        public static PolicySpecification GetPolicy(this PolicySpecification policy, string id)
+        public static Policy GetPolicy(this Policy policy, string id)
         {         
             if (policy.Id == id) return policy;
             return policy.SubPolicies?.FirstOrDefault(x => x.GetPolicy(id) != null);
         }
-        public static PolicySpecification GetPolicy(this Specification specification, string id)
+
+        public static Policy GetPolicy(this Specification specification, string id)
         {
             return specification.Policies?.FirstOrDefault(x => x.GetPolicy(id) != null);
         }
 
-        public static IEnumerable<Calculation> GenerateCalculations(this Specification specification)
+        public static Policy GetPolicyByName(this Policy policy, string name)
         {
-            foreach (var subPolicy in specification.Policies)
-            {
-                foreach (var calculationSpecification in subPolicy.GenerateCalculations(specification))
-                {
-                    yield return calculationSpecification;
-                }
-            }
+            if (policy.Name == name) return policy;
+            return policy.SubPolicies?.FirstOrDefault(x => x.GetPolicyByName(name) != null);
         }
 
-        public static IEnumerable<Calculation> GenerateCalculations(this PolicySpecification policy, Specification specification, List<Reference> parentPolicySpecifications = null)
+        public static Policy GetPolicyByName(this Specification specification, string name)
         {
-            var policies = (parentPolicySpecifications ?? new List<Reference>()).Concat(new[] {policy.GetReference()}).ToList();
-            if (policy.Calculations != null)
-            {
-                foreach (var calculationSpecification in policy.Calculations)
-                {
-                    yield return new Calculation
-                    {
-                        Id = Reference.NewId(),
-                        Name = calculationSpecification.Name,
-                        CalculationSpecification = calculationSpecification,
-                        AllocationLine = calculationSpecification.AllocationLine,
-                        PolicySpecifications = policies
-                    };
-                }
-            }
-            if (policy.SubPolicies != null)
-            {
-                foreach (var subPolicy in policy.SubPolicies)
-                {
-                    foreach (var calculationSpecification in subPolicy.GenerateCalculations(specification, policies))
-                    {
-                        yield return calculationSpecification;
-                    }
-                }
-            }
+            return specification.Policies?.FirstOrDefault(x => x.GetPolicyByName(name) != null);
         }
 
-
-
-        public static IEnumerable<CalculationSpecification> GetCalculations(this Specification specification)
+        public static IEnumerable<Calculation> GetCalculations(this Specification specification)
         {
             if (specification.Policies != null)
             {
@@ -75,7 +44,7 @@ namespace CalculateFunding.Models.Specs
             }
         }
 
-        public static IEnumerable<CalculationSpecification> GetCalculations(this PolicySpecification policy)
+        public static IEnumerable<Calculation> GetCalculations(this Policy policy)
         {
             if (policy.Calculations != null)
             {
@@ -96,9 +65,14 @@ namespace CalculateFunding.Models.Specs
             }
         }
 
-        public static CalculationSpecification GetCalculation(this PolicySpecification policy, string id)
+        public static Calculation GetCalculation(this Policy policy, string id)
         {
             return policy.Calculations?.FirstOrDefault(x => x.Id == id);
+        }
+
+        public static Calculation GetCalculationByName(this Policy policy, string name)
+        {
+            return policy.Calculations?.FirstOrDefault(x => x.Name == name);
         }
     }
 }
