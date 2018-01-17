@@ -122,15 +122,24 @@ namespace CalculateFunding.Services.Specs
             PolicyGetModel model = JsonConvert.DeserializeObject<PolicyGetModel>(json);
 
             if (string.IsNullOrWhiteSpace(model.SpecificationId))
+            {
+                _logs.Error("No specification id was provided to GetPolicyByName");
                 return new BadRequestObjectResult("Null or empty specification id provided");
+            }
 
             if (string.IsNullOrWhiteSpace(model.Name))
+            {
+                _logs.Error("No policy name was provided to GetPolicyByName");
                 return new BadRequestObjectResult("Null or empty policy name provided");
+            }
 
             Specification specification = await _specifcationsRepository.GetSpecificationById(model.SpecificationId);
 
             if (specification == null)
-                return new NotFoundResult();
+            {
+                _logs.Error($"No specification was found for specification id {model.SpecificationId}");
+                return new StatusCodeResult(412);
+            }
 
             Policy policy = specification.GetPolicyByName(model.Name);
 

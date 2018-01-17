@@ -21,6 +21,8 @@ using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.Extensions.Primitives;
 using System.Linq.Expressions;
 using System.Linq;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -30,6 +32,7 @@ namespace CalculateFunding.Services.Specs.Services
         const string SpecificationId = "ffa8ccb3-eb8e-4658-8b3f-f1e4c3a8f313";
         const string AcademicYearId = "18/19";
         const string SpecificationName = "Test Spec 001";
+        const string PolicyName = "Test Policy 001";
 
         [TestMethod]
         public async Task GetSpecificationById_GivenSpecificationIdDoesNotExist_ReturnsBadRequest()
@@ -353,6 +356,120 @@ namespace CalculateFunding.Services.Specs.Services
             logger
                 .Received(1)
                 .Information(Arg.Is($"Specification found for name: {SpecificationName}"));
+        }
+
+        [TestMethod]
+        public async Task GetPolicyByName_GivenModelDoesNotContainASpecificationId_ReturnsBadRequest()
+        {
+            //Arrange
+            PolicyGetModel model = new PolicyGetModel();
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            //Act
+            IActionResult result = await service.GetPolicyByName(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No specification id was provided to GetPolicyByName"));
+        }
+
+        [TestMethod]
+        public async Task GetPolicyByName_GivenModelDoesNotContainAPolicyName_ReturnsBadRequest()
+        {
+            //Arrange
+            PolicyGetModel model = new PolicyGetModel
+            {
+                SpecificationId = SpecificationId
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            //Act
+            IActionResult result = await service.GetPolicyByName(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No policy name was provided to GetPolicyByName"));
+        }
+
+        [TestMethod]
+        public async Task GetPolicyByName_GivenSpecificationDoesNotExist_ReturnsPreConditionFailed()
+        {
+            //Arrange
+            PolicyGetModel model = new PolicyGetModel
+            {
+                SpecificationId = SpecificationId,
+                Name = PolicyName
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns((Specification)null);
+
+            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+
+            //Act
+            IActionResult result = await service.GetPolicyByName(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
+
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(412);
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"No specification was found for specification id {SpecificationId}"));
         }
 
         static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null, 
