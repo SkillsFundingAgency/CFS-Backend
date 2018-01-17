@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Functions.Specs.Http
 {
@@ -17,43 +18,66 @@ namespace CalculateFunding.Functions.Specs.Http
         public static Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
         {
-            IServiceProvider provider = IocConfig.Build();
-
-            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
-            return svc.GetSpecificationById(req);
+            using (var scope = IocConfig.Build().CreateScope())
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+                return svc.GetSpecificationById(req);
+            }
         }
 
         [FunctionName("specifications-by-year")]
         public static Task<IActionResult> RunSpecificationsByYear(
             [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
         {
-            IServiceProvider provider = IocConfig.Build();
-
-            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
-
-            return svc.GetSpecificationByAcademicYearId(req);
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                return DoAsync(() =>
+                {
+                    ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+                    return svc.GetSpecificationByAcademicYearId(req);
+                });
+               
+            }
         }
 
         [FunctionName("specification-by-name")]
         public static Task<IActionResult> RunSpecificationByName(
            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
         {
-            IServiceProvider provider = IocConfig.Build();
+            using (var scope = IocConfig.Build().CreateScope())
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
-
-            return svc.GetSpecificationByName(req);
+                return svc.GetSpecificationByName(req);
+            }
         }
 
         [FunctionName("specification-create")]
         public static async Task<IActionResult> RunCreateSpecification(
             [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
         {
-            IServiceProvider provider = IocConfig.Build();
+            using (var scope = IocConfig.Build().CreateScope())
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
-
-            return await svc.CreateSpecification(req);
+                return await svc.CreateSpecification(req);
+            }
         }
+
+        async static public Task<T> DoAsync<T>(Func<Task<T>> func,  Func<T, Task> test = null)
+        {
+            try
+            {
+                var result = await func().ConfigureAwait(false);
+                if (test != null)
+                    await test.Invoke(result).ConfigureAwait(false);
+
+                return result;
+            }
+            catch
+            {
+                throw new ApplicationException("Knifed");
+            }
+         }
     }
 }

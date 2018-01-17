@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CalculateFunding.Functions.Common.Extensions
+namespace CalculateFunding.Services.Core.Extensions
 {
     [AttributeUsage(AttributeTargets.Class)]
     sealed public class ConfigGroupAttribute : Attribute

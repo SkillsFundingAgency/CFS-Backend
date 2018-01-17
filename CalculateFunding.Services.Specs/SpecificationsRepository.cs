@@ -23,9 +23,35 @@ namespace CalculateFunding.Services.Specs
         {
             var lines = new[]
             {
+                new AllocationLine { Id = "YPE04", Name = "Teacher Threshold" },
+                new AllocationLine { Id = "YPE05", Name = "Mainstreamed Grants" },
+                new AllocationLine { Id = "YPE06", Name = "Start Up Grant Part a" },
+                new AllocationLine { Id = "YPE07", Name = "Start Up Grant Part b Formulaic" },
+                new AllocationLine { Id = "YPE08", Name = "Start Up Grant Part b Assessment" },
+                new AllocationLine { Id = "YPE09", Name = "GAG Advances and Abatements" },
+                new AllocationLine { Id = "YPE10", Name = "Standards Funds" },
+                new AllocationLine { Id = "YPE11", Name = "Rates Relief" },
+                new AllocationLine { Id = "YPE12", Name = "CTC Overall Grant" },
+                new AllocationLine { Id = "YPE13", Name = "Pupil Led Factors" },
+                new AllocationLine { Id = "YPE14", Name = "Other Factors" },
+                new AllocationLine { Id = "YPE15", Name = "Exceptional Factors" },
+                new AllocationLine { Id = "YPE16", Name = "Minimum Funding Guarantee (MFG)" },
+                new AllocationLine { Id = "YPE18", Name = "Pre 16 High Needs" },
+                new AllocationLine { Id = "YPE19", Name = "Hospital Provision" },
+                new AllocationLine { Id = "YPE20", Name = "SEN LACSEG Adjustment" },
+                new AllocationLine { Id = "YPE21", Name = "Allocation Protection" },
+                new AllocationLine { Id = "YPE22", Name = "Risk Protection Arrangements (RPA)" },
+                new AllocationLine { Id = "YPE23", Name = "Pupil Number Adjustment (PNA)" },
+                new AllocationLine { Id = "YPE24", Name = "GAG Adjustment" },
+                new AllocationLine { Id = "YPE25", Name = "POG Per Pupil Resources (PPR)" },
+                new AllocationLine { Id = "YPE26", Name = "POG Leadership Diseconomies (LD)" },
+                new AllocationLine { Id = "YPE27", Name = "LA Transfer Deficit Recovery" },
+
+
                 new AllocationLine { Id = "YPA01", Name = "16-19 Low Level Learners Programme funding" },
                 new AllocationLine { Id = "YPA02", Name = "16-19 Learner Responsive Low Level ALS" },
                 new AllocationLine { Id = "YPA03", Name = "216-19 Learner Responsive High Level ALS" },
+
             };
 
             return lines;

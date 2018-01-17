@@ -3,17 +3,15 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Functions.Common.Extensions;
 using Newtonsoft.Json;
 using AutoMapper;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Models;
 using System.Linq;
-using CalculateFunding.Functions.Common.Interfaces.Logging;
 using System.Net;
-using System;
 using FluentValidation;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using CalculateFunding.Services.Core.Extensions;
+using Serilog;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -21,13 +19,13 @@ namespace CalculateFunding.Services.Specs
     {
         private readonly IMapper _mapper;
         private readonly ISpecificationsRepository _specifcationsRepository;
-        private readonly ILoggingService _logs;
+        private readonly ILogger _logs;
         private readonly IValidator<PolicyCreateModel> _policyCreateModelValidator;
         private readonly IValidator<SpecificationCreateModel> _specificationCreateModelvalidator;
         private readonly IValidator<CalculationCreateModel> _calculationCreateModelValidator;
 
         public SpecificationsService(IMapper mapper, 
-            ISpecificationsRepository specifcationsRepository, ILoggingService logs, IValidator<PolicyCreateModel> policyCreateModelValidator,
+            ISpecificationsRepository specifcationsRepository, ILogger logs, IValidator<PolicyCreateModel> policyCreateModelValidator,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator, IValidator<CalculationCreateModel> calculationCreateModelValidator)
         {
             _mapper = mapper;
@@ -45,12 +43,20 @@ namespace CalculateFunding.Services.Specs
             var specificationId = specId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logs.Error("No specification Id was provided to GetSpecificationById");
+
                 return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
 
             Specification specification = await _specifcationsRepository.GetSpecificationById(specificationId);
 
             if (specification == null)
+            {
+                _logs.Warning($"A specification for id {specificationId} could not found");
+
                 return new NotFoundResult();
+            }
 
             return new OkObjectResult(specification);
         }
@@ -62,9 +68,22 @@ namespace CalculateFunding.Services.Specs
             var academicYearId = yearId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(academicYearId))
+            {
+                _logs.Error("No academic year Id was provided to GetSpecificationByAcademicYearId");
+
                 return new BadRequestObjectResult("Null or empty academicYearId provided");
+            }
 
             IEnumerable<Specification> specifications = await _specifcationsRepository.GetSpecificationsByQuery(m => m.AcademicYear.Id == academicYearId);
+
+            if (specifications.IsNullOrEmpty())
+            {
+                _logs.Information($"No specifications found for academic year with id {academicYearId}");
+
+                return new OkObjectResult(new Specification[0]);
+            }
+
+            _logs.Information($"Found {specifications.Count()} specifications for academic year with id {academicYearId}");
 
             return new OkObjectResult(specifications);
         }
@@ -76,12 +95,22 @@ namespace CalculateFunding.Services.Specs
             var specificationName = specName.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specName))
+            {
+                _logs.Error("No specification name was provided to GetSpecificationByName");
+
                 return new BadRequestObjectResult("Null or empty specification name provided");
+            }
 
             IEnumerable<Specification> specifications = await _specifcationsRepository.GetSpecificationsByQuery(m => m.Name.ToLower() == specificationName.ToLower());
 
             if (!specifications.Any())
+            {
+                _logs.Information($"Specification was not found for name: {specificationName}");
+
                 return new NotFoundResult();
+            }
+
+            _logs.Information($"Specification found for name: {specificationName}");
 
             return new OkObjectResult(specifications.FirstOrDefault());
         }
@@ -93,20 +122,35 @@ namespace CalculateFunding.Services.Specs
             PolicyGetModel model = JsonConvert.DeserializeObject<PolicyGetModel>(json);
 
             if (string.IsNullOrWhiteSpace(model.SpecificationId))
+            {
+                _logs.Error("No specification id was provided to GetPolicyByName");
                 return new BadRequestObjectResult("Null or empty specification id provided");
+            }
 
             if (string.IsNullOrWhiteSpace(model.Name))
+            {
+                _logs.Error("No policy name was provided to GetPolicyByName");
                 return new BadRequestObjectResult("Null or empty policy name provided");
+            }
 
             Specification specification = await _specifcationsRepository.GetSpecificationById(model.SpecificationId);
 
             if (specification == null)
-                return new NotFoundResult();
+            {
+                _logs.Error($"No specification was found for specification id {model.SpecificationId}");
+                return new StatusCodeResult(412);
+            }
 
             Policy policy = specification.GetPolicyByName(model.Name);
 
             if (policy != null)
+            {
+                _logs.Information($"A policy was found for specification id {model.SpecificationId} and name {model.Name}");
+
                 return new OkObjectResult(policy);
+            }
+
+            _logs.Information($"A policy was not found for specification id {model.SpecificationId} and name {model.Name}");
 
             return new NotFoundResult();
         }
@@ -118,15 +162,27 @@ namespace CalculateFunding.Services.Specs
             CalculationGetModel model = JsonConvert.DeserializeObject<CalculationGetModel>(json);
 
             if (string.IsNullOrWhiteSpace(model.SpecificationId))
+            {
+                _logs.Error("No specification id was provided to GetCalculationByName");
                 return new BadRequestObjectResult("Null or empty specification id provided");
+            }
 
             if (string.IsNullOrWhiteSpace(model.Name))
+            {
+                _logs.Error("No calculation name was provided to GetCalculationByName");
                 return new BadRequestObjectResult("Null or empty calculation name provided");
+            }
 
             Calculation calculation = await _specifcationsRepository.GetCalculationBySpecificationIdAndCalculationName(model.SpecificationId, model.Name);
 
             if (calculation != null)
+            {
+                _logs.Information($"A calculation was found for specification id {model.SpecificationId} and name {model.Name}");
+
                 return new OkObjectResult(calculation);
+            }
+
+            _logs.Information($"A calculation was not found for specification id {model.SpecificationId} and name {model.Name}");
 
             return new NotFoundResult();
         }
@@ -134,12 +190,28 @@ namespace CalculateFunding.Services.Specs
         public async Task<IActionResult> GetAcademicYears(HttpRequest request)
         {
             IEnumerable<AcademicYear> academicYears = await _specifcationsRepository.GetAcademicYears();
+
+            if (academicYears.IsNullOrEmpty())
+            {
+                _logs.Error($"No academic years were returned");
+
+                academicYears = new AcademicYear[0];
+            }
+
             return new OkObjectResult(academicYears);
         }
 
         public async Task<IActionResult> GetFundingStreams(HttpRequest request)
         {
             IEnumerable<FundingStream> fundingStreams = await _specifcationsRepository.GetFundingStreams();
+
+            if (fundingStreams.IsNullOrEmpty())
+            {
+                _logs.Error($"No academic years were returned");
+
+                fundingStreams = new FundingStream[0];
+            }
+
             return new OkObjectResult(fundingStreams);
         }
 
