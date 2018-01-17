@@ -12,6 +12,8 @@ using System.Net;
 using FluentValidation;
 using CalculateFunding.Services.Core.Extensions;
 using Serilog;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Options;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -23,10 +25,13 @@ namespace CalculateFunding.Services.Specs
         private readonly IValidator<PolicyCreateModel> _policyCreateModelValidator;
         private readonly IValidator<SpecificationCreateModel> _specificationCreateModelvalidator;
         private readonly IValidator<CalculationCreateModel> _calculationCreateModelValidator;
+        private readonly IMessengerService _messengerService;
+        private readonly ServiceBusSettings _serviceBusSettings;
 
         public SpecificationsService(IMapper mapper, 
             ISpecificationsRepository specifcationsRepository, ILogger logs, IValidator<PolicyCreateModel> policyCreateModelValidator,
-            IValidator<SpecificationCreateModel> specificationCreateModelvalidator, IValidator<CalculationCreateModel> calculationCreateModelValidator)
+            IValidator<SpecificationCreateModel> specificationCreateModelvalidator, IValidator<CalculationCreateModel> calculationCreateModelValidator,
+            IMessengerService messengerService, ServiceBusSettings serviceBusSettings)
         {
             _mapper = mapper;
             _specifcationsRepository = specifcationsRepository;
@@ -34,6 +39,8 @@ namespace CalculateFunding.Services.Specs
             _policyCreateModelValidator = policyCreateModelValidator;
             _specificationCreateModelvalidator = specificationCreateModelvalidator;
             _calculationCreateModelValidator = calculationCreateModelValidator;
+            _messengerService = messengerService;
+            _serviceBusSettings = serviceBusSettings;
         }
 
         public async Task<IActionResult> GetSpecificationById(HttpRequest request)
@@ -333,6 +340,8 @@ namespace CalculateFunding.Services.Specs
 
             if (statusCode != HttpStatusCode.OK)
                 return new StatusCodeResult((int)statusCode);
+
+           // await _messengerService.SendAsync<Calculation>(_serviceBusSettings.CalcsServiceBusTopicName,  )
 
             return new OkObjectResult(calculation);
         }

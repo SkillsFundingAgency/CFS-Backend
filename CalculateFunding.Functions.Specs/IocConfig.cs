@@ -10,6 +10,8 @@ using FluentValidation;
 using CalculateFunding.Services.Specs.Validators;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Calcs;
 
 namespace CalculateFunding.Functions.Specs
 {
@@ -39,6 +41,8 @@ namespace CalculateFunding.Functions.Specs
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
             builder.AddCosmosDb(config);
+
+            builder.AddServiceBus(config);
 
             builder.AddLogging(config, "CalculateFunding.Functions.Specs");
         }

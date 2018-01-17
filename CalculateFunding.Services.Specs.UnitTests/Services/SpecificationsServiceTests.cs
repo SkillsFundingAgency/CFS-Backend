@@ -23,6 +23,8 @@ using System.Linq.Expressions;
 using System.Linq;
 using Newtonsoft.Json;
 using System.IO;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Options;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -716,15 +718,22 @@ namespace CalculateFunding.Services.Specs.Services
 
         static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null, 
             ILogger logs = null, IValidator<PolicyCreateModel> policyCreateModelValidator = null,
-            IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null, IValidator<CalculationCreateModel> calculationCreateModelValidator = null)
+            IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null, IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
+            IMessengerService messengerService = null, ServiceBusSettings serviceBusSettings = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(), specifcationsRepository ?? CreateSpecificationsRepository(), logs ?? CreateLogger(), policyCreateModelValidator ?? CreatePolicyValidator(),
-                specificationCreateModelvalidator ?? CreateSpecificationValidator(), calculationCreateModelValidator ?? CreateCalculationValidator());
+                specificationCreateModelvalidator ?? CreateSpecificationValidator(), calculationCreateModelValidator ?? CreateCalculationValidator(), messengerService ?? CreateMessengerService(),
+                serviceBusSettings ?? CreateServiceBusSettings());
         }
 
         static IMapper CreateMapper()
         {
             return Substitute.For<IMapper>();
+        }
+
+        static IMessengerService CreateMessengerService()
+        {
+            return Substitute.For<IMessengerService>();
         }
 
         static ISpecificationsRepository CreateSpecificationsRepository()
@@ -737,7 +746,12 @@ namespace CalculateFunding.Services.Specs.Services
             return Substitute.For<ILogger>();
         }
 
-       
+        static ServiceBusSettings CreateServiceBusSettings()
+        {
+            return new ServiceBusSettings();
+        }
+
+
         static IValidator<PolicyCreateModel> CreatePolicyValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
