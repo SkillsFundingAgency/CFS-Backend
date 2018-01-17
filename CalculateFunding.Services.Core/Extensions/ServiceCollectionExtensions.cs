@@ -1,7 +1,9 @@
 ﻿using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.ServiceBus;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -29,6 +31,23 @@ namespace CalculateFunding.Services.Core.Extensions
 
             builder
                 .AddScoped<CosmosRepository>();
+
+            return builder;
+        }
+
+        public static IServiceCollection AddServiceBus(this IServiceCollection builder, IConfigurationRoot config)
+        {
+            ServiceBusSettings serviceBusSettings = new ServiceBusSettings();
+
+            config.Bind("ServiceBusSettings", serviceBusSettings);
+
+            builder.AddSingleton<ServiceBusSettings>(serviceBusSettings);
+
+            builder
+                .AddScoped<IMessengerService, MessengerService>();
+
+            builder
+                .AddScoped<IMessagePumpService, MessagePumpService>();
 
             return builder;
         }
