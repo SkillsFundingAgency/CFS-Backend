@@ -190,12 +190,28 @@ namespace CalculateFunding.Services.Specs
         public async Task<IActionResult> GetAcademicYears(HttpRequest request)
         {
             IEnumerable<AcademicYear> academicYears = await _specifcationsRepository.GetAcademicYears();
+
+            if (academicYears.IsNullOrEmpty())
+            {
+                _logs.Error($"No academic years were returned");
+
+                academicYears = new AcademicYear[0];
+            }
+
             return new OkObjectResult(academicYears);
         }
 
         public async Task<IActionResult> GetFundingStreams(HttpRequest request)
         {
             IEnumerable<FundingStream> fundingStreams = await _specifcationsRepository.GetFundingStreams();
+
+            if (fundingStreams.IsNullOrEmpty())
+            {
+                _logs.Error($"No academic years were returned");
+
+                fundingStreams = new FundingStream[0];
+            }
+
             return new OkObjectResult(fundingStreams);
         }
 
