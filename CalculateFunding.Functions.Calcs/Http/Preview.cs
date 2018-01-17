@@ -7,11 +7,9 @@ using System.Reflection;
 using System.Threading.Tasks;
 using CalculateFunding.Functions.Calcs.Models;
 using CalculateFunding.Functions.Common;
-using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.CodeGeneration;
@@ -24,7 +22,7 @@ using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace CalculateFunding.Functions.Calcs
+namespace CalculateFunding.Functions.Calcs.Http
 {
     public static class Preview
     {
@@ -39,26 +37,17 @@ namespace CalculateFunding.Functions.Calcs
             var json = await req.Content.ReadAsStringAsync();
 
             var request = JsonConvert.DeserializeObject<PreviewRequest>(json, SerializerSettings);
-            var budget = await budgetRepository.ReadAsync<BuildProject>(request.BudgetId);
-            var product = budget?.Content?.Calculations.FirstOrDefault(x => x.Id == request.ProductId);
-            if (product == null) return new HttpResponseMessage(HttpStatusCode.NotFound);
+            var buildProject = (await budgetRepository.ReadAsync<BuildProject>(request.SpecificationId))?.Content;
+            var calculation = buildProject?.Calculations.FirstOrDefault(x => x.Id == request.CalculationId);
+            if (calculation == null) return new HttpResponseMessage(HttpStatusCode.NotFound);
 
-            if (!string.IsNullOrWhiteSpace(request.Calculation))
+            if (!string.IsNullOrWhiteSpace(request.SourceCode))
             {
-                product.Current.SourceCode  = request.Calculation;
-            }
-
-            var testSuite = new TestSuite();
-            var calcTest = new CalculationTest();
-
-            if (request.TestScenario != null)
-            {
-                // If we are given a scenario then remove everything else
-                calcTest.TestScenarios = new List<TestScenario>{ request.TestScenario};
+                calculation.Current.SourceCode  = request.SourceCode;
             }
 
             ISourceFileGenerator generator = null;
-            switch (budget.Content.TargetLanguage)
+            switch (buildProject.TargetLanguage)
             {
                 case TargetLanguage.CSharp:
                     generator = ServiceFactory.GetService<CSharpSourceFileGenerator>();
@@ -68,39 +57,21 @@ namespace CalculateFunding.Functions.Calcs
                     break;
             }
 
-            var sourceFiles = generator.GenerateCode(budget.Content);
+            var sourceFiles = generator.GenerateCode(buildProject);
 
             var compilerFactory = ServiceFactory.GetService<CompilerFactory>();
 
             var compiler = compilerFactory.GetCompiler(sourceFiles);
 
+
             var compilerOutput = compiler.GenerateCode(sourceFiles);
-                
+
 
             var viewModel = new PreviewResponse()
             {
-                Product = product,
+                Calculation = calculation,
                 CompilerOutput = compilerOutput
             };
-
-
-            if (compilerOutput.Success)
-            {
-                var assembly = Assembly.Load(Convert.FromBase64String(compilerOutput.AssemblyBase64));
-                var allocationFactory = new AllocationFactory(assembly);
-
-                var calc = ServiceFactory.GetService<CalculationEngine>();
-                var testEngine = ServiceFactory.GetService<TestEngine>();
-                foreach (var testProvider in testSuite.TestProviders ?? new List<ProviderSummary>())
-                {
-                    var typedDatasets = await calc.GetProviderDatasets(allocationFactory, testProvider, request.BudgetId);
-
-
-                    var providerResult = calc.CalculateProviderResults(allocationFactory.CreateAllocationModel(), budget.Content, testProvider, typedDatasets);
-                    var testResult = testEngine.RunProviderTests(testSuite, providerResult);
-                    viewModel.TestResults.Add(testResult);
-                }
-            }
 
 
             return new HttpResponseMessage(HttpStatusCode.OK)

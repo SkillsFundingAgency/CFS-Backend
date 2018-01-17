@@ -6,10 +6,11 @@ namespace CalculateFunding.Functions.Calcs.Models
 
     public class PreviewRequest
     {
-        public string BudgetId { get; set; }
-        public string ProductId { get; set; }
-        public string Calculation { get; set; }
-        public TestScenario TestScenario { get; set; }
+        public string SpecificationId { get; set; }
+        public string CalculationId { get; set; }
+
+        public decimal? DecimalPlaces { get; set; }
+        public string SourceCode { get; set; }
     }
 }
 

@@ -9,12 +9,8 @@ namespace CalculateFunding.Functions.Calcs.Models
 {
     public class PreviewResponse
     {
-        public PreviewResponse()
-        {
-            TestResults = new List<ProviderTestResult>();
-        }
-        public Calculation Product { get; set; }
+        public Calculation Calculation { get; set; }
         public Build CompilerOutput { get; set; }
-        public List<ProviderTestResult> TestResults { get; set; }
+
     }
 }
