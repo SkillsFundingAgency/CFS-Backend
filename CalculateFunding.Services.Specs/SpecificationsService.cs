@@ -162,15 +162,27 @@ namespace CalculateFunding.Services.Specs
             CalculationGetModel model = JsonConvert.DeserializeObject<CalculationGetModel>(json);
 
             if (string.IsNullOrWhiteSpace(model.SpecificationId))
+            {
+                _logs.Error("No specification id was provided to GetCalculationByName");
                 return new BadRequestObjectResult("Null or empty specification id provided");
+            }
 
             if (string.IsNullOrWhiteSpace(model.Name))
+            {
+                _logs.Error("No calculation name was provided to GetCalculationByName");
                 return new BadRequestObjectResult("Null or empty calculation name provided");
+            }
 
             Calculation calculation = await _specifcationsRepository.GetCalculationBySpecificationIdAndCalculationName(model.SpecificationId, model.Name);
 
             if (calculation != null)
+            {
+                _logs.Information($"A calculation was found for specification id {model.SpecificationId} and name {model.Name}");
+
                 return new OkObjectResult(calculation);
+            }
+
+            _logs.Information($"A calculation was not found for specification id {model.SpecificationId} and name {model.Name}");
 
             return new NotFoundResult();
         }
