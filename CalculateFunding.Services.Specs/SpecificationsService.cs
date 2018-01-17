@@ -63,16 +63,27 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetSpecificationByAcademicYearId(HttpRequest request)
         {
-            _logs.Information("Whaye this should be logged out");
-
             request.Query.TryGetValue("academicYearId", out var yearId);
 
             var academicYearId = yearId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(academicYearId))
+            {
+                _logs.Error("No academic year Id was provided to GetSpecificationByAcademicYearId");
+
                 return new BadRequestObjectResult("Null or empty academicYearId provided");
+            }
 
             IEnumerable<Specification> specifications = await _specifcationsRepository.GetSpecificationsByQuery(m => m.AcademicYear.Id == academicYearId);
+
+            if (specifications.IsNullOrEmpty())
+            {
+                _logs.Information($"No specifications found for academic year with id {academicYearId}");
+
+                return new OkObjectResult(new Specification[0]);
+            }
+
+            _logs.Information($"Found {specifications.Count()} specifications for academic year with id {academicYearId}");
 
             return new OkObjectResult(specifications);
         }
