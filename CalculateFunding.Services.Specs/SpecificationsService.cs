@@ -144,7 +144,13 @@ namespace CalculateFunding.Services.Specs
             Policy policy = specification.GetPolicyByName(model.Name);
 
             if (policy != null)
+            {
+                _logs.Information($"A policy was found for specification id {model.SpecificationId} and name {model.Name}");
+
                 return new OkObjectResult(policy);
+            }
+
+            _logs.Information($"A policy was not found for specification id {model.SpecificationId} and name {model.Name}");
 
             return new NotFoundResult();
         }

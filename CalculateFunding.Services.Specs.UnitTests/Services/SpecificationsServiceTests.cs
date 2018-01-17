@@ -472,6 +472,98 @@ namespace CalculateFunding.Services.Specs.Services
                 .Error(Arg.Is($"No specification was found for specification id {SpecificationId}"));
         }
 
+        [TestMethod]
+        public async Task GetPolicyByName_GivenSpecificationExistsAndPolicyExists_ReturnsSuccess()
+        {
+            //Arrange
+            Specification spec = new Specification
+            {
+                Policies = new[]
+                {
+                    new Policy{ Name = PolicyName}
+                }
+            };
+
+            PolicyGetModel model = new PolicyGetModel
+            {
+                SpecificationId = SpecificationId,
+                Name = PolicyName
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(spec);
+
+            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+
+            //Act
+            IActionResult result = await service.GetPolicyByName(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"A policy was found for specification id {SpecificationId} and name {PolicyName}"));
+        }
+
+        [TestMethod]
+        public async Task GetPolicyByName_GivenSpecificationExistsAndPolicyDoesNotExist_ReturnsNotFound()
+        {
+            //Arrange
+            Specification spec = new Specification();
+
+            PolicyGetModel model = new PolicyGetModel
+            {
+                SpecificationId = SpecificationId,
+                Name = PolicyName
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(spec);
+
+            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+
+            //Act
+            IActionResult result = await service.GetPolicyByName(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"A policy was not found for specification id {SpecificationId} and name {PolicyName}"));
+        }
+
         static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null, 
             ILogger logs = null, IValidator<PolicyCreateModel> policyCreateModelValidator = null,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null, IValidator<CalculationCreateModel> calculationCreateModelValidator = null)
