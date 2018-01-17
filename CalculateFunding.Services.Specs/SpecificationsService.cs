@@ -95,12 +95,22 @@ namespace CalculateFunding.Services.Specs
             var specificationName = specName.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specName))
+            {
+                _logs.Error("No specification name was provided to GetSpecificationByName");
+
                 return new BadRequestObjectResult("Null or empty specification name provided");
+            }
 
             IEnumerable<Specification> specifications = await _specifcationsRepository.GetSpecificationsByQuery(m => m.Name.ToLower() == specificationName.ToLower());
 
             if (!specifications.Any())
+            {
+                _logs.Information($"Specification was not found for name: {specificationName}");
+
                 return new NotFoundResult();
+            }
+
+            _logs.Information($"Specification found for name: {specificationName}");
 
             return new OkObjectResult(specifications.FirstOrDefault());
         }

@@ -29,6 +29,7 @@ namespace CalculateFunding.Services.Specs.Services
     {
         const string SpecificationId = "ffa8ccb3-eb8e-4658-8b3f-f1e4c3a8f313";
         const string AcademicYearId = "18/19";
+        const string SpecificationName = "Test Spec 001";
 
         [TestMethod]
         public async Task GetSpecificationById_GivenSpecificationIdDoesNotExist_ReturnsBadRequest()
@@ -242,6 +243,116 @@ namespace CalculateFunding.Services.Specs.Services
             logger
                 .Received(1)
                 .Error(Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public async Task GetSpecificationByName_GivenSpecificationNameDoesNotExist_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            //Act
+            IActionResult result = await service.GetSpecificationByName(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public async Task GetSpecificationByName_GivenSpecificationWasNotFound_ReturnsNotFoundt()
+        {
+            //Arrange
+            IEnumerable<Specification> specs = Enumerable.Empty<Specification>();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationName", new StringValues(SpecificationName) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                 .GetSpecificationsByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
+                 .Returns(specs);
+
+            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+
+            //Act
+            IActionResult result = await service.GetSpecificationByName(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Specification was not found for name: {SpecificationName}"));
+        }
+
+        [TestMethod]
+        public async Task GetSpecificationByName_GivenSpecificationReturned_ReturnsSuccess()
+        {
+            //Arrange
+            IEnumerable<Specification> specs = new[]
+            {
+                new Specification()
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationName", new StringValues(SpecificationName) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                 .GetSpecificationsByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
+                 .Returns(specs);
+
+            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+
+            //Act
+            IActionResult result = await service.GetSpecificationByName(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            Specification objContent = (Specification)((OkObjectResult)result).Value;
+
+            objContent
+                .Should()
+                .NotBeNull();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Specification found for name: {SpecificationName}"));
         }
 
         static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null, 
