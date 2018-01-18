@@ -9,88 +9,102 @@ namespace CalculateFunding.Services.Calculator
 {
     public class AllocationModel
     {
-        public List<object> AllocationProcessors  = new List<object>();
+        private List<Tuple<MethodInfo, CalculationResult>> _methods = new List<Tuple<MethodInfo, CalculationResult>>();
+        private PropertyInfo[] _datasetSetters;
+        private object _instance;
+        private object _datasetsInstance;
 
+        public AllocationModel(Type allocationType)
+        {
+            var datasetsSetter = allocationType.GetProperty("Datasets");
+            var datasetType = datasetsSetter.PropertyType;
+            _datasetSetters = datasetType.GetProperties().Where(x => x.CanWrite).ToArray();
 
+            var executeMethods = allocationType.GetMethods().Where(x => x.ReturnType == typeof(decimal));
+            foreach (var executeMethod in executeMethods)
+            {
+
+                var parameters = executeMethod.GetParameters();
+
+                var attributes = executeMethod.GetCustomAttributesData();
+                var calcAttribute = attributes.FirstOrDefault(x => x.AttributeType.Name == "CalculationAttribute");
+                if (calcAttribute != null)
+                {
+                    var result = new CalculationResult
+                    {
+                        CalculationId = GetProperty(calcAttribute, "Id"),
+                        CalculationSpecification = GetReference(attributes, "CalculationSpecification"),
+                        AllocationLine = GetReference(attributes, "AllocationLine"),
+                        PolicySpecifications = GetReferences(attributes, "PolicySpecification").ToList()
+                    };
+
+                    if (parameters.Length == 0)
+                    {
+                        _methods.Add(new Tuple<MethodInfo, CalculationResult>(executeMethod, result));
+                    }
+                }
+            }
+
+            _instance = Activator.CreateInstance(allocationType);
+            _datasetsInstance = Activator.CreateInstance(datasetType);
+            datasetsSetter.SetValue(_instance, _datasetsInstance);
+        }
 
 
         public IEnumerable<CalculationResult> Execute(object[] datasets)
         {
-            foreach (var allocation in AllocationProcessors)
+
+            foreach (var dataset in datasets)
             {
-                var allocationType = allocation.GetType();
-                var setters = allocationType.GetProperties().Where(x => x.CanWrite).ToArray();
-
-                foreach (var dataset in datasets)
+                foreach (var setter in _datasetSetters)
                 {
-                    foreach (var setter in setters.Where(x => x.PropertyType == dataset.GetType()))
-                    {
-                        setter.SetValue(allocation, dataset);
-                    }
+                    setter.SetValue(_datasetsInstance, dataset);
                 }
-
-                var executeMethods = allocationType.GetMethods().Where(x => x.ReturnType == typeof(decimal));
-                foreach (var executeMethod in executeMethods)
-                {
-
-                    ParameterInfo[] parameters = executeMethod.GetParameters();
-
-                    var attribute = executeMethod.GetCustomAttributesData().FirstOrDefault(x => x.AttributeType.Name == "CalculationAttribute");
-                    if (attribute != null)
-                    {
-                        var result = CreateResult(attribute);
-
-                        if (parameters.Length == 0)
-                        {
-                            try
-                            {
-                                result.Value = (decimal)executeMethod.Invoke(allocation, null);
-                            }
-                            catch (Exception e)
-                            {
-                                result.Exception = e;
-                            }
-
-                        }
-
-  
-                        yield return result;
-                    }
-                }
-
-
             }
 
+            foreach (var executeMethod in _methods)
+            {
+                var result = executeMethod.Item2;
+                try
+                {
+                    result.Value = (decimal) executeMethod.Item1.Invoke(_instance, null);
+                }
+                catch (Exception e)
+                {
+                    result.Exception = e;
+                }
+                yield return result;
+            }
         }
 
-        private static CalculationResult CreateResult(CustomAttributeData attribute)
+
+
+        private static IEnumerable<Reference> GetReferences(IList<CustomAttributeData> attributes, string attributeName)
         {
-            var result = new CalculationResult();
-            foreach (var argument in attribute.NamedArguments)
+            foreach (var attribute in attributes.Where(x => x.AttributeType.Name.StartsWith(attributeName)))
             {
-                switch (argument.MemberName)
-                {
-                    case "CalculationId":
-                        result.CalculationId = argument.TypedValue.ToString();
-                        break;
-                    case "CalculationName":
-                        result.CalculationName = argument.TypedValue.ToString();
-                        break;
-                    case "PolicyId":
-                        result.PolicyId = argument.TypedValue.ToString();
-                        break;
-                    case "PolicyName":
-                        result.PolicyName = argument.TypedValue.ToString();
-                        break;
-                    case "AllocationLineId":
-                        result.AllocationLineId = argument.TypedValue.ToString();
-                        break;
-                    case "AllocationLineame":
-                        result.AllocationLineName = argument.TypedValue.ToString();
-                        break;
-                }
+                yield return new Reference(GetProperty(attribute, "Id"), GetProperty(attribute, "Name"));
             }
-            return result;
+        }
+
+        private static Reference GetReference(IList<CustomAttributeData> attributes, string attributeName)
+        {
+            var attribute = attributes.FirstOrDefault(x => x.AttributeType.Name.StartsWith(attributeName));
+            if (attribute != null)
+            {
+                return new Reference(GetProperty(attribute, "Id"), GetProperty(attribute, "Name"));
+            }
+            return null;
+        }
+
+        private static string GetProperty(CustomAttributeData attribute, string propertyName)
+        {
+            var argument = attribute.NamedArguments.FirstOrDefault(x => x.MemberName == propertyName);
+            if (argument != null)
+            {
+                return argument.TypedValue.Value.ToString();
+            }
+            return null;
         }
     }
 }

@@ -23,13 +23,8 @@ namespace CalculateFunding.Services.Calculator
                 DatasetTypes.Add(definitionName, type);
             }
 
-            var allocationTypes = budgetAssembly.GetTypes().Where(x => x.IsClass && x.Name == "ProductCalculations");
-            AllocationModel = new AllocationModel();
-            foreach (var type in allocationTypes)
-            {
-                AllocationModel.AllocationProcessors.Add(Activator.CreateInstance(type));
-            }
-
+            var allocationType = budgetAssembly.GetTypes().FirstOrDefault(x => x.IsClass && x.BaseType.Name == "BaseCalculation");
+            AllocationModel = new AllocationModel(allocationType);
         }
 
         public IEnumerable<string> GetDatasetTypeNames()
