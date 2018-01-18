@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.Azure.ServiceBus;
@@ -12,10 +13,12 @@ namespace CalculateFunding.Services.Core.ServiceBus
     public class MessagePumpService : IMessagePumpService
     {
         private readonly string _connectionString;
+        private readonly ICorrelationIdProvider _correlationIdProvider;
 
-        public MessagePumpService(ServiceBusSettings settings)
+        public MessagePumpService(ServiceBusSettings settings, ICorrelationIdProvider correlationIdProvider)
         {
             _connectionString = settings.ServiceBusConnectionString;
+            _correlationIdProvider = correlationIdProvider;
         }
 
         public SubscriptionClient GetSubscriptionClient(string topicName, string subscriptionName)
@@ -50,6 +53,12 @@ namespace CalculateFunding.Services.Core.ServiceBus
             client.RegisterMessageHandler(
                 async (message, token) =>
                 {
+                    if (message.UserProperties.ContainsKey("sfa-correlationId"))
+                    {
+                        var correlationId = message.UserProperties["sfa-correlationId"].ToString();
+                        _correlationIdProvider.SetCorrelationId(correlationId);
+                    }
+
                     await handler(message);
                     await client.CompleteAsync(message.SystemProperties.LockToken);
                 },
