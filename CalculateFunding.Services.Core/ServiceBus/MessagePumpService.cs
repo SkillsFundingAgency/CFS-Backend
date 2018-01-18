@@ -2,6 +2,7 @@
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CalculateFunding.Models;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.Azure.ServiceBus;
@@ -40,7 +41,26 @@ namespace CalculateFunding.Services.Core.ServiceBus
             Thread.Sleep(60 * 1000);
 
             await client.CloseAsync();
+        }
 
+        public async Task ReceiveAsync(string topicName, string subscriptionName, Func<Message, Task> handler)
+        {
+            var client = GetSubscriptionClient(topicName, subscriptionName);
+
+            client.RegisterMessageHandler(
+                async (message, token) =>
+                {
+                    await handler(message);
+                    await client.CompleteAsync(message.SystemProperties.LockToken);
+                },
+                async args =>
+                {
+
+                });
+
+            Thread.Sleep(60 * 1000);
+
+            await client.CloseAsync();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
+using Microsoft.Azure.ServiceBus;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,9 +10,9 @@ namespace CalculateFunding.Services.Calcs
 {
     public class CalculationService : ICalculationService
     {
-        public Task CreateCalculation(Calculation calculation)
+        public Task CreateCalculation(Message message)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
     }
 }

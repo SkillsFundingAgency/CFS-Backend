@@ -16,6 +16,7 @@ using CalculateFunding.Services.Compiler;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
@@ -30,6 +31,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             string messageJson,
             ILogger log)
         {
+            
             //var command = JsonConvert.DeserializeObject<ImplementationCommand>(messageJson);
 
             //var repository = ServiceFactory.GetService<CosmosRepository>();
