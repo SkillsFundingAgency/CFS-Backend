@@ -14,6 +14,7 @@ using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
+using Calculation = CalculateFunding.Models.Calcs.Calculation;
 
 namespace CalculateFunding.Functions.Calcs.ServiceBus
 {
@@ -31,39 +32,30 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             var repository = ServiceFactory.GetService<CosmosRepository>();
             var messenger = ServiceFactory.GetService<IMessenger>();
 
-            var entity = repository.Query<Implementation>().FirstOrDefault(x => x.Specification.Id == command.Content.Id);
-            var impl = entity ?? new Implementation{Id = command.Content.Id, TargetLanguage = TargetLanguage.VisualBasic};
+            var entity = repository.Query<BuildProject>().FirstOrDefault(x => x.Specification.Id == command.Content.Id);
+            var impl = entity ?? new BuildProject{Id = command.Content.Id, TargetLanguage = TargetLanguage.VisualBasic};
             impl.Name = command.Content.Name;
-            impl.Calculations = impl.Calculations ?? new List<CalculationImplementation>();
+            impl.Calculations = impl.Calculations ?? new List<Calculation>();
             impl.DatasetDefinitions = new List<DatasetDefinition>();
-            
 
-            impl.Calculations.AddRange(command.Content.GetCalculations()
-                .Where(x => impl.Calculations.All(existing => existing.CalculationSpecification.Id != x.Id)).Select(x => new CalculationImplementation
-            {
-                Id = Reference.NewId(),
-                Name = x.Name,
-                CalculationSpecification = x,
-                Implementation = new Reference(impl.Id, impl.Name),
-                Specification = command.Content,
-               
-                
-            }));
+
+            //impl.Calculations.AddRange(command.Content.GenerateCalculations().Where(x =>
+            //    impl.Calculations.All(existing => existing.CalculationSpecification.Id != x.Id)));
 
             if (JsonConvert.SerializeObject(impl) !=
-                JsonConvert.SerializeObject(entity ?? new Implementation()))
+                JsonConvert.SerializeObject(entity ?? new BuildProject()))
             {
                 log.LogInformation($"Changes detected for implementation:{impl.Id}");
-                var implCommand = new ImplementationCommand
-                {
-                    Id = Reference.NewId(),
-                    Content = impl,
-                    Method = CommandMethod.Post,
-                    User = command.User
-                };
+                //var implCommand = new ImplementationCommand
+                //{
+                //    Id = Reference.NewId(),
+                //    Content = impl,
+                //    Method = CommandMethod.Post,
+                //    User = command.User
+                //};
                 await repository.CreateAsync(impl);
-                await repository.CreateAsync(implCommand);
-                await messenger.SendAsync("calc-events", implCommand);
+                //await repository.CreateAsync(implCommand);
+                //await messenger.SendAsync("calc-events", implCommand);
                 log.LogInformation($"Updated implementation:{impl.Id}");
 
             }

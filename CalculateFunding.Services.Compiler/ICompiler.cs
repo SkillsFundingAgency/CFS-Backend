@@ -1,11 +1,10 @@
-﻿using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Specs;
+﻿using System.Collections.Generic;
+using CalculateFunding.Models.Calcs;
 
 namespace CalculateFunding.Services.Compiler
 {
     public interface ICompiler
     {
-        Build GenerateCode(Implementation implementation);
-        string GetIdentifier(string name);
+        Build GenerateCode(List<SourceFile> sourcefiles);
     }
 }

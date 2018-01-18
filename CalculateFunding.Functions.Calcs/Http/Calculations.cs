@@ -8,6 +8,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
+using Calculation = CalculateFunding.Models.Specs.Calculation;
 
 namespace CalculateFunding.Functions.Calcs.Http
 {
@@ -17,7 +18,7 @@ namespace CalculateFunding.Functions.Calcs.Http
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", "get")] HttpRequest req, ILogger log)
         {
-            var restMethods = new RestGetMethods<CalculationImplementation>();
+            var restMethods = new RestGetMethods<Calculation>();
             return await restMethods.Run(req, log, "specificationId");
         }
     }

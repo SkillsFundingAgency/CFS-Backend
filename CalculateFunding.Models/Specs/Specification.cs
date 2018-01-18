@@ -23,5 +23,8 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("policies")]
         public IEnumerable<Policy> Policies { get; set; }
 
+        [JsonProperty("datasetDefinitions")]
+        public List<DatasetDefinition> DatasetDefinitions { get; set; }
+
     }
 }

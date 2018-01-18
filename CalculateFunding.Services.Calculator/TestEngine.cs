@@ -47,9 +47,10 @@ namespace CalculateFunding.Services.Calculator
                     {
                         scenarioResults.Add(new ProductTestScenarioResult
                         {
-                            Policy = productResult.Policy,
-                            AllocationLine = productResult.AllocationLine,
                             Calculation = productResult.Calculation,
+                            CalculationSpecification = productResult.CalculationSpecification,
+                            AllocationLine = productResult.AllocationLine,
+                            PolicySpecifications = productResult.PolicySpecifications,
                             Value = productResult.Value,
                             Scenario = executeResult.Scenario,
                             TestResult =

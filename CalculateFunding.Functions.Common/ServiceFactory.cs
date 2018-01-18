@@ -1,16 +1,14 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using AutoMapper;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Repositories.Providers;
 using CalculateFunding.Services.Calculator;
+using CalculateFunding.Services.CodeGeneration.CSharp;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
-using CalculateFunding.Services.Compiler.CSharp;
-using CalculateFunding.Services.Compiler.VisualBasic;
+using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.DataImporter;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -61,10 +59,12 @@ namespace CalculateFunding.Functions.Common
                     SearchServiceName = config["SearchServiceName"],
                     SearchKey = config["SearchServiceKey"]
                 }))
-               
+
+                .AddTransient<CSharpSourceFileGenerator>()
+                .AddTransient<VisualBasicSourceFileGenerator>()
                 .AddTransient<CSharpCompiler>()
                 .AddTransient<VisualBasicCompiler>()
-                .AddTransient<BudgetCompiler>()
+                .AddTransient<CompilerFactory>()
                 .AddTransient<DataImporterService>()
                 .AddTransient<CalculationEngine>()
                 .BuildServiceProvider();

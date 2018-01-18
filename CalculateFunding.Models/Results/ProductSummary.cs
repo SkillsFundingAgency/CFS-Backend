@@ -3,12 +3,13 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using Newtonsoft.Json;
+using Calculation = CalculateFunding.Models.Specs.Calculation;
 
 namespace CalculateFunding.Models.Results
 {
     public class ProductSummary : ResultSummary
     {
-        public ProductSummary(string id, string name, CalculationImplementation calculation, string description, List<TestScenario> testScenarios)
+        public ProductSummary(string id, string name, Calculation calculation, string description, List<TestScenario> testScenarios)
         {
             Name = name;
             this.Calculation = calculation;
@@ -23,7 +24,7 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("description")]
         public string Description { get; set; }
         [JsonProperty("calculation")]
-        public CalculationImplementation Calculation { get; set; }
+        public Calculation Calculation { get; set; }
         [JsonProperty("testScenarios")]
         public List<TestScenario> TestScenarios { get; set; }
         [JsonProperty("testProviders")]

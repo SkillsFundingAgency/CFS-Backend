@@ -11,9 +11,14 @@ namespace CalculateFunding.Models.Calcs
         public string AssemblyBase64 { get; set; }
         [JsonProperty("compilerMessages")]
         public List<CompilerMessage> CompilerMessages { get; set; }
-        [JsonProperty("datasetSourceCode")]
-        public string DatasetSourceCode { get; set; }
-        [JsonProperty("calculationSourceCode")]
-        public string CalculationSourceCode { get; set; }
+        [JsonProperty("sourceFiles")]
+        public List<SourceFile> SourceFiles { get; set; }
     }
+
+    public class SourceFile
+    {
+        public string FileName { get; set; }
+        public string SourceCode { get; set; }
+    }
+
 }

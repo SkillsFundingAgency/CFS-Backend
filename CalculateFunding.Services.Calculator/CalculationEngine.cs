@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -22,14 +23,16 @@ namespace CalculateFunding.Services.Calculator
     {
         private readonly IDatasetProvider _datasetProvider = null;
 
-        public IEnumerable<ProviderResult> GenerateAllocations(Implementation implementation, SpecificationScope scope)
+        public IEnumerable<ProviderResult> GenerateAllocations(BuildProject buildProject, SpecificationScope scope)
         {
-            var assembly = Assembly.Load(Convert.FromBase64String(implementation.Build.AssemblyBase64));
+            var assembly = Assembly.Load(Convert.FromBase64String(buildProject.Build.AssemblyBase64));
             var allocationFactory = new AllocationFactory(assembly);
             var allocationModel = allocationFactory.CreateAllocationModel();
 
                 foreach (var provider in scope.Providers)
                 {
+                    var stopwatch = new Stopwatch();
+                    stopwatch.Start();
                     var typedDatasets = new List<object>();
 
 
@@ -44,7 +47,10 @@ namespace CalculateFunding.Services.Calculator
                     }
 
 
-                    var result = CalculateProviderResults(allocationModel, implementation, provider, typedDatasets);
+                    var result = CalculateProviderResults(allocationModel, buildProject, provider, typedDatasets);
+
+                stopwatch.Stop();
+                Console.WriteLine($"Generated result for ${provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
                     yield return result;
                    
                 }
@@ -67,42 +73,35 @@ namespace CalculateFunding.Services.Calculator
             return typedDatasets;
         }
 
-        public ProviderResult CalculateProviderResults(AllocationModel model, Implementation implementation, ProviderSummary provider, List<object> typedDatasets)
+        public ProviderResult CalculateProviderResults(AllocationModel model, BuildProject buildProject, ProviderSummary provider, List<object> typedDatasets)
         {
-            var calculationResults = model.Execute(typedDatasets.ToArray());
-            var providerAllocations = calculationResults.ToDictionary(x => x.CalculationId);
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            var calculationResults = model.Execute(typedDatasets.ToArray()).ToArray();
+            var providerCalResults = calculationResults.ToDictionary(x => x.CalculationId);
+            stopwatch.Stop();
+            Console.WriteLine($"{providerCalResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalResults.Count: 0.0000}ms)");
 
             var result = new ProviderResult
             {
                 Provider = provider,
-                Specification = new Reference(implementation.Specification.Id, implementation.Specification.Name),
+                Specification = new Reference(buildProject.Specification.Id, buildProject.Specification.Name),
                 SourceDatasets = typedDatasets.ToList()
             };
             var productResults = new List<CalculationResult>();
 
-            foreach (var product in implementation.Calculations)
+            foreach (var calculation in buildProject.Calculations)
             {
 
                 var productResult = new CalculationResult
                 {
-                    //FundingPolicy = new Reference(fundingPolicy.Id, fundingPolicy.Name),
-                    //AllocationLine = new Reference(allocationLine.Id, allocationLine.Name),
-                    //ProductFolder = new Reference(productFolder.Id, productFolder.Name),
-                    Calculation = product.GetReference()
+                    Calculation = calculation.GetReference()
                 };
-                if (providerAllocations.ContainsKey(product.CalculationSpecification.Id))
+                if (providerCalResults.TryGetValue(calculation.Id, out var calculationResult))
                 {
-                    var calculationResult = providerAllocations[product.CalculationSpecification.Id];
-                    productResult.Calculation = calculationResult.CalculationId != null
-                        ? new Reference(calculationResult.CalculationId, calculationResult.CalculationName)
-                        : null;
-                    productResult.Calculation = calculationResult.CalculationId != null
-                        ? new Reference(calculationResult.CalculationId, calculationResult.CalculationName)
-                        : null;
-                    productResult.Calculation = calculationResult.CalculationId != null
-                        ? new Reference(calculationResult.CalculationId, calculationResult.CalculationName)
-                        : null;
-                    // TODO - add all attributes
+                    productResult.CalculationSpecification = calculationResult.CalculationSpecification;
+                    productResult.AllocationLine = calculationResult.AllocationLine;
+                    productResult.PolicySpecifications = calculationResult.PolicySpecifications;
                     productResult.Value = calculationResult.Value;
                     productResult.Exception = calculationResult.Exception;
                 }

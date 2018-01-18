@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Calcs;
@@ -28,6 +29,13 @@ using Microsoft.Azure.WebJobs.Extensions.Timers;
 using CalculateFunding.Functions.Datasets.Http;
 using CalculateFunding.Functions.Results.Http;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Services.CodeGeneration;
+using CalculateFunding.Services.CodeGeneration.CSharp;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
+using Calculation = CalculateFunding.Models.Calcs.Calculation;
 
 namespace CalculateFunding.EndToEnd
 {
@@ -51,31 +59,99 @@ namespace CalculateFunding.EndToEnd
 
                 var scope = JsonConvert.DeserializeObject<SpecificationScope>(scopeJson);
 
+                var p = ImportProducts();
+                var s = p.GroupBy(x => x.ScenarioName).Select(x => x.Key).ToList();
+                var products = ImportProducts();
 
-                var compiler = ServiceFactory.GetService<BudgetCompiler>();
 
-                var impl = new Implementation
+ 
+                var impl = new BuildProject
                 {
                     Id = Reference.NewId(),
+                    Specification = spec.GetReference(),
                     TargetLanguage = TargetLanguage.VisualBasic,
                     Name = spec.Name
                 };
-                impl.Calculations = impl.Calculations ?? new List<CalculationImplementation>();
-                impl.DatasetDefinitions = new List<DatasetDefinition>();
+                impl.Calculations = impl.Calculations ?? new List<Calculation>();
+                impl.DatasetDefinitions = spec.DatasetDefinitions;
 
 
-                impl.Calculations.AddRange(spec.GetCalculations()
-                    .Where(x => impl.Calculations.All(existing => existing.CalculationSpecification.Id != x.Id)).Select(x => new CalculationImplementation
+
+                impl.Calculations.AddRange(spec.GenerateCalculations());
+
+                foreach (var product in products.Where(x => x.ScenarioName == "1718_Global_Variables")) 
+                {
+                    impl.Calculations.Add(new Calculation
                     {
                         Id = Reference.NewId(),
-                        Name = x.Name,
-                        CalculationSpecification = x,
-                        Implementation = new Reference(impl.Id, impl.Name),
-                        Specification = spec.GetReference(),
-                    }));
+                        Name = product.Name,
+                        Published = new CalculationVersion
+                        {
+                            SourceCode = ConvertTheStoreScript(product)
+                        }
+                        
+                    });
+                }
 
-                impl.Build = compiler.GenerateAssembly(impl);
-                File.WriteAllText(@"..\Spikes\VisualBasicCore\VisualBasicCore\Calculations.vb", impl.Build.CalculationSourceCode);
+                foreach (var product in products.Where(x => x.ScenarioName == "1718_NOR"))
+                {
+                    impl.Calculations.Add(new Calculation
+                    {
+                        Id = Reference.NewId(),
+                        Name = product.Name,
+                        Published = new CalculationVersion
+                        {
+                            SourceCode = ConvertTheStoreScript(product)
+                        }
+
+                    });
+                }
+
+                foreach (var calculation in impl.Calculations)
+                {
+                    var sbsProducts = products.Where(x => x.ScenarioName == "1718_SBS").ToDictionary(x => x.Name);
+                    if (sbsProducts.TryGetValue(calculation.Name, out var product))
+                    {
+                        calculation.Published = new CalculationVersion
+                        {
+                            SourceCode = ConvertTheStoreScript(product)
+                        };
+
+                    }
+                }
+
+                
+
+                ISourceFileGenerator generator = null;
+                switch (impl.TargetLanguage)
+                {
+                    case TargetLanguage.CSharp:
+                        generator = ServiceFactory.GetService<CSharpSourceFileGenerator>();
+                        break;
+                    case TargetLanguage.VisualBasic:
+                        generator = ServiceFactory.GetService<VisualBasicSourceFileGenerator>();
+                        break;
+                }
+
+                var sourceFiles = generator.GenerateCode(impl);
+
+                var compilerFactory = ServiceFactory.GetService<CompilerFactory>();
+
+                var compiler = compilerFactory.GetCompiler(sourceFiles);
+
+
+                impl.Build = compiler.GenerateCode(sourceFiles);
+                foreach (var sourceFile in impl.Build.SourceFiles)
+                {
+                    var fileName = $@"..\Spikes\{impl.TargetLanguage.ToString()}\{sourceFile.FileName}";
+                    var path = Path.GetDirectoryName(fileName);
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+                    File.WriteAllText(fileName, sourceFile.SourceCode);
+                }
+
 
                 var calc = ServiceFactory.GetService<CalculationEngine>();
                 var results = calc.GenerateAllocations(impl, scope).ToList();
@@ -123,6 +199,112 @@ namespace CalculateFunding.EndToEnd
         ).GetAwaiter().GetResult();
         }
 
+        private static string ConvertTheStoreScript(Product product)
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(product.Script);
+
+            var function = tree.GetRoot().DescendantNodes().FirstOrDefault(x => x.Kind() == SyntaxKind.FunctionBlock);
+            var statements = function.ChildNodes().OfType<StatementSyntax>().ToList();
+
+            var builder = new StringBuilder();
+            foreach (var statement in statements)
+            {
+                var kind = statement.Kind();
+                switch (kind)
+                {
+                    case SyntaxKind.FunctionStatement:
+                    case SyntaxKind.EndFunctionStatement:
+                        break;
+                    default:
+                        var line = statement.ToFullString();
+
+
+
+
+                        line = Regex.Replace(line, @"\[Datasets.(\S+)\]", "Datasets.$1", RegexOptions.IgnoreCase);
+                        line = line.Replace("Products.1718_Global_Variables.", "");
+                        line = line.Replace("products.1718_Global_Variables.", "");
+
+                       
+
+                        line = line.Replace("Products.1718_SBS.", "");
+
+                        line = line.Replace("products.1718_SBS.", "");
+                        line = line.Replace("Products.1718_NOR.", "");
+                        line = line.Replace("products.1718_NOR.", "");
+
+                        line = line.Replace("As Double", "As Decimal");
+                        line = line.Replace("Dim result = 0", "Dim result = Decimal.Zero");
+
+                        line = line.Replace(
+                            "datasets.Administration.Providers.Academy_Information.Academy_Parameters.Funding_Basis(2017181)",
+                            "Datasets.AcademyInformation.FundingBasis");
+
+                        line = line.Replace(
+                            "Datasets.Administration.Providers.Academy_Information.Academy_Parameters.Funding_Basis(2017181)",
+                            "Datasets.AcademyInformation.FundingBasis");
+
+ 
+
+                        var matches = Regex.Matches(line, @"Datasets.(\S+).(\S+).(\S+).(\S+).(\S+)", RegexOptions.IgnoreCase);
+                        if (matches.Count > 0)
+                        {
+                            var match = matches[0].Value;
+                            var split = match.Split('.');
+                            if (!split.Last().Contains("Funding_Basis"))
+                            {
+                                var dataset = split[split.Length - 2].Replace("_", "");
+                                var field = split[split.Length - 1].Replace("_", "").Replace(" ", "").Replace(@"/", "").Replace("-", "");
+                                line = line.Replace(match, $"Datasets.{dataset}.{field}");
+                            }
+
+                        }
+                        if (line.ToLowerInvariant().Contains("datasets.academy_allocations"))
+                        {
+
+
+                            line = Regex.Replace(line, @"Datasets.(\S+).(\S+).(\S+).(\S+).(\S+)", "$4.$5");
+                        }
+
+                        line = line.Replace("Datasets.ProviderInformation.", "Provider.");
+
+                        var dimAsMatch = Regex.Match(line, @"Dim (\w*) As \w* = (\w*)");
+
+                        if (dimAsMatch.Success)
+                        {
+                            if (dimAsMatch.Groups[1].Value == dimAsMatch.Groups[2].Value)
+                            {
+                                break;
+                            }
+
+                        }
+
+
+                        line = line.Replace("APTNewISBdataset.17–18", "APTNewISBdataset._1718");
+
+
+                        dimAsMatch = Regex.Match(line, @"Dim (\w*) = (\w*)");
+
+                        if (dimAsMatch.Success)
+                        {
+                            if (dimAsMatch.Groups[1].Value == dimAsMatch.Groups[2].Value)
+                            {
+                                break;
+                            }
+
+                        }
+
+                        line = line.Replace(product.Name, $"{product.Name}_Local");
+
+
+                        builder.AppendLine(line);
+                        break;
+                }
+            }
+
+            return builder.ToString();
+        }
+
         private static async Task<Specification> ImportSpecification(Reference user, ConsoleLogger logger)
         {
             var specJson = File.ReadAllText(Path.Combine("SourceData", "spec.json"));
@@ -138,6 +320,26 @@ namespace CalculateFunding.EndToEnd
             //}), logger);
 
             return spec;
+        }
+
+        public class Product
+        {
+            public string Name { get; set; }
+            public string Script { get; set; }
+            public string FolderName { get; set; }
+            public string ScenarioName { get; set; }
+            public string ProductType { get; set; }
+            public int DecimalPlaces { get; set; }
+        }
+
+        private static List<Product> ImportProducts()
+        {
+            var json = File.ReadAllText(Path.Combine("SourceData", "products.json"));
+
+            var products = JsonConvert.DeserializeObject<List<Product>>(json);
+
+
+            return products;
         }
 
 
