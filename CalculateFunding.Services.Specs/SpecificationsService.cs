@@ -70,6 +70,8 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetSpecificationByAcademicYearId(HttpRequest request)
         {
+            Reference user = request.GetUser();
+
             request.Query.TryGetValue("academicYearId", out var yearId);
 
             var academicYearId = yearId.FirstOrDefault();

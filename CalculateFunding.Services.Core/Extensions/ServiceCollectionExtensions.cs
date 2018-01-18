@@ -15,6 +15,7 @@ using Serilog.Events;
 using System;
 using System.IO;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 
 namespace CalculateFunding.Services.Core.Extensions
@@ -77,6 +78,20 @@ namespace CalculateFunding.Services.Core.Extensions
 
             if(!request.HttpContext.Response.Headers.ContainsKey("sfa-correlationId"))
                 request.HttpContext.Response.Headers.Add("sfa-correlationId", correlationId);
+
+            string userId = "unknown";
+            string username = "unknown";
+
+            if (request.HttpContext.Request.Headers.ContainsKey("sfa-userid"))
+                userId = request.HttpContext.Request.Headers["sfa-userid"];
+
+            if (request.HttpContext.Request.Headers.ContainsKey("sfa-username"))
+                username = request.HttpContext.Request.Headers["sfa-username"];
+
+            request.HttpContext.User = new ClaimsPrincipal(new[]
+            {
+                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, userId), new Claim(ClaimTypes.Name, username) })
+            });
 
             return serviceProvider.CreateScope();
         }

@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CalculateFunding.Models;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -34,6 +36,27 @@ namespace CalculateFunding.Services.Core.Extensions
             }
 
             return string.Empty;
+        }
+
+        public static Reference GetUser(this HttpRequest request)
+        {
+            Reference reference = new Reference();
+
+            Claim idClaim = request.HttpContext.User.Claims.FirstOrDefault(m => m.Type == ClaimTypes.Sid);
+
+            if(idClaim != null)
+            {
+                reference.Id = idClaim.Value;
+            }
+
+            Claim nameClaim = request.HttpContext.User.Claims.FirstOrDefault(m => m.Type == ClaimTypes.Name);
+
+            if (nameClaim != null)
+            {
+                reference.Name = nameClaim.Value;
+            }
+
+            return reference;
         }
     }
 }
