@@ -6,13 +6,14 @@ using CalculateFunding.Services.Core.Options;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 
+
 namespace CalculateFunding.Services.Core
 {
     public class MessengerService : IMessengerService
     {
         private readonly Dictionary<string, TopicClient> _topicClients = new Dictionary<string, TopicClient>();
         private readonly string _connectionString;
-
+       
         public MessengerService(ServiceBusSettings settings)
         {
             _connectionString = settings.ServiceBusConnectionString;
@@ -22,7 +23,6 @@ namespace CalculateFunding.Services.Core
         {
             if (!_topicClients.TryGetValue(topicName, out var topicClient))
             {
-
                 topicClient = new TopicClient(_connectionString, topicName);
                 _topicClients.Add(topicName, topicClient);
             }
@@ -35,7 +35,20 @@ namespace CalculateFunding.Services.Core
             
             var json = JsonConvert.SerializeObject(command);
             await topicClient.SendAsync(new Message(Encoding.UTF8.GetBytes(json)));
+        }
 
+        async public Task SendAsync<T>(string topicName, T data, IDictionary<string, string> properties)
+        {
+            var topicClient = GetTopicClient(topicName);
+
+            var json = JsonConvert.SerializeObject(data);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+        
+            foreach (var property in properties)
+                message.UserProperties.Add(property.Key, property.Value);
+           
+            await topicClient.SendAsync(message);
         }
     }
 }

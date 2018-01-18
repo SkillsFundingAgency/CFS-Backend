@@ -17,13 +17,18 @@ namespace CalculateFunding.Services.Core.Extensions
             if (encoding == null)
                 encoding = Encoding.UTF8;
 
-            using (StreamReader reader = new StreamReader(request.Body, encoding))
+            if (request.Body != null)
             {
-                if(request.Body.CanSeek)
-                    request.Body.Seek(0, SeekOrigin.Begin);
+                using (StreamReader reader = new StreamReader(request.Body, encoding))
+                {
+                    if (request.Body.CanSeek)
+                        request.Body.Seek(0, SeekOrigin.Begin);
 
-                return await reader.ReadToEndAsync();
-            }   
+                    return await reader.ReadToEndAsync();
+                }
+            }
+
+            return string.Empty;
         }
 
         public static string GetCorrelationId(this HttpRequest request)

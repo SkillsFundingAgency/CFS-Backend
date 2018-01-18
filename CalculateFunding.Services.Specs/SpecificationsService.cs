@@ -70,8 +70,6 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetSpecificationByAcademicYearId(HttpRequest request)
         {
-            Reference user = request.GetUser();
-
             request.Query.TryGetValue("academicYearId", out var yearId);
 
             var academicYearId = yearId.FirstOrDefault();
@@ -313,24 +311,38 @@ namespace CalculateFunding.Services.Specs
             CalculationCreateModel createModel = JsonConvert.DeserializeObject<CalculationCreateModel>(json);
 
             if (createModel == null)
-                return new BadRequestObjectResult("Null policy create model provided");
+            {
+                _logs.Error("Null calculation create model provided to CreateCalculation");
+
+                return new BadRequestObjectResult("Null calculation create model provided");
+            }
 
             var validationResult = (await _calculationCreateModelValidator.ValidateAsync(createModel)).PopulateModelState();
 
             if (validationResult != null)
+            {
+                _logs.Error("Invalid data was provided for CreateCalculation");
+
                 return validationResult;
+            }
 
             Specification specification = await _specifcationsRepository.GetSpecificationById(createModel.SpecificationId);
 
             if (specification == null)
-                return new NotFoundResult();
+            {
+                _logs.Warning($"Specification not found for specification id {createModel.SpecificationId}");
+                return new StatusCodeResult(412);
+            }
 
             Calculation calculation = _mapper.Map<Calculation>(createModel);
 
             Policy policy = specification.GetPolicy(createModel.PolicyId);
 
             if (policy == null)
-                return new NotFoundResult();
+            {
+                _logs.Warning($"Policy not found for policy id {createModel.PolicyId}");
+                return new StatusCodeResult(412);
+            }
 
             calculation.AllocationLine = await _specifcationsRepository.GetAllocationLineById(createModel.AllocationLineId);
 
@@ -341,9 +353,23 @@ namespace CalculateFunding.Services.Specs
             var statusCode = await _specifcationsRepository.UpdateSpecification(specification);
 
             if (statusCode != HttpStatusCode.OK)
-                return new StatusCodeResult((int)statusCode);
+            {
+                _logs.Error($"Failed to update specification when creating a calc with status {statusCode}");
 
-           // await _messengerService.SendAsync<Calculation>(_serviceBusSettings.CalcsServiceBusTopicName,  )
+                return new StatusCodeResult((int)statusCode);
+            }
+
+            Reference user = request.GetUser();
+
+            IDictionary<string, string> properties = new Dictionary<string, string>();
+            if (user != null)
+            {
+                properties.Add("user-id", user.Id);
+                properties.Add("user-name", user.Name);
+                properties.Add("command", "create-draft-calc");
+            }
+
+            await _messengerService.SendAsync(_serviceBusSettings.CalcsServiceBusTopicName, calculation, properties);
 
             return new OkObjectResult(calculation);
         }

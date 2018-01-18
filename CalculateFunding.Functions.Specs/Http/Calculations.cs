@@ -6,6 +6,7 @@ using System.Web.Http;
 using CalculateFunding.Functions.Common;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -59,33 +60,36 @@ namespace CalculateFunding.Functions.Specs.Http
         public static Task<IActionResult> RunCreateCalculation(
            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
         {
-            IServiceProvider provider = IocConfig.Build();
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
-
-            return svc.CreateCalculation(req);
+                return svc.CreateCalculation(req);
+            }
         }
 
         [FunctionName("calculation-by-name")]
         public static Task<IActionResult> RunCalculationByName(
           [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
         {
-            IServiceProvider provider = IocConfig.Build();
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
-
-            return svc.GetCalculationByName(req);
+                return svc.GetCalculationByName(req);
+            }
         }
 
         [FunctionName("allocation-lines")]
         public static Task<IActionResult> RunAllocationLines(
          [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
         {
-            IServiceProvider provider = IocConfig.Build();
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
-
-            return svc.GetAllocationLines(req);
+                return svc.GetAllocationLines(req);
+            }
         }
 
     }
