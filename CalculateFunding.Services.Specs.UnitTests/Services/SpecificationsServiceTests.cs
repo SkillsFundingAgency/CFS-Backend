@@ -44,6 +44,7 @@ namespace CalculateFunding.Services.Specs.Services
         const string Username = "test-user";
         const string UserId = "33d7a71b-f570-4425-801b-250b9129f3d3";
         const string CalcsServiceBusTopicName = "cals-topic";
+        const string SfaCorrelationId = "c625c3f9-6ce8-4f1f-a3a3-4611f1dc3881";
 
         [TestMethod]
         public async Task GetSpecificationById_GivenSpecificationIdDoesNotExist_ReturnsBadRequest()
@@ -1027,6 +1028,14 @@ namespace CalculateFunding.Services.Specs.Services
                 .HttpContext
                 .Returns(context);
 
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("sfa-correlationId", new StringValues(SfaCorrelationId));
+
+            request
+                .Headers
+                .Returns(headerDictionary);
+
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -1068,7 +1077,10 @@ namespace CalculateFunding.Services.Specs.Services
                 messengerService
                     .Received(1)
                     .SendAsync(Arg.Is(CalcsServiceBusTopicName), Arg.Is("calc-events-create-draft"), Arg.Is(calculation),
-                        Arg.Is<IDictionary<string, string>>(m => m["user-id"] == UserId && m["user-name"] == Username));
+                        Arg.Is<IDictionary<string, string>>(m => 
+                            m["user-id"] == UserId && 
+                            m["user-name"] == Username &&
+                            m["sfa-correlationId"] == SfaCorrelationId));
         }
 
         static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null, 
