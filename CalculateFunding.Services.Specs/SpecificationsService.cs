@@ -28,6 +28,8 @@ namespace CalculateFunding.Services.Specs
         private readonly IMessengerService _messengerService;
         private readonly ServiceBusSettings _serviceBusSettings;
 
+        const string createDraftcalculationSubscription = "calc-events-create-draft";
+
         public SpecificationsService(IMapper mapper, 
             ISpecificationsRepository specifcationsRepository, ILogger logs, IValidator<PolicyCreateModel> policyCreateModelValidator,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator, IValidator<CalculationCreateModel> calculationCreateModelValidator,
@@ -366,10 +368,9 @@ namespace CalculateFunding.Services.Specs
             {
                 properties.Add("user-id", user.Id);
                 properties.Add("user-name", user.Name);
-                properties.Add("command", "create-draft-calc");
             }
 
-            await _messengerService.SendAsync(_serviceBusSettings.CalcsServiceBusTopicName, calculation, properties);
+            await _messengerService.SendAsync(_serviceBusSettings.CalcsServiceBusTopicName, createDraftcalculationSubscription, calculation, properties);
 
             return new OkObjectResult(calculation);
         }

@@ -7,6 +7,6 @@ namespace CalculateFunding.Services.Core.Interfaces.ServiceBus
     {
         Task SendAsync<T>(string topicName, T command);
 
-        Task SendAsync<T>(string topicName, T data, IDictionary<string, string> properties);
+        Task SendAsync<T>(string topicName, string subscriptionName, T data, IDictionary<string, string> properties);
     }
 }

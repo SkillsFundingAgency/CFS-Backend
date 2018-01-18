@@ -37,14 +37,17 @@ namespace CalculateFunding.Services.Core
             await topicClient.SendAsync(new Message(Encoding.UTF8.GetBytes(json)));
         }
 
-        async public Task SendAsync<T>(string topicName, T data, IDictionary<string, string> properties)
+        async public Task SendAsync<T>(string topicName, string subscriptionName, T data, IDictionary<string, string> properties)
         {
             var topicClient = GetTopicClient(topicName);
 
             var json = JsonConvert.SerializeObject(data);
 
-            Message message = new Message(Encoding.UTF8.GetBytes(json));
-        
+            Message message = new Message(Encoding.UTF8.GetBytes(json))
+            {
+                Label = subscriptionName
+            };
+
             foreach (var property in properties)
                 message.UserProperties.Add(property.Key, property.Value);
            
