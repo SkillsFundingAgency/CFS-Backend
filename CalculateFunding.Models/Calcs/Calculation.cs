@@ -15,5 +15,14 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("policies")]
         public List<Reference> Policies { get; set; }
+
+        [JsonProperty("specification")]
+        public Reference Specification { get; set; }
+
+        [JsonProperty("period")]
+        public Reference Period { get; set; }
+
+        [JsonProperty("fundingStream")]
+        public Reference FundingStream { get; set; }
     }
 }

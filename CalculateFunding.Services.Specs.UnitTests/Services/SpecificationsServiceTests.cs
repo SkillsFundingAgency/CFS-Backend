@@ -1076,7 +1076,14 @@ namespace CalculateFunding.Services.Specs.Services
             await 
                 messengerService
                     .Received(1)
-                    .SendAsync(Arg.Is(CalcsServiceBusTopicName), Arg.Is("calc-events-create-draft"), Arg.Is(calculation),
+                    .SendAsync(Arg.Is(CalcsServiceBusTopicName), Arg.Is("calc-events-create-draft"), 
+                        Arg.Is<Models.Calcs.Calculation>(m => 
+                            m.CalculationSpecification.Id == calculation.Id &&
+                            m.CalculationSpecification.Name == calculation.Name &&
+                            m.Name == calculation.Name &&
+                            !string.IsNullOrEmpty(m.Id) &&
+                            m.AllocationLine.Id == allocationLine.Id &&
+                            m.AllocationLine.Name == allocationLine.Name),
                         Arg.Is<IDictionary<string, string>>(m => 
                             m["user-id"] == UserId && 
                             m["user-name"] == Username &&

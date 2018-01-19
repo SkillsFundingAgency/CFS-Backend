@@ -13,6 +13,8 @@ namespace CalculateFunding.Services.Core.Interfaces.ServiceBus
 
         Task ReceiveAsync(string topicName, string subscriptionName, Func<string, Task> handler);
 
-        Task ReceiveAsync(string topicName, string subscriptionName, Func<Message, Task> handler);
+        Task ReceiveAsync(string topicName, string subscriptionName, Func<Message, Task> handler, Action<Exception> onError);
+
+        Task CloseAsync();
     }
 }

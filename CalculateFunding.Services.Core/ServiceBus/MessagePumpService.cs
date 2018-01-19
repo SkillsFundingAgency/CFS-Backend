@@ -13,12 +13,18 @@ namespace CalculateFunding.Services.Core.ServiceBus
     public class MessagePumpService : IMessagePumpService
     {
         private readonly string _connectionString;
-        private readonly ICorrelationIdProvider _correlationIdProvider;
 
-        public MessagePumpService(ServiceBusSettings settings, ICorrelationIdProvider correlationIdProvider)
+        SubscriptionClient _client;
+
+        public MessagePumpService(ServiceBusSettings settings)
         {
             _connectionString = settings.ServiceBusConnectionString;
-            _correlationIdProvider = correlationIdProvider;
+        }
+
+        public async Task CloseAsync()
+        {
+            if(!_client.IsClosedOrClosing)
+                await _client.CloseAsync();
         }
 
         public SubscriptionClient GetSubscriptionClient(string topicName, string subscriptionName)
@@ -28,13 +34,14 @@ namespace CalculateFunding.Services.Core.ServiceBus
 
         public async Task ReceiveAsync(string topicName, string subscriptionName, Func<string, Task> handler)
         {
-            var client = GetSubscriptionClient(topicName, subscriptionName);
+            _client = GetSubscriptionClient(topicName, subscriptionName);
 
-            client.RegisterMessageHandler(
+            _client.RegisterMessageHandler(
                 async (message, token) =>
                 {
                     await handler(Encoding.UTF8.GetString(message.Body));
-                    await client.CompleteAsync(message.SystemProperties.LockToken);
+                    
+                    await _client.CompleteAsync(message.SystemProperties.LockToken);
                 }, 
                 async args =>
                 {
@@ -43,33 +50,36 @@ namespace CalculateFunding.Services.Core.ServiceBus
 
             Thread.Sleep(60 * 1000);
 
-            await client.CloseAsync();
+            await _client.CloseAsync();
         }
 
-        public async Task ReceiveAsync(string topicName, string subscriptionName, Func<Message, Task> handler)
-        {
-            var client = GetSubscriptionClient(topicName, subscriptionName);
-
-            client.RegisterMessageHandler(
-                async (message, token) =>
+       public Task ReceiveAsync(string topicName, string subscriptionName, Func<Message, Task> handler, Action<Exception> onError)
+       {
+            return Task.Run(() =>
+            {
+                _client = GetSubscriptionClient(topicName, subscriptionName);
+                var options = new MessageHandlerOptions(e =>
                 {
-                    if (message.UserProperties.ContainsKey("sfa-correlationId"))
+                    onError(e.Exception);
+                    return Task.CompletedTask;
+                })
+                {
+                    AutoComplete = false,
+                    MaxAutoRenewDuration = TimeSpan.FromMinutes(1)
+                };
+
+                _client.RegisterMessageHandler(
+                    async (message, token) =>
                     {
-                        var correlationId = message.UserProperties["sfa-correlationId"].ToString();
-                        _correlationIdProvider.SetCorrelationId(correlationId);
-                    }
+                        await handler(message);
 
-                    await handler(message);
-                    await client.CompleteAsync(message.SystemProperties.LockToken);
-                },
-                async args =>
-                {
+                        await _client.CompleteAsync(message.SystemProperties.LockToken);
+                    },
+                    options);
 
-                });
+                Thread.Sleep(10 * 1000);
 
-            Thread.Sleep(60 * 1000);
-
-            await client.CloseAsync();
+            });           
         }
     }
 }

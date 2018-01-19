@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using CalculateFunding.Functions.Calcs.ServiceBus;
 using CalculateFunding.Functions.Common;
 using CalculateFunding.Services.Calcs;
+using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
@@ -29,13 +32,26 @@ namespace CalculateFunding.Functions.Calcs
             using (var scope = IocConfig.Build().CreateScope())
             {
                 var messagePump = scope.ServiceProvider.GetService<IMessagePumpService>();
-                var calculationService = scope.ServiceProvider.GetService<CalculationService>();
+                var calculationService = scope.ServiceProvider.GetService<ICalculationService>();
+                var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
+                var logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
 
                 await Task.WhenAll(
-                   messagePump.ReceiveAsync("spec-events", "spec-events-calcs", (Func<string, Task>)(async json => await OnSpecEvent.Run(json, log))),
-                   messagePump.ReceiveAsync("datasets-events", "dataset-events-calcs", (Func<string, Task>)(async json => await OnDatasetEvent.Run(json, log))),
-                   messagePump.ReceiveAsync("calc-events", "calc-events-calcs", async message => await calculationService.CreateCalculation(message))
-               );
+                   
+                    messagePump.ReceiveAsync("calc-events", "calc-events-create-draft",
+                        async message =>
+                        {
+                            correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
+                            await calculationService.CreateCalculation(message);
+                        },(exception) => {
+
+                            logger.Error(exception, "An error occurred getting message from topic: calc-events for subscription: calc-events-create-draft");
+                        } )
+
+                        //messagePump.ReceiveAsync("spec-events", "spec-events-calcs", (Func<string, Task>)(async json => await OnSpecEvent.Run(json, log))),
+                        //messagePump.ReceiveAsync("datasets-events", "dataset-events-calcs", (Func<string, Task>)(async json => await OnDatasetEvent.Run(json, log))),
+                );
+
             }
 
             //  var dataset = new Repository<ProviderSourceDataset>();

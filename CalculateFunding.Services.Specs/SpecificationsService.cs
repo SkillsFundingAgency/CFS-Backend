@@ -14,6 +14,7 @@ using CalculateFunding.Services.Core.Extensions;
 using Serilog;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
+using System;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -372,7 +373,22 @@ namespace CalculateFunding.Services.Specs
                 properties.Add("user-name", user.Name);
             }
 
-            await _messengerService.SendAsync(_serviceBusSettings.CalcsServiceBusTopicName, createDraftcalculationSubscription, calculation, properties);
+            await _messengerService.SendAsync(_serviceBusSettings.CalcsServiceBusTopicName, createDraftcalculationSubscription, 
+                new Models.Calcs.Calculation
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = calculation.Name,
+                    CalculationSpecification = new Reference(calculation.Id, calculation.Name),
+                    AllocationLine = calculation.AllocationLine,
+                    Policies = new List<Reference>
+                    {
+                        new Reference( policy.Id, policy.Name )
+                    },
+                    Specification = new Reference(specification.Id, specification.Name),
+                    Period = specification.AcademicYear,
+                    FundingStream = specification.FundingStream
+                }, 
+                properties);
 
             return new OkObjectResult(calculation);
         }

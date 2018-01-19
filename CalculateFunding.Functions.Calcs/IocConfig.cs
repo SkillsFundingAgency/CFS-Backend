@@ -31,7 +31,7 @@ namespace CalculateFunding.Functions.Calcs
 
             //builder.AddSingleton(mappingConfig.CreateMapper());
 
-            IConfigurationRoot config = ConfigHelper.AddConfig();
+            IConfigurationRoot config = Services.Core.Extensions.ConfigHelper.AddConfig();
 
             builder.AddCosmosDb(config);
 
