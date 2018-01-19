@@ -35,6 +35,8 @@ namespace CalculateFunding.Functions.Calcs
 
             builder.AddCosmosDb(config);
 
+            builder.AddSearch(config);
+
             builder.AddServiceBus(config);
 
             builder.AddLogging(config, "CalculateFunding.Functions.Calcs");

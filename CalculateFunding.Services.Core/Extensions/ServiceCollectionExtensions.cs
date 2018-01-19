@@ -1,4 +1,6 @@
-﻿using CalculateFunding.Repositories.Common.Cosmos;
+﻿using CalculateFunding.Models.Calcs;
+using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Logging;
@@ -32,6 +34,22 @@ namespace CalculateFunding.Services.Core.Extensions
 
             builder
                 .AddScoped<CosmosRepository>();
+
+            return builder;
+        }
+
+        public static IServiceCollection AddSearch(this IServiceCollection builder, IConfigurationRoot config)
+        {
+            SearchRepositorySettings searchSettings = new SearchRepositorySettings
+            {
+                SearchServiceName = config.GetValue<string>("SearchServiceName"),
+                SearchKey = config.GetValue<string>("SearchServiceKey")
+            };
+
+            builder.AddSingleton<SearchRepositorySettings>(searchSettings);
+
+            builder
+                .AddScoped<ISearchRepository<CalculationIndex>, SearchRepository<CalculationIndex>>();
 
             return builder;
         }
