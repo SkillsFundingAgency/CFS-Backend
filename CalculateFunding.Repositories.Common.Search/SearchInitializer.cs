@@ -95,8 +95,6 @@ namespace CalculateFunding.Repositories.Common.Search
                         SoftDeleteColumnName = "deleted",
                         SoftDeleteMarkerValue = "true"
                     },
-               
-
             };
             try
             {
