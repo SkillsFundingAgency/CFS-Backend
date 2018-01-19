@@ -29,6 +29,9 @@ namespace CalculateFunding.Services.Core.Extensions
 
         public static T GetPayloadAsInstanceOf<T>(this Message message)
         {
+            if (message.Body == null)
+                return default(T);
+
             var json = Encoding.UTF8.GetString(message.Body);
 
             if (string.IsNullOrWhiteSpace(json))

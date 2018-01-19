@@ -146,7 +146,17 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             };
             var response = await _documentClient.UpsertDocumentAsync(_collectionUri, doc);
             return response.StatusCode;
+        }
 
+        public Task<ResourceResponse<Document>> CreateWithResponseAsync<T>(T entity) where T : IIdentifiable
+        {
+            var doc = new DocumentEntity<T>(entity)
+            {
+                DocumentType = GetDocumentType<T>(),
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            return _documentClient.UpsertDocumentAsync(_collectionUri, doc);
         }
 
         public async Task BulkCreateAsync<T>(IList<T> entities, int degreeOfParallelism) where T : Reference
