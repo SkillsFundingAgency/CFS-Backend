@@ -703,7 +703,7 @@
             },
             {
               "name": "ServiceBusSettings:ServiceBusConnectionString",
-              "value": "\"[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
             {
               "name": "ServiceBusSettings:CalcsServiceBusTopicName",
