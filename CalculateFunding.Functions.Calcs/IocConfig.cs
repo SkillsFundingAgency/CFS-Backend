@@ -5,6 +5,9 @@ using CalculateFunding.Functions.Common;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs;
+using CalculateFunding.Models.Calcs;
+using FluentValidation;
+using CalculateFunding.Services.Calcs.Validators;
 
 namespace CalculateFunding.Functions.Calcs
 {
@@ -27,9 +30,10 @@ namespace CalculateFunding.Functions.Calcs
             builder
                .AddScoped<ICalculationService, CalculationService>();
 
-            //MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
+            builder
+                .AddScoped<IValidator<Calculation>, CalculationModelValidator>();
 
-            //builder.AddSingleton(mappingConfig.CreateMapper());
+
 
             IConfigurationRoot config = Services.Core.Extensions.ConfigHelper.AddConfig();
 

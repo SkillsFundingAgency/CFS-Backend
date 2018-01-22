@@ -1,8 +1,12 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
+using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -42,7 +46,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             logger
                 .Received(1)
-                .Error("A null or invalid calculation was provided to CalculateFunding.Services.Calcs.CreateCalculation");
+                .Error("A null calculation was provided to CalculateFunding.Services.Calcs.CreateCalculation");
 
             await
                 repository
@@ -51,7 +55,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task CreateCalculation_GivenInvalidCalculation_LogsDoesNotSave()
+        public void CreateCalculation_GivenInvalidCalculation_LogsDoesNotSave()
         {
             //Arrange
             Message message = new Message();
@@ -67,20 +71,20 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            CalculationService service = CreateCalculationService(repository, logger);
+            ValidationResult validationResult = new ValidationResult(new[]{
+                    new ValidationFailure("prop1", "any error")
+                });
+
+            IValidator<Calculation> validator = CreateCalculationValidator(validationResult);
+
+            CalculationService service = CreateCalculationService(repository, logger, calcValidator: validator);
 
             //Act
-            await service.CreateCalculation(message);
+            Func<Task> test = async () => await service.CreateCalculation(message);
 
             //Assert
-            logger
-                .Received(1)
-                .Error("A null or invalid calculation was provided to CalculateFunding.Services.Calcs.CreateCalculation");
-
-            await
-               repository
-                   .DidNotReceive()
-                   .CreateDraftCalculation(Arg.Any<Calculation>());
+            test
+              .ShouldThrowExactly<InvalidModelException>();
         }
 
         [TestMethod]
@@ -244,10 +248,10 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         static CalculationService CreateCalculationService(ICalculationsRepository calculationsRepository = null, 
-            ILogger logger = null, ISearchRepository<CalculationIndex> serachRepository = null)
+            ILogger logger = null, ISearchRepository<CalculationIndex> serachRepository = null, IValidator<Calculation> calcValidator = null)
         {
             return new CalculationService(calculationsRepository ?? CreateCalculationsRepository(), 
-                logger ?? CreateLogger(), serachRepository ?? CreateSearchRepository());
+                logger ?? CreateLogger(), serachRepository ?? CreateSearchRepository(), calcValidator ?? CreateCalculationValidator());
         }
 
         static ICalculationsRepository CreateCalculationsRepository()
@@ -263,6 +267,20 @@ namespace CalculateFunding.Services.Calcs.Services
         static ISearchRepository<CalculationIndex> CreateSearchRepository()
         {
             return Substitute.For<ISearchRepository<CalculationIndex>>();
+        }
+
+        static IValidator<Calculation> CreateCalculationValidator(ValidationResult validationResult = null)
+        {
+            if (validationResult == null)
+                validationResult = new ValidationResult();
+
+            IValidator<Calculation> validator = Substitute.For<IValidator<Calculation>>();
+
+            validator
+               .ValidateAsync(Arg.Any<Calculation>())
+               .Returns(validationResult);
+
+            return validator;
         }
     }
 }

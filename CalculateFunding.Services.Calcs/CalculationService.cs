@@ -1,10 +1,12 @@
 ﻿
 using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
+using FluentValidation;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 using System;
@@ -21,13 +23,15 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly ILogger _logger;
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
+        private readonly IValidator<Calculation> _calculationValidator;
 
         public CalculationService(ICalculationsRepository calculationsRepository, ILogger logger,
-            ISearchRepository<CalculationIndex> searchRepository)
+            ISearchRepository<CalculationIndex> searchRepository, IValidator<Calculation> calculationValidator)
         {
             _calculationsRepository = calculationsRepository;
             _logger = logger;
             _searchRepository = searchRepository;
+            _calculationValidator = calculationValidator;
         }
 
         async public Task CreateCalculation(Message message)
@@ -36,12 +40,19 @@ namespace CalculateFunding.Services.Calcs
 
             Calculation calculation = message.GetPayloadAsInstanceOf<Calculation>();
 
-            if (calculation == null || calculation.Id == null)
+            if (calculation == null)
             {
-                _logger.Error("A null or invalid calculation was provided to CalculateFunding.Services.Calcs.CreateCalculation");
+                _logger.Error("A null calculation was provided to CalculateFunding.Services.Calcs.CreateCalculation");
             }
             else
             {
+                var validationResult = await _calculationValidator.ValidateAsync(calculation);
+
+                if (!validationResult.IsValid)
+                {
+                    throw new InvalidModelException(GetType().ToString(), validationResult.Errors.Select(m => m.ErrorMessage).ToArraySafe());
+                }
+
                 calculation.Current = new CalculationVersion
                 {
                     PublishStatus = PublishStatus.Draft,
