@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.Calcs
                             PeriodName = calculation.Period.Name,
                             AllocationLineId = calculation.AllocationLine.Id,
                             AllocationLineName = calculation.AllocationLine.Name,
-                            PolicySpecificationIds = calculation.Policies.Select(m => m.Id).ToArraySafe(),
+                            PolicySpecificationIds   = calculation.Policies.Select(m => m.Id).ToArraySafe(),
                             PolicySpecificationNames = calculation.Policies.Select(m => m.Name).ToArraySafe(),
                             SourceCode = calculation.Current.SourceCode,
                             Status = calculation.Current.PublishStatus.ToString(),

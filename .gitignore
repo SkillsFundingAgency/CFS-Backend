@@ -296,3 +296,4 @@ __pycache__/
 /CalculateFunding-Backend.v3.ncrunchsolution
 /CalculateFunding.Functions.Common/CalculateFunding.Functions.Common.v3.ncrunchproject
 /CalculateFunding.EndToEnd/CalculateFunding.EndToEnd.v3.ncrunchproject
+/CalculateFunding.Functions.LocalDebugQueueProcessor/CalculateFunding.Functions.LocalDebugQueueProcessor.v3.ncrunchproject

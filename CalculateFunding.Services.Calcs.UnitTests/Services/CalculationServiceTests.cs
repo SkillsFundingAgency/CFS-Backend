@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Calcs;
+﻿using CalculateFunding.Models;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -9,6 +10,7 @@ using NSubstitute;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -60,8 +62,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             message.Body = Encoding.UTF8.GetBytes(json);
 
-            //message.UserProperties.Add("user-id", UserId);
-            //message.UserProperties.Add("user-name", Username);
 
             ICalculationsRepository repository = CreateCalculationsRepository();
 
@@ -84,7 +84,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task CreateCalculation_GivenValidCalculation_ButFailedToSave()
+        public async Task CreateCalculation_GivenValidCalculation_ButFailedToSave_DoesNotUpdateSearch()
         {
             //Arrange
             Message message = new Message();
@@ -105,7 +105,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            CalculationService service = CreateCalculationService(repository, logger);
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            CalculationService service = CreateCalculationService(repository, logger, searchRepository);
 
             //Act
             await service.CreateCalculation(message);
@@ -127,16 +129,61 @@ namespace CalculateFunding.Services.Calcs.Services
                         m.Current.Version == 1 &&
                         m.Current.DecimalPlaces == 6
                    ));
+
+            await
+                searchRepository
+                    .DidNotReceive()
+                    .Index(Arg.Any<List<CalculationIndex>>());
         }
 
         [TestMethod]
-        [Ignore("Just while i test the search stuff")]
         public async Task CreateCalculation_GivenValidCalculation_AndSavesLogs()
         {
             //Arrange
             Message message = new Message();
 
-            Calculation calculation = new Calculation { Id = CalculationId };
+            Calculation calculation = new Calculation {
+                Id = CalculationId,
+                Name = "Test Calc Name",
+                CalculationSpecification = new Reference
+                {
+                    Id = "any-calc-id",
+                    Name = "Test Calc Name",
+                },
+                Specification = new Reference
+                {
+                    Id = "any-spec-id",
+                    Name = "Test Spec Name",
+                },
+                Period = new Reference
+                {
+                    Id = "18/19",
+                    Name = "2018/2019"
+                },
+                AllocationLine = new Reference
+                {
+                    Id = "test-alloc-id",
+                    Name = "test-alloc-name"
+                },
+                Policies = new List<Reference>
+                {
+                    new Reference
+                    {
+                        Id = "policy-id",
+                        Name = "policy-name"
+                    }
+                },
+                Current = new CalculationVersion
+                {
+                    SourceCode = "source code",
+                    PublishStatus = PublishStatus.Draft,
+                },
+                FundingStream = new Reference
+                {
+                    Id = "funding stream-id",
+                    Name = "funding-stream-name"
+                }
+            };
 
             string json = JsonConvert.SerializeObject(calculation);
 
@@ -152,7 +199,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            CalculationService service = CreateCalculationService(repository, logger);
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            CalculationService service = CreateCalculationService(repository, logger, searchRepository);
 
             //Act
             await service.CreateCalculation(message);
@@ -174,6 +223,24 @@ namespace CalculateFunding.Services.Calcs.Services
                        m.Current.Version == 1 &&
                        m.Current.DecimalPlaces == 6
                    ));
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<List<CalculationIndex>>(
+                        m => m.First().Id == CalculationId &&
+                        m.First().Name == "Test Calc Name" &&
+                        m.First().CalculationSpecificationId == "any-calc-id" &&
+                        m.First().CalculationSpecificationName == "Test Calc Name" &&
+                        m.First().SpecificationId == "any-spec-id" &&
+                        m.First().SpecificationName == "Test Spec Name" &&
+                        m.First().PeriodId == "18/19" &&
+                        m.First().PeriodName == "2018/2019" &&
+                        m.First().AllocationLineId == "test-alloc-id" &&
+                        m.First().AllocationLineName == "test-alloc-name" &&
+                        m.First().PolicySpecificationIds.First() == "policy-id" &&
+                        m.First().PolicySpecificationNames.First() == "policy-name"
+                  ));
         }
 
         static CalculationService CreateCalculationService(ICalculationsRepository calculationsRepository = null, 
