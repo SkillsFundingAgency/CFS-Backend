@@ -87,16 +87,14 @@ namespace CalculateFunding.Repositories.Common.Search
                 Type = type,
                 Credentials = new DataSourceCredentials($"{_documentDbConnectionString}Database={attribute.DatabaseName}"),
                 Container = new DataContainer { Name = attribute.CollectionName, Query = attribute.IndexerQuery },
-                DataChangeDetectionPolicy =
-                    new HighWaterMarkChangeDetectionPolicy { HighWaterMarkColumnName = "_ts" },
+                //DataChangeDetectionPolicy =
+                //    new HighWaterMarkChangeDetectionPolicy { HighWaterMarkColumnName = "_ts" },
                 DataDeletionDetectionPolicy =
                     new SoftDeleteColumnDeletionDetectionPolicy
                     {
                         SoftDeleteColumnName = "deleted",
                         SoftDeleteMarkerValue = "true"
                     },
-               
-
             };
             try
             {
@@ -166,6 +164,7 @@ namespace CalculateFunding.Repositories.Common.Search
                         IsSearchable = attributes.Any(x => x.AttributeType == typeof(IsSearchableAttribute)),
                         IsFilterable = attributes.Any(x => x.AttributeType == typeof(IsFilterableAttribute)),
                         IsFacetable = attributes.Any(x => x.AttributeType == typeof(IsFacetableAttribute)),
+                        IsSortable = attributes.Any(x => x.AttributeType == typeof(IsSortableAttribute)),
 
                     };
                     fields.Add(field);

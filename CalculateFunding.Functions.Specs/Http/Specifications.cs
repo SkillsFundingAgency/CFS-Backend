@@ -36,7 +36,6 @@ namespace CalculateFunding.Functions.Specs.Http
                     ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
                     return svc.GetSpecificationByAcademicYearId(req);
                 });
-               
             }
         }
 

@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.Specs.Validators
 
             RuleFor(model => model.Description)
                .NotEmpty()
-               .WithMessage("You must give a description for the calculation");
+               .WithMessage("You must give a description for the calculation"); 
 
             RuleFor(model => model.SpecificationId)
                .NotEmpty()

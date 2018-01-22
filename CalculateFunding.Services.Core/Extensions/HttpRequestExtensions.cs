@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CalculateFunding.Models;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,13 +17,18 @@ namespace CalculateFunding.Services.Core.Extensions
             if (encoding == null)
                 encoding = Encoding.UTF8;
 
-            using (StreamReader reader = new StreamReader(request.Body, encoding))
+            if (request.Body != null)
             {
-                if(request.Body.CanSeek)
-                    request.Body.Seek(0, SeekOrigin.Begin);
+                using (StreamReader reader = new StreamReader(request.Body, encoding))
+                {
+                    if (request.Body.CanSeek)
+                        request.Body.Seek(0, SeekOrigin.Begin);
 
-                return await reader.ReadToEndAsync();
-            }   
+                    return await reader.ReadToEndAsync();
+                }
+            }
+
+            return string.Empty;
         }
 
         public static string GetCorrelationId(this HttpRequest request)
@@ -34,6 +41,27 @@ namespace CalculateFunding.Services.Core.Extensions
             }
 
             return string.Empty;
+        }
+
+        public static Reference GetUser(this HttpRequest request)
+        {
+            Reference reference = new Reference();
+
+            Claim idClaim = request.HttpContext.User.Claims.FirstOrDefault(m => m.Type == ClaimTypes.Sid);
+
+            if(idClaim != null)
+            {
+                reference.Id = idClaim.Value;
+            }
+
+            Claim nameClaim = request.HttpContext.User.Claims.FirstOrDefault(m => m.Type == ClaimTypes.Name);
+
+            if (nameClaim != null)
+            {
+                reference.Name = nameClaim.Value;
+            }
+
+            return reference;
         }
     }
 }

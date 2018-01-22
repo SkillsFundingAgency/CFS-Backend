@@ -23,6 +23,11 @@ using System.Linq.Expressions;
 using System.Linq;
 using Newtonsoft.Json;
 using System.IO;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Models;
+using System.Net;
+using System.Security.Claims;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -30,10 +35,16 @@ namespace CalculateFunding.Services.Specs.Services
     public class SpecificationsServiceTests
     {
         const string SpecificationId = "ffa8ccb3-eb8e-4658-8b3f-f1e4c3a8f313";
+        const string PolicyId = "dda8ccb3-eb8e-4658-8b3f-f1e4c3a8f322";
+        const string AllocationLineId = "02a6eeaf-e1a0-476e-9cf9-8aa5d9129345";
         const string AcademicYearId = "18/19";
         const string SpecificationName = "Test Spec 001";
         const string PolicyName = "Test Policy 001";
         const string CalculationName = "Test Calc 001";
+        const string Username = "test-user";
+        const string UserId = "33d7a71b-f570-4425-801b-250b9129f3d3";
+        const string CalcsServiceBusTopicName = "cals-topic";
+        const string SfaCorrelationId = "c625c3f9-6ce8-4f1f-a3a3-4611f1dc3881";
 
         [TestMethod]
         public async Task GetSpecificationById_GivenSpecificationIdDoesNotExist_ReturnsBadRequest()
@@ -714,17 +725,389 @@ namespace CalculateFunding.Services.Specs.Services
                 .Information(Arg.Is($"A calculation was not found for specification id {SpecificationId} and name {CalculationName}"));
         }
 
+        [TestMethod]
+        public async Task CreateCalculation_GivenNullModelProvided_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            //Act
+            IActionResult result = await service.CreateCalculation(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error("Null calculation create model provided to CreateCalculation");
+        }
+
+        [TestMethod]
+        public async Task CreateCalculation_GivenModelButModelIsNotValid_ReturnsBadRequest()
+        {
+            //Arrange
+            CalculationCreateModel model = new CalculationCreateModel();
+            
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ValidationResult validationResult = new ValidationResult(new[]{
+                    new ValidationFailure("prop1", "any error")
+                });
+
+            IValidator<CalculationCreateModel> validator = CreateCalculationValidator(validationResult);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger, calculationCreateModelValidator: validator);
+
+            //Act
+            IActionResult result = await service.CreateCalculation(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error("Invalid data was provided for CreateCalculation");
+        }
+
+        [TestMethod]
+        public async Task CreateCalculation_GivenValidModelButSpecificationcannotBeFoundd_ReturnsPreconditionFailed()
+        {
+            //Arrange
+            CalculationCreateModel model = new CalculationCreateModel
+            {
+                SpecificationId = SpecificationId
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns((Specification)null);
+
+            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult result = await service.CreateCalculation(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
+
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(412);
+
+            logger
+                .Received(1)
+                .Warning($"Specification not found for specification id {SpecificationId}");
+        }
+
+        [TestMethod]
+        public async Task CreateCalculation_GivenValidModelButNoPolicyFound_ReturnsPreconditionFailed()
+        {
+            //Arrange
+            Specification specification = new Specification();
+
+            CalculationCreateModel model = new CalculationCreateModel
+            {
+                SpecificationId = SpecificationId,
+                PolicyId = PolicyId
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            Calculation calculation = new Calculation();
+            IMapper mapper = CreateMapper();
+            mapper
+                .Map<Calculation>(model)
+                .Returns(calculation);
+
+            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository, mapper: mapper);
+
+            //Act
+            IActionResult result = await service.CreateCalculation(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
+
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(412);
+
+            logger
+                .Received(1)
+                .Warning($"Policy not found for policy id {PolicyId}");
+        }
+
+        [TestMethod]
+        public async Task CreateCalculation_GivenValidModelAndPolicyFoundButAddingCalcCausesBadRequest_AReturnsbadrequest()
+        {
+            //Arrange
+            AllocationLine allocationLine = new AllocationLine
+            {
+                Id = "02a6eeaf-e1a0-476e-9cf9-8aa5d9129345",
+                Name = "test alloctaion"
+            };
+
+            Policy policy = new Policy
+            {
+                Id = PolicyId
+            };
+
+            Specification specification = new Specification
+            {
+                Policies = new[]
+                {
+                    policy
+                }
+            };
+
+            CalculationCreateModel model = new CalculationCreateModel
+            {
+                SpecificationId = SpecificationId,
+                PolicyId = PolicyId,
+                AllocationLineId = AllocationLineId
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            specificationsRepository
+                .GetAllocationLineById(Arg.Is(AllocationLineId))
+                .Returns(allocationLine);
+
+            specificationsRepository
+                .UpdateSpecification(Arg.Is(specification))
+                .Returns(HttpStatusCode.BadRequest);
+
+            Calculation calculation = new Calculation
+            {
+                AllocationLine = new Reference()
+            };
+
+            IMapper mapper = CreateMapper();
+            mapper
+                .Map<Calculation>(Arg.Any<CalculationCreateModel>())
+                .Returns(calculation);
+
+            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository, mapper: mapper);
+
+            //Act
+            IActionResult result = await service.CreateCalculation(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
+
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(400);
+
+            logger
+                .Received(1)
+                .Error($"Failed to update specification when creating a calc with status BadRequest");
+        }
+
+        [TestMethod]
+        public async Task CreateCalculation_GivenValidModelAndPolicyFoundAndUpdated_ReturnsOKt()
+        {
+            //Arrange
+            AllocationLine allocationLine = new AllocationLine
+            {
+                Id = "02a6eeaf-e1a0-476e-9cf9-8aa5d9129345",
+                Name = "test alloctaion"
+            };
+
+            Policy policy = new Policy
+            {
+                Id = PolicyId
+            };
+
+            Specification specification = new Specification
+            {
+                Policies = new[]
+                {
+                    policy
+                }
+            };
+
+            CalculationCreateModel model = new CalculationCreateModel
+            {
+                SpecificationId = SpecificationId,
+                PolicyId = PolicyId,
+                AllocationLineId = AllocationLineId
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
+            {
+                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
+            });
+
+            HttpContext context = Substitute.For<HttpContext>();
+            context
+                .User
+                .Returns(principle);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            request
+                .HttpContext
+                .Returns(context);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("sfa-correlationId", new StringValues(SfaCorrelationId));
+
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            specificationsRepository
+                .GetAllocationLineById(Arg.Is(AllocationLineId))
+                .Returns(allocationLine);
+
+            specificationsRepository
+                .UpdateSpecification(Arg.Is(specification))
+                .Returns(HttpStatusCode.OK);
+
+            Calculation calculation = new Calculation
+            {
+                AllocationLine = new Reference()
+            };
+
+            IMapper mapper = CreateMapper();
+            mapper
+                .Map<Calculation>(Arg.Any<CalculationCreateModel>())
+                .Returns(calculation);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository, mapper: mapper, messengerService: messengerService);
+
+            //Act
+            IActionResult result = await service.CreateCalculation(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            await 
+                messengerService
+                    .Received(1)
+                    .SendAsync(Arg.Is(CalcsServiceBusTopicName), Arg.Is("calc-events-create-draft"), 
+                        Arg.Is<Models.Calcs.Calculation>(m => 
+                            m.CalculationSpecification.Id == calculation.Id &&
+                            m.CalculationSpecification.Name == calculation.Name &&
+                            m.Name == calculation.Name &&
+                            !string.IsNullOrEmpty(m.Id) &&
+                            m.AllocationLine.Id == allocationLine.Id &&
+                            m.AllocationLine.Name == allocationLine.Name),
+                        Arg.Is<IDictionary<string, string>>(m => 
+                            m["user-id"] == UserId && 
+                            m["user-name"] == Username &&
+                            m["sfa-correlationId"] == SfaCorrelationId));
+        }
+
         static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null, 
             ILogger logs = null, IValidator<PolicyCreateModel> policyCreateModelValidator = null,
-            IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null, IValidator<CalculationCreateModel> calculationCreateModelValidator = null)
+            IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null, IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
+            IMessengerService messengerService = null, ServiceBusSettings serviceBusSettings = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(), specifcationsRepository ?? CreateSpecificationsRepository(), logs ?? CreateLogger(), policyCreateModelValidator ?? CreatePolicyValidator(),
-                specificationCreateModelvalidator ?? CreateSpecificationValidator(), calculationCreateModelValidator ?? CreateCalculationValidator());
+                specificationCreateModelvalidator ?? CreateSpecificationValidator(), calculationCreateModelValidator ?? CreateCalculationValidator(), messengerService ?? CreateMessengerService(),
+                serviceBusSettings ?? CreateServiceBusSettings());
         }
 
         static IMapper CreateMapper()
         {
             return Substitute.For<IMapper>();
+        }
+
+        static IMessengerService CreateMessengerService()
+        {
+            return Substitute.For<IMessengerService>();
         }
 
         static ISpecificationsRepository CreateSpecificationsRepository()
@@ -737,7 +1120,15 @@ namespace CalculateFunding.Services.Specs.Services
             return Substitute.For<ILogger>();
         }
 
-       
+        static ServiceBusSettings CreateServiceBusSettings()
+        {
+            return new ServiceBusSettings
+            {
+                CalcsServiceBusTopicName = CalcsServiceBusTopicName
+            };
+        }
+
+
         static IValidator<PolicyCreateModel> CreatePolicyValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)

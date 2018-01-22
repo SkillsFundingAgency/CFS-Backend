@@ -7,25 +7,7 @@ namespace CalculateFunding.Models.Calcs
 {
     [SearchIndex(IndexerForType = typeof(Calculation),
         CollectionName = "results",
-        DatabaseName = "allocations",
-        IndexerQuery = @"
-            SELECT  tr.id, 
-                    tr._ts,
-                    tr.budget.id as budgetId,
-                    tr.provider.id as providerId,
-                    tr.budget.name as budgetName,
-                    sr.fundingPolicy.id as fundingPolicyId,
-                    sr.fundingPolicy.name as fundingPolicyName,
-                    sr.productFolder.Id as productFolderId,
-                    sr.productFolder.Name as productFolderName,
-                    sr.allocationLine.Name as allocationLineName,
-                    sr.scenarioName,
-                    sr.testResult
-            FROM tr
-            JOIN sr IN tr.scenarioResults
-            WHERE tr.documentType = 'ProviderTestResult'
-            AND tr._ts > @HighWaterMark
-        ")]
+        DatabaseName = "allocations")]
     public class CalculationIndex
     {
         [Key]
@@ -37,22 +19,56 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("name")]
         public string Name { get; set; }
 
+        [JsonProperty("calculationSpecificationId")]
+        public string CalculationSpecificationId { get; set; }
 
-        [JsonProperty("calculationSpecification")]
-        public Reference CalculationSpecification { get; set; }
+        [IsFilterable, IsSortable, IsSearchable]
+        [JsonProperty("calculationSpecificationName")]
+        public string CalculationSpecificationName { get; set; }
 
+        [IsFilterable, IsSortable, IsSearchable]
+        [JsonProperty("specificationName")]
+        public string SpecificationName { get; set; }
+
+        [JsonProperty("specificationId")]
+        public string SpecificationId { get; set; }
+
+        [IsFilterable, IsSortable, IsSearchable]
+        [JsonProperty("periodName")]
+        public string PeriodName { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("periodId")]
+        public string PeriodId { get; set; }
+
+        [IsFilterable, IsSortable, IsFacetable, IsSearchable]
         [JsonProperty("allocationLineName")]
-        public string AllocationLineId { get; set; }
-        [JsonProperty("allocationLineId")]
         public string AllocationLineName { get; set; }
+
+        [JsonProperty("allocationLineId")]
+        public string AllocationLineId{ get; set; }
+
         [JsonProperty("policySpecificationIds")]
-        public List<string> PolicySpecificationIds { get; set; }
+        public string[] PolicySpecificationIds { get; set; }
+
+        [IsFilterable,IsFacetable, IsSearchable]
         [JsonProperty("policySpecificationNames")]
-        public List<string> PolicySpecificationNames { get; set; }
+        public string[] PolicySpecificationNames { get; set; }
 
         [IsSearchable]
         [JsonProperty("sourceCode")]
         public string SourceCode { get; set; }
 
+        [IsFilterable, IsSortable, IsFacetable, IsSearchable]
+        [JsonProperty("status")]
+        public string Status { get; set; }
+
+        [IsFilterable, IsSortable, IsFacetable, IsSearchable]
+        [JsonProperty("fundingStreamName")]
+        public string FundingStreamName { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("fundingStreamId")]
+        public string FundingStreamId { get; set; }
     }
 }

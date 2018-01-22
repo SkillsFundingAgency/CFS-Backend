@@ -12,6 +12,9 @@ using System.Net;
 using FluentValidation;
 using CalculateFunding.Services.Core.Extensions;
 using Serilog;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Options;
+using System;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -23,10 +26,15 @@ namespace CalculateFunding.Services.Specs
         private readonly IValidator<PolicyCreateModel> _policyCreateModelValidator;
         private readonly IValidator<SpecificationCreateModel> _specificationCreateModelvalidator;
         private readonly IValidator<CalculationCreateModel> _calculationCreateModelValidator;
+        private readonly IMessengerService _messengerService;
+        private readonly ServiceBusSettings _serviceBusSettings;
+
+        const string createDraftcalculationSubscription = "calc-events-create-draft";
 
         public SpecificationsService(IMapper mapper, 
             ISpecificationsRepository specifcationsRepository, ILogger logs, IValidator<PolicyCreateModel> policyCreateModelValidator,
-            IValidator<SpecificationCreateModel> specificationCreateModelvalidator, IValidator<CalculationCreateModel> calculationCreateModelValidator)
+            IValidator<SpecificationCreateModel> specificationCreateModelvalidator, IValidator<CalculationCreateModel> calculationCreateModelValidator,
+            IMessengerService messengerService, ServiceBusSettings serviceBusSettings)
         {
             _mapper = mapper;
             _specifcationsRepository = specifcationsRepository;
@@ -34,6 +42,8 @@ namespace CalculateFunding.Services.Specs
             _policyCreateModelValidator = policyCreateModelValidator;
             _specificationCreateModelvalidator = specificationCreateModelvalidator;
             _calculationCreateModelValidator = calculationCreateModelValidator;
+            _messengerService = messengerService;
+            _serviceBusSettings = serviceBusSettings;
         }
 
         public async Task<IActionResult> GetSpecificationById(HttpRequest request)
@@ -304,24 +314,38 @@ namespace CalculateFunding.Services.Specs
             CalculationCreateModel createModel = JsonConvert.DeserializeObject<CalculationCreateModel>(json);
 
             if (createModel == null)
-                return new BadRequestObjectResult("Null policy create model provided");
+            {
+                _logs.Error("Null calculation create model provided to CreateCalculation");
+
+                return new BadRequestObjectResult("Null calculation create model provided");
+            }
 
             var validationResult = (await _calculationCreateModelValidator.ValidateAsync(createModel)).PopulateModelState();
 
             if (validationResult != null)
+            {
+                _logs.Error("Invalid data was provided for CreateCalculation");
+
                 return validationResult;
+            }
 
             Specification specification = await _specifcationsRepository.GetSpecificationById(createModel.SpecificationId);
 
             if (specification == null)
-                return new NotFoundResult();
+            {
+                _logs.Warning($"Specification not found for specification id {createModel.SpecificationId}");
+                return new StatusCodeResult(412);
+            }
 
             Calculation calculation = _mapper.Map<Calculation>(createModel);
 
             Policy policy = specification.GetPolicy(createModel.PolicyId);
 
             if (policy == null)
-                return new NotFoundResult();
+            {
+                _logs.Warning($"Policy not found for policy id {createModel.PolicyId}");
+                return new StatusCodeResult(412);
+            }
 
             calculation.AllocationLine = await _specifcationsRepository.GetAllocationLineById(createModel.AllocationLineId);
 
@@ -332,7 +356,39 @@ namespace CalculateFunding.Services.Specs
             var statusCode = await _specifcationsRepository.UpdateSpecification(specification);
 
             if (statusCode != HttpStatusCode.OK)
+            {
+                _logs.Error($"Failed to update specification when creating a calc with status {statusCode}");
+
                 return new StatusCodeResult((int)statusCode);
+            }
+
+            Reference user = request.GetUser();
+
+            IDictionary<string, string> properties = new Dictionary<string, string>();
+            properties.Add("sfa-correlationId", request.GetCorrelationId());
+
+            if (user != null)
+            {
+                properties.Add("user-id", user.Id);
+                properties.Add("user-name", user.Name);
+            }
+
+            await _messengerService.SendAsync(_serviceBusSettings.CalcsServiceBusTopicName, createDraftcalculationSubscription, 
+                new Models.Calcs.Calculation
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = calculation.Name,
+                    CalculationSpecification = new Reference(calculation.Id, calculation.Name),
+                    AllocationLine = calculation.AllocationLine,
+                    Policies = new List<Reference>
+                    {
+                        new Reference( policy.Id, policy.Name )
+                    },
+                    Specification = new Reference(specification.Id, specification.Name),
+                    Period = specification.AcademicYear,
+                    FundingStream = specification.FundingStream
+                }, 
+                properties);
 
             return new OkObjectResult(calculation);
         }

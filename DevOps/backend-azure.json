@@ -226,6 +226,16 @@
           "resources": [
             {
               "apiVersion": "2015-08-01",
+              "name": "calc-events-create-draft",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "calc-events"
+              ],
+              "properties": {},
+              "resources": []
+            },
+			 {
+              "apiVersion": "2015-08-01",
               "name": "calc-events-calcs",
               "type": "Subscriptions",
               "dependsOn": [
@@ -375,6 +385,18 @@
               "value": "datasets"
             },
             {
+              "name": "ServiceBusSettings:ServiceBusConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
+            },
+            {
+              "name": "ServiceBusSettings:CalcsServiceBusTopicName",
+              "value": "calc-events"
+            },
+            {
+              "name": "ServiceBusSettings:SpecsServiceBusTopicName",
+              "value": "spec-events"
+            },
+            {
               "name": "ServiceBusConnectionString",
               "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
@@ -471,6 +493,18 @@
               "value": "calcs"
             },
             {
+              "name": "ServiceBusSettings:ServiceBusConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
+            },
+            {
+              "name": "ServiceBusSettings:CalcsServiceBusTopicName",
+              "value": "calc-events"
+            },
+            {
+              "name": "ServiceBusSettings:SpecsServiceBusTopicName",
+              "value": "spec-events"
+            },
+            {
               "name": "ServiceBusConnectionString",
               "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
@@ -565,6 +599,18 @@
               "value": "results"
             },
             {
+              "name": "ServiceBusSettings:ServiceBusConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
+            },
+            {
+              "name": "ServiceBusSettings:CalcsServiceBusTopicName",
+              "value": "calc-events"
+            },
+            {
+              "name": "ServiceBusSettings:SpecsServiceBusTopicName",
+              "value": "spec-events"
+            },
+            {
               "name": "ServiceBusConnectionString",
               "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
@@ -654,6 +700,18 @@
             {
               "name": "CosmosDbSettings:CollectionName",
               "value": "specs"
+            },
+            {
+              "name": "ServiceBusSettings:ServiceBusConnectionString",
+              "value": "\"[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
+            },
+            {
+              "name": "ServiceBusSettings:CalcsServiceBusTopicName",
+              "value": "calc-events"
+            },
+            {
+              "name": "ServiceBusSettings:SpecsServiceBusTopicName",
+              "value": "spec-events"
             },
             {
               "name": "ServiceBusConnectionString",
@@ -805,6 +863,18 @@
             {
               "name": "CosmosDbSettings:CollectionName",
               "value": "scenarios"
+            },
+            {
+              "name": "ServiceBusSettings:ServiceBusConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
+            },
+            {
+              "name": "ServiceBusSettings:CalcsServiceBusTopicName",
+              "value": "calc-events"
+            },
+            {
+              "name": "ServiceBusSettings:SpecsServiceBusTopicName",
+              "value": "spec-events"
             },
             {
               "name": "ServiceBusConnectionString",

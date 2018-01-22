@@ -14,7 +14,7 @@ namespace CalculateFunding.Repositories.Common.Search
         public string SearchKey { get; set; }
 
     }
-    public class SearchRepository<T> where T : class
+    public class SearchRepository<T> : ISearchRepository<T> where T : class
     {
         private ISearchIndexClient _searchIndexClient;
 
@@ -73,25 +73,31 @@ namespace CalculateFunding.Repositories.Common.Search
 
         }
 
-
         public async Task<IList<IndexError>> Index(IList<T> documents)
         {
-            var client = await GetOrCreateIndex();
-            var errors = new List<IndexError>();
-
-            foreach (var batch in documents.ToBatches(1000))
+            try
             {
-                var indexResult = await client.Documents.IndexAsync(new IndexBatch<T>(batch.Select(IndexAction.MergeOrUpload)));
-                foreach (var result in indexResult.Results)
+                var client = await GetOrCreateIndex();
+                var errors = new List<IndexError>();
+
+                foreach (var batch in documents.ToBatches(1000))
                 {
-                    if (!result.Succeeded)
+                    var indexResult = await client.Documents.IndexAsync(new IndexBatch<T>(batch.Select(IndexAction.MergeOrUpload)));
+                    foreach (var result in indexResult.Results)
                     {
-                        errors.Add(new IndexError {Key = result.Key, ErrorMessage = result.ErrorMessage});
+                        if (!result.Succeeded)
+                        {
+                            errors.Add(new IndexError { Key = result.Key, ErrorMessage = result.ErrorMessage });
+                        }
                     }
                 }
-            }
 
-            return errors;
+                return errors;
+            }
+            catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
 
         }
     }

@@ -1,7 +1,11 @@
-﻿using CalculateFunding.Repositories.Common.Cosmos;
+﻿using CalculateFunding.Models.Calcs;
+using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.ServiceBus;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +17,7 @@ using Serilog.Events;
 using System;
 using System.IO;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 
 namespace CalculateFunding.Services.Core.Extensions
@@ -29,6 +34,39 @@ namespace CalculateFunding.Services.Core.Extensions
 
             builder
                 .AddScoped<CosmosRepository>();
+
+            return builder;
+        }
+
+        public static IServiceCollection AddSearch(this IServiceCollection builder, IConfigurationRoot config)
+        {
+            SearchRepositorySettings searchSettings = new SearchRepositorySettings
+            {
+                SearchServiceName = config.GetValue<string>("SearchServiceName"),
+                SearchKey = config.GetValue<string>("SearchServiceKey")
+            };
+
+            builder.AddSingleton<SearchRepositorySettings>(searchSettings);
+
+            builder
+                .AddScoped<ISearchRepository<CalculationIndex>, SearchRepository<CalculationIndex>>();
+
+            return builder;
+        }
+
+        public static IServiceCollection AddServiceBus(this IServiceCollection builder, IConfigurationRoot config)
+        {
+            ServiceBusSettings serviceBusSettings = new ServiceBusSettings();
+
+            config.Bind("ServiceBusSettings", serviceBusSettings);
+
+            builder.AddSingleton<ServiceBusSettings>(serviceBusSettings);
+
+            builder
+                .AddScoped<IMessengerService, MessengerService>();
+
+            builder
+                .AddScoped<IMessagePumpService, MessagePumpService>();
 
             return builder;
         }
@@ -58,6 +96,20 @@ namespace CalculateFunding.Services.Core.Extensions
 
             if(!request.HttpContext.Response.Headers.ContainsKey("sfa-correlationId"))
                 request.HttpContext.Response.Headers.Add("sfa-correlationId", correlationId);
+
+            string userId = "unknown";
+            string username = "unknown";
+
+            if (request.HttpContext.Request.Headers.ContainsKey("sfa-userid"))
+                userId = request.HttpContext.Request.Headers["sfa-userid"];
+
+            if (request.HttpContext.Request.Headers.ContainsKey("sfa-username"))
+                username = request.HttpContext.Request.Headers["sfa-username"];
+
+            request.HttpContext.User = new ClaimsPrincipal(new[]
+            {
+                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, userId), new Claim(ClaimTypes.Name, username) })
+            });
 
             return serviceProvider.CreateScope();
         }
