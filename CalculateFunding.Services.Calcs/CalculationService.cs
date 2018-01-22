@@ -7,7 +7,11 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using FluentValidation;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.ServiceBus;
+using Newtonsoft.Json;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -32,6 +36,38 @@ namespace CalculateFunding.Services.Calcs
             _logger = logger;
             _searchRepository = searchRepository;
             _calculationValidator = calculationValidator;
+        }
+
+        async public Task<IActionResult> SearchCalculations(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
+
+            if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
+                searchModel = new SearchModel { PageNumber = 1, Top = 50 };
+
+            SearchParameters searchParameters = new SearchParameters
+            {
+                Skip = (searchModel.PageNumber - 1) * searchModel.Top,
+                Top = searchModel.Top,
+                Facets = new[] { "allocationLineName", "policySpecificationNames", "status", "fundingStreamName" },
+                Select = new List<string> { "id", "name", "specificationName", "priorityName", "status" },
+                SearchMode = SearchMode.Any
+            };
+
+            try
+            {
+                var searchResults = await _searchRepository.Search(searchModel.SearchTerm, searchParameters);
+               
+                return new OkObjectResult(searchResults);
+            }
+            catch(FailedToQuerySearchException exception)
+            {
+                _logger.Error(exception, $"Failed to query search with term: {searchModel.SearchTerm}");
+
+                throw;
+            }
         }
 
         async public Task CreateCalculation(Message message)

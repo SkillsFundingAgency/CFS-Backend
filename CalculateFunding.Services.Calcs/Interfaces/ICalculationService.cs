@@ -1,4 +1,8 @@
-﻿using CalculateFunding.Models.Specs;
+﻿using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Specs;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.ServiceBus;
 using System;
 using System.Collections.Generic;
@@ -10,5 +14,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
     public interface ICalculationService
     {
         Task CreateCalculation(Message message);
+
+        Task<IActionResult> SearchCalculations(HttpRequest request);
     }
 }

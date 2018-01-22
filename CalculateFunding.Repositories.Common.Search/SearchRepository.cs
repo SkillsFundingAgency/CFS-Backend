@@ -53,23 +53,32 @@ namespace CalculateFunding.Repositories.Common.Search
         public async Task<SearchResults<T>> Search(string searchTerm, SearchParameters searchParameters = null)
         {
             var client = await GetOrCreateIndex();
-            var azureSearchResult = await client.Documents.SearchAsync<T>(searchTerm, searchParameters ?? DefaultParameters);
 
-            var response = new SearchResults<T>
+            try
             {
-                SearchTerm = searchTerm,
-                TotalCount = azureSearchResult.Count,
-                Facets = azureSearchResult.Facets.Select(x => new Facet
+                var azureSearchResult = await client.Documents.SearchAsync<T>(searchTerm, searchParameters ?? DefaultParameters);
+
+                var response = new SearchResults<T>
                 {
-                }).ToList(),
-                Results = azureSearchResult.Results.Select(x => new SearchResult<T>
-                {
-                    HitHighLights = x.Highlights,
-                    Result = x.Document,
-                    Score = x.Score
-                }).ToList()
-            };
-            return response;
+                    SearchTerm = searchTerm,
+                    TotalCount = azureSearchResult.Count,
+                    Facets = azureSearchResult.Facets.Select(x => new Facet
+                    {
+
+                    }).ToList(),
+                    Results = azureSearchResult.Results.Select(x => new SearchResult<T>
+                    {
+                        HitHighLights = x.Highlights,
+                        Result = x.Document,
+                        Score = x.Score
+                    }).ToList()
+                };
+                return response;
+            }
+            catch(Exception ex)
+            {
+                throw new FailedToQuerySearchException("Failed to query search", ex);
+            }
 
         }
 
