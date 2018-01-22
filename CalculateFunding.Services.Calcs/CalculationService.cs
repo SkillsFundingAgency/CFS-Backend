@@ -45,7 +45,11 @@ namespace CalculateFunding.Services.Calcs
             SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
 
             if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
+            {
+                _logger.Warning("A null or invalid search model was provide for searching calculations");
+
                 searchModel = new SearchModel { PageNumber = 1, Top = 50 };
+            }
 
             SearchParameters searchParameters = new SearchParameters
             {
@@ -66,7 +70,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 _logger.Error(exception, $"Failed to query search with term: {searchModel.SearchTerm}");
 
-                throw;
+                return new StatusCodeResult(500);
             }
         }
 
