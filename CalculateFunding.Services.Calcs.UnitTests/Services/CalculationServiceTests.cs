@@ -7,6 +7,9 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -14,6 +17,7 @@ using NSubstitute;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -245,6 +249,259 @@ namespace CalculateFunding.Services.Calcs.Services
                         m.First().PolicySpecificationIds.First() == "policy-id" &&
                         m.First().PolicySpecificationNames.First() == "policy-name"
                   ));
+        }
+
+        [TestMethod]
+        public async Task SearchCalculation_GivenNullSearchModel_LogsAndCreatesDefaultSearcModel()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            CalculationService service = CreateCalculationService(logger: logger, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SearchCalculations(request);
+
+            //Assert
+            logger
+                .Received(1)
+                .Warning("A null or invalid search model was provide for searching calculations");
+
+            result
+                 .Should()
+                 .BeOfType<BadRequestObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task SearchCalculation_GivenPageNumberIsZero_LogsAndCreatesDefaultSearcModel()
+        {
+            //Arrange
+            SearchModel model = new SearchModel();
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            CalculationService service = CreateCalculationService(logger: logger, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SearchCalculations(request);
+
+            //Assert
+            logger
+                .Received(1)
+                .Warning("A null or invalid search model was provide for searching calculations");
+
+            result
+                 .Should()
+                 .BeOfType<BadRequestObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task SearchCalculation_GivenSkipIsZero_LogsAndCreatesDefaultSearcModel()
+        {
+            //Arrange
+            SearchModel model = new SearchModel { PageNumber = 1 };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            CalculationService service = CreateCalculationService(logger: logger, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SearchCalculations(request);
+
+            //Assert
+            logger
+                .Received(1)
+                .Warning("A null or invalid search model was provide for searching calculations");
+
+            result
+                 .Should()
+                 .BeOfType<BadRequestObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task SearchCalculation_GivenValidModelAndPageNumberIsOneAndTopIsFifty_SearchesWithCorrectParameters()
+        {
+            //Arrange
+            SearchModel model = new SearchModel { PageNumber = 1, Top = 50 };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            CalculationService service = CreateCalculationService(logger: logger, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SearchCalculations(request);
+
+            //Assert
+            logger
+                .DidNotReceive()
+                .Warning(Arg.Any<string>());
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Search(Arg.Is("*"), Arg.Is<SearchParameters>(m =>
+                        m.Skip == 0 &&
+                        m.Top == 50 &&
+                        m.Facets.Any() &&
+                        m.SearchMode == SearchMode.Any &&
+                        m.Select.Any() &&
+                        m.OrderBy.First() == "lastUpdatedDate desc"));
+        }
+
+        [TestMethod]
+        public async Task SearchCalculation_GivenValidModelAndPageNumberIsTwoAndTopIsFifty_SearchesWithCorrectParameters()
+        {
+            //Arrange
+            SearchModel model = new SearchModel { PageNumber = 2, Top = 50 };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            CalculationService service = CreateCalculationService(logger: logger, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SearchCalculations(request);
+
+            //Assert
+            logger
+                .DidNotReceive()
+                .Warning(Arg.Any<string>());
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Search(Arg.Is("*"), Arg.Is<SearchParameters>(m =>
+                        m.Skip == 50 &&
+                        m.Top == 50 &&
+                        m.Facets.Any() &&
+                        m.SearchMode == SearchMode.Any &&
+                        m.Select.Any() &&
+                        m.OrderBy.First() == "lastUpdatedDate desc"));
+        }
+
+        [TestMethod]
+        public async Task SearchCalculation_GivenValidModelAndPageNumberIsTwoAndTopIsFiftyAndtermProvided_SearchesWithCorrectParameters()
+        {
+            //Arrange
+            SearchModel model = new SearchModel { PageNumber = 2, Top = 50, SearchTerm = "whatever", OrderBy = new[] { "whatever desc" } };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            CalculationService service = CreateCalculationService(logger: logger, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SearchCalculations(request);
+
+            //Assert
+            logger
+                .DidNotReceive()
+                .Warning(Arg.Any<string>());
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Search(Arg.Is("whatever"), Arg.Is<SearchParameters>(m =>
+                        m.Skip == 50 &&
+                        m.Top == 50 &&
+                        m.Facets.Any() &&
+                        m.SearchMode == SearchMode.Any &&
+                        m.Select.Any() &&
+                        m.OrderBy.First() == "whatever desc"));
+        }
+
+        [TestMethod]
+        async public Task SearchCalculation_GivenValidModelAndPageNumberIsTwoAndTopIsFiftyButSearchThrowsException_LogsAndReThrows()
+        {
+            //Arrange
+            SearchModel model = new SearchModel { PageNumber = 2, Top = 50 };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .When(x => x.Search(Arg.Any<string>(), Arg.Any<SearchParameters>()))
+                .Do(x => { throw new FailedToQuerySearchException("an error", new Exception()); });
+
+            CalculationService service = CreateCalculationService(logger: logger, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SearchCalculations(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(500);
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<FailedToQuerySearchException>(), Arg.Is("Failed to query search with term: *"));
         }
 
         static CalculationService CreateCalculationService(ICalculationsRepository calculationsRepository = null, 

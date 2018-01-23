@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace CalculateFunding.Repositories.Common.Search
 {
@@ -18,5 +19,19 @@ namespace CalculateFunding.Repositories.Common.Search
 
     public class Facet
     {
+        public Facet()
+        {
+            FacetValues = Enumerable.Empty<FacetValue>();
+        }
+
+        public string Name { get; set; }
+
+        public IEnumerable<FacetValue> FacetValues { get; set; }
+    }
+
+    public class FacetValue
+    {
+        public string Name { get; set; }
+        public int Count { get; set; }
     }
 }

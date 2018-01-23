@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Models;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Repositories.Common.Search
 {
@@ -53,23 +54,38 @@ namespace CalculateFunding.Repositories.Common.Search
         public async Task<SearchResults<T>> Search(string searchTerm, SearchParameters searchParameters = null)
         {
             var client = await GetOrCreateIndex();
-            var azureSearchResult = await client.Documents.SearchAsync<T>(searchTerm, searchParameters ?? DefaultParameters);
 
-            var response = new SearchResults<T>
+            try
             {
-                SearchTerm = searchTerm,
-                TotalCount = azureSearchResult.Count,
-                Facets = azureSearchResult.Facets.Select(x => new Facet
+                var azureSearchResult = await client.Documents.SearchAsync<T>(searchTerm, searchParameters ?? DefaultParameters);
+
+                var response = new SearchResults<T>
                 {
-                }).ToList(),
-                Results = azureSearchResult.Results.Select(x => new SearchResult<T>
-                {
-                    HitHighLights = x.Highlights,
-                    Result = x.Document,
-                    Score = x.Score
-                }).ToList()
-            };
-            return response;
+                    SearchTerm = searchTerm,
+                    TotalCount = azureSearchResult.Count,
+                    Facets = azureSearchResult.Facets.Select(x => new Facet
+                    {
+                        Name = x.Key,
+                        FacetValues = x.Value.Select(m => new FacetValue
+                        {
+                            Name = m.Value.ToString(),
+                            Count = (int)(m.Count ?? 0)
+                        })
+                        
+                    }).ToList(),
+                    Results = azureSearchResult.Results.Select(x => new SearchResult<T>
+                    {
+                        HitHighLights = x.Highlights,
+                        Result = x.Document,
+                        Score = x.Score
+                    }).ToList()
+                };
+                return response;
+            }
+            catch(Exception ex)
+            {
+                throw new FailedToQuerySearchException("Failed to query search", ex);
+            }
 
         }
 

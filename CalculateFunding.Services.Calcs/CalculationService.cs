@@ -4,16 +4,20 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using FluentValidation;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.ServiceBus;
+using Newtonsoft.Json;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
@@ -25,6 +29,12 @@ namespace CalculateFunding.Services.Calcs
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
         private readonly IValidator<Calculation> _calculationValidator;
 
+        private string[] Facets = new string[] { "allocationLineName", "policySpecificationNames", "status", "fundingStreamName" };
+
+        private List<string> Select = new List<string> { "id", "name", "specificationName", "periodName", "status" };
+
+        private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
+
         public CalculationService(ICalculationsRepository calculationsRepository, ILogger logger,
             ISearchRepository<CalculationIndex> searchRepository, IValidator<Calculation> calculationValidator)
         {
@@ -32,6 +42,59 @@ namespace CalculateFunding.Services.Calcs
             _logger = logger;
             _searchRepository = searchRepository;
             _calculationValidator = calculationValidator;
+        }
+
+        async public Task<IActionResult> SearchCalculations(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
+
+            if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
+            {
+                _logger.Warning("A null or invalid search model was provide for searching calculations");
+
+                return new BadRequestObjectResult("An invalid search model was provided");
+            }
+
+            SearchParameters searchParameters = new SearchParameters
+            {
+                Skip = (searchModel.PageNumber - 1) * searchModel.Top,
+                Top = searchModel.Top,
+                Facets = Facets,
+                Select = Select,
+                SearchMode = SearchMode.Any,
+                IncludeTotalResultCount = true,
+                OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList()
+            };
+
+            try
+            {
+                SearchResults<CalculationIndex> searchResults = await _searchRepository.Search(searchModel.SearchTerm, searchParameters);
+
+                CalculationSearchResults results = new CalculationSearchResults
+                {
+                    TotalCount = (int)(searchResults?.TotalCount ?? 0),
+                    Results = searchResults?.Results.Select(m => new CalculationSearchResult
+                    {
+                        Id = m.Result.Id,
+                        Name = m.Result.Name,
+                        PeriodName = m.Result.PeriodName,
+                        SpecificationName = m.Result.SpecificationName,
+                        Status = m.Result.Status
+                    }),
+                    Facets = searchResults?.Facets
+                };
+
+
+                return new OkObjectResult(results);
+            }
+            catch(FailedToQuerySearchException exception)
+            {
+                _logger.Error(exception, $"Failed to query search with term: {searchModel.SearchTerm}");
+
+                return new StatusCodeResult(500);
+            }
         }
 
         async public Task CreateCalculation(Message message)
@@ -87,7 +150,8 @@ namespace CalculateFunding.Services.Calcs
                             SourceCode = calculation.Current.SourceCode,
                             Status = calculation.Current.PublishStatus.ToString(),
                             FundingStreamId = calculation.FundingStream.Id,
-                            FundingStreamName = calculation.FundingStream.Name
+                            FundingStreamName = calculation.FundingStream.Name,
+                            LastUpdatedDate = new DateTimeOffset(DateTime.UtcNow, TimeSpan.Zero),
                         }
                     });
                 }

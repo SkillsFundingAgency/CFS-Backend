@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Azure.Search;
 using Newtonsoft.Json;
@@ -70,5 +71,9 @@ namespace CalculateFunding.Models.Calcs
         [IsFilterable]
         [JsonProperty("fundingStreamId")]
         public string FundingStreamId { get; set; }
+
+        [IsFilterable, IsSortable]
+        [JsonProperty("lastUpdatedDate")]
+        public DateTimeOffset LastUpdatedDate { get; set; }
     }
 }
