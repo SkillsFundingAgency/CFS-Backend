@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Models;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Repositories.Common.Search
 {
@@ -64,7 +65,13 @@ namespace CalculateFunding.Repositories.Common.Search
                     TotalCount = azureSearchResult.Count,
                     Facets = azureSearchResult.Facets.Select(x => new Facet
                     {
-
+                        Name = x.Key,
+                        FacetValues = x.Value.Select(m => new FacetValue
+                        {
+                            Name = m.Value.ToString(),
+                            Count = (int)(m.Count ?? 0)
+                        })
+                        
                     }).ToList(),
                     Results = azureSearchResult.Results.Select(x => new SearchResult<T>
                     {

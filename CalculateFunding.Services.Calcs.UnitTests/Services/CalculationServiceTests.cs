@@ -318,7 +318,8 @@ namespace CalculateFunding.Services.Calcs.Services
                         m.Top == 50 &&
                         m.Facets.Any() &&
                         m.SearchMode == SearchMode.Any &&
-                        m.Select.Any()));
+                        m.Select.Any() &&
+                        m.OrderBy.First() == "lastUpdatedDate desc"));
         }
 
         [TestMethod]
@@ -357,7 +358,8 @@ namespace CalculateFunding.Services.Calcs.Services
                         m.Top == 50 &&
                         m.Facets.Any() &&
                         m.SearchMode == SearchMode.Any &&
-                        m.Select.Any()));
+                        m.Select.Any() &&
+                        m.OrderBy.First() == "lastUpdatedDate desc"));
         }
 
         [TestMethod]
@@ -396,7 +398,8 @@ namespace CalculateFunding.Services.Calcs.Services
                         m.Top == 50 &&
                         m.Facets.Any() &&
                         m.SearchMode == SearchMode.Any &&
-                        m.Select.Any()));
+                        m.Select.Any() &&
+                        m.OrderBy.First() == "lastUpdatedDate desc"));
         }
 
         [TestMethod]
@@ -435,14 +438,15 @@ namespace CalculateFunding.Services.Calcs.Services
                         m.Top == 50 &&
                         m.Facets.Any() &&
                         m.SearchMode == SearchMode.Any &&
-                        m.Select.Any()));
+                        m.Select.Any() &&
+                        m.OrderBy.First() == "lastUpdatedDate desc"));
         }
 
         [TestMethod]
         public async Task SearchCalculation_GivenValidModelAndPageNumberIsTwoAndTopIsFiftyAndtermProvided_SearchesWithCorrectParameters()
         {
             //Arrange
-            SearchModel model = new SearchModel { PageNumber = 2, Top = 50, SearchTerm = "whatever" };
+            SearchModel model = new SearchModel { PageNumber = 2, Top = 50, SearchTerm = "whatever", OrderBy = new[] { "whatever desc" } };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
@@ -474,7 +478,8 @@ namespace CalculateFunding.Services.Calcs.Services
                         m.Top == 50 &&
                         m.Facets.Any() &&
                         m.SearchMode == SearchMode.Any &&
-                        m.Select.Any()));
+                        m.Select.Any() &&
+                        m.OrderBy.First() == "whatever desc"));
         }
 
         [TestMethod]
