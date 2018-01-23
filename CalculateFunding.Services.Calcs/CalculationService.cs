@@ -54,7 +54,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 _logger.Warning("A null or invalid search model was provide for searching calculations");
 
-                searchModel = new SearchModel { PageNumber = 1, Top = 50, OrderBy = DefaultOrderBy };
+                return new BadRequestObjectResult("An invalid search model was provided");
             }
 
             SearchParameters searchParameters = new SearchParameters

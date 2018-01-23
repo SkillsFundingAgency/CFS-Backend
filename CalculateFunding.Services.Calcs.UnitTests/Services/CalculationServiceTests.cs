@@ -271,15 +271,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Received(1)
                 .Warning("A null or invalid search model was provide for searching calculations");
 
-            await
-                searchRepository
-                    .Received(1)
-                    .Search(Arg.Is("*"), Arg.Is<SearchParameters>(m =>
-                        m.Skip == 0 &&
-                        m.Top == 50 &&
-                        m.Facets.Any() &&
-                        m.SearchMode == SearchMode.Any &&
-                        m.Select.Any()));
+            result
+                 .Should()
+                 .BeOfType<BadRequestObjectResult>();
         }
 
         [TestMethod]
@@ -310,16 +304,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Received(1)
                 .Warning("A null or invalid search model was provide for searching calculations");
 
-            await
-                searchRepository
-                    .Received(1)
-                    .Search(Arg.Is("*"), Arg.Is<SearchParameters>(m =>
-                        m.Skip == 0 &&
-                        m.Top == 50 &&
-                        m.Facets.Any() &&
-                        m.SearchMode == SearchMode.Any &&
-                        m.Select.Any() &&
-                        m.OrderBy.First() == "lastUpdatedDate desc"));
+            result
+                 .Should()
+                 .BeOfType<BadRequestObjectResult>();
         }
 
         [TestMethod]
@@ -350,16 +337,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Received(1)
                 .Warning("A null or invalid search model was provide for searching calculations");
 
-            await
-                searchRepository
-                    .Received(1)
-                    .Search(Arg.Is("*"), Arg.Is<SearchParameters>(m =>
-                        m.Skip == 0 &&
-                        m.Top == 50 &&
-                        m.Facets.Any() &&
-                        m.SearchMode == SearchMode.Any &&
-                        m.Select.Any() &&
-                        m.OrderBy.First() == "lastUpdatedDate desc"));
+            result
+                 .Should()
+                 .BeOfType<BadRequestObjectResult>();
         }
 
         [TestMethod]
