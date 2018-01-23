@@ -24,14 +24,11 @@ namespace CalculateFunding.Services.Core.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddCosmosDb(this IServiceCollection builder, IConfigurationRoot config, string collectionOverride = "")
+        public static IServiceCollection AddCosmosDb(this IServiceCollection builder, IConfigurationRoot config)
         {
             CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
             config.Bind("CosmosDbSettings", cosmosDbSettings);
-
-            if (!string.IsNullOrWhiteSpace(collectionOverride))
-                cosmosDbSettings.CollectionName = collectionOverride;
 
             builder.AddSingleton<CosmosDbSettings>(cosmosDbSettings);
 

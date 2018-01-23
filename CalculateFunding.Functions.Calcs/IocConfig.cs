@@ -13,8 +13,6 @@ namespace CalculateFunding.Functions.Calcs
 {
     static public class IocConfig
     {
-        const string CollectionName = "calcs";
-
         static public IServiceProvider Build()
         {
             var serviceProvider = new ServiceCollection();
@@ -35,11 +33,9 @@ namespace CalculateFunding.Functions.Calcs
             builder
                 .AddScoped<IValidator<Calculation>, CalculationModelValidator>();
 
-
-
             IConfigurationRoot config = Services.Core.Extensions.ConfigHelper.AddConfig();
 
-            builder.AddCosmosDb(config, CollectionName);
+            builder.AddCosmosDb(config);
 
             builder.AddSearch(config);
 

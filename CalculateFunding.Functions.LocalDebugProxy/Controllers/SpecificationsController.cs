@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using CalculateFunding.Functions.Specs.Http;
+using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
@@ -7,36 +8,39 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
     public class SpecificationsController : Controller
     {
-        /// <summary>
-        /// Get Specification By ID
-        /// </summary>
-        /// <returns></returns>
+        private readonly ISpecificationsService _specService;
+
+        public SpecificationsController(ISpecificationsService specService)
+        {
+            _specService = specService;
+        }
+
         [Route("api/specs/specifications")]
         [HttpGet]
         public Task<IActionResult>RunSpecifications()
         {
-            return Specifications.Run(ControllerContext.HttpContext.Request, null);
+            return _specService.GetSpecificationById(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications-by-year")]
         [HttpGet]
         public Task<IActionResult> RunSpecificationsByYear()
         {
-            return Specifications.RunSpecificationsByYear(ControllerContext.HttpContext.Request, null);
+            return _specService.GetSpecificationByAcademicYearId(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specification-by-name")]
         [HttpGet]
         public Task<IActionResult> RunSpecificationByName()
         {
-            return Specifications.RunSpecificationByName(ControllerContext.HttpContext.Request, null);
+            return _specService.GetSpecificationByName(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications")]
         [HttpPost]
         public Task<IActionResult> RunSpecificationsCommands([FromBody]string value)
         {
-            return Specifications.RunCreateSpecification(ControllerContext.HttpContext.Request, null);
+            return _specService.CreateSpecification(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/academic-years")]
@@ -59,49 +63,49 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpGet]
         public Task<IActionResult> RunFundingStreams()
         {
-            return FundingStreams.Run(ControllerContext.HttpContext.Request, null);
+            return _specService.GetFundingStreams(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/policy-by-name")]
         [HttpPost]
         public Task<IActionResult> RunPolicyByName()
         {
-            return Policies.RunPolicyByName(ControllerContext.HttpContext.Request, null);
+            return _specService.GetPolicyByName(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/policies")]
         [HttpPost]
         public Task<IActionResult> RunCreatePolicy()
         {
-            return Policies.RunCreatePolicy(ControllerContext.HttpContext.Request, null);
+            return _specService.CreatePolicy(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/calculation-by-name")]
         [HttpPost]
         public Task<IActionResult> RunCalculationByName()
         {
-            return Calculations.RunCalculationByName(ControllerContext.HttpContext.Request, null);
+            return _specService.GetCalculationByName(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/calculation-by-id")]
         [HttpGet]
         public Task<IActionResult> RunCalculationBySpecificationIdAndCalculationId()
         {
-            return Calculations.RunCalculationBySpecificationIdAndCalculationId(ControllerContext.HttpContext.Request, null);
+            return _specService.GetCalculationBySpecificationIdAndCalculationId(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/calculations")]
         [HttpPost]
         public Task<IActionResult> RunCreateCalculation()
         {
-            return Calculations.RunCreateCalculation(ControllerContext.HttpContext.Request, null);
+            return _specService.CreateCalculation(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/allocation-lines")]
         [HttpGet]
         public Task<IActionResult> RunAllocationLines()
         {
-            return Calculations.RunAllocationLines(ControllerContext.HttpContext.Request, null);
+            return _specService.GetAllocationLines(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/commands/funding-streams")]
