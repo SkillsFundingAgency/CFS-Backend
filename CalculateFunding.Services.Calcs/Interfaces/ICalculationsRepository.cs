@@ -10,5 +10,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
     public interface ICalculationsRepository
     {
         Task<HttpStatusCode> CreateDraftCalculation(Calculation calculation);
+
+        Task<Calculation> GetCalculationById(string calculationId);
     }
 }

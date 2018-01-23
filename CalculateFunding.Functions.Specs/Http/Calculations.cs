@@ -80,6 +80,18 @@ namespace CalculateFunding.Functions.Specs.Http
             }
         }
 
+        [FunctionName("calculation-by-id")]
+        public static Task<IActionResult> RunCalculationBySpecificationIdAndCalculationId(
+         [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+
+                return svc.GetCalculationBySpecificationIdAndCalculationId(req);
+            }
+        }
+
         [FunctionName("allocation-lines")]
         public static Task<IActionResult> RunAllocationLines(
          [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)

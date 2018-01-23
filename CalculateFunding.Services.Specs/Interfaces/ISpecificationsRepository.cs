@@ -23,5 +23,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<Policy> GetPolicyBySpecificationIdAndPolicyName(string specificationId, string policyByName);
         Task<Policy> GetPolicyBySpecificationIdAndPolicyId(string specificationId, string policyId);
         Task<Calculation> GetCalculationBySpecificationIdAndCalculationName(string specificationId, string calculationName);
+        Task<Calculation> GetCalculationBySpecificationIdAndCalculationId(string specificationId, string calculationId);
     }
 }

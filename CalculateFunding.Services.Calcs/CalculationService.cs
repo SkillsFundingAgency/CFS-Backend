@@ -97,6 +97,33 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
+        async public Task<IActionResult> GetCalculationById(HttpRequest request)
+        {
+            request.Query.TryGetValue("calculationId", out var calcId);
+
+            var calculationId = calcId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(calculationId))
+            {
+                _logger.Error("No calculation Id was provided to GetCalculationById");
+
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            Calculation calculation = await _calculationsRepository.GetCalculationById(calculationId);
+
+            if(calculation != null)
+            {
+                _logger.Information($"A calculation was found for calculation id {calculationId}");
+
+                return new OkObjectResult(calculation);
+            }
+
+            _logger.Information($"A calculation was not found for calculation id {calculationId}");
+
+            return new NotFoundResult();
+        }
+
         async public Task CreateCalculation(Message message)
         {
             Reference user = message.GetUserDetails();

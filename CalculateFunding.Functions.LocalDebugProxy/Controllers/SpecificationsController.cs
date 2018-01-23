@@ -83,6 +83,13 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return Calculations.RunCalculationByName(ControllerContext.HttpContext.Request, null);
         }
 
+        [Route("api/specs/calculation-by-id")]
+        [HttpGet]
+        public Task<IActionResult> RunCalculationBySpecificationIdAndCalculationId()
+        {
+            return Calculations.RunCalculationBySpecificationIdAndCalculationId(ControllerContext.HttpContext.Request, null);
+        }
+
         [Route("api/specs/calculations")]
         [HttpPost]
         public Task<IActionResult> RunCreateCalculation()

@@ -12,5 +12,12 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         {
             return Calculations.RunCalculationsSearch(ControllerContext.HttpContext.Request, null);
         }
+
+        [Route("api/calcs/calculation-by-id")]
+        [HttpGet]
+        public Task<IActionResult> RunCalculationById()
+        {
+            return Calculations.RunCalculationById(ControllerContext.HttpContext.Request, null);
+        }
     }
 }

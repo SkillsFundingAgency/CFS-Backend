@@ -30,5 +30,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> CreateCalculation(HttpRequest request);
 
         Task<IActionResult> GetCalculationByName(HttpRequest request);
+
+        Task<IActionResult> GetCalculationBySpecificationIdAndCalculationId(HttpRequest request);
     }
 }

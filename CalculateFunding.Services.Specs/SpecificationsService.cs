@@ -197,6 +197,44 @@ namespace CalculateFunding.Services.Specs
             return new NotFoundResult();
         }
 
+        public async Task<IActionResult> GetCalculationBySpecificationIdAndCalculationId(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out var specId);
+
+            var specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logs.Error("No specification Id was provided to GetCalculationBySpecificationIdAndCalculationId");
+
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            request.Query.TryGetValue("calculationId", out var calcId);
+
+            var calculationId = calcId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(calculationId))
+            {
+                _logs.Error("No calculation Id was provided to GetCalculationBySpecificationIdAndCalculationId");
+
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            Calculation calculation = await _specifcationsRepository.GetCalculationBySpecificationIdAndCalculationId(specificationId, calculationId);
+
+            if (calculation != null)
+            {
+                _logs.Information($"A calculation was found for specification id {specificationId} and calculation id {calculationId}");
+
+                return new OkObjectResult(calculation);
+            }
+
+            _logs.Information($"A calculation was not found for specification id {specificationId} and calculation id {calculationId}");
+
+            return new NotFoundResult();
+        }
+
         public async Task<IActionResult> GetAcademicYears(HttpRequest request)
         {
             IEnumerable<AcademicYear> academicYears = await _specifcationsRepository.GetAcademicYears();

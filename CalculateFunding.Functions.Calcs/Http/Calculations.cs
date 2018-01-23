@@ -30,10 +30,20 @@ namespace CalculateFunding.Functions.Calcs.Http
         {
             using (var scope = IocConfig.Build().CreateHttpScope(req))
             {
-
                 ICalculationService svc = scope.ServiceProvider.GetService<ICalculationService>();
                 return svc.SearchCalculations(req);
+            }
+        }
 
+        [FunctionName("calculation-by-id")]
+        public static Task<IActionResult> RunCalculationById(
+         [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ICalculationService svc = scope.ServiceProvider.GetService<ICalculationService>();
+
+                return svc.GetCalculationById(req);
             }
         }
     }
