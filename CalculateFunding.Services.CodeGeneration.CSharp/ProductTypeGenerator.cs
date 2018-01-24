@@ -50,7 +50,9 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
             var builder = new StringBuilder();
             builder.AppendLine($"public decimal {Identifier(calc.Name)}()");
             builder.AppendLine("{");
-            builder.Append(calc.Published?.SourceCode ?? "return decimal.MinValue;");
+	        builder.AppendLine($"#line 1 \"{calc.Id}\"");
+			builder.Append(calc.Published?.SourceCode ?? "return decimal.MinValue;");
+	        builder.AppendLine("#line default");
             builder.AppendLine("}");
             //builder.Append(calc.SourceCode ?? $"Throw new NotImplementedException(\"{calc.Name} is not implemented\")");
             builder.AppendLine();
