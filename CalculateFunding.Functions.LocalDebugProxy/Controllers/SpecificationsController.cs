@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using CalculateFunding.Functions.Specs.Http;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -6,11 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 {
 
-    public class SpecificationsController : Controller
+    public class SpecificationsController : BaseController
     {
         private readonly ISpecificationsService _specService;
 
-        public SpecificationsController(ISpecificationsService specService)
+        public SpecificationsController(ISpecificationsService specService, IServiceProvider serviceProvider)
+            : base(serviceProvider)
         {
             _specService = specService;
         }
@@ -19,6 +21,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpGet]
         public Task<IActionResult>RunSpecifications()
         {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
             return _specService.GetSpecificationById(ControllerContext.HttpContext.Request);
         }
 
@@ -26,6 +30,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpGet]
         public Task<IActionResult> RunSpecificationsByYear()
         {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
             return _specService.GetSpecificationByAcademicYearId(ControllerContext.HttpContext.Request);
         }
 
@@ -33,6 +39,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpGet]
         public Task<IActionResult> RunSpecificationByName()
         {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
             return _specService.GetSpecificationByName(ControllerContext.HttpContext.Request);
         }
 
@@ -40,6 +48,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpPost]
         public Task<IActionResult> RunSpecificationsCommands([FromBody]string value)
         {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
             return _specService.CreateSpecification(ControllerContext.HttpContext.Request);
         }
 
@@ -63,6 +73,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpGet]
         public Task<IActionResult> RunFundingStreams()
         {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
             return _specService.GetFundingStreams(ControllerContext.HttpContext.Request);
         }
 
@@ -70,6 +82,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpPost]
         public Task<IActionResult> RunPolicyByName()
         {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
             return _specService.GetPolicyByName(ControllerContext.HttpContext.Request);
         }
 
@@ -84,6 +98,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpPost]
         public Task<IActionResult> RunCalculationByName()
         {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
             return _specService.GetCalculationByName(ControllerContext.HttpContext.Request);
         }
 
@@ -98,6 +114,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpPost]
         public Task<IActionResult> RunCreateCalculation()
         {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
             return _specService.CreateCalculation(ControllerContext.HttpContext.Request);
         }
 
@@ -105,6 +123,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpGet]
         public Task<IActionResult> RunAllocationLines()
         {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
             return _specService.GetAllocationLines(ControllerContext.HttpContext.Request);
         }
 
@@ -113,9 +133,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpDelete]
         public Task<IActionResult> RunFundingStreamsCommands([FromBody]string value)
         {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
             return FundingStreams.RunCommands(ControllerContext.HttpContext.Request, null);
         }
-
-
     }
 }

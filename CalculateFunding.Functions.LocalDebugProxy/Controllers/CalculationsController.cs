@@ -1,15 +1,16 @@
-﻿using CalculateFunding.Functions.Calcs.Http;
-using CalculateFunding.Services.Calcs.Interfaces;
+﻿using CalculateFunding.Services.Calcs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 {
-    public class CalculationsController : Controller
+    public class CalculationsController : BaseController
     {
         private readonly ICalculationService _calcsService;
 
-        public CalculationsController(ICalculationService calcsService)
+        public CalculationsController(ICalculationService calcsService, IServiceProvider serviceProvider)
+            : base(serviceProvider)
         {
             _calcsService = calcsService;
         }
@@ -18,6 +19,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpPost]
         public Task<IActionResult> RunSpecificationsByYear()
         {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
             return _calcsService.SearchCalculations(ControllerContext.HttpContext.Request);
         }
 
@@ -25,6 +28,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         [HttpGet]
         public Task<IActionResult> RunCalculationById()
         {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
             return _calcsService.GetCalculationById(ControllerContext.HttpContext.Request);
         }
     }

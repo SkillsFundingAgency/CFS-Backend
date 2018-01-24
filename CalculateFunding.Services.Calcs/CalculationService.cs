@@ -178,7 +178,7 @@ namespace CalculateFunding.Services.Calcs
                             Status = calculation.Current.PublishStatus.ToString(),
                             FundingStreamId = calculation.FundingStream.Id,
                             FundingStreamName = calculation.FundingStream.Name,
-                            LastUpdatedDate = new DateTimeOffset(DateTime.UtcNow, TimeSpan.Zero),
+                            LastUpdatedDate = DateTimeOffset.Now,
                         }
                     });
                 }
