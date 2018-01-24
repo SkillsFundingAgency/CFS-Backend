@@ -12,5 +12,9 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<HttpStatusCode> CreateDraftCalculation(Calculation calculation);
 
         Task<Calculation> GetCalculationById(string calculationId);
+
+        Task<IEnumerable<CalculationVersion>> GetVersionHistory(string calculationId);
+
+        Task<IEnumerable<CalculationVersion>> GetCompareVersions(CalculationVersionsCompareModel compareModel);
     }
 }

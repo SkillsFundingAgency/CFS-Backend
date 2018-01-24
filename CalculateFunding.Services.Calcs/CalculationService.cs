@@ -97,6 +97,58 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
+        async public Task<IActionResult> GetCalculationHistory(HttpRequest request)
+        {
+            request.Query.TryGetValue("calculationId", out var calcId);
+
+            var calculationId = calcId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(calculationId))
+            {
+                _logger.Error("No calculation Id was provided to GetCalculationHistory");
+
+                return new BadRequestObjectResult("Null or empty calculation Id provided");
+            }
+
+            IEnumerable<CalculationVersion> history = await _calculationsRepository.GetVersionHistory(calculationId);
+
+            if (history == null)
+            {
+                _logger.Information($"A calculation was not found for calculation id {calculationId}");
+
+                return new NotFoundResult();
+            }
+
+            return new OkObjectResult(history);
+        }
+
+        async public Task<IActionResult> GetCompareVersions(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            CalculationVersionsCompareModel compareModel = JsonConvert.DeserializeObject<CalculationVersionsCompareModel>(json);
+
+            //Need custom validator here
+
+            if (compareModel == null || string.IsNullOrEmpty(compareModel.CalculationId) || compareModel.Versions == null || compareModel.Versions.Count() < 2)
+            {
+                _logger.Warning("A null or invalid compare model was provided for comparing models");
+
+                return new BadRequestObjectResult("A null or invalid compare model was provided for comparing models");
+            }
+
+            IEnumerable<CalculationVersion> history = await _calculationsRepository.GetCompareVersions(compareModel);
+
+            if (history == null)
+            {
+                _logger.Information($"A calculation was not found for calculation id {compareModel.CalculationId}");
+
+                return new NotFoundResult();
+            }
+
+            return new OkObjectResult(history);
+        }
+
         async public Task<IActionResult> GetCalculationById(HttpRequest request)
         {
             request.Query.TryGetValue("calculationId", out var calcId);
@@ -107,7 +159,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 _logger.Error("No calculation Id was provided to GetCalculationById");
 
-                return new BadRequestObjectResult("Null or empty specification Id provided");
+                return new BadRequestObjectResult("Null or empty calculation Id provided");
             }
 
             Calculation calculation = await _calculationsRepository.GetCalculationById(calculationId);
@@ -150,6 +202,18 @@ namespace CalculateFunding.Services.Calcs
                     Date = DateTime.UtcNow,
                     Version = 1,
                     DecimalPlaces = 6
+                };
+
+                calculation.History = new List<CalculationVersion>
+                {
+                    new CalculationVersion
+                    {
+                        PublishStatus = PublishStatus.Draft,
+                        Author = user,
+                        Date = DateTime.UtcNow,
+                        Version = 1,
+                        DecimalPlaces = 6
+                    }
                 };
                
                 HttpStatusCode result = await _calculationsRepository.CreateDraftCalculation(calculation);

@@ -1,7 +1,4 @@
 ﻿using System.Threading.Tasks;
-using CalculateFunding.Functions.Common;
-using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using Microsoft.AspNetCore.Http;
@@ -16,14 +13,6 @@ namespace CalculateFunding.Functions.Calcs.Http
 {
     public static class Calculations
     {
-        //[FunctionName("calculations")]
-        //public static async Task<IActionResult> Run(
-        //    [HttpTrigger(AuthorizationLevel.Function, "post", "get")] HttpRequest req, ILogger log)
-        //{
-        //    var restMethods = new RestGetMethods<Calculation>();
-        //    return await restMethods.Run(req, log, "specificationId");
-        //}
-
         [FunctionName("calculations-search")]
         public static Task<IActionResult> RunCalculationsSearch(
            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
@@ -44,6 +33,30 @@ namespace CalculateFunding.Functions.Calcs.Http
                 ICalculationService svc = scope.ServiceProvider.GetService<ICalculationService>();
 
                 return svc.GetCalculationById(req);
+            }
+        }
+
+        [FunctionName("calculation-versions")]
+        public static Task<IActionResult> RunCalculationVersions(
+         [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ICalculationService svc = scope.ServiceProvider.GetService<ICalculationService>();
+
+                return svc.GetCalculationHistory(req);
+            }
+        }
+
+        [FunctionName("calculation-compare-versions")]
+        public static Task<IActionResult> RunCalculationCompareVersions(
+         [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ICalculationService svc = scope.ServiceProvider.GetService<ICalculationService>();
+
+                return svc.GetCompareVersions(req);
             }
         }
     }

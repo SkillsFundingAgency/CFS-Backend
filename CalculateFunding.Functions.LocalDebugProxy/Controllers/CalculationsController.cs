@@ -32,5 +32,23 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _calcsService.GetCalculationById(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/calcs/calculation-versions")]
+        [HttpGet]
+        public Task<IActionResult> RunCalculationVersions()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _calcsService.GetCalculationHistory(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/calcs/calculation-compare-versions")]
+        [HttpPost]
+        public Task<IActionResult> RunCalculationCompareVersions()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _calcsService.GetCompareVersions(ControllerContext.HttpContext.Request);
+        }
     }
 }
