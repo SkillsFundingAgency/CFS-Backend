@@ -35,6 +35,15 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _calcsService.GetCalculationById(ControllerContext.HttpContext.Request);
         }
 
+        [Route("api/calcs/calculation-current-version")]
+        [HttpGet]
+        public Task<IActionResult> RunCalculationCurrentVersion()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _calcsService.GetCalculationCurrentVersion(ControllerContext.HttpContext.Request);
+        }
+
         [Route("api/calcs/calculation-version-history")]
         [HttpGet]
         public Task<IActionResult> RunCalculationVersions()

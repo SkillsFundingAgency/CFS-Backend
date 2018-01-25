@@ -708,6 +708,155 @@ namespace CalculateFunding.Services.Calcs.Services
                 .BeOfType<OkObjectResult>();
         }
 
+        [TestMethod]
+        public async Task GetCalculationCurrentVersion_GivenNoCalculationIdprovided_returnsBadrequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            CalculationService service = CreateCalculationService(logger: logger);
+
+            //Act
+            IActionResult result = await service.GetCalculationCurrentVersion(request);
+
+            //Assert
+            logger
+                .Received(1)
+                .Error("No calculation Id was provided to GetCalculationCurrentVersion");
+
+            result
+                 .Should()
+                 .BeOfType<BadRequestObjectResult>();
+        }
+
+        [TestMethod]
+        async public Task GetCalculationCurrentVersion_GivencalculationWasNotFound_ReturnsNotFound()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns((Calculation)null);
+
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository);
+
+            //Act
+            IActionResult result = await service.GetCalculationCurrentVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"A calculation was not found for calculation id {CalculationId}"));
+        }
+
+        [TestMethod]
+        async public Task GetCalculationCurrentVersion_GivencalculationWasFoundWithNoCurrent_ReturnsNotFound()
+        {
+            //Arrange
+            Calculation calculation = new Calculation();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository);
+
+            //Act
+            IActionResult result = await service.GetCalculationCurrentVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"A current calculation was not found for calculation id {CalculationId}"));
+        }
+
+        [TestMethod]
+        async public Task GetCalculationCurrentVersion_GivencalculationWasFound_ReturnsOK()
+        {
+            //Arrange
+            Calculation calculation = new Calculation
+            {
+                Specification = new Reference
+                {
+                    Id = "spec-id"
+                },
+                Current = new CalculationVersion
+                {
+                    Author = new Reference(UserId, Username),
+                    Date = DateTime.UtcNow,
+                    PublishStatus = PublishStatus.Draft,
+                    SourceCode = "source code",
+                    Version = 1
+                },
+                Name = "any name",
+                Id = "any-id",
+                CalculationSpecification = new Reference("any name", "any-id"),
+                Period = new Reference("18/19", "2018/2019")
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository);
+
+            //Act
+            IActionResult result = await service.GetCalculationCurrentVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+        }
+
         static CalculationService CreateCalculationService(ICalculationsRepository calculationsRepository = null, 
             ILogger logger = null, ISearchRepository<CalculationIndex> serachRepository = null, IValidator<Calculation> calcValidator = null,
             IBuildProjectsRepository buildProjectsRepository = null)

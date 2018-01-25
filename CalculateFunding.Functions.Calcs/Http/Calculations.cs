@@ -36,6 +36,18 @@ namespace CalculateFunding.Functions.Calcs.Http
             }
         }
 
+        [FunctionName("calculation-current-version")]
+        public static Task<IActionResult> RunCalculationCurrentVersion(
+        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ICalculationService svc = scope.ServiceProvider.GetService<ICalculationService>();
+
+                return svc.GetCalculationCurrentVersion(req);
+            }
+        }
+
         [FunctionName("calculation-version-history")]
         public static Task<IActionResult> RunCalculationVersions(
          [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)

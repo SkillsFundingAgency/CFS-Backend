@@ -16,5 +16,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IActionResult> GetCalculationVersions(HttpRequest request);
 
         Task<IActionResult> GetCalculationHistory(HttpRequest request);
+
+        Task<IActionResult> GetCalculationCurrentVersion(HttpRequest request);
     }
 }

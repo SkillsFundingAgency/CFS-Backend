@@ -151,6 +151,52 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(versions);
         }
 
+        async public Task<IActionResult> GetCalculationCurrentVersion(HttpRequest request)
+        {
+            request.Query.TryGetValue("calculationId", out var calcId);
+
+            var calculationId = calcId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(calculationId))
+            {
+                _logger.Error("No calculation Id was provided to GetCalculationCurrentVersion");
+
+                return new BadRequestObjectResult("Null or empty calculation Id provided");
+            }
+
+            Calculation calculation = await _calculationsRepository.GetCalculationById(calculationId);
+
+            if (calculation == null)
+            {
+                _logger.Information($"A calculation was not found for calculation id {calculationId}");
+
+                return new NotFoundResult();
+            }
+
+            if (calculation.Current == null)
+            {
+                _logger.Information($"A current calculation was not found for calculation id {calculationId}");
+
+                return new NotFoundResult();
+            }
+
+            CalculationCurrentVersion calculationCurrentVersion = new CalculationCurrentVersion
+            {
+                SpecificationId = calculation.Specification?.Id,
+                Author = calculation.Current?.Author,
+                Date = calculation.Current?.Date,
+                CalculationSpecification = calculation.CalculationSpecification,
+                PeriodName = calculation.Period.Name,
+                Id = calculation.Id,
+                Name = calculation.Name,
+                Status = calculation.Current?.PublishStatus.ToString(),
+                SourceCode = calculation.Current?.SourceCode,
+                Version = calculation.Current.Version
+            };
+
+            return new OkObjectResult(calculationCurrentVersion);
+        }
+
         async public Task<IActionResult> GetCalculationById(HttpRequest request)
         {
             request.Query.TryGetValue("calculationId", out var calcId);
