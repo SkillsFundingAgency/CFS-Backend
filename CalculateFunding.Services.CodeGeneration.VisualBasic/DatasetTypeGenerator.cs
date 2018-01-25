@@ -13,37 +13,43 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
     {
         public IEnumerable<SourceFile> GenerateDatasets(BuildProject budget)
         {
-            foreach (var dataset in budget.DatasetDefinitions)
-            {
-                var @class =  SyntaxFactory.ClassBlock(
-                    SyntaxFactory.ClassStatement(
-                            $"{Identifier(dataset.Name)}Dataset"
-                        )
-                        .WithModifiers(
-                            SyntaxFactory.TokenList(
-                                SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
-                    new SyntaxList<InheritsStatementSyntax>(),
-                    new SyntaxList<ImplementsStatementSyntax>(),
-                    SyntaxFactory.List(GetMembers(dataset)),
-                    SyntaxFactory.EndClassStatement()
 
-                );
+	        var wrapperSyntaxTree = SyntaxFactory.ClassBlock(SyntaxFactory.ClassStatement("Datasets")
+				.WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword))));
 
-                var syntaxTree = SyntaxFactory.CompilationUnit()
-                    .WithImports(StandardImports())
-                    .WithMembers(
-                        SyntaxFactory.SingletonList<StatementSyntax>(@class))
-                    .NormalizeWhitespace();
-                yield return new SourceFile { FileName = $"Datasets/{Identifier(dataset.Name)}.vb", SourceCode = syntaxTree.ToFullString() };
-            }
+			if (budget.DatasetDefinitions != null)
+	        {
+				foreach (var dataset in budget.DatasetDefinitions)
+				{
+					var @class = SyntaxFactory.ClassBlock(
+						SyntaxFactory.ClassStatement(
+								$"{Identifier(dataset.Name)}Dataset"
+							)
+							.WithModifiers(
+								SyntaxFactory.TokenList(
+									SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
+						new SyntaxList<InheritsStatementSyntax>(),
+						new SyntaxList<ImplementsStatementSyntax>(),
+						SyntaxFactory.List(GetMembers(dataset)),
+						SyntaxFactory.EndClassStatement()
 
-            var wrapperSyntaxTree = SyntaxFactory.ClassBlock(SyntaxFactory.ClassStatement("Datasets").WithModifiers(
-                SyntaxFactory.TokenList(
-                    SyntaxFactory.Token(SyntaxKind.PublicKeyword))))
-                    .WithMembers(SyntaxFactory.List(budget.DatasetDefinitions.Select(GetDatasetProperties)))
-                    .NormalizeWhitespace(); 
+					);
 
-            yield return new SourceFile { FileName = $"Datasets/Datasets.vb", SourceCode = wrapperSyntaxTree.ToFullString() };
+					var syntaxTree = SyntaxFactory.CompilationUnit()
+						.WithImports(StandardImports())
+						.WithMembers(
+							SyntaxFactory.SingletonList<StatementSyntax>(@class))
+						.NormalizeWhitespace();
+					yield return new SourceFile { FileName = $"Datasets/{Identifier(dataset.Name)}.vb", SourceCode = syntaxTree.ToFullString() };
+
+					wrapperSyntaxTree =
+						wrapperSyntaxTree.WithMembers(SyntaxFactory.List(budget.DatasetDefinitions.Select(GetDatasetProperties)));
+				}
+			}
+
+
+
+            yield return new SourceFile { FileName = $"Datasets/Datasets.vb", SourceCode = wrapperSyntaxTree.NormalizeWhitespace().ToFullString() };
 
 
         }

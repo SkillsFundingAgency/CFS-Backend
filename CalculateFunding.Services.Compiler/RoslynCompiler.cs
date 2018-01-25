@@ -63,7 +63,15 @@ namespace CalculateFunding.Services.Compiler
             Logger.LogInformation($"Compilation complete success = {compilerOutput.Success} ({stopwatch.ElapsedMilliseconds}ms)");
 
             compilerOutput.Success = result.Success;
-            compilerOutput.CompilerMessages = result.Diagnostics.Select(x => new CompilerMessage { Message = x.GetMessage(), Severity = (Severity)x.Severity }).ToList();
+
+
+			
+            compilerOutput.CompilerMessages = result.Diagnostics.Select(x => new CompilerMessage
+            {
+	            Message = x.GetMessage(),
+				Severity = (Severity)x.Severity,
+				Location = GetLocation(x)
+            }).ToList();
 
             foreach (var compilerMessage in compilerOutput.CompilerMessages)
             {
@@ -83,6 +91,22 @@ namespace CalculateFunding.Services.Compiler
             return compilerOutput;
         }
 
-        protected abstract EmitResult Compile(MetadataReference[] references, MemoryStream ms, List<SourceFile> sourceFiles);
+	    private SourceLocation GetLocation(Diagnostic diagnostic)
+	    {
+		    var span = diagnostic.Location.GetMappedLineSpan();
+
+			    return new SourceLocation
+			    {
+				    MappedId = span.Path,
+				    StartLine = span.StartLinePosition.Line,
+				    StartChar = span.StartLinePosition.Character,
+				    EndLine = span.EndLinePosition.Line,
+				    EndChar = span.EndLinePosition.Character
+			    };
+
+
+	    }
+
+	    protected abstract EmitResult Compile(MetadataReference[] references, MemoryStream ms, List<SourceFile> sourceFiles);
     }
 }
