@@ -709,15 +709,22 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         static CalculationService CreateCalculationService(ICalculationsRepository calculationsRepository = null, 
-            ILogger logger = null, ISearchRepository<CalculationIndex> serachRepository = null, IValidator<Calculation> calcValidator = null)
+            ILogger logger = null, ISearchRepository<CalculationIndex> serachRepository = null, IValidator<Calculation> calcValidator = null,
+            IBuildProjectsRepository buildProjectsRepository = null)
         {
             return new CalculationService(calculationsRepository ?? CreateCalculationsRepository(), 
-                logger ?? CreateLogger(), serachRepository ?? CreateSearchRepository(), calcValidator ?? CreateCalculationValidator());
+                logger ?? CreateLogger(), serachRepository ?? CreateSearchRepository(), calcValidator ?? CreateCalculationValidator(),
+                buildProjectsRepository ?? CreateBuildProjectsRepository());
         }
 
         static ICalculationsRepository CreateCalculationsRepository()
         {
             return Substitute.For<ICalculationsRepository>();
+        }
+
+        static IBuildProjectsRepository CreateBuildProjectsRepository()
+        {
+            return Substitute.For<IBuildProjectsRepository>();
         }
 
         static ILogger CreateLogger()

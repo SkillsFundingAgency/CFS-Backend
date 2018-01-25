@@ -27,7 +27,10 @@ namespace CalculateFunding.Services.CodeGeneration
 
             List<SourceFile> sourceFiles = new List<SourceFile>();
             sourceFiles.AddRange(GenerateStaticSourceFiles());
-            sourceFiles.AddRange(GenerateDatasetSourceFiles(buildProject));
+
+            if(buildProject.DatasetDefinitions != null)
+                sourceFiles.AddRange(GenerateDatasetSourceFiles(buildProject));
+
             sourceFiles.AddRange(GenerateProductSourceFiles(buildProject));
             stopwatch.Stop();
             Logger.LogInformation($"${buildProject.Id} created syntax tree ({stopwatch.ElapsedMilliseconds}ms)");

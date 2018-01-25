@@ -8,6 +8,11 @@ using CalculateFunding.Services.Calcs;
 using CalculateFunding.Models.Calcs;
 using FluentValidation;
 using CalculateFunding.Services.Calcs.Validators;
+using CalculateFunding.Services.Compiler.Interfaces;
+using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.Compiler.Languages;
+using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
+using CalculateFunding.Services.Calcs.CodeGen;
 
 namespace CalculateFunding.Functions.Calcs
 {
@@ -32,6 +37,25 @@ namespace CalculateFunding.Functions.Calcs
 
             builder
                 .AddScoped<IValidator<Calculation>, CalculationModelValidator>();
+
+            builder
+               .AddScoped<IBuildProjectsRepository, BuildProjectsRepository>();
+
+            builder
+              .AddScoped<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
+
+            builder
+                .AddScoped<IPreviewService, PreviewService>();
+
+            builder
+               .AddScoped<ICompilerFactory, CompilerFactory>();
+
+            builder
+                .AddScoped<CSharpCompiler>()
+                .AddScoped<VisualBasicCompiler>();
+
+            builder
+               .AddScoped<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
 
             IConfigurationRoot config = Services.Core.Extensions.ConfigHelper.AddConfig();
 

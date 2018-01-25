@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ILogger _logger;
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
         private readonly IValidator<Calculation> _calculationValidator;
-
+        private readonly IBuildProjectsRepository _buildProjectsRepository;
         private string[] Facets = new string[] { "allocationLineName", "policySpecificationNames", "status", "fundingStreamName" };
 
         private List<string> Select = new List<string> { "id", "name", "specificationName", "periodName", "status" };
@@ -36,12 +36,14 @@ namespace CalculateFunding.Services.Calcs
         private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
 
         public CalculationService(ICalculationsRepository calculationsRepository, ILogger logger,
-            ISearchRepository<CalculationIndex> searchRepository, IValidator<Calculation> calculationValidator)
+            ISearchRepository<CalculationIndex> searchRepository, IValidator<Calculation> calculationValidator,
+            IBuildProjectsRepository buildProjectsRepository)
         {
             _calculationsRepository = calculationsRepository;
             _logger = logger;
             _searchRepository = searchRepository;
             _calculationValidator = calculationValidator;
+            _buildProjectsRepository = buildProjectsRepository;
         }
 
         async public Task<IActionResult> SearchCalculations(HttpRequest request)
@@ -215,6 +217,8 @@ namespace CalculateFunding.Services.Calcs
                         DecimalPlaces = 6
                     }
                 };
+
+                calculation.BuildProjectId = Guid.NewGuid().ToString();
                
                 HttpStatusCode result = await _calculationsRepository.CreateDraftCalculation(calculation);
 
@@ -245,12 +249,30 @@ namespace CalculateFunding.Services.Calcs
                             LastUpdatedDate = DateTimeOffset.Now,
                         }
                     });
+
+                    await CreateBuildProject(calculation);
                 }
                 else
                 {
                     _logger.Error($"There was problem creating a new calculation with id {calculation.Id} in Cosmos Db with status code {(int)result}");
                 }
             }
+        }
+
+        async Task CreateBuildProject(Calculation calculation)
+        {
+            BuildProject buildproject = new BuildProject
+            {
+                Calculations = new List<Calculation>
+                {
+                    calculation
+                },
+                Specification = calculation.Specification,
+                Id = calculation.BuildProjectId,
+                Name = calculation.Specification.Name
+            };
+
+            await _buildProjectsRepository.CreateBuildProject(buildproject);
         }
     }
 }

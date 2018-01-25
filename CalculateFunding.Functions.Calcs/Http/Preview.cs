@@ -11,14 +11,19 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.CodeGeneration.CSharp;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.Core.Extensions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -26,6 +31,17 @@ namespace CalculateFunding.Functions.Calcs.Http
 {
     public static class Preview
     {
+        [FunctionName("compile-preview")]
+        public static Task<IActionResult> RunCompliePreview(
+        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IPreviewService svc = scope.ServiceProvider.GetService<IPreviewService>();
+
+                return svc.Compile(req);
+            }
+        }
 
         [FunctionName("preview")]
         public static async Task<HttpResponseMessage> Run(
@@ -36,7 +52,7 @@ namespace CalculateFunding.Functions.Calcs.Http
             
             var json = await req.Content.ReadAsStringAsync();
 
-            var request = JsonConvert.DeserializeObject<PreviewRequest>(json, SerializerSettings);
+            var request = JsonConvert.DeserializeObject<Calcs.Models.PreviewRequest>(json, SerializerSettings);
             var buildProject = (await budgetRepository.ReadAsync<BuildProject>(request.SpecificationId))?.Content;
             var calculation = buildProject?.Calculations.FirstOrDefault(x => x.Id == request.CalculationId);
             if (calculation == null) return new HttpResponseMessage(HttpStatusCode.NotFound);
@@ -67,7 +83,7 @@ namespace CalculateFunding.Functions.Calcs.Http
             var compilerOutput = compiler.GenerateCode(sourceFiles);
 
 
-            var viewModel = new PreviewResponse()
+            var viewModel = new Models.PreviewResponse()
             {
                 Calculation = calculation,
                 CompilerOutput = compilerOutput

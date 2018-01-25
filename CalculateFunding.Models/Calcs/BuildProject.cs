@@ -10,7 +10,7 @@ namespace CalculateFunding.Models.Calcs
         public Reference Specification { get; set; }
 
         [JsonProperty("targetLanguage")]
-        public TargetLanguage TargetLanguage { get; set; }
+        public TargetLanguage TargetLanguage { get; set; } = TargetLanguage.VisualBasic;
 
         [JsonProperty("calculations")]
         public List<Calculation> Calculations { get; set; }

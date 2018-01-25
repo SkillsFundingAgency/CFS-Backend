@@ -24,5 +24,8 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("fundingStream")]
         public Reference FundingStream { get; set; }
+
+        [JsonProperty("buildProjectId")]
+        public string BuildProjectId { get; set; }
     }
 }

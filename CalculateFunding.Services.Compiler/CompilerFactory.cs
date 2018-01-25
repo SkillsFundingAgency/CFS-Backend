@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
 
 namespace CalculateFunding.Services.Compiler
 {
-    public class CompilerFactory 
+    public class CompilerFactory : ICompilerFactory
     {
         private readonly Dictionary<string, ICompiler> _compilers = new Dictionary<string, ICompiler>();
 
