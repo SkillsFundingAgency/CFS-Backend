@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
@@ -95,14 +96,23 @@ namespace CalculateFunding.Services.Compiler
 	    {
 		    var span = diagnostic.Location.GetMappedLineSpan();
 
-			    return new SourceLocation
-			    {
-				    MappedId = span.Path,
-				    StartLine = span.StartLinePosition.Line,
-				    StartChar = span.StartLinePosition.Character,
-				    EndLine = span.EndLinePosition.Line,
-				    EndChar = span.EndLinePosition.Character
-			    };
+		    Reference owner = null;
+
+		    var split = span.Path?.Split('|');
+		    if (split != null && split.Length == 2)
+		    {
+			    owner = new Reference(split.First(), split.Last());
+		    }
+
+			return new SourceLocation
+			{
+
+				Owner = owner,
+				StartLine = span.StartLinePosition.Line,
+				StartChar = span.StartLinePosition.Character,
+				EndLine = span.EndLinePosition.Line,
+				EndChar = span.EndLinePosition.Character
+			};
 
 
 	    }

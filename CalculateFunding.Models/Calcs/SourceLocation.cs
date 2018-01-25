@@ -4,8 +4,8 @@ namespace CalculateFunding.Models.Calcs
 {
 	public class SourceLocation
 	{
-		[JsonProperty("mappedId")]
-		public string MappedId { get; set; }
+		[JsonProperty("owner")]
+		public Reference Owner { get; set; }
 		[JsonProperty("startLine")]
 		public int StartLine { get; set; }
 		[JsonProperty("startChar")]
