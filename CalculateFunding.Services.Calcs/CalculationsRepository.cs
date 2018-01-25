@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Calcs
             return !calculation.History.IsNullOrEmpty() ? calculation.History : new List<CalculationVersion>();
         }
 
-        async public Task<IEnumerable<CalculationVersion>> GetCompareVersions(CalculationVersionsCompareModel compareModel)
+        async public Task<IEnumerable<CalculationVersion>> GetCalculationVersions(CalculationVersionsCompareModel compareModel)
         {
             Calculation calculation = await GetCalculationById(compareModel.CalculationId);
 

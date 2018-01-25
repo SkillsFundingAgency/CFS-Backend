@@ -122,7 +122,7 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(history);
         }
 
-        async public Task<IActionResult> GetCompareVersions(HttpRequest request)
+        async public Task<IActionResult> GetCalculationVersions(HttpRequest request)
         {
             string json = await request.GetRawBodyStringAsync();
 
@@ -137,16 +137,16 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("A null or invalid compare model was provided for comparing models");
             }
 
-            IEnumerable<CalculationVersion> history = await _calculationsRepository.GetCompareVersions(compareModel);
+            IEnumerable<CalculationVersion> versions = await _calculationsRepository.GetCalculationVersions(compareModel);
 
-            if (history == null)
+            if (versions == null)
             {
                 _logger.Information($"A calculation was not found for calculation id {compareModel.CalculationId}");
 
                 return new NotFoundResult();
             }
 
-            return new OkObjectResult(history);
+            return new OkObjectResult(versions);
         }
 
         async public Task<IActionResult> GetCalculationById(HttpRequest request)

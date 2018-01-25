@@ -36,7 +36,7 @@ namespace CalculateFunding.Functions.Calcs.Http
             }
         }
 
-        [FunctionName("calculation-versions")]
+        [FunctionName("calculation-version-history")]
         public static Task<IActionResult> RunCalculationVersions(
          [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
         {
@@ -48,7 +48,7 @@ namespace CalculateFunding.Functions.Calcs.Http
             }
         }
 
-        [FunctionName("calculation-compare-versions")]
+        [FunctionName("calculation-versions")]
         public static Task<IActionResult> RunCalculationCompareVersions(
          [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
         {
@@ -56,7 +56,7 @@ namespace CalculateFunding.Functions.Calcs.Http
             {
                 ICalculationService svc = scope.ServiceProvider.GetService<ICalculationService>();
 
-                return svc.GetCompareVersions(req);
+                return svc.GetCalculationVersions(req);
             }
         }
     }

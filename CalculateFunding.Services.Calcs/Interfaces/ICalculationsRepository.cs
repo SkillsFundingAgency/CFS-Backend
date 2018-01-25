@@ -15,6 +15,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IEnumerable<CalculationVersion>> GetVersionHistory(string calculationId);
 
-        Task<IEnumerable<CalculationVersion>> GetCompareVersions(CalculationVersionsCompareModel compareModel);
+        Task<IEnumerable<CalculationVersion>> GetCalculationVersions(CalculationVersionsCompareModel compareModel);
     }
 }

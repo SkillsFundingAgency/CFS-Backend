@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IActionResult> GetCalculationById(HttpRequest request);
 
-        Task<IActionResult> GetCompareVersions(HttpRequest request);
+        Task<IActionResult> GetCalculationVersions(HttpRequest request);
 
         Task<IActionResult> GetCalculationHistory(HttpRequest request);
     }

@@ -33,7 +33,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _calcsService.GetCalculationById(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/calcs/calculation-versions")]
+        [Route("api/calcs/calculation-version-history")]
         [HttpGet]
         public Task<IActionResult> RunCalculationVersions()
         {
@@ -42,13 +42,13 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _calcsService.GetCalculationHistory(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/calcs/calculation-compare-versions")]
+        [Route("api/calcs/calculation-versions")]
         [HttpPost]
         public Task<IActionResult> RunCalculationCompareVersions()
         {
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
-            return _calcsService.GetCompareVersions(ControllerContext.HttpContext.Request);
+            return _calcsService.GetCalculationVersions(ControllerContext.HttpContext.Request);
         }
     }
 }
