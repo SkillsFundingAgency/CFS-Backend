@@ -60,5 +60,10 @@ namespace CalculateFunding.Services.Calcs
 
             return versions;
         }
+
+        public Task<HttpStatusCode> UpdateCalculation(Calculation calculation)
+        {
+            return _cosmosRepository.UpdateAsync(calculation);
+        }
     }
 }

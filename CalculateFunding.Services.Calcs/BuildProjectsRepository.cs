@@ -29,5 +29,10 @@ namespace CalculateFunding.Services.Calcs
         {
             return _cosmosRepository.CreateAsync(buildProject);
         }
+
+        public Task<HttpStatusCode> UpdateBuildProject(BuildProject buildProject)
+        {
+            return _cosmosRepository.UpdateAsync(buildProject);
+        }
     }
 }

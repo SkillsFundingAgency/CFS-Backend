@@ -71,5 +71,17 @@ namespace CalculateFunding.Functions.Calcs.Http
                 return svc.GetCalculationVersions(req);
             }
         }
+
+        [FunctionName("calculation-save-version")]
+        public static Task<IActionResult> RunCalculationSaveVersion(
+        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ICalculationService svc = scope.ServiceProvider.GetService<ICalculationService>();
+
+                return svc.SaveCalculationVersion(req);
+            }
+        }
     }
 }

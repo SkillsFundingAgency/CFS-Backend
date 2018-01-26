@@ -12,5 +12,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<BuildProject> GetBuildProjectById(string buildProjectId);
 
         Task<HttpStatusCode> CreateBuildProject(BuildProject buildProject);
+
+        Task<HttpStatusCode> UpdateBuildProject(BuildProject buildProject);
     }
 }

@@ -72,7 +72,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             message.Body = Encoding.UTF8.GetBytes(json);
 
-
             ICalculationsRepository repository = CreateCalculationsRepository();
 
             ILogger logger = CreateLogger();
@@ -855,6 +854,586 @@ namespace CalculateFunding.Services.Calcs.Services
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenNoCalculationIdWasProvided_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            CalculationService service = CreateCalculationService(logger: logger);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No calculation Id was provided to GetCalculationHistory"));
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenCalculationIdButNoModelSupplied_ReturnsBadRequest()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            CalculationService service = CreateCalculationService(logger: logger);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Null or empty source code was provided for calculation id {CalculationId}"));
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenModelDoesNotContainSourceCiode_ReturnsBadRequest()
+        {
+            //Arrange
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion();
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            CalculationService service = CreateCalculationService(logger: logger);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Null or empty source code was provided for calculation id {CalculationId}"));
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenCalculationExistsWithNoHistory_CreatesNewVersion()
+        {
+            //Arrange
+            Calculation calculation = new Calculation
+            {
+                Specification = new Reference
+                {
+                    Id = "spec-id",
+                    Name = "spec name"
+                },
+                Current = new CalculationVersion(),
+                Name = "any name",
+                Id = "any-id",
+                CalculationSpecification = new Reference("any name", "any-id"),
+                Period = new Reference("18/19", "2018/2019")
+            };
+
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"History for {CalculationId} was null or empty and needed recreating."));
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenModelButCalculationDoesNotExist_ReturnsNotFound()
+        {
+            //Arrange
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns((Calculation)null);
+
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"A calculation was not found for calculation id {CalculationId}"));
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenCalculationExistsWithNoCurrent_CreatesNewVersion()
+        {
+            //Arrange
+            Calculation calculation = new Calculation
+            {
+                Specification = new Reference
+                {
+                    Id = "spec-id",
+                    Name = "spec name"
+                },
+                History = new List<CalculationVersion>(),
+                Name = "any name",
+                Id = "any-id",
+                CalculationSpecification = new Reference("any name", "any-id"),
+                Period = new Reference("18/19", "2018/2019")
+            };
+
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            logger
+                .Received(1)
+                .Warning(Arg.Is($"Current for {CalculationId} was null and needed recreating."));
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenCalculationExistsWithNoBuildId_CreatesNewBuildProject()
+        {
+            //Arrange
+            Calculation calculation = new Calculation
+            {
+                Specification = new Reference
+                {
+                    Id = "spec-id",
+                    Name = "spec name"
+                },
+                Current = new CalculationVersion(),
+                History = new List<CalculationVersion>(),
+                Name = "any name",
+                Id = "any-id",
+                CalculationSpecification = new Reference("any name", "any-id"),
+                Period = new Reference("18/19", "2018/2019")
+            };
+
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            logger
+                .Received(1)
+                .Warning(Arg.Is($"Build project id on calculation {calculation.Id} is null or empty, creating a new one"));
+
+            calculation
+                .BuildProjectId
+                .Should()
+                .NotBeNullOrWhiteSpace();
+
+            await
+                buildProjectsRepository
+                    .Received(1)
+                    .CreateBuildProject(Arg.Any<BuildProject>());
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenCalculationExistsWithButBuildProjectDoesNotExist_CreatesNewBuildProject()
+        {
+            //Arrange
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            Calculation calculation = new Calculation
+            {
+                Specification = new Reference
+                {
+                    Id = "spec-id",
+                    Name = "spec name"
+                },
+                Current = new CalculationVersion(),
+                History = new List<CalculationVersion>(),
+                Name = "any name",
+                Id = "any-id",
+                BuildProjectId = buildProjectId,
+                CalculationSpecification = new Reference("any name", "any-id"),
+                Period = new Reference("18/19", "2018/2019")
+            };
+
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            logger
+                .Received(1)
+                .Warning(Arg.Is($"Build project with id {buildProjectId} could not be found, creating a new one"));
+
+            await
+                buildProjectsRepository
+                    .Received(1)
+                    .CreateBuildProject(Arg.Any<BuildProject>());
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenCalculationExistsWithBuildIdButNoCalculations_EnsuresCalculationsCreatedUpdatesBuildProject()
+        {
+            //Arrange
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Specification = new Reference
+                {
+                    Id = "spec-id",
+                    Name = "spec name"
+                },
+                Current = new CalculationVersion(),
+                History = new List<CalculationVersion>(),
+                Name = "any name",
+                Id = "any-id",
+                CalculationSpecification = new Reference("any name", "any-id"),
+                Period = new Reference("18/19", "2018/2019"),
+                BuildProjectId = buildProjectId
+            };
+
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .Returns(buildProject);
+
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            logger
+                .Received(1)
+                .Warning($"Build project with id {buildProjectId} has null or empty calculations");
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenCalculationExistsWithBuildIdButCalculationCouldNotBeFound_AddsCalculationUpdatesBuildProject()
+        {
+            //Arrange
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId,
+                Calculations = new List<Calculation>()
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Specification = new Reference
+                {
+                    Id = "spec-id",
+                    Name = "spec name"
+                },
+                Current = new CalculationVersion(),
+                History = new List<CalculationVersion>(),
+                Name = "any name",
+                Id = "any-id",
+                CalculationSpecification = new Reference("any name", "any-id"),
+                Period = new Reference("18/19", "2018/2019"),
+                BuildProjectId = buildProjectId
+            };
+
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .Returns(buildProject);
+
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            logger
+                .Received(1)
+                .Warning($"Build project with id {buildProjectId} does not contain a calculation with id {calculation.Id}, adding calculation to build project");
         }
 
         static CalculationService CreateCalculationService(ICalculationsRepository calculationsRepository = null, 

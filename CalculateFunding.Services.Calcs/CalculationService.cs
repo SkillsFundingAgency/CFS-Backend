@@ -180,19 +180,7 @@ namespace CalculateFunding.Services.Calcs
                 return new NotFoundResult();
             }
 
-            CalculationCurrentVersion calculationCurrentVersion = new CalculationCurrentVersion
-            {
-                SpecificationId = calculation.Specification?.Id,
-                Author = calculation.Current?.Author,
-                Date = calculation.Current?.Date,
-                CalculationSpecification = calculation.CalculationSpecification,
-                PeriodName = calculation.Period.Name,
-                Id = calculation.Id,
-                Name = calculation.Name,
-                Status = calculation.Current?.PublishStatus.ToString(),
-                SourceCode = calculation.Current?.SourceCode,
-                Version = calculation.Current.Version
-            };
+            CalculationCurrentVersion calculationCurrentVersion = GetCurrentVersionFromCalculation(calculation);
 
             return new OkObjectResult(calculationCurrentVersion);
         }
@@ -249,7 +237,8 @@ namespace CalculateFunding.Services.Calcs
                     Author = user,
                     Date = DateTime.UtcNow,
                     Version = 1,
-                    DecimalPlaces = 6
+                    DecimalPlaces = 6,
+                    SourceCode = "Console.WriteLine(\"Hello world\")"
                 };
 
                 calculation.History = new List<CalculationVersion>
@@ -260,7 +249,8 @@ namespace CalculateFunding.Services.Calcs
                         Author = user,
                         Date = DateTime.UtcNow,
                         Version = 1,
-                        DecimalPlaces = 6
+                        DecimalPlaces = 6,
+                        SourceCode = "Console.WriteLine(\"Hello world\")"
                     }
                 };
 
@@ -305,6 +295,79 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
+        async public Task<IActionResult> SaveCalculationVersion(HttpRequest request)
+        {
+            request.Query.TryGetValue("calculationId", out var calcId);
+
+            string calculationId = calcId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(calculationId))
+            {
+                _logger.Error("No calculation Id was provided to GetCalculationHistory");
+
+                return new BadRequestObjectResult("Null or empty calculation Id provided");
+            }
+
+            string json = await request.GetRawBodyStringAsync();
+
+            SaveSourceCodeVersion sourceCodeVersion = JsonConvert.DeserializeObject<SaveSourceCodeVersion>(json);
+
+            if(sourceCodeVersion == null || string.IsNullOrWhiteSpace(sourceCodeVersion.SourceCode))
+            {
+                _logger.Error($"Null or empty source code was provided for calculation id {calculationId}");
+
+                return new BadRequestObjectResult("Null or empty calculation Id provided");
+            }
+
+            Reference user = request.GetUser();
+
+            Calculation calculation = await _calculationsRepository.GetCalculationById(calculationId);
+
+            if (calculation == null)
+            {
+                _logger.Error($"A calculation was not found for calculation id {calculationId}");
+
+                return new NotFoundResult();
+            }
+
+            if (calculation.History.IsNullOrEmpty())
+            {
+                _logger.Information($"History for {calculationId} was null or empty and needed recreating.");
+                calculation.History = new List<CalculationVersion>();
+            }
+
+            int nextVersionNumber = GetNextVersionNumberFromCalculationVersions(calculation.History);
+
+            if(calculation.Current == null)
+            {
+                _logger.Warning($"Current for {calculationId} was null and needed recreating.");
+                calculation.Current = new CalculationVersion();
+            }
+            calculation.Current.SourceCode = sourceCodeVersion.SourceCode;
+
+            CalculationVersion newVersion = new CalculationVersion
+            {
+                Version = nextVersionNumber,
+                Author = user,
+                Date = DateTime.UtcNow,
+                DecimalPlaces = 6,
+                PublishStatus = PublishStatus.Draft,
+                SourceCode = sourceCodeVersion.SourceCode
+            };
+
+            calculation.Current = newVersion;
+
+            calculation.History.Add(newVersion);
+
+            HttpStatusCode statusCode = await _calculationsRepository.UpdateCalculation(calculation);
+
+            await UpdateBuildProject(calculation);
+
+            CalculationCurrentVersion currentVersion = GetCurrentVersionFromCalculation(calculation);
+
+            return new OkObjectResult(currentVersion);
+        }
+
         async Task CreateBuildProject(Calculation calculation)
         {
             BuildProject buildproject = new BuildProject
@@ -319,6 +382,76 @@ namespace CalculateFunding.Services.Calcs
             };
 
             await _buildProjectsRepository.CreateBuildProject(buildproject);
+        }
+
+        async Task UpdateBuildProject(Calculation calculation)
+        {
+            if (string.IsNullOrWhiteSpace(calculation.BuildProjectId))
+            {
+                _logger.Warning($"Build project id on calculation {calculation.Id} is null or empty, creating a new one");
+
+                calculation.BuildProjectId = Guid.NewGuid().ToString();
+
+                await CreateBuildProject(calculation);
+            }
+            else
+            {
+                BuildProject buildproject = await _buildProjectsRepository.GetBuildProjectById(calculation.BuildProjectId);
+
+                if (buildproject == null)
+                {
+                    _logger.Warning($"Build project with id {calculation.BuildProjectId} could not be found, creating a new one");
+
+                    await CreateBuildProject(calculation);
+                }
+                else
+                {
+                    if (buildproject.Calculations.IsNullOrEmpty())
+                    {
+                        _logger.Warning($"Build project with id {buildproject.Id} has null or empty calculations");
+                        buildproject.Calculations = new List<Calculation>();
+                    }
+
+                    Calculation buildProjectCalculation = buildproject.Calculations.FirstOrDefault(m => m.Id == calculation.Id);
+
+                    if (buildProjectCalculation == null)
+                    {
+                        _logger.Warning($"Build project with id {buildproject.Id} does not contain a calculation with id {calculation.Id}, adding calculation to build project");
+                        buildproject.Calculations.Add(calculation);
+                    }
+
+                    await _buildProjectsRepository.UpdateBuildProject(buildproject);
+                }
+            }
+        }
+
+        int GetNextVersionNumberFromCalculationVersions(IEnumerable<CalculationVersion> versions)
+        {
+            if (!versions.Any())
+                return 1;
+
+            int maxVersion = versions.Max(m => m.Version);
+
+            return maxVersion + 1;
+        }
+
+        CalculationCurrentVersion GetCurrentVersionFromCalculation(Calculation calculation)
+        {
+            CalculationCurrentVersion calculationCurrentVersion = new CalculationCurrentVersion
+            {
+                SpecificationId = calculation.Specification?.Id,
+                Author = calculation.Current?.Author,
+                Date = calculation.Current?.Date,
+                CalculationSpecification = calculation.CalculationSpecification,
+                PeriodName = calculation.Period.Name,
+                Id = calculation.Id,
+                Name = calculation.Name,
+                Status = calculation.Current?.PublishStatus.ToString(),
+                SourceCode = calculation.Current?.SourceCode,
+                Version = calculation.Current.Version
+            };
+
+            return calculationCurrentVersion;
         }
     }
 }
