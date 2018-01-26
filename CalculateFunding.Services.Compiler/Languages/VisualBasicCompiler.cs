@@ -5,14 +5,14 @@ using CalculateFunding.Models.Calcs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace CalculateFunding.Services.Compiler.Languages
 {
     public class VisualBasicCompiler : RoslynCompiler
     {
         
-        public VisualBasicCompiler(ILogger<VisualBasicCompiler> logger) : base(logger)
+        public VisualBasicCompiler(ILogger logger) : base(logger)
         {         
         }
 

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using CalculateFunding.Models.Calcs;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace CalculateFunding.Services.CodeGeneration.CSharp
 {
@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
     public class CSharpSourceFileGenerator : RoslynSourceFileGenerator
     {
 
-        public CSharpSourceFileGenerator(ILogger<CSharpSourceFileGenerator> logger) : base(logger)
+        public CSharpSourceFileGenerator(ILogger logger) : base(logger)
         {
         }
 

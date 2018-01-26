@@ -5,15 +5,15 @@ using CalculateFunding.Models.Calcs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace CalculateFunding.Services.Compiler.Languages
 {
     public class CSharpCompiler : RoslynCompiler
     {
-        private readonly ILogger<CSharpCompiler> _logger;
+        private readonly ILogger _logger;
 
-        public CSharpCompiler(ILogger<CSharpCompiler> logger) : base(logger)
+        public CSharpCompiler(ILogger logger) : base(logger)
         {
         }
 

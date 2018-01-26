@@ -4,14 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using CalculateFunding.Models.Calcs;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
     public class VisualBasicSourceFileGenerator : RoslynSourceFileGenerator
     {
 
-        public VisualBasicSourceFileGenerator(ILogger<VisualBasicSourceFileGenerator> logger) : base(logger)
+        public VisualBasicSourceFileGenerator(ILogger logger) : base(logger)
         {
         }
 

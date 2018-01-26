@@ -7,7 +7,7 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace CalculateFunding.Services.Compiler
 {
@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Compiler
 
 
             stopwatch.Stop();
-            Logger.LogInformation($"Compilation complete success = {compilerOutput.Success} ({stopwatch.ElapsedMilliseconds}ms)");
+            Logger.Information($"Compilation complete success = {compilerOutput.Success} ({stopwatch.ElapsedMilliseconds}ms)");
 
             compilerOutput.Success = result.Success;
 
@@ -79,13 +79,13 @@ namespace CalculateFunding.Services.Compiler
                 switch (compilerMessage.Severity)
                 {
                     case Severity.Info:
-                        Logger.LogInformation(compilerMessage.Message);
+                        Logger.Information(compilerMessage.Message);
                         break;
                     case Severity.Warning:
-                        Logger.LogWarning(compilerMessage.Message);
+                        Logger.Warning(compilerMessage.Message);
                         break;
                     case Severity.Error:
-                        Logger.LogError(compilerMessage.Message);
+                        Logger.Error(compilerMessage.Message);
                         break;
                 }
             }

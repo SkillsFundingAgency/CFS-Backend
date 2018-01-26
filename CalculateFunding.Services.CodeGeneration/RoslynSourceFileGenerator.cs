@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using CalculateFunding.Models.Calcs;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace CalculateFunding.Services.CodeGeneration
 {
@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.CodeGeneration
 
             sourceFiles.AddRange(GenerateProductSourceFiles(buildProject));
             stopwatch.Stop();
-            Logger.LogInformation($"${buildProject.Id} created syntax tree ({stopwatch.ElapsedMilliseconds}ms)");
+            Logger.Information($"${buildProject.Id} created syntax tree ({stopwatch.ElapsedMilliseconds}ms)");
             return sourceFiles;
 
         }
