@@ -119,7 +119,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             });
 
             builder
-                .AddScoped<IPreviewService, PreviewService>();
+                .AddScoped<IPreviewService, MockPreviewService>();
 
             builder
                .AddScoped<ICompilerFactory, CompilerFactory>();

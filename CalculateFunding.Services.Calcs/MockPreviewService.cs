@@ -1,10 +1,5 @@
 ﻿using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
-using CalculateFunding.Services.CodeGeneration;
-using CalculateFunding.Services.Compiler;
-using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
@@ -19,23 +14,20 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class PreviewService : IPreviewService
+    public class MockPreviewService : IPreviewService
     {
-        private readonly ISourceFileGeneratorProvider _sourceFileGeneratorProvider;
         private readonly ILogger _logger;
         private readonly IBuildProjectsRepository _buildProjectsRepository;
-        private readonly ICompilerFactory _compilerFactory;
         private readonly IValidator<PreviewRequest> _previewRequestValidator;
         private readonly ICalculationsRepository _calculationsRepository;
 
-        public PreviewService(ISourceFileGeneratorProvider sourceFileGeneratorProvider,
-            ILogger logger, IBuildProjectsRepository buildProjectsRepository, ICompilerFactory compilerFactory,
-            IValidator<PreviewRequest> previewRequestValidator, ICalculationsRepository calculationsRepository)
+        public MockPreviewService(
+           ILogger logger, IBuildProjectsRepository buildProjectsRepository,
+           IValidator<PreviewRequest> previewRequestValidator, ICalculationsRepository calculationsRepository)
         {
-            _sourceFileGeneratorProvider = sourceFileGeneratorProvider;
+
             _logger = logger;
             _buildProjectsRepository = buildProjectsRepository;
-            _compilerFactory = compilerFactory;
             _previewRequestValidator = previewRequestValidator;
             _calculationsRepository = calculationsRepository;
         }
@@ -97,51 +89,30 @@ namespace CalculateFunding.Services.Calcs
 
             calculation.Current.SourceCode = previewRequest.SourceCode;
 
-            return GenerateAndCompile(buildProject, calculation);
-        }
-
-
-        IActionResult GenerateAndCompile(BuildProject buildProject, Calculation calculation)
-        {
-            ISourceFileGenerator sourceFileGenerator = _sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
-
-            if (sourceFileGenerator == null)
-            {
-                _logger.Error("Source file generator was not created");
-
-                return new StatusCodeResult(500);
-            }
-
-            IEnumerable<SourceFile> sourceFiles = sourceFileGenerator.GenerateCode(buildProject);
-
-            if (sourceFiles.IsNullOrEmpty())
-            {
-                _logger.Error("Source file generator did not generate any source file");
-
-                return new StatusCodeResult(500);
-            }
-
-            ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
-
-            Build compilerOutput = compiler.GenerateCode(sourceFiles.ToList());
-
-            if (compilerOutput.Success)
-                _logger.Information($"Build compiled succesfully for calculation id {calculation.Id}");
-            else
-            {
-                _logger.Information($"Build did not compile succesfully for calculation id {calculation.Id}");
-            }
-
-
-            PreviewResponse response = new PreviewResponse()
+            PreviewResponse previewResponse = new PreviewResponse
             {
                 Calculation = calculation,
-                CompilerOutput = compilerOutput
+                CompilerOutput = new Build
+                {
+                    Success = !previewRequest.SourceCode.Contains("dataset")
+                }
             };
 
-            return new OkObjectResult(response);
+            if (!previewResponse.CompilerOutput.Success)
+            {
+                previewResponse.CompilerOutput.CompilerMessages = new[]
+                {
+                    new CompilerMessage
+                    {
+                        Severity = Models.Calcs.Severity.Error,
+                        Message = "'Console' is not declared. It may be inaccessible due to its protection level."
+                    }
+                }.ToList();
+            }
+
+            return new OkObjectResult(previewResponse);
         }
 
+       
     }
-
 }
