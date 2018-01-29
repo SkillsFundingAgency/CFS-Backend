@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             return SyntaxFactory.PropertyStatement(Identifier("Datasets"))
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
                 .WithAsClause(
-                    SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(Identifier("Datasets"))));
+                    SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(Identifier("String"))));
         }
 
 

@@ -13,6 +13,8 @@ using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Calcs.CodeGen;
+using CalculateFunding.Services.CodeGeneration.CSharp;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
 
 namespace CalculateFunding.Functions.Calcs
 {
@@ -42,9 +44,6 @@ namespace CalculateFunding.Functions.Calcs
                .AddScoped<IBuildProjectsRepository, BuildProjectsRepository>();
 
             builder
-              .AddScoped<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
-
-            builder
                 .AddScoped<IPreviewService, PreviewService>();
 
             builder
@@ -52,7 +51,12 @@ namespace CalculateFunding.Functions.Calcs
 
             builder
                 .AddScoped<CSharpCompiler>()
-                .AddScoped<VisualBasicCompiler>();
+                .AddScoped<VisualBasicCompiler>()
+                .AddScoped<CSharpSourceFileGenerator>()
+                .AddScoped<VisualBasicSourceFileGenerator>();
+
+            builder
+              .AddScoped<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
 
             builder
                .AddScoped<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
