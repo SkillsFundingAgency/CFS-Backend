@@ -38,6 +38,9 @@ namespace CalculateFunding.Functions.Calcs
                .AddScoped<ICalculationService, CalculationService>();
 
             builder
+               .AddScoped<ICalculationsSearchService, CalculationSearchService>();
+
+            builder
                 .AddScoped<IValidator<Calculation>, CalculationModelValidator>();
 
             builder

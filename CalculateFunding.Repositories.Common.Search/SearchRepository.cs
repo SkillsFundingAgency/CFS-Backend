@@ -57,13 +57,15 @@ namespace CalculateFunding.Repositories.Common.Search
 
             try
             {
+                searchTerm = !string.IsNullOrWhiteSpace(searchTerm) ? $"/.*{searchTerm}.*/" : "";
+
                 var azureSearchResult = await client.Documents.SearchAsync<T>(searchTerm, searchParameters ?? DefaultParameters);
 
                 var response = new SearchResults<T>
                 {
                     SearchTerm = searchTerm,
                     TotalCount = azureSearchResult.Count,
-                    Facets = azureSearchResult.Facets.Select(x => new Facet
+                    Facets = azureSearchResult.Facets?.Select(x => new Facet
                     {
                         Name = x.Key,
                         FacetValues = x.Value.Select(m => new FacetValue

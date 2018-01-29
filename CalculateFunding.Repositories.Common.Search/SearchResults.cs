@@ -34,4 +34,16 @@ namespace CalculateFunding.Repositories.Common.Search
         public string Name { get; set; }
         public int Count { get; set; }
     }
+
+    public class FacetFilterType
+    {
+        public FacetFilterType(string name, bool isMulti = false)
+        {
+            Name = name;
+            IsMulti = isMulti;
+        }
+
+        public string Name { get; set; }
+        public bool IsMulti { get; set; } = false;
+    }
 }

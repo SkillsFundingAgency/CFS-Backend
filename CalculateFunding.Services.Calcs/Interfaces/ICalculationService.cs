@@ -9,8 +9,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
     {
         Task CreateCalculation(Message message);
 
-        Task<IActionResult> SearchCalculations(HttpRequest request);
-
         Task<IActionResult> GetCalculationById(HttpRequest request);
 
         Task<IActionResult> GetCalculationVersions(HttpRequest request);

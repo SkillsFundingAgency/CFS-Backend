@@ -89,6 +89,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                .AddScoped<ICalculationService, CalculationService>();
 
             builder
+              .AddScoped<ICalculationsSearchService, CalculationSearchService>();
+
+            builder
                 .AddScoped<IValidator<Models.Calcs.Calculation>, CalculationModelValidator>();
 
 

@@ -27,14 +27,14 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("calculationSpecificationName")]
         public string CalculationSpecificationName { get; set; }
 
-        [IsFilterable, IsSortable, IsSearchable]
+        [IsFilterable, IsSortable, IsSearchable, IsFacetable]
         [JsonProperty("specificationName")]
         public string SpecificationName { get; set; }
 
         [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }
 
-        [IsFilterable, IsSortable, IsSearchable]
+        [IsFilterable, IsSortable, IsSearchable, IsFacetable]
         [JsonProperty("periodName")]
         public string PeriodName { get; set; }
 
@@ -74,6 +74,6 @@ namespace CalculateFunding.Models.Calcs
 
         [IsFilterable, IsSortable]
         [JsonProperty("lastUpdatedDate")]
-        public DateTimeOffset LastUpdatedDate { get; set; }
+        public DateTimeOffset? LastUpdatedDate { get; set; }
     }
 }

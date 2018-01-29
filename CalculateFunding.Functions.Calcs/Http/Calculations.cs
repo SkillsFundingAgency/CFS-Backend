@@ -19,7 +19,7 @@ namespace CalculateFunding.Functions.Calcs.Http
         {
             using (var scope = IocConfig.Build().CreateHttpScope(req))
             {
-                ICalculationService svc = scope.ServiceProvider.GetService<ICalculationService>();
+                ICalculationsSearchService svc = scope.ServiceProvider.GetService<ICalculationsSearchService>();
                 return svc.SearchCalculations(req);
             }
         }

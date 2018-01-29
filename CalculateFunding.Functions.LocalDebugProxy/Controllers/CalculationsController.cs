@@ -9,12 +9,15 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
     {
         private readonly ICalculationService _calcsService;
         private readonly IPreviewService _previewService;
+        private readonly ICalculationsSearchService _calcsSearchService;
 
-        public CalculationsController(ICalculationService calcsService, IPreviewService previewService, IServiceProvider serviceProvider)
+        public CalculationsController(ICalculationService calcsService, ICalculationsSearchService calcsSearchService, 
+            IPreviewService previewService, IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
             _calcsService = calcsService;
             _previewService = previewService;
+            _calcsSearchService = calcsSearchService;
         }
 
         [Route("api/calcs/calculations-search")]
@@ -23,7 +26,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         {
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
-            return _calcsService.SearchCalculations(ControllerContext.HttpContext.Request);
+            return _calcsSearchService.SearchCalculations(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/calcs/calculation-by-id")]
