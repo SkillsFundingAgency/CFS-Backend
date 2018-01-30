@@ -10,12 +10,11 @@ namespace CalculateFunding.Services.CodeGeneration
 {
     public abstract class RoslynSourceFileGenerator : ISourceFileGenerator
     {
-        protected ILogger Logger;
-
+        protected ILogger _logger;
 
         protected RoslynSourceFileGenerator(ILogger logger)
         {
-            Logger = logger;
+            _logger = logger;
         }
 
         public List<SourceFile> GenerateCode(BuildProject buildProject)
@@ -23,7 +22,6 @@ namespace CalculateFunding.Services.CodeGeneration
             var stopwatch = new Stopwatch();
 
             stopwatch.Start();
-
 
             List<SourceFile> sourceFiles = new List<SourceFile>();
             sourceFiles.AddRange(GenerateStaticSourceFiles());
@@ -33,11 +31,10 @@ namespace CalculateFunding.Services.CodeGeneration
 
             sourceFiles.AddRange(GenerateProductSourceFiles(buildProject));
             stopwatch.Stop();
-            Logger.Information($"${buildProject.Id} created syntax tree ({stopwatch.ElapsedMilliseconds}ms)");
+            _logger.Information($"${buildProject.Id} created syntax tree ({stopwatch.ElapsedMilliseconds}ms)");
             return sourceFiles;
 
         }
-
 
         protected abstract IEnumerable<SourceFile> GenerateProductSourceFiles(BuildProject budget);
         protected abstract IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject budget);

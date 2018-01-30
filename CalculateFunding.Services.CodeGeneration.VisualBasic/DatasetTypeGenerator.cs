@@ -54,8 +54,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         }
 
-
-
         private static IEnumerable<StatementSyntax> GetMembers(DatasetDefinition datasetDefinition)
         {
             yield return CreateStaticDefinitionName(datasetDefinition);

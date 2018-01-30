@@ -6,6 +6,7 @@ using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.Core.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
@@ -180,7 +181,7 @@ namespace CalculateFunding.Services.Calcs
                     Date = DateTime.UtcNow,
                     Version = 1,
                     DecimalPlaces = 6,
-                    SourceCode = "Console.WriteLine(\"Hello world\")"
+                    SourceCode = CodeGenerationConstants.VisualBasicDefaultSourceCode
                 };
 
                 calculation.History = new List<CalculationVersion>
@@ -192,7 +193,7 @@ namespace CalculateFunding.Services.Calcs
                         Date = DateTime.UtcNow,
                         Version = 1,
                         DecimalPlaces = 6,
-                        SourceCode = "Console.WriteLine(\"Hello world\")"
+                        SourceCode = CodeGenerationConstants.VisualBasicDefaultSourceCode
                     }
                 };
 
@@ -389,7 +390,7 @@ namespace CalculateFunding.Services.Calcs
                 Id = calculation.Id,
                 Name = calculation.Name,
                 Status = calculation.Current?.PublishStatus.ToString(),
-                SourceCode = calculation.Current?.SourceCode,
+                SourceCode = calculation.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode,
                 Version = calculation.Current.Version
             };
 

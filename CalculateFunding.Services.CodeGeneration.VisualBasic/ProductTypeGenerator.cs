@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             builder.AppendLine($"Public Function {Identifier(calc.Name)} As Decimal");
 	        builder.AppendLine($"#ExternalSource(\"{calc.Id}|{calc.Name}\", 1)");
-			builder.Append(calc.Current?.SourceCode ?? "Return Decimal.MinValue");
+			builder.Append(calc.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode);
             builder.AppendLine();
 	        builder.AppendLine("#End ExternalSource");
 			builder.AppendLine("End Function");

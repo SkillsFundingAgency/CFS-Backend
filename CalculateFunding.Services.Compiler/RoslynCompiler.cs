@@ -15,7 +15,6 @@ namespace CalculateFunding.Services.Compiler
     {
         protected ILogger Logger;
 
-
         protected RoslynCompiler(ILogger logger)
         {
             Logger = logger;
@@ -25,7 +24,6 @@ namespace CalculateFunding.Services.Compiler
             MetadataReference[] references = {
                 AssemblyMetadata.CreateFromFile(typeof(object).Assembly.Location).GetReference()
             };
-
 
             using (var ms = new MemoryStream())
             {
@@ -39,7 +37,6 @@ namespace CalculateFunding.Services.Compiler
                     build.AssemblyBase64 = Convert.ToBase64String(data);
 
                 }
-
 
                 return build;
             }
@@ -65,8 +62,6 @@ namespace CalculateFunding.Services.Compiler
 
             compilerOutput.Success = result.Success;
 
-
-			
             compilerOutput.CompilerMessages = result.Diagnostics.Select(x => new CompilerMessage
             {
 	            Message = x.GetMessage(),
