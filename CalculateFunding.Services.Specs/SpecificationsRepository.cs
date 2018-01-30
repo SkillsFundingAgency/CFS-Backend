@@ -151,7 +151,7 @@ YPM07	Primary PE and Sport Premium
 		        {
 			        line = reader.ReadLine();
 			        var split = line?.Split('\t');
-			        if (split?.Length == 2 && string.IsNullOrEmpty(split[0]) && string.IsNullOrEmpty(split[1]))
+			        if (split?.Length == 2 && !string.IsNullOrEmpty(split[0]) && !string.IsNullOrEmpty(split[1]))
 			        {
 				        lines.Add(new AllocationLine { Id = split[0].Trim(), Name = split[1].Trim() });
 			        }
@@ -241,7 +241,7 @@ YPM07	Primary PE and Sport Premium
 		        {
 			        line = reader.ReadLine();
 			        var split = line?.Split('\t');
-			        if (split?.Length == 2 && string.IsNullOrEmpty(split[0]) && string.IsNullOrEmpty(split[1]))
+			        if (split?.Length == 2 && !string.IsNullOrEmpty(split[0]) && !string.IsNullOrEmpty(split[1]))
 			        {
 						fundingStreams.Add(new FundingStream { Id = split[0].Trim(), Name = split[1].Trim() });
 					}
