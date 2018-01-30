@@ -103,10 +103,12 @@ namespace CalculateFunding.Services.Calcs
 
             IEnumerable<Task<SearchResults<CalculationIndex>>> searchTasks = new Task<SearchResults<CalculationIndex>>[0];
 
-            foreach (var filterPair in facetDictionary)
+            if (searchModel.IncludeFacets)
             {
-                searchTasks = searchTasks.Concat(new[]
+                foreach (var filterPair in facetDictionary)
                 {
+                    searchTasks = searchTasks.Concat(new[]
+                    {
                     Task.Run(() =>
                     {
                         return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
@@ -119,6 +121,7 @@ namespace CalculateFunding.Services.Calcs
                         });
                     })
                 });
+                }
             }
 
             searchTasks = searchTasks.Concat(new[]
@@ -131,11 +134,12 @@ namespace CalculateFunding.Services.Calcs
 
         Task<SearchResults<CalculationIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel)
         {
+            int skip = (searchModel.PageNumber - 1) * searchModel.Top;
             return Task.Run(() =>
             {
                 return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
                 {
-                    Skip = (searchModel.PageNumber - 1) * searchModel.Top,
+                    Skip = skip,
                     Top = searchModel.Top,
                     SearchMode = SearchMode.Any,
                     IncludeTotalResultCount = true,

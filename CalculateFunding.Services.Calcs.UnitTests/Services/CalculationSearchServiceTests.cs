@@ -117,13 +117,14 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task SearchCalculation_GivenValidModel_CallsSearch()
+        public async Task SearchCalculation_GivenValidModelAndIncludesGettingFacets_CallsSearchSevenTimes()
         {
             //Arrange
             SearchModel model = new SearchModel
             {
                 PageNumber = 1,
-                Top = 50
+                Top = 50,
+                IncludeFacets = true
             };
 
             string json = JsonConvert.SerializeObject(model);
@@ -159,6 +160,196 @@ namespace CalculateFunding.Services.Calcs.Services
                     .Received(7)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
                 
+        }
+
+        [TestMethod]
+        public async Task SearchCalculation_GivenValidModelAndDoesntIncludeGettingFacets_CallsSearchOnce()
+        {
+            //Arrange
+            SearchModel model = new SearchModel
+            {
+                PageNumber = 1,
+                Top = 50
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
+                .Returns(searchResults);
+
+            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SearchCalculations(request);
+
+            //Assert
+            result
+                 .Should()
+                 .BeOfType<OkObjectResult>();
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
+        }
+
+        [TestMethod]
+        public async Task SearchCalculation_GivenValidModelAndPageNumber2_CallsSearchWithCorrectSkipValue()
+        {
+            //Arrange
+            const int skipValue = 50;
+
+            SearchModel model = new SearchModel
+            {
+                PageNumber = 2,
+                Top = 50
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
+                .Returns(searchResults);
+
+            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SearchCalculations(request);
+
+            //Assert
+            result
+                 .Should()
+                 .BeOfType<OkObjectResult>();
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(m => m.Skip == skipValue));
+        }
+
+        [TestMethod]
+        public async Task SearchCalculation_GivenValidModelAndPageNumber10_CallsSearchWithCorrectSkipValue()
+        {
+            //Arrange
+            const int skipValue = 450;
+
+            SearchModel model = new SearchModel
+            {
+                PageNumber = 10,
+                Top = 50
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
+                .Returns(searchResults);
+
+            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SearchCalculations(request);
+
+            //Assert
+            result
+                 .Should()
+                 .BeOfType<OkObjectResult>();
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(m => m.Skip == skipValue));
+        }
+
+        [TestMethod]
+        public async Task SearchCalculation_GivenValidModel_CallsSearchWithCorrectSkipValue()
+        {
+            //Arrange
+            SearchModel model = new SearchModel
+            {
+                PageNumber = 10,
+                Top = 50,
+                IncludeFacets = true
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>
+            {
+                Facets = new List<Facet>
+                {
+                    new Facet
+                    {
+                        Name = "allocationLineName"
+                    }
+                }
+            };
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
+                .Returns(searchResults);
+
+            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SearchCalculations(request);
+
+            //Assert
+            result
+                 .Should()
+                 .BeOfType<OkObjectResult>();
+
+            await
+                searchRepository
+                    .Received(7)
+                    .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 
         static CalculationSearchService CreateCalculationSearchService(

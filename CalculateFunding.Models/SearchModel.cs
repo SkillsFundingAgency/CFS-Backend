@@ -22,5 +22,7 @@ namespace CalculateFunding.Models
         public IEnumerable<string> OrderBy { get; set; }
 
         public IDictionary<string, string[]> Filters { get; set; }
+
+        public bool IncludeFacets { get; set; }
     }
 }
