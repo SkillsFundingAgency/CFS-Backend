@@ -47,7 +47,7 @@ namespace CalculateFunding.Functions.Calcs
                .AddScoped<IBuildProjectsRepository, BuildProjectsRepository>();
 
             builder
-                .AddScoped<IPreviewService, MockPreviewService>();
+                .AddScoped<IPreviewService, PreviewService>();
 
             builder
                .AddScoped<ICompilerFactory, CompilerFactory>();
