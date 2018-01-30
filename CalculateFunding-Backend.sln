@@ -81,7 +81,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.LocalDebugQueueProcessor", "CalculateFunding.Functions.LocalDebugQueueProcessor\CalculateFunding.Functions.LocalDebugQueueProcessor.csproj", "{A2D36AC4-E4EB-4172-A730-76D13748491C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.Calcs.UnitTests", "CalculateFunding.Services.Calcs.UnitTests\CalculateFunding.Services.Calcs.UnitTests.csproj", "{F262052D-4815-451E-BB70-CC2156B0D651}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Calcs.UnitTests", "CalculateFunding.Services.Calcs.UnitTests\CalculateFunding.Services.Calcs.UnitTests.csproj", "{F262052D-4815-451E-BB70-CC2156B0D651}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

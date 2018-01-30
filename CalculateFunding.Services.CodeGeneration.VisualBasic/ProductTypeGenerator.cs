@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     .WithModifiers(
                         SyntaxFactory.TokenList(
                             SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
-                new SyntaxList<InheritsStatementSyntax>(SyntaxFactory.InheritsStatement(SyntaxFactory.ParseTypeName("BaseCalculation"))),
+                SyntaxFactory.SingletonList(SyntaxFactory.InheritsStatement(SyntaxFactory.ParseTypeName("BaseCalculation"))),
                 new SyntaxList<ImplementsStatementSyntax>(),
                 SyntaxFactory.List(Methods(budget)),
                 SyntaxFactory.EndClassStatement()
