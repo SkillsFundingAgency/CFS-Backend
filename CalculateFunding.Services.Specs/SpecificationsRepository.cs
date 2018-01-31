@@ -146,12 +146,17 @@ YPM07	Primary PE and Sport Premium
 	        var lines = new List<AllocationLine>();
 	        using (var reader = new StringReader(AllocationLineData))
 	        {
-		        var line = reader.ReadLine().Trim();
-		        var split = line.Split('\t');
-		        if (split.Length == 2 && string.IsNullOrEmpty(split[0]) && string.IsNullOrEmpty(split[1]))
+		        string line;
+		        do
 		        {
-			        lines.Add(new AllocationLine{ Id = split[0].Trim(), Name = split[1].Trim()});
-				}
+			        line = reader.ReadLine();
+			        var split = line?.Split('\t');
+			        if (split?.Length == 2 && !string.IsNullOrEmpty(split[0]) && !string.IsNullOrEmpty(split[1]))
+			        {
+				        lines.Add(new AllocationLine { Id = split[0].Trim(), Name = split[1].Trim() });
+			        }
+		        } while (line != null);
+
 	        }
 
             return lines;
@@ -231,12 +236,16 @@ YPM07	Primary PE and Sport Premium
 			var fundingStreams = new List<FundingStream>();
 	        using (var reader = new StringReader(FundingStreamData))
 	        {
-		        var line = reader.ReadLine().Trim();
-		        var split = line.Split('\t');
-		        if (split.Length == 2 && string.IsNullOrEmpty(split[0]) && string.IsNullOrEmpty(split[1]))
+		        string line;
+		        do
 		        {
-			        fundingStreams.Add(new FundingStream { Id = split[0].Trim(), Name = split[1].Trim() });
-		        }
+			        line = reader.ReadLine();
+			        var split = line?.Split('\t');
+			        if (split?.Length == 2 && !string.IsNullOrEmpty(split[0]) && !string.IsNullOrEmpty(split[1]))
+			        {
+						fundingStreams.Add(new FundingStream { Id = split[0].Trim(), Name = split[1].Trim() });
+					}
+		        } while (line != null);
 	        }
 			return Task.FromResult(fundingStreams.AsEnumerable());
         }

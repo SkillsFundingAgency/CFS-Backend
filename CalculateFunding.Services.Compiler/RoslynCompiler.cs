@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Compiler
 
             compilerOutput.Success = result.Success;
 
-            compilerOutput.CompilerMessages = result.Diagnostics.Select(x => new CompilerMessage
+            compilerOutput.CompilerMessages = result.Diagnostics.Where(x  => x.Severity != DiagnosticSeverity.Hidden).Select(x => new CompilerMessage
             {
 	            Message = x.GetMessage(),
 				Severity = (Severity)x.Severity,
