@@ -48,7 +48,7 @@ namespace CalculateFunding.Functions.EnvironmentSetup.Http
 
             DocumentClient client = DocumentDbConnectionString.Parse(cosmosDbConnectionString);
 
-            await CreateDatabaseAndCollections(client, "calculate-funding", new []{ "specs" }, log);
+            await CreateDatabaseAndCollections(client, "calculate-funding", new []{ "specs", "calcs", "tests", "datasets", "results" }, log);
 
             return new OkResult();
         }
