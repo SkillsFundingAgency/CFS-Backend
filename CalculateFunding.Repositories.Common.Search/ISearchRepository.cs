@@ -11,5 +11,6 @@ namespace CalculateFunding.Repositories.Common.Search
         Task<IList<IndexError>> Index(IList<T> documents);
         Task Initialize();
         Task<SearchResults<T>> Search(string searchTerm, SearchParameters searchParameters = null);
+        Task<T> SearchById(string id, SearchParameters searchParameters = null);
     }
 }

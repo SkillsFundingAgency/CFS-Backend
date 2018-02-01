@@ -74,13 +74,13 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _calcsService.GetCalculationVersions(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/calcs/compile-preview")]
+        [Route("api/calcs/calculation-publish")]
         [HttpPost]
-        public Task<IActionResult> RunCompilePreview()
+        public Task<IActionResult> RunCalculationPublish()
         {
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
-            return _previewService.Compile(ControllerContext.HttpContext.Request);
+            return _calcsService.PublishCalculationVersion(ControllerContext.HttpContext.Request);
         }
     }
 }

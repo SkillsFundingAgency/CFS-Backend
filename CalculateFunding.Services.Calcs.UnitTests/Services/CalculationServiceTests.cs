@@ -151,48 +151,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             Message message = new Message();
 
-            Calculation calculation = new Calculation {
-                Id = CalculationId,
-                Name = "Test Calc Name",
-                CalculationSpecification = new Reference
-                {
-                    Id = "any-calc-id",
-                    Name = "Test Calc Name",
-                },
-                Specification = new Reference
-                {
-                    Id = "any-spec-id",
-                    Name = "Test Spec Name",
-                },
-                Period = new Reference
-                {
-                    Id = "18/19",
-                    Name = "2018/2019"
-                },
-                AllocationLine = new Reference
-                {
-                    Id = "test-alloc-id",
-                    Name = "test-alloc-name"
-                },
-                Policies = new List<Reference>
-                {
-                    new Reference
-                    {
-                        Id = "policy-id",
-                        Name = "policy-name"
-                    }
-                },
-                Current = new CalculationVersion
-                {
-                    SourceCode = "source code",
-                    PublishStatus = PublishStatus.Draft,
-                },
-                FundingStream = new Reference
-                {
-                    Id = "funding stream-id",
-                    Name = "funding-stream-name"
-                }
-            };
+            Calculation calculation = CreateCalculation();
 
             string json = JsonConvert.SerializeObject(calculation);
 
@@ -703,19 +662,7 @@ namespace CalculateFunding.Services.Calcs.Services
         async public Task SaveCalculationVersion_GivenCalculationExistsWithNoHistory_CreatesNewVersion()
         {
             //Arrange
-            Calculation calculation = new Calculation
-            {
-                Specification = new Reference
-                {
-                    Id = "spec-id",
-                    Name = "spec name"
-                },
-                Current = new CalculationVersion(),
-                Name = "any name",
-                Id = "any-id",
-                CalculationSpecification = new Reference("any name", "any-id"),
-                Period = new Reference("18/19", "2018/2019")
-            };
+            Calculation calculation = CreateCalculation();
 
             SaveSourceCodeVersion model = new SaveSourceCodeVersion
             {
@@ -749,7 +696,15 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
 
-            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, 
+                buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -817,19 +772,8 @@ namespace CalculateFunding.Services.Calcs.Services
         async public Task SaveCalculationVersion_GivenCalculationExistsWithNoCurrent_CreatesNewVersion()
         {
             //Arrange
-            Calculation calculation = new Calculation
-            {
-                Specification = new Reference
-                {
-                    Id = "spec-id",
-                    Name = "spec name"
-                },
-                History = new List<CalculationVersion>(),
-                Name = "any name",
-                Id = "any-id",
-                CalculationSpecification = new Reference("any name", "any-id"),
-                Period = new Reference("18/19", "2018/2019")
-            };
+            Calculation calculation = CreateCalculation();
+            calculation.Current = null;
 
             SaveSourceCodeVersion model = new SaveSourceCodeVersion
             {
@@ -863,7 +807,16 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
 
-            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            CalculationService service = CreateCalculationService(logger: logger, 
+                calculationsRepository: calculationsRepository, 
+                buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -882,20 +835,7 @@ namespace CalculateFunding.Services.Calcs.Services
         async public Task SaveCalculationVersion_GivenCalculationExistsWithNoBuildId_CreatesNewBuildProject()
         {
             //Arrange
-            Calculation calculation = new Calculation
-            {
-                Specification = new Reference
-                {
-                    Id = "spec-id",
-                    Name = "spec name"
-                },
-                Current = new CalculationVersion(),
-                History = new List<CalculationVersion>(),
-                Name = "any name",
-                Id = "any-id",
-                CalculationSpecification = new Reference("any name", "any-id"),
-                Period = new Reference("18/19", "2018/2019")
-            };
+            Calculation calculation = CreateCalculation();
 
             SaveSourceCodeVersion model = new SaveSourceCodeVersion
             {
@@ -929,7 +869,16 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
 
-            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            CalculationService service = CreateCalculationService(logger: logger, 
+                calculationsRepository: calculationsRepository, 
+                buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -960,21 +909,8 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();
 
-            Calculation calculation = new Calculation
-            {
-                Specification = new Reference
-                {
-                    Id = "spec-id",
-                    Name = "spec name"
-                },
-                Current = new CalculationVersion(),
-                History = new List<CalculationVersion>(),
-                Name = "any name",
-                Id = "any-id",
-                BuildProjectId = buildProjectId,
-                CalculationSpecification = new Reference("any name", "any-id"),
-                Period = new Reference("18/19", "2018/2019")
-            };
+            Calculation calculation = CreateCalculation();
+            calculation.BuildProjectId = buildProjectId;
 
             SaveSourceCodeVersion model = new SaveSourceCodeVersion
             {
@@ -1008,7 +944,16 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
 
-            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            CalculationService service = CreateCalculationService(logger: logger, 
+                calculationsRepository: calculationsRepository, 
+                buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1039,21 +984,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = buildProjectId
             };
 
-            Calculation calculation = new Calculation
-            {
-                Specification = new Reference
-                {
-                    Id = "spec-id",
-                    Name = "spec name"
-                },
-                Current = new CalculationVersion(),
-                History = new List<CalculationVersion>(),
-                Name = "any name",
-                Id = "any-id",
-                CalculationSpecification = new Reference("any name", "any-id"),
-                Period = new Reference("18/19", "2018/2019"),
-                BuildProjectId = buildProjectId
-            };
+            Calculation calculation = CreateCalculation();
+            calculation.BuildProjectId = buildProjectId;
 
             SaveSourceCodeVersion model = new SaveSourceCodeVersion
             {
@@ -1090,7 +1022,16 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectById(Arg.Is(buildProjectId))
                 .Returns(buildProject);
 
-            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger, calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1117,21 +1058,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 Calculations = new List<Calculation>()
             };
 
-            Calculation calculation = new Calculation
-            {
-                Specification = new Reference
-                {
-                    Id = "spec-id",
-                    Name = "spec name"
-                },
-                Current = new CalculationVersion(),
-                History = new List<CalculationVersion>(),
-                Name = "any name",
-                Id = "any-id",
-                CalculationSpecification = new Reference("any name", "any-id"),
-                Period = new Reference("18/19", "2018/2019"),
-                BuildProjectId = buildProjectId
-            };
+            Calculation calculation = CreateCalculation();
+            calculation.BuildProjectId = buildProjectId;
 
             SaveSourceCodeVersion model = new SaveSourceCodeVersion
             {
@@ -1168,7 +1096,16 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectById(Arg.Is(buildProjectId))
                 .Returns(buildProject);
 
-            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            CalculationService service = CreateCalculationService(logger: logger, 
+                calculationsRepository: calculationsRepository, 
+               buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1181,6 +1118,422 @@ namespace CalculateFunding.Services.Calcs.Services
             logger
                 .Received(1)
                 .Warning($"Build project with id {buildProjectId} does not contain a calculation with id {calculation.Id}, adding calculation to build project");
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenCalculationExistsWithBuildIdButButNotInSearch_CreatesSearchDocument()
+        {
+            //Arrange
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId,
+                Calculations = new List<Calculation>()
+            };
+
+            Calculation calculation = CreateCalculation();
+
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .Returns(buildProject);
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns((CalculationIndex)null);
+
+            CalculationService service = CreateCalculationService(logger: logger,
+                calculationsRepository: calculationsRepository,
+               buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Any<IList<CalculationIndex>>());
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenCalculationIsCurrentlyPublished_SetsPublishStateToUpdated()
+        {
+            //Arrange
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId,
+                Calculations = new List<Calculation>()
+            };
+
+            Calculation calculation = CreateCalculation();
+            calculation.Current.PublishStatus = PublishStatus.Published;
+
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .Returns(buildProject);
+
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            CalculationService service = CreateCalculationService(logger: logger,
+                calculationsRepository: calculationsRepository,
+               buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            calculation
+                .Current
+                .PublishStatus
+                .Should()
+                .Be(PublishStatus.Updated);
+
+            await
+                searchRepository
+                .Received(1)
+                .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenCalculationIsCurrentlyUpdated_SetsPublishStateToUpdated()
+        {
+            //Arrange
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId,
+                Calculations = new List<Calculation>()
+            };
+
+            Calculation calculation = CreateCalculation();
+            calculation.BuildProjectId = buildProjectId;
+            calculation.Current.PublishStatus = PublishStatus.Updated;
+
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .Returns(buildProject);
+
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            CalculationService service = CreateCalculationService(logger: logger,
+                calculationsRepository: calculationsRepository,
+               buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            calculation
+                .Current
+                .PublishStatus
+                .Should()
+                .Be(PublishStatus.Updated);
+
+            await
+                searchRepository
+                .Received(1)
+                .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
+        }
+
+        [TestMethod]
+        async public Task PublishCalculationVersion_GivenNoCalculationIdWasprovided_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            CalculationService service = CreateCalculationService(logger: logger);
+
+            //Act
+            IActionResult result = await service.PublishCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No calculation Id was provided to PublishCalculationVersion"));
+        }
+
+        [TestMethod]
+        async public Task PublishCalculationVersion_GivenCalculationIdWasProvidedButCalculationCouldNotBeFound_ReturnsNotFound()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns((Calculation)null);
+
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository);
+
+            //Act
+            IActionResult result = await service.PublishCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"A calculation was not found for calculation id {CalculationId}"));
+        }
+
+        [TestMethod]
+        async public Task PublishCalculationVersion_GivenCalculationIdWasProvidedButCalculationCurrentCouldNotBeFound_ReturnsNotFound()
+        {
+            //Arrange
+            Calculation calculation = new Calculation();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository);
+
+            //Act
+            IActionResult result = await service.PublishCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"A current calculation was not found for calculation id {CalculationId}"));
+        }
+
+        [TestMethod]
+        async public Task PublishCalculationVersion_GivenCalculationIdWasProvidedButAlreadyPublished_ReturnsOKResulkt()
+        {
+            //Arrange
+            Calculation calculation = new Calculation
+            {
+                Current = new CalculationVersion
+                {
+                    PublishStatus = PublishStatus.Published
+                }
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository);
+
+            //Act
+            IActionResult result = await service.PublishCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+        }
+
+        [TestMethod]
+        async public Task PublishCalculationVersion_GivenCalculationIsDraftButNoBuildProjectIdFound_PublishesAndCreratesBuildProjectIdReturnsOKResulkt()
+        {
+            //Arrange
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            Calculation calculation = CreateCalculation();
+            calculation.BuildProjectId = buildProjectId;
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository);
+
+            //Act
+            IActionResult result = await service.PublishCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            logger
+                .Received(1)
+                .Warning(Arg.Is($"Build project with id {buildProjectId} could not be found, creating a new one"));
         }
 
         static CalculationService CreateCalculationService(ICalculationsRepository calculationsRepository = null, 
@@ -1224,6 +1577,53 @@ namespace CalculateFunding.Services.Calcs.Services
                .Returns(validationResult);
 
             return validator;
+        }
+
+        static Calculation CreateCalculation()
+        {
+            return new Calculation
+            {
+                Id = CalculationId,
+                Name = "Test Calc Name",
+                CalculationSpecification = new Reference
+                {
+                    Id = "any-calc-id",
+                    Name = "Test Calc Name",
+                },
+                Specification = new Reference
+                {
+                    Id = "any-spec-id",
+                    Name = "Test Spec Name",
+                },
+                Period = new Reference
+                {
+                    Id = "18/19",
+                    Name = "2018/2019"
+                },
+                AllocationLine = new Reference
+                {
+                    Id = "test-alloc-id",
+                    Name = "test-alloc-name"
+                },
+                Policies = new List<Reference>
+                {
+                    new Reference
+                    {
+                        Id = "policy-id",
+                        Name = "policy-name"
+                    }
+                },
+                Current = new CalculationVersion
+                {
+                    SourceCode = "source code",
+                    PublishStatus = PublishStatus.Draft,
+                },
+                FundingStream = new Reference
+                {
+                    Id = "funding stream-id",
+                    Name = "funding-stream-name"
+                }
+            };
         }
     }
 }

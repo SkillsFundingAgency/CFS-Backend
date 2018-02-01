@@ -91,6 +91,37 @@ namespace CalculateFunding.Repositories.Common.Search
 
         }
 
+        public async Task<T> SearchById(string id, SearchParameters searchParameters = null)
+        {
+            var client = await GetOrCreateIndex();
+            searchParameters = new SearchParameters
+            {
+                SearchFields = new List<string> { "id" },
+                Top = 1
+            };
+
+            try
+            {
+                var azureSearchResult = await client.Documents.SearchAsync<T>(id, searchParameters ?? DefaultParameters);
+
+                var response = new SearchResults<T>
+                {
+                    Results = azureSearchResult.Results.Select(x => new SearchResult<T>
+                    {
+                        HitHighLights = x.Highlights,
+                        Result = x.Document,
+                        Score = x.Score
+                    }).ToList()
+                };
+                return response.Results.FirstOrDefault().Result;
+            }
+            catch (Exception ex)
+            {
+                throw new FailedToQuerySearchException("Failed to query search", ex);
+            }
+
+        }
+
         public async Task<IList<IndexError>> Index(IList<T> documents)
         {
             try

@@ -205,29 +205,7 @@ namespace CalculateFunding.Services.Calcs
                 {
                     _logger.Information($"Calculation with id: {calculation.Id} was succesfully saved to Cosmos Db");
 
-                    IList<IndexError> indexingResults = await _searchRepository.Index(new List<CalculationIndex>
-                    {
-                        new CalculationIndex
-                        {
-                            Id = calculation.Id,
-                            Name = calculation.Name,
-                            CalculationSpecificationId = calculation.CalculationSpecification.Id,
-                            CalculationSpecificationName = calculation.CalculationSpecification.Name,
-                            SpecificationName = calculation.Specification.Name,
-                            SpecificationId = calculation.Specification.Id,
-                            PeriodId = calculation.Period.Id,
-                            PeriodName = calculation.Period.Name,
-                            AllocationLineId = calculation.AllocationLine.Id,
-                            AllocationLineName = calculation.AllocationLine.Name,
-                            PolicySpecificationIds   = calculation.Policies.Select(m => m.Id).ToArraySafe(),
-                            PolicySpecificationNames = calculation.Policies.Select(m => m.Name).ToArraySafe(),
-                            SourceCode = calculation.Current.SourceCode,
-                            Status = calculation.Current.PublishStatus.ToString(),
-                            FundingStreamId = calculation.FundingStream.Id,
-                            FundingStreamName = calculation.FundingStream.Name,
-                            LastUpdatedDate = DateTimeOffset.Now,
-                        }
-                    });
+                    await UpdateSearch(calculation);
 
                     await CreateBuildProject(calculation);
                 }
@@ -294,7 +272,9 @@ namespace CalculateFunding.Services.Calcs
                 Author = user,
                 Date = DateTime.UtcNow,
                 DecimalPlaces = 6,
-                PublishStatus = PublishStatus.Draft,
+                PublishStatus = (calculation.Current.PublishStatus == PublishStatus.Published 
+                                    || calculation.Current.PublishStatus == PublishStatus.Updated) 
+                                    ? PublishStatus.Updated : PublishStatus.Draft,
                 SourceCode = sourceCodeVersion.SourceCode
             };
 
@@ -306,9 +286,84 @@ namespace CalculateFunding.Services.Calcs
 
             await UpdateBuildProject(calculation);
 
+            await UpdateSearch(calculation);
+
             CalculationCurrentVersion currentVersion = GetCurrentVersionFromCalculation(calculation);
 
             return new OkObjectResult(currentVersion);
+        }
+
+        async public Task<IActionResult> PublishCalculationVersion(HttpRequest request)
+        {
+            request.Query.TryGetValue("calculationId", out var calcId);
+
+            var calculationId = calcId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(calculationId))
+            {
+                _logger.Error("No calculation Id was provided to PublishCalculationVersion");
+
+                return new BadRequestObjectResult("Null or empty calculation Id provided");
+            }
+
+            Calculation calculation = await _calculationsRepository.GetCalculationById(calculationId);
+
+            if (calculation == null)
+            {
+                _logger.Information($"A calculation was not found for calculation id {calculationId}");
+
+                return new NotFoundResult();
+            }
+
+            if (calculation.Current == null)
+            {
+                _logger.Information($"A current calculation was not found for calculation id {calculationId}");
+
+                return new NotFoundResult();
+            }
+
+            if (calculation.Current.PublishStatus != PublishStatus.Published)
+            {
+                calculation.Current.PublishStatus = PublishStatus.Published;
+
+                calculation.Published = calculation.Current;
+                
+                await _calculationsRepository.UpdateCalculation(calculation);
+
+                await UpdateBuildProject(calculation);
+
+                await UpdateSearch(calculation);
+                
+            }
+
+            return new OkObjectResult(calculation.Current);
+        }
+
+        async Task UpdateSearch(Calculation calculation)
+        {
+            IList<IndexError> indexingResults = await _searchRepository.Index(new List<CalculationIndex>
+            {
+                new CalculationIndex
+                {
+                    Id = calculation.Id,
+                    Name = calculation.Name,
+                    CalculationSpecificationId = calculation.CalculationSpecification.Id,
+                    CalculationSpecificationName = calculation.CalculationSpecification.Name,
+                    SpecificationName = calculation.Specification.Name,
+                    SpecificationId = calculation.Specification.Id,
+                    PeriodId = calculation.Period.Id,
+                    PeriodName = calculation.Period.Name,
+                    AllocationLineId = calculation.AllocationLine.Id,
+                    AllocationLineName = calculation.AllocationLine.Name,
+                    PolicySpecificationIds   = calculation.Policies.Select(m => m.Id).ToArraySafe(),
+                    PolicySpecificationNames = calculation.Policies.Select(m => m.Name).ToArraySafe(),
+                    SourceCode = calculation.Current.SourceCode,
+                    Status = calculation.Current.PublishStatus.ToString(),
+                    FundingStreamId = calculation.FundingStream.Id,
+                    FundingStreamName = calculation.FundingStream.Name,
+                    LastUpdatedDate = DateTimeOffset.Now,
+                }
+            });
         }
 
         async Task CreateBuildProject(Calculation calculation)

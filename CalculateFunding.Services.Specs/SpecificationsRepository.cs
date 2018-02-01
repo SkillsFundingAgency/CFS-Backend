@@ -16,125 +16,123 @@ namespace CalculateFunding.Services.Specs
         CosmosRepository _repository;
 
 	    private const string FundingStreamData = @"
-gag	General Annual Grant
-YPLRG	16-19 Bursaries Allocation - 11/12
-YPLRA	16-19 Learner Responsive
-YPLRB	19-24 Learners with High Cost ALS
-YPLRE	Academies General Annual Grant
-YPLRP	DSG
-YPLRD	Academies 16-18
-YPLRC	School Sixth Form
-YPLRN	Non Formula Funded Activity
-YPLRJ	19+ continuing learners (excluding high cost)
-YPLRM	Non Formula Funded Activity Academies
-";
-	    private const string AllocationLineData = @"
-YPG01	16-19 Bursaries - all providers 11/12
-YPA01	16 -19 Low Level Learners Programme funding
-YPB03	19-24 Lnrs with High Cost ALS Programme Funding
-YPE01	School Budget Share
-YPE13	Pupil Led Factors
-YPE02	Education Services Grant
-YPE03	Insurance
-YPP01	DSG Allocations
-YPA02	16-19 Learner Responsive Low Level ALS
-YPA03	16-19 Learner Responsive High Level ALS
-YPE16	Minimum Funding Guarantee (MFG)
-YPE09	GAG Advances and Abatements
-YPE04	Teacher Threshold
-YPE05	Mainstreamed Grants
-YPE06	Start Up Grant Part a
-YPE07	Start Up Grant Part b Formulaic
-YPE08	Start Up Grant Part b Assessment
-YPE10	Standards Funds
-YPE11	Rates Relief
-YPE12	CTC Overall Grant
-YPE14	Other Factors
-YPE15	Exceptional Factors
-YPE18	Pre 16 High Needs
-YPE19	Hospital Provision
-YPA12	16-19 Bursary Funds
-YPA14	16-19 Total Programme Funding
-YPA15	16-19 Formula Protection Funding
-YPA16	16-19 High Needs Element 2
-YPA09	16-19 Transitional Protection
-YPD05	Academy Transitional Protection
-YPD13	Academies Total Programme funding
-YPD14	Academies Formula Protection Funding
-YPC12	SSF Bursary Funds
-YPC13	SSF Total Programme funding
-YPC14	SSF Formula Protection Funding
-YPC15	SSF High Needs Element 2
-YPD12	Academies Bursary Funding
-YPD15	Academies High Needs Element 2
-YPA23	16-19 Free Meals in FE
-YPN40	NMF Pre-16 Funding (NMSS)
-YPD16	Academies Free Meals
-YPN30	Cadets Vocational Programme
-YPN42	SSF Free Meals
-YPN43	Core Maths Early Adopters SSF
-YPN44	Pre-16 Universal Infant Free School Meals
-YPN45	Primary PE and Sport Premium
-YPN16	Residential Bursary Fund
-YPE20	SEN LACSEG Adjustment
-YPE21	Allocation Protection
-YPE22	Risk Protection Arrangements (RPA)
-YPE23	Pupil Number Adjustment (PNA)
-YPE24	GAG Adjustment
-YPE25	POG Per Pupil Resources (PPR)
-YPE26	POG Leadership Diseconomies (LD)
-YPE27	LA Transfer Deficit Recovery
-YPN46	Residential Support Scheme
-YPJ01	19+ continuing Lnrs programme funding
-YPA17	HNS Transitional Protection
-YPD17	Core Maths Early Adopters Academies
-YPN41	Core Maths Early Adopters 16-19
-YPN25	Closing Schools
-YPE28	De-Delegation retained by LA
-YPE29	Pre16 PNA (Pupil Number Adjustment)
-YPE30	Post16 PNA (Pupil Number Adjustment)
-YPD01	Academy Programme Funds
-YPA20	14-16 Programme Funding
-YPA21	14-16 Pupil Premium
-YPA22	14-16 service child premium
-YPN47	19+ Cont Learners in SFC (Student Support)
-YPN48	Area Review Transition Grant
-YPE31	PFI Factor Funding
-YPA04	16-19 high level learners programme Funding
-YPD02	Academy ALS
-YPD07	Additional Funding
-YPD08	Academy Teacher's Pension
-YPE32	Transitional Funding
-YPN49	16+ Factor Removal (DSG) ACAD
-YPE33	Condition Improvement Fund loans
-YPA06	Additional Funding 
-YPA07	Diploma Programme Funding
-YPA08	Diploma ALS Funding
-YPC16	Maintained Special SSF E2
-YPC17	Maintained Special SSF Student Support
-YPA24	16-19 SPI Element 1
-YPE34	Popular Growth
-YPN50	16+ Factor Removal (DSG) SSF
-YPM01	Residential Bursary Fund ACAD
-YPM02	Residential Support Scheme ACAD
-YPM03	16+ Factor Removal (DSG) ACAD
-YPN51	Alternative completions â€“ AASE sporting excellence
-YPN52	Alternative completions â€“ sea fishing
-YPN53	Alternative completions â€“ creative sector
-YPM05	19+ Cont Learners in ACAD student support
-YPA10	Young Parents To Be
-YPA13	16-19 funding (apprenticeships pilot)
-YPA18	16-19 Reconciliation Recovery
-YPM06	Pre-16 Universal Infant Free School Meals
-YPM08	Area Review Transition Grant
-YPM09	Alternative completions â€“ AASE sporting excellence
-YPM10	Alternative completions â€“ sea fishing
-YPM11	Alternative completions â€“ creative sector
-YPM13	19+ continuing learners ACAD
-YPM04	NMF Pre-16 Funding (NMSS) ACAD
-YPM07	Primary PE and Sport Premium
+            gag	General Annual Grant
+            YPLRG	16-19 Bursaries Allocation - 11/12
+            YPLRA	16-19 Learner Responsive
+            YPLRB	19-24 Learners with High Cost ALS
+            YPLRE	Academies General Annual Grant
+            YPLRP	DSG
+            YPLRD	Academies 16-18
+            YPLRC	School Sixth Form
+            YPLRN	Non Formula Funded Activity
+            YPLRJ	19+ continuing learners (excluding high cost)
+            YPLRM	Non Formula Funded Activity Academies";
 
-";
+	    private const string AllocationLineData = @"
+            YPG01	16-19 Bursaries - all providers 11/12
+            YPA01	16 -19 Low Level Learners Programme funding
+            YPB03	19-24 Lnrs with High Cost ALS Programme Funding
+            YPE01	School Budget Share
+            YPE13	Pupil Led Factors
+            YPE02	Education Services Grant
+            YPE03	Insurance
+            YPP01	DSG Allocations
+            YPA02	16-19 Learner Responsive Low Level ALS
+            YPA03	16-19 Learner Responsive High Level ALS
+            YPE16	Minimum Funding Guarantee (MFG)
+            YPE09	GAG Advances and Abatements
+            YPE04	Teacher Threshold
+            YPE05	Mainstreamed Grants
+            YPE06	Start Up Grant Part a
+            YPE07	Start Up Grant Part b Formulaic
+            YPE08	Start Up Grant Part b Assessment
+            YPE10	Standards Funds
+            YPE11	Rates Relief
+            YPE12	CTC Overall Grant
+            YPE14	Other Factors
+            YPE15	Exceptional Factors
+            YPE18	Pre 16 High Needs
+            YPE19	Hospital Provision
+            YPA12	16-19 Bursary Funds
+            YPA14	16-19 Total Programme Funding
+            YPA15	16-19 Formula Protection Funding
+            YPA16	16-19 High Needs Element 2
+            YPA09	16-19 Transitional Protection
+            YPD05	Academy Transitional Protection
+            YPD13	Academies Total Programme funding
+            YPD14	Academies Formula Protection Funding
+            YPC12	SSF Bursary Funds
+            YPC13	SSF Total Programme funding
+            YPC14	SSF Formula Protection Funding
+            YPC15	SSF High Needs Element 2
+            YPD12	Academies Bursary Funding
+            YPD15	Academies High Needs Element 2
+            YPA23	16-19 Free Meals in FE
+            YPN40	NMF Pre-16 Funding (NMSS)
+            YPD16	Academies Free Meals
+            YPN30	Cadets Vocational Programme
+            YPN42	SSF Free Meals
+            YPN43	Core Maths Early Adopters SSF
+            YPN44	Pre-16 Universal Infant Free School Meals
+            YPN45	Primary PE and Sport Premium
+            YPN16	Residential Bursary Fund
+            YPE20	SEN LACSEG Adjustment
+            YPE21	Allocation Protection
+            YPE22	Risk Protection Arrangements (RPA)
+            YPE23	Pupil Number Adjustment (PNA)
+            YPE24	GAG Adjustment
+            YPE25	POG Per Pupil Resources (PPR)
+            YPE26	POG Leadership Diseconomies (LD)
+            YPE27	LA Transfer Deficit Recovery
+            YPN46	Residential Support Scheme
+            YPJ01	19+ continuing Lnrs programme funding
+            YPA17	HNS Transitional Protection
+            YPD17	Core Maths Early Adopters Academies
+            YPN41	Core Maths Early Adopters 16-19
+            YPN25	Closing Schools
+            YPE28	De-Delegation retained by LA
+            YPE29	Pre16 PNA (Pupil Number Adjustment)
+            YPE30	Post16 PNA (Pupil Number Adjustment)
+            YPD01	Academy Programme Funds
+            YPA20	14-16 Programme Funding
+            YPA21	14-16 Pupil Premium
+            YPA22	14-16 service child premium
+            YPN47	19+ Cont Learners in SFC (Student Support)
+            YPN48	Area Review Transition Grant
+            YPE31	PFI Factor Funding
+            YPA04	16-19 high level learners programme Funding
+            YPD02	Academy ALS
+            YPD07	Additional Funding
+            YPD08	Academy Teacher's Pension
+            YPE32	Transitional Funding
+            YPN49	16+ Factor Removal (DSG) ACAD
+            YPE33	Condition Improvement Fund loans
+            YPA06	Additional Funding 
+            YPA07	Diploma Programme Funding
+            YPA08	Diploma ALS Funding
+            YPC16	Maintained Special SSF E2
+            YPC17	Maintained Special SSF Student Support
+            YPA24	16-19 SPI Element 1
+            YPE34	Popular Growth
+            YPN50	16+ Factor Removal (DSG) SSF
+            YPM01	Residential Bursary Fund ACAD
+            YPM02	Residential Support Scheme ACAD
+            YPM03	16+ Factor Removal (DSG) ACAD
+            YPN51	Alternative completions AASE sporting excellence
+            YPN52	Alternative completions â€“ sea fishing
+            YPN53	Alternative completions â€“ creative sector
+            YPM05	19+ Cont Learners in ACAD student support
+            YPA10	Young Parents To Be
+            YPA13	16-19 funding (apprenticeships pilot)
+            YPA18	16-19 Reconciliation Recovery
+            YPM06	Pre-16 Universal Infant Free School Meals
+            YPM08	Area Review Transition Grant
+            YPM09	Alternative completions â€“ AASE sporting excellence
+            YPM10	Alternative completions â€“ sea fishing
+            YPM11	Alternative completions â€“ creative sector
+            YPM13	19+ continuing learners ACAD
+            YPM04	NMF Pre-16 Funding (NMSS) ACAD
+            YPM07	Primary PE and Sport Premium";
 
 		public SpecificationsRepository(CosmosRepository cosmosRepository)
         {
