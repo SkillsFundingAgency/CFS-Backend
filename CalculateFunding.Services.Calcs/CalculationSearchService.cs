@@ -76,6 +76,9 @@ namespace CalculateFunding.Services.Calcs
 
         IDictionary<string,string> BuildFacetDictionary(SearchModel searchModel)
         {
+            if (searchModel.Filters == null)
+                searchModel.Filters = new Dictionary<string, string[]>();
+
             searchModel.Filters = searchModel.Filters.ToList().Where(m => !m.Value.IsNullOrEmpty())
                 .ToDictionary(m => m.Key, m => m.Value);
 
@@ -109,18 +112,20 @@ namespace CalculateFunding.Services.Calcs
                 {
                     searchTasks = searchTasks.Concat(new[]
                     {
-                    Task.Run(() =>
-                    {
-                        return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
+                        Task.Run(() =>
                         {
-                            Facets = new[]{ filterPair.Key },
-                            SearchMode = SearchMode.Any,
-                            IncludeTotalResultCount = true,
-                            Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
-                            QueryType = QueryType.Full
-                        });
-                    })
-                });
+                            var s = facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value);
+
+                            return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
+                            {
+                                Facets = new[]{ filterPair.Key },
+                                SearchMode = SearchMode.Any,
+                                IncludeTotalResultCount = true,
+                                Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
+                                QueryType = QueryType.Full
+                            });
+                        })
+                    });
                 }
             }
 
@@ -145,7 +150,7 @@ namespace CalculateFunding.Services.Calcs
                     IncludeTotalResultCount = true,
                     Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
                     OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
-                    QueryType = QueryType.Full,
+                    QueryType = QueryType.Full
                 });
             });
         }
@@ -154,24 +159,6 @@ namespace CalculateFunding.Services.Calcs
         {
             if (!searchResult.Facets.IsNullOrEmpty())
             {
-                foreach (Facet facet in searchResult.Facets)
-                {
-                    var facetType = Facets.FirstOrDefault(m => m.Name == facet.Name);
-                    if (facetType != null)
-                    {
-                        IEnumerable<FacetValue> filteredFacetValues = new List<FacetValue>();
-                        if (searchModel.Filters != null && searchModel.Filters.ContainsKey(facet.Name))
-                        {
-                            foreach (string facetFilter in searchModel.Filters[facet.Name])
-                            {
-                                FacetValue facetValue = facet.FacetValues.FirstOrDefault(m => m.Name == facetFilter);
-                                if (facetValue != null)
-                                    filteredFacetValues = filteredFacetValues.Concat(new[] { facetValue });
-                            }
-                            facet.FacetValues = filteredFacetValues;
-                        }
-                    }
-                }
                 results.Facets = results.Facets.Concat(searchResult.Facets);
             }
             else
