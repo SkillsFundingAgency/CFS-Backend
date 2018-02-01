@@ -16,7 +16,21 @@ namespace CalculateFunding.Models.Specs
 
         public static Policy GetPolicy(this Specification specification, string id)
         {
-            return specification.Policies?.FirstOrDefault(x => x.GetPolicy(id) != null);
+            foreach (Policy policy in specification.Policies)
+            {
+                if (policy.Id == id)
+                    return policy;
+
+                if (policy.SubPolicies != null)
+                {
+                    foreach (Policy subPolicy in policy.SubPolicies)
+                    {
+                        if (subPolicy.Id == id)
+                            return subPolicy;
+                    }
+                }
+            }
+            return null;
         }
 
         public static Policy GetPolicyByName(this Policy policy, string name)

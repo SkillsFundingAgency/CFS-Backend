@@ -1092,6 +1092,128 @@ namespace CalculateFunding.Services.Specs.Services
         }
 
         [TestMethod]
+        public async Task CreateCalculation_GivenValidModelForSubPolicyAndSubPolicyFoundAndUpdated_ReturnsOKt()
+        {
+            //Arrange
+            AllocationLine allocationLine = new AllocationLine
+            {
+                Id = "02a6eeaf-e1a0-476e-9cf9-8aa5d9129345",
+                Name = "test alloctaion"
+            };
+
+            Policy policy = new Policy
+            {
+                Id = PolicyId
+            };
+
+            Specification specification = new Specification
+            {
+                Policies = new[]
+                {
+                    policy = new Policy
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        SubPolicies = new[]
+                        {
+                            policy
+                        }
+                    }
+                }
+            };
+
+            CalculationCreateModel model = new CalculationCreateModel
+            {
+                SpecificationId = SpecificationId,
+                PolicyId = PolicyId,
+                AllocationLineId = AllocationLineId
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
+            {
+                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
+            });
+
+            HttpContext context = Substitute.For<HttpContext>();
+            context
+                .User
+                .Returns(principle);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            request
+                .HttpContext
+                .Returns(context);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("sfa-correlationId", new StringValues(SfaCorrelationId));
+
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            specificationsRepository
+                .GetAllocationLineById(Arg.Is(AllocationLineId))
+                .Returns(allocationLine);
+
+            specificationsRepository
+                .UpdateSpecification(Arg.Is(specification))
+                .Returns(HttpStatusCode.OK);
+
+            Calculation calculation = new Calculation
+            {
+                AllocationLine = new Reference()
+            };
+
+            IMapper mapper = CreateMapper();
+            mapper
+                .Map<Calculation>(Arg.Any<CalculationCreateModel>())
+                .Returns(calculation);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository, mapper: mapper, messengerService: messengerService);
+
+            //Act
+            IActionResult result = await service.CreateCalculation(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            await
+                messengerService
+                    .Received(1)
+                    .SendAsync(Arg.Is(CalcsServiceBusTopicName), Arg.Is("calc-events-create-draft"),
+                        Arg.Is<Models.Calcs.Calculation>(m =>
+                            m.CalculationSpecification.Id == calculation.Id &&
+                            m.CalculationSpecification.Name == calculation.Name &&
+                            m.Name == calculation.Name &&
+                            !string.IsNullOrEmpty(m.Id) &&
+                            m.AllocationLine.Id == allocationLine.Id &&
+                            m.AllocationLine.Name == allocationLine.Name),
+                        Arg.Is<IDictionary<string, string>>(m =>
+                            m["user-id"] == UserId &&
+                            m["user-name"] == Username &&
+                            m["sfa-correlationId"] == SfaCorrelationId));
+        }
+
+        [TestMethod]
         public async Task GetCalculationBySpecificationIdAndCalculationId_GivenSpecificationIdDoesNotExist_ReturnsBadRequest()
         {
             //Arrange
