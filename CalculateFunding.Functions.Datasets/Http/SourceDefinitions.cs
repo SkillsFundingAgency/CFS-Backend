@@ -2,11 +2,14 @@
 using CalculateFunding.Functions.Common;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Functions.Datasets.Http
 {
@@ -27,6 +30,18 @@ namespace CalculateFunding.Functions.Datasets.Http
         {
             var restMethods = new RestCommandMethods<SourceDefinition, SourceDefinitionCommand>("dataset-events");
             return await restMethods.Run(req, log);
+        }
+
+        [FunctionName("source-definitions")]
+        public static Task<IActionResult> RunSourceDefinitions(
+          [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IDefinitionsService svc = scope.ServiceProvider.GetService<IDefinitionsService>();
+
+                return svc.ProcessYamlSource(req);
+            }
         }
     }
 }

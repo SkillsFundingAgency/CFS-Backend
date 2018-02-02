@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Models", "Models", "{539AB1D8-B007-4CB6-8355-918D498486E2}"
 EndProject
@@ -82,6 +82,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.LocalDebugQueueProcessor", "CalculateFunding.Functions.LocalDebugQueueProcessor\CalculateFunding.Functions.LocalDebugQueueProcessor.csproj", "{A2D36AC4-E4EB-4172-A730-76D13748491C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Calcs.UnitTests", "CalculateFunding.Services.Calcs.UnitTests\CalculateFunding.Services.Calcs.UnitTests.csproj", "{F262052D-4815-451E-BB70-CC2156B0D651}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Datasets", "CalculateFunding.Services.Datasets\CalculateFunding.Services.Datasets.csproj", "{3BE76B50-D4FF-4C1D-8A33-26DDF8AAECB4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.Datasets.UnitTests", "CalculateFunding.Services.Datasets.UnitTests\CalculateFunding.Services.Datasets.UnitTests.csproj", "{5321EDED-2A98-4BC5-BBFE-246D1A2D0908}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -205,6 +209,14 @@ Global
 		{F262052D-4815-451E-BB70-CC2156B0D651}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F262052D-4815-451E-BB70-CC2156B0D651}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F262052D-4815-451E-BB70-CC2156B0D651}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BE76B50-D4FF-4C1D-8A33-26DDF8AAECB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BE76B50-D4FF-4C1D-8A33-26DDF8AAECB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BE76B50-D4FF-4C1D-8A33-26DDF8AAECB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BE76B50-D4FF-4C1D-8A33-26DDF8AAECB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5321EDED-2A98-4BC5-BBFE-246D1A2D0908}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5321EDED-2A98-4BC5-BBFE-246D1A2D0908}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5321EDED-2A98-4BC5-BBFE-246D1A2D0908}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5321EDED-2A98-4BC5-BBFE-246D1A2D0908}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -240,6 +252,8 @@ Global
 		{865FD1F3-AC7F-4B87-AA70-B5EC92E3BFAE} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
 		{A2D36AC4-E4EB-4172-A730-76D13748491C} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{F262052D-4815-451E-BB70-CC2156B0D651} = {42CC12ED-881F-4113-AFA0-742962C1DBD8}
+		{3BE76B50-D4FF-4C1D-8A33-26DDF8AAECB4} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
+		{5321EDED-2A98-4BC5-BBFE-246D1A2D0908} = {42CC12ED-881F-4113-AFA0-742962C1DBD8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2FA36A0A-CA20-41CF-9BC2-FA6545720009}

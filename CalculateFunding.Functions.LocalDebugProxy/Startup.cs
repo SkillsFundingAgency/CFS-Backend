@@ -18,6 +18,8 @@ using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Datasets;
+using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
@@ -85,6 +87,19 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 return new CalculationsRepository(calcsCosmosRepostory);
             });
 
+            builder.AddScoped<IDataSetsRepository, DataSetsRepository>((ctx) =>
+            {
+                CosmosDbSettings datasetsDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", datasetsDbSettings);
+
+                datasetsDbSettings.CollectionName = "datasets";
+
+                CosmosRepository datasetsCosmosRepostory = new CosmosRepository(datasetsDbSettings);
+
+                return new DataSetsRepository(datasetsCosmosRepostory);
+            });
+
             builder
                .AddScoped<ICalculationService, CalculationService>();
 
@@ -94,6 +109,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                 .AddScoped<IValidator<Models.Calcs.Calculation>, CalculationModelValidator>();
 
+            builder
+                .AddScoped<IDefinitionsService, DefinitionsService>();
 
             builder.AddScoped<ISpecificationsRepository, SpecificationsRepository>((ctx) =>
             {
