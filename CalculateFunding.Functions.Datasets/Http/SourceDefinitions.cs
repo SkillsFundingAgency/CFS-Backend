@@ -32,15 +32,15 @@ namespace CalculateFunding.Functions.Datasets.Http
             return await restMethods.Run(req, log);
         }
 
-        [FunctionName("source-definitions")]
-        public static Task<IActionResult> RunSourceDefinitions(
+        [FunctionName("data-definitions")]
+        public static Task<IActionResult> RunDataDefinitions(
           [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
         {
             using (var scope = IocConfig.Build().CreateHttpScope(req))
             {
                 IDefinitionsService svc = scope.ServiceProvider.GetService<IDefinitionsService>();
 
-                return svc.ProcessYamlSource(req);
+                return svc.SaveDefinition(req);
             }
         }
     }

@@ -17,13 +17,13 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             _definitionService = definitionService;
         }
 
-        [Route("api/datasets/source-definitions")]
+        [Route("api/datasets/data-definitions")]
         [HttpPost]
-        public Task<IActionResult> RunSourceDefinitions()
+        public Task<IActionResult> RunDataDefinitions()
         {
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
-            return _definitionService.ProcessYamlSource(ControllerContext.HttpContext.Request);
+            return _definitionService.SaveDefinition(ControllerContext.HttpContext.Request);
         }
     }
 }

@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Datasets
             _dataSetsRepository = dataSetsRepository;
         }
 
-        async public Task<IActionResult> ProcessYamlSource(HttpRequest request)
+        async public Task<IActionResult> SaveDefinition(HttpRequest request)
         {
             string yaml = await request.GetRawBodyStringAsync();
 

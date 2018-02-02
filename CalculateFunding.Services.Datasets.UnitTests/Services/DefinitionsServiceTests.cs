@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Datasets.Services
         const string yamlFile = "12345.yaml";
 
         [TestMethod]
-        async public Task ProcessYamlSource_GivenNoYamlWasProvidedWithNoFileName_ReturnsBadRequest()
+        async public Task SaveDefinition_GivenNoYamlWasProvidedWithNoFileName_ReturnsBadRequest()
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionsService service = CreateDefinitionsService(logger);
 
             //Act
-            IActionResult result = await service.ProcessYamlSource(request);
+            IActionResult result = await service.SaveDefinition(request);
 
             //Assert
             result
@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessYamlSource_GivenNoYamlWasProvidedButFileNameWas_ReturnsBadRequest()
+        async public Task SaveDefinition_GivenNoYamlWasProvidedButFileNameWas_ReturnsBadRequest()
         {
             //Arrange
             IHeaderDictionary headerDictionary = new HeaderDictionary();
@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionsService service = CreateDefinitionsService(logger);
 
             //Act
-            IActionResult result = await service.ProcessYamlSource(request);
+            IActionResult result = await service.SaveDefinition(request);
 
             //Assert
             result
@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessYamlSource_GivenNoYamlWasProvidedButIsInvalid_ReturnsBadRequest()
+        async public Task SaveDefinition_GivenNoYamlWasProvidedButIsInvalid_ReturnsBadRequest()
         {
             //Arrange
             string yaml = "invalid yaml";
@@ -100,7 +100,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionsService service = CreateDefinitionsService(logger);
 
             //Act
-            IActionResult result = await service.ProcessYamlSource(request);
+            IActionResult result = await service.SaveDefinition(request);
 
             //Assert
             result
@@ -113,7 +113,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessYamlSource_GivenValidYamlButFailedToSaveToDatabase_ReturnsStatusCode()
+        async public Task SaveDefinition_GivenValidYamlButFailedToSaveToDatabase_ReturnsStatusCode()
         {
             //Arrange
             string yaml = CreateRawDefinition();
@@ -145,7 +145,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionsService service = CreateDefinitionsService(logger, dataSetsRepository);
 
             //Act
-            IActionResult result = await service.ProcessYamlSource(request);
+            IActionResult result = await service.SaveDefinition(request);
 
             //Assert
             result
@@ -164,7 +164,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessYamlSource_GivenValidYamlButSavingToDatabaseThrowsException_ReturnsInternalServerError()
+        async public Task SaveDefinition_GivenValidYamlButSavingToDatabaseThrowsException_ReturnsInternalServerError()
         {
             //Arrange
             string yaml = CreateRawDefinition();
@@ -194,7 +194,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionsService service = CreateDefinitionsService(logger, dataSetsRepository);
 
             //Act
-            IActionResult result = await service.ProcessYamlSource(request);
+            IActionResult result = await service.SaveDefinition(request);
 
             //Assert
             result
@@ -213,7 +213,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessYamlSource_GivenValidYamlAndSaveWasSuccesful_ReturnsOK()
+        async public Task SaveDefinition_GivenValidYamlAndSaveWasSuccesful_ReturnsOK()
         {
             //Arrange
             string yaml = CreateRawDefinition();
@@ -245,7 +245,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DefinitionsService service = CreateDefinitionsService(logger, dataSetsRepository);
 
             //Act
-            IActionResult result = await service.ProcessYamlSource(request);
+            IActionResult result = await service.SaveDefinition(request);
 
             //Assert
             result

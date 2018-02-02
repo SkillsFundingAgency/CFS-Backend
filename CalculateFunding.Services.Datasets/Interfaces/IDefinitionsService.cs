@@ -7,6 +7,6 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 {
     public interface IDefinitionsService
     {
-        Task<IActionResult> ProcessYamlSource(HttpRequest request);
+        Task<IActionResult> SaveDefinition(HttpRequest request);
     }
 }
