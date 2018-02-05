@@ -1,0 +1,265 @@
+﻿using CalculateFunding.Models.Datasets;
+using CalculateFunding.Services.Datasets.Interfaces;
+using FluentAssertions;
+using FluentValidation.Results;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Text;
+
+namespace CalculateFunding.Services.Datasets.Validators
+{
+    [TestClass]
+    public class CreateNewDatasetModelValidatorTests
+    {
+        const string DefinitionId = "definition-id";
+        const string Filename = "filename.csv";
+        const string Name = "test-name";
+        const string Description = "test description";
+
+        [TestMethod]
+        public void Validate_GivenEmptyDefinitionId_ValidIsFalse()
+        {
+            //Arrange
+            CreateNewDatasetModel model = CreateModel();
+            model.DefinitionId = string.Empty;
+
+            CreateNewDatasetModelValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public void Validate_GivenEmptyDescription_ValidIsFalse()
+        {
+            //Arrange
+            CreateNewDatasetModel model = CreateModel();
+            model.Description = string.Empty;
+
+            CreateNewDatasetModelValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public void Validate_GivenEmptyFilename_ValidIsFalse()
+        {
+            //Arrange
+            CreateNewDatasetModel model = CreateModel();
+            model.Filename = string.Empty;
+
+            CreateNewDatasetModelValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public void Validate_GivenFilenameWithIncorrectExtension_ValidIsFalse()
+        {
+            //Arrange
+            CreateNewDatasetModel model = CreateModel();
+            model.Filename = "Filename.docx";
+
+            CreateNewDatasetModelValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public void Validate_GivenEmptyName_ValidIsFalse()
+        {
+            //Arrange
+            CreateNewDatasetModel model = CreateModel();
+            model.Name = string.Empty;
+
+            CreateNewDatasetModelValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public void Validate_GivenNameAlreadyExists_ValidIsFalse()
+        {
+            //Arrange
+            CreateNewDatasetModel model = CreateModel();
+
+            IEnumerable<Dataset> datasets = new[]
+            {
+                new Dataset()
+            };
+
+            IDataSetsRepository repository = CreateDatasetsRepository(true);
+            repository
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                .Returns(datasets);
+
+            CreateNewDatasetModelValidator validator = CreateValidator(repository);
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public void Validate_GivenvalidModelWithCsvFile_ValidIsTrue()
+        {
+            //Arrange
+            CreateNewDatasetModel model = CreateModel();
+
+            CreateNewDatasetModelValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeTrue();
+        }
+
+        [TestMethod]
+        public void Validate_GivenvalidModelWithXlsFile_ValidIsTrue()
+        {
+            //Arrange
+            CreateNewDatasetModel model = CreateModel();
+            model.Filename = "filename.XLS";
+
+            CreateNewDatasetModelValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeTrue();
+        }
+
+        [TestMethod]
+        public void Validate_GivenvalidModelWithXlsxFile_ValidIsTrue()
+        {
+            //Arrange
+            CreateNewDatasetModel model = CreateModel();
+            model.Filename = "filename.XLSX";
+
+            CreateNewDatasetModelValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeTrue();
+        }
+
+
+        static CreateNewDatasetModelValidator CreateValidator(IDataSetsRepository datasetsRepository = null)
+        {
+            return new CreateNewDatasetModelValidator(datasetsRepository ?? CreateDatasetsRepository());
+        }
+
+        static IDataSetsRepository CreateDatasetsRepository(bool hasDataset = false)
+        {
+            IDataSetsRepository repository = Substitute.For<IDataSetsRepository>();
+
+            repository
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                .Returns(hasDataset ? new[] { new Dataset() } : new Dataset[0]);
+
+            return repository;
+        }
+
+        static CreateNewDatasetModel CreateModel()
+        {
+            return new CreateNewDatasetModel
+            {
+                DefinitionId = DefinitionId,
+                Filename = Filename,
+                Name = Name,
+                Description = Description
+            };
+        }
+    }
+}

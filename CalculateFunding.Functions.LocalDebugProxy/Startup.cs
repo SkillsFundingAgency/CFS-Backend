@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
@@ -17,9 +18,13 @@ using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
+using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Datasets.Validators;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
@@ -87,6 +92,24 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 return new CalculationsRepository(calcsCosmosRepostory);
             });
 
+            builder
+               .AddScoped<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();
+
+            builder
+                .AddScoped<IBlobClient, BlobClient>((ctx) =>
+                {
+                    AzureStorageSettings storageSettings = new AzureStorageSettings();
+
+                    config.Bind("AzureStorageSettings", storageSettings);
+
+                    storageSettings.ContainerName = "datasets";
+
+                    return new BlobClient(storageSettings);
+                });
+
+            builder
+              .AddScoped<IDatasetService, DatasetService>();
+
             builder.AddScoped<IDataSetsRepository, DataSetsRepository>((ctx) =>
             {
                 CosmosDbSettings datasetsDbSettings = new CosmosDbSettings();
@@ -138,6 +161,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 return new BuildProjectsRepository(calcsCosmosRepostory);
             });
 
+           
+
             builder
                 .AddScoped<IPreviewService, PreviewService>();
 
@@ -168,9 +193,16 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                 .AddScoped<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
 
-            MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
+            builder
+               .AddScoped<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();
 
-            builder.AddSingleton(mappingConfig.CreateMapper());
+            MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
+            builder
+                .AddSingleton(mappingConfig.CreateMapper());
+
+            MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
+            builder
+                .AddSingleton(dataSetsConfig.CreateMapper());
 
             builder.AddSearch(config);
 

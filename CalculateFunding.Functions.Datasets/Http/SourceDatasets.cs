@@ -2,17 +2,31 @@
 using CalculateFunding.Functions.Common;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Functions.Datasets.Http
 {
     public static class SourceDatasets
     {
-        
+        [FunctionName("create-new-dataset")]
+        public static Task<IActionResult> RunCreateDataset(
+         [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IDatasetService svc = scope.ServiceProvider.GetService<IDatasetService>();
+
+                return svc.CreateNewDataset(req);
+            }
+        }
+
         [FunctionName("source-datasets")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)

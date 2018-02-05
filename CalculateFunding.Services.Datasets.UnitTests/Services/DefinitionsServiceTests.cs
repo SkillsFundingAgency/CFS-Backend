@@ -13,6 +13,7 @@ using Microsoft.Extensions.Primitives;
 using System.IO;
 using CalculateFunding.Models.Datasets.Schema;
 using System.Net;
+using System.Linq;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -255,6 +256,75 @@ namespace CalculateFunding.Services.Datasets.Services
             logger
                 .Received(1)
                 .Information(Arg.Is($"Successfully saved file: {yamlFile} to cosmos db"));
+        }
+
+        [TestMethod]
+        async public Task GetDatasetDefinitions_GivenDefinitionsRequestedButContainsNoResults_ReturnsEmptyArray()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IEnumerable<DatasetDefinition> definitions = new DatasetDefinition[0];
+
+            IDataSetsRepository repository = CreateDataSetsRepository();
+            repository
+                .GetDatasetDefinitions()
+                .Returns(definitions);
+
+            DefinitionsService service = CreateDefinitionsService(dataSetsRepository: repository);
+
+            //Act
+            IActionResult result = await service.GetDatasetDefinitions(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult objResult = (OkObjectResult)result;
+
+            IEnumerable<DatasetDefinition> objValue = (IEnumerable<DatasetDefinition>)objResult.Value;
+
+            objValue
+                .Count()
+                .Should()
+                .Be(0);
+        }
+
+        [TestMethod]
+        async public Task GetDatasetDefinitions_GivenDefinitionsRequestedButContainsResults_ReturnsArray()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IEnumerable<DatasetDefinition> definitions = new[]
+            {
+                new DatasetDefinition(), new DatasetDefinition()
+            };
+
+            IDataSetsRepository repository = CreateDataSetsRepository();
+            repository
+                .GetDatasetDefinitions()
+                .Returns(definitions);
+
+            DefinitionsService service = CreateDefinitionsService(dataSetsRepository: repository);
+
+            //Act
+            IActionResult result = await service.GetDatasetDefinitions(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult objResult = (OkObjectResult)result;
+
+            IEnumerable<DatasetDefinition> objValue = (IEnumerable<DatasetDefinition>)objResult.Value;
+
+            objValue
+                .Count()
+                .Should()
+                .Be(2);
         }
 
         static DefinitionsService CreateDefinitionsService(ILogger logger = null, IDataSetsRepository dataSetsRepository = null)

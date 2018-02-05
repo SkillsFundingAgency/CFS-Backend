@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -78,6 +79,13 @@ namespace CalculateFunding.Services.Datasets
             _logger.Information($"Successfully saved file: {yamlFilename} to cosmos db");
 
             return new OkResult();
+        }
+
+        async public Task<IActionResult> GetDatasetDefinitions(HttpRequest request)
+        {
+            IEnumerable<DatasetDefinition> definitions = await _dataSetsRepository.GetDatasetDefinitions();
+
+            return new OkObjectResult(definitions);
         }
 
         string GetYamlFileNameFromRequest(HttpRequest request)

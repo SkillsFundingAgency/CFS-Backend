@@ -43,5 +43,17 @@ namespace CalculateFunding.Functions.Datasets.Http
                 return svc.SaveDefinition(req);
             }
         }
+
+        [FunctionName("data-definitions")]
+        public static Task<IActionResult> RunGetDataDefinitions(
+         [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IDefinitionsService svc = scope.ServiceProvider.GetService<IDefinitionsService>();
+
+                return svc.GetDatasetDefinitions(req);
+            }
+        }
     }
 }

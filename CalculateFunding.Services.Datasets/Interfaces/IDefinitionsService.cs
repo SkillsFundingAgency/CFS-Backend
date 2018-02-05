@@ -8,5 +8,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
     public interface IDefinitionsService
     {
         Task<IActionResult> SaveDefinition(HttpRequest request);
+
+        Task<IActionResult> GetDatasetDefinitions(HttpRequest request);
     }
 }
