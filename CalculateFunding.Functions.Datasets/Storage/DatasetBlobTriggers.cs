@@ -12,7 +12,7 @@ namespace CalculateFunding.Functions.Datasets.Storage
 {
     public static class DatasetBlobTriggers
     {
-        [FunctionName("DatasetBlob")]
+        [FunctionName("dataset-blob")]
         async public static Task Run([BlobTrigger("datasets/{name}", Connection = "AzureStorageSettings:ConnectionString")]ICloudBlob blob, string name, TraceWriter log)
         {
             using (var scope = IocConfig.Build().CreateScope())
