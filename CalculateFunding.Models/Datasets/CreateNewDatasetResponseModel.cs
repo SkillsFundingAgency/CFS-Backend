@@ -4,7 +4,7 @@
     {
         public string BlobUrl { get; set;  }
 
-        public string DatsetId { get; set; }
+        public string DatasetId { get; set; }
 
         public Reference Author { get; set; }
     }

@@ -28,11 +28,23 @@ namespace CalculateFunding.Services.Datasets
             return _cosmosRepository.CreateAsync(definition);
         }
 
+        public Task<HttpStatusCode> SaveDataset(Dataset dataset)
+        {
+            return _cosmosRepository.CreateAsync(dataset);
+        }
+
         public Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitions()
         {
             var definitions = _cosmosRepository.Query<DatasetDefinition>();
 
             return Task.FromResult(definitions.ToList().AsEnumerable());
+        }
+
+        public Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitionsByQuery(Expression<Func<DatasetDefinition, bool>> query)
+        {
+            var definitions = _cosmosRepository.Query<DatasetDefinition>().Where(query);
+
+            return Task.FromResult(definitions.AsEnumerable());
         }
 
         public Task<IEnumerable<Dataset>> GetDatasetsByQuery(Expression<Func<Dataset, bool>> query)

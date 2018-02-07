@@ -22,12 +22,12 @@ namespace CalculateFunding.Services.Core.AzureStorage
             Initialize();
         }
 
-        public string GetBlobSasUrl(string blobName, DateTimeOffset start, DateTimeOffset finish, 
+        public string GetBlobSasUrl(string blobName, DateTimeOffset finish, 
             SharedAccessBlobPermissions permissions)
         {
             ICloudBlob blob = GetBlockBlobReference(blobName);
 
-            string sharedAccessSignature = GetSharedAccessSignature(blob, start, finish, permissions);
+            string sharedAccessSignature = GetSharedAccessSignature(blob, finish, permissions);
 
             return $"{blob.Uri}{sharedAccessSignature}";
         }
@@ -59,11 +59,10 @@ namespace CalculateFunding.Services.Core.AzureStorage
                 Initialize();
         }
 
-        string GetSharedAccessSignature(ICloudBlob blob, DateTimeOffset start, DateTimeOffset finish, SharedAccessBlobPermissions permissions)
+        string GetSharedAccessSignature(ICloudBlob blob, DateTimeOffset finish, SharedAccessBlobPermissions permissions)
         {
             var sasConstraints = new SharedAccessBlobPolicy
             {
-                SharedAccessStartTime = start,
                 SharedAccessExpiryTime = finish,
                 Permissions = permissions
             };

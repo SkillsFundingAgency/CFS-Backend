@@ -85,7 +85,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Datasets", "CalculateFunding.Services.Datasets\CalculateFunding.Services.Datasets.csproj", "{3BE76B50-D4FF-4C1D-8A33-26DDF8AAECB4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.Datasets.UnitTests", "CalculateFunding.Services.Datasets.UnitTests\CalculateFunding.Services.Datasets.UnitTests.csproj", "{5321EDED-2A98-4BC5-BBFE-246D1A2D0908}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Datasets.UnitTests", "CalculateFunding.Services.Datasets.UnitTests\CalculateFunding.Services.Datasets.UnitTests.csproj", "{5321EDED-2A98-4BC5-BBFE-246D1A2D0908}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

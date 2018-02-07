@@ -43,6 +43,9 @@ namespace CalculateFunding.Functions.Datasets
               .AddScoped<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();
 
             builder
+              .AddScoped<IValidator<DatasetMetadataModel>, DatasetMetadataModelValidator>();
+
+            builder
                 .AddScoped<IBlobClient, BlobClient>((ctx) =>
                 {
                     AzureStorageSettings storageSettings = new AzureStorageSettings();
@@ -72,6 +75,8 @@ namespace CalculateFunding.Functions.Datasets
                 .AddSingleton(dataSetsConfig.CreateMapper());
 
             builder.AddCosmosDb(config);
+
+            builder.AddSearch(config);
             
             builder.AddLogging(config, "CalculateFunding.Functions.Datasets");
         }

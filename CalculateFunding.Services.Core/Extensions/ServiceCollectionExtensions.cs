@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces.Logging;
@@ -50,6 +51,9 @@ namespace CalculateFunding.Services.Core.Extensions
 
             builder
                 .AddScoped<ISearchRepository<CalculationIndex>, SearchRepository<CalculationIndex>>();
+
+            builder
+              .AddScoped<ISearchRepository<DatasetIndex>, SearchRepository<DatasetIndex>>();
 
             return builder;
         }

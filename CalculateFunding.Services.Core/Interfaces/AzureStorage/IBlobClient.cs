@@ -7,7 +7,7 @@ namespace CalculateFunding.Services.Core.Interfaces.AzureStorage
 {
     public interface IBlobClient
     {
-        string GetBlobSasUrl(string blobName, DateTimeOffset start, DateTimeOffset finish,
+        string GetBlobSasUrl(string blobName, DateTimeOffset finish,
             SharedAccessBlobPermissions permissions);
 
         void Initialize();

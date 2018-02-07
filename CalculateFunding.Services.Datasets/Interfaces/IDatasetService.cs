@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,5 +13,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> CreateNewDataset(HttpRequest request);
 
         Task<IActionResult> GetDatasetByName(HttpRequest request);
+
+        Task SaveNewDataset(ICloudBlob blob);
     }
 }

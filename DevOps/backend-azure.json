@@ -411,6 +411,10 @@
             {
               "name": "DatasetStorage",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "AzureStorageSettings:ConnectionString",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
             }
           ]
         }
@@ -519,6 +523,10 @@
             {
               "name": "ProvidersStorage",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('calcsStorageAccountName'), ';AccountKey=', listKeys(variables('calcsStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "AzureStorageSettings:ConnectionString",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
             }
           ]
         }
@@ -621,6 +629,10 @@
             {
               "name": "SearchServiceKey",
               "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
+            },
+            {
+              "name": "AzureStorageSettings:ConnectionString",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
             }
           ]
         }
@@ -724,8 +736,11 @@
             {
               "name": "SearchServiceKey",
               "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
+            },
+            {
+              "name": "AzureStorageSettings:ConnectionString",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
             }
-
 
           ]
         }
@@ -785,6 +800,10 @@
             {
               "name": "CosmosDbSettings:ConnectionString",
               "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+            },
+            {
+              "name": "AzureStorageSettings:ConnectionString",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
             }
           ]
         }
@@ -887,6 +906,10 @@
             {
               "name": "SearchServiceKey",
               "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
+            },
+            {
+              "name": "AzureStorageSettings:ConnectionString",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
             }
           ]
         }

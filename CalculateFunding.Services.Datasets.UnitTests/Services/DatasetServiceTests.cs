@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
@@ -240,7 +242,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobSasUrl(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>())
+                .GetBlobSasUrl(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>())
                 .Returns(blobUrl);
 
             IMapper mapper = CreateMapper();
@@ -259,7 +261,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .BeOfType<OkObjectResult>();
 
             responseModel
-                .DatsetId
+                .DatasetId
                 .Should()
                 .NotBeNullOrWhiteSpace();
 
@@ -281,13 +283,176 @@ namespace CalculateFunding.Services.Datasets.Services
                .Be(UserId);
         }
 
+        [TestMethod]
+        public void SaveNewDataset_GivenNullBlobProvided_ThrowsArgumentNullException()
+        {
+            //Arrange
+            ICloudBlob blob = null;
+
+            ILogger logger = CreateLogger();
+            DatasetService service = CreateDatasetService(logger: logger);
+
+            //Act
+            Func<Task> test = async () => await service.SaveNewDataset(blob);
+
+            //Assert
+            test
+              .ShouldThrowExactly<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void SaveNewDataset_GivenNullBlobMetadataFound_ThrowsArgumentNullException()
+        {
+            //Arrange
+            IDictionary<string, string> metaData = null;
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            ILogger logger = CreateLogger();
+            DatasetService service = CreateDatasetService(logger: logger);
+
+            //Act
+            Func<Task> test = async () => await service.SaveNewDataset(blob);
+
+            //Assert
+            test
+              .ShouldThrowExactly<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void SaveNewDataset_GivenBlobWithMetaDataButFailsValidations_ThrowsException()
+        {
+            //Arrange
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+               .Name
+               .Returns("testname");
+
+            ILogger logger = CreateLogger();
+
+            ValidationResult validationResult = new ValidationResult(new[]{
+                    new ValidationFailure("prop1", "any error")
+                });
+
+            IValidator<DatasetMetadataModel> validator = CreateDatasetMetadataModelValidator(validationResult);
+
+            DatasetService service = CreateDatasetService(logger: logger, datasetMetadataModelValidator: validator);
+
+            //Act
+            Func<Task> test = async () => await service.SaveNewDataset(blob);
+
+            //Assert
+            test();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Invalid metadata on blob: testname"));
+
+            test
+              .ShouldThrowExactly<Exception>();
+        }
+
+        [TestMethod]
+        public void SaveNewDataset_GivenDataDefintionCouldNotBeFound_ThrowsException()
+        {
+            //Arrange
+            const string dataDefinitionId = "definition-id";
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", dataDefinitionId }
+            };
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+            blob
+                .Name
+                .Returns("testname");
+
+            ILogger logger = CreateLogger();
+
+            IDataSetsRepository dataSetsRepository = CreateDatasetsRepository();
+            dataSetsRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(Enumerable.Empty<DatasetDefinition>());
+
+            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: dataSetsRepository);
+
+            //Act
+            Func<Task> test = async () => await service.SaveNewDataset(blob);
+
+            //Assert
+            test();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Unable to find a data definition for id: definition-id, for blob: testname"));
+
+            test
+              .ShouldThrowExactly<Exception>();
+        }
+
+        [TestMethod]
+        public void SaveNewDataset_GivenModelButFailedToSave_ThrowsException()
+        {
+            //Arrange
+            const string dataDefinitionId = "definition-id";
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", dataDefinitionId }
+            };
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+            blob
+                .Name
+                .Returns("testname");
+
+            ILogger logger = CreateLogger();
+
+            IDataSetsRepository dataSetsRepository = CreateDatasetsRepository();
+            dataSetsRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(Enumerable.Empty<DatasetDefinition>());
+
+            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: dataSetsRepository);
+
+            //Act
+            Func<Task> test = async () => await service.SaveNewDataset(blob);
+
+            //Assert
+            test();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Unable to find a data definition for id: definition-id, for blob: testname"));
+
+            test
+              .ShouldThrowExactly<Exception>();
+        }
+
         static DatasetService CreateDatasetService(IBlobClient blobClient = null, ILogger logger = null, 
             IDataSetsRepository datasetRepository = null, 
-            IValidator<CreateNewDatasetModel> createNewDatasetModelValidator = null, IMapper mapper = null)
+            IValidator<CreateNewDatasetModel> createNewDatasetModelValidator = null, IMapper mapper = null,
+            IValidator<DatasetMetadataModel> datasetMetadataModelValidator = null, ISearchRepository<DatasetIndex> searchRepository = null)
         {
             return new DatasetService(blobClient ?? CreateBlobClient(), logger ?? CreateLogger(), 
                 datasetRepository ?? CreateDatasetsRepository(), 
-                createNewDatasetModelValidator ?? CreateNewDatasetModelValidator(), mapper ?? CreateMapper());
+                createNewDatasetModelValidator ?? CreateNewDatasetModelValidator(), mapper ?? CreateMapper(),
+                datasetMetadataModelValidator ?? CreateDatasetMetadataModelValidator(), searchRepository ?? CreateSearchRepository());
+        }
+
+        static ISearchRepository<DatasetIndex> CreateSearchRepository()
+        {
+            return Substitute.For<ISearchRepository<DatasetIndex>>();
         }
 
         static IValidator<CreateNewDatasetModel> CreateNewDatasetModelValidator(ValidationResult validationResult = null)
@@ -299,6 +464,20 @@ namespace CalculateFunding.Services.Datasets.Services
 
             validator
                .ValidateAsync(Arg.Any<CreateNewDatasetModel>())
+               .Returns(validationResult);
+
+            return validator;
+        }
+
+        static IValidator<DatasetMetadataModel> CreateDatasetMetadataModelValidator(ValidationResult validationResult = null)
+        {
+            if (validationResult == null)
+                validationResult = new ValidationResult();
+
+            IValidator<DatasetMetadataModel> validator = Substitute.For<IValidator<DatasetMetadataModel>>();
+
+            validator
+               .ValidateAsync(Arg.Any<DatasetMetadataModel>())
                .Returns(validationResult);
 
             return validator;

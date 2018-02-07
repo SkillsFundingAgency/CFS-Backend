@@ -1,19 +1,11 @@
-using System;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using CalculateFunding.Functions.Calcs.ServiceBus;
-using CalculateFunding.Functions.Common;
-using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace CalculateFunding.Functions.Calcs
 {
