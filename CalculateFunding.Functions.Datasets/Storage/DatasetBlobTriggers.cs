@@ -28,7 +28,7 @@ namespace CalculateFunding.Functions.Datasets.Storage
 
                     logger.Information($"Completed processing of blob: {name}");
                 }
-                catch(Exception exception)
+                catch (Exception exception)
                 {
                     logger.Error(exception, $"An error occcurred whilst processing blob: {name}");
                 }

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
@@ -31,10 +31,12 @@ namespace CalculateFunding.Services.Datasets
         private readonly IMapper _mapper;
         private readonly IValidator<DatasetMetadataModel> _datasetMetadataModelValidator;
         private readonly ISearchRepository<DatasetIndex> _searchRepository;
+        private readonly IValidator<GetDatasetBlobModel> _getDatasetBlobModelValidator;
 
-        public DatasetService(IBlobClient blobClient, ILogger logger, 
+        public DatasetService(IBlobClient blobClient, ILogger logger,
             IDatasetRepository datasetRepository, IValidator<CreateNewDatasetModel> createNewDatasetModelValidator,
-            IMapper mapper, IValidator<DatasetMetadataModel> datasetMetadataModelValidator, ISearchRepository<DatasetIndex> searchRepository)
+            IMapper mapper, IValidator<DatasetMetadataModel> datasetMetadataModelValidator,
+            ISearchRepository<DatasetIndex> searchRepository, IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator)
         {
             _blobClient = blobClient;
             _logger = logger;
@@ -43,6 +45,7 @@ namespace CalculateFunding.Services.Datasets
             _mapper = mapper;
             _datasetMetadataModelValidator = datasetMetadataModelValidator;
             _searchRepository = searchRepository;
+            _getDatasetBlobModelValidator = getDatasetBlobModelValidator;
         }
 
         async public Task<IActionResult> CreateNewDataset(HttpRequest request)
@@ -51,7 +54,7 @@ namespace CalculateFunding.Services.Datasets
 
             CreateNewDatasetModel model = JsonConvert.DeserializeObject<CreateNewDatasetModel>(json);
 
-            if(model == null)
+            if (model == null)
             {
                 _logger.Error("Null model name was provided to CreateNewDataset");
                 return new BadRequestObjectResult("Null model name was provided");
@@ -67,7 +70,7 @@ namespace CalculateFunding.Services.Datasets
 
             string fileName = $"{datasetId}/{version}/{model.Filename}";
 
-            string blobUrl = _blobClient.GetBlobSasUrl(fileName, 
+            string blobUrl = _blobClient.GetBlobSasUrl(fileName,
                 DateTimeOffset.UtcNow.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
 
             CreateNewDatasetResponseModel responseModel = _mapper.Map<CreateNewDatasetResponseModel>(model);
@@ -106,6 +109,51 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(datasets.FirstOrDefault());
         }
 
+        async public Task<IActionResult> ValidateDataset(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            GetDatasetBlobModel model = JsonConvert.DeserializeObject<GetDatasetBlobModel>(json);
+
+            if (model == null)
+            {
+                _logger.Error("Null model name was provided to ValidateDataset");
+                return new BadRequestObjectResult("Null model name was provided");
+            }
+
+            var validationResult = (await _getDatasetBlobModelValidator.ValidateAsync(model)).PopulateModelState();
+
+            if (validationResult != null)
+                return validationResult;
+
+            string fullBlobName = model.ToString();
+
+            ICloudBlob blob = await _blobClient.GetBlobReferenceFromServerAsync(fullBlobName);
+
+            if (blob == null)
+            {
+                _logger.Error($"Failed to find blob with path: {fullBlobName}");
+                return new StatusCodeResult(412);
+            }
+
+            //TODO: Validate the data set here
+
+            if (model.Version == 1)
+            {
+                try
+                {
+                    await SaveNewDataset(blob);
+                }
+                catch (Exception exception)
+                {
+                    _logger.Error(exception, "Failed to save the new dataset");
+                    return new StatusCodeResult(500);
+                }
+            }
+
+            return new OkResult();
+        }
+
         async public Task SaveNewDataset(ICloudBlob blob)
         {
             Guard.ArgumentNotNull(blob, nameof(blob));
@@ -125,10 +173,10 @@ namespace CalculateFunding.Services.Datasets
                 throw new Exception($"Invalid metadata on blob: {blob.Name}");
             }
 
-            DatasetDefinition datasetDefinition = 
+            DatasetDefinition datasetDefinition =
                 (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == metadataModel.DataDefinitionId)).FirstOrDefault();
 
-            if(datasetDefinition == null)
+            if (datasetDefinition == null)
             {
                 _logger.Error($"Unable to find a data definition for id: {metadataModel.DataDefinitionId}, for blob: {blob.Name}");
 
@@ -158,7 +206,7 @@ namespace CalculateFunding.Services.Datasets
 
             HttpStatusCode statusCode = await _datasetRepository.SaveDataset(dataset);
 
-            if(!statusCode.IsSuccess())
+            if (!statusCode.IsSuccess())
             {
                 _logger.Error($"Failed to save dataset for id: {metadataModel.DatasetId} with status code {statusCode.ToString()}");
 
@@ -170,7 +218,7 @@ namespace CalculateFunding.Services.Datasets
             if (indexErrors.Any())
             {
                 string errors = string.Join(";", indexErrors.Select(m => m.ErrorMessage).ToArraySafe());
-                
+
                 _logger.Error($"Failed to save dataset for id: {metadataModel.DatasetId} in search with errors {errors}");
 
                 throw new Exception($"Failed to save dataset for id: {metadataModel.DatasetId} in search with errors {errors}");

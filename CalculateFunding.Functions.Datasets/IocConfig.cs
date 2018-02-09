@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.MappingProfiles;
@@ -14,7 +13,6 @@ using CalculateFunding.Services.Datasets.Validators;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Serilog;
 
 namespace CalculateFunding.Functions.Datasets
 {
@@ -44,6 +42,9 @@ namespace CalculateFunding.Functions.Datasets
 
             builder
               .AddScoped<IValidator<DatasetMetadataModel>, DatasetMetadataModelValidator>();
+
+            builder
+                .AddScoped<IValidator<GetDatasetBlobModel>, GetDatasetBlobModelValidator>();
 
             builder
                 .AddScoped<IBlobClient, BlobClient>((ctx) =>

@@ -1,4 +1,4 @@
-﻿using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -14,9 +14,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         private readonly IDatasetService _datasetService;
         private readonly IDatasetSearchService _datasetSearchService;
 
-        public DatasetsController(IServiceProvider serviceProvider, 
-            IDefinitionsService definitionService, IDatasetService datasetService, IDatasetSearchService datasetSearchService) 
-            : base (serviceProvider)
+        public DatasetsController(IServiceProvider serviceProvider,
+            IDefinitionsService definitionService, IDatasetService datasetService, IDatasetSearchService datasetSearchService)
+            : base(serviceProvider)
         {
             Guard.ArgumentNotNull(definitionService, nameof(definitionService));
             Guard.ArgumentNotNull(datasetService, nameof(datasetService));
@@ -61,6 +61,15 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
             return _datasetSearchService.SearchDatasets(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/datasets/validate-dataset")]
+        [HttpPost]
+        public Task<IActionResult> RunValidateDataset()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _datasetService.ValidateDataset(ControllerContext.HttpContext.Request);
         }
     }
 }

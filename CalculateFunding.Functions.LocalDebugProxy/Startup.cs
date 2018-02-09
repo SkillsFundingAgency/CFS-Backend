@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -133,7 +133,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
               .AddScoped<ICalculationsSearchService, CalculationSearchService>();
 
             builder
-              .AddScoped<IDatasetSearchService, DatasetSearchService>();
+                .AddScoped<IDatasetSearchService, DatasetSearchService>();
 
             builder
                 .AddScoped<IValidator<Models.Calcs.Calculation>, CalculationModelValidator>();
@@ -203,7 +203,10 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                .AddScoped<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();
 
             builder
-             .AddScoped<IValidator<DatasetMetadataModel>, DatasetMetadataModelValidator>();
+                .AddScoped<IValidator<DatasetMetadataModel>, DatasetMetadataModelValidator>();
+
+            builder
+                .AddScoped<IValidator<GetDatasetBlobModel>, GetDatasetBlobModelValidator>();
 
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
             builder

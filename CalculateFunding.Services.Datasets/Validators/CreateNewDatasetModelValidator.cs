@@ -41,9 +41,12 @@ namespace CalculateFunding.Services.Datasets.Validators
                 CreateNewDatasetModel model = context.ParentContext.InstanceToValidate as CreateNewDatasetModel;
                 if (string.IsNullOrWhiteSpace(model.Name))
                     context.AddFailure("You must give a unique dataset name");
-                IEnumerable<Dataset> datasets = _datasetsRepository.GetDatasetsByQuery(m => m.Name.ToLower() == model.Name.ToLower()).Result;
-                if(datasets.Any())
-                    context.AddFailure("You must give a unique dataset name");
+                else
+                {
+                    IEnumerable<Dataset> datasets = _datasetsRepository.GetDatasetsByQuery(m => m.Name.ToLower() == model.Name.ToLower()).Result;
+                    if (datasets != null && datasets.Any())
+                        context.AddFailure("You must give a unique dataset name");
+                }
             });
 
         }

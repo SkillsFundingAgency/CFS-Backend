@@ -15,5 +15,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> GetDatasetByName(HttpRequest request);
 
         Task SaveNewDataset(ICloudBlob blob);
+
+        Task<IActionResult> ValidateDataset(HttpRequest request);
     }
 }

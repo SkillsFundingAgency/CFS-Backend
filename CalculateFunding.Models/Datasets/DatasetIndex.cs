@@ -1,4 +1,4 @@
-﻿using Microsoft.Azure.Search;
+using Microsoft.Azure.Search;
 using Newtonsoft.Json;
 using System;
 using System.ComponentModel.DataAnnotations;
