@@ -10,7 +10,7 @@ using Serilog;
 
 namespace CalculateFunding.Functions.Datasets.Http
 {
-    public class Datasets
+    public static class Datasets
     {
         [FunctionName("datasets-search")]
         public static Task<IActionResult> RunSearchDataDefinitions(
@@ -21,6 +21,30 @@ namespace CalculateFunding.Functions.Datasets.Http
                 IDatasetSearchService svc = scope.ServiceProvider.GetService<IDatasetSearchService>();
 
                 return svc.SearchDatasets(req);
+            }
+        }
+
+        [FunctionName("create-new-dataset")]
+        public static Task<IActionResult> RunCreateDataset(
+         [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IDatasetService svc = scope.ServiceProvider.GetService<IDatasetService>();
+
+                return svc.CreateNewDataset(req);
+            }
+        }
+
+        [FunctionName("validate-dataset")]
+        public static Task<IActionResult> RunValidateDataset(
+        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IDatasetService svc = scope.ServiceProvider.GetService<IDatasetService>();
+
+                return svc.ValidateDataset(req);
             }
         }
     }
