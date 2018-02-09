@@ -9,11 +9,11 @@ namespace CalculateFunding.Services.Datasets.Validators
 {
     public class CreateNewDatasetModelValidator : AbstractValidator<CreateNewDatasetModel>
     {
-        private readonly IDataSetsRepository _datasetsRepository;
+        private readonly IDatasetRepository _datasetsRepository;
 
         private IEnumerable<string> validExtensions = new[] { ".csv", ".xls", ".xlsx" };
 
-        public CreateNewDatasetModelValidator(IDataSetsRepository datasetsRepository)
+        public CreateNewDatasetModelValidator(IDatasetRepository datasetsRepository)
         {
             _datasetsRepository = datasetsRepository;
 

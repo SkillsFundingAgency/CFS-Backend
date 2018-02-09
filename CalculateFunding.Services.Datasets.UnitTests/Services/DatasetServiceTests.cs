@@ -76,7 +76,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            IDataSetsRepository datasetsRepository = CreateDatasetsRepository();
+            IDatasetRepository datasetsRepository = CreateDatasetsRepository();
             datasetsRepository
                  .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
                  .Returns(datasets);
@@ -118,7 +118,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            IDataSetsRepository datasetsRepository = CreateDatasetsRepository();
+            IDatasetRepository datasetsRepository = CreateDatasetsRepository();
             datasetsRepository
                  .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
                  .Returns(datasets);
@@ -376,7 +376,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            IDataSetsRepository dataSetsRepository = CreateDatasetsRepository();
+            IDatasetRepository dataSetsRepository = CreateDatasetsRepository();
             dataSetsRepository
                 .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
                 .Returns(Enumerable.Empty<DatasetDefinition>());
@@ -418,7 +418,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            IDataSetsRepository dataSetsRepository = CreateDatasetsRepository();
+            IDatasetRepository dataSetsRepository = CreateDatasetsRepository();
             dataSetsRepository
                 .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
                 .Returns(Enumerable.Empty<DatasetDefinition>());
@@ -440,7 +440,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         static DatasetService CreateDatasetService(IBlobClient blobClient = null, ILogger logger = null, 
-            IDataSetsRepository datasetRepository = null, 
+            IDatasetRepository datasetRepository = null, 
             IValidator<CreateNewDatasetModel> createNewDatasetModelValidator = null, IMapper mapper = null,
             IValidator<DatasetMetadataModel> datasetMetadataModelValidator = null, ISearchRepository<DatasetIndex> searchRepository = null)
         {
@@ -498,9 +498,9 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<IMapper>();
         }
 
-        static IDataSetsRepository CreateDatasetsRepository()
+        static IDatasetRepository CreateDatasetsRepository()
         {
-            return Substitute.For<IDataSetsRepository>();
+            return Substitute.For<IDatasetRepository>();
         }
     }
 }

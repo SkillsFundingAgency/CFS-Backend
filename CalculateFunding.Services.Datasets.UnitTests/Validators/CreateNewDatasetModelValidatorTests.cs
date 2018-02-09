@@ -155,7 +155,7 @@ namespace CalculateFunding.Services.Datasets.Validators
                 new Dataset()
             };
 
-            IDataSetsRepository repository = CreateDatasetsRepository(true);
+            IDatasetRepository repository = CreateDatasetsRepository(true);
             repository
                 .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
                 .Returns(datasets);
@@ -235,14 +235,14 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
 
-        static CreateNewDatasetModelValidator CreateValidator(IDataSetsRepository datasetsRepository = null)
+        static CreateNewDatasetModelValidator CreateValidator(IDatasetRepository datasetsRepository = null)
         {
             return new CreateNewDatasetModelValidator(datasetsRepository ?? CreateDatasetsRepository());
         }
 
-        static IDataSetsRepository CreateDatasetsRepository(bool hasDataset = false)
+        static IDatasetRepository CreateDatasetsRepository(bool hasDataset = false)
         {
-            IDataSetsRepository repository = Substitute.For<IDataSetsRepository>();
+            IDatasetRepository repository = Substitute.For<IDatasetRepository>();
 
             repository
                 .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())

@@ -55,6 +55,9 @@ namespace CalculateFunding.Services.Core.Extensions
             builder
               .AddScoped<ISearchRepository<DatasetIndex>, SearchRepository<DatasetIndex>>();
 
+            builder
+              .AddScoped<ISearchRepository<DatasetIndex>, SearchRepository<DatasetIndex>>();
+
             return builder;
         }
 

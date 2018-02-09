@@ -19,7 +19,7 @@ namespace CalculateFunding.Models.Datasets
         [JsonProperty("name")]
         public string Name { get; set; }
 
-        [IsFilterable, IsSortable, IsSearchable, IsFacetable]
+        [IsFilterable, IsSortable, IsFacetable]
         [JsonProperty("periodNames")]
         public string[] PeriodNames { get; set; }
 
@@ -40,7 +40,7 @@ namespace CalculateFunding.Models.Datasets
 
         [IsFilterable, IsSortable]
         [JsonProperty("lastUpdatedDate")]
-        public DateTimeOffset? LastUpdatedDate { get; set; }
+        public DateTimeOffset LastUpdatedDate { get; set; }
 
         [JsonProperty("specificationIds")]
         public string[] SpecificationIds { get; set; }

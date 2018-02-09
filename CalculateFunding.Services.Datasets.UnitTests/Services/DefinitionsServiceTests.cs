@@ -138,7 +138,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             HttpStatusCode failedCode = HttpStatusCode.BadGateway;
 
-            IDataSetsRepository dataSetsRepository = CreateDataSetsRepository();
+            IDatasetRepository dataSetsRepository = CreateDataSetsRepository();
             dataSetsRepository
                 .SaveDefinition(Arg.Any<DatasetDefinition>())
                 .Returns(failedCode);
@@ -187,7 +187,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            IDataSetsRepository dataSetsRepository = CreateDataSetsRepository();
+            IDatasetRepository dataSetsRepository = CreateDataSetsRepository();
             dataSetsRepository
                 .When(x => x.SaveDefinition(Arg.Any<DatasetDefinition>()))
                 .Do(x => { throw new Exception(); });
@@ -238,7 +238,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             HttpStatusCode statusCode = HttpStatusCode.Created;
 
-            IDataSetsRepository dataSetsRepository = CreateDataSetsRepository();
+            IDatasetRepository dataSetsRepository = CreateDataSetsRepository();
             dataSetsRepository
                 .SaveDefinition(Arg.Any<DatasetDefinition>())
                 .Returns(statusCode);
@@ -266,7 +266,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IEnumerable<DatasetDefinition> definitions = new DatasetDefinition[0];
 
-            IDataSetsRepository repository = CreateDataSetsRepository();
+            IDatasetRepository repository = CreateDataSetsRepository();
             repository
                 .GetDatasetDefinitions()
                 .Returns(definitions);
@@ -302,7 +302,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 new DatasetDefinition(), new DatasetDefinition()
             };
 
-            IDataSetsRepository repository = CreateDataSetsRepository();
+            IDatasetRepository repository = CreateDataSetsRepository();
             repository
                 .GetDatasetDefinitions()
                 .Returns(definitions);
@@ -327,7 +327,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Be(2);
         }
 
-        static DefinitionsService CreateDefinitionsService(ILogger logger = null, IDataSetsRepository dataSetsRepository = null)
+        static DefinitionsService CreateDefinitionsService(ILogger logger = null, IDatasetRepository dataSetsRepository = null)
         {
             return new DefinitionsService(logger ?? CreateLogger(), dataSetsRepository ?? CreateDataSetsRepository());
         }
@@ -337,9 +337,9 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<ILogger>();
         }
 
-        static IDataSetsRepository CreateDataSetsRepository()
+        static IDatasetRepository CreateDataSetsRepository()
         {
-            return Substitute.For<IDataSetsRepository>();
+            return Substitute.For<IDatasetRepository>();
         }
 
         static string CreateRawDefinition()

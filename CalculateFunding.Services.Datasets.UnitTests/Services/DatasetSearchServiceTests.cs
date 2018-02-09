@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Models;
-using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Datasets;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,10 +20,10 @@ using System.Threading.Tasks;
 namespace CalculateFunding.Services.Calcs.Services
 {
     [TestClass]
-    public class CalculationSearchServiceTests
+    public class DatasetSearchServiceTests
     {
         [TestMethod]
-        public async Task SearchCalculation_SearchRequestFails_ThenBadRequestReturned()
+        public async Task SearchDataset_SearchRequestFails_ThenBadRequestReturned()
         {
             //Arrange
             SearchModel model = new SearchModel()
@@ -44,17 +45,17 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
 
             searchRepository
                 .When(s => s.Search(Arg.Any<string>(), Arg.Any<SearchParameters>()))
                     .Do(x => { throw new FailedToQuerySearchException("Test Message", null); });
 
 
-            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+            DatasetSearchService service = CreateDatasetSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchDatasets(request);
 
             //Assert
             logger
@@ -68,24 +69,24 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task SearchCalculation_GivenNullSearchModel_LogsAndCreatesDefaultSearcModel()
+        public async Task SearchDataset_GivenNullSearchModel_LogsAndCreatesDefaultSearchModel()
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
 
-            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+            DatasetSearchService service = CreateDatasetSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchDatasets(request);
 
             //Assert
             logger
                 .Received(1)
-                .Error("A null or invalid search model was provided for searching calculations");
+                .Error("A null or invalid search model was provided for searching datasets");
 
             result
                  .Should()
@@ -93,7 +94,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task SearchCalculation_GivenPageNumberIsZero_LogsAndReturnsBadRequest()
+        public async Task SearchDataset_GivenPageNumberIsZero_LogsAndReturnsBadRequest()
         {
             //Arrange
             SearchModel model = new SearchModel();
@@ -108,17 +109,17 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
 
-            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+            DatasetSearchService service = CreateDatasetSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchDatasets(request);
 
             //Assert
             logger
                 .Received(1)
-                .Error("A null or invalid search model was provided for searching calculations");
+                .Error("A null or invalid search model was provided for searching datasets");
 
             result
                  .Should()
@@ -126,7 +127,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task SearchCalculation_GivenPageTopIsZero_LogsAndReturnsBadRequest()
+        public async Task SearchDataset_GivenPageTopIsZero_LogsAndReturnsBadRequest()
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -146,17 +147,17 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
 
-            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+            DatasetSearchService service = CreateDatasetSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchDatasets(request);
 
             //Assert
             logger
                 .Received(1)
-                .Error("A null or invalid search model was provided for searching calculations");
+                .Error("A null or invalid search model was provided for searching datasets");
 
             result
                  .Should()
@@ -164,7 +165,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task SearchCalculation_GivenValidModelAndIncludesGettingFacets_CallsSearchSevenTimes()
+        public async Task SearchDataset_GivenValidModelAndIncludesGettingFacets_CallsSearchFiveTimes()
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -183,19 +184,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Body
                 .Returns(stream);
 
-            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
+            SearchResults<DatasetIndex> searchResults = new SearchResults<DatasetIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
 
-            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+            DatasetSearchService service = CreateDatasetSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchDatasets(request);
 
             //Assert
             result
@@ -204,13 +205,13 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(7)
+                    .Received(5)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
 
         }
 
         [TestMethod]
-        public async Task SearchCalculation_GivenValidModelWithNullFilters_ThenSearchIsStillPerformed()
+        public async Task SearchDataset_GivenValidModelWithNullFilters_ThenSearchIsStillPerformed()
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -230,19 +231,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Body
                 .Returns(stream);
 
-            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
+            SearchResults<DatasetIndex> searchResults = new SearchResults<DatasetIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
 
-            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+            DatasetSearchService service = CreateDatasetSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchDatasets(request);
 
             //Assert
             result
@@ -251,13 +252,13 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(7)
+                    .Received(5)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
 
         }
 
         [TestMethod]
-        public async Task SearchCalculation_GivenValidModelWithOneFilter_ThenSearchIsPerformed()
+        public async Task SearchDataset_GivenValidModelWithOneFilter_ThenSearchIsPerformed()
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -281,19 +282,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Body
                 .Returns(stream);
 
-            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
+            SearchResults<DatasetIndex> searchResults = new SearchResults<DatasetIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
 
-            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+            DatasetSearchService service = CreateDatasetSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchDatasets(request);
 
             //Assert
             result
@@ -302,7 +303,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(6)
+                .Received(4)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -310,7 +311,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task SearchCalculation_GivenValidModelWithOneFilterWhichIsMultiValueFacet_ThenSearchIsPerformed()
+        public async Task SearchDataset_GivenValidModelWithOneFilterWhichIsMultiValueFacet_ThenSearchIsPerformed()
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -320,7 +321,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 IncludeFacets = true,
                 Filters = new Dictionary<string, string[]>()
                 {
-                    { "policySpecificationNames", new string []{ "test" } }
+                    { "specificationNames", new string []{ "test" } }
                 },
                 SearchTerm = "testTerm",
             };
@@ -334,19 +335,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Body
                 .Returns(stream);
 
-            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
+            SearchResults<DatasetIndex> searchResults = new SearchResults<DatasetIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
 
-            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+            DatasetSearchService service = CreateDatasetSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchDatasets(request);
 
             //Assert
             result
@@ -355,7 +356,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(6)
+                .Received(4)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -363,7 +364,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task SearchCalculation_GivenValidModelWithMultipleFilterValuesWhichIsMultiValueFacet_ThenSearchIsPerformed()
+        public async Task SearchDataset_GivenValidModelWithMultipleFilterValuesWhichIsMultiValueFacet_ThenSearchIsPerformed()
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -373,7 +374,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 IncludeFacets = true,
                 Filters = new Dictionary<string, string[]>()
                 {
-                    { "policySpecificationNames", new string []{ "test", "test2" } }
+                    { "specificationNames", new string []{ "test", "test2" } }
                 },
                 SearchTerm = "testTerm",
             };
@@ -387,19 +388,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Body
                 .Returns(stream);
 
-            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
+            SearchResults<DatasetIndex> searchResults = new SearchResults<DatasetIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
 
-            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+            DatasetSearchService service = CreateDatasetSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchDatasets(request);
 
             //Assert
             result
@@ -408,7 +409,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(6)
+                .Received(4)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -416,7 +417,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task SearchCalculation_GivenValidModelWithMultipleOfSameFilter_ThenSearchIsPerformed()
+        public async Task SearchDataset_GivenValidModelWithMultipleOfSameFilter_ThenSearchIsPerformed()
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -440,19 +441,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Body
                 .Returns(stream);
 
-            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
+            SearchResults<DatasetIndex> searchResults = new SearchResults<DatasetIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
 
-            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+            DatasetSearchService service = CreateDatasetSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchDatasets(request);
 
             //Assert
             result
@@ -461,7 +462,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(6)
+                .Received(4)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -469,7 +470,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task SearchCalculation_GivenValidModelWithNullFilterWithMultipleOfSameFilter_ThenSearchIsPerformed()
+        public async Task SearchDataset_GivenValidModelWithNullFilterWithMultipleOfSameFilter_ThenSearchIsPerformed()
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -493,19 +494,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Body
                 .Returns(stream);
 
-            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
+            SearchResults<DatasetIndex> searchResults = new SearchResults<DatasetIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
 
-            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+            DatasetSearchService service = CreateDatasetSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchDatasets(request);
 
             //Assert
             result
@@ -514,7 +515,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(6)
+                .Received(4)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -522,7 +523,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task SearchCalculation_GivenValidModelAndDoesntIncludeGettingFacets_CallsSearchOnce()
+        public async Task SearchDataset_GivenValidModelAndDoesntIncludeGettingFacets_CallsSearchOnce()
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -540,19 +541,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Body
                 .Returns(stream);
 
-            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
+            SearchResults<DatasetIndex> searchResults = new SearchResults<DatasetIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
 
-            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+            DatasetSearchService service = CreateDatasetSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchDatasets(request);
 
             //Assert
             result
@@ -566,7 +567,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task SearchCalculation_GivenValidModelAndPageNumber2_CallsSearchWithCorrectSkipValue()
+        public async Task SearchDataset_GivenValidModelAndPageNumber2_CallsSearchWithCorrectSkipValue()
         {
             //Arrange
             const int skipValue = 50;
@@ -586,19 +587,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Body
                 .Returns(stream);
 
-            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
+            SearchResults<DatasetIndex> searchResults = new SearchResults<DatasetIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
 
-            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+            DatasetSearchService service = CreateDatasetSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchDatasets(request);
 
             //Assert
             result
@@ -612,7 +613,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task SearchCalculation_GivenValidModelAndPageNumber10_CallsSearchWithCorrectSkipValue()
+        public async Task SearchDataset_GivenValidModelAndPageNumber10_CallsSearchWithCorrectSkipValue()
         {
             //Arrange
             const int skipValue = 450;
@@ -632,19 +633,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Body
                 .Returns(stream);
 
-            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>();
+            SearchResults<DatasetIndex> searchResults = new SearchResults<DatasetIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
 
-            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+            DatasetSearchService service = CreateDatasetSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchDatasets(request);
 
             //Assert
             result
@@ -658,7 +659,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task SearchCalculation_GivenValidModel_CallsSearchWithCorrectSkipValue()
+        public async Task SearchDataset_GivenValidModel_CallsSearchWithCorrectSkipValue()
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -677,28 +678,28 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Body
                 .Returns(stream);
 
-            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>
+            SearchResults<DatasetIndex> searchResults = new SearchResults<DatasetIndex>
             {
                 Facets = new List<Facet>
                 {
                     new Facet
                     {
-                        Name = "allocationLineName"
+                        Name = "specificationNames"
                     }
                 }
             };
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
 
-            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+            DatasetSearchService service = CreateDatasetSearchService(logger: logger, serachRepository: searchRepository);
 
             //Act
-            IActionResult result = await service.SearchCalculations(request);
+            IActionResult result = await service.SearchDatasets(request);
 
             //Assert
             result
@@ -707,14 +708,14 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(7)
+                    .Received(5)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 
-        static CalculationSearchService CreateCalculationSearchService(
-           ILogger logger = null, ISearchRepository<CalculationIndex> serachRepository = null)
+        static DatasetSearchService CreateDatasetSearchService(
+           ILogger logger = null, ISearchRepository<DatasetIndex> serachRepository = null)
         {
-            return new CalculationSearchService(
+            return new DatasetSearchService(
                 logger ?? CreateLogger(), serachRepository ?? CreateSearchRepository());
         }
 
@@ -723,9 +724,9 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ILogger>();
         }
 
-        static ISearchRepository<CalculationIndex> CreateSearchRepository()
+        static ISearchRepository<DatasetIndex> CreateSearchRepository()
         {
-            return Substitute.For<ISearchRepository<CalculationIndex>>();
+            return Substitute.For<ISearchRepository<DatasetIndex>>();
         }
     }
 }

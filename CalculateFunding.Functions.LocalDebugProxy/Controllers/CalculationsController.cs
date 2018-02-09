@@ -22,7 +22,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
         [Route("api/calcs/calculations-search")]
         [HttpPost]
-        public Task<IActionResult> RunSpecificationsByYear()
+        public Task<IActionResult> RunCalculationsSearch()
         {
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
@@ -58,7 +58,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
         [Route("api/calcs/calculation-version-history")]
         [HttpGet]
-        public Task<IActionResult> RunCalculationVersions()
+        public Task<IActionResult> RunCalculationVersionHistory()
         {
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
@@ -67,7 +67,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
         [Route("api/calcs/calculation-versions")]
         [HttpPost]
-        public Task<IActionResult> RunCalculationCompareVersions()
+        public Task<IActionResult> RunCalculationVersions()
         {
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 

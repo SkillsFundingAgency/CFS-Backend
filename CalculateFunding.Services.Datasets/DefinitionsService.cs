@@ -18,9 +18,9 @@ namespace CalculateFunding.Services.Datasets
     public class DefinitionsService : IDefinitionsService
     {
         private readonly ILogger _logger;
-        private readonly IDataSetsRepository _dataSetsRepository;
+        private readonly IDatasetRepository _dataSetsRepository;
 
-        public DefinitionsService(ILogger logger, IDataSetsRepository dataSetsRepository)
+        public DefinitionsService(ILogger logger, IDatasetRepository dataSetsRepository)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(dataSetsRepository, nameof(dataSetsRepository));

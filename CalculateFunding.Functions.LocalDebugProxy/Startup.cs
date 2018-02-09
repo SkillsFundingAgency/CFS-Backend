@@ -21,6 +21,8 @@ using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -36,6 +38,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Serilog;
 
 namespace CalculateFunding.Functions.LocalDebugProxy
 {
@@ -48,7 +51,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
         public IConfiguration Configuration { get; }
 
-        
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -110,7 +113,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
               .AddScoped<IDatasetService, DatasetService>();
 
-            builder.AddScoped<IDataSetsRepository, DataSetsRepository>((ctx) =>
+            builder.AddScoped<IDatasetRepository, DataSetsRepository>((ctx) =>
             {
                 CosmosDbSettings datasetsDbSettings = new CosmosDbSettings();
 
@@ -128,6 +131,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
             builder
               .AddScoped<ICalculationsSearchService, CalculationSearchService>();
+
+            builder
+              .AddScoped<IDatasetSearchService, DatasetSearchService>();
 
             builder
                 .AddScoped<IValidator<Models.Calcs.Calculation>, CalculationModelValidator>();
@@ -161,7 +167,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 return new BuildProjectsRepository(calcsCosmosRepostory);
             });
 
-           
+
 
             builder
                 .AddScoped<IPreviewService, PreviewService>();
@@ -196,6 +202,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                .AddScoped<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();
 
+            builder
+             .AddScoped<IValidator<DatasetMetadataModel>, DatasetMetadataModelValidator>();
+
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
             builder
                 .AddSingleton(mappingConfig.CreateMapper());
@@ -208,7 +217,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
             builder.AddServiceBus(config);
 
-            builder.AddLogging(config, "CalculateFunding.Functions.LocalDebugProxy");
+            builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
+
+            builder.AddScoped<Serilog.ILogger>(l => new LoggerConfiguration().WriteTo.Console().CreateLogger());
         }
     }
 }

@@ -57,7 +57,7 @@ namespace CalculateFunding.Functions.Datasets
                     return new BlobClient(storageSettings);
                 });
 
-            builder.AddScoped<IDataSetsRepository, DataSetsRepository>((ctx) =>
+            builder.AddScoped<IDatasetRepository, DataSetsRepository>((ctx) =>
             {
                 CosmosDbSettings datasetsDbSettings = new CosmosDbSettings();
 
@@ -69,6 +69,8 @@ namespace CalculateFunding.Functions.Datasets
 
                 return new DataSetsRepository(datasetsCosmosRepostory);
             });
+
+            builder.AddScoped<IDatasetSearchService, DatasetSearchService>();
 
             MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             builder

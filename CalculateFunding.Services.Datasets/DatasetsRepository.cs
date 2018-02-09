@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets
 {
-    public class DataSetsRepository : IDataSetsRepository
+    public class DataSetsRepository : IDatasetRepository
     {
         private readonly CosmosRepository _cosmosRepository;
 

@@ -26,14 +26,14 @@ namespace CalculateFunding.Services.Datasets
     {
         private readonly IBlobClient _blobClient;
         private readonly ILogger _logger;
-        private readonly IDataSetsRepository _datasetRepository;
+        private readonly IDatasetRepository _datasetRepository;
         private readonly IValidator<CreateNewDatasetModel> _createNewDatasetModelValidator;
         private readonly IMapper _mapper;
         private readonly IValidator<DatasetMetadataModel> _datasetMetadataModelValidator;
         private readonly ISearchRepository<DatasetIndex> _searchRepository;
 
         public DatasetService(IBlobClient blobClient, ILogger logger, 
-            IDataSetsRepository datasetRepository, IValidator<CreateNewDatasetModel> createNewDatasetModelValidator,
+            IDatasetRepository datasetRepository, IValidator<CreateNewDatasetModel> createNewDatasetModelValidator,
             IMapper mapper, IValidator<DatasetMetadataModel> datasetMetadataModelValidator, ISearchRepository<DatasetIndex> searchRepository)
         {
             _blobClient = blobClient;

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets.Interfaces
 {
-    public interface IDataSetsRepository
+    public interface IDatasetRepository
     {
         Task<HttpStatusCode> SaveDefinition(DatasetDefinition definition);
 
