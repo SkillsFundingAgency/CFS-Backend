@@ -6,15 +6,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Serilog;
-
 namespace CalculateFunding.Functions.Datasets.Http
 {
     public static class Datasets
     {
         [FunctionName("datasets-search")]
         public static Task<IActionResult> RunSearchDataDefinitions(
-         [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+         [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
         {
             using (IServiceScope scope = IocConfig.Build().CreateHttpScope(req))
             {
@@ -26,7 +24,7 @@ namespace CalculateFunding.Functions.Datasets.Http
 
         [FunctionName("create-new-dataset")]
         public static Task<IActionResult> RunCreateDataset(
-         [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+         [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
         {
             using (var scope = IocConfig.Build().CreateHttpScope(req))
             {
@@ -38,7 +36,7 @@ namespace CalculateFunding.Functions.Datasets.Http
 
         [FunctionName("validate-dataset")]
         public static Task<IActionResult> RunValidateDataset(
-        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
         {
             using (var scope = IocConfig.Build().CreateHttpScope(req))
             {
