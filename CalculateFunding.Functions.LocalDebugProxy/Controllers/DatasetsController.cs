@@ -36,7 +36,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _definitionService.SaveDefinition(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/datasets/data-definitions")]
+        [Route("api/datasets/get-data-definitions")]
         [HttpGet]
         public Task<IActionResult> RunGetDataDefinitions()
         {

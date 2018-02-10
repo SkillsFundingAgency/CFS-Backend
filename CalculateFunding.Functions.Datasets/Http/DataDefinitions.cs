@@ -24,7 +24,7 @@ namespace CalculateFunding.Functions.Datasets.Http
             }
         }
 
-        [FunctionName("data-definitions")]
+        [FunctionName("get-data-definitions")]
         public static Task<IActionResult> RunGetDataDefinitions(
          [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
         {
