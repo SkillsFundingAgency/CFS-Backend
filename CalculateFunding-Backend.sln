@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2026
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Models", "Models", "{539AB1D8-B007-4CB6-8355-918D498486E2}"
 EndProject
@@ -86,6 +86,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Datasets", "CalculateFunding.Services.Datasets\CalculateFunding.Services.Datasets.csproj", "{3BE76B50-D4FF-4C1D-8A33-26DDF8AAECB4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Datasets.UnitTests", "CalculateFunding.Services.Datasets.UnitTests\CalculateFunding.Services.Datasets.UnitTests.csproj", "{5321EDED-2A98-4BC5-BBFE-246D1A2D0908}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.Core.UnitTests", "CalculateFunding.Services.Core.UnitTests\CalculateFunding.Services.Core.UnitTests.csproj", "{766DB406-7185-4460-9CED-ED6CCC0061EB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -217,6 +219,10 @@ Global
 		{5321EDED-2A98-4BC5-BBFE-246D1A2D0908}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5321EDED-2A98-4BC5-BBFE-246D1A2D0908}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5321EDED-2A98-4BC5-BBFE-246D1A2D0908}.Release|Any CPU.Build.0 = Release|Any CPU
+		{766DB406-7185-4460-9CED-ED6CCC0061EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{766DB406-7185-4460-9CED-ED6CCC0061EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{766DB406-7185-4460-9CED-ED6CCC0061EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{766DB406-7185-4460-9CED-ED6CCC0061EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -254,6 +260,7 @@ Global
 		{F262052D-4815-451E-BB70-CC2156B0D651} = {42CC12ED-881F-4113-AFA0-742962C1DBD8}
 		{3BE76B50-D4FF-4C1D-8A33-26DDF8AAECB4} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
 		{5321EDED-2A98-4BC5-BBFE-246D1A2D0908} = {42CC12ED-881F-4113-AFA0-742962C1DBD8}
+		{766DB406-7185-4460-9CED-ED6CCC0061EB} = {42CC12ED-881F-4113-AFA0-742962C1DBD8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2FA36A0A-CA20-41CF-9BC2-FA6545720009}

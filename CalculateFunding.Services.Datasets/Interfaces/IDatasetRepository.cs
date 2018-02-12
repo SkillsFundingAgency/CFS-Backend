@@ -22,5 +22,11 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitionsByQuery(Expression<Func<DatasetDefinition, bool>> query);
 
         Task<HttpStatusCode> SaveDataset(Dataset dataset);
+
+        Task<HttpStatusCode> SaveDefinitionSpecificationRelationship(DefinitionSpecificationRelationship relationship);
+
+        Task<DatasetDefinition> GetDatasetDefinition(string definitionId);
+
+        Task<IEnumerable<DefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsByQuery(Expression<Func<DefinitionSpecificationRelationship, bool>> query);
     }
 }

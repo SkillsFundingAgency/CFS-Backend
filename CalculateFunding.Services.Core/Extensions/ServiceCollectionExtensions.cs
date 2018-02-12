@@ -3,9 +3,11 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Proxies;
 using CalculateFunding.Services.Core.ServiceBus;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
@@ -35,6 +37,23 @@ namespace CalculateFunding.Services.Core.Extensions
 
             builder
                 .AddScoped<CosmosRepository>();
+
+            return builder;
+        }
+
+        public static IServiceCollection AddInterServiceClient(this IServiceCollection builder, IConfigurationRoot config)
+        {
+            ApiOptions apiOptions = new ApiOptions();
+
+            config.Bind("apiOptions", apiOptions);
+
+            builder.AddSingleton<ApiOptions>(apiOptions);
+
+            builder
+                .AddScoped<IApiClientProxy, ApiClientProxy>();
+
+            builder
+                .AddScoped<IHttpClient, HttpClientProxy>();
 
             return builder;
         }

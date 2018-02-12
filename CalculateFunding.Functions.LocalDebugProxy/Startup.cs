@@ -136,6 +136,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 .AddScoped<IDatasetSearchService, DatasetSearchService>();
 
             builder
+                .AddScoped<IDefinitionSpecificationRelationshipService, DefinitionSpecificationRelationshipService>();
+
+            builder
                 .AddScoped<IValidator<Models.Calcs.Calculation>, CalculationModelValidator>();
 
             builder
@@ -208,6 +211,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                 .AddScoped<IValidator<GetDatasetBlobModel>, GetDatasetBlobModelValidator>();
 
+            builder
+                .AddScoped<IValidator<CreateDefinitionSpecificationRelationshipModel>, CreateDefinitionSpecificationRelationshipModelValidator>();
+
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
             builder
                 .AddSingleton(mappingConfig.CreateMapper());
@@ -219,6 +225,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder.AddSearch(config);
 
             builder.AddServiceBus(config);
+
+            builder.AddInterServiceClient(config);
 
             builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
 

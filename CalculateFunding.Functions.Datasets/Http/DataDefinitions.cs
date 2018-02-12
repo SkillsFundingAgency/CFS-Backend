@@ -7,7 +7,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.DependencyInjection;
 
-
 namespace CalculateFunding.Functions.Datasets.Http
 {
     public static class DataDefinitions
@@ -33,6 +32,30 @@ namespace CalculateFunding.Functions.Datasets.Http
                 IDefinitionsService svc = scope.ServiceProvider.GetService<IDefinitionsService>();
 
                 return svc.GetDatasetDefinitions(req);
+            }
+        }
+
+        [FunctionName("create-definitionspecification-relationship")]
+        public static Task<IActionResult> RunCreateDefinitionSpecificationRelationship(
+        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IDefinitionSpecificationRelationshipService svc = scope.ServiceProvider.GetService<IDefinitionSpecificationRelationshipService>();
+
+                return svc.CreateRelationship(req);
+            }
+        }
+
+        [FunctionName("get-definitions-relationships")]
+        public static Task<IActionResult> RunGetDefinitionRelationships(
+        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IDefinitionSpecificationRelationshipService svc = scope.ServiceProvider.GetService<IDefinitionSpecificationRelationshipService>();
+
+                return svc.GetRelationshipsBySpecificationId(req);
             }
         }
     }

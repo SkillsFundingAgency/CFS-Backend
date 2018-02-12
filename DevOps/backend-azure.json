@@ -2,6 +2,18 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "ApiKey": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for inter services calls"
+      }
+    },
+    "ApiEndpoint": {
+      "type": "string",
+      "metadata": {
+        "description": "Base url for inter service calls"
+      }
+    },
     "skuName": {
       "type": "string",
       "defaultValue": "S1",
@@ -383,6 +395,14 @@
             {
               "name": "CosmosDbSettings:CollectionName",
               "value": "datasets"
+            },
+            {
+              "name": "ApiOptions:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "ApiOptions:ApiEndpoint",
+              "value": "[parameters('ApiEndpoint')]"
             },
             {
               "name": "ServiceBusSettings:ServiceBusConnectionString",

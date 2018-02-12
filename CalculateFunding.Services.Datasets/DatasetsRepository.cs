@@ -33,6 +33,13 @@ namespace CalculateFunding.Services.Datasets
             return _cosmosRepository.CreateAsync(dataset);
         }
 
+        async public Task<DatasetDefinition> GetDatasetDefinition(string definitionId)
+        {
+            var definitions = await GetDatasetDefinitionsByQuery(m => m.Id == definitionId);
+
+            return definitions.FirstOrDefault();
+        }
+
         public Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitions()
         {
             var definitions = _cosmosRepository.Query<DatasetDefinition>();
@@ -52,6 +59,18 @@ namespace CalculateFunding.Services.Datasets
             var datasets = _cosmosRepository.Query<Dataset>().Where(query);
 
             return Task.FromResult(datasets.AsEnumerable());
+        }
+
+        public Task<HttpStatusCode> SaveDefinitionSpecificationRelationship(DefinitionSpecificationRelationship relationship)
+        {
+            return _cosmosRepository.CreateAsync(relationship);
+        }
+
+        public Task<IEnumerable<DefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsByQuery(Expression<Func<DefinitionSpecificationRelationship, bool>> query)
+        {
+            var relationships = _cosmosRepository.Query<DefinitionSpecificationRelationship>().Where(query);
+
+            return Task.FromResult(relationships.AsEnumerable());
         }
     }
 }

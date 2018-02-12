@@ -13,9 +13,11 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         private readonly IDefinitionsService _definitionService;
         private readonly IDatasetService _datasetService;
         private readonly IDatasetSearchService _datasetSearchService;
+        private readonly IDefinitionSpecificationRelationshipService _definitionSpecificationRelationshipService;
 
         public DatasetsController(IServiceProvider serviceProvider,
-            IDefinitionsService definitionService, IDatasetService datasetService, IDatasetSearchService datasetSearchService)
+            IDefinitionsService definitionService, IDatasetService datasetService, 
+            IDatasetSearchService datasetSearchService, IDefinitionSpecificationRelationshipService definitionSpecificationRelationshipService)
             : base(serviceProvider)
         {
             Guard.ArgumentNotNull(definitionService, nameof(definitionService));
@@ -25,6 +27,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             _definitionService = definitionService;
             _datasetService = datasetService;
             _datasetSearchService = datasetSearchService;
+            _definitionSpecificationRelationshipService = definitionSpecificationRelationshipService;
         }
 
         [Route("api/datasets/data-definitions")]
@@ -70,6 +73,24 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
             return _datasetService.ValidateDataset(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/datasets/create-definitionspecification-relationship")]
+        [HttpPost]
+        public Task<IActionResult> RunCreateDefinitionSpecificationRelationship()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _definitionSpecificationRelationshipService.CreateRelationship(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/datasets/get-definitions-relationships")]
+        [HttpGet]
+        public Task<IActionResult> RunGetDefinitionRelationships()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _definitionSpecificationRelationshipService.GetRelationshipsBySpecificationId(ControllerContext.HttpContext.Request);
         }
     }
 }
