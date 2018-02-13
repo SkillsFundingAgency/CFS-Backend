@@ -86,6 +86,8 @@ namespace CalculateFunding.Functions.Datasets
             builder
                 .AddSingleton(dataSetsConfig.CreateMapper());
 
+            builder.AddInterServiceClient(config);
+
             builder.AddCosmosDb(config);
 
             builder.AddSearch(config);
