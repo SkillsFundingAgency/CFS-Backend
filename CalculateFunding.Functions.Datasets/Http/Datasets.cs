@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Net.Http;
+using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -44,6 +45,37 @@ namespace CalculateFunding.Functions.Datasets.Http
 
                 return svc.ValidateDataset(req);
             }
+        }
+
+        [FunctionName("test-http-client")]
+        public static IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequest req)
+        {
+            string name = req.Query["name"];
+
+            HttpClient client = new HttpClient();
+            string responseMessage = "Initial";
+
+            string url = "https://www.google.com/";
+
+            try
+            {
+                HttpResponseMessage response = client.GetAsync(url).Result;
+                if (response == null)
+                {
+                    responseMessage = "Response was null";
+                }
+                else
+                {
+                    responseMessage = $"Response returned {response.StatusCode} for URL: {url}<pre>{response.Content.ReadAsStringAsync().Result}</pre>";
+                }
+            }
+            catch (System.Exception ex)
+            {
+
+                responseMessage = $"Exception thrown {ex} with message {ex.Message}";
+            }
+
+            return new OkObjectResult(responseMessage);
         }
     }
 }
