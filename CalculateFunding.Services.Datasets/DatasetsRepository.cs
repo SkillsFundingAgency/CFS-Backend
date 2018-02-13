@@ -72,5 +72,12 @@ namespace CalculateFunding.Services.Datasets
 
             return Task.FromResult(relationships.AsEnumerable());
         }
+
+        async public Task<DefinitionSpecificationRelationship> GetRelationshipBySpecificationIdAndName(string specificationId, string name)
+        {
+            var relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Specification.Id == specificationId && m.Name == name);
+
+            return relationships.FirstOrDefault();
+        }
     }
 }

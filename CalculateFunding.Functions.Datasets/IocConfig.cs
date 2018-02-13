@@ -47,6 +47,9 @@ namespace CalculateFunding.Functions.Datasets
                 .AddScoped<IValidator<GetDatasetBlobModel>, GetDatasetBlobModelValidator>();
 
             builder
+               .AddScoped<IValidator<CreateDefinitionSpecificationRelationshipModel>, CreateDefinitionSpecificationRelationshipModelValidator>();
+
+            builder
                 .AddScoped<IBlobClient, BlobClient>((ctx) =>
                 {
                     AzureStorageSettings storageSettings = new AzureStorageSettings();
@@ -72,6 +75,12 @@ namespace CalculateFunding.Functions.Datasets
             });
 
             builder.AddScoped<IDatasetSearchService, DatasetSearchService>();
+
+            builder
+               .AddScoped<IDefinitionSpecificationRelationshipService, DefinitionSpecificationRelationshipService>();
+
+            builder
+                .AddScoped<ISpecificationsRepository, SpecificationsRepository>();
 
             MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             builder

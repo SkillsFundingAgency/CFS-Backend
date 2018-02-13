@@ -164,13 +164,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetDefinition(Arg.Is(datasetDefinitionId))
                 .Returns(definition);
 
-            IApiClientProxy apiClientProxy = CreateApiClientProxy();
-            apiClientProxy
-                .GetAsync<Specification>(Arg.Any<string>())
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Any<string>())
                 .Returns((Specification)null);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, 
-                datasetRepository: datasetRepository, apiClient: apiClientProxy);
+                datasetRepository: datasetRepository, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.CreateRelationship(request);
@@ -225,9 +225,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetDefinition(Arg.Is(datasetDefinitionId))
                 .Returns(definition);
 
-            IApiClientProxy apiClientProxy = CreateApiClientProxy();
-            apiClientProxy
-                .GetAsync<Specification>(Arg.Any<string>())
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Any<string>())
                 .Returns(specification);
 
             datasetRepository
@@ -235,7 +235,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(HttpStatusCode.BadRequest);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
-                datasetRepository: datasetRepository, apiClient: apiClientProxy);
+                datasetRepository: datasetRepository, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.CreateRelationship(request);
@@ -298,9 +298,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetDefinition(Arg.Is(datasetDefinitionId))
                 .Returns(definition);
 
-            IApiClientProxy apiClientProxy = CreateApiClientProxy();
-            apiClientProxy
-                .GetAsync<Specification>(Arg.Any<string>())
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Any<string>())
                 .Returns(specification);
 
             datasetRepository
@@ -308,7 +308,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(HttpStatusCode.Created);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
-                datasetRepository: datasetRepository, apiClient: apiClientProxy);
+                datasetRepository: datasetRepository, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.CreateRelationship(request);
@@ -442,10 +442,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
 
         static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,
-            ILogger logger = null, IApiClientProxy apiClient = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null)
+            ILogger logger = null, ISpecificationsRepository specificationsRepository = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null)
         {
             return new DefinitionSpecificationRelationshipService(datasetRepository ?? CreateDatasetRepository(), logger ?? CreateLogger(),
-                apiClient ?? CreateApiClientProxy(), relationshipModelValidator ?? CreateRelationshipModelValidator());
+                specificationsRepository ?? CreateSpecificationsRepository(), relationshipModelValidator ?? CreateRelationshipModelValidator());
         }
 
         static IValidator<CreateDefinitionSpecificationRelationshipModel> CreateRelationshipModelValidator(ValidationResult validationResult = null)
@@ -462,9 +462,9 @@ namespace CalculateFunding.Services.Datasets.Services
             return validator;
         }
 
-        static IApiClientProxy CreateApiClientProxy()
+        static ISpecificationsRepository CreateSpecificationsRepository()
         {
-            return Substitute.For<IApiClientProxy>();
+            return Substitute.For<ISpecificationsRepository>();
         }
 
         static IDatasetRepository CreateDatasetRepository()

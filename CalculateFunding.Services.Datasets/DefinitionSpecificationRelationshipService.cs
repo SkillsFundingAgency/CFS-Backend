@@ -26,20 +26,20 @@ namespace CalculateFunding.Services.Datasets
     {
         private readonly IDatasetRepository _datasetRepository;
         private readonly ILogger _logger;
-        private readonly IApiClientProxy _apiClient;
+        private readonly ISpecificationsRepository _specificationsRepository;
         private readonly IValidator<CreateDefinitionSpecificationRelationshipModel> _relationshipModelValidator;
 
         public DefinitionSpecificationRelationshipService(IDatasetRepository datasetRepository, 
-            ILogger logger, IApiClientProxy apiClient, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator)
+            ILogger logger, ISpecificationsRepository specificationsRepository, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(apiClient, nameof(apiClient));
+            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(relationshipModelValidator, nameof(relationshipModelValidator));
 
             _datasetRepository = datasetRepository;
             _logger = logger;
-            _apiClient = apiClient;
+            _specificationsRepository = specificationsRepository;
             _relationshipModelValidator = relationshipModelValidator;
         }
 
@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(412);
             }
 
-            Specification specification = await GetSpecificationById(model.SpecificationId);
+            Specification specification = await _specificationsRepository.GetSpecificationById(model.SpecificationId);
 
             if(specification == null)
             {
@@ -118,11 +118,37 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(relationships);
         }
 
-        Task<Specification> GetSpecificationById(string specificationId)
+        public async Task<IActionResult> GetRelationshipBySpecificationIdAndName(HttpRequest request)
         {
-            string url = $"specs/specifications?specificationId={specificationId}";
+            request.Query.TryGetValue("specificationId", out var specId);
 
-            return _apiClient.GetAsync<Specification>(url);
+            var specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification id was provided to GetRelationshipsBySpecificationIdAndName");
+
+                return new BadRequestObjectResult("No specification id was provided to GetRelationshipsBySpecificationIdAndName");
+            }
+
+            request.Query.TryGetValue("name", out var name);
+
+            var relationshipName = name.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(relationshipName))
+            {
+                _logger.Error("No name was provided to GetRelationshipsBySpecificationIdAndName");
+
+                return new BadRequestObjectResult("No name was provided to GetRelationshipsBySpecificationIdAndName");
+            }
+
+            DefinitionSpecificationRelationship relationship = await _datasetRepository.GetRelationshipBySpecificationIdAndName(specificationId, name);
+
+            if (relationship != null)
+                return new OkObjectResult(relationship);
+
+            return new NotFoundResult();
         }
+
     }
 }

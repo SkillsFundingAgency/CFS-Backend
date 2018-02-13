@@ -139,12 +139,15 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 .AddScoped<IDefinitionSpecificationRelationshipService, DefinitionSpecificationRelationshipService>();
 
             builder
+                .AddScoped<Services.Datasets.Interfaces.ISpecificationsRepository, Services.Datasets.SpecificationsRepository>();
+
+            builder
                 .AddScoped<IValidator<Models.Calcs.Calculation>, CalculationModelValidator>();
 
             builder
                 .AddScoped<IDefinitionsService, DefinitionsService>();
 
-            builder.AddScoped<ISpecificationsRepository, SpecificationsRepository>((ctx) =>
+            builder.AddScoped<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>((ctx) =>
             {
                 CosmosDbSettings specsDbSettings = new CosmosDbSettings();
 
@@ -154,7 +157,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 CosmosRepository specsCosmosRepostory = new CosmosRepository(specsDbSettings);
 
-                return new SpecificationsRepository(specsCosmosRepostory);
+                return new Services.Specs.SpecificationsRepository(specsCosmosRepostory);
             });
 
             builder.AddScoped<IBuildProjectsRepository, BuildProjectsRepository>((ctx) =>

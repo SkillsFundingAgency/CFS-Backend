@@ -12,5 +12,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> CreateRelationship(HttpRequest request);
 
         Task<IActionResult> GetRelationshipsBySpecificationId(HttpRequest request);
+
+        Task<IActionResult> GetRelationshipBySpecificationIdAndName(HttpRequest request);
     }
 }

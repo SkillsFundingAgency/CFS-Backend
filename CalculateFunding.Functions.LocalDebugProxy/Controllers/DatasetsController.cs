@@ -92,5 +92,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _definitionSpecificationRelationshipService.GetRelationshipsBySpecificationId(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/datasets/get-definition-relationship-by-specificationid-name")]
+        [HttpGet]
+        public Task<IActionResult> RunGetDefinitionRelationshipBySpecificationIdAndName()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _definitionSpecificationRelationshipService.GetRelationshipBySpecificationIdAndName(ControllerContext.HttpContext.Request);
+        }
     }
 }
