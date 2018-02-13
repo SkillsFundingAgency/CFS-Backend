@@ -55,7 +55,9 @@ namespace CalculateFunding.Functions.Datasets.Http
             HttpClient client = new HttpClient();
             string responseMessage = "Initial";
 
-            string url = "https://www.google.com/";
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "61439dce702a495083d90494691e2737");
+
+            string url = "https://esfacfsbdevapi.azure-api.net/api/specs/specifications?specificationId=0cde26fd-defc-4685-b866-0cbabd1ada4f";
 
             try
             {
