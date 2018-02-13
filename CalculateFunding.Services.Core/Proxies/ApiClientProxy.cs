@@ -7,6 +7,7 @@ using Newtonsoft.Json.Serialization;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -24,20 +25,23 @@ namespace CalculateFunding.Services.Core.Proxies
 
         private readonly ILogger _logger;
 
-        private readonly IHttpClient _httpClient;
+        private readonly HttpClient _httpClient;
         private readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings { Formatting = Formatting.Indented, ContractResolver = new CamelCasePropertyNamesContractResolver() };
         private readonly ICorrelationIdProvider _correlationIdProvider;
 
-        public ApiClientProxy(ApiOptions options, IHttpClient httpClient, ILogger logger, ICorrelationIdProvider correlationIdProvider)
+        public ApiClientProxy(ApiOptions options, ILogger logger, ICorrelationIdProvider correlationIdProvider)
         {
             Guard.ArgumentNotNull(options, nameof(options));
-            Guard.ArgumentNotNull(httpClient, nameof(httpClient));
-            Guard.ArgumentNotNull(httpClient, nameof(logger));
-            Guard.ArgumentNotNull(httpClient, nameof(correlationIdProvider));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
 
             _correlationIdProvider = correlationIdProvider;
 
-            _httpClient = httpClient;
+            _httpClient = new HttpClient(new HttpClientHandler()
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+            });
+
             string baseAddress = options.ApiEndpoint;
             if (!baseAddress.EndsWith("/", StringComparison.CurrentCulture))
             {
@@ -68,7 +72,7 @@ namespace CalculateFunding.Services.Core.Proxies
 
             if (response == null)
             {
-                throw new HttpRequestException($"Unable to connect to server. Url={_httpClient.BaseAddress.AbsoluteUri}{url}");
+                throw new HttpRequestException($"Unable to connect to server. Url = {_httpClient.BaseAddress.AbsoluteUri}{url}");
             }
 
             if (response.IsSuccessStatusCode)
