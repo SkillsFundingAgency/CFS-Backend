@@ -2,6 +2,7 @@
 {
     using CalculateFunding.Services.Core.Helpers;
     using CalculateFunding.Services.Core.Interfaces.Proxies;
+    using Serilog;
     using System;
     using System.IO;
     using System.Net;
@@ -16,8 +17,9 @@
         private readonly bool _disposeHandler;
 
         private HttpClient _httpClient;
+        private readonly ILogger _logger;
 
-        public HttpClientProxy()
+        public HttpClientProxy(ILogger logger)
             : this(
                 new HttpClientHandler()
                 {
@@ -25,6 +27,7 @@
                 },
                 true)
         {
+            _logger = logger;
         }
 
         public HttpClientProxy(HttpMessageHandler handler)
@@ -80,32 +83,32 @@
 
         public Task<HttpResponseMessage> DeleteAsync(string requestUri, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return RetryAgent.DoRequestAsync(() => _httpClient.DeleteAsync(requestUri, cancellationToken));
+            return RetryAgent.DoRequestAsync(() => _httpClient.DeleteAsync(requestUri, cancellationToken), _logger);
         }
 
         public Task<HttpResponseMessage> DeleteAsync(Uri requestUri, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return RetryAgent.DoRequestAsync(() => _httpClient.DeleteAsync(requestUri, cancellationToken));
+            return RetryAgent.DoRequestAsync(() => _httpClient.DeleteAsync(requestUri, cancellationToken), _logger);
         }
 
         public Task<HttpResponseMessage> GetAsync(string requestUri, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return RetryAgent.DoRequestAsync(() => _httpClient.GetAsync(requestUri, cancellationToken));
+            return RetryAgent.DoRequestAsync(() => _httpClient.GetAsync(requestUri, cancellationToken), _logger);
         }
 
         public Task<HttpResponseMessage> GetAsync(Uri requestUri, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return RetryAgent.DoRequestAsync(() => _httpClient.GetAsync(requestUri, cancellationToken));
+            return RetryAgent.DoRequestAsync(() => _httpClient.GetAsync(requestUri, cancellationToken), _logger);
         }
 
         public Task<HttpResponseMessage> GetAsync(string requestUri, HttpCompletionOption completionOption, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return RetryAgent.DoRequestAsync(() => _httpClient.GetAsync(requestUri, completionOption, cancellationToken));
+            return RetryAgent.DoRequestAsync(() => _httpClient.GetAsync(requestUri, completionOption, cancellationToken), _logger);
         }
 
         public Task<HttpResponseMessage> GetAsync(Uri requestUri, HttpCompletionOption completionOption, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return RetryAgent.DoRequestAsync(() => _httpClient.GetAsync(requestUri, completionOption, cancellationToken));
+            return RetryAgent.DoRequestAsync(() => _httpClient.GetAsync(requestUri, completionOption, cancellationToken), _logger);
         }
 
         public Task<byte[]> GetByteArrayAsync(string requestUri)
@@ -140,32 +143,32 @@
 
         public Task<HttpResponseMessage> PostAsync(string requestUri, HttpContent content, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return RetryAgent.DoRequestAsync(() => _httpClient.PostAsync(requestUri, content, cancellationToken));
+            return RetryAgent.DoRequestAsync(() => _httpClient.PostAsync(requestUri, content, cancellationToken), _logger);
         }
 
         public Task<HttpResponseMessage> PostAsync(Uri requestUri, HttpContent content, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return RetryAgent.DoRequestAsync(() => _httpClient.PostAsync(requestUri, content, cancellationToken));
+            return RetryAgent.DoRequestAsync(() => _httpClient.PostAsync(requestUri, content, cancellationToken), _logger);
         }
 
         public Task<HttpResponseMessage> PutAsync(string requestUri, HttpContent content, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return RetryAgent.DoRequestAsync(() => _httpClient.PutAsync(requestUri, content, cancellationToken));
+            return RetryAgent.DoRequestAsync(() => _httpClient.PutAsync(requestUri, content, cancellationToken), _logger);
         }
 
         public Task<HttpResponseMessage> PutAsync(Uri requestUri, HttpContent content, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return RetryAgent.DoRequestAsync(() => _httpClient.PutAsync(requestUri, content, cancellationToken));
+            return RetryAgent.DoRequestAsync(() => _httpClient.PutAsync(requestUri, content, cancellationToken), _logger);
         }
 
         public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return RetryAgent.DoRequestAsync(() => _httpClient.SendAsync(request, cancellationToken));
+            return RetryAgent.DoRequestAsync(() => _httpClient.SendAsync(request, cancellationToken), _logger);
         }
 
         public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return RetryAgent.DoRequestAsync(() => _httpClient.SendAsync(request, completionOption, cancellationToken));
+            return RetryAgent.DoRequestAsync(() => _httpClient.SendAsync(request, completionOption, cancellationToken), _logger);
         }
 
         protected virtual void Dispose(bool disposing)

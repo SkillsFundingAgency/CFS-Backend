@@ -1,5 +1,6 @@
 ﻿namespace CalculateFunding.Services.Core.Helpers
-{ 
+{
+    using Serilog;
     using System;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -53,7 +54,7 @@
             throw new ApplicationException("The retry agent failed to correctly signal either success or failed.");
         }
 
-        public static async Task<HttpResponseMessage> DoRequestAsync(Func<Task<HttpResponseMessage>> func, int maxRetryAttempts = 3, Func<HttpResponseMessage, bool, Task> test = null)
+        public static async Task<HttpResponseMessage> DoRequestAsync(Func<Task<HttpResponseMessage>> func, ILogger logger, int maxRetryAttempts = 3, Func<HttpResponseMessage, bool, Task> test = null)
         {
             var currentRetryAttempt = 0;
             HttpResponseMessage result = null;
@@ -69,19 +70,25 @@
 
                     if ((int)result.StatusCode >= 500)
                     {
-                        throw new Exception($"The request failed with status: {result.StatusCode.ToString()} with reason: {result.ReasonPhrase}");
+                        logger.Error($"The request failed with status: {result?.StatusCode.ToString()} with reason: {result?.ReasonPhrase}");
+
+                        throw new Exception($"The request failed with status: {result?.StatusCode.ToString()} with reason: {result?.ReasonPhrase}");
                     }
 
                     return result;
                 }
                 catch
                 {
+                    logger.Error($"The request failed with status: {result?.StatusCode.ToString()} with reason: {result?.ReasonPhrase}");
+
                     if (++currentRetryAttempt == maxRetryAttempts)
                     {
                         return result;
                     }
                 }
             }
+
+            logger.Error("The retry agent failed to correctly signal either success or failed.");
 
             throw new ApplicationException("The retry agent failed to correctly signal either success or failed.");
         }
