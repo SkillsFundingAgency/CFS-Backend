@@ -1,11 +1,8 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
-using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
@@ -16,8 +13,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets
@@ -126,7 +121,7 @@ namespace CalculateFunding.Services.Datasets
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
-                _logger.Error("No specification id was provided to GetRelationshipsBySpecificationIdAndName");
+                _logger.Error("The specification id was not provided to GetRelationshipsBySpecificationIdAndName");
 
                 return new BadRequestObjectResult("No specification id was provided to GetRelationshipsBySpecificationIdAndName");
             }
@@ -137,7 +132,7 @@ namespace CalculateFunding.Services.Datasets
 
             if (string.IsNullOrWhiteSpace(relationshipName))
             {
-                _logger.Error("No name was provided to GetRelationshipsBySpecificationIdAndName");
+                _logger.Error("The name was not provided to GetRelationshipsBySpecificationIdAndName");
 
                 return new BadRequestObjectResult("No name was provided to GetRelationshipsBySpecificationIdAndName");
             }

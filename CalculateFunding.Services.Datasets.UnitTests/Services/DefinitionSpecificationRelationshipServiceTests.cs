@@ -440,6 +440,131 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Be(3);
         }
 
+        [TestMethod]
+        public async Task GetRelationshipBySpecificationIdAndName_GivenSpecificationIdDoesNotExist_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
+
+            //Act
+            IActionResult result = await service.GetRelationshipBySpecificationIdAndName(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("The specification id was not provided to GetRelationshipsBySpecificationIdAndName"));
+        }
+
+        [TestMethod]
+        public async Task GetRelationshipBySpecificationIdAndName_GivenNameDoesNotExist_ReturnsBadRequest()
+        {
+            //Arrange
+            string specificationId = Guid.NewGuid().ToString();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
+
+            //Act
+            IActionResult result = await service.GetRelationshipBySpecificationIdAndName(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("The name was not provided to GetRelationshipsBySpecificationIdAndName"));
+        }
+
+        [TestMethod]
+        public async Task GetRelationshipBySpecificationIdAndName_GivenRelationshipDoesNotExist_ReturnsNotfound()
+        {
+            //Arrange
+            string specificationId = Guid.NewGuid().ToString();
+            string name = "test name";
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) },
+                { "name", new StringValues(name) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
+
+            //Act
+            IActionResult result = await service.GetRelationshipBySpecificationIdAndName(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task GetRelationshipBySpecificationIdAndName_GivenRelationshipFound_ReturnsOKResult()
+        {
+            //Arrange
+            string specificationId = Guid.NewGuid().ToString();
+            string name = "test name";
+
+            DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) },
+                { "name", new StringValues(name) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetRelationshipBySpecificationIdAndName(Arg.Is(specificationId), Arg.Is(name))
+                .Returns(relationship);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.GetRelationshipBySpecificationIdAndName(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+        }
+
 
         static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,
             ILogger logger = null, ISpecificationsRepository specificationsRepository = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null)
