@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.CodeGen;
@@ -30,14 +27,13 @@ using CalculateFunding.Services.Datasets.Validators;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
+using CalculateFunding.Services.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Serilog;
 
 namespace CalculateFunding.Functions.LocalDebugProxy
@@ -147,6 +143,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                 .AddScoped<IDefinitionsService, DefinitionsService>();
 
+            builder
+                .AddScoped<ISpecificationsSearchService, SpecificationsSearchService>();
+
             builder.AddScoped<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>((ctx) =>
             {
                 CosmosDbSettings specsDbSettings = new CosmosDbSettings();
@@ -172,8 +171,6 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 return new BuildProjectsRepository(calcsCosmosRepostory);
             });
-
-
 
             builder
                 .AddScoped<IPreviewService, PreviewService>();
@@ -215,15 +212,18 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 .AddScoped<IValidator<GetDatasetBlobModel>, GetDatasetBlobModelValidator>();
 
             builder
+                .AddScoped<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
+
+            builder
                 .AddScoped<IValidator<CreateDefinitionSpecificationRelationshipModel>, CreateDefinitionSpecificationRelationshipModelValidator>();
 
-            MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
+            MapperConfiguration mappingConfig = new MapperConfiguration(c => { c.AddProfile<SpecificationsMappingProfile>(); c.AddProfile<DatasetsMappingProfile>(); });
             builder
                 .AddSingleton(mappingConfig.CreateMapper());
 
-            MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
-            builder
-                .AddSingleton(dataSetsConfig.CreateMapper());
+            //MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
+            //builder
+            //    .AddSingleton(dataSetsConfig.CreateMapper());
 
             builder.AddSearch(config);
 

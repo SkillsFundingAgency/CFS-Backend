@@ -199,6 +199,16 @@
               ],
               "properties": {},
               "resources": []
+            },
+            {
+              "apiVersion": "2015-08-01",
+              "name": "spec-events-add-definition-relationship",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "spec-events"
+              ],
+              "properties": {},
+              "resources": []
             }
           ]
         },

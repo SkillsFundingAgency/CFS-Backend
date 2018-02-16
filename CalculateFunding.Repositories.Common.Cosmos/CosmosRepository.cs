@@ -110,7 +110,35 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                     directSql,
                     queryOptions).Select(x => x.Content).AsQueryable();
             }
+
             return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted).Select(x => x.Content).AsQueryable();
+        }
+
+        public IQueryable<T> RawQuery<T>(string directSql, int maxItemCount = -1)
+        {
+            // Set some common query options
+            var queryOptions = new FeedOptions { MaxItemCount = maxItemCount };
+
+            return _documentClient.CreateDocumentQuery<T>(_collectionUri,
+                directSql,
+                queryOptions).AsQueryable();
+
+        }
+
+        public IQueryable<DocumentEntity<T>> QueryDocuments<T>(string directSql = null, int maxItemCount = -1) where T : IIdentifiable
+        {
+            // Set some common query options
+            var queryOptions = new FeedOptions { MaxItemCount = maxItemCount };
+
+            if (!string.IsNullOrEmpty(directSql))
+            {
+                // Here we find the Andersen family via its LastName
+                return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri,
+                    directSql,
+                    queryOptions).AsQueryable();
+            }
+
+            return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).AsQueryable();
         }
 
         public IEnumerable<string> QueryAsJson(string directSql = null, int maxItemCount = -1)

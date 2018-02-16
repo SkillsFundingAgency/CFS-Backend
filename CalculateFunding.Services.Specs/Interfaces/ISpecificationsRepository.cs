@@ -4,6 +4,7 @@ using System;
 using System.Linq.Expressions;
 using System.Collections.Generic;
 using System.Net;
+using CalculateFunding.Repositories.Common.Cosmos;
 
 namespace CalculateFunding.Services.Specs.Interfaces
 {
@@ -13,7 +14,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<AcademicYear> GetAcademicYearById(string academicYearId);
         Task<FundingStream> GetFundingStreamById(string fundingStreamId);
         Task<Specification> GetSpecificationById(string specificationId);
-        Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query);
+        Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query = null);
         Task<IEnumerable<AcademicYear>> GetAcademicYears();
         Task<IEnumerable<FundingStream>> GetFundingStreams();
         Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query);
@@ -24,5 +25,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<Policy> GetPolicyBySpecificationIdAndPolicyId(string specificationId, string policyId);
         Task<Calculation> GetCalculationBySpecificationIdAndCalculationName(string specificationId, string calculationName);
         Task<Calculation> GetCalculationBySpecificationIdAndCalculationId(string specificationId, string calculationId);
+        Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(string sql);
     }
 }

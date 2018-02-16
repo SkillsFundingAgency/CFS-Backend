@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Functions.Calcs\CalculateFunding.Functions.Calcs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Datasets\CalculateFunding.Functions.Datasets.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Functions.Specs\CalculateFunding.Functions.Specs.csproj" />
   </ItemGroup>
 
 

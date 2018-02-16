@@ -1,22 +1,18 @@
 ﻿using AutoMapper;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
 using Serilog;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Serilog.Debugging;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using System.Net.Http;
 using Microsoft.AspNetCore.Mvc;
 using FluentAssertions;
-using System.Collections.Specialized;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.Extensions.Primitives;
 using System.Linq.Expressions;
@@ -28,6 +24,12 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Models;
 using System.Net;
 using System.Security.Claims;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Services.Validators;
+using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Models.Exceptions;
+using CalculateFunding.Repositories.Common.Cosmos;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -46,6 +48,7 @@ namespace CalculateFunding.Services.Specs.Services
         const string UserId = "33d7a71b-f570-4425-801b-250b9129f3d3";
         const string CalcsServiceBusTopicName = "cals-topic";
         const string SfaCorrelationId = "c625c3f9-6ce8-4f1f-a3a3-4611f1dc3881";
+        const string RelationshipId = "cca8ccb3-eb8e-4658-8b3f-f1e4c3a8f419";
 
         [TestMethod]
         public async Task GetSpecificationById_GivenSpecificationIdDoesNotExist_ReturnsBadRequest()
@@ -1344,14 +1347,436 @@ namespace CalculateFunding.Services.Specs.Services
                 .Information(Arg.Is($"A calculation was found for specification id {SpecificationId} and calculation id {CalculationId}"));
         }
 
+        [TestMethod]
+        public void AssignDataDefinitionRelationship_GivenMessageWithNullRealtionshipObject_ThrowsArgumentNullException()
+        {
+            //Arrange
+            Message message = new Message();
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            //Act
+            Func<Task> test = async () => await service.AssignDataDefinitionRelationship(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<ArgumentNullException>();
+
+            logger
+                .Received()
+                .Error("A null relationship message was provided to AssignDataDefinitionRelationship");
+        }
+
+        [TestMethod]
+        public void AssignDataDefinitionRelationship_GivenMessageWithObjectButDoesntValidate_ThrowsInvalidModelException()
+        {
+            //Arrange
+            Message message = new Message();
+
+            dynamic anyObject = new { something = 1 };
+
+            string json = JsonConvert.SerializeObject(anyObject);
+
+            message.Body = Encoding.UTF8.GetBytes(json);
+
+            ValidationResult validationResult = new ValidationResult(new[]{
+                    new ValidationFailure("prop1", "any error")
+                });
+
+            IValidator<AssignDefinitionRelationshipMessage> validator = CreateAssignDefinitionRelationshipMessageValidator(validationResult);
+
+            SpecificationsService service = CreateService(assignDefinitionRelationshipMessageValidator: validator);
+
+            //Act
+            Func<Task> test = async () => await service.AssignDataDefinitionRelationship(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<InvalidModelException>();
+        }
+
+        [TestMethod]
+        public void AssignDataDefinitionRelationship_GivenValidMessageButUnableToFindSpecification_ThrowsInvalidModelException()
+        {
+            //Arrange
+            Message message = new Message();
+
+            dynamic anyObject = new { specificationId = SpecificationId, relationshipId = RelationshipId };
+
+            string json = JsonConvert.SerializeObject(anyObject);
+
+            message.Body = Encoding.UTF8.GetBytes(json);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns((Specification)null);
+           
+            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository);
+
+            //Act
+            Func<Task> test = async () => await service.AssignDataDefinitionRelationship(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<InvalidModelException>();
+        }
+
+        [TestMethod]
+        public void AssignDataDefinitionRelationship_GivenFailedToUpdateSpecification_ThrowsException()
+        {
+            //Arrange
+            Message message = new Message();
+
+            dynamic anyObject = new { specificationId = SpecificationId, relationshipId = RelationshipId };
+
+            string json = JsonConvert.SerializeObject(anyObject);
+
+            message.Body = Encoding.UTF8.GetBytes(json);
+
+            Specification specification = new Specification();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            specificationsRepository
+                .UpdateSpecification(Arg.Is(specification))
+                .Returns(HttpStatusCode.InternalServerError);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+
+            //Act
+            Func<Task> test = async () => await service.AssignDataDefinitionRelationship(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<Exception>();
+
+            logger
+                .Received()
+                .Error($"Failed to update specification for id: {SpecificationId} with dataset definition relationship id {RelationshipId}");
+        }
+
+        [TestMethod]
+        public void AssignDataDefinitionRelationship_GivenFailedToUpdateSearch_ThrowsFailedToIndexSearchException()
+        {
+            //Arrange
+            Message message = new Message();
+
+            dynamic anyObject = new { specificationId = SpecificationId, relationshipId = RelationshipId };
+
+            string json = JsonConvert.SerializeObject(anyObject);
+
+            message.Body = Encoding.UTF8.GetBytes(json);
+
+            Specification specification = new Specification
+            {
+                Id = SpecificationId,
+                Name = SpecificationName,
+                FundingStream = new Reference("fs-id", "fs-name"),
+                AcademicYear = new Reference("18/19", "2018/19")
+            };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            specificationsRepository
+                .UpdateSpecification(Arg.Is(specification))
+                .Returns(HttpStatusCode.OK);
+
+            IList<IndexError> errors = new List<IndexError> { new IndexError() };
+
+            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Index(Arg.Any<List<SpecificationIndex>>())
+                .Returns(errors);
+            
+            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, searchRepository: searchRepository);
+
+            //Act
+            Func<Task> test = async () => await service.AssignDataDefinitionRelationship(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<FailedToIndexSearchException>();
+        }
+
+        [TestMethod]
+        public async Task AssignDataDefinitionRelationship_GivenUpdatedCosmosAndSearch_LogsSuccess()
+        {
+            //Arrange
+            Message message = new Message();
+
+            dynamic anyObject = new { specificationId = SpecificationId, relationshipId = RelationshipId };
+
+            string json = JsonConvert.SerializeObject(anyObject);
+
+            message.Body = Encoding.UTF8.GetBytes(json);
+
+            Specification specification = new Specification
+            {
+                Id = SpecificationId,
+                Name = SpecificationName,
+                FundingStream = new Reference("fs-id", "fs-name"),
+                AcademicYear = new Reference("18/19", "2018/19")
+            };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            specificationsRepository
+                .UpdateSpecification(Arg.Is(specification))
+                .Returns(HttpStatusCode.OK);
+
+            IList<IndexError> errors = new List<IndexError>();
+
+            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Index(Arg.Any<List<SpecificationIndex>>())
+                .Returns(errors);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, 
+                searchRepository: searchRepository, logs: logger);
+
+            //Act
+            await service.AssignDataDefinitionRelationship(message);
+
+            //Assert
+            logger
+                .Received(1)
+                .Information($"Succeffuly assigned relationship id: {RelationshipId} to specification with id: {SpecificationId}");
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IList<SpecificationIndex>>(
+                        m => m.First().Id == SpecificationId &&
+                        m.First().Name == SpecificationName &&
+                        m.First().FundingStreamId == "fs-id" &&
+                        m.First().FundingStreamName == "fs-name" &&
+                        m.First().PeriodId == "18/19" &&
+                        m.First().PeriodName == "2018/19" &&
+                        m.First().LastUpdatedDate.Value.Date == DateTimeOffset.Now.Date));
+        }
+
+        [TestMethod]
+        public async Task ReIndex_GivenDeleteIndexThrowsException_RetunsInternalServerError()
+        {
+            //Arrange
+            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .When(x => x.DeleteIndex())
+                .Do(x => { throw new Exception(); });
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsService service = CreateService(searchRepository: searchRepository, logs: logger);
+
+            //Act
+            IActionResult result = await service.ReIndex();
+
+            //Assert
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is("Failed re-indexing specifications"));
+
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(500);
+        }
+
+        [TestMethod]
+        public async Task ReIndex_GivenGetAllSpecificationDocumentsThrowsException_RetunsInternalServerError()
+        {
+            //Arrange
+            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .When(x => x.GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<string>()))
+                .Do(x => { throw new Exception(); });
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsService service = CreateService(searchRepository: searchRepository, logs: logger, 
+                specifcationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult result = await service.ReIndex();
+
+            //Assert
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is("Failed re-indexing specifications"));
+
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(500);
+
+            await
+                searchRepository
+                    .DidNotReceive()
+                    .Index(Arg.Any<List<SpecificationIndex>>());
+        }
+
+        [TestMethod]
+        public async Task ReIndex_GivenIndexingThrowsException_RetunsInternalServerError()
+        {
+            //Arrange
+            IEnumerable<SpecificationSearchModel> specifications = new[]
+            {
+                new SpecificationSearchModel
+                {
+                    Id = SpecificationId,
+                    Name = SpecificationName,
+                    FundingStream = new Reference("fs-id", "fs-name"),
+                    AcademicYear = new Reference("18/19", "2018/19"),
+                    UpdatedAt = DateTime.Now
+                }
+            };
+
+            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .When(x => x.Index(Arg.Any<List<SpecificationIndex>>()))
+                .Do(x => { throw new Exception(); });
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<string>())
+                .Returns(specifications);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsService service = CreateService(searchRepository: searchRepository, logs: logger,
+                specifcationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult result = await service.ReIndex();
+
+            //Assert
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is("Failed re-indexing specifications"));
+
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(500);
+        }
+
+        [TestMethod]
+        public async Task ReIndex_GivenNoDocumentsReturnedFromCosmos_RetunsNoContent()
+        {
+            //Arrange
+            IEnumerable<SpecificationSearchModel> specifications = new SpecificationSearchModel[0];
+           
+            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+           
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<string>())
+                .Returns(specifications);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsService service = CreateService(searchRepository: searchRepository, logs: logger,
+                specifcationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult result = await service.ReIndex();
+
+            //Assert
+            logger
+                .Received(1)
+                .Warning(Arg.Is("No specification documents were returned from cosmos db"));
+
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+        }
+
+        [TestMethod]
+        public async Task ReIndex_GivenDocumentsReturnedFromCosmos_RetunsNoContent()
+        {
+            //Arrange
+            IEnumerable<SpecificationSearchModel> specifications = new[]
+            {
+                new SpecificationSearchModel
+                {
+                    Id = SpecificationId,
+                    Name = SpecificationName,
+                    FundingStream = new Reference("fs-id", "fs-name"),
+                    AcademicYear = new Reference("18/19", "2018/19"),
+                    UpdatedAt = DateTime.Now
+                }
+            };
+
+            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<string>())
+                .Returns(specifications);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsService service = CreateService(searchRepository: searchRepository, logs: logger,
+                specifcationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult result = await service.ReIndex();
+
+            //Assert
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Succesfully re-indexed 1 documents"));
+
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+        }
+
         static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null, 
             ILogger logs = null, IValidator<PolicyCreateModel> policyCreateModelValidator = null,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null, IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
-            IMessengerService messengerService = null, ServiceBusSettings serviceBusSettings = null)
+            IMessengerService messengerService = null, ServiceBusSettings serviceBusSettings = null, ISearchRepository<SpecificationIndex> searchRepository = null,
+            IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(), specifcationsRepository ?? CreateSpecificationsRepository(), logs ?? CreateLogger(), policyCreateModelValidator ?? CreatePolicyValidator(),
                 specificationCreateModelvalidator ?? CreateSpecificationValidator(), calculationCreateModelValidator ?? CreateCalculationValidator(), messengerService ?? CreateMessengerService(),
-                serviceBusSettings ?? CreateServiceBusSettings());
+                serviceBusSettings ?? CreateServiceBusSettings(), searchRepository ?? CreateSearchRepository(), assignDefinitionRelationshipMessageValidator ?? CreateAssignDefinitionRelationshipMessageValidator());
         }
 
         static IMapper CreateMapper()
@@ -1382,6 +1807,10 @@ namespace CalculateFunding.Services.Specs.Services
             };
         }
 
+        static ISearchRepository<SpecificationIndex> CreateSearchRepository()
+        {
+            return Substitute.For<ISearchRepository<SpecificationIndex>>();
+        }
 
         static IValidator<PolicyCreateModel> CreatePolicyValidator(ValidationResult validationResult = null)
         {
@@ -1420,6 +1849,20 @@ namespace CalculateFunding.Services.Specs.Services
 
             validator
                .ValidateAsync(Arg.Any<CalculationCreateModel>())
+               .Returns(validationResult);
+
+            return validator;
+        }
+
+        static IValidator<AssignDefinitionRelationshipMessage> CreateAssignDefinitionRelationshipMessageValidator(ValidationResult validationResult = null)
+        {
+            if (validationResult == null)
+                validationResult = new ValidationResult();
+
+            IValidator<AssignDefinitionRelationshipMessage> validator = Substitute.For<IValidator<AssignDefinitionRelationshipMessage>>();
+
+            validator
+               .ValidateAsync(Arg.Any<AssignDefinitionRelationshipMessage>())
                .Returns(validationResult);
 
             return validator;

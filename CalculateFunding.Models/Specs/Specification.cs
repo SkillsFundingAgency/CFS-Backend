@@ -26,5 +26,7 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("datasetDefinitions")]
         public List<DatasetDefinition> DatasetDefinitions { get; set; }
 
+        [JsonProperty("dataDefinitionRelationshipIds")]
+        public IEnumerable<string> DataDefinitionRelationshipIds { get; set; }
     }
 }

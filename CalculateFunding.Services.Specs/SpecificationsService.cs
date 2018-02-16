@@ -15,35 +15,45 @@ using Serilog;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using System;
+using CalculateFunding.Repositories.Common.Search;
+using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Models.Exceptions;
+using CalculateFunding.Repositories.Common.Cosmos;
 
 namespace CalculateFunding.Services.Specs
 {
     public class SpecificationsService : ISpecificationsService
     {
         private readonly IMapper _mapper;
-        private readonly ISpecificationsRepository _specifcationsRepository;
-        private readonly ILogger _logs;
+        private readonly ISpecificationsRepository _specificationsRepository;
+        private readonly ILogger _logger;
         private readonly IValidator<PolicyCreateModel> _policyCreateModelValidator;
         private readonly IValidator<SpecificationCreateModel> _specificationCreateModelvalidator;
         private readonly IValidator<CalculationCreateModel> _calculationCreateModelValidator;
         private readonly IMessengerService _messengerService;
         private readonly ServiceBusSettings _serviceBusSettings;
+        private readonly ISearchRepository<SpecificationIndex> _searchRepository;
+        private readonly IValidator<AssignDefinitionRelationshipMessage> _assignDefinitionRelationshipMessageValidator;
 
         const string createDraftcalculationSubscription = "calc-events-create-draft";
-
+        
         public SpecificationsService(IMapper mapper, 
-            ISpecificationsRepository specifcationsRepository, ILogger logs, IValidator<PolicyCreateModel> policyCreateModelValidator,
+            ISpecificationsRepository specificationsRepository, ILogger logger, IValidator<PolicyCreateModel> policyCreateModelValidator,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator, IValidator<CalculationCreateModel> calculationCreateModelValidator,
-            IMessengerService messengerService, ServiceBusSettings serviceBusSettings)
+            IMessengerService messengerService, ServiceBusSettings serviceBusSettings, ISearchRepository<SpecificationIndex> searchRepository,
+            IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator)
         {
             _mapper = mapper;
-            _specifcationsRepository = specifcationsRepository;
-            _logs = logs;
+            _specificationsRepository = specificationsRepository;
+            _logger = logger;
             _policyCreateModelValidator = policyCreateModelValidator;
             _specificationCreateModelvalidator = specificationCreateModelvalidator;
             _calculationCreateModelValidator = calculationCreateModelValidator;
             _messengerService = messengerService;
             _serviceBusSettings = serviceBusSettings;
+            _searchRepository = searchRepository;
+            _assignDefinitionRelationshipMessageValidator = assignDefinitionRelationshipMessageValidator;
         }
 
         public async Task<IActionResult> GetSpecificationById(HttpRequest request)
@@ -54,16 +64,16 @@ namespace CalculateFunding.Services.Specs
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
-                _logs.Error("No specification Id was provided to GetSpecificationById");
+                _logger.Error("No specification Id was provided to GetSpecificationById");
 
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            Specification specification = await _specifcationsRepository.GetSpecificationById(specificationId);
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
 
             if (specification == null)
             {
-                _logs.Warning($"A specification for id {specificationId} could not found");
+                _logger.Warning($"A specification for id {specificationId} could not found");
 
                 return new NotFoundResult();
             }
@@ -79,21 +89,21 @@ namespace CalculateFunding.Services.Specs
 
             if (string.IsNullOrWhiteSpace(academicYearId))
             {
-                _logs.Error("No academic year Id was provided to GetSpecificationByAcademicYearId");
+                _logger.Error("No academic year Id was provided to GetSpecificationByAcademicYearId");
 
                 return new BadRequestObjectResult("Null or empty academicYearId provided");
             }
 
-            IEnumerable<Specification> specifications = await _specifcationsRepository.GetSpecificationsByQuery(m => m.AcademicYear.Id == academicYearId);
+            IEnumerable<Specification> specifications = await _specificationsRepository.GetSpecificationsByQuery(m => m.AcademicYear.Id == academicYearId);
 
             if (specifications.IsNullOrEmpty())
             {
-                _logs.Information($"No specifications found for academic year with id {academicYearId}");
+                _logger.Information($"No specifications found for academic year with id {academicYearId}");
 
                 return new OkObjectResult(new Specification[0]);
             }
 
-            _logs.Information($"Found {specifications.Count()} specifications for academic year with id {academicYearId}");
+            _logger.Information($"Found {specifications.Count()} specifications for academic year with id {academicYearId}");
 
             return new OkObjectResult(specifications);
         }
@@ -106,21 +116,21 @@ namespace CalculateFunding.Services.Specs
 
             if (string.IsNullOrWhiteSpace(specName))
             {
-                _logs.Error("No specification name was provided to GetSpecificationByName");
+                _logger.Error("No specification name was provided to GetSpecificationByName");
 
                 return new BadRequestObjectResult("Null or empty specification name provided");
             }
 
-            IEnumerable<Specification> specifications = await _specifcationsRepository.GetSpecificationsByQuery(m => m.Name.ToLower() == specificationName.ToLower());
+            IEnumerable<Specification> specifications = await _specificationsRepository.GetSpecificationsByQuery(m => m.Name.ToLower() == specificationName.ToLower());
 
             if (!specifications.Any())
             {
-                _logs.Information($"Specification was not found for name: {specificationName}");
+                _logger.Information($"Specification was not found for name: {specificationName}");
 
                 return new NotFoundResult();
             }
 
-            _logs.Information($"Specification found for name: {specificationName}");
+            _logger.Information($"Specification found for name: {specificationName}");
 
             return new OkObjectResult(specifications.FirstOrDefault());
         }
@@ -133,21 +143,21 @@ namespace CalculateFunding.Services.Specs
 
             if (string.IsNullOrWhiteSpace(model.SpecificationId))
             {
-                _logs.Error("No specification id was provided to GetPolicyByName");
+                _logger.Error("No specification id was provided to GetPolicyByName");
                 return new BadRequestObjectResult("Null or empty specification id provided");
             }
 
             if (string.IsNullOrWhiteSpace(model.Name))
             {
-                _logs.Error("No policy name was provided to GetPolicyByName");
+                _logger.Error("No policy name was provided to GetPolicyByName");
                 return new BadRequestObjectResult("Null or empty policy name provided");
             }
 
-            Specification specification = await _specifcationsRepository.GetSpecificationById(model.SpecificationId);
+            Specification specification = await _specificationsRepository.GetSpecificationById(model.SpecificationId);
 
             if (specification == null)
             {
-                _logs.Error($"No specification was found for specification id {model.SpecificationId}");
+                _logger.Error($"No specification was found for specification id {model.SpecificationId}");
                 return new StatusCodeResult(412);
             }
 
@@ -155,12 +165,12 @@ namespace CalculateFunding.Services.Specs
 
             if (policy != null)
             {
-                _logs.Information($"A policy was found for specification id {model.SpecificationId} and name {model.Name}");
+                _logger.Information($"A policy was found for specification id {model.SpecificationId} and name {model.Name}");
 
                 return new OkObjectResult(policy);
             }
 
-            _logs.Information($"A policy was not found for specification id {model.SpecificationId} and name {model.Name}");
+            _logger.Information($"A policy was not found for specification id {model.SpecificationId} and name {model.Name}");
 
             return new NotFoundResult();
         }
@@ -173,26 +183,26 @@ namespace CalculateFunding.Services.Specs
 
             if (string.IsNullOrWhiteSpace(model.SpecificationId))
             {
-                _logs.Error("No specification id was provided to GetCalculationByName");
+                _logger.Error("No specification id was provided to GetCalculationByName");
                 return new BadRequestObjectResult("Null or empty specification id provided");
             }
 
             if (string.IsNullOrWhiteSpace(model.Name))
             {
-                _logs.Error("No calculation name was provided to GetCalculationByName");
+                _logger.Error("No calculation name was provided to GetCalculationByName");
                 return new BadRequestObjectResult("Null or empty calculation name provided");
             }
 
-            Calculation calculation = await _specifcationsRepository.GetCalculationBySpecificationIdAndCalculationName(model.SpecificationId, model.Name);
+            Calculation calculation = await _specificationsRepository.GetCalculationBySpecificationIdAndCalculationName(model.SpecificationId, model.Name);
 
             if (calculation != null)
             {
-                _logs.Information($"A calculation was found for specification id {model.SpecificationId} and name {model.Name}");
+                _logger.Information($"A calculation was found for specification id {model.SpecificationId} and name {model.Name}");
 
                 return new OkObjectResult(calculation);
             }
 
-            _logs.Information($"A calculation was not found for specification id {model.SpecificationId} and name {model.Name}");
+            _logger.Information($"A calculation was not found for specification id {model.SpecificationId} and name {model.Name}");
 
             return new NotFoundResult();
         }
@@ -205,7 +215,7 @@ namespace CalculateFunding.Services.Specs
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
-                _logs.Error("No specification Id was provided to GetCalculationBySpecificationIdAndCalculationId");
+                _logger.Error("No specification Id was provided to GetCalculationBySpecificationIdAndCalculationId");
 
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
@@ -216,32 +226,32 @@ namespace CalculateFunding.Services.Specs
 
             if (string.IsNullOrWhiteSpace(calculationId))
             {
-                _logs.Error("No calculation Id was provided to GetCalculationBySpecificationIdAndCalculationId");
+                _logger.Error("No calculation Id was provided to GetCalculationBySpecificationIdAndCalculationId");
 
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            Calculation calculation = await _specifcationsRepository.GetCalculationBySpecificationIdAndCalculationId(specificationId, calculationId);
+            Calculation calculation = await _specificationsRepository.GetCalculationBySpecificationIdAndCalculationId(specificationId, calculationId);
 
             if (calculation != null)
             {
-                _logs.Information($"A calculation was found for specification id {specificationId} and calculation id {calculationId}");
+                _logger.Information($"A calculation was found for specification id {specificationId} and calculation id {calculationId}");
 
                 return new OkObjectResult(calculation);
             }
 
-            _logs.Information($"A calculation was not found for specification id {specificationId} and calculation id {calculationId}");
+            _logger.Information($"A calculation was not found for specification id {specificationId} and calculation id {calculationId}");
 
             return new NotFoundResult();
         }
 
         public async Task<IActionResult> GetAcademicYears(HttpRequest request)
         {
-            IEnumerable<AcademicYear> academicYears = await _specifcationsRepository.GetAcademicYears();
+            IEnumerable<AcademicYear> academicYears = await _specificationsRepository.GetAcademicYears();
 
             if (academicYears.IsNullOrEmpty())
             {
-                _logs.Error($"No academic years were returned");
+                _logger.Error($"No academic years were returned");
 
                 academicYears = new AcademicYear[0];
             }
@@ -251,11 +261,11 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetFundingStreams(HttpRequest request)
         {
-            IEnumerable<FundingStream> fundingStreams = await _specifcationsRepository.GetFundingStreams();
+            IEnumerable<FundingStream> fundingStreams = await _specificationsRepository.GetFundingStreams();
 
             if (fundingStreams.IsNullOrEmpty())
             {
-                _logs.Error($"No academic years were returned");
+                _logger.Error($"No academic years were returned");
 
                 fundingStreams = new FundingStream[0];
             }
@@ -265,7 +275,7 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetAllocationLines(HttpRequest request)
         {
-            IEnumerable<AllocationLine> allocationLines = await _specifcationsRepository.GetAllocationLines();
+            IEnumerable<AllocationLine> allocationLines = await _specificationsRepository.GetAllocationLines();
             return new OkObjectResult(allocationLines);
         }
 
@@ -283,7 +293,7 @@ namespace CalculateFunding.Services.Specs
             if (validationResult != null)
                 return validationResult;
 
-            Specification specification = await _specifcationsRepository.GetSpecificationById(createModel.SpecificationId);
+            Specification specification = await _specificationsRepository.GetSpecificationById(createModel.SpecificationId);
 
             if (specification == null)
                 return new NotFoundResult();
@@ -305,7 +315,7 @@ namespace CalculateFunding.Services.Specs
                    : specification.Policies.Concat(new[] { policy }));
             }
 
-            var statusCode = await _specifcationsRepository.UpdateSpecification(specification);
+            var statusCode = await _specificationsRepository.UpdateSpecification(specification);
 
             if(statusCode != HttpStatusCode.OK)
                  return new StatusCodeResult((int)statusCode);
@@ -327,9 +337,9 @@ namespace CalculateFunding.Services.Specs
             if (validationResult != null)
                 return validationResult;
 
-            AcademicYear academicYear = await _specifcationsRepository.GetAcademicYearById(createModel.AcademicYearId);
+            AcademicYear academicYear = await _specificationsRepository.GetAcademicYearById(createModel.AcademicYearId);
 
-            FundingStream fundingStream = await _specifcationsRepository.GetFundingStreamById(createModel.FundingStreamId);
+            FundingStream fundingStream = await _specificationsRepository.GetFundingStreamById(createModel.FundingStreamId);
 
             Specification specification = _mapper.Map<Specification>(createModel);
 
@@ -337,11 +347,25 @@ namespace CalculateFunding.Services.Specs
 
             specification.FundingStream = new Reference(fundingStream.Id, fundingStream.Name);
 
-            var statusCode = await _specifcationsRepository.CreateSpecification(specification);
+            var statusCode = await _specificationsRepository.CreateSpecification(specification);
 
-            if (statusCode != HttpStatusCode.OK)
+            if (!statusCode.IsSuccess())
                 return new StatusCodeResult((int)statusCode);
 
+            await _searchRepository.Index(new List<SpecificationIndex>
+            {
+                new SpecificationIndex
+                {
+                    Id = specification.Id,
+                    Name = specification.Name,
+                    FundingStreamId = specification.FundingStream.Id,
+                    FundingStreamName = specification.FundingStream.Name,
+                    PeriodId = specification.AcademicYear.Id,
+                    PeriodName = specification.AcademicYear.Name,
+                    LastUpdatedDate = DateTimeOffset.Now
+                }
+            });  
+            
             return new OkObjectResult(specification);
         }
 
@@ -353,7 +377,7 @@ namespace CalculateFunding.Services.Specs
 
             if (createModel == null)
             {
-                _logs.Error("Null calculation create model provided to CreateCalculation");
+                _logger.Error("Null calculation create model provided to CreateCalculation");
 
                 return new BadRequestObjectResult("Null calculation create model provided");
             }
@@ -362,16 +386,16 @@ namespace CalculateFunding.Services.Specs
 
             if (validationResult != null)
             {
-                _logs.Error("Invalid data was provided for CreateCalculation");
+                _logger.Error("Invalid data was provided for CreateCalculation");
 
                 return validationResult;
             }
 
-            Specification specification = await _specifcationsRepository.GetSpecificationById(createModel.SpecificationId);
+            Specification specification = await _specificationsRepository.GetSpecificationById(createModel.SpecificationId);
 
             if (specification == null)
             {
-                _logs.Warning($"Specification not found for specification id {createModel.SpecificationId}");
+                _logger.Warning($"Specification not found for specification id {createModel.SpecificationId}");
                 return new StatusCodeResult(412);
             }
 
@@ -381,35 +405,26 @@ namespace CalculateFunding.Services.Specs
 
             if (policy == null)
             {
-                _logs.Warning($"Policy not found for policy id {createModel.PolicyId}");
+                _logger.Warning($"Policy not found for policy id {createModel.PolicyId}");
                 return new StatusCodeResult(412);
             }
 
-            calculation.AllocationLine = await _specifcationsRepository.GetAllocationLineById(createModel.AllocationLineId);
+            calculation.AllocationLine = await _specificationsRepository.GetAllocationLineById(createModel.AllocationLineId);
 
             policy.Calculations = (policy.Calculations == null
                 ? new[] { calculation }
                 : policy.Calculations.Concat(new[] { calculation }));
 
-            var statusCode = await _specifcationsRepository.UpdateSpecification(specification);
+            var statusCode = await _specificationsRepository.UpdateSpecification(specification);
 
             if (statusCode != HttpStatusCode.OK)
             {
-                _logs.Error($"Failed to update specification when creating a calc with status {statusCode}");
+                _logger.Error($"Failed to update specification when creating a calc with status {statusCode}");
 
                 return new StatusCodeResult((int)statusCode);
             }
 
-            Reference user = request.GetUser();
-
-            IDictionary<string, string> properties = new Dictionary<string, string>();
-            properties.Add("sfa-correlationId", request.GetCorrelationId());
-
-            if (user != null)
-            {
-                properties.Add("user-id", user.Id);
-                properties.Add("user-name", user.Name);
-            }
+            IDictionary<string, string> properties = CreateMessageProperties(request);
 
             await _messengerService.SendAsync(_serviceBusSettings.CalcsServiceBusTopicName, createDraftcalculationSubscription, 
                 new Models.Calcs.Calculation
@@ -430,5 +445,143 @@ namespace CalculateFunding.Services.Specs
 
             return new OkObjectResult(calculation);
         }
+
+        public async Task AssignDataDefinitionRelationship(Message message)
+        {
+            AssignDefinitionRelationshipMessage relationshipMessage = message.GetPayloadAsInstanceOf<AssignDefinitionRelationshipMessage>();
+
+            if (relationshipMessage == null)
+            {
+                _logger.Error("A null relationship message was provided to AssignDataDefinitionRelationship");
+
+                throw new ArgumentNullException(nameof(relationshipMessage));
+            }
+            else
+            {
+                var validationResult = await _assignDefinitionRelationshipMessageValidator.ValidateAsync(relationshipMessage);
+
+                if (!validationResult.IsValid)
+                {
+                    throw new InvalidModelException(GetType().ToString(), validationResult.Errors.Select(m => m.ErrorMessage).ToArraySafe());
+                }
+
+                string specificationId = relationshipMessage.SpecificationId;
+
+                string relationshipId = relationshipMessage.RelationshipId;
+
+                Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+
+                if(specification == null)
+                {
+                    throw new InvalidModelException(relationshipMessage.GetType().ToString(), new[] {  $"Specification could not be found for id {specificationId}" });
+                }
+
+                if (specification.DataDefinitionRelationshipIds.IsNullOrEmpty())
+                    specification.DataDefinitionRelationshipIds = new string[0];
+
+                if(!specification.DataDefinitionRelationshipIds.Contains(relationshipId))
+                    specification.DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.Concat(new[] { relationshipId });
+
+                HttpStatusCode status = await _specificationsRepository.UpdateSpecification(specification);
+
+                if(!status.IsSuccess())
+                {
+                    _logger.Error($"Failed to update specification for id: {specificationId} with dataset definition relationship id {relationshipId}");
+
+                    throw new Exception($"Failed to update specification for id: {specificationId} with dataset definition relationship id {relationshipId}");
+                }
+
+                SpecificationIndex specIndex = await _searchRepository.SearchById(specificationId);
+
+                if(specIndex == null)
+                {
+                    specIndex = new SpecificationIndex
+                    {
+                        Id = specification.Id,
+                        Name = specification.Name,
+                        FundingStreamId = specification.FundingStream.Id,
+                        FundingStreamName = specification.FundingStream.Name,
+                        PeriodId = specification.AcademicYear.Id,
+                        PeriodName = specification.AcademicYear.Name,
+                        LastUpdatedDate = DateTimeOffset.Now
+                    };
+                }
+
+                specIndex.DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.ToArraySafe();
+
+                IList<IndexError> errors = await _searchRepository.Index(new List<SpecificationIndex>{specIndex});
+
+                if (errors.Any())
+                {
+                    _logger.Error($"failed to index search with the following errors: {string.Join(";", errors.Select(m => m.ErrorMessage))}");
+
+                    throw new FailedToIndexSearchException(errors);
+                }
+
+                _logger.Information($"Succeffuly assigned relationship id: {relationshipId} to specification with id: {specificationId}");
+            }
+        }
+
+        public async Task<IActionResult> ReIndex()
+        {
+            try
+            {
+                await _searchRepository.DeleteIndex();
+
+                const string sql = "select s.id, s.content.name, s.content.fundingStream, s.content.academicYear, s.content.dataDefinitionRelationshipIds, s.updatedAt from specs s";
+
+                IEnumerable<SpecificationSearchModel> specifications = (await _specificationsRepository.GetSpecificationsByRawQuery<SpecificationSearchModel>(sql)).ToArraySafe();
+
+                List<SpecificationIndex> specDocuments = new List<SpecificationIndex>();
+
+                foreach (SpecificationSearchModel specification in specifications)
+                {
+                    specDocuments.Add(new SpecificationIndex
+                    {
+                        Id = specification.Id,
+                        Name = specification.Name,
+                        FundingStreamId = specification.FundingStream.Id,
+                        FundingStreamName = specification.FundingStream.Name,
+                        PeriodId = specification.AcademicYear.Id,
+                        PeriodName = specification.AcademicYear.Name,
+                        LastUpdatedDate = specification.UpdatedAt,
+                        DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.IsNullOrEmpty() ? new string[0] : specification.DataDefinitionRelationshipIds
+                    });
+                }
+
+                if (!specDocuments.IsNullOrEmpty())
+                {
+                    await _searchRepository.Index(specDocuments);
+                    _logger.Information($"Succesfully re-indexed {specifications.Count()} documents");
+                }
+                else
+                    _logger.Warning("No specification documents were returned from cosmos db");
+
+                return new NoContentResult();
+            }
+            catch(Exception exception)
+            {
+                _logger.Error(exception, "Failed re-indexing specifications");
+
+                return new StatusCodeResult(500);
+            }
+        }
+
+        IDictionary<string, string> CreateMessageProperties(HttpRequest request)
+        {
+            Reference user = request.GetUser();
+
+            IDictionary<string, string> properties = new Dictionary<string, string>();
+            properties.Add("sfa-correlationId", request.GetCorrelationId());
+
+            if (user != null)
+            {
+                properties.Add("user-id", user.Id);
+                properties.Add("user-name", user.Name);
+            }
+
+            return properties;
+        }
+
     }
 }

@@ -214,9 +214,16 @@ namespace CalculateFunding.Services.Specs
             return (await GetSpecificationsByQuery(query)).FirstOrDefault();
         }
 
-        public Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query)
+        public Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query = null)
         {
-            var specifications = _repository.Query<Specification>().Where(query);
+            var specifications = query == null ? _repository.Query<Specification>() : _repository.Query<Specification>().Where(query);
+
+            return Task.FromResult(specifications.AsEnumerable());
+        }
+
+        public Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(string sql)
+        {
+            var specifications = _repository.RawQuery<T>(sql);
 
             return Task.FromResult(specifications.AsEnumerable());
         }

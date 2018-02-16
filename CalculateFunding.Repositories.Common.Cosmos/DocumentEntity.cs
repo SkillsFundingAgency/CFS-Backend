@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 namespace CalculateFunding.Repositories.Common.Cosmos
 {
     [DataContract]
-    public class DocumentEntity<T> where T : IIdentifiable
+    public class DocumentEntity<T> : IIdentifiable where T : IIdentifiable
     {
         public DocumentEntity(T content = default(T))
         {

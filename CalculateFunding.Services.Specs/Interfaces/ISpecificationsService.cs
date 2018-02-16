@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -32,5 +33,9 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> GetCalculationByName(HttpRequest request);
 
         Task<IActionResult> GetCalculationBySpecificationIdAndCalculationId(HttpRequest request);
+
+        Task AssignDataDefinitionRelationship(Message message);
+
+        Task<IActionResult> ReIndex();
     }
 }

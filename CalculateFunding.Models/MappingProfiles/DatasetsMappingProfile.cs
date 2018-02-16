@@ -7,7 +7,10 @@ namespace CalculateFunding.Models.MappingProfiles
     {
         public DatasetsMappingProfile()
         {
-            CreateMap<CreateNewDatasetModel, CreateNewDatasetResponseModel>();
+            CreateMap<CreateNewDatasetModel, CreateNewDatasetResponseModel>()
+                .ForMember(c => c.BlobUrl, opt => opt.Ignore())
+                .ForMember(c => c.DatasetId, opt => opt.Ignore())
+                .ForMember(c => c.Author, opt => opt.Ignore());
         }
     }
 }

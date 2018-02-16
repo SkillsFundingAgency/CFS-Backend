@@ -15,6 +15,7 @@ namespace CalculateFunding.Repositories.Common.Search
         public string SearchKey { get; set; }
 
     }
+
     public class SearchRepository<T> : ISearchRepository<T> where T : class
     {
         private ISearchIndexClient _searchIndexClient;
@@ -148,6 +149,14 @@ namespace CalculateFunding.Repositories.Common.Search
                 throw new Exception(ex.Message);
             }
 
+        }
+
+        public async Task DeleteIndex()
+        {
+            bool indexExists = await _searchServiceClient.Indexes.ExistsAsync(_indexName);
+
+            if (indexExists)
+                await _searchServiceClient.Indexes.DeleteAsync(_indexName);
         }
     }
 

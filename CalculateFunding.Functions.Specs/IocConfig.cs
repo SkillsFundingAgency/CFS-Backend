@@ -12,6 +12,9 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Services.Validators;
 
 namespace CalculateFunding.Functions.Specs
 {
@@ -33,6 +36,7 @@ namespace CalculateFunding.Functions.Specs
             builder.AddScoped<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
             builder.AddScoped<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
             builder.AddScoped<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
+            builder.AddScoped<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
 
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
 
@@ -43,6 +47,8 @@ namespace CalculateFunding.Functions.Specs
             builder.AddCosmosDb(config);
 
             builder.AddServiceBus(config);
+
+            builder.AddSearch(config);
 
             builder.AddLogging(config, "CalculateFunding.Functions.Specs");
         }

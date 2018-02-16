@@ -10,11 +10,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
     public class SpecificationsController : BaseController
     {
         private readonly ISpecificationsService _specService;
+        private readonly ISpecificationsSearchService _specSearchService;
 
-        public SpecificationsController(ISpecificationsService specService, IServiceProvider serviceProvider)
+        public SpecificationsController(ISpecificationsService specService, 
+           ISpecificationsSearchService specSearchService,  IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
             _specService = specService;
+            _specSearchService = specSearchService;
         }
 
         [Route("api/specs/specifications")]
@@ -136,6 +139,24 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
             return FundingStreams.RunCommands(ControllerContext.HttpContext.Request, null);
+        }
+
+        [Route("api/specs/reindex")]
+        [HttpGet]
+        public Task<IActionResult> ReIndex()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specService.ReIndex();
+        }
+
+        [Route("api/specs/specifications-search")]
+        [HttpPost]
+        public Task<IActionResult> RunSearchSpecifications()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specSearchService.SearchSpecifications(ControllerContext.HttpContext.Request);
         }
     }
 }

@@ -2,6 +2,8 @@
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
 using FluentValidation;
@@ -567,10 +569,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
 
         static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,
-            ILogger logger = null, ISpecificationsRepository specificationsRepository = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null)
+            ILogger logger = null, ISpecificationsRepository specificationsRepository = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
+            IMessengerService messengerService = null, ServiceBusSettings serviceBusSettings = null)
         {
             return new DefinitionSpecificationRelationshipService(datasetRepository ?? CreateDatasetRepository(), logger ?? CreateLogger(),
-                specificationsRepository ?? CreateSpecificationsRepository(), relationshipModelValidator ?? CreateRelationshipModelValidator());
+                specificationsRepository ?? CreateSpecificationsRepository(), relationshipModelValidator ?? CreateRelationshipModelValidator(),
+                messengerService ?? CreateMessengerService(), serviceBusSettings ?? CreateServiceBusSettings());
         }
 
         static IValidator<CreateDefinitionSpecificationRelationshipModel> CreateRelationshipModelValidator(ValidationResult validationResult = null)
@@ -600,6 +604,16 @@ namespace CalculateFunding.Services.Datasets.Services
         static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
+        }
+
+        static IMessengerService CreateMessengerService()
+        {
+            return Substitute.For<IMessengerService>();
+        }
+
+        static ServiceBusSettings CreateServiceBusSettings()
+        {
+            return new ServiceBusSettings();
         }
     }
 }
