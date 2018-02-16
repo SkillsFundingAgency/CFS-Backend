@@ -51,6 +51,18 @@ namespace CalculateFunding.Functions.Specs.Http
             }
         }
 
+        [FunctionName("specification-create")]
+        public static async Task<IActionResult> RunCreateSpecification(
+            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateScope())
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+
+                return await svc.CreateSpecification(req);
+            }
+        }
+
         [FunctionName("specifications-search")]
         public static async Task<IActionResult> RunSearchSpecifications(
             [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
@@ -60,6 +72,18 @@ namespace CalculateFunding.Functions.Specs.Http
                 ISpecificationsSearchService svc = scope.ServiceProvider.GetService<ISpecificationsSearchService>();
 
                 return await svc.SearchSpecifications(req);
+            }
+        }
+
+        [FunctionName("reindex")]
+        public static Task<IActionResult> RunReindex(
+          [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateScope())
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+
+                return svc.ReIndex();
             }
         }
 
