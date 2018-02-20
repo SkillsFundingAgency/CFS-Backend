@@ -25,36 +25,6 @@ namespace CalculateFunding.Functions.Results
         {
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            //builder
-            //    .AddScoped<IDefinitionsService, DefinitionsService>();
-
-            //builder
-            //    .AddScoped<IDatasetService, DatasetService>();
-
-            //builder
-            //  .AddScoped<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();
-
-            //builder
-            //  .AddScoped<IValidator<DatasetMetadataModel>, DatasetMetadataModelValidator>();
-
-            //builder
-            //    .AddScoped<IValidator<GetDatasetBlobModel>, GetDatasetBlobModelValidator>();
-
-            //builder
-            //   .AddScoped<IValidator<CreateDefinitionSpecificationRelationshipModel>, CreateDefinitionSpecificationRelationshipModelValidator>();
-
-            //builder
-            //    .AddScoped<IBlobClient, BlobClient>((ctx) =>
-            //    {
-            //        AzureStorageSettings storageSettings = new AzureStorageSettings();
-
-            //        config.Bind("AzureStorageSettings", storageSettings);
-
-            //        storageSettings.ContainerName = "datasets";
-
-            //        return new BlobClient(storageSettings);
-            //    });
-
             builder.AddScoped<IResultsRepository, ResultsRepository>((ctx) =>
             {
                 CosmosDbSettings datasetsDbSettings = new CosmosDbSettings();
