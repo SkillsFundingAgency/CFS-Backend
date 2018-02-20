@@ -1,4 +1,7 @@
-﻿namespace CalculateFunding.Services.Results.Interfaces
+﻿using System.Threading.Tasks;
+using CalculateFunding.Models.Results;
+
+namespace CalculateFunding.Services.Results.Interfaces
 {
     public interface IResultsRepository
     {
@@ -19,5 +22,6 @@
         //Task<IEnumerable<DefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsByQuery(Expression<Func<DefinitionSpecificationRelationship, bool>> query);
 
         //Task<DefinitionSpecificationRelationship> GetRelationshipBySpecificationIdAndName(string specificationId, string name);
+	    Task<ProviderResult> GetProviderResults(string providerId, string specificationId, string periodId);
     }
 }

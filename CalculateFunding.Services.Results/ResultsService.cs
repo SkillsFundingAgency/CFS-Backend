@@ -71,9 +71,51 @@ namespace CalculateFunding.Services.Results
 		    throw new NotImplementedException();
 	    }
 
-	    public Task<IActionResult> GetProviderResults(HttpRequest httpContextRequest)
+	    public async Task<IActionResult> GetProviderResults(HttpRequest request)
 	    {
-		    throw new NotImplementedException();
+		    var providerId = GetParameter(request, "providerId");
+		    var specificationId = GetParameter(request, "specificationId");
+			var periodId = GetParameter(request, "periodId");
+
+			if (string.IsNullOrWhiteSpace(providerId))
+		    {
+			    _logger.Error("No provider Id was provided to GetProviderResults");
+			    return new BadRequestObjectResult("Null or empty provider Id provided");
+		    }
+
+		    if (string.IsNullOrWhiteSpace(specificationId))
+		    {
+			    _logger.Error("No specification Id was provided to GetProviderResults");
+			    return new BadRequestObjectResult("Null or empty specification Id provided");
+		    }
+
+		    if (string.IsNullOrWhiteSpace(periodId))
+		    {
+			    _logger.Error("No period Id was provided to GetProviderResults");
+			    return new BadRequestObjectResult("Null or empty period Id provided");
+		    }
+
+			ProviderResult providerResult = await _resultsRepository.GetProviderResults(providerId, specificationId, periodId);
+
+		    if (providerResult != null)
+		    {
+			    _logger.Information($"A calculation was found for provider id {providerId}, specification id {specificationId} and period id {periodId}");
+
+			    return new OkObjectResult(providerResult);
+		    }
+
+		    _logger.Information($"A calculation was found for provider id {providerId}, specification id {specificationId} and period id {periodId}");
+
+			return new NotFoundResult();
+		}
+
+	    private static string GetParameter(HttpRequest request, string name)
+	    {
+		    if (request.Query.TryGetValue(name, out var parameter))
+		    {
+			    return parameter.FirstOrDefault();
+		    }
+		    return null;
 	    }
     }
 }
