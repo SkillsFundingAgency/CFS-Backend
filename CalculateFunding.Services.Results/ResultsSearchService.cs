@@ -3,11 +3,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
@@ -42,7 +43,7 @@ namespace CalculateFunding.Services.Results
             _searchRepository = searchRepository;
         }
 
-        async public Task<IActionResult> SearchDatasets(HttpRequest request)
+        async public Task<IActionResult> SearchProviders(HttpRequest request)
         {
             string json = await request.GetRawBodyStringAsync();
 

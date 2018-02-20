@@ -1,4 +1,6 @@
 ﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Results.Interfaces
@@ -14,5 +16,7 @@ namespace CalculateFunding.Services.Results.Interfaces
      //   Task<IActionResult> ValidateDataset(HttpRequest request);
 	    //Task ProcessDataset(Message message);
 	    Task UpdateProviderData(Message message);
+
+	    Task<IActionResult> GetProviderResults(HttpRequest httpContextRequest);
     }
 }

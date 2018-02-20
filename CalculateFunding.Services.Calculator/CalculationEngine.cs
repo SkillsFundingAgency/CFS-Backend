@@ -78,7 +78,7 @@ namespace CalculateFunding.Services.Calculator
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             var calculationResults = model.Execute(typedDatasets.ToArray()).ToArray();
-            var providerCalResults = calculationResults.ToDictionary(x => x.CalculationId);
+            var providerCalResults = calculationResults.ToDictionary(x => x.Calculation?.Id);
             stopwatch.Stop();
             Console.WriteLine($"{providerCalResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalResults.Count: 0.0000}ms)");
 

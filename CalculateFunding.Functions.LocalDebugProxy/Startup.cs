@@ -24,6 +24,8 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.Validators;
+using CalculateFunding.Services.Results;
+using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
@@ -146,7 +148,30 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                 .AddScoped<ISpecificationsSearchService, SpecificationsSearchService>();
 
-            builder.AddScoped<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>((ctx) =>
+
+			builder
+		        .AddScoped<IResultsSearchService, ResultsSearchService>();
+
+	        builder
+		        .AddScoped<IResultsService, ResultsService>();
+
+
+	        builder.AddScoped<IResultsRepository, ResultsRepository>((ctx) =>
+	        {
+		        CosmosDbSettings specsDbSettings = new CosmosDbSettings();
+
+		        config.Bind("CosmosDbSettings", specsDbSettings);
+
+		        specsDbSettings.CollectionName = "results";
+
+		        CosmosRepository specsCosmosRepostory = new CosmosRepository(specsDbSettings);
+
+		        return new ResultsRepository(specsCosmosRepostory);
+	        });
+
+
+
+			builder.AddScoped<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>((ctx) =>
             {
                 CosmosDbSettings specsDbSettings = new CosmosDbSettings();
 

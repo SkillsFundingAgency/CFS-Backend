@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Results;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Calculator
@@ -32,8 +33,8 @@ namespace CalculateFunding.Services.Calculator
                 {
                     var result = new CalculationResult
                     {
-                        CalculationId = GetProperty(calcAttribute, "Id"),
-                        CalculationSpecification = GetReference(attributes, "CalculationSpecification"),
+	                    Calculation = GetReference(attributes, "Calculation"),
+						CalculationSpecification = GetReference(attributes, "CalculationSpecification"),
                         AllocationLine = GetReference(attributes, "AllocationLine"),
                         PolicySpecifications = GetReferences(attributes, "PolicySpecification").ToList()
                     };

@@ -29,7 +29,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 		{
 			SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
-			return _resultsSearchService.SearchDatasets(ControllerContext.HttpContext.Request);
+			return _resultsSearchService.SearchProviders(ControllerContext.HttpContext.Request);
 		}
 
 
@@ -39,7 +39,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 		{
 			SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
-			return _resultsSearchService.GetProviderResults(ControllerContext.HttpContext.Request);
+			return _resultsService.GetProviderResults(ControllerContext.HttpContext.Request);
 		}
 	}
 }

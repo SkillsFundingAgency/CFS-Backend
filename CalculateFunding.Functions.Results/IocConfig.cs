@@ -3,7 +3,6 @@ using AutoMapper;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Extensions.Configuration;
@@ -69,9 +68,9 @@ namespace CalculateFunding.Functions.Results
                 return new ResultsRepository(datasetsCosmosRepostory);
             });
 
-            builder.AddScoped<IResultsSearchService, ResultsSearchService>();
-
-            MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
+            builder.AddScoped<IResultsService, ResultsService>();
+	        builder.AddScoped<IResultsSearchService, ResultsSearchService>();
+			MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             builder
                 .AddSingleton(resultsConfig.CreateMapper());
 

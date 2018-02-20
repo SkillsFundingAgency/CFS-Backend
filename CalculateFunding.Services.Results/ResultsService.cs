@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
@@ -66,6 +67,11 @@ namespace CalculateFunding.Services.Results
 	    }
 
 	    public Task UpdateProviderData(Message message)
+	    {
+		    throw new NotImplementedException();
+	    }
+
+	    public Task<IActionResult> GetProviderResults(HttpRequest httpContextRequest)
 	    {
 		    throw new NotImplementedException();
 	    }
