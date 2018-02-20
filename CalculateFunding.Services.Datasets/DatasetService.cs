@@ -19,6 +19,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Options;
+using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -32,11 +35,15 @@ namespace CalculateFunding.Services.Datasets
         private readonly IValidator<DatasetMetadataModel> _datasetMetadataModelValidator;
         private readonly ISearchRepository<DatasetIndex> _searchRepository;
         private readonly IValidator<GetDatasetBlobModel> _getDatasetBlobModelValidator;
+	    private readonly IMessengerService _messengerService;
+	    private readonly ServiceBusSettings _serviceBusSettings;
 
-        public DatasetService(IBlobClient blobClient, ILogger logger,
+	    const string ProcessDatasetSubscription = "dataset-events-process-dataset";
+
+		public DatasetService(IBlobClient blobClient, ILogger logger,
             IDatasetRepository datasetRepository, IValidator<CreateNewDatasetModel> createNewDatasetModelValidator,
             IMapper mapper, IValidator<DatasetMetadataModel> datasetMetadataModelValidator,
-            ISearchRepository<DatasetIndex> searchRepository, IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator)
+            ISearchRepository<DatasetIndex> searchRepository, IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator, IMessengerService messengerService, ServiceBusSettings serviceBusSettings)
         {
             _blobClient = blobClient;
             _logger = logger;
@@ -46,6 +53,8 @@ namespace CalculateFunding.Services.Datasets
             _datasetMetadataModelValidator = datasetMetadataModelValidator;
             _searchRepository = searchRepository;
             _getDatasetBlobModelValidator = getDatasetBlobModelValidator;
+	        _messengerService = messengerService;
+	        _serviceBusSettings = serviceBusSettings;
         }
 
         async public Task<IActionResult> CreateNewDataset(HttpRequest request)
@@ -154,7 +163,12 @@ namespace CalculateFunding.Services.Datasets
             return new OkResult();
         }
 
-        async public Task SaveNewDataset(ICloudBlob blob)
+	    public Task ProcessDataset(Message message)
+	    {
+		    throw new NotImplementedException();
+	    }
+
+	    async public Task SaveNewDataset(ICloudBlob blob)
         {
             Guard.ArgumentNotNull(blob, nameof(blob));
 
@@ -223,7 +237,12 @@ namespace CalculateFunding.Services.Datasets
 
                 throw new Exception($"Failed to save dataset for id: {metadataModel.DatasetId} in search with errors {errors}");
             }
-        }
+
+
+	        IDictionary<string, string> properties = CreateMessageProperties(metadataModel);
+
+	        await _messengerService.SendAsync(_serviceBusSettings.CalcsServiceBusTopicName, ProcessDatasetSubscription, dataset, properties);
+		}
 
         async Task<IEnumerable<IndexError>> AddNewDatasetToSearch(Dataset dataset)
         {
@@ -240,5 +259,17 @@ namespace CalculateFunding.Services.Datasets
                 }
             });
         }
-    }
+
+		// TODO - refactor to common 
+	    IDictionary<string, string> CreateMessageProperties(DatasetMetadataModel metadataModel)
+	    {
+		    IDictionary<string, string> properties = new Dictionary<string, string>();
+		    // TODO - where does correlation ID come from should it be a blob metadata property?  properties.Add("sfa-correlationId", metadataModel???);
+
+			    properties.Add("user-id", metadataModel.AuthorId);
+			    properties.Add("user-name", metadataModel.AuthorName);
+
+		    return properties;
+	    }
+	}
 }

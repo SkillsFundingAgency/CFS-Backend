@@ -225,7 +225,17 @@
           "resources": [
             {
               "apiVersion": "2015-08-01",
-              "name": "dataset-events-calcs",
+              "name": "dataset-events-datasets",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "dataset-events"
+              ],
+              "properties": {},
+              "resources": []
+            },
+            {
+              "apiVersion": "2015-08-01",
+              "name": "dataset-events-results",
               "type": "Subscriptions",
               "dependsOn": [
                 "dataset-events"

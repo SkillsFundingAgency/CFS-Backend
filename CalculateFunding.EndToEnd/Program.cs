@@ -57,7 +57,7 @@ namespace CalculateFunding.EndToEnd
 
                 var scopeJson = File.ReadAllText(Path.Combine("SourceData", "scope.json"));
 
-                var scope = JsonConvert.DeserializeObject<SpecificationScope>(scopeJson);
+                var scope = JsonConvert.DeserializeObject<List<ProviderSummary>>(scopeJson);
 
                 var p = ImportProducts();
                 var s = p.GroupBy(x => x.ScenarioName).Select(x => x.Key).ToList();

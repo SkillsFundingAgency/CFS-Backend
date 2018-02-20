@@ -5,6 +5,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -76,5 +77,14 @@ namespace CalculateFunding.Services.Core.AzureStorage
 
             return blob.GetSharedAccessSignature(sasConstraints);
         }
-    }
+
+	    async public Task<Stream> GetAsync(string blobName)
+	    {
+		    EnsureBlobClient();
+
+		    var blob = await _container.Value.GetBlobReferenceFromServerAsync(blobName);
+
+		    return await blob.OpenReadAsync(null, null, null);
+	    }
+	}
 }
