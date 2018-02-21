@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace CalculateFunding.Models.Datasets
@@ -11,5 +12,9 @@ namespace CalculateFunding.Models.Datasets
         public Reference Specification { get; set; }
 
         public string Description { get; set; }
+
+        public DatasetRelationshipVersion DatasetVersion { get; set; }
     }
+
+
 }

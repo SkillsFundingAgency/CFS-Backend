@@ -40,6 +40,13 @@ namespace CalculateFunding.Services.Datasets
             return definitions.FirstOrDefault();
         }
 
+        async public Task<Dataset> GetDatasetByDatasetId(string datasetId)
+        {
+            var datasets = await GetDatasetsByQuery(m => m.Id == datasetId);
+
+            return datasets.FirstOrDefault();
+        }
+
         public Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitions()
         {
             var definitions = _cosmosRepository.Query<DatasetDefinition>();

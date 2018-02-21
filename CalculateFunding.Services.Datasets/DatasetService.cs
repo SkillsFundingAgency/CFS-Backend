@@ -2,6 +2,8 @@ using AutoMapper;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Datasets.ViewModels;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
@@ -37,13 +39,15 @@ namespace CalculateFunding.Services.Datasets
         private readonly IValidator<GetDatasetBlobModel> _getDatasetBlobModelValidator;
 	    private readonly IMessengerService _messengerService;
 	    private readonly ServiceBusSettings _serviceBusSettings;
+        private readonly ISpecificationsRepository _specificationsRepository;
 
-	    const string ProcessDatasetSubscription = "dataset-events-process-dataset";
+        const string ProcessDatasetSubscription = "dataset-events-process-dataset";
 
 		public DatasetService(IBlobClient blobClient, ILogger logger,
             IDatasetRepository datasetRepository, IValidator<CreateNewDatasetModel> createNewDatasetModelValidator,
             IMapper mapper, IValidator<DatasetMetadataModel> datasetMetadataModelValidator,
-            ISearchRepository<DatasetIndex> searchRepository, IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator, IMessengerService messengerService, ServiceBusSettings serviceBusSettings)
+            ISearchRepository<DatasetIndex> searchRepository, IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator,
+            ISpecificationsRepository specificationsRepository, IMessengerService messengerService, ServiceBusSettings serviceBusSettings)
         {
             _blobClient = blobClient;
             _logger = logger;
@@ -55,6 +59,7 @@ namespace CalculateFunding.Services.Datasets
             _getDatasetBlobModelValidator = getDatasetBlobModelValidator;
 	        _messengerService = messengerService;
 	        _serviceBusSettings = serviceBusSettings;
+            _specificationsRepository = specificationsRepository;
         }
 
         async public Task<IActionResult> CreateNewDataset(HttpRequest request)
@@ -116,6 +121,40 @@ namespace CalculateFunding.Services.Datasets
             _logger.Information($"Dataset found for name: {datasetName}");
 
             return new OkObjectResult(datasets.FirstOrDefault());
+        }
+
+        async public Task<IActionResult> GetDatasetsByDefinitionId(HttpRequest request)
+        {
+            request.Query.TryGetValue("definitionId", out var definitionId);
+
+            var datasetDefinitionId = definitionId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(datasetDefinitionId))
+            {
+                _logger.Error($"No {nameof(definitionId)} was provided to {nameof(GetDatasetsByDefinitionId)}");
+
+                return new BadRequestObjectResult($"Null or empty {nameof(definitionId)} provided");
+            }
+
+            IEnumerable<Dataset> datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Definition.Id == datasetDefinitionId.ToLower());
+            List<DatasetViewModel> result = new List<DatasetViewModel>();
+            foreach(Dataset dataset in datasets)
+            {
+                DatasetViewModel datasetVm = _mapper.Map<DatasetViewModel>(dataset);
+
+                result.Add(datasetVm);
+            }
+
+            //if (!datasets.Any())
+            //{
+            //    _logger.Information($"Dataset was not found for name: {datasetDefinitionId}");
+
+            //    return new NotFoundResult();
+            //}
+
+            //_logger.Information($"Dataset found for name: {datasetDefinitionId}");
+
+            return new OkObjectResult(result);
         }
 
         async public Task<IActionResult> ValidateDataset(HttpRequest request)
@@ -187,7 +226,7 @@ namespace CalculateFunding.Services.Datasets
                 throw new Exception($"Invalid metadata on blob: {blob.Name}");
             }
 
-            DatasetDefinition datasetDefinition =
+            Models.Datasets.Schema.DatasetDefinition datasetDefinition =
                 (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == metadataModel.DataDefinitionId)).FirstOrDefault();
 
             if (datasetDefinition == null)

@@ -70,5 +70,17 @@ namespace CalculateFunding.Functions.Datasets.Http
                 return svc.GetRelationshipBySpecificationIdAndName(req);
             }
         }
+
+        [FunctionName("get-relationships-by-specificationId")]
+        public static Task<IActionResult> RunGetRealtionshipsBySpecificationId(
+        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IDefinitionSpecificationRelationshipService svc = scope.ServiceProvider.GetService<IDefinitionSpecificationRelationshipService>();
+
+                return svc.GetCurrentRelationshipsBySpecificationId(req);
+            }
+        }
     }
 }

@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.WindowsAzure.Storage.Blob;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 
@@ -19,5 +16,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<IActionResult> ValidateDataset(HttpRequest request);
 	    Task ProcessDataset(Message message);
+
+        Task<IActionResult> GetDatasetsByDefinitionId(HttpRequest request);
     }
 }

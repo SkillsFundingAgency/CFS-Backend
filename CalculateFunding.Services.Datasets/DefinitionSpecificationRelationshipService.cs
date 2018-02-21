@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Services.Core.Extensions;
@@ -167,6 +168,100 @@ namespace CalculateFunding.Services.Datasets
                 return new OkObjectResult(relationship);
 
             return new NotFoundResult();
+        }
+
+        async public Task<IActionResult> GetCurrentRelationshipsBySpecificationId(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out var specId);
+
+            var specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error($"No specification id was provided to GetCurrentRelationshipsBySpecificationId");
+
+                return new BadRequestObjectResult($"Null or empty {nameof(specificationId)} provided");
+            }
+
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+
+            if (specification == null)
+            {
+                _logger.Error($"Failed to find specification for id: {specificationId}");
+
+                return new StatusCodeResult(412);
+            }
+
+            IEnumerable<DefinitionSpecificationRelationship> relationships =
+               (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Specification.Id == specificationId)).ToList();
+
+            if (relationships.IsNullOrEmpty())
+                relationships = new DefinitionSpecificationRelationship[0];
+
+            IList<DatasetSpecificationRelationshipViewModel> relationshipViewModels = new List<DatasetSpecificationRelationshipViewModel>();
+
+            if (relationships.IsNullOrEmpty())
+                return new OkObjectResult(relationshipViewModels);
+
+            IList<Task<DatasetSpecificationRelationshipViewModel>> tasks = new List<Task<DatasetSpecificationRelationshipViewModel>>();
+
+            foreach (DefinitionSpecificationRelationship relationship in relationships)
+            {
+                Task<DatasetSpecificationRelationshipViewModel> task = CreateViewModel(relationship);
+
+                tasks.Add(task);
+            }
+
+            await Task.WhenAll(tasks);
+
+            foreach (Task<DatasetSpecificationRelationshipViewModel> task in tasks)
+            {
+                relationshipViewModels.Add(task.Result);
+            }
+
+            return new OkObjectResult(tasks.Select(m => m.Result));
+        }
+
+        async Task<DatasetSpecificationRelationshipViewModel> CreateViewModel(DefinitionSpecificationRelationship relationship)
+        {
+            DatasetSpecificationRelationshipViewModel relationshipViewModel = new DatasetSpecificationRelationshipViewModel();
+            relationshipViewModel.Id = relationship.Id;
+            relationshipViewModel.Name = relationship.Name;
+
+            if (relationship.DatasetVersion != null)
+            {
+                Dataset dataset = await _datasetRepository.GetDatasetByDatasetId(relationship.DatasetVersion.Id);
+
+                if (dataset != null)
+                {
+                    relationshipViewModel.DatasetId = relationship.DatasetVersion.Id;
+                    relationshipViewModel.DatasetName = dataset.Name;
+                    relationshipViewModel.Version = relationship.DatasetVersion.Version;
+                }
+                else
+                {
+                    _logger.Warning($"Dataset could not be found for Id {relationship.DatasetVersion.Id}");
+                }
+            }
+
+            if (relationship.DatasetDefinition != null)
+            {
+                string definitionId = relationship.DatasetDefinition.Id;
+
+                Models.Datasets.Schema.DatasetDefinition definition = await _datasetRepository.GetDatasetDefinition(definitionId);
+
+                if (definition != null)
+                {
+                    relationshipViewModel.Definition = new DatasetDefinitionViewModel
+                    {
+                        Id = definition.Id,
+                        Name = definition.Name,
+                        Description = definition.Description
+                    };
+                }
+            }
+
+            return relationshipViewModel;
         }
 
         IDictionary<string, string> CreateMessageProperties(HttpRequest request)

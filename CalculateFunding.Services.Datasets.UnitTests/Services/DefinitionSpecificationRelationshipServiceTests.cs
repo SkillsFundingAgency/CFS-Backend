@@ -1,5 +1,7 @@
-﻿using CalculateFunding.Models.Datasets;
+﻿using CalculateFunding.Models;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
@@ -565,6 +567,545 @@ namespace CalculateFunding.Services.Datasets.Services
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task GetRelationshipsBySpecificationId_GivenNullSpecificationId_ReturnsBadRequest()
+        {
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
+
+            //Act
+            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No specification id was provided to GetCurrentRelationshipsBySpecificationId"));
+        }
+
+        [TestMethod]
+        public async Task GetRelationshipsBySpecificationId_GivenSpecificationNotFound_ReturnsPreConditionFailed()
+        {
+            string specificationId = Guid.NewGuid().ToString();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(specificationId))
+                .Returns((Specification)null);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, specificationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(412);
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Failed to find specification for id: {specificationId}"));
+        }
+
+        [TestMethod]
+        public async Task GetRelationshipsBySpecificationId_GivenNoRelationshipsFound_ReturnsOkAndEmptyList()
+        {
+            string specificationId = Guid.NewGuid().ToString();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            Specification specification = new Specification();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            IEnumerable<DefinitionSpecificationRelationship> relationships = new List<DefinitionSpecificationRelationship>();
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .Returns(relationships);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, 
+                specificationsRepository: specificationsRepository, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okResult = result as OkObjectResult;
+
+            List<DatasetSpecificationRelationshipViewModel> content = okResult.Value as List<DatasetSpecificationRelationshipViewModel>;
+
+            content
+                 .Should()
+                 .NotBeNull();
+
+            content
+                .Any()
+                .Should()
+                .BeFalse();
+        }
+
+        [TestMethod]
+        public async Task GetRelationshipsBySpecificationId_GivenRelationshipsButDatasetVersionIsNull_ReturnsOkAndList()
+        {
+            string specificationId = Guid.NewGuid().ToString();
+            string relationshipId = Guid.NewGuid().ToString();
+            const string relationshipName = "rel name";
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            Specification specification = new Specification();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            IList<DefinitionSpecificationRelationship> relationships = new List<DefinitionSpecificationRelationship>();
+            relationships.Add(new DefinitionSpecificationRelationship
+            {
+                Specification = new Reference { Id = specificationId },
+                Id = relationshipId,
+                Name = relationshipName
+            });
+                
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .Returns(relationships);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
+                specificationsRepository: specificationsRepository, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okResult = result as OkObjectResult;
+
+            IEnumerable<DatasetSpecificationRelationshipViewModel> content = okResult.Value as IEnumerable<DatasetSpecificationRelationshipViewModel>;
+
+            content
+                 .Should()
+                 .NotBeNull();
+
+            content
+                .Any()
+                .Should()
+                .BeTrue();
+
+            content
+               .Count()
+               .Should()
+               .Be(1);
+        }
+
+        [TestMethod]
+        public async Task GetRelationshipsBySpecificationId_GivenRelationshipsButDatasetVersionIsNullButHasDefinition_ReturnsOkAndList()
+        {
+            string specificationId = Guid.NewGuid().ToString();
+            string relationshipId = Guid.NewGuid().ToString();
+            string definitionId = Guid.NewGuid().ToString();
+            const string relationshipName = "rel name";
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            Specification specification = new Specification();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            Models.Datasets.Schema.DatasetDefinition datasetDefinition = new Models.Datasets.Schema.DatasetDefinition
+            {
+                Id = definitionId,
+                Name = "def name",
+                Description = "def desc"
+            };
+
+            IList<DefinitionSpecificationRelationship> relationships = new List<DefinitionSpecificationRelationship>();
+            relationships.Add(new DefinitionSpecificationRelationship
+            {
+                Specification = new Reference { Id = specificationId },
+                Id = relationshipId,
+                Name = relationshipName,
+                DatasetDefinition = new Reference { Id  = definitionId }
+            });
+
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .Returns(relationships);
+            datasetRepository
+                .GetDatasetDefinition(Arg.Is(definitionId))
+                .Returns(datasetDefinition);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
+                specificationsRepository: specificationsRepository, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okResult = result as OkObjectResult;
+
+            IEnumerable<DatasetSpecificationRelationshipViewModel> content = okResult.Value as IEnumerable<DatasetSpecificationRelationshipViewModel>;
+
+            content
+                 .Should()
+                 .NotBeNull();
+
+            content
+                .First()
+                .Definition.Name
+                .Should()
+                .Be("def name");
+
+            content
+                .First()
+                .Definition.Id
+                .Should()
+                .Be(definitionId);
+
+            content
+                .First()
+                .Definition.Description
+                .Should()
+                .Be("def desc");
+
+            content
+                .First()
+                .Id
+                .Should()
+                .Be(relationshipId);
+
+            content
+               .First()
+               .Name
+               .Should()
+               .Be(relationshipName);
+        }
+
+        [TestMethod]
+        public async Task GetRelationshipsBySpecificationId_GivenRelationshipsWithDatasetVersionButVersionCouldNotBeFound_ReturnsOkAndList()
+        {
+            string specificationId = Guid.NewGuid().ToString();
+            string relationshipId = Guid.NewGuid().ToString();
+            string definitionId = Guid.NewGuid().ToString();
+            string datasetId = Guid.NewGuid().ToString();
+            const string relationshipName = "rel name";
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            Specification specification = new Specification();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            Models.Datasets.Schema.DatasetDefinition datasetDefinition = new Models.Datasets.Schema.DatasetDefinition
+            {
+                Id = definitionId,
+                Name = "def name",
+                Description = "def desc"
+            };
+
+            IList<DefinitionSpecificationRelationship> relationships = new List<DefinitionSpecificationRelationship>();
+            relationships.Add(new DefinitionSpecificationRelationship
+            {
+                Specification = new Reference { Id = specificationId },
+                Id = relationshipId,
+                Name = relationshipName,
+                DatasetDefinition = new Reference { Id = definitionId },
+                DatasetVersion = new DatasetRelationshipVersion
+                {
+                    Id = datasetId,
+                    Version = 1
+                }
+            });
+
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .Returns(relationships);
+            datasetRepository
+                .GetDatasetDefinition(Arg.Is(definitionId))
+                .Returns(datasetDefinition);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
+                specificationsRepository: specificationsRepository, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okResult = result as OkObjectResult;
+
+            IEnumerable<DatasetSpecificationRelationshipViewModel> content = okResult.Value as IEnumerable<DatasetSpecificationRelationshipViewModel>;
+
+            content
+                 .Should()
+                 .NotBeNull();
+
+            content
+                .First()
+                .Definition.Name
+                .Should()
+                .Be("def name");
+
+            content
+                .First()
+                .Definition.Id
+                .Should()
+                .Be(definitionId);
+
+            content
+                .First()
+                .Definition.Description
+                .Should()
+                .Be("def desc");
+
+            content
+                .First()
+                .Id
+                .Should()
+                .Be(relationshipId);
+
+            content
+               .First()
+               .Name
+               .Should()
+               .Be(relationshipName);
+
+            logger
+                .Received(1)
+                .Warning($"Dataset could not be found for Id {datasetId}");
+        }
+
+        [TestMethod]
+        public async Task GetRelationshipsBySpecificationId_GivenRelationships_ReturnsOkAndList()
+        {
+            string specificationId = Guid.NewGuid().ToString();
+            string relationshipId = Guid.NewGuid().ToString();
+            string definitionId = Guid.NewGuid().ToString();
+            string datasetId = Guid.NewGuid().ToString();
+            const string relationshipName = "rel name";
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            Specification specification = new Specification();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            Models.Datasets.Schema.DatasetDefinition datasetDefinition = new Models.Datasets.Schema.DatasetDefinition
+            {
+                Id = definitionId,
+                Name = "def name",
+                Description = "def desc"
+            };
+
+            IList<DefinitionSpecificationRelationship> relationships = new List<DefinitionSpecificationRelationship>();
+            relationships.Add(new DefinitionSpecificationRelationship
+            {
+                Specification = new Reference { Id = specificationId },
+                Id = relationshipId,
+                Name = relationshipName,
+                DatasetDefinition = new Reference { Id = definitionId },
+                DatasetVersion = new DatasetRelationshipVersion
+                {
+                    Id = datasetId,
+                    Version = 1
+                }
+            });
+
+            Dataset dataset = new Dataset
+            {
+                Id = datasetId,
+                Name = "ds name"
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .Returns(relationships);
+            datasetRepository
+                .GetDatasetDefinition(Arg.Is(definitionId))
+                .Returns(datasetDefinition);
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId))
+                .Returns(dataset);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
+                specificationsRepository: specificationsRepository, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okResult = result as OkObjectResult;
+
+            IEnumerable<DatasetSpecificationRelationshipViewModel> content = okResult.Value as IEnumerable<DatasetSpecificationRelationshipViewModel>;
+
+            content
+                 .Should()
+                 .NotBeNull();
+
+            content
+                .First()
+                .Definition.Name
+                .Should()
+                .Be("def name");
+
+            content
+                .First()
+                .Definition.Id
+                .Should()
+                .Be(definitionId);
+
+            content
+                .First()
+                .Definition.Description
+                .Should()
+                .Be("def desc");
+
+            content
+                .First()
+                .Id
+                .Should()
+                .Be(relationshipId);
+
+            content
+               .First()
+               .Name
+               .Should()
+               .Be(relationshipName);
+
+            content
+                .First()
+                .DatasetId
+                .Should()
+                .Be(datasetId);
+
+            content
+                .First()
+                .DatasetName
+                .Should()
+                .Be("ds name");
+
+            content
+                .First()
+                .Version
+                .Should()
+                .Be(1);
         }
 
 

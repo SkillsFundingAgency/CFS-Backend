@@ -3,6 +3,8 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
 using FluentValidation;
@@ -944,18 +946,35 @@ namespace CalculateFunding.Services.Datasets.Services
             IDatasetRepository datasetRepository = null, 
             IValidator<CreateNewDatasetModel> createNewDatasetModelValidator = null, IMapper mapper = null,
             IValidator<DatasetMetadataModel> datasetMetadataModelValidator = null, ISearchRepository<DatasetIndex> searchRepository = null,
-            IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator = null)
+            IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator = null, ISpecificationsRepository specificationsRepository = null,
+            IMessengerService messengerService = null, ServiceBusSettings serviceBusSettings = null)
         {
             return new DatasetService(blobClient ?? CreateBlobClient(), logger ?? CreateLogger(), 
                 datasetRepository ?? CreateDatasetsRepository(), 
                 createNewDatasetModelValidator ?? CreateNewDatasetModelValidator(), mapper ?? CreateMapper(),
                 datasetMetadataModelValidator ?? CreateDatasetMetadataModelValidator(), 
-                searchRepository ?? CreateSearchRepository(), getDatasetBlobModelValidator ?? CreateGetDatasetBlobModelValidator(), null, null); //TODO
+                searchRepository ?? CreateSearchRepository(), getDatasetBlobModelValidator ?? CreateGetDatasetBlobModelValidator(),
+                specificationsRepository ?? CreateSpecificationsRepository(), messengerService ?? CreateMessengerService(), serviceBusSettings ?? CreateServiceBusSettings());
         }
 
         static ISearchRepository<DatasetIndex> CreateSearchRepository()
         {
             return Substitute.For<ISearchRepository<DatasetIndex>>();
+        }
+
+        static ISpecificationsRepository CreateSpecificationsRepository()
+        {
+            return Substitute.For<ISpecificationsRepository>();
+        }
+
+        static IMessengerService CreateMessengerService()
+        {
+            return Substitute.For<IMessengerService>();
+        }
+
+        static ServiceBusSettings CreateServiceBusSettings()
+        {
+            return new ServiceBusSettings();
         }
 
         static IValidator<CreateNewDatasetModel> CreateNewDatasetModelValidator(ValidationResult validationResult = null)
