@@ -2,11 +2,11 @@ using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CalculateFunding.Functions.Datasets
+namespace CalculateFunding.Functions.Results
 {
     public static class OnTimerFired
     {
@@ -16,22 +16,22 @@ namespace CalculateFunding.Functions.Datasets
             using (var scope = IocConfig.Build().CreateScope())
             {
                 var messagePump = scope.ServiceProvider.GetService<IMessagePumpService>();
-                var datasetService = scope.ServiceProvider.GetService<IDatasetService>();
+                var resultsService = scope.ServiceProvider.GetService<IResultsService>();
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 var logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
 
                 await Task.WhenAll(
                    
-                    messagePump.ReceiveAsync("dataset-events", "dataset-events-datasets",
+                    messagePump.ReceiveAsync("dataset-events", "dataset-events-results",
                         async message =>
                         {
                             correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                            await datasetService.ProcessDataset(message);
+                            await resultsService.UpdateProviderData(message);
                         },(exception) => {
 
-                            logger.Error(exception, "An error occurred getting message from topic: dataset-events for subscription: dataset-events-datasets");
+                            logger.Error(exception, "An error occurred getting message from topic: dataset-events for subscription: calc-events-results");
                         } )
-				);
+                );
             }
         }
     }

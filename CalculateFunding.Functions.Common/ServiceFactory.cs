@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calculator;

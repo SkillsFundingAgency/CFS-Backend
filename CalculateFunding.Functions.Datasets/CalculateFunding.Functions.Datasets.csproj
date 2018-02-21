@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <Compile Remove="OnSourceUpdated.cs" />
-    <Compile Remove="OnTimerFired.cs" />
   </ItemGroup>
 
   <ItemGroup>

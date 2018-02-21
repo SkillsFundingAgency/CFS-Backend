@@ -23,13 +23,13 @@ namespace CalculateFunding.Services.Calculator
     {
         private readonly IDatasetProvider _datasetProvider = null;
 
-        public IEnumerable<ProviderResult> GenerateAllocations(BuildProject buildProject, SpecificationScope scope)
+        public IEnumerable<ProviderResult> GenerateAllocations(BuildProject buildProject, IEnumerable<ProviderSummary> providers)
         {
             var assembly = Assembly.Load(Convert.FromBase64String(buildProject.Build.AssemblyBase64));
             var allocationFactory = new AllocationFactory(assembly);
             var allocationModel = allocationFactory.CreateAllocationModel();
 
-                foreach (var provider in scope.Providers)
+                foreach (var provider in providers)
                 {
                     var stopwatch = new Stopwatch();
                     stopwatch.Start();
@@ -78,7 +78,7 @@ namespace CalculateFunding.Services.Calculator
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             var calculationResults = model.Execute(typedDatasets.ToArray()).ToArray();
-            var providerCalResults = calculationResults.ToDictionary(x => x.CalculationId);
+            var providerCalResults = calculationResults.ToDictionary(x => x.Calculation?.Id);
             stopwatch.Stop();
             Console.WriteLine($"{providerCalResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalResults.Count: 0.0000}ms)");
 

@@ -37,10 +37,6 @@ namespace CalculateFunding.ApiClient
             return new ApiResponse<T>(response.StatusCode);
         }
 
-        public async Task<ApiResponse<BudgetSummary[]>> GetBudgetResults()
-        {
-            return await GetAsync<BudgetSummary[]>($"{_resultsPath}/budgets");
-        }
 
         public async Task<ApiResponse<Specification[]>> GetSpecifications(string academicYearId = null)
         {

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Datasets.Interfaces
 {
@@ -17,5 +18,6 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task SaveNewDataset(ICloudBlob blob);
 
         Task<IActionResult> ValidateDataset(HttpRequest request);
+	    Task ProcessDataset(Message message);
     }
 }

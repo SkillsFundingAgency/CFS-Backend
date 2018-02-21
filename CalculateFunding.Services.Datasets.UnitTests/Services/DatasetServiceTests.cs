@@ -950,7 +950,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository ?? CreateDatasetsRepository(), 
                 createNewDatasetModelValidator ?? CreateNewDatasetModelValidator(), mapper ?? CreateMapper(),
                 datasetMetadataModelValidator ?? CreateDatasetMetadataModelValidator(), 
-                searchRepository ?? CreateSearchRepository(), getDatasetBlobModelValidator ?? CreateGetDatasetBlobModelValidator());
+                searchRepository ?? CreateSearchRepository(), getDatasetBlobModelValidator ?? CreateGetDatasetBlobModelValidator(), null, null); //TODO
         }
 
         static ISearchRepository<DatasetIndex> CreateSearchRepository()

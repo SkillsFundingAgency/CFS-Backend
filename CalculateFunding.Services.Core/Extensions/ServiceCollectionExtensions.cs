@@ -23,6 +23,7 @@ using System.IO;
 using System.Reflection;
 using System.Security.Claims;
 using System.Text;
+using CalculateFunding.Models.Results;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -78,7 +79,10 @@ namespace CalculateFunding.Services.Core.Extensions
             builder
               .AddScoped<ISearchRepository<SpecificationIndex>, SearchRepository<SpecificationIndex>>();
 
-            return builder;
+	        builder
+		        .AddScoped<ISearchRepository<ProviderIndex>, SearchRepository<ProviderIndex>>();
+
+			return builder;
         }
 
         public static IServiceCollection AddServiceBus(this IServiceCollection builder, IConfigurationRoot config)
