@@ -1,40 +1,58 @@
-﻿using CalculateFunding.Functions.Common;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Repositories.Providers;
+﻿using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Compiler;
-using CalculateFunding.Services.DataImporter;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Functions.Specs.Http;
 using CalculateFunding.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Logging.Console;
 using Newtonsoft.Json;
-using CalculateFunding.Functions.Calcs;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Timers;
-using CalculateFunding.Functions.Datasets.Http;
-using CalculateFunding.Functions.Results.Http;
+using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.Calcs;
+using CalculateFunding.Services.Calcs.CodeGen;
+using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
+using CalculateFunding.Services.Calcs.Validators;
 using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.CodeGeneration.CSharp;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
-using Microsoft.CodeAnalysis;
+using CalculateFunding.Services.Compiler.Interfaces;
+using CalculateFunding.Services.Compiler.Languages;
+using CalculateFunding.Services.Core.AzureStorage;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Logging;
+using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Datasets;
+using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Datasets.Validators;
+using CalculateFunding.Services.Results;
+using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Specs;
+using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Services.Specs.Validators;
+using CalculateFunding.Services.Validators;
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
+using Microsoft.Extensions.DependencyInjection;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
+using Serilog;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 
 namespace CalculateFunding.EndToEnd
@@ -42,123 +60,63 @@ namespace CalculateFunding.EndToEnd
 
     class Program
     {
-        static void Main(string[] args)
-        {
-            var importer = ServiceFactory.GetService<DataImporterService>();
-            ConsoleLogger logger = new ConsoleLogger("Default", (s, level) => true, true);
+		static void Main(string[] args)
+		{
+			var serviceCollection = new ServiceCollection();
+			RegisterComponents(serviceCollection);
+			var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var user = new Reference("matt.hammond@education.gov.uk", "Matt Hammond");
-            Task.Run(async () =>
-            {
-
-
-                var spec = await ImportSpecification(user, logger);
-
-
-                var scopeJson = File.ReadAllText(Path.Combine("SourceData", "scope.json"));
-
-                var scope = JsonConvert.DeserializeObject<List<ProviderSummary>>(scopeJson);
-
-                var p = ImportProducts();
-                var s = p.GroupBy(x => x.ScenarioName).Select(x => x.Key).ToList();
-                var products = ImportProducts();
-
-
- 
-                var impl = new BuildProject
-                {
-                    Id = Reference.NewId(),
-                    Specification = spec.GetReference(),
-                    TargetLanguage = TargetLanguage.VisualBasic,
-                    Name = spec.Name
-                };
-                impl.Calculations = impl.Calculations ?? new List<Calculation>();
-                impl.DatasetDefinitions = spec.DatasetDefinitions;
+			var specService = serviceProvider.GetService<ISpecificationsService>();
+			var buildProjectRepo = serviceProvider.GetService<IBuildProjectsRepository>();
+			var specSearchService = serviceProvider.GetService<ISpecificationsSearchService>();
 
 
 
-                impl.Calculations.AddRange(spec.GenerateCalculations());
+			ConsoleLogger logger = new ConsoleLogger("Default", (s, level) => true, true);
 
-                foreach (var product in products.Where(x => x.ScenarioName == "1718_Global_Variables")) 
-                {
-                    impl.Calculations.Add(new Calculation
-                    {
-                        Id = Reference.NewId(),
-                        Name = product.Name,
-                        Published = new CalculationVersion
-                        {
-                            SourceCode = ConvertTheStoreScript(product)
-                        }
-                        
-                    });
-                }
+			var user = new Reference("matt.hammond@education.gov.uk", "Matt Hammond");
+			Task.Run(async () =>
+			{
 
-                foreach (var product in products.Where(x => x.ScenarioName == "1718_NOR"))
-                {
-                    impl.Calculations.Add(new Calculation
-                    {
-                        Id = Reference.NewId(),
-                        Name = product.Name,
-                        Published = new CalculationVersion
-                        {
-                            SourceCode = ConvertTheStoreScript(product)
-                        }
+				var specSearchResult = await specSearchService.SearchSpecifications(GetHttpRequest(new SearchModel
+				{
+					PageNumber = 1,
+					Top = 50,
+					SearchTerm = "*",
+					IncludeFacets = true
+				}));
 
-                    });
-                }
+				var specs = (specSearchResult as OkObjectResult)?.Value as SpecificationSearchResults;
 
-                foreach (var calculation in impl.Calculations)
-                {
-                    var sbsProducts = products.Where(x => x.ScenarioName == "1718_SBS").ToDictionary(x => x.Name);
-                    if (sbsProducts.TryGetValue(calculation.Name, out var product))
-                    {
-                        calculation.Published = new CalculationVersion
-                        {
-                            SourceCode = ConvertTheStoreScript(product)
-                        };
-
-                    }
-                }
-
-                
-
-                ISourceFileGenerator generator = null;
-                switch (impl.TargetLanguage)
-                {
-                    case TargetLanguage.CSharp:
-                        generator = ServiceFactory.GetService<CSharpSourceFileGenerator>();
-                        break;
-                    case TargetLanguage.VisualBasic:
-                        generator = ServiceFactory.GetService<VisualBasicSourceFileGenerator>();
-                        break;
-                }
-
-                var sourceFiles = generator.GenerateCode(impl);
-
-                var compilerFactory = ServiceFactory.GetService<CompilerFactory>();
-
-                var compiler = compilerFactory.GetCompiler(sourceFiles);
-
-
-                impl.Build = compiler.GenerateCode(sourceFiles);
-                foreach (var sourceFile in impl.Build.SourceFiles)
-                {
-                    var fileName = $@"..\Spikes\{impl.TargetLanguage.ToString()}\{sourceFile.FileName}";
-                    var path = Path.GetDirectoryName(fileName);
-                    if (!Directory.Exists(path))
-                    {
-                        Directory.CreateDirectory(path);
-                    }
-                    File.WriteAllText(fileName, sourceFile.SourceCode);
-                }
-
-
-                var calc = ServiceFactory.GetService<CalculationEngine>();
-                var results = calc.GenerateAllocations(impl, scope).ToList();
+				foreach (var spec in specs.Results)
+				{
+					var buildProject = await buildProjectRepo.GetBuildProjectBySpecificationId(spec.SpecificationId);
+					if (buildProject != null)
+					{
+						//if (compilerOutput.Success)
+						//{
+						    var calc = ServiceFactory.GetService<CalculationEngine>();
+						    var result = await calc.GenerateAllocations(buildProject.Build, );
+						//}
+					}
+				}
 
 
 
-                //OnTimerFired.Run(null, logger);
+
+
+				var scopeJson = File.ReadAllText(Path.Combine("SourceData", "scope.json"));
+
+				var scope = JsonConvert.DeserializeObject<List<ProviderSummary>>(scopeJson);
+
+				var p = ImportProducts();
+				var s = p.GroupBy(x => x.ScenarioName).Select(x => x.Key).ToList();
+				var products = ImportProducts();
+
+
+
+
+				//OnTimerFired.Run(null, logger);
 
 
 
@@ -166,38 +124,226 @@ namespace CalculateFunding.EndToEnd
 
 
 
-                //foreach (var file in Directory.GetFiles("SourceData").Where(x => x.ToLowerInvariant().EndsWith(".xlsx")))
-                //{
-                //    using (var stream = new FileStream(file, FileMode.Open))
-                //    {
-                //        await importer.GetSourceDataAsync(Path.GetFileName(file), stream, budgetDefinition.Id);
-                //    }
-                //}
+				//foreach (var file in Directory.GetFiles("SourceData").Where(x => x.ToLowerInvariant().EndsWith(".xlsx")))
+				//{
+				//    using (var stream = new FileStream(file, FileMode.Open))
+				//    {
+				//        await importer.GetSourceDataAsync(Path.GetFileName(file), stream, budgetDefinition.Id);
+				//    }
+				//}
 
 
-                //if (compilerOutput.Success)
-                //{
-                //    var calc = ServiceFactory.GetService<CalculationEngine>();
-                //    await calc.GenerateAllocations(compilerOutput);
-                //}
-                //else
-                //{
-                //    foreach (var compilerMessage in compilerOutput.CompilerMessages)
-                //    {
-                //        Console.WriteLine(compilerMessage.Message);
-                //    }
-                //    Console.ReadKey();
-                //}
+				//if (compilerOutput.Success)
+				//{
+				//    var calc = ServiceFactory.GetService<CalculationEngine>();
+				//    await calc.GenerateAllocations(compilerOutput);
+				//}
+				//else
+				//{
+				//    foreach (var compilerMessage in compilerOutput.CompilerMessages)
+				//    {
+				//        Console.WriteLine(compilerMessage.Message);
+				//    }
+				//    Console.ReadKey();
+				//}
 
-                // await StoreAggregates(budgetDefinition, new AllocationFactory(compilerOutput.Assembly));
+				// await StoreAggregates(budgetDefinition, new AllocationFactory(compilerOutput.Assembly));
 
 
 
-            }
+			}
 
-            // Do any async anything you need here without worry
-        ).GetAwaiter().GetResult();
-        }
+		// Do any async anything you need here without worry
+		).GetAwaiter().GetResult();
+		}
+		static void RegisterComponents(IServiceCollection builder)
+		{
+			IConfigurationRoot config = ConfigHelper.AddConfig();
+
+			builder
+				.AddScoped<ICalculationsRepository, CalculationsRepository>();
+
+			builder.AddScoped<ICalculationsRepository, CalculationsRepository>((ctx) =>
+			{
+				CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+
+				config.Bind("CosmosDbSettings", calssDbSettings);
+
+				calssDbSettings.CollectionName = "calcs";
+
+				CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+
+				return new CalculationsRepository(calcsCosmosRepostory);
+			});
+
+			builder
+			   .AddScoped<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();
+
+			builder
+				.AddScoped<IBlobClient, BlobClient>((ctx) =>
+				{
+					AzureStorageSettings storageSettings = new AzureStorageSettings();
+
+					config.Bind("AzureStorageSettings", storageSettings);
+
+					storageSettings.ContainerName = "datasets";
+
+					return new BlobClient(storageSettings);
+				});
+
+			builder
+			  .AddScoped<IDatasetService, DatasetService>();
+
+			builder.AddScoped<IDatasetRepository, DataSetsRepository>((ctx) =>
+			{
+				CosmosDbSettings datasetsDbSettings = new CosmosDbSettings();
+
+				config.Bind("CosmosDbSettings", datasetsDbSettings);
+
+				datasetsDbSettings.CollectionName = "datasets";
+
+				CosmosRepository datasetsCosmosRepostory = new CosmosRepository(datasetsDbSettings);
+
+				return new DataSetsRepository(datasetsCosmosRepostory);
+			});
+
+			builder
+			   .AddScoped<ICalculationService, CalculationService>();
+
+			builder
+			  .AddScoped<ICalculationsSearchService, CalculationSearchService>();
+
+			builder
+				.AddScoped<IDatasetSearchService, DatasetSearchService>();
+
+			builder
+				.AddScoped<IDefinitionSpecificationRelationshipService, DefinitionSpecificationRelationshipService>();
+
+			builder
+				.AddScoped<Services.Datasets.Interfaces.ISpecificationsRepository, Services.Datasets.SpecificationsRepository>();
+
+			builder
+				.AddScoped<IValidator<Models.Calcs.Calculation>, CalculationModelValidator>();
+
+			builder
+				.AddScoped<IDefinitionsService, DefinitionsService>();
+
+			builder
+				.AddScoped<ISpecificationsSearchService, SpecificationsSearchService>();
+
+
+			builder
+				.AddScoped<IResultsSearchService, ResultsSearchService>();
+
+			builder
+				.AddScoped<IResultsService, ResultsService>();
+
+
+			builder.AddScoped<IResultsRepository, ResultsRepository>((ctx) =>
+			{
+				CosmosDbSettings specsDbSettings = new CosmosDbSettings();
+
+				config.Bind("CosmosDbSettings", specsDbSettings);
+
+				specsDbSettings.CollectionName = "results";
+
+				CosmosRepository specsCosmosRepostory = new CosmosRepository(specsDbSettings);
+
+				return new ResultsRepository(specsCosmosRepostory);
+			});
+
+
+
+			builder.AddScoped<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>((ctx) =>
+			{
+				CosmosDbSettings specsDbSettings = new CosmosDbSettings();
+
+				config.Bind("CosmosDbSettings", specsDbSettings);
+
+				specsDbSettings.CollectionName = "specs";
+
+				CosmosRepository specsCosmosRepostory = new CosmosRepository(specsDbSettings);
+
+				return new Services.Specs.SpecificationsRepository(specsCosmosRepostory);
+			});
+
+			builder.AddScoped<IBuildProjectsRepository, BuildProjectsRepository>((ctx) =>
+			{
+				CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+
+				config.Bind("CosmosDbSettings", calssDbSettings);
+
+				calssDbSettings.CollectionName = "calcs";
+
+				CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+
+				return new BuildProjectsRepository(calcsCosmosRepostory);
+			});
+
+			builder
+				.AddScoped<IPreviewService, PreviewService>();
+
+			builder
+			   .AddScoped<ICompilerFactory, CompilerFactory>();
+
+			builder
+				.AddScoped<CSharpCompiler>()
+				.AddScoped<VisualBasicCompiler>()
+				.AddScoped<CSharpSourceFileGenerator>()
+				.AddScoped<VisualBasicSourceFileGenerator>();
+
+			builder
+			  .AddScoped<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
+
+			builder
+			   .AddScoped<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
+
+			builder
+				.AddScoped<ISpecificationsService, SpecificationsService>();
+
+			builder
+				.AddScoped<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
+
+			builder
+				.AddScoped<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
+
+			builder
+				.AddScoped<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
+
+			builder
+			   .AddScoped<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();
+
+			builder
+				.AddScoped<IValidator<DatasetMetadataModel>, DatasetMetadataModelValidator>();
+
+			builder
+				.AddScoped<IValidator<GetDatasetBlobModel>, GetDatasetBlobModelValidator>();
+
+			builder
+				.AddScoped<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
+
+			builder
+				.AddScoped<IValidator<CreateDefinitionSpecificationRelationshipModel>, CreateDefinitionSpecificationRelationshipModelValidator>();
+
+			MapperConfiguration mappingConfig = new MapperConfiguration(c => { c.AddProfile<SpecificationsMappingProfile>(); c.AddProfile<DatasetsMappingProfile>(); });
+			builder
+				.AddSingleton(mappingConfig.CreateMapper());
+
+			//MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
+			//builder
+			//    .AddSingleton(dataSetsConfig.CreateMapper());
+
+			builder.AddSearch(config);
+
+			builder.AddServiceBus(config);
+
+			builder.AddInterServiceClient(config);
+
+			builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
+
+			builder.AddScoped<Serilog.ILogger>(l => new LoggerConfiguration().WriteTo.Console().CreateLogger());
+		}
+
 
         private static string ConvertTheStoreScript(Product product)
         {

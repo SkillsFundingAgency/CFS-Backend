@@ -56,22 +56,6 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _specService.CreateSpecification(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/specs/academic-years")]
-        [HttpGet]
-        public Task<IActionResult> RunAcademicYears()
-        {
-            return AcademicYears.Run(ControllerContext.HttpContext.Request, null);
-        }
-
-        [Route("api/specs/commands/academic-years")]
-        [HttpPost]
-        [HttpDelete]
-        public Task<IActionResult> RunAcademicYearsCommands([FromBody]string value)
-        {
-            return AcademicYears.RunCommands(ControllerContext.HttpContext.Request, null);
-        }
-
-
         [Route("api/specs/funding-streams")]
         [HttpGet]
         public Task<IActionResult> RunFundingStreams()
@@ -129,16 +113,6 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
             return _specService.GetAllocationLines(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/specs/commands/funding-streams")]
-        [HttpPost]
-        [HttpDelete]
-        public Task<IActionResult> RunFundingStreamsCommands([FromBody]string value)
-        {
-            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
-
-            return FundingStreams.RunCommands(ControllerContext.HttpContext.Request, null);
         }
 
         [Route("api/specs/reindex")]

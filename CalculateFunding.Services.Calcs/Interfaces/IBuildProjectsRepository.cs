@@ -14,5 +14,8 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<HttpStatusCode> CreateBuildProject(BuildProject buildProject);
 
         Task<HttpStatusCode> UpdateBuildProject(BuildProject buildProject);
+
+	    Task<BuildProject> GetBuildProjectBySpecificationId(string specificiationId);
+
     }
 }
