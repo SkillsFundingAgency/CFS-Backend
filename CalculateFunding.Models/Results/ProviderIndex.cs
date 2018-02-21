@@ -9,52 +9,50 @@ namespace CalculateFunding.Models.Results
     [SearchIndex()]
     public class ProviderIndex
     {
-        [Key]
-        [IsSearchable]
-		[JsonProperty("urn")]
-        // ReSharper disable once InconsistentNaming
-		public string URN { get; set; }
 
-        [IsSearchable]
-		[JsonProperty("ukPrn")]
-        // ReSharper disable once InconsistentNaming
-		public string UKPRN { get; set; }
+	    [Key]
+	    [IsSearchable]
+	    [JsonProperty("ukPrn")]
+	    public string UKPRN { get; set; }
+
+		[IsSearchable]
+		[JsonProperty("urn")]
+		public string URN { get; set; }
 
 	    [IsSearchable]
 	    [JsonProperty("upin")]
-	    // ReSharper disable once InconsistentNaming
 	    public string UPIN { get; set; }
 
 	    [IsSearchable]
 	    [JsonProperty("establishmentNumber")]
-	    // ReSharper disable once InconsistentNaming
 	    public string EstablishmentNumber { get; set; }
 
 	    [IsSearchable]
 	    [JsonProperty("rid")]
-	    // ReSharper disable once InconsistentNaming
 	    public string Rid { get; set; }
 
-		[IsSearchable]
-	    [JsonProperty("name")]
+		[IsSearchable, IsSortable]
+		[JsonProperty("name")]
 		public string Name { get; set; }
 
-        [IsFacetable]
+        [IsFilterable, IsSortable, IsFacetable]
         [JsonProperty("authority")]
 		public string Authority { get; set; }
 
-	    [IsFacetable]
+	    [IsFilterable, IsSortable, IsFacetable]
 	    [JsonProperty("providerType")]
 	    public string ProviderType { get; set; }
 
-	    [IsFacetable]
+	    [IsFilterable, IsSortable, IsFacetable]
 	    [JsonProperty("providerSubType")]
 	    public string ProviderSubType { get; set; }
 
-	    [IsFacetable]
+	    [IsFilterable, IsSortable, IsFacetable]
+	    [JsonProperty("openDate")]
 		public DateTimeOffset? OpenDate { get; set; }
 
-	    [IsFacetable]
+	    [IsFilterable, IsSortable, IsFacetable]
+	    [JsonProperty("closeDate")]
 		public DateTimeOffset? CloseDate { get; set; }
 
     }

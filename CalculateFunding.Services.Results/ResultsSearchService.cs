@@ -23,13 +23,12 @@ namespace CalculateFunding.Services.Results
         private readonly ISearchRepository<ProviderIndex> _searchRepository;
 
         private FacetFilterType[] Facets = {
-            new FacetFilterType("periodNames", true),
-            new FacetFilterType("status"),
-            new FacetFilterType("definitionName"),
-            new FacetFilterType("specificationNames", true),
+            new FacetFilterType("authority"),
+            new FacetFilterType("providerType"),
+            new FacetFilterType("providerSubType")
         };
 
-        private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
+        private IEnumerable<string> DefaultOrderBy = new[] { "name" };
 
         private ProviderSearchResults results = new ProviderSearchResults();
 
@@ -173,13 +172,17 @@ namespace CalculateFunding.Services.Results
                 results.TotalCount = (int)(searchResult?.TotalCount ?? 0);
                 results.Results = searchResult?.Results?.Select(m => new ProviderSearchResult
                 {
-                    //Id = m.Result.Id,
-                    //Name = m.Result.Name,
-                    //Status = m.Result.Status,
-                    //DefinitionName = m.Result.DefinitionName,
-                    //LastUpdatedDate = m.Result.LastUpdatedDate,
-                    //PeriodNames = m.Result.PeriodNames,
-                    //SpecificationNames = m.Result.SpecificationNames,
+                    UKPRN = m.Result.UKPRN,
+					URN = m.Result.URN,
+					UPIN = m.Result.UPIN,
+					Rid = m.Result.Rid,
+					EstablishmentNumber = m.Result.EstablishmentNumber,
+					Name = m.Result.Name,
+					Authority = m.Result.Authority,
+					ProviderType = m.Result.ProviderType,
+					ProviderSubType = m.Result.ProviderSubType,
+					OpenDate = m.Result.OpenDate,
+					CloseDate = m.Result.CloseDate
                 });
             }
         }

@@ -5,18 +5,16 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 {
 	public class ProviderSearchResult
 	{
-		public string Id { get; set; }
-
+		public string UKPRN { get; set; }
+		public string URN { get; set; }
+		public string UPIN { get; set; }
+		public string EstablishmentNumber { get; set; }
+		public string Rid { get; set; }
 		public string Name { get; set; }
-
-		public IEnumerable<string> PeriodNames { get; set; }
-
-		public string DefinitionName { get; set; }
-
-		public string Status { get; set; }
-
-		public DateTimeOffset LastUpdatedDate { get; set; }
-
-		public IEnumerable<string> SpecificationNames { get; set; }
+		public string Authority { get; set; }
+		public string ProviderType { get; set; }
+		public string ProviderSubType { get; set; }
+		public DateTimeOffset? OpenDate { get; set; }
+		public DateTimeOffset? CloseDate { get; set; }
 	}
 }
