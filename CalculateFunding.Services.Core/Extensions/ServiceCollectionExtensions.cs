@@ -108,9 +108,7 @@ namespace CalculateFunding.Services.Core.Extensions
 
             config.Bind("ApplicationInsightsOptions", appInsightsOptions);
 
-            builder.AddSingleton<ApplicationInsightsOptions>(appInsightsOptions);
-
-            builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
+            builder.AddScoped<ICorrelationIdProvider, CorrelationIdProvider>();
 
             builder.AddScoped<Serilog.ILogger>(c => GetLoggerConfiguration(c.GetService<ICorrelationIdProvider>(), appInsightsOptions, serviceName).CreateLogger());
 
