@@ -73,6 +73,11 @@ namespace CalculateFunding.Services.Datasets
             return _cosmosRepository.CreateAsync(relationship);
         }
 
+        public Task<HttpStatusCode> UpdateDefinitionSpecificationRelationship(DefinitionSpecificationRelationship relationship)
+        {
+            return _cosmosRepository.UpdateAsync(relationship);
+        }
+
         public Task<IEnumerable<DefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsByQuery(Expression<Func<DefinitionSpecificationRelationship, bool>> query)
         {
             var relationships = _cosmosRepository.Query<DefinitionSpecificationRelationship>().Where(query);
@@ -83,6 +88,13 @@ namespace CalculateFunding.Services.Datasets
         async public Task<DefinitionSpecificationRelationship> GetRelationshipBySpecificationIdAndName(string specificationId, string name)
         {
             var relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Specification.Id == specificationId && m.Name == name);
+
+            return relationships.FirstOrDefault();
+        }
+
+        async public Task<DefinitionSpecificationRelationship> GetDefinitionSpecificationRelationshipById(string relationshipId)
+        {
+            var relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Id == relationshipId);
 
             return relationships.FirstOrDefault();
         }

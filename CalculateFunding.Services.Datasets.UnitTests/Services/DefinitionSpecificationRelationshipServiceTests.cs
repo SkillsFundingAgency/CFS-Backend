@@ -1108,6 +1108,432 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Be(1);
         }
 
+        [TestMethod]
+        async public Task GetDataSourcesByRelationshipId_GivenNullRelationshipIdProvided_ReturnesBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
+
+            //Act
+            IActionResult result = await service.GetDataSourcesByRelationshipId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("The relationshipId id was not provided to GetDataSourcesByRelationshipId"));
+        }
+
+
+        [TestMethod]
+        public async Task GetDataSourcesByRelationshipId_GivenRelationshipNotFound_ReturnsPreConditionFailed()
+        {
+            string relationshipId = Guid.NewGuid().ToString();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "relationshipId", new StringValues(relationshipId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns((DefinitionSpecificationRelationship)null);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.GetDataSourcesByRelationshipId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(412);
+        }
+
+        [TestMethod]
+        public async Task GetDataSourcesByRelationshipId_GivenRelationshipFoundButNoDatasets_ReturnsOKResult()
+        {
+            string relationshipId = Guid.NewGuid().ToString();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "relationshipId", new StringValues(relationshipId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship
+            {
+                Id = relationshipId,
+                Name = "rel name",
+                Specification = new Reference("spec-id", "spec name"),
+                DatasetDefinition = new Reference("def-id", "def name")
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(relationship);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.GetDataSourcesByRelationshipId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task GetDataSourcesByRelationshipId_GivenRelationshipFoundAndDatasetsFound_ReturnsOKResult()
+        {
+            string relationshipId = Guid.NewGuid().ToString();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "relationshipId", new StringValues(relationshipId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship
+            {
+                Id = relationshipId,
+                Name = "rel name",
+                Specification = new Reference("spec-id", "spec name"),
+                DatasetDefinition = new Reference("def-id", "def name")
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(relationship);
+
+            IEnumerable<Dataset> datasets = new[]
+            {
+                new Dataset
+                {
+                    Id = "ds-id",
+                    Name = "ds name",
+                    History = new List<DatasetVersion>
+                    {
+                        new DatasetVersion
+                        {
+                            Version = 1
+                        }
+                    }
+                }
+            };
+
+            datasetRepository
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                .Returns(datasets);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.GetDataSourcesByRelationshipId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okObjectResult = result as OkObjectResult;
+
+            SelectDatasourceModel sourceModel = okObjectResult.Value as SelectDatasourceModel;
+
+            sourceModel
+                .Datasets
+                .Count()
+                .Should()
+                .Be(1);
+
+            sourceModel
+                .Datasets
+                .First()
+                .Versions
+                .First()
+                .Should()
+                .Be(1);
+
+            sourceModel
+                .Datasets
+                .First()
+                .SelectedVersion
+                .Should()
+                .BeNull();
+
+        }
+
+        [TestMethod]
+        async public Task AssignDatasourceVersionToRelationship_GivenNullModelProvided_ReturnesBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
+
+            //Act
+            IActionResult result = await service.AssignDatasourceVersionToRelationship(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("Null AssignDatasourceModel was provided to AssignDatasourceVersionToRelationship"));
+        }
+
+        [TestMethod]
+        async public Task AssignDatasourceVersionToRelationship_GivenModelDatasetNotFound_ReturnsPreConditionFailed()
+        {
+            //Arrange
+            string datasetId = Guid.NewGuid().ToString();
+
+            AssignDatasourceModel model = new AssignDatasourceModel
+            {
+                DatasetId = datasetId
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId))
+                .Returns((Dataset)null);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.AssignDatasourceVersionToRelationship(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(412);
+
+            logger
+                .Received(1)
+                .Error($"Dataset not found for dataset id: {datasetId}");
+        }
+
+        [TestMethod]
+        async public Task AssignDatasourceVersionToRelationship_GivenModelButRelationshipNotFound_ReturnsPreConditionFailed()
+        {
+            //Arrange
+            string datasetId = Guid.NewGuid().ToString();
+            string relationshipId = Guid.NewGuid().ToString();
+
+            AssignDatasourceModel model = new AssignDatasourceModel
+            {
+                DatasetId = datasetId,
+                RelationshipId = relationshipId
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            Dataset dataset = new Dataset();
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId))
+                .Returns(dataset);
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns((DefinitionSpecificationRelationship)null);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.AssignDatasourceVersionToRelationship(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(412);
+
+            logger
+                .Received(1)
+                .Error($"Relationship not found for relationship id: {relationshipId}");
+        }
+
+        [TestMethod]
+        async public Task AssignDatasourceVersionToRelationship_GivenModelButSavingRetunsBadRequest_ReturnsBadRequest()
+        {
+            //Arrange
+            string datasetId = Guid.NewGuid().ToString();
+            string relationshipId = Guid.NewGuid().ToString();
+
+            AssignDatasourceModel model = new AssignDatasourceModel
+            {
+                DatasetId = datasetId,
+                RelationshipId = relationshipId,
+                Version = 1
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            Dataset dataset = new Dataset();
+            DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship();
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId))
+                .Returns(dataset);
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(relationship);
+            datasetRepository
+                .UpdateDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
+                .Returns(HttpStatusCode.BadRequest);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.AssignDatasourceVersionToRelationship(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(400);
+
+            logger
+                .Received(1)
+                .Error($"Failed to assign data source to relationship : {relationshipId} with status code BadRequest");
+        }
+
+        [TestMethod]
+        async public Task AssignDatasourceVersionToRelationship_GivenModelAndSaves_ReturnsNoContent()
+        {
+            //Arrange
+            string datasetId = Guid.NewGuid().ToString();
+            string relationshipId = Guid.NewGuid().ToString();
+
+            AssignDatasourceModel model = new AssignDatasourceModel
+            {
+                DatasetId = datasetId,
+                RelationshipId = relationshipId,
+                Version = 1
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            Dataset dataset = new Dataset();
+            DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship();
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId))
+                .Returns(dataset);
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(relationship);
+            datasetRepository
+                .UpdateDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
+                .Returns(HttpStatusCode.OK);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.AssignDatasourceVersionToRelationship(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+        }
 
         static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,
             ILogger logger = null, ISpecificationsRepository specificationsRepository = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
