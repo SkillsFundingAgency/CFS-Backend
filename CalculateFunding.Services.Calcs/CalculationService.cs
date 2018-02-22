@@ -20,6 +20,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
+using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.Compiler.Interfaces;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -30,19 +33,32 @@ namespace CalculateFunding.Services.Calcs
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
         private readonly IValidator<Calculation> _calculationValidator;
         private readonly IBuildProjectsRepository _buildProjectsRepository;
+	    private readonly ICompilerFactory _compilerFactory;
+	    private readonly ISourceFileGenerator _sourceFileGenerator;
 
-        public CalculationService(ICalculationsRepository calculationsRepository, ILogger logger,
+	    public CalculationService(ICalculationsRepository calculationsRepository, ILogger logger,
             ISearchRepository<CalculationIndex> searchRepository, IValidator<Calculation> calculationValidator,
-            IBuildProjectsRepository buildProjectsRepository)
+            IBuildProjectsRepository buildProjectsRepository, ISourceFileGeneratorProvider sourceFileGeneratorProvider, ICompilerFactory compilerFactory)
         {
             _calculationsRepository = calculationsRepository;
             _logger = logger;
             _searchRepository = searchRepository;
             _calculationValidator = calculationValidator;
             _buildProjectsRepository = buildProjectsRepository;
-        }
+	        _compilerFactory = compilerFactory;
+	        _sourceFileGenerator = sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
+		}
 
-        async public Task<IActionResult> GetCalculationHistory(HttpRequest request)
+	    Build Compile(BuildProject buildProject)
+	    {
+		    IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject);
+
+		    ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
+
+		    return compiler.GenerateCode(sourceFiles.ToList());
+
+	    }
+		async public Task<IActionResult> GetCalculationHistory(HttpRequest request)
         {
             request.Query.TryGetValue("calculationId", out var calcId);
 
@@ -197,7 +213,6 @@ namespace CalculateFunding.Services.Calcs
                     }
                 };
 
-                calculation.BuildProjectId = Guid.NewGuid().ToString();
                
                 HttpStatusCode result = await _calculationsRepository.CreateDraftCalculation(calculation);
 
@@ -207,7 +222,7 @@ namespace CalculateFunding.Services.Calcs
 
                     await UpdateSearch(calculation);
 
-                    await CreateBuildProject(calculation);
+                    await UpdateBuildProject(calculation.Specification);
                 }
                 else
                 {
@@ -284,7 +299,7 @@ namespace CalculateFunding.Services.Calcs
 
             HttpStatusCode statusCode = await _calculationsRepository.UpdateCalculation(calculation);
 
-            await UpdateBuildProject(calculation);
+            await UpdateBuildProject(calculation.Specification);
 
             await UpdateSearch(calculation);
 
@@ -330,7 +345,7 @@ namespace CalculateFunding.Services.Calcs
                 
                 await _calculationsRepository.UpdateCalculation(calculation);
 
-                await UpdateBuildProject(calculation);
+                await UpdateBuildProject(calculation.Specification);
 
                 await UpdateSearch(calculation);
                 
@@ -366,61 +381,39 @@ namespace CalculateFunding.Services.Calcs
             });
         }
 
-        async Task CreateBuildProject(Calculation calculation)
+        async Task CreateBuildProject(Reference specification, List<Calculation> calculations)
         {
-            BuildProject buildproject = new BuildProject
+			BuildProject buildproject = new BuildProject
             {
-                Calculations = new List<Calculation>
-                {
-                    calculation
-                },
-                Specification = calculation.Specification,
-                Id = calculation.BuildProjectId,
-                Name = calculation.Specification.Name
+                Calculations = calculations,
+                Specification = specification,
+                Id = Guid.NewGuid().ToString(),
+                Name = specification.Name
             };
+
+	        buildproject.Build = Compile(buildproject);
 
             await _buildProjectsRepository.CreateBuildProject(buildproject);
         }
 
-        async Task UpdateBuildProject(Calculation calculation)
+        async Task UpdateBuildProject(Reference specification)
         {
-            if (string.IsNullOrWhiteSpace(calculation.BuildProjectId))
+	        var calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specification.Id);
+	        var buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specification.Id);
+
+            if (buildProject == null)
             {
-                _logger.Warning($"Build project id on calculation {calculation.Id} is null or empty, creating a new one");
+                _logger.Warning($"Build project for specification {specification.Id} could not be found, creating a new one");
 
-                calculation.BuildProjectId = Guid.NewGuid().ToString();
-
-                await CreateBuildProject(calculation);
+                await CreateBuildProject(specification, calculations.ToList());
             }
             else
             {
-                BuildProject buildproject = await _buildProjectsRepository.GetBuildProjectById(calculation.BuildProjectId);
-
-                if (buildproject == null)
-                {
-                    _logger.Warning($"Build project with id {calculation.BuildProjectId} could not be found, creating a new one");
-
-                    await CreateBuildProject(calculation);
-                }
-                else
-                {
-                    if (buildproject.Calculations.IsNullOrEmpty())
-                    {
-                        _logger.Warning($"Build project with id {buildproject.Id} has null or empty calculations");
-                        buildproject.Calculations = new List<Calculation>();
-                    }
-
-                    Calculation buildProjectCalculation = buildproject.Calculations.FirstOrDefault(m => m.Id == calculation.Id);
-
-                    if (buildProjectCalculation == null)
-                    {
-                        _logger.Warning($"Build project with id {buildproject.Id} does not contain a calculation with id {calculation.Id}, adding calculation to build project");
-                        buildproject.Calculations.Add(calculation);
-                    }
-
-                    await _buildProjectsRepository.UpdateBuildProject(buildproject);
-                }
+	            buildProject.Calculations = calculations.ToList();
+	            buildProject.Build = Compile(buildProject);
+				await _buildProjectsRepository.UpdateBuildProject(buildProject);
             }
+            
         }
 
         int GetNextVersionNumberFromCalculationVersions(IEnumerable<CalculationVersion> versions)

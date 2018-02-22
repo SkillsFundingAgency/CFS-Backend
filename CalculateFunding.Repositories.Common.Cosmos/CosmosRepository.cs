@@ -187,7 +187,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return _documentClient.UpsertDocumentAsync(_collectionUri, doc);
         }
 
-        public async Task BulkCreateAsync<T>(IList<T> entities, int degreeOfParallelism) where T : Reference
+        public async Task BulkCreateAsync<T>(IList<T> entities, int degreeOfParallelism) where T : IIdentifiable
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();

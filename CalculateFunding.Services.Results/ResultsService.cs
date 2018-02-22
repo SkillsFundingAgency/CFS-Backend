@@ -89,22 +89,16 @@ namespace CalculateFunding.Services.Results
 			    return new BadRequestObjectResult("Null or empty specification Id provided");
 		    }
 
-		    if (string.IsNullOrWhiteSpace(periodId))
-		    {
-			    _logger.Error("No period Id was provided to GetProviderResults");
-			    return new BadRequestObjectResult("Null or empty period Id provided");
-		    }
-
-			ProviderResult providerResult = await _resultsRepository.GetProviderResults(providerId, specificationId, periodId);
+			ProviderResult providerResult = await _resultsRepository.GetProviderResults(providerId, specificationId);
 
 		    if (providerResult != null)
 		    {
-			    _logger.Information($"A calculation was found for provider id {providerId}, specification id {specificationId} and period id {periodId}");
+			    _logger.Information($"A calculation was found for provider id {providerId}, specification id {specificationId}");
 
 			    return new OkObjectResult(providerResult);
 		    }
 
-		    _logger.Information($"A calculation was found for provider id {providerId}, specification id {specificationId} and period id {periodId}");
+		    _logger.Information($"A calculation was found for provider id {providerId}, specification id {specificationId}");
 
 			return new NotFoundResult();
 		}

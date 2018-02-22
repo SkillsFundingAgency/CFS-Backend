@@ -24,6 +24,8 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
+using CalculateFunding.Services.Compiler.Interfaces;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -1542,7 +1544,7 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             return new CalculationService(calculationsRepository ?? CreateCalculationsRepository(), 
                 logger ?? CreateLogger(), serachRepository ?? CreateSearchRepository(), calcValidator ?? CreateCalculationValidator(),
-                buildProjectsRepository ?? CreateBuildProjectsRepository());
+                buildProjectsRepository ?? CreateBuildProjectsRepository(), CreateSourceFileGeneratorProvider(), CreateCompilerFactory());
         }
 
         static ICalculationsRepository CreateCalculationsRepository()
@@ -1565,7 +1567,17 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ISearchRepository<CalculationIndex>>();
         }
 
-        static IValidator<Calculation> CreateCalculationValidator(ValidationResult validationResult = null)
+	    static ISourceFileGeneratorProvider CreateSourceFileGeneratorProvider()
+	    {
+		    return Substitute.For<ISourceFileGeneratorProvider>();
+	    }
+
+	    static ICompilerFactory CreateCompilerFactory()
+	    {
+		    return Substitute.For<ICompilerFactory>();
+	    }
+
+		static IValidator<Calculation> CreateCalculationValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
                 validationResult = new ValidationResult();

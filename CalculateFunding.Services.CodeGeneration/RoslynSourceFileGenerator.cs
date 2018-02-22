@@ -26,8 +26,7 @@ namespace CalculateFunding.Services.CodeGeneration
             List<SourceFile> sourceFiles = new List<SourceFile>();
             sourceFiles.AddRange(GenerateStaticSourceFiles());
 
-            if(buildProject.DatasetDefinitions != null)
-                sourceFiles.AddRange(GenerateDatasetSourceFiles(buildProject));
+            sourceFiles.AddRange(GenerateDatasetSourceFiles(buildProject));
 
             sourceFiles.AddRange(GenerateProductSourceFiles(buildProject));
             stopwatch.Stop();

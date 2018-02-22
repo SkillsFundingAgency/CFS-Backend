@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
@@ -15,11 +16,16 @@ namespace CalculateFunding.Services.Results
             _cosmosRepository = cosmosRepository;
         }
 
-	    public Task<ProviderResult> GetProviderResults(string providerId, string specificationId, string periodId)
+	    public Task<ProviderResult> GetProviderResults(string providerId, string specificationId)
 	    {
-		    var relationships = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId && x.Specification.Id == specificationId && x.Period.Id == periodId);
+		    var relationships = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId && x.Specification.Id == specificationId);
 
 		    return Task.FromResult(relationships.FirstOrDefault());
 		}
+
+	    public async Task UpdateProviderResults(List<ProviderResult> results)
+	    {
+		    await _cosmosRepository.BulkCreateAsync(results, 1);
+	    }
     }
 }

@@ -4,8 +4,10 @@ using CalculateFunding.Services.Compiler;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -21,6 +23,8 @@ using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -37,6 +41,7 @@ using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.Validators;
@@ -47,13 +52,22 @@ using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
 using CalculateFunding.Services.Validators;
 using FluentValidation;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
+using Microsoft.Data.OData.Query.SemanticAst;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
 using Serilog;
+using YamlDotNet.Core.Tokens;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
+using StatementSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax;
+using NSubstitute;
+using Substitute = NSubstitute.Substitute;
 
 namespace CalculateFunding.EndToEnd
 {
@@ -69,14 +83,43 @@ namespace CalculateFunding.EndToEnd
 			var specService = serviceProvider.GetService<ISpecificationsService>();
 			var buildProjectRepo = serviceProvider.GetService<IBuildProjectsRepository>();
 			var specSearchService = serviceProvider.GetService<ISpecificationsSearchService>();
-
-
+			var providerSearchService = serviceProvider.GetService<IResultsSearchService>();
+			var resultsRepo = serviceProvider.GetService<IResultsRepository>();
+			var calcService = serviceProvider.GetService<ICalculationService>();
+			var calc = serviceProvider.GetService<CalculationEngine>();
 
 			ConsoleLogger logger = new ConsoleLogger("Default", (s, level) => true, true);
 
 			var user = new Reference("matt.hammond@education.gov.uk", "Matt Hammond");
 			Task.Run(async () =>
 			{
+				var providerSummaries = new List<ProviderSummary>();
+				ProviderSearchResults providers;
+
+				do
+				{
+					var providersSearchResult = await providerSearchService.SearchProviders(GetHttpRequest(new SearchModel
+					{
+						PageNumber = 1,
+						Top = 50,
+						SearchTerm = "*",
+						IncludeFacets = true
+					}));
+					providers = (providersSearchResult as OkObjectResult)?.Value as ProviderSearchResults;
+
+					providerSummaries.AddRange(providers.Results.Select(x => new ProviderSummary
+					{
+						Name = x.Name,
+						Id = x.UKPRN,
+						UKPRN = x.UKPRN,
+						URN = x.URN,
+						Authority = x.Authority,
+						UPIN = x.UPIN,
+						ProviderSubType = x.ProviderSubType,
+						EstablishmentNumber = x.EstablishmentNumber,
+						ProviderType = x.ProviderType
+					}));
+				} while (providerSummaries.Count < providers.TotalCount);
 
 				var specSearchResult = await specSearchService.SearchSpecifications(GetHttpRequest(new SearchModel
 				{
@@ -85,33 +128,26 @@ namespace CalculateFunding.EndToEnd
 					SearchTerm = "*",
 					IncludeFacets = true
 				}));
-
-				var specs = (specSearchResult as OkObjectResult)?.Value as SpecificationSearchResults;
-
+				SpecificationSearchResults specs = (specSearchResult as OkObjectResult)?.Value as SpecificationSearchResults;
 				foreach (var spec in specs.Results)
 				{
 					var buildProject = await buildProjectRepo.GetBuildProjectBySpecificationId(spec.SpecificationId);
 					if (buildProject != null)
 					{
-						//if (compilerOutput.Success)
-						//{
-						    var calc = ServiceFactory.GetService<CalculationEngine>();
-						    var result = await calc.GenerateAllocations(buildProject.Build, );
-						//}
+						buildProject = await buildProjectRepo.GetBuildProjectBySpecificationId(spec.SpecificationId);
+						if (buildProject.Build?.AssemblyBase64 != null)
+						{
+							var results = calc.GenerateAllocations(buildProject, providerSummaries).ToList();
+
+							await resultsRepo.UpdateProviderResults(results);
+						}
+
 					}
 				}
 
 
 
 
-
-				var scopeJson = File.ReadAllText(Path.Combine("SourceData", "scope.json"));
-
-				var scope = JsonConvert.DeserializeObject<List<ProviderSummary>>(scopeJson);
-
-				var p = ImportProducts();
-				var s = p.GroupBy(x => x.ScenarioName).Select(x => x.Key).ToList();
-				var products = ImportProducts();
 
 
 
@@ -252,6 +288,8 @@ namespace CalculateFunding.EndToEnd
 				return new ResultsRepository(specsCosmosRepostory);
 			});
 
+			builder
+				.AddScoped<CalculationEngine, CalculationEngine>();
 
 
 			builder.AddScoped<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>((ctx) =>
@@ -549,7 +587,7 @@ namespace CalculateFunding.EndToEnd
         //    }
         //}
 
-        private static HttpRequest GetHttpRequest<T>(T payload) 
+        private static HttpRequest GetHttpRequest<T>(T payload, string paramName = null, string paramValue = null) 
         {
             var httpRequest = new FakeHttpRequest{Method = "POST"};
             var json = JsonConvert.SerializeObject(payload);
@@ -557,6 +595,12 @@ namespace CalculateFunding.EndToEnd
             var ms = new MemoryStream(buffer);
             ms.Seek(0, SeekOrigin.Begin);
             httpRequest.Body = ms;
+	        if (paramName != null)
+	        {
+		        httpRequest.QueryString = new QueryString($"?{paramName}={paramValue}");
+				httpRequest.Query = new FakeQueryCollection{  new KeyValuePair<string, StringValues>(paramName, new StringValues(paramValue))};
+
+			}
 
             return httpRequest;
         }
@@ -566,9 +610,42 @@ namespace CalculateFunding.EndToEnd
 
     }
 
+	public class FakeQueryCollection : List<KeyValuePair<string, StringValues>>, IQueryCollection
+	{
+		public bool ContainsKey(string key)
+		{
+			return ToArray().Any(x => x.Key == key);
+		}
+
+		public bool TryGetValue(string key, out StringValues value)
+		{
+			if (!ContainsKey(key)) return false;
+			var pair = ToArray().FirstOrDefault(x => x.Key == key);
+			value = pair.Value;
+			return true;
+		}
+
+		public ICollection<string> Keys => ToArray().Select(x => x.Key).ToList();
+
+		public StringValues this[string key] => ToArray().FirstOrDefault(x => x.Key == key).Value;
+	}
+
     public class FakeHttpRequest : HttpRequest
     {
-        public override Task<IFormCollection> ReadFormAsync(CancellationToken cancellationToken = new CancellationToken())
+	    public FakeHttpRequest()
+	    {
+		    ClaimsPrincipal principle = new ClaimsPrincipal(new[]
+		    {
+			    new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, "matt.hammond@education.gov.uk"), new Claim(ClaimTypes.Name, "Matt Hammond") })
+		    });
+
+		    HttpContext = Substitute.For<HttpContext>();
+			HttpContext
+				.User
+			    .Returns(principle);
+	    }
+
+	    public override Task<IFormCollection> ReadFormAsync(CancellationToken cancellationToken = new CancellationToken())
         {
             throw new NotImplementedException();
         }

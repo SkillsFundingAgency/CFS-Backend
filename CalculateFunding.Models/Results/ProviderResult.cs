@@ -7,13 +7,13 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
-	public class ProviderResult : Reference
+	public class ProviderResult : IIdentifiable
     {
-        [JsonProperty("spec")]
-        public Reference Specification { get; set; }
+	    [JsonProperty("id")]
+		public string Id { get; set; }
 
-	    [JsonProperty("period")]
-	    public Reference Period { get; set; }
+		[JsonProperty("spec")]
+        public Reference Specification { get; set; }
 
 		[JsonProperty("provider")]
         public ProviderSummary Provider { get; set; }
@@ -22,10 +22,12 @@ namespace CalculateFunding.Models.Results
         public List<CalculationResult> CalculationResults { get; set; }
 
 	    [JsonProperty("allocationLineResults")]
-	    public List<CalculationResult> AllocationLineResults { get; set; }
+	    public List<AllocationLineResult> AllocationLineResults { get; set; }
 
 		[JsonProperty("sourceDatasets")]
         public List<object> SourceDatasets { get; set; }
+
+
     }
 
 }

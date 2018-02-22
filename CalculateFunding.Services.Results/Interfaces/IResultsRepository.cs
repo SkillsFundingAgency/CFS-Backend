@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CalculateFunding.Models.Results;
 
 namespace CalculateFunding.Services.Results.Interfaces
@@ -22,6 +23,8 @@ namespace CalculateFunding.Services.Results.Interfaces
         //Task<IEnumerable<DefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsByQuery(Expression<Func<DefinitionSpecificationRelationship, bool>> query);
 
         //Task<DefinitionSpecificationRelationship> GetRelationshipBySpecificationIdAndName(string specificationId, string name);
-	    Task<ProviderResult> GetProviderResults(string providerId, string specificationId, string periodId);
+	    Task<ProviderResult> GetProviderResults(string providerId, string specificationId);
+
+	    Task UpdateProviderResults(List<ProviderResult> results);
     }
 }
