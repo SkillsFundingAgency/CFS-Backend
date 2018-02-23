@@ -91,6 +91,8 @@ namespace CalculateFunding.Functions.Datasets
             builder.AddCosmosDb(config);
 
             builder.AddSearch(config);
+
+            builder.AddServiceBus(config);
             
             builder.AddLogging(config, "CalculateFunding.Functions.Datasets");
         }
