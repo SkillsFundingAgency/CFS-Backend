@@ -169,7 +169,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             var doc = new DocumentEntity<T>(entity)
             {
                 DocumentType = GetDocumentType<T>(),
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt =  DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
             var response = await _documentClient.UpsertDocumentAsync(_collectionUri, doc);

@@ -47,6 +47,30 @@ namespace CalculateFunding.Functions.Datasets.Http
             }
         }
 
+        [FunctionName("get-datasources-by-relationshipid")]
+        public static Task<IActionResult> RunGetDataSourcesByRelationshipId(
+        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IDefinitionSpecificationRelationshipService svc = scope.ServiceProvider.GetService<IDefinitionSpecificationRelationshipService>();
+
+                return svc.GetDataSourcesByRelationshipId(req);
+            }
+        }
+
+        [FunctionName("assign-datasource-to-relationship")]
+        public static Task<IActionResult> RunAssignDatasourceVersionToRelationship(
+        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IDefinitionSpecificationRelationshipService svc = scope.ServiceProvider.GetService<IDefinitionSpecificationRelationshipService>();
+
+                return svc.AssignDatasourceVersionToRelationship(req);
+            }
+        }
+
         [FunctionName("test-http-client")]
         public static IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequest req)
         {

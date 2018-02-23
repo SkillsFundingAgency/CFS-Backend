@@ -138,6 +138,101 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(relationships);
         }
 
+        public async Task<IActionResult> GetDataSourcesByRelationshipId(HttpRequest request)
+        {
+            request.Query.TryGetValue("relationshipId", out var relId);
+
+            var relationshipId = relId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(relationshipId))
+            {
+                _logger.Error("The relationshipId id was not provided to GetDataSourcesByRelationshipId");
+
+                return new BadRequestObjectResult("No relationship id was provided");
+            }
+
+            SelectDatasourceModel selectDatasourceModel = new SelectDatasourceModel();
+
+            DefinitionSpecificationRelationship relationship = await _datasetRepository.GetDefinitionSpecificationRelationshipById(relationshipId);
+
+            if (relationship == null)
+                return new StatusCodeResult(412);
+
+            selectDatasourceModel.RelationshipId = relationship.Id;
+            selectDatasourceModel.SpecificationId = relationship.Specification.Id;
+            selectDatasourceModel.SpecificationName = relationship.Specification.Name;
+            selectDatasourceModel.DefinitionId = relationship.DatasetDefinition.Id;
+            selectDatasourceModel.DefinitionName = relationship.DatasetDefinition.Name;
+
+            IEnumerable<Dataset> datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Definition.Id == relationship.DatasetDefinition.Id);
+
+            if (!datasets.IsNullOrEmpty())
+            {
+                if (selectDatasourceModel.Datasets == null)
+                    selectDatasourceModel.Datasets = Enumerable.Empty<DatasetVersions>();
+
+                foreach (Dataset dataset in datasets)
+                {
+                    selectDatasourceModel.Datasets = selectDatasourceModel.Datasets.Concat(new[]{
+                        new DatasetVersions
+                        {
+                            Id = dataset.Id,
+                            Name = dataset.Name,
+                            SelectedVersion = (relationship.DatasetVersion != null && relationship.DatasetVersion.Id == dataset.Id) ? relationship.DatasetVersion.Version : null as int?,
+                            Versions = dataset.History.Select(m => m.Version)
+                        }
+                });
+                }
+            }
+            return new OkObjectResult(selectDatasourceModel);
+        }
+
+        public async Task<IActionResult> AssignDatasourceVersionToRelationship(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            AssignDatasourceModel model = JsonConvert.DeserializeObject<AssignDatasourceModel>(json);
+
+            if (model == null)
+            {
+                _logger.Error("Null AssignDatasourceModel was provided to AssignDatasourceVersionToRelationship");
+                return new BadRequestObjectResult("Null AssignDatasourceModel was provided");
+            }
+
+            Dataset dataset = await _datasetRepository.GetDatasetByDatasetId(model.DatasetId);
+
+            if (dataset == null)
+            {
+                _logger.Error($"Dataset not found for dataset id: {model.DatasetId}");
+                return new StatusCodeResult(412);
+            }
+
+            DefinitionSpecificationRelationship relationship = await _datasetRepository.GetDefinitionSpecificationRelationshipById(model.RelationshipId);
+
+            if (relationship == null)
+            {
+                _logger.Error($"Relationship not found for relationship id: {model.RelationshipId}");
+                return new StatusCodeResult(412);
+            }
+
+            relationship.DatasetVersion = new DatasetRelationshipVersion
+            {
+                Id = model.DatasetId,
+                Version = model.Version
+            };
+
+            HttpStatusCode statusCode = await _datasetRepository.UpdateDefinitionSpecificationRelationship(relationship);
+
+            if(!statusCode.IsSuccess())
+            {
+                _logger.Error($"Failed to assign data source to relationship : {model.RelationshipId} with status code {statusCode.ToString()}");
+
+                return new StatusCodeResult((int)statusCode);
+            }
+
+            return new NoContentResult();
+        }
+
         public async Task<IActionResult> GetRelationshipBySpecificationIdAndName(HttpRequest request)
         {
             request.Query.TryGetValue("specificationId", out var specId);

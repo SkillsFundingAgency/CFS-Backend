@@ -119,5 +119,23 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _definitionSpecificationRelationshipService.GetCurrentRelationshipsBySpecificationId(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/datasets/get-datasources-by-relationshipid")]
+        [HttpGet]
+        public Task<IActionResult> RunGetDataSourcesByRelationshipId()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _definitionSpecificationRelationshipService.GetDataSourcesByRelationshipId(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/datasets/assign-datasource-to-relationship")]
+        [HttpPost]
+        public Task<IActionResult> RunAssignDatasourceVersionToRelationship()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _definitionSpecificationRelationshipService.AssignDatasourceVersionToRelationship(ControllerContext.HttpContext.Request);
+        }
     }
 }
