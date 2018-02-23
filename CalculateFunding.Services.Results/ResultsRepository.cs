@@ -18,9 +18,9 @@ namespace CalculateFunding.Services.Results
 
 	    public Task<ProviderResult> GetProviderResult(string providerId, string specificationId)
 	    {
-		    var relationships = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId && x.Specification.Id == specificationId).ToList().Take(1);
+		    var results = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId && x.Specification.Id == specificationId).ToList().Take(1);
 
-		    return Task.FromResult(relationships.FirstOrDefault());
+		    return Task.FromResult(results.FirstOrDefault());
 		}
 
 	    public Task<List<ProviderResult>> GetSpecificationResults(string providerId)

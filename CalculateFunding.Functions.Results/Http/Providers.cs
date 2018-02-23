@@ -26,7 +26,7 @@ namespace CalculateFunding.Functions.Results.Http
 
         [FunctionName("get-provider-results")]
         public static Task<IActionResult> RunGetProviderResults(
-        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
         {
             using (var scope = IocConfig.Build().CreateHttpScope(req))
             {
@@ -38,7 +38,7 @@ namespace CalculateFunding.Functions.Results.Http
 
 	    [FunctionName("get-provider-specs")]
 	    public static Task<IActionResult> RunGetProviderSpecs(
-		    [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+		    [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
 	    {
 		    using (var scope = IocConfig.Build().CreateHttpScope(req))
 		    {
