@@ -6,25 +6,9 @@ namespace CalculateFunding.Services.Results.Interfaces
 {
     public interface IResultsRepository
     {
-        //Task<HttpStatusCode> SaveDefinition(DatasetDefinition definition);
+	    Task<ProviderResult> GetProviderResult(string providerId, string specificationId);
+	    Task<List<ProviderResult>> GetSpecificationResults(string providerId);
 
-        //Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitions();
-
-        //Task<IEnumerable<Dataset>> GetDatasetsByQuery(Expression<Func<Dataset, bool>> query);
-
-        //Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitionsByQuery(Expression<Func<DatasetDefinition, bool>> query);
-
-        //Task<HttpStatusCode> SaveDataset(Dataset dataset);
-
-        //Task<HttpStatusCode> SaveDefinitionSpecificationRelationship(DefinitionSpecificationRelationship relationship);
-
-        //Task<DatasetDefinition> GetDatasetDefinition(string definitionId);
-
-        //Task<IEnumerable<DefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsByQuery(Expression<Func<DefinitionSpecificationRelationship, bool>> query);
-
-        //Task<DefinitionSpecificationRelationship> GetRelationshipBySpecificationIdAndName(string specificationId, string name);
-	    Task<ProviderResult> GetProviderResults(string providerId, string specificationId);
-
-	    Task UpdateProviderResults(List<ProviderResult> results);
+		Task UpdateProviderResults(List<ProviderResult> results);
     }
 }

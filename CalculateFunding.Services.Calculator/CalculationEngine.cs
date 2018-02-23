@@ -85,7 +85,7 @@ namespace CalculateFunding.Services.Calculator
             var result = new ProviderResult
             {
                 Provider = provider,
-                Specification = new Reference(buildProject.Specification.Id, buildProject.Specification.Name),
+                Specification = buildProject.Specification,
                 SourceDatasets = typedDatasets.ToList()
             };
 	        var plainTextBytes = System.Text.Encoding.UTF8.GetBytes($"{result.Provider.Id}-{result.Specification.Id}");

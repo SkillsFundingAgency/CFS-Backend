@@ -12,8 +12,8 @@ namespace CalculateFunding.Models.Results
 	    [JsonProperty("id")]
 		public string Id { get; set; }
 
-		[JsonProperty("spec")]
-        public Reference Specification { get; set; }
+		[JsonProperty("specification")]
+        public SpecificationSummary Specification { get; set; }
 
 		[JsonProperty("provider")]
         public ProviderSummary Provider { get; set; }

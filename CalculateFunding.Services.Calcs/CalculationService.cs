@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
@@ -381,7 +382,7 @@ namespace CalculateFunding.Services.Calcs
             });
         }
 
-        async Task CreateBuildProject(Reference specification, List<Calculation> calculations)
+        async Task CreateBuildProject(SpecificationSummary specification, List<Calculation> calculations)
         {
 			BuildProject buildproject = new BuildProject
             {
@@ -396,7 +397,7 @@ namespace CalculateFunding.Services.Calcs
             await _buildProjectsRepository.CreateBuildProject(buildproject);
         }
 
-        async Task UpdateBuildProject(Reference specification)
+        async Task UpdateBuildProject(SpecificationSummary specification)
         {
 	        var calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specification.Id);
 	        var buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specification.Id);

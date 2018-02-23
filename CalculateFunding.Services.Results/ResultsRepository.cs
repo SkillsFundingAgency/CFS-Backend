@@ -16,11 +16,18 @@ namespace CalculateFunding.Services.Results
             _cosmosRepository = cosmosRepository;
         }
 
-	    public Task<ProviderResult> GetProviderResults(string providerId, string specificationId)
+	    public Task<ProviderResult> GetProviderResult(string providerId, string specificationId)
 	    {
-		    var relationships = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId && x.Specification.Id == specificationId);
+		    var relationships = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId && x.Specification.Id == specificationId).ToList().Take(1);
 
 		    return Task.FromResult(relationships.FirstOrDefault());
+		}
+
+	    public Task<List<ProviderResult>> GetSpecificationResults(string providerId)
+	    {
+		    var relationships = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId);
+
+		    return Task.FromResult(relationships.ToList());
 		}
 
 	    public async Task UpdateProviderResults(List<ProviderResult> results)

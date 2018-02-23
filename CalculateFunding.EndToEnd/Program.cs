@@ -131,7 +131,17 @@ namespace CalculateFunding.EndToEnd
 				SpecificationSearchResults specs = (specSearchResult as OkObjectResult)?.Value as SpecificationSearchResults;
 				foreach (var spec in specs.Results)
 				{
+					var fullSpec = await specService.GetSpecificationById(GetHttpRequest("", "specificationId", spec.SpecificationId));
 					var buildProject = await buildProjectRepo.GetBuildProjectBySpecificationId(spec.SpecificationId);
+
+					buildProject.Specification = new SpecificationSummary
+					{
+						Id = ((fullSpec as OkObjectResult)?.Value as Specification).Id,
+						Name = ((fullSpec as OkObjectResult)?.Value as Specification).Name,
+						FundingStream = ((fullSpec as OkObjectResult)?.Value as Specification).FundingStream,
+						Period = ((fullSpec as OkObjectResult)?.Value as Specification).AcademicYear
+					};
+					await buildProjectRepo.UpdateBuildProject(buildProject);
 					if (buildProject != null)
 					{
 						buildProject = await buildProjectRepo.GetBuildProjectBySpecificationId(spec.SpecificationId);

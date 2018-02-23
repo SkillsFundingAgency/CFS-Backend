@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using Newtonsoft.Json;
 
@@ -7,7 +8,7 @@ namespace CalculateFunding.Models.Calcs
     public class BuildProject : Reference
     {
         [JsonProperty("specification")]
-        public Reference Specification { get; set; }
+        public SpecificationSummary Specification { get; set; }
 
         [JsonProperty("targetLanguage")]
         public TargetLanguage TargetLanguage { get; set; } = TargetLanguage.VisualBasic;
