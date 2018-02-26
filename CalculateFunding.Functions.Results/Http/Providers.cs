@@ -25,8 +25,8 @@ namespace CalculateFunding.Functions.Results.Http
         }
 
         [FunctionName("get-provider-results")]
-        public static Task<IActionResult> RunValidateDataset(
-        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        public static Task<IActionResult> RunGetProviderResults(
+        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
         {
             using (var scope = IocConfig.Build().CreateHttpScope(req))
             {
@@ -35,5 +35,17 @@ namespace CalculateFunding.Functions.Results.Http
                 return svc.GetProviderResults(req);
             }
         }
-    }
+
+	    [FunctionName("get-provider-specs")]
+	    public static Task<IActionResult> RunGetProviderSpecs(
+		    [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+	    {
+		    using (var scope = IocConfig.Build().CreateHttpScope(req))
+		    {
+			    IResultsService svc = scope.ServiceProvider.GetService<IResultsService>();
+
+			    return svc.GetProviderSpecifications(req);
+		    }
+	    }
+	}
 }

@@ -9,6 +9,7 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
@@ -75,7 +76,6 @@ namespace CalculateFunding.Services.Results
 	    {
 		    var providerId = GetParameter(request, "providerId");
 		    var specificationId = GetParameter(request, "specificationId");
-			var periodId = GetParameter(request, "periodId");
 
 			if (string.IsNullOrWhiteSpace(providerId))
 		    {
@@ -89,25 +89,47 @@ namespace CalculateFunding.Services.Results
 			    return new BadRequestObjectResult("Null or empty specification Id provided");
 		    }
 
-		    if (string.IsNullOrWhiteSpace(periodId))
-		    {
-			    _logger.Error("No period Id was provided to GetProviderResults");
-			    return new BadRequestObjectResult("Null or empty period Id provided");
-		    }
-
-			ProviderResult providerResult = await _resultsRepository.GetProviderResults(providerId, specificationId, periodId);
+			ProviderResult providerResult = await _resultsRepository.GetProviderResult(providerId, specificationId);
 
 		    if (providerResult != null)
 		    {
-			    _logger.Information($"A calculation was found for provider id {providerId}, specification id {specificationId} and period id {periodId}");
+			    _logger.Information($"A result was found for provider id {providerId}, specification id {specificationId}");
 
 			    return new OkObjectResult(providerResult);
 		    }
 
-		    _logger.Information($"A calculation was found for provider id {providerId}, specification id {specificationId} and period id {periodId}");
+		    _logger.Information($"A result was not found for provider id {providerId}, specification id {specificationId}");
 
 			return new NotFoundResult();
 		}
+
+	    public async Task<IActionResult> GetProviderSpecifications(HttpRequest request)
+	    {
+		    var providerId = GetParameter(request, "providerId");
+		    if (string.IsNullOrWhiteSpace(providerId))
+		    {
+			    _logger.Error("No provider Id was provided to GetProviderResults");
+			    return new BadRequestObjectResult("Null or empty provider Id provided");
+		    }
+
+		    List<ProviderResult> providerResults = await _resultsRepository.GetSpecificationResults(providerId);
+
+			
+
+		    if (providerResults != null)
+		    {
+			    _logger.Information($"A results was found for provider id {providerId}");
+
+			    var grouped = providerResults.Where(x => x.Specification != null).GroupBy(x => x.Specification.Id).Select(x => x.First().Specification).ToList();
+
+			    return new OkObjectResult(grouped);
+		    }
+
+		    _logger.Information($"Results were not found for provider id {providerId}");
+
+		    return new NotFoundResult();
+
+	    }
 
 	    private static string GetParameter(HttpRequest request, string name)
 	    {

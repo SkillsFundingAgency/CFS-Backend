@@ -85,9 +85,12 @@ namespace CalculateFunding.Services.Calculator
             var result = new ProviderResult
             {
                 Provider = provider,
-                Specification = new Reference(buildProject.Specification.Id, buildProject.Specification.Name),
+                Specification = buildProject.Specification,
                 SourceDatasets = typedDatasets.ToList()
             };
+	        var plainTextBytes = System.Text.Encoding.UTF8.GetBytes($"{result.Provider.Id}-{result.Specification.Id}");
+			result.Id = System.Convert.ToBase64String(plainTextBytes);
+			
             var productResults = new List<CalculationResult>();
 
             foreach (var calculation in buildProject.Calculations)
@@ -102,7 +105,10 @@ namespace CalculateFunding.Services.Calculator
                     productResult.CalculationSpecification = calculationResult.CalculationSpecification;
                     productResult.AllocationLine = calculationResult.AllocationLine;
                     productResult.PolicySpecifications = calculationResult.PolicySpecifications;
-                    productResult.Value = calculationResult.Value;
+	                if (calculationResult.Value != decimal.MinValue)
+	                {
+		                productResult.Value = calculationResult.Value;
+					}		
                     productResult.Exception = calculationResult.Exception;
                 }
 
@@ -110,6 +116,12 @@ namespace CalculateFunding.Services.Calculator
                         
             }
             result.CalculationResults = productResults.ToList();
+	        result.AllocationLineResults = productResults.Where(x => x.AllocationLine != null)
+		        .GroupBy(x => x.AllocationLine).Select(x => new AllocationLineResult
+		        {
+			        AllocationLine = x.Key,
+			        Value = x.Sum(v => v.Value ?? decimal.Zero)
+		        }).ToList();
             return result;
         }
 

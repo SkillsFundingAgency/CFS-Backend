@@ -32,8 +32,17 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 			return _resultsSearchService.SearchProviders(ControllerContext.HttpContext.Request);
 		}
 
+		[Route("api/results/get-provider-specs")]
+		[HttpGet]
+		public Task<IActionResult> RunGetProviderSpecifications()
+		{
+			SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
-		[Route("api/datasets/get-provider-results")]
+			return _resultsService.GetProviderSpecifications(ControllerContext.HttpContext.Request);
+		}
+
+
+		[Route("api/results/get-provider-results")]
 		[HttpGet]
 		public Task<IActionResult> RunGetProviderResults()
 		{

@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         private static StatementSyntax GetMethod(Calculation calc)
         {
             var builder = new StringBuilder();
-            builder.AppendLine($"<Calculation(Id := \"{calc.Id}\")>");
+            builder.AppendLine($"<Calculation(Id := \"{calc.Id}\", Name := \"{calc.Name}\")>");
             if (calc.CalculationSpecification!= null)
             {
                 builder.AppendLine($"<CalculationSpecification(Id := \"{calc.CalculationSpecification.Id}\", Name := \"{calc.CalculationSpecification.Name}\")>");
@@ -89,9 +89,9 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
             return SyntaxFactory.PropertyStatement(Identifier("Datasets"))
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                .WithAsClause(
-                    SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(Identifier("String"))));
-        }
+	            .WithAsClause(
+		            SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(Identifier("Datasets"))));
+		}
 
 
     }

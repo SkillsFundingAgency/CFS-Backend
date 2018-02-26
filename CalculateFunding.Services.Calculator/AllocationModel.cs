@@ -103,7 +103,7 @@ namespace CalculateFunding.Services.Calculator
             var argument = attribute.NamedArguments.FirstOrDefault(x => x.MemberName == propertyName);
             if (argument != null)
             {
-                return argument.TypedValue.Value.ToString();
+                return argument.TypedValue.Value?.ToString();
             }
             return null;
         }

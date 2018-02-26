@@ -29,14 +29,6 @@ namespace CalculateFunding.Functions.Specs.Http
             ISpecificationsService svc = provider.GetService<ISpecificationsService>();
             return svc.GetFundingStreams(req);
         }
-
-        [FunctionName("funding-streams-commands")]
-        public static async Task<IActionResult> RunCommands(
-            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
-        {
-            var restMethods = new RestCommandMethods<FundingStream, FundingStreamCommand>("spec-events");
-            return await restMethods.Run(req, log);
-        }
     }
 
 }

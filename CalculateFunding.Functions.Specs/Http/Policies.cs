@@ -21,40 +21,6 @@ namespace CalculateFunding.Functions.Specs.Http
 {
     public static class Policies
     {
-        [FunctionName("policies-commands")]
-        public static async Task<IActionResult> RunCommands(
-            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
-        {
-            var restMethods =
-                new RestCommandMethods<Specification, PolicySpecificationCommand, Policy>("spec-events")
-                {
-                    GetEntityId = command => command.SpecificationId,
-                    UpdateTarget = (specification, command) =>
-                    {
-                        var existing = specification?.GetPolicy(command.Id);
-                        if (existing != null)
-                        {
-                            existing.Name = command.Content.Name;
-                            existing.Description = command.Content.Description;
-                        }
-                        var parent = specification?.GetPolicy(command.ParentPolicyId);
-                        if (parent != null)
-                        {
-                            parent.SubPolicies = parent.SubPolicies ?? new List<Policy>();
-                            parent.SubPolicies = parent.SubPolicies.Concat(new[] { command.Content });
-                        }
-                        else
-                        {
-                            specification.Policies = specification.Policies ?? new List<Policy>();
-                            specification.Policies = specification.Policies.Concat(new[] { command.Content });
-                        }
-
-                        return specification;
-                    }
-                };
-            return await restMethods.Run(req, log);
-        }
-
         [FunctionName("policy-create")]
         public static Task<IActionResult> RunCreatePolicy(
            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)

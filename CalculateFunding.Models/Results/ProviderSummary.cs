@@ -20,12 +20,12 @@ namespace CalculateFunding.Models.Results
 		// ReSharper disable once InconsistentNaming
 		public string EstablishmentNumber { get; set; }
 		[JsonProperty("authority")]
-		public Reference Authority { get; set; }
+		public string Authority { get; set; }
 
 		[JsonProperty("providerType")]
-		public Reference ProviderType { get; set; }
+		public string ProviderType { get; set; }
 
 		[JsonProperty("providerSubType")]
-		public Reference ProviderSubType { get; set; }
+		public string ProviderSubType { get; set; }
 	}
 }

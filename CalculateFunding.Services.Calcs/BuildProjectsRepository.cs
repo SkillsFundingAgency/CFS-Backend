@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Calcs;
+﻿using System.Linq;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calcs.Interfaces;
 using System.Net;
@@ -25,7 +26,14 @@ namespace CalculateFunding.Services.Calcs
             return buildProject.Content;
         }
 
-        public Task<HttpStatusCode> CreateBuildProject(BuildProject buildProject)
+	    public async Task<BuildProject> GetBuildProjectBySpecificationId(string specificiationId)
+	    {
+		    var buildProject = _cosmosRepository.Query<BuildProject>().Where(x => x.Specification.Id == specificiationId).ToList();
+
+		    return buildProject.FirstOrDefault();
+	    }
+
+		public Task<HttpStatusCode> CreateBuildProject(BuildProject buildProject)
         {
             return _cosmosRepository.CreateAsync(buildProject);
         }

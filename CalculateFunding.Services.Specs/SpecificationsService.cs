@@ -19,6 +19,7 @@ using CalculateFunding.Repositories.Common.Search;
 using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Models.Exceptions;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 
 namespace CalculateFunding.Services.Specs
@@ -437,7 +438,13 @@ namespace CalculateFunding.Services.Specs
                     {
                         new Reference( policy.Id, policy.Name )
                     },
-                    Specification = new Reference(specification.Id, specification.Name),
+                    Specification = new SpecificationSummary
+                    {
+	                    Id = specification.Id,
+						Name = specification.Name,
+						FundingStream = specification.FundingStream,
+						Period = specification.AcademicYear
+                    },
                     Period = specification.AcademicYear,
                     FundingStream = specification.FundingStream
                 }, 

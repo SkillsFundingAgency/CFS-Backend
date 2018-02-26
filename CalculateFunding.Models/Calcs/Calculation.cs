@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
@@ -17,7 +18,7 @@ namespace CalculateFunding.Models.Calcs
         public List<Reference> Policies { get; set; }
 
         [JsonProperty("specification")]
-        public Reference Specification { get; set; }
+        public SpecificationSummary Specification { get; set; }
 
         [JsonProperty("period")]
         public Reference Period { get; set; }
