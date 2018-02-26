@@ -56,9 +56,9 @@ namespace CalculateFunding.Services.Calcs
 
 		    ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
 
-		    return compiler.GenerateCode(sourceFiles.ToList());
-
+		    return compiler.GenerateCode(sourceFiles?.ToList());
 	    }
+
 		async public Task<IActionResult> GetCalculationHistory(HttpRequest request)
         {
             request.Query.TryGetValue("calculationId", out var calcId);

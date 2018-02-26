@@ -26,6 +26,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Compiler.Interfaces;
+using CalculateFunding.Services.Compiler;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -155,6 +156,11 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Calculation calculation = CreateCalculation();
 
+            IEnumerable<Calculation> calculations = new[]
+            {
+                calculation
+            };
+
             string json = JsonConvert.SerializeObject(calculation);
 
             message.Body = Encoding.UTF8.GetBytes(json);
@@ -166,6 +172,9 @@ namespace CalculateFunding.Services.Calcs.Services
             repository
                 .CreateDraftCalculation(Arg.Any<Calculation>())
                 .Returns(HttpStatusCode.Created);
+            repository
+                .GetCalculationsBySpecificationId(Arg.Is("any-spec-id"))
+                .Returns(calculations);
 
             ILogger logger = CreateLogger();
 
@@ -518,7 +527,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             Calculation calculation = new Calculation
             {
-                Specification = new Reference
+                Specification = new Models.Results.SpecificationSummary
                 {
                     Id = "spec-id"
                 },
@@ -892,12 +901,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Warning(Arg.Is($"Build project id on calculation {calculation.Id} is null or empty, creating a new one"));
-
-            calculation
-                .BuildProjectId
-                .Should()
-                .NotBeNullOrWhiteSpace();
+                .Warning(Arg.Is($"Build project for specification {calculation.Specification.Id} could not be found, creating a new one"));
 
             await
                 buildProjectsRepository
@@ -967,7 +971,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Warning(Arg.Is($"Build project with id {buildProjectId} could not be found, creating a new one"));
+                .Warning(Arg.Is($"Build project for specification {calculation.Specification.Id} could not be found, creating a new one"));
 
             await
                 buildProjectsRepository
@@ -1045,7 +1049,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Warning($"Build project with id {buildProjectId} has null or empty calculations");
+                .Warning(Arg.Is($"Build project for specification {calculation.Specification.Id} could not be found, creating a new one"));
         }
 
         [TestMethod]
@@ -1119,7 +1123,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Warning($"Build project with id {buildProjectId} does not contain a calculation with id {calculation.Id}, adding calculation to build project");
+                .Warning(Arg.Is($"Build project for specification {calculation.Specification.Id} could not be found, creating a new one"));
         }
 
         [TestMethod]
@@ -1535,7 +1539,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Warning(Arg.Is($"Build project with id {buildProjectId} could not be found, creating a new one"));
+                .Warning(Arg.Is($"Build project for specification {calculation.Specification.Id} could not be found, creating a new one"));
         }
 
         static CalculationService CreateCalculationService(ICalculationsRepository calculationsRepository = null, 
@@ -1574,7 +1578,14 @@ namespace CalculateFunding.Services.Calcs.Services
 
 	    static ICompilerFactory CreateCompilerFactory()
 	    {
-		    return Substitute.For<ICompilerFactory>();
+            ICompiler compiler = Substitute.For<ICompiler>();
+
+            ICompilerFactory compilerFactory = Substitute.For<ICompilerFactory>();
+            compilerFactory
+                .GetCompiler(Arg.Any<IEnumerable<SourceFile>>())
+                .Returns(compiler);
+
+            return compilerFactory;
 	    }
 
 		static IValidator<Calculation> CreateCalculationValidator(ValidationResult validationResult = null)
@@ -1602,7 +1613,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "any-calc-id",
                     Name = "Test Calc Name",
                 },
-                Specification = new Reference
+                Specification = new Models.Results.SpecificationSummary
                 {
                     Id = "any-spec-id",
                     Name = "Test Spec Name",

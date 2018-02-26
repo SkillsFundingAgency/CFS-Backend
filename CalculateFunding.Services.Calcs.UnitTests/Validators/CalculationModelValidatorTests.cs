@@ -384,7 +384,7 @@ namespace CalculateFunding.Services.Calcs.Validators
                     Id = Guid.NewGuid().ToString(),
                     Name = "test name"
                 },
-                Specification = new Reference
+                Specification = new Models.Results.SpecificationSummary
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name = "test spec name"
