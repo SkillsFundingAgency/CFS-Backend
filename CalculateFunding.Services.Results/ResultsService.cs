@@ -72,6 +72,24 @@ namespace CalculateFunding.Services.Results
 		    throw new NotImplementedException();
 	    }
 
+        public async Task<IActionResult> GetProviderById(HttpRequest request)
+        {
+            var providerId = GetParameter(request, "providerId");
+
+            if (string.IsNullOrWhiteSpace(providerId))
+            {
+                _logger.Error("No provider Id was provided to GetProviderResults");
+                return new BadRequestObjectResult("Null or empty provider Id provided");
+            }
+
+            ProviderIndex provider = await _searchRepository.SearchById(providerId, IdFieldOverride: "ukPrn");
+
+            if (provider == null)
+                return new NotFoundResult();
+
+            return new OkObjectResult(provider);
+        }
+
 	    public async Task<IActionResult> GetProviderResults(HttpRequest request)
 	    {
 		    var providerId = GetParameter(request, "providerId");
