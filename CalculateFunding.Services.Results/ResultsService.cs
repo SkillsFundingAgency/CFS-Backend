@@ -144,7 +144,7 @@ namespace CalculateFunding.Services.Results
 
 		    _logger.Information($"Results were not found for provider id {providerId}");
 
-		    return new NotFoundResult();
+		    return new OkObjectResult(Enumerable.Empty<SpecificationSummary>());
 
 	    }
 
