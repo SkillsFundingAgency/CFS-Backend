@@ -136,9 +136,10 @@ namespace CalculateFunding.Services.Results
 		    {
 			    _logger.Information($"A results was found for provider id {providerId}");
 
-			    var grouped = providerResults.Where(x => x.Specification != null).GroupBy(x => x.Specification.Id).Select(x => x.First().Specification).ToList();
+                var specs = providerResults.Where(m => m.Specification != null).Select(m => m.Specification).DistinctBy(m => m.Id).ToArraySafe();
+			    //var grouped = providerResults.Where(x => x.Specification != null).GroupBy(x => x.Specification.Id).Select(x => x.First().Specification).ToList();
 
-			    return new OkObjectResult(grouped);
+			    return new OkObjectResult(specs);
 		    }
 
 		    _logger.Information($"Results were not found for provider id {providerId}");
