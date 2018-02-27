@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Results
 
 			ProviderResult providerResult = await _resultsRepository.GetProviderResult(providerId, specificationId);
 
-		    if (providerResult != null)
+            if (providerResult != null)
 		    {
 			    _logger.Information($"A result was found for provider id {providerId}, specification id {specificationId}");
 
@@ -113,8 +113,6 @@ namespace CalculateFunding.Services.Results
 		    }
 
 		    List<ProviderResult> providerResults = await _resultsRepository.GetSpecificationResults(providerId);
-
-			
 
 		    if (providerResults != null)
 		    {

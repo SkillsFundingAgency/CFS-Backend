@@ -120,6 +120,7 @@ namespace CalculateFunding.Services.Calcs
                             {
                                 Facets = new[]{ filterPair.Key },
                                 SearchMode = SearchMode.Any,
+                                SearchFields = new List<string>{ "name" },
                                 IncludeTotalResultCount = true,
                                 Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
                                 QueryType = QueryType.Full
@@ -147,6 +148,7 @@ namespace CalculateFunding.Services.Calcs
                     Skip = skip,
                     Top = searchModel.Top,
                     SearchMode = SearchMode.Any,
+                    SearchFields = new List<string> { "name" },
                     IncludeTotalResultCount = true,
                     Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
                     OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
