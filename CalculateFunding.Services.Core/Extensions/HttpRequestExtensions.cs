@@ -40,8 +40,10 @@ namespace CalculateFunding.Services.Core.Extensions
             {
                 return request.Headers[sfaCorellationId].FirstOrDefault();
             }
-
-            return string.Empty;
+            else
+            {
+                return Guid.NewGuid().ToString();
+            }
         }
 
         public static Reference GetUser(this HttpRequest request)

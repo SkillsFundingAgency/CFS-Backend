@@ -30,6 +30,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             if (!request.HttpContext.Response.Headers.ContainsKey("sfa-correlationId"))
                 request.HttpContext.Response.Headers.Add("sfa-correlationId", correlationId);
+            else if (request.HttpContext.Response.Headers.ContainsKey("sfa-correlationId") && string.IsNullOrWhiteSpace(request.HttpContext.Response.Headers["sfa-correlationId"]))
+                request.HttpContext.Response.Headers["sfa-correlationId"] = correlationId;
 
             string userId = "unknown";
             string username = "unknown";
