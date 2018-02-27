@@ -23,11 +23,11 @@ namespace CalculateFunding.Services.Results
 		    return Task.FromResult(results.FirstOrDefault());
 		}
 
-	    public Task<List<ProviderResult>> GetSpecificationResults(string providerId)
+	    public Task<IEnumerable<ProviderResult>> GetSpecificationResults(string providerId)
 	    {
-		    var relationships = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId);
+		    var results = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId);
 
-		    return Task.FromResult(relationships.ToList());
+		    return Task.FromResult(results.AsEnumerable());
 		}
 
 	    public async Task UpdateProviderResults(List<ProviderResult> results)
