@@ -7,8 +7,7 @@ namespace CalculateFunding.Services.Results.Interfaces
     public interface IResultsRepository
     {
 	    Task<ProviderResult> GetProviderResult(string providerId, string specificationId);
-	    Task<IEnumerable<ProviderResult>> GetSpecificationResults(string providerId);
-
-		Task UpdateProviderResults(List<ProviderResult> results);
+        Task<IEnumerable<ProviderResult>> GetSpecificationResults(string providerId);
+        Task UpdateProviderResults(List<ProviderResult> results);
     }
 }

@@ -27,15 +27,15 @@ namespace CalculateFunding.Functions.Results
 
             builder.AddScoped<IResultsRepository, ResultsRepository>((ctx) =>
             {
-                CosmosDbSettings datasetsDbSettings = new CosmosDbSettings();
+                CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", datasetsDbSettings);
+                config.Bind("CosmosDbSettings", resultsDbSettings);
 
-                datasetsDbSettings.CollectionName = "datasets";
+                resultsDbSettings.CollectionName = "results";
 
-                CosmosRepository datasetsCosmosRepostory = new CosmosRepository(datasetsDbSettings);
+                CosmosRepository resultsCosmosRepostory = new CosmosRepository(resultsDbSettings);
 
-                return new ResultsRepository(datasetsCosmosRepostory);
+                return new ResultsRepository(resultsCosmosRepostory);
             });
 
             builder.AddScoped<IResultsService, ResultsService>();

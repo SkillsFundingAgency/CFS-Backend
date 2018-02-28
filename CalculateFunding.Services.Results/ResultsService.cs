@@ -137,8 +137,7 @@ namespace CalculateFunding.Services.Results
 			    _logger.Information($"A results was found for provider id {providerId}");
 
                 var specs = providerResults.Where(m => m.Specification != null).Select(m => m.Specification).DistinctBy(m => m.Id).ToList();
-			    //var grouped = providerResults.Where(x => x.Specification != null).GroupBy(x => x.Specification.Id).Select(x => x.First().Specification).ToList();
-
+			   
 			    return new OkObjectResult(specs);
 		    }
 
