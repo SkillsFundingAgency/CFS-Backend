@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2027
+VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Models", "Models", "{539AB1D8-B007-4CB6-8355-918D498486E2}"
 EndProject
@@ -89,7 +89,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Core.UnitTests", "CalculateFunding.Services.Core.UnitTests\CalculateFunding.Services.Core.UnitTests.csproj", "{766DB406-7185-4460-9CED-ED6CCC0061EB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.Results", "CalculateFunding.Services.Results\CalculateFunding.Services.Results.csproj", "{5019F8E8-3960-4CF3-8268-8CB225F41993}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Results", "CalculateFunding.Services.Results\CalculateFunding.Services.Results.csproj", "{5019F8E8-3960-4CF3-8268-8CB225F41993}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.Results.UnitTests", "CalculateFunding.Services.Results.UnitTests\CalculateFunding.Services.Results.UnitTests.csproj", "{1AEB3280-C4CB-40BC-BDB5-6D606D46D510}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -229,6 +231,10 @@ Global
 		{5019F8E8-3960-4CF3-8268-8CB225F41993}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5019F8E8-3960-4CF3-8268-8CB225F41993}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5019F8E8-3960-4CF3-8268-8CB225F41993}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AEB3280-C4CB-40BC-BDB5-6D606D46D510}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AEB3280-C4CB-40BC-BDB5-6D606D46D510}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AEB3280-C4CB-40BC-BDB5-6D606D46D510}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AEB3280-C4CB-40BC-BDB5-6D606D46D510}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -268,6 +274,7 @@ Global
 		{5321EDED-2A98-4BC5-BBFE-246D1A2D0908} = {42CC12ED-881F-4113-AFA0-742962C1DBD8}
 		{766DB406-7185-4460-9CED-ED6CCC0061EB} = {42CC12ED-881F-4113-AFA0-742962C1DBD8}
 		{5019F8E8-3960-4CF3-8268-8CB225F41993} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
+		{1AEB3280-C4CB-40BC-BDB5-6D606D46D510} = {42CC12ED-881F-4113-AFA0-742962C1DBD8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2FA36A0A-CA20-41CF-9BC2-FA6545720009}

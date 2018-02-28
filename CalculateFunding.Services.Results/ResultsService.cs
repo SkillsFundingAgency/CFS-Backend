@@ -39,7 +39,9 @@ namespace CalculateFunding.Services.Results
 		public ResultsService(ILogger logger,
             IResultsRepository resultsRepository, 
             IMapper mapper, 
-            ISearchRepository<ProviderIndex> searchRepository,  IMessengerService messengerService, ServiceBusSettings serviceBusSettings)
+            ISearchRepository<ProviderIndex> searchRepository,
+            IMessengerService messengerService, 
+            ServiceBusSettings serviceBusSettings)
         {
             _logger = logger;
 	        _resultsRepository = resultsRepository;
@@ -53,7 +55,6 @@ namespace CalculateFunding.Services.Results
 	    {
 		    throw new NotImplementedException();
 	    }
-
 
 		// TODO - refactor to common 
 	    IDictionary<string, string> CreateMessageProperties(DatasetMetadataModel metadataModel)
@@ -126,7 +127,7 @@ namespace CalculateFunding.Services.Results
 		    var providerId = GetParameter(request, "providerId");
 		    if (string.IsNullOrWhiteSpace(providerId))
 		    {
-			    _logger.Error("No provider Id was provided to GetProviderResults");
+			    _logger.Error("No provider Id was provided to GetProviderSpecifications");
 			    return new BadRequestObjectResult("Null or empty provider Id provided");
 		    }
 
