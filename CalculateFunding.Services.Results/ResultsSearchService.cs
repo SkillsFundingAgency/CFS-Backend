@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Results
 
             if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
             {
-                _logger.Error("A null or invalid search model was provided for searching datasets");
+                _logger.Error("A null or invalid search model was provided for searching providers");
 
                 return new BadRequestObjectResult("An invalid search model was provided");
             }

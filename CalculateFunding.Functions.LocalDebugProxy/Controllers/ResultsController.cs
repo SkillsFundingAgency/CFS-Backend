@@ -1,14 +1,12 @@
 using System;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Datasets.Interfaces;
-using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 {
-	public class ResultsController : BaseController
+    public class ResultsController : BaseController
 	{
 		private readonly IResultsService _resultsService;
 		private readonly IResultsSearchService _resultsSearchService;
@@ -50,5 +48,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
 			return _resultsService.GetProviderResults(ControllerContext.HttpContext.Request);
 		}
-	}
+
+        [Route("api/results/get-provider")]
+        [HttpGet]
+        public Task<IActionResult> RunGetProvider()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _resultsService.GetProviderById(ControllerContext.HttpContext.Request);
+        }
+    }
 }

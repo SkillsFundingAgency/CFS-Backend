@@ -39,7 +39,9 @@ namespace CalculateFunding.Services.Results
 		public ResultsService(ILogger logger,
             IResultsRepository resultsRepository, 
             IMapper mapper, 
-            ISearchRepository<ProviderIndex> searchRepository,  IMessengerService messengerService, ServiceBusSettings serviceBusSettings)
+            ISearchRepository<ProviderIndex> searchRepository,
+            IMessengerService messengerService, 
+            ServiceBusSettings serviceBusSettings)
         {
             _logger = logger;
 	        _resultsRepository = resultsRepository;
@@ -53,7 +55,6 @@ namespace CalculateFunding.Services.Results
 	    {
 		    throw new NotImplementedException();
 	    }
-
 
 		// TODO - refactor to common 
 	    IDictionary<string, string> CreateMessageProperties(DatasetMetadataModel metadataModel)
@@ -71,6 +72,24 @@ namespace CalculateFunding.Services.Results
 	    {
 		    throw new NotImplementedException();
 	    }
+
+        public async Task<IActionResult> GetProviderById(HttpRequest request)
+        {
+            var providerId = GetParameter(request, "providerId");
+
+            if (string.IsNullOrWhiteSpace(providerId))
+            {
+                _logger.Error("No provider Id was provided to GetProviderResults");
+                return new BadRequestObjectResult("Null or empty provider Id provided");
+            }
+
+            ProviderIndex provider = await _searchRepository.SearchById(providerId, IdFieldOverride: "ukPrn");
+
+            if (provider == null)
+                return new NotFoundResult();
+
+            return new OkObjectResult(provider);
+        }
 
 	    public async Task<IActionResult> GetProviderResults(HttpRequest request)
 	    {
@@ -91,7 +110,7 @@ namespace CalculateFunding.Services.Results
 
 			ProviderResult providerResult = await _resultsRepository.GetProviderResult(providerId, specificationId);
 
-		    if (providerResult != null)
+            if (providerResult != null)
 		    {
 			    _logger.Information($"A result was found for provider id {providerId}, specification id {specificationId}");
 
@@ -108,26 +127,24 @@ namespace CalculateFunding.Services.Results
 		    var providerId = GetParameter(request, "providerId");
 		    if (string.IsNullOrWhiteSpace(providerId))
 		    {
-			    _logger.Error("No provider Id was provided to GetProviderResults");
+			    _logger.Error("No provider Id was provided to GetProviderSpecifications");
 			    return new BadRequestObjectResult("Null or empty provider Id provided");
 		    }
 
-		    List<ProviderResult> providerResults = await _resultsRepository.GetSpecificationResults(providerId);
+		    IEnumerable<ProviderResult> providerResults = (await _resultsRepository.GetSpecificationResults(providerId)).ToList();
 
-			
-
-		    if (providerResults != null)
+		    if (!providerResults.IsNullOrEmpty())
 		    {
 			    _logger.Information($"A results was found for provider id {providerId}");
 
-			    var grouped = providerResults.Where(x => x.Specification != null).GroupBy(x => x.Specification.Id).Select(x => x.First().Specification).ToList();
-
-			    return new OkObjectResult(grouped);
+                var specs = providerResults.Where(m => m.Specification != null).Select(m => m.Specification).DistinctBy(m => m.Id).ToList();
+			   
+			    return new OkObjectResult(specs);
 		    }
 
 		    _logger.Information($"Results were not found for provider id {providerId}");
 
-		    return new NotFoundResult();
+		    return new OkObjectResult(Enumerable.Empty<SpecificationSummary>());
 
 	    }
 

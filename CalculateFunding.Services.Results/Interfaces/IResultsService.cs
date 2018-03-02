@@ -8,7 +8,8 @@ namespace CalculateFunding.Services.Results.Interfaces
     public interface IResultsService
     {
 	    Task UpdateProviderData(Message message);
-	    Task<IActionResult> GetProviderResults(HttpRequest httpContextRequest);
-	    Task<IActionResult> GetProviderSpecifications(HttpRequest req);
+	    Task<IActionResult> GetProviderResults(HttpRequest request);
+	    Task<IActionResult> GetProviderSpecifications(HttpRequest request);
+        Task<IActionResult> GetProviderById(HttpRequest request);
     }
 }

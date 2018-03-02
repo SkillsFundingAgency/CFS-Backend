@@ -58,7 +58,7 @@ namespace CalculateFunding.Repositories.Common.Search
 
             try
             {
-                searchTerm = !string.IsNullOrWhiteSpace(searchTerm) ? $"/.*{searchTerm}.*/" : "";
+                searchTerm = !string.IsNullOrWhiteSpace(searchTerm) ? $"\"*{searchTerm}*\"" : "";
 
                 var azureSearchResult = await client.Documents.SearchAsync<T>(searchTerm, searchParameters ?? DefaultParameters);
 
@@ -92,12 +92,15 @@ namespace CalculateFunding.Repositories.Common.Search
 
         }
 
-        public async Task<T> SearchById(string id, SearchParameters searchParameters = null)
+        public async Task<T> SearchById(string id, SearchParameters searchParameters = null, string IdFieldOverride = "")
         {
             var client = await GetOrCreateIndex();
+
+            string idField = string.IsNullOrWhiteSpace(IdFieldOverride) ? "id" : IdFieldOverride;
+
             searchParameters = new SearchParameters
             {
-                SearchFields = new List<string> { "id" },
+                SearchFields = new List<string> { idField },
                 Top = 1
             };
 

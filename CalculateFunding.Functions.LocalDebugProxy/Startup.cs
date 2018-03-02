@@ -169,8 +169,6 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 		        return new ResultsRepository(specsCosmosRepostory);
 	        });
 
-
-
 			builder.AddScoped<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>((ctx) =>
             {
                 CosmosDbSettings specsDbSettings = new CosmosDbSettings();

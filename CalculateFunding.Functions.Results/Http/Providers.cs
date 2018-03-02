@@ -47,5 +47,17 @@ namespace CalculateFunding.Functions.Results.Http
 			    return svc.GetProviderSpecifications(req);
 		    }
 	    }
-	}
+
+        [FunctionName("get-provider")]
+        public static Task<IActionResult> RunGetProvider(
+            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IResultsService svc = scope.ServiceProvider.GetService<IResultsService>();
+
+                return svc.GetProviderById(req);
+            }
+        }
+    }
 }
