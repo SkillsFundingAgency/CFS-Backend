@@ -9,7 +9,8 @@ namespace CalculateFunding.Services.TestRunner
     public abstract class GherkinStepAction
     {
 
-        public abstract GherkinResult Execute(CalculationResult calculationResult, List<object> datasets, TestStep step);
+        public abstract GherkinResult Execute(CalculationResult calculationResult, List<ProviderSourceDataset> datasets,
+            TestStep step);
         protected bool TestLogic(object expectedValue, object actualValue, ComparisonOperator logic)
         {
             var expected = expectedValue as IComparable;
@@ -35,7 +36,7 @@ namespace CalculateFunding.Services.TestRunner
             }
         }
 
-        protected static object GetActualValue(List<object> datasets, string datasetName, string fieldName)
+        protected static object GetActualValue(List<ProviderSourceDataset> datasets, string datasetName, string fieldName)
         {
             object actualValue = null;
 

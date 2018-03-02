@@ -16,6 +16,7 @@ using AutoMapper;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Datasets.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Console;
 using Newtonsoft.Json;
@@ -82,6 +83,7 @@ namespace CalculateFunding.EndToEnd
 
 			var specService = serviceProvider.GetService<ISpecificationsService>();
 			var buildProjectRepo = serviceProvider.GetService<IBuildProjectsRepository>();
+			var dataRelationshipService = serviceProvider.GetService<IDefinitionSpecificationRelationshipService>();
 			var specSearchService = serviceProvider.GetService<ISpecificationsSearchService>();
 			var providerSearchService = serviceProvider.GetService<IResultsSearchService>();
 			var resultsRepo = serviceProvider.GetService<IResultsRepository>();
@@ -91,23 +93,47 @@ namespace CalculateFunding.EndToEnd
 			ConsoleLogger logger = new ConsoleLogger("Default", (s, level) => true, true);
 
 			var user = new Reference("matt.hammond@education.gov.uk", "Matt Hammond");
+
+			var testSearchIndex = new SearchRepository<ProviderIndex>(new SearchRepositorySettings
+			{
+				SearchServiceName = "esfacfsbtest-search",
+				SearchKey = "28E14ED3D00574840537C748ADCDFAA9"
+			});
+
 			Task.Run(async () =>
 			{
 				var providerSummaries = new List<ProviderSummary>();
 				ProviderSearchResults providers;
-
+                var allProviders = new List<ProviderIndex>();
+                var page = 1;
 				do
 				{
 					var providersSearchResult = await providerSearchService.SearchProviders(GetHttpRequest(new SearchModel
 					{
-						PageNumber = 1,
-						Top = 50,
+						PageNumber = page++,
+						Top = 1000,
 						SearchTerm = "*",
 						IncludeFacets = true
 					}));
 					providers = (providersSearchResult as OkObjectResult)?.Value as ProviderSearchResults;
 
-					providerSummaries.AddRange(providers.Results.Select(x => new ProviderSummary
+                    allProviders.AddRange(providers.Results.Select(x => new ProviderIndex
+                    {
+                        Name = x.Name,
+                        URN = x.URN,
+                        Authority = x.Authority,
+                        UKPRN = x.UKPRN,
+                        UPIN = x.UPIN,
+                        ProviderSubType = x.ProviderSubType,
+                        EstablishmentNumber = x.EstablishmentNumber,
+                        ProviderType = x.ProviderType,
+                        CloseDate = x.CloseDate,
+                        OpenDate = x.OpenDate,
+                        Rid = x.Rid
+                    }));
+
+
+                    providerSummaries.AddRange(providers.Results.Select(x => new ProviderSummary
 					{
 						Name = x.Name,
 						Id = x.UKPRN,
@@ -119,12 +145,15 @@ namespace CalculateFunding.EndToEnd
 						EstablishmentNumber = x.EstablishmentNumber,
 						ProviderType = x.ProviderType
 					}));
-				} while (providerSummaries.Count < providers.TotalCount);
+                } while (providerSummaries.Count < providers.TotalCount);
 
-				var specSearchResult = await specSearchService.SearchSpecifications(GetHttpRequest(new SearchModel
+
+                //await testSearchIndex.Index(allProviders.ToArray());
+
+                var specSearchResult = await specSearchService.SearchSpecifications(GetHttpRequest(new SearchModel
 				{
 					PageNumber = 1,
-					Top = 50,
+					Top = 1000,
 					SearchTerm = "*",
 					IncludeFacets = true
 				}));
@@ -134,26 +163,61 @@ namespace CalculateFunding.EndToEnd
 					var fullSpec = await specService.GetSpecificationById(GetHttpRequest("", "specificationId", spec.SpecificationId));
 					var buildProject = await buildProjectRepo.GetBuildProjectBySpecificationId(spec.SpecificationId);
 
-					buildProject.Specification = new SpecificationSummary
-					{
-						Id = ((fullSpec as OkObjectResult)?.Value as Specification).Id,
-						Name = ((fullSpec as OkObjectResult)?.Value as Specification).Name,
-						FundingStream = ((fullSpec as OkObjectResult)?.Value as Specification).FundingStream,
-						Period = ((fullSpec as OkObjectResult)?.Value as Specification).AcademicYear
-					};
-					await buildProjectRepo.UpdateBuildProject(buildProject);
-					if (buildProject != null)
-					{
-						buildProject = await buildProjectRepo.GetBuildProjectBySpecificationId(spec.SpecificationId);
-						if (buildProject.Build?.AssemblyBase64 != null)
-						{
-							var results = calc.GenerateAllocations(buildProject, providerSummaries).ToList();
+                    if(buildProject != null)
+                    {
+                        if (buildProject.Build == null)
+                        {
+                            await calcService.SaveCalculationVersion(GetHttpRequest(new SaveSourceCodeVersion
+                            {
+                                SourceCode = $"Return 42"
+                            }, "calculationId", buildProject.Calculations.First().Id));
 
-							await resultsRepo.UpdateProviderResults(results);
-						}
+                            buildProject = await buildProjectRepo.GetBuildProjectBySpecificationId(spec.SpecificationId);
+                        }
 
-					}
-				}
+
+                        if (buildProject != null && ((fullSpec as OkObjectResult)?.Value as Specification) != null)
+                        {
+                            buildProject.Specification = new SpecificationSummary
+                            {
+                                Id = ((fullSpec as OkObjectResult)?.Value as Specification).Id,
+                                Name = ((fullSpec as OkObjectResult)?.Value as Specification).Name,
+                                FundingStream = ((fullSpec as OkObjectResult)?.Value as Specification).FundingStream,
+                                Period = ((fullSpec as OkObjectResult)?.Value as Specification).AcademicYear
+                            };
+                            await buildProjectRepo.UpdateBuildProject(buildProject);
+                            if (buildProject != null)
+                            {
+                                buildProject = await buildProjectRepo.GetBuildProjectBySpecificationId(spec.SpecificationId);
+                                if (buildProject.Build?.AssemblyBase64 != null)
+                                {
+                                    var results = calc.GenerateAllocations(buildProject, providerSummaries).ToList();
+
+                                    await resultsRepo.UpdateProviderResults(results);
+                                }
+
+                            }
+                        }
+                    }
+                }
+
+
+                    //var dataRelationships = await dataRelationshipService.GetCurrentRelationshipsBySpecificationId(GetHttpRequest("", "specificationId", spec.SpecificationId));
+
+                    //if (dataRelationships != null)
+                    //{
+                    //	var relationships = ((dataRelationships as OkObjectResult)?.Value as DatasetSpecificationRelationshipViewModel[]);
+                    //	if (relationships != null)
+                    //	{
+
+                    //	}
+                    //}
+
+                    
+
+
+
+				
 
 
 

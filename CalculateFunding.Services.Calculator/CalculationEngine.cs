@@ -14,14 +14,13 @@ using CalculationResult = CalculateFunding.Models.Results.CalculationResult;
 
 namespace CalculateFunding.Services.Calculator
 {
-    public interface IDatasetProvider
+    public interface IProviderSourceDatasetRepository
     {
-        //var datasetsAsJson = _repository.QueryAsJson($"SELECT * FROM ds WHERE ds.providerUrn='{provider.URN}' AND ds.deleted = false");
-        IEnumerable<string> GetDatasetsAsJson(string providerId);
+        IEnumerable<ProviderSourceDataset> GetProviderDatasets(string providerId, string subscriptionId);
     }
     public class CalculationEngine
     {
-        private readonly IDatasetProvider _datasetProvider = null;
+        private readonly IProviderSourceDatasetRepository _providerSourceRepository = null;
 
         public IEnumerable<ProviderResult> GenerateAllocations(BuildProject buildProject, IEnumerable<ProviderSummary> providers)
         {
@@ -36,18 +35,11 @@ namespace CalculateFunding.Services.Calculator
                     var typedDatasets = new List<object>();
 
 
-                    var datasetsAsJson = _datasetProvider?.GetDatasetsAsJson(provider.Id) ?? new string[0];
-                    foreach (var datasetAsJson in datasetsAsJson)
-                    {
-                        
-                        var type = allocationFactory.GetDatasetType(JsonConvert.DeserializeObject<ProviderSourceDataset>(datasetAsJson).DatasetName);
-
-                        var blah = JsonConvert.DeserializeObject(datasetAsJson, type, new JsonSerializerSettings{ContractResolver = new CamelCasePropertyNamesContractResolver()});
-                        typedDatasets.Add(blah);
-                    }
+                    var providerSourceDatasets =
+                        _providerSourceRepository?.GetProviderDatasets(provider.Id, buildProject.Specification.Id);
 
 
-                    var result = CalculateProviderResults(allocationModel, buildProject, provider, typedDatasets);
+                    var result = CalculateProviderResults(allocationModel, buildProject, provider, providerSourceDatasets.ToList());
 
                 stopwatch.Stop();
                 Console.WriteLine($"Generated result for ${provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
@@ -57,27 +49,13 @@ namespace CalculateFunding.Services.Calculator
             
         }
 
-        public async Task<List<object>> GetProviderDatasets(AllocationFactory allocationFactory, Reference provider, string budgetId)
-        {
-            var typedDatasets = new List<object>();
-            var datasetsAsJson = _datasetProvider?.GetDatasetsAsJson(provider.Id) ?? new string[0];
-            foreach (var datasetAsJson in datasetsAsJson)
-                {
-                    var dataset = JsonConvert.DeserializeObject<ProviderSourceDataset>(datasetAsJson);
-                    var type = allocationFactory.GetDatasetType(dataset.DatasetName);
 
-                    object blah = JsonConvert.DeserializeObject(datasetAsJson, type);
-                    typedDatasets.Add(blah);
-                }            
-            
-            return typedDatasets;
-        }
 
-        public ProviderResult CalculateProviderResults(AllocationModel model, BuildProject buildProject, ProviderSummary provider, List<object> typedDatasets)
+        public ProviderResult CalculateProviderResults(AllocationModel model, BuildProject buildProject, ProviderSummary provider, List<ProviderSourceDataset> providerSourceDatasets)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            var calculationResults = model.Execute(typedDatasets.ToArray()).ToArray();
+            var calculationResults = model.Execute(providerSourceDatasets).ToArray();
             var providerCalResults = calculationResults.ToDictionary(x => x.Calculation?.Id);
             stopwatch.Stop();
             Console.WriteLine($"{providerCalResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalResults.Count: 0.0000}ms)");
@@ -85,8 +63,7 @@ namespace CalculateFunding.Services.Calculator
             var result = new ProviderResult
             {
                 Provider = provider,
-                Specification = buildProject.Specification,
-                SourceDatasets = typedDatasets.ToList()
+                Specification = buildProject.Specification
             };
 	        var plainTextBytes = System.Text.Encoding.UTF8.GetBytes($"{result.Provider.Id}-{result.Specification.Id}");
 			result.Id = System.Convert.ToBase64String(plainTextBytes);

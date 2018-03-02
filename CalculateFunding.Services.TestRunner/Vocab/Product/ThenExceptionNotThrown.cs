@@ -7,7 +7,8 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
 {
     public class ThenExceptionNotThrown : GherkinStepAction
     {
-        public override GherkinResult Execute(CalculationResult calculationResult, List<object> datasets, TestStep step)
+        public override GherkinResult Execute(CalculationResult calculationResult, List<ProviderSourceDataset> datasets,
+            TestStep step)
         {
             if (calculationResult.Exception != null)
             {

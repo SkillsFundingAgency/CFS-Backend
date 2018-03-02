@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Results
 
 	    public async Task UpdateProviderResults(List<ProviderResult> results)
 	    {
-		    await _cosmosRepository.BulkCreateAsync(results, 1);
+		    await _cosmosRepository.BulkCreateAsync(results, 50);
 	    }
     }
 }

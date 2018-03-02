@@ -7,7 +7,8 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
 {
     public class ThenProductValue : GherkinStepAction
     {
-        public override GherkinResult Execute(CalculationResult calculationResult, List<object> datasets, TestStep step)
+        public override GherkinResult Execute(CalculationResult calculationResult, List<ProviderSourceDataset> datasets,
+            TestStep step)
         {
             var thenStep = step as ThenStep;
             var actualValue = calculationResult.Value;

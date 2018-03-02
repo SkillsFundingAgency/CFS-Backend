@@ -51,8 +51,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Repositori
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.ApiClient", "CalculateFunding.ApiClient\CalculateFunding.ApiClient.csproj", "{0A4543B1-9D9A-4FB8-8F4F-E3B818FD8057}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.ContentSync", "CalculateFunding.ContentSync\CalculateFunding.ContentSync.csproj", "{BAC0BDCA-4752-4D58-B064-43BAF6ED4EE9}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Calcs", "CalculateFunding.Functions.Calcs\CalculateFunding.Functions.Calcs.csproj", "{80F1BA7D-6575-49F1-9663-38F8F7D085B8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Scenarios", "CalculateFunding.Functions.Scenarios\CalculateFunding.Functions.Scenarios.csproj", "{C5479D34-C97B-4D38-8470-12B979F43F7A}"
@@ -89,7 +87,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Core.UnitTests", "CalculateFunding.Services.Core.UnitTests\CalculateFunding.Services.Core.UnitTests.csproj", "{766DB406-7185-4460-9CED-ED6CCC0061EB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.Results", "CalculateFunding.Services.Results\CalculateFunding.Services.Results.csproj", "{5019F8E8-3960-4CF3-8268-8CB225F41993}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Results", "CalculateFunding.Services.Results\CalculateFunding.Services.Results.csproj", "{5019F8E8-3960-4CF3-8268-8CB225F41993}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -157,10 +155,6 @@ Global
 		{0A4543B1-9D9A-4FB8-8F4F-E3B818FD8057}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A4543B1-9D9A-4FB8-8F4F-E3B818FD8057}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A4543B1-9D9A-4FB8-8F4F-E3B818FD8057}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BAC0BDCA-4752-4D58-B064-43BAF6ED4EE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BAC0BDCA-4752-4D58-B064-43BAF6ED4EE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BAC0BDCA-4752-4D58-B064-43BAF6ED4EE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BAC0BDCA-4752-4D58-B064-43BAF6ED4EE9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{80F1BA7D-6575-49F1-9663-38F8F7D085B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{80F1BA7D-6575-49F1-9663-38F8F7D085B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80F1BA7D-6575-49F1-9663-38F8F7D085B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -249,7 +243,6 @@ Global
 		{95480829-DB9B-45A1-8F51-3D1458DD0F10} = {40D52A2C-3E44-4B5A-917E-2FD2F1E8F689}
 		{311BB52A-A7B5-4C75-8DCB-7E26078BDAD6} = {40D52A2C-3E44-4B5A-917E-2FD2F1E8F689}
 		{0A4543B1-9D9A-4FB8-8F4F-E3B818FD8057} = {539AB1D8-B007-4CB6-8355-918D498486E2}
-		{BAC0BDCA-4752-4D58-B064-43BAF6ED4EE9} = {9E576324-96E4-4582-B5DB-00B0F77D18CB}
 		{80F1BA7D-6575-49F1-9663-38F8F7D085B8} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{C5479D34-C97B-4D38-8470-12B979F43F7A} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{6BE6A018-6AF4-4BCC-BA86-FD5E7DC75F2A} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}

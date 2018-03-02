@@ -5,18 +5,20 @@ using System.Reflection;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace CalculateFunding.Services.Calculator
 {
     public class AllocationModel
     {
-        private List<Tuple<MethodInfo, CalculationResult>> _methods = new List<Tuple<MethodInfo, CalculationResult>>();
-        private PropertyInfo[] _datasetSetters;
-        private object _instance;
-        private object _datasetsInstance;
+        private readonly List<Tuple<MethodInfo, CalculationResult>> _methods = new List<Tuple<MethodInfo, CalculationResult>>();
+        private readonly PropertyInfo[] _datasetSetters;
+        private readonly object _instance;
+        private readonly object _datasetsInstance;
 
-        public AllocationModel(Type allocationType)
+        public AllocationModel(Type allocationType, Dictionary<string, Type> datasetTypes)
         {
+            DatasetTypes = datasetTypes;
             var datasetsSetter = allocationType.GetProperty("Datasets");
             var datasetType = datasetsSetter.PropertyType;
             _datasetSetters = datasetType.GetProperties().Where(x => x.CanWrite).ToArray();
@@ -51,15 +53,48 @@ namespace CalculateFunding.Services.Calculator
             datasetsSetter.SetValue(_instance, _datasetsInstance);
         }
 
-
-        public IEnumerable<CalculationResult> Execute(object[] datasets)
+        public Type GetDatasetType(string datasetName)
         {
+            if (DatasetTypes.ContainsKey(datasetName))
+            {
+                return DatasetTypes[datasetName];
+            }
+            throw new NotImplementedException($"{datasetName} is not defined");
+        }
 
+
+        public object CreateDataset(string datasetName)
+        {
+            if (DatasetTypes.ContainsKey(datasetName))
+            {
+                try
+                {
+                    var type = DatasetTypes[datasetName];
+                    return Activator.CreateInstance(type);
+                }
+                catch (ReflectionTypeLoadException e)
+                {
+                    throw new Exception(string.Join(", ", e.LoaderExceptions.Select(x => x.Message)));
+                }
+            }
+            throw new NotImplementedException($"{datasetName} is not defined");
+        }
+
+        private Dictionary<string, Type> DatasetTypes { get; }
+
+        public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets)
+        {
             foreach (var dataset in datasets)
             {
+                var type = GetDatasetType(dataset.DataDefinition.Name);
+
+                var json = JsonConvert.SerializeObject(dataset.Current.Rows.First());
+
+                var typedRow = JsonConvert.DeserializeObject(json, type, new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
+
                 foreach (var setter in _datasetSetters)
                 {
-                    setter.SetValue(_datasetsInstance, dataset);
+                    setter.SetValue(_datasetsInstance, typedRow);
                 }
             }
 

@@ -8,56 +8,27 @@ namespace CalculateFunding.Services.Calculator
     public class AllocationFactory
     {
 
-        private Dictionary<string, Type> DatasetTypes { get; }
         private AllocationModel AllocationModel { get; }
         
-        public AllocationFactory(Assembly budgetAssembly)
+        public AllocationFactory(Assembly assembly)
         {
 
-            var datasetTypes = budgetAssembly.GetTypes().Where(x => x.GetFields().Any(p => p.IsStatic && p.Name == "DatasetDefinitionName"));
-            DatasetTypes = new Dictionary<string, Type>();
-            foreach (var type in datasetTypes)
+            var types = assembly.GetTypes().Where(x => x.GetFields().Any(p => p.IsStatic && p.Name == "DatasetDefinitionName"));
+           var datasetTypes = new Dictionary<string, Type>();
+            foreach (var type in types)
             {
                 var field = type.GetField("DatasetDefinitionName");
                 var definitionName = field.GetValue(null).ToString();
-                DatasetTypes.Add(definitionName, type);
+                datasetTypes.Add(definitionName, type);
             }
 
-            var allocationType = budgetAssembly.GetTypes().FirstOrDefault(x => x.IsClass && x.BaseType.Name == "BaseCalculation");
-            AllocationModel = new AllocationModel(allocationType);
-        }
-
-        public IEnumerable<string> GetDatasetTypeNames()
-        {
-            return DatasetTypes.Keys;
+            var allocationType = assembly.GetTypes().FirstOrDefault(x => x.IsClass && x.BaseType.Name == "BaseCalculation");
+            AllocationModel = new AllocationModel(allocationType, datasetTypes);
         }
 
 
-        public Type GetDatasetType(string datasetName)
-        {
-            if (DatasetTypes.ContainsKey(datasetName))
-            {
-                return DatasetTypes[datasetName];
-            }
-            throw new NotImplementedException($"{datasetName} is not defined");
-        }
 
-        public object CreateDataset(string datasetName)
-        {
-            if (DatasetTypes.ContainsKey(datasetName))
-            {
-                try
-                {
-                    var type = DatasetTypes[datasetName];
-                    return Activator.CreateInstance(type);
-                }
-                catch (ReflectionTypeLoadException e)
-                {
-                    throw new Exception(string.Join(", ", e.LoaderExceptions.Select(x => x.Message)));
-                }
-            }
-            throw new NotImplementedException($"{datasetName} is not defined");
-        }
+
 
         public AllocationModel CreateAllocationModel()
         {

@@ -66,7 +66,6 @@ namespace CalculateFunding.EndToEnd
                 .AddTransient<CSharpCompiler>()
                 .AddTransient<VisualBasicCompiler>()
                 .AddTransient<CompilerFactory>()
-                .AddTransient<DataImporterService>()
                 .AddTransient<CalculationEngine>()
                 .BuildServiceProvider();
 
