@@ -16,6 +16,7 @@ using AutoMapper;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Console;
@@ -56,6 +57,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Search.Models;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.Data.OData.Query.SemanticAst;
@@ -99,6 +101,14 @@ namespace CalculateFunding.EndToEnd
 				SearchServiceName = "esfacfsbtest-search",
 				SearchKey = "28E14ED3D00574840537C748ADCDFAA9"
 			});
+
+		    DatasetDefinition datasetDefinition = GetDatasetDefinition();
+
+		    var datasetStream = File.OpenRead("SourceData/Export APT.XLSX");
+
+		    var reader = new ExcelReader();
+
+		    var objects = reader.Read(datasetStream, datasetDefinition).ToList();
 
 			Task.Run(async () =>
 			{
@@ -266,7 +276,39 @@ namespace CalculateFunding.EndToEnd
 		// Do any async anything you need here without worry
 		).GetAwaiter().GetResult();
 		}
-		static void RegisterComponents(IServiceCollection builder)
+
+        private static DatasetDefinition GetDatasetDefinition()
+        {
+            return new DatasetDefinition
+            {
+                Id = "test-apt",
+                Name = "APT",
+                Description = "Test APT Dataset Schema",
+                TableDefinitions = new List<TableDefinition>
+                {
+                    new TableDefinition
+                    {
+                        Id = "table-1",
+                        Name = "*",
+                        DataGranularity = DataGranularity.Provider,
+                        DefinesTargets = true,
+                        FieldDefinitions = new List<FieldDefinition>
+                        {
+                            new FieldDefinition{ Name= "UPIN", Type = FieldType.String, IdentifierFieldType = IdentifierFieldType.UPIN},
+                            new FieldDefinition{ Name= "Date Opened", Type = FieldType.DateTime},
+                            new FieldDefinition{ Name= "Phase", Type = FieldType.String},
+                            new FieldDefinition{ Name= "Acedemy Type", Type = FieldType.String},
+                            new FieldDefinition{ Name= "NOR Primary", Type = FieldType.Integer},
+                            new FieldDefinition{ Name= "Average Year Group Size", Type = FieldType.Decimal},
+                            
+                        }
+                    }
+                }
+
+            };
+        }
+
+        static void RegisterComponents(IServiceCollection builder)
 		{
 			IConfigurationRoot config = ConfigHelper.AddConfig();
 

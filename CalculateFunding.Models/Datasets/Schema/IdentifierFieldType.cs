@@ -6,6 +6,7 @@ namespace CalculateFunding.Models.Datasets.Schema
     [JsonConverter(typeof(StringEnumConverter))]
     public enum IdentifierFieldType
     {
+        None,
         UKPRN,
         UPIN,
         URN,

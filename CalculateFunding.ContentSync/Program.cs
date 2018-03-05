@@ -94,8 +94,7 @@ namespace CalculateFunding.ContentSync
                         Description = spec.Description,
                         AcademicYear = new Reference(spec.AcademicYear, spec.AcademicYear),
                         FundingStream = new Reference(spec.FundingStream, spec.FundingStream),
-                        Policies = GetPolicies(policies, calcs).ToList(),
-                        DatasetDefinitions = GetDatasets(datasets).ToList()
+                        Policies = GetPolicies(policies, calcs).ToList()
                     };
 
                     File.WriteAllText("spec.json", JsonConvert.SerializeObject(specification, Formatting.Indented));

@@ -24,11 +24,6 @@ namespace CalculateFunding.Models.Datasets.Schema
         [JsonProperty("fieldDefinitions")]
         public List<FieldDefinition> FieldDefinitions { get; set; }
 
-        [JsonProperty("identifierFieldType")]
-        public string IdentifierFieldType { get; set; }
-
-        [JsonProperty("identifierFieldName")]
-		public string IdentifierFieldName { get; set; }
     }
 
 }
