@@ -92,7 +92,8 @@ namespace CalculateFunding.Services.Datasets
                 DatasetDefinition = new Reference(definition.Id, definition.Name),
                 Specification = new Reference(specification.Id, specification.Name),
                 Description = model.Description,
-                Id = relationshipId
+                Id = relationshipId,
+                IsSetAsProviderData = model.IsSetAsProviderData 
             };
 
             HttpStatusCode statusCode = await _datasetRepository.SaveDefinitionSpecificationRelationship(relationship);
