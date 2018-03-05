@@ -159,6 +159,7 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(412);
 
             selectDatasourceModel.RelationshipId = relationship.Id;
+            selectDatasourceModel.RelationshipName = relationship.Name;
             selectDatasourceModel.SpecificationId = relationship.Specification.Id;
             selectDatasourceModel.SpecificationName = relationship.Specification.Name;
             selectDatasourceModel.DefinitionId = relationship.DatasetDefinition.Id;
