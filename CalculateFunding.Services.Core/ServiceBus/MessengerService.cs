@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
@@ -13,7 +14,9 @@ namespace CalculateFunding.Services.Core
     {
         private readonly Dictionary<string, TopicClient> _topicClients = new Dictionary<string, TopicClient>();
         private readonly string _connectionString;
-       
+
+        private object topicsLock = new object();
+
         public MessengerService(ServiceBusSettings settings)
         {
             _connectionString = settings.ServiceBusConnectionString;
@@ -24,24 +27,28 @@ namespace CalculateFunding.Services.Core
             if (!_topicClients.TryGetValue(topicName, out var topicClient))
             {
                 topicClient = new TopicClient(_connectionString, topicName);
-                if(!_topicClients.ContainsKey(topicName))
-                    _topicClients.Add(topicName, topicClient);
+                if (!_topicClients.ContainsKey(topicName))
+                {
+                    lock (topicsLock)
+                    {
+                        _topicClients.Add(topicName, topicClient);
+                    }
+                }
             }
-            return topicClient;
+            return new TopicClient(_connectionString, topicName);
         }
 
         public async Task SendAsync<T>(string topicName, T command)
         {
             var topicClient = GetTopicClient(topicName);
-            
             var json = JsonConvert.SerializeObject(command);
-            await topicClient.SendAsync(new Message(Encoding.UTF8.GetBytes(json)));
+                await topicClient.SendAsync(new Message(Encoding.UTF8.GetBytes(json)));
         }
 
         async public Task SendAsync<T>(string topicName, string subscriptionName, T data, IDictionary<string, string> properties)
         {
             var topicClient = GetTopicClient(topicName);
-
+           
             var json = JsonConvert.SerializeObject(data);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json))
@@ -51,7 +58,7 @@ namespace CalculateFunding.Services.Core
 
             foreach (var property in properties)
                 message.UserProperties.Add(property.Key, property.Value);
-           
+
             await topicClient.SendAsync(message);
         }
     }

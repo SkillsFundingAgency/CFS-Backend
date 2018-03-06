@@ -241,16 +241,11 @@ namespace CalculateFunding.Services.Calcs
                 {
                     IEnumerable<ProviderSummary> partitionedSummaries = providersFromSearch.Skip(partitionIndex).Take(MaxPartitionSize).ToList();
 
-                    messageTasks.Add(Task.Factory.StartNew(() =>
-                    {
-                        _messengerService.SendAsync(_serviceBusSettings.CalcsServiceBusTopicName, AllocationResultsSubscription,
+                    await _messengerService.SendAsync(_serviceBusSettings.CalcsServiceBusTopicName, AllocationResultsSubscription,
                             new GenerateAllocationsResultsMessage { ProviderSummaries = partitionedSummaries, BuildProject = buildProject },
                             properties);
-                    }));
                 }
             }
-             
-            await Task.WhenAll(messageTasks);
         }
     }
 }
