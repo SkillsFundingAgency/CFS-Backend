@@ -93,7 +93,8 @@ namespace CalculateFunding.Services.Datasets
                 Specification = new Reference(specification.Id, specification.Name),
                 Description = model.Description,
                 Id = relationshipId,
-                IsSetAsProviderData = model.IsSetAsProviderData 
+                IsSetAsProviderData = model.IsSetAsProviderData,
+                UsedInDataAggregations = model.UsedInDataAggregations
             };
 
             HttpStatusCode statusCode = await _datasetRepository.SaveDefinitionSpecificationRelationship(relationship);

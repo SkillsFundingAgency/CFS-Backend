@@ -15,5 +15,7 @@ namespace CalculateFunding.Models.Datasets
         public string Description { get; set; }
 
         public bool IsSetAsProviderData { get; set; }
+
+        public bool UsedInDataAggregations { get; set; }
     }
 }
