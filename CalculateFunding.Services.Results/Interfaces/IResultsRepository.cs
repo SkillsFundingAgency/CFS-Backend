@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Results;
 
@@ -8,6 +9,7 @@ namespace CalculateFunding.Services.Results.Interfaces
     {
 	    Task<ProviderResult> GetProviderResult(string providerId, string specificationId);
         Task<IEnumerable<ProviderResult>> GetSpecificationResults(string providerId);
-        Task UpdateProviderResults(List<ProviderResult> results);
+        Task<HttpStatusCode> UpdateProviderResults(List<ProviderResult> results);
+        Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId);
     }
 }

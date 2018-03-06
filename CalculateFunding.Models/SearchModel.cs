@@ -24,5 +24,7 @@ namespace CalculateFunding.Models
         public IDictionary<string, string[]> Filters { get; set; }
 
         public bool IncludeFacets { get; set; }
+
+        public bool CountOnly { get; set; }
     }
 }

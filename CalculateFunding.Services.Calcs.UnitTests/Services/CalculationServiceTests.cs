@@ -27,6 +27,10 @@ using System.Threading.Tasks;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Models.Calcs.Messages;
+using CalculateFunding.Models.Results;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -1285,6 +1289,8 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();
 
+            string specificationId = Guid.NewGuid().ToString();
+
             BuildProject buildProject = new BuildProject
             {
                 Id = buildProjectId,
@@ -1293,6 +1299,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Calculation calculation = CreateCalculation();
             calculation.BuildProjectId = buildProjectId;
+            calculation.Specification = new SpecificationSummary
+            {
+                Id = specificationId
+            };
             calculation.Current.PublishStatus = PublishStatus.Updated;
 
             SaveSourceCodeVersion model = new SaveSourceCodeVersion
@@ -1337,9 +1347,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
+            IMessengerService messengerService = CreateMessengerService();
+
             CalculationService service = CreateCalculationService(logger: logger,
                 calculationsRepository: calculationsRepository,
-               buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
+               buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository, messengerService: messengerService);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1357,8 +1369,15 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(1)
-                .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
+                    .Received(1)
+                    .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
+
+            await
+                messengerService
+                    .Received(1)
+                    .SendAsync(Arg.Is("calcs-events"), Arg.Is("calc-events-instruct-generate-allocations"),
+                        Arg.Is<InstructGenerateAllocationsMessage>(m => m.SpecificationId == specificationId),
+                        Arg.Any<IDictionary<string, string>>());
         }
 
         [TestMethod]
@@ -1544,11 +1563,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
         static CalculationService CreateCalculationService(ICalculationsRepository calculationsRepository = null, 
             ILogger logger = null, ISearchRepository<CalculationIndex> serachRepository = null, IValidator<Calculation> calcValidator = null,
-            IBuildProjectsRepository buildProjectsRepository = null)
+            IBuildProjectsRepository buildProjectsRepository = null, IMessengerService messengerService = null, ServiceBusSettings serviceBusSettings = null)
         {
             return new CalculationService(calculationsRepository ?? CreateCalculationsRepository(), 
                 logger ?? CreateLogger(), serachRepository ?? CreateSearchRepository(), calcValidator ?? CreateCalculationValidator(),
-                buildProjectsRepository ?? CreateBuildProjectsRepository(), CreateSourceFileGeneratorProvider(), CreateCompilerFactory());
+                buildProjectsRepository ?? CreateBuildProjectsRepository(), CreateSourceFileGeneratorProvider(), CreateCompilerFactory(),
+                messengerService ?? CreateMessengerService(), serviceBusSettings ?? CreateServiceBusSettings());
         }
 
         static ICalculationsRepository CreateCalculationsRepository()
@@ -1575,6 +1595,19 @@ namespace CalculateFunding.Services.Calcs.Services
 	    {
 		    return Substitute.For<ISourceFileGeneratorProvider>();
 	    }
+
+        static IMessengerService CreateMessengerService()
+        {
+            return Substitute.For<IMessengerService>();
+        }
+
+        static ServiceBusSettings CreateServiceBusSettings()
+        {
+            return new ServiceBusSettings
+            {
+                CalcsServiceBusTopicName = "calcs-events"
+            };
+        }
 
 	    static ICompilerFactory CreateCompilerFactory()
 	    {

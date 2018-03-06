@@ -4,6 +4,9 @@ using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calcs.Interfaces;
 using System.Net;
 using System.Threading.Tasks;
+using System.Collections;
+using System.Collections.Generic;
+using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -26,11 +29,11 @@ namespace CalculateFunding.Services.Calcs
             return buildProject.Content;
         }
 
-	    public async Task<BuildProject> GetBuildProjectBySpecificationId(string specificiationId)
+	    public Task<BuildProject> GetBuildProjectBySpecificationId(string specificiationId)
 	    {
-		    var buildProject = _cosmosRepository.Query<BuildProject>().Where(x => x.Specification.Id == specificiationId).ToList();
+		    IEnumerable<BuildProject> buildProjects = _cosmosRepository.Query<BuildProject>().Where(x => x.Specification.Id == specificiationId).ToList();
 
-		    return buildProject.FirstOrDefault();
+            return Task.FromResult(buildProjects.FirstOrDefault());
 	    }
 
 		public Task<HttpStatusCode> CreateBuildProject(BuildProject buildProject)

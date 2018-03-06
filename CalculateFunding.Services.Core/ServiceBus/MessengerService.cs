@@ -24,7 +24,8 @@ namespace CalculateFunding.Services.Core
             if (!_topicClients.TryGetValue(topicName, out var topicClient))
             {
                 topicClient = new TopicClient(_connectionString, topicName);
-                _topicClients.Add(topicName, topicClient);
+                if(!_topicClients.ContainsKey(topicName))
+                    _topicClients.Add(topicName, topicClient);
             }
             return topicClient;
         }

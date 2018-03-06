@@ -24,6 +24,9 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Models.Calcs.Messages;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -36,10 +39,15 @@ namespace CalculateFunding.Services.Calcs
         private readonly IBuildProjectsRepository _buildProjectsRepository;
 	    private readonly ICompilerFactory _compilerFactory;
 	    private readonly ISourceFileGenerator _sourceFileGenerator;
+        private readonly IMessengerService _messengerService;
+        private readonly ServiceBusSettings _serviceBusSettings;
 
-	    public CalculationService(ICalculationsRepository calculationsRepository, ILogger logger,
+        const string generateAllocationsSubscription = "calc-events-instruct-generate-allocations";
+       
+        public CalculationService(ICalculationsRepository calculationsRepository, ILogger logger,
             ISearchRepository<CalculationIndex> searchRepository, IValidator<Calculation> calculationValidator,
-            IBuildProjectsRepository buildProjectsRepository, ISourceFileGeneratorProvider sourceFileGeneratorProvider, ICompilerFactory compilerFactory)
+            IBuildProjectsRepository buildProjectsRepository, ISourceFileGeneratorProvider sourceFileGeneratorProvider, 
+            ICompilerFactory compilerFactory, IMessengerService messengerService, ServiceBusSettings serviceBusSettings)
         {
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -48,7 +56,9 @@ namespace CalculateFunding.Services.Calcs
             _buildProjectsRepository = buildProjectsRepository;
 	        _compilerFactory = compilerFactory;
 	        _sourceFileGenerator = sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
-		}
+            _messengerService = messengerService;
+            _serviceBusSettings = serviceBusSettings;
+        }
 
 	    Build Compile(BuildProject buildProject)
 	    {
@@ -306,6 +316,8 @@ namespace CalculateFunding.Services.Calcs
 
             CalculationCurrentVersion currentVersion = GetCurrentVersionFromCalculation(calculation);
 
+            await SendGenerateAllocationsMessage(calculation.Specification.Id, request);
+
             return new OkObjectResult(currentVersion);
         }
 
@@ -349,7 +361,6 @@ namespace CalculateFunding.Services.Calcs
                 await UpdateBuildProject(calculation.Specification);
 
                 await UpdateSearch(calculation);
-                
             }
 
             return new OkObjectResult(calculation.Current);
@@ -414,7 +425,6 @@ namespace CalculateFunding.Services.Calcs
 	            buildProject.Build = Compile(buildProject);
 				await _buildProjectsRepository.UpdateBuildProject(buildProject);
             }
-            
         }
 
         int GetNextVersionNumberFromCalculationVersions(IEnumerable<CalculationVersion> versions)
@@ -444,6 +454,31 @@ namespace CalculateFunding.Services.Calcs
             };
 
             return calculationCurrentVersion;
+        }
+
+        Task SendGenerateAllocationsMessage(string specificationId, HttpRequest request)
+        {
+            IDictionary<string, string> properties = CreateMessageProperties(request);
+
+            return _messengerService.SendAsync(_serviceBusSettings.CalcsServiceBusTopicName, generateAllocationsSubscription,
+                new InstructGenerateAllocationsMessage { SpecificationId = specificationId },
+                properties);
+        }
+
+        IDictionary<string, string> CreateMessageProperties(HttpRequest request)
+        {
+            Reference user = request.GetUser();
+
+            IDictionary<string, string> properties = new Dictionary<string, string>();
+            properties.Add("sfa-correlationId", request.GetCorrelationId());
+
+            if (user != null)
+            {
+                properties.Add("user-id", user.Id);
+                properties.Add("user-name", user.Name);
+            }
+
+            return properties;
         }
     }
 }

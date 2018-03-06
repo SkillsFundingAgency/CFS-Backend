@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Functions.Calcs;
 using CalculateFunding.Functions.Datasets.ServiceBus;
+using CalculateFunding.Functions.Results;
 using CalculateFunding.Functions.Specs;
 using System;
 using System.Threading.Tasks;
@@ -17,9 +18,10 @@ namespace CalculateFunding.Functions.LocalDebugQueueProcessor
         {
             while (true)
             {
-                await OnTimerFired.Run(null);
+                await OnCalcsTimerFired.Run(null);
                 await OnSpecsTimerFired.Run(null);
-                await Task.Delay(3000);
+                await OnResultsTimerFired.Run(null);
+                await Task.Delay(1);
             }
         }
     }

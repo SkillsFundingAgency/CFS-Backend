@@ -26,8 +26,18 @@ namespace CalculateFunding.Models.Results
 
 		[JsonProperty("sourceDatasets")]
         public List<object> SourceDatasets { get; set; }
+    }
 
+    public class UpdateProviderResultsModel
+    {
+        [JsonProperty("calcResults")]
+        public List<CalculationResult> CalculationResults { get; set; }
 
+        [JsonProperty("allocationLineResults")]
+        public List<AllocationLineResult> AllocationLineResults { get; set; }
+
+        [JsonProperty("id")]
+        public string Id { get; set; }
     }
 
 }

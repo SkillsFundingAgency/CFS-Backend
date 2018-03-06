@@ -230,7 +230,13 @@
               "dependsOn": [
                 "dataset-events"
               ],
-              "properties": {},
+              "properties": {
+                "action": {},
+                "filterType": "SqlFilter",
+                "sqlFilter": {
+                  "sqlExpression": "sys.Label='dataset-events-datasets'"
+                }
+              },
               "resources": []
             },
             {
@@ -240,7 +246,29 @@
               "dependsOn": [
                 "dataset-events"
               ],
-              "properties": {},
+              "properties": {
+                "action": {},
+                "filterType": "SqlFilter",
+                "sqlFilter": {
+                  "sqlExpression": "sys.Label='dataset-events-results'"
+                }
+              },
+              "resources": []
+            },
+            {
+              "apiVersion": "2015-08-01",
+              "name": "dataset-events-calcs",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "dataset-events"
+              ],
+              "properties": {
+                "action": {},
+                "filterType": "SqlFilter",
+                "sqlFilter": {
+                  "sqlExpression": "sys.Label='dataset-events-calcs'"
+                }
+              },
               "resources": []
             }
           ]
@@ -263,17 +291,29 @@
               "dependsOn": [
                 "calc-events"
               ],
-              "properties": {},
+              "properties": {
+                "action": {},
+                "filterType": "SqlFilter",
+                "sqlFilter": {
+                  "sqlExpression": "sys.Label='calc-events-create-draft'"
+                }
+              },
               "resources": []
             },
-			 {
+            {
               "apiVersion": "2015-08-01",
               "name": "calc-events-calcs",
               "type": "Subscriptions",
               "dependsOn": [
                 "calc-events"
               ],
-              "properties": {},
+              "properties": {
+                "action": {},
+                "filterType": "SqlFilter",
+                "sqlFilter": {
+                  "sqlExpression": "sys.Label='calc-events-calcs'"
+                }
+              },
               "resources": []
             },
             {
@@ -283,7 +323,13 @@
               "dependsOn": [
                 "calc-events"
               ],
-              "properties": {},
+              "properties": {
+                "action": {},
+                "filterType": "SqlFilter",
+                "sqlFilter": {
+                  "sqlExpression": "sys.Label='calc-events-scenarios'"
+                }
+              },
               "resources": []
             },
             {
@@ -293,7 +339,45 @@
               "dependsOn": [
                 "calc-events"
               ],
-              "properties": {},
+              "properties": {
+                "action": {},
+                "filterType": "SqlFilter",
+                "sqlFilter": {
+                  "sqlExpression": "sys.Label='calc-events-results'"
+                }
+              },
+              "resources": []
+            },
+            {
+              "apiVersion": "2015-08-01",
+              "name": "calc-events-instruct-generate-allocations",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "calc-events"
+              ],
+              "properties": {
+                "action": {},
+                "filterType": "SqlFilter",
+                "sqlFilter": {
+                  "sqlExpression": "sys.Label='calc-events-instruct-generate-allocations'"
+                }
+              },
+              "resources": []
+            },
+            {
+              "apiVersion": "2015-08-01",
+              "name": "calcs-events-generate-allocation-results",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "calc-events"
+              ],
+              "properties": {
+                "action": {},
+                "filterType": "SqlFilter",
+                "sqlFilter": {
+                  "sqlExpression": "sys.Label='calcs-events-generate-allocation-results'"
+                }
+              },
               "resources": []
             }
           ]
@@ -437,6 +521,10 @@
               "value": "spec-events"
             },
             {
+              "name": "ServiceBusSettings:DatasetsServiceBusTopicName",
+              "value": "dataset-events"
+            },
+            {
               "name": "ServiceBusConnectionString",
               "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
@@ -549,6 +637,10 @@
               "value": "spec-events"
             },
             {
+              "name": "ServiceBusSettings:DatasetsServiceBusTopicName",
+              "value": "dataset-events"
+            },
+            {
               "name": "ServiceBusConnectionString",
               "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
@@ -659,6 +751,10 @@
               "value": "spec-events"
             },
             {
+              "name": "ServiceBusSettings:DatasetsServiceBusTopicName",
+              "value": "dataset-events"
+            },
+            {
               "name": "ServiceBusConnectionString",
               "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
@@ -764,6 +860,10 @@
             {
               "name": "ServiceBusSettings:SpecsServiceBusTopicName",
               "value": "spec-events"
+            },
+            {
+              "name": "ServiceBusSettings:DatasetsServiceBusTopicName",
+              "value": "dataset-events"
             },
             {
               "name": "ServiceBusConnectionString",
@@ -934,6 +1034,10 @@
             {
               "name": "ServiceBusSettings:SpecsServiceBusTopicName",
               "value": "spec-events"
+            },
+            {
+              "name": "ServiceBusSettings:DatasetsServiceBusTopicName",
+              "value": "dataset-events"
             },
             {
               "name": "ServiceBusConnectionString",

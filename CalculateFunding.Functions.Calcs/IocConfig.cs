@@ -15,6 +15,8 @@ using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.CodeGeneration.CSharp;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.Calculator;
 
 namespace CalculateFunding.Functions.Calcs
 {
@@ -64,6 +66,18 @@ namespace CalculateFunding.Functions.Calcs
             builder
                .AddScoped<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
 
+            builder
+                .AddScoped<ICalculationEngine, CalculationEngine>();
+
+            builder
+                .AddScoped<IProviderResultsRepository, ProviderResultsRepository>();
+
+            builder
+               .AddScoped<ISpecificationRepository, SpecificationRepository>();
+
+            builder
+                .AddScoped<IBuildProjectsService, BuildProjectsService>();
+
             IConfigurationRoot config = Services.Core.Extensions.ConfigHelper.AddConfig();
 
             builder.AddCosmosDb(config);
@@ -71,6 +85,8 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSearch(config);
 
             builder.AddServiceBus(config);
+
+            builder.AddInterServiceClient(config);
 
             builder.AddLogging(config, "CalculateFunding.Functions.Calcs");
         }

@@ -11,5 +11,7 @@ namespace CalculateFunding.Services.Core.Options
         public string SpecsServiceBusTopicName { get; set; }
 
         public string CalcsServiceBusTopicName { get; set; }
+
+        public string DatasetsServiceBusTopicName { get; set; }
     }
 }
