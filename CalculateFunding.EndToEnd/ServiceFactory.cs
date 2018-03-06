@@ -6,7 +6,6 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calculator;
-using CalculateFunding.Services.CodeGeneration.CSharp;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Languages;
@@ -61,7 +60,6 @@ namespace CalculateFunding.EndToEnd
                     SearchKey = config["SearchServiceKey"]
                 }))
 
-                .AddTransient<CSharpSourceFileGenerator>()
                 .AddTransient<VisualBasicSourceFileGenerator>()
                 .AddTransient<CSharpCompiler>()
                 .AddTransient<VisualBasicCompiler>()

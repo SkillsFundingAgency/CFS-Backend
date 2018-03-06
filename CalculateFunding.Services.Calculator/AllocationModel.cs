@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Calculator
     public class AllocationModel
     {
         private readonly List<Tuple<MethodInfo, CalculationResult>> _methods = new List<Tuple<MethodInfo, CalculationResult>>();
-        private readonly PropertyInfo[] _datasetSetters;
+        private readonly Dictionary<string, PropertyInfo> _datasetSetters = new Dictionary<string, PropertyInfo>();
         private readonly object _instance;
         private readonly object _datasetsInstance;
 
@@ -21,7 +21,16 @@ namespace CalculateFunding.Services.Calculator
             DatasetTypes = datasetTypes;
             var datasetsSetter = allocationType.GetProperty("Datasets");
             var datasetType = datasetsSetter.PropertyType;
-            _datasetSetters = datasetType.GetProperties().Where(x => x.CanWrite).ToArray();
+            foreach (var relationshipProperty in datasetType.GetProperties().Where(x => x.CanWrite).ToArray())
+            {
+                var relationshipAttribute = relationshipProperty.GetCustomAttributesData()
+                    .FirstOrDefault(x => x.AttributeType.Name == "DatasetRelationshipAttribute");
+                if (relationshipAttribute != null)
+                {
+                    _datasetSetters.Add(GetProperty(relationshipAttribute, "Name"), relationshipProperty);
+                }
+            }
+
 
             var executeMethods = allocationType.GetMethods().Where(x => x.ReturnType == typeof(decimal));
             foreach (var executeMethod in executeMethods)
@@ -88,13 +97,11 @@ namespace CalculateFunding.Services.Calculator
             {
                 var type = GetDatasetType(dataset.DataDefinition.Name);
 
-                var json = JsonConvert.SerializeObject(dataset.Current.Rows.First());
-
-                var typedRow = JsonConvert.DeserializeObject(json, type, new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
-
-                foreach (var setter in _datasetSetters)
+                if (_datasetSetters.TryGetValue(dataset.DataRelationship.Name, out var setter))
                 {
-                    setter.SetValue(_datasetsInstance, typedRow);
+
+                    var row = PopulateRow(type, dataset.Current.Rows.First());
+                    setter.SetValue(_datasetsInstance, row);
                 }
             }
 
@@ -113,6 +120,23 @@ namespace CalculateFunding.Services.Calculator
             }
         }
 
+        private object PopulateRow(Type type, Dictionary<string, object> row)
+        {
+            var data = Activator.CreateInstance(type);
+            foreach (var property in type.GetProperties().Where(x => x.CanWrite).ToArray())
+            {
+                var fieldAttribute = property.GetCustomAttributesData()
+                    .FirstOrDefault(x => x.AttributeType.Name == "FieldAttribute");
+                if (fieldAttribute != null)
+                {
+                    if (row.TryGetValue(GetProperty(fieldAttribute, "Name"), out var value))
+                    {
+                        property.SetValue(data, value);
+                    }
+                }
+            }
+            return data;
+        }
 
 
         private static IEnumerable<Reference> GetReferences(IList<CustomAttributeData> attributes, string attributeName)

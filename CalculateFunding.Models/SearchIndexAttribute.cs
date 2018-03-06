@@ -2,11 +2,6 @@
 
 namespace CalculateFunding.Models
 {
-    public enum IndexerType
-    {
-        SqlServer,
-        DocumentDb
-    }
     public class SearchIndexAttribute : Attribute
     {
         public Type IndexerForType { get; set; }

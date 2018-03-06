@@ -15,12 +15,4 @@ namespace CalculateFunding.Models.Scenarios
         [JsonProperty("testProviders")]
         public List<ProviderSummary> TestProviders { get; set; }
     }
-
-    public class CalculationTest :  Reference
-    {
-        [JsonProperty("testScenarios")]
-         public List<TestScenario> TestScenarios { get; set; }
-    }
-
-
 }

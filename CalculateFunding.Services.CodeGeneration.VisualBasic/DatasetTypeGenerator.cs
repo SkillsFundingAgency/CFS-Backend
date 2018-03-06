@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Specs;
@@ -18,33 +20,39 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 	        var wrapperSyntaxTree = SyntaxFactory.ClassBlock(SyntaxFactory.ClassStatement("Datasets")
 				.WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword))));
 
-			if (budget.DatasetDefinitions != null)
+			if (budget.DatasetRelationships != null)
 	        {
-				foreach (var dataset in budget.DatasetDefinitions)
+                var typesCreated = new HashSet<string>();
+				foreach (var dataset in budget.DatasetRelationships)
 				{
-					var @class = SyntaxFactory.ClassBlock(
-						SyntaxFactory.ClassStatement(
-								$"{Identifier(dataset.Name)}Dataset"
-							)
-							.WithModifiers(
-								SyntaxFactory.TokenList(
-									SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
-						new SyntaxList<InheritsStatementSyntax>(),
-						new SyntaxList<ImplementsStatementSyntax>(),
-						SyntaxFactory.List(GetMembers(dataset)),
-						SyntaxFactory.EndClassStatement()
+				    if (!typesCreated.Contains(dataset.Value.Name))
+				    {
+				        var @class = SyntaxFactory.ClassBlock(
+				            SyntaxFactory.ClassStatement(
+				                    $"{Identifier(dataset.Value.Name)}Dataset"
+				                )
+				                .WithModifiers(
+				                    SyntaxFactory.TokenList(
+				                        SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
+				            new SyntaxList<InheritsStatementSyntax>(),
+				            new SyntaxList<ImplementsStatementSyntax>(),
+				            SyntaxFactory.List(GetMembers(dataset.Value)),
+				            SyntaxFactory.EndClassStatement()
 
-					);
+				        );
 
-					var syntaxTree = SyntaxFactory.CompilationUnit()
-						.WithImports(StandardImports())
-						.WithMembers(
-							SyntaxFactory.SingletonList<StatementSyntax>(@class))
-						.NormalizeWhitespace();
-					yield return new SourceFile { FileName = $"Datasets/{Identifier(dataset.Name)}.vb", SourceCode = syntaxTree.ToFullString() };
+				        var syntaxTree = SyntaxFactory.CompilationUnit()
+				            .WithImports(StandardImports())
+				            .WithMembers(
+				                SyntaxFactory.SingletonList<StatementSyntax>(@class))
+				            .NormalizeWhitespace();
+				        yield return new SourceFile { FileName = $"Datasets/{Identifier(dataset.Value.Name)}.vb", SourceCode = syntaxTree.ToFullString() };
+				        typesCreated.Add(dataset.Value.Name);
+				    }
+
 
 					wrapperSyntaxTree =
-						wrapperSyntaxTree.WithMembers(SyntaxFactory.List(budget.DatasetDefinitions.Select(GetDatasetProperties)));
+						wrapperSyntaxTree.WithMembers(SyntaxFactory.List(budget.DatasetRelationships.Select(x => GetDatasetProperties(x.Key, x.Value))));
 				}
 			}
 
@@ -58,21 +66,12 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         private static IEnumerable<StatementSyntax> GetMembers(DatasetDefinition datasetDefinition)
         {
             yield return CreateStaticDefinitionName(datasetDefinition);
-            foreach (var memberDeclarationSyntax in GetStandardFields()) yield return memberDeclarationSyntax;
             foreach (var member in datasetDefinition.TableDefinitions.First().FieldDefinitions.Select(GetMember))
             {
                 yield return member;
             }
         }
 
-        private static IEnumerable<StatementSyntax> GetStandardFields()
-        {
-            yield return GetMember(new FieldDefinition {Type = FieldType.String, Name = "Id"});
-            yield return GetMember(new FieldDefinition {Type = FieldType.String, Name = "BudgetId"});
-            yield return GetMember(new FieldDefinition {Type = FieldType.String, Name = "ProviderUrn"});
-            yield return GetMember(new FieldDefinition {Type = FieldType.String, Name = "ProviderName"});
-            yield return GetMember(new FieldDefinition {Type = FieldType.String, Name = "DatasetName"});
-        }
 
         private static StatementSyntax CreateStaticDefinitionName(DatasetDefinition datasetDefinition)
         {
@@ -97,17 +96,22 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         private static StatementSyntax GetMember(FieldDefinition fieldDefinition)
         {
             var propertyType = GetType(fieldDefinition.Type);
-            return SyntaxFactory.PropertyStatement(Identifier(fieldDefinition.Name))
-                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                .WithAsClause(SyntaxFactory.SimpleAsClause(propertyType));
+            var builder = new StringBuilder();
+            builder.AppendLine($"<Field(Id := \"{fieldDefinition.Id}\", Name := \"{fieldDefinition.Name}\")>");
+            builder.AppendLine($"Public Property {Identifier(fieldDefinition.Name)}() As {Identifier($"{propertyType}")}");
+            var tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
+            return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
+                .FirstOrDefault();
         }
 
-        private static StatementSyntax GetDatasetProperties(DatasetDefinition datasetDefinition)
+        private static StatementSyntax GetDatasetProperties(string name, DatasetDefinition datasetDefinition)
         {
-            return SyntaxFactory.PropertyStatement(Identifier(datasetDefinition.Name))
-                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                .WithAsClause(
-                    SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(Identifier($"{datasetDefinition.Name}Dataset"))));
+            var builder = new StringBuilder();
+            builder.AppendLine($"<DatasetRelationship(Name := \"{name}\")>");
+            builder.AppendLine($"Public Property {Identifier(name)}() As {Identifier($"{datasetDefinition.Name}Dataset")}");
+            var tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
+            return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
+                .FirstOrDefault();
         }
 
     }

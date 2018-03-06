@@ -5,8 +5,10 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -33,7 +35,6 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Calcs.Validators;
 using CalculateFunding.Services.CodeGeneration;
-using CalculateFunding.Services.CodeGeneration.CSharp;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
@@ -61,6 +62,7 @@ using Microsoft.Azure.Search.Models;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.Data.OData.Query.SemanticAst;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -70,6 +72,7 @@ using YamlDotNet.Core.Tokens;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using StatementSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax;
 using NSubstitute;
+using AllocationFactory = CalculateFunding.Services.Calculator.AllocationFactory;
 using Substitute = NSubstitute.Substitute;
 
 namespace CalculateFunding.EndToEnd
@@ -91,8 +94,10 @@ namespace CalculateFunding.EndToEnd
 			var resultsRepo = serviceProvider.GetService<IResultsRepository>();
 			var calcService = serviceProvider.GetService<ICalculationService>();
 			var calc = serviceProvider.GetService<CalculationEngine>();
+		    var provider = serviceProvider.GetService<ISourceFileGeneratorProvider>();
+		    var compilerFactory = serviceProvider.GetService<ICompilerFactory>();
 
-			ConsoleLogger logger = new ConsoleLogger("Default", (s, level) => true, true);
+            ConsoleLogger logger = new ConsoleLogger("Default", (s, level) => true, true);
 
 			var user = new Reference("matt.hammond@education.gov.uk", "Matt Hammond");
 
@@ -108,107 +113,141 @@ namespace CalculateFunding.EndToEnd
 
 		    var reader = new ExcelReader();
 
-		    var objects = reader.Read(datasetStream, datasetDefinition).ToList();
+		    var tableLoadResults = reader.Read(datasetStream, datasetDefinition).ToList();
 
-			Task.Run(async () =>
+
+		    var buildProject = new BuildProject
+		    {
+		        Id = "1234",
+		        Name = "Test",
+		        TargetLanguage = TargetLanguage.VisualBasic,
+		        Specification = new SpecificationSummary
+		        {
+		            Id = "1234",
+		            Name = "Test",
+		            FundingStream = new Reference("tst", "test"),
+		            Period = new Reference("tst", "test")
+		        },
+		        Calculations = new List<Calculation>()
+		        {
+		            new Calculation{ Id="12344", Name = "Get Me A Dataset!", Current = new CalculationVersion{ SourceCode = "Return Datasets.ThisYear.NORPrimary + Datasets.LastYear.NORPrimary"}}
+		        }
+		    };
+
+		    //; buildProject
+
+		    if (buildProject != null)
+		    {
+		        buildProject.DatasetRelationships = new Dictionary<string, DatasetDefinition>
+		        {
+		            {"ThisYear", datasetDefinition},
+		            {"LastYear", datasetDefinition}
+		        };
+
+		        var generator = provider.CreateSourceFileGenerator(buildProject.TargetLanguage);
+		        var sourceFiles = generator.GenerateCode(buildProject);
+
+		        ICompiler compiler = compilerFactory.GetCompiler(sourceFiles);
+
+		        buildProject.Build = compiler.GenerateCode(sourceFiles?.ToList());
+
+		        foreach (var sourceFile in sourceFiles)
+		        {
+		            Directory.CreateDirectory($@"C:\Users\matt\Source\Repos\CalculateFunding-Backend\Spikes\VisualBasic\{Path.GetDirectoryName(sourceFile.FileName)}");
+		            File.WriteAllText($@"C:\Users\matt\Source\Repos\CalculateFunding-Backend\Spikes\VisualBasic\{sourceFile.FileName}", sourceFile.SourceCode);
+		        }
+
+		        var assembly = Assembly.Load(Convert.FromBase64String(buildProject.Build.AssemblyBase64));
+		        var allocationFactory = new AllocationFactory(assembly);
+		        var allocationModel = allocationFactory.CreateAllocationModel();
+
+		        var providerSummary = new ProviderSummary { UPIN = "124121"};
+
+		        var providerDatasets = new List<ProviderSourceDataset>();
+
+		        foreach (var loadResult in tableLoadResults)
+		        {
+		            foreach (var dataRelationship in buildProject.DatasetRelationships)
+		            {
+		                providerDatasets.Add(new ProviderSourceDataset
+		                {
+                            DataDefinition = new VersionReference(dataRelationship.Value.Id, dataRelationship.Value.Name, 5),
+                            DataRelationship = new VersionReference("4321", dataRelationship.Key, 5),
+		                    Current = new SourceDataset
+		                    {
+		                        Dataset = new VersionReference("apt", "APT 1819", 4),
+		                        Rows = loadResult.Rows.Where(x => x.Identifier == providerSummary.UPIN && x.IdentifierFieldType == IdentifierFieldType.UPIN).Select(x => x.Fields).ToList()
+		                    }
+		                });
+                    }
+
+		        }
+
+                var results = calc.CalculateProviderResults(allocationModel, buildProject, providerSummary, providerDatasets);
+		    }
+
+		    Task.Run(async () =>
 			{
 				var providerSummaries = new List<ProviderSummary>();
 				ProviderSearchResults providers;
-                var allProviders = new List<ProviderIndex>();
-                var page = 1;
-				do
-				{
-					var providersSearchResult = await providerSearchService.SearchProviders(GetHttpRequest(new SearchModel
-					{
-						PageNumber = page++,
-						Top = 1000,
-						SearchTerm = "*",
-						IncludeFacets = true
-					}));
-					providers = (providersSearchResult as OkObjectResult)?.Value as ProviderSearchResults;
+			    var allProviders = new List<ProviderIndex>();
+			    var page = 1;
+			    //do
+			    //{
+			    //    var providersSearchResult = await providerSearchService.SearchProviders(GetHttpRequest(new SearchModel
+			    //    {
+			    //        PageNumber = page++,
+			    //        Top = 1000,
+			    //        SearchTerm = "*",
+			    //        IncludeFacets = true
+			    //    }));
+			    //    providers = (providersSearchResult as OkObjectResult)?.Value as ProviderSearchResults;
 
-                    allProviders.AddRange(providers.Results.Select(x => new ProviderIndex
-                    {
-                        Name = x.Name,
-                        URN = x.URN,
-                        Authority = x.Authority,
-                        UKPRN = x.UKPRN,
-                        UPIN = x.UPIN,
-                        ProviderSubType = x.ProviderSubType,
-                        EstablishmentNumber = x.EstablishmentNumber,
-                        ProviderType = x.ProviderType,
-                        CloseDate = x.CloseDate,
-                        OpenDate = x.OpenDate,
-                        Rid = x.Rid
-                    }));
+			    //    allProviders.AddRange(providers.Results.Select(x => new ProviderIndex
+			    //    {
+			    //        Name = x.Name,
+			    //        URN = x.URN,
+			    //        Authority = x.Authority,
+			    //        UKPRN = x.UKPRN,
+			    //        UPIN = x.UPIN,
+			    //        ProviderSubType = x.ProviderSubType,
+			    //        EstablishmentNumber = x.EstablishmentNumber,
+			    //        ProviderType = x.ProviderType,
+			    //        CloseDate = x.CloseDate,
+			    //        OpenDate = x.OpenDate,
+			    //        Rid = x.Rid
+			    //    }));
 
-
-                    providerSummaries.AddRange(providers.Results.Select(x => new ProviderSummary
-					{
-						Name = x.Name,
-						Id = x.UKPRN,
-						UKPRN = x.UKPRN,
-						URN = x.URN,
-						Authority = x.Authority,
-						UPIN = x.UPIN,
-						ProviderSubType = x.ProviderSubType,
-						EstablishmentNumber = x.EstablishmentNumber,
-						ProviderType = x.ProviderType
-					}));
-                } while (providerSummaries.Count < providers.TotalCount);
+			    //    providerSummaries.AddRange(providers.Results.Select(x => new ProviderSummary
+			    //    {
+			    //        Name = x.Name,
+			    //        Id = x.UKPRN,
+			    //        UKPRN = x.UKPRN,
+			    //        URN = x.URN,
+			    //        Authority = x.Authority,
+			    //        UPIN = x.UPIN,
+			    //        ProviderSubType = x.ProviderSubType,
+			    //        EstablishmentNumber = x.EstablishmentNumber,
+			    //        ProviderType = x.ProviderType
+			    //    }));
+			    //} while (providerSummaries.Count < providers.TotalCount);
 
 
                 //await testSearchIndex.Index(allProviders.ToArray());
 
-                var specSearchResult = await specSearchService.SearchSpecifications(GetHttpRequest(new SearchModel
+    //            var specSearchResult = await specSearchService.SearchSpecifications(GetHttpRequest(new SearchModel
+				//{
+				//	PageNumber = 1,
+				//	Top = 1000,
+				//	SearchTerm = "*",
+				//	IncludeFacets = true
+				//}));
+				//SpecificationSearchResults specs = (specSearchResult as OkObjectResult)?.Value as SpecificationSearchResults;
+				//foreach (var spec in specs.Results)
 				{
-					PageNumber = 1,
-					Top = 1000,
-					SearchTerm = "*",
-					IncludeFacets = true
-				}));
-				SpecificationSearchResults specs = (specSearchResult as OkObjectResult)?.Value as SpecificationSearchResults;
-				foreach (var spec in specs.Results)
-				{
-					var fullSpec = await specService.GetSpecificationById(GetHttpRequest("", "specificationId", spec.SpecificationId));
-					var buildProject = await buildProjectRepo.GetBuildProjectBySpecificationId(spec.SpecificationId);
+					//var fullSpec = await specService.GetSpecificationById(GetHttpRequest("", "specificationId", spec.SpecificationId));
+				    //ar buildProject = await buildProjectRepo.GetBuildProjectBySpecificationId(spec.SpecificationId);
 
-                    if(buildProject != null)
-                    {
-                        if (buildProject.Build == null)
-                        {
-                            await calcService.SaveCalculationVersion(GetHttpRequest(new SaveSourceCodeVersion
-                            {
-                                SourceCode = $"Return 42"
-                            }, "calculationId", buildProject.Calculations.First().Id));
-
-                            buildProject = await buildProjectRepo.GetBuildProjectBySpecificationId(spec.SpecificationId);
-                        }
-
-
-                        if (buildProject != null && ((fullSpec as OkObjectResult)?.Value as Specification) != null)
-                        {
-                            buildProject.Specification = new SpecificationSummary
-                            {
-                                Id = ((fullSpec as OkObjectResult)?.Value as Specification).Id,
-                                Name = ((fullSpec as OkObjectResult)?.Value as Specification).Name,
-                                FundingStream = ((fullSpec as OkObjectResult)?.Value as Specification).FundingStream,
-                                Period = ((fullSpec as OkObjectResult)?.Value as Specification).AcademicYear
-                            };
-                            await buildProjectRepo.UpdateBuildProject(buildProject);
-                            if (buildProject != null)
-                            {
-                                buildProject = await buildProjectRepo.GetBuildProjectBySpecificationId(spec.SpecificationId);
-                                if (buildProject.Build?.AssemblyBase64 != null)
-                                {
-                                    var results = calc.GenerateAllocations(buildProject, providerSummaries).ToList();
-
-                                    await resultsRepo.UpdateProviderResults(results);
-                                }
-
-                            }
-                        }
-                    }
                 }
 
 
@@ -443,7 +482,6 @@ namespace CalculateFunding.EndToEnd
 			builder
 				.AddScoped<CSharpCompiler>()
 				.AddScoped<VisualBasicCompiler>()
-				.AddScoped<CSharpSourceFileGenerator>()
 				.AddScoped<VisualBasicSourceFileGenerator>();
 
 			builder

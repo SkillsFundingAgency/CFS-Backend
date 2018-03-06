@@ -10,7 +10,6 @@ using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Calcs.Validators;
-using CalculateFunding.Services.CodeGeneration.CSharp;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
@@ -204,7 +203,6 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                 .AddScoped<CSharpCompiler>()
                 .AddScoped<VisualBasicCompiler>()
-                .AddScoped<CSharpSourceFileGenerator>()
                 .AddScoped<VisualBasicSourceFileGenerator>();
 
             builder
@@ -215,7 +213,6 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
             builder
                 .AddScoped<ISpecificationsService, SpecificationsService>();
-
             builder
                 .AddScoped<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
 
