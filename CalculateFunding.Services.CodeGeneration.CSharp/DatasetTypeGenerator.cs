@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Specs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -60,7 +61,7 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
         {
             yield return CreateStaticDefinitionName(datasetDefinition);
             foreach (var memberDeclarationSyntax in GetStandardFields()) yield return memberDeclarationSyntax;
-            foreach (var member in datasetDefinition.FieldDefinitions.Select(GetMember))
+            foreach (var member in datasetDefinition.TableDefinitions.First().FieldDefinitions.Select(GetMember))
             {
                 yield return member;
             }
@@ -68,11 +69,11 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
 
         private static IEnumerable<MemberDeclarationSyntax> GetStandardFields()
         {
-            yield return GetMember(new DatasetFieldDefinition {Type = FieldType.String, Name = "Id"});
-            yield return GetMember(new DatasetFieldDefinition {Type = FieldType.String, Name = "BudgetId"});
-            yield return GetMember(new DatasetFieldDefinition {Type = FieldType.String, Name = "ProviderUrn"});
-            yield return GetMember(new DatasetFieldDefinition {Type = FieldType.String, Name = "ProviderName"});
-            yield return GetMember(new DatasetFieldDefinition {Type = FieldType.String, Name = "DatasetName"});
+            yield return GetMember(new FieldDefinition {Type = FieldType.String, Name = "Id"});
+            yield return GetMember(new FieldDefinition {Type = FieldType.String, Name = "BudgetId"});
+            yield return GetMember(new FieldDefinition {Type = FieldType.String, Name = "ProviderUrn"});
+            yield return GetMember(new FieldDefinition {Type = FieldType.String, Name = "ProviderName"});
+            yield return GetMember(new FieldDefinition {Type = FieldType.String, Name = "DatasetName"});
         }
 
         private static MemberDeclarationSyntax CreateStaticDefinitionName(DatasetDefinition datasetDefinition)
@@ -99,7 +100,7 @@ namespace CalculateFunding.Services.CodeGeneration.CSharp
                         }));
         }
 
-        private static MemberDeclarationSyntax GetMember(DatasetFieldDefinition fieldDefinition)
+        private static MemberDeclarationSyntax GetMember(FieldDefinition fieldDefinition)
         {
             var propertyType = GetType(fieldDefinition.Type);
             return SyntaxFactory.PropertyDeclaration(

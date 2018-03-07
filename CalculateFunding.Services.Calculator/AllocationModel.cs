@@ -3,23 +3,35 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace CalculateFunding.Services.Calculator
 {
     public class AllocationModel
     {
-        private List<Tuple<MethodInfo, CalculationResult>> _methods = new List<Tuple<MethodInfo, CalculationResult>>();
-        private PropertyInfo[] _datasetSetters;
-        private object _instance;
-        private object _datasetsInstance;
+        private readonly List<Tuple<MethodInfo, CalculationResult>> _methods = new List<Tuple<MethodInfo, CalculationResult>>();
+        private readonly Dictionary<string, PropertyInfo> _datasetSetters = new Dictionary<string, PropertyInfo>();
+        private readonly object _instance;
+        private readonly object _datasetsInstance;
 
-        public AllocationModel(Type allocationType)
+        public AllocationModel(Type allocationType, Dictionary<string, Type> datasetTypes)
         {
+            DatasetTypes = datasetTypes;
             var datasetsSetter = allocationType.GetProperty("Datasets");
             var datasetType = datasetsSetter.PropertyType;
-            _datasetSetters = datasetType.GetProperties().Where(x => x.CanWrite).ToArray();
+            foreach (var relationshipProperty in datasetType.GetProperties().Where(x => x.CanWrite).ToArray())
+            {
+                var relationshipAttribute = relationshipProperty.GetCustomAttributesData()
+                    .FirstOrDefault(x => x.AttributeType.Name == "DatasetRelationshipAttribute");
+                if (relationshipAttribute != null)
+                {
+                    _datasetSetters.Add(GetProperty(relationshipAttribute, "Name"), relationshipProperty);
+                }
+            }
+
 
             var executeMethods = allocationType.GetMethods().Where(x => x.ReturnType == typeof(decimal));
             foreach (var executeMethod in executeMethods)
@@ -51,15 +63,64 @@ namespace CalculateFunding.Services.Calculator
             datasetsSetter.SetValue(_instance, _datasetsInstance);
         }
 
-
-        public IEnumerable<CalculationResult> Execute(object[] datasets)
+        public Type GetDatasetType(string datasetName)
         {
+            if (DatasetTypes.ContainsKey(datasetName))
+            {
+                return DatasetTypes[datasetName];
+            }
+            throw new NotImplementedException($"{datasetName} is not defined");
+        }
 
+
+        public object CreateDataset(string datasetName)
+        {
+            if (DatasetTypes.ContainsKey(datasetName))
+            {
+                try
+                {
+                    var type = DatasetTypes[datasetName];
+                    return Activator.CreateInstance(type);
+                }
+                catch (ReflectionTypeLoadException e)
+                {
+                    throw new Exception(string.Join(", ", e.LoaderExceptions.Select(x => x.Message)));
+                }
+            }
+            throw new NotImplementedException($"{datasetName} is not defined");
+        }
+
+        private Dictionary<string, Type> DatasetTypes { get; }
+
+        public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets)
+        {
             foreach (var dataset in datasets)
             {
-                foreach (var setter in _datasetSetters)
+                var type = GetDatasetType(dataset.DataDefinition.Name);
+
+                if (_datasetSetters.TryGetValue(dataset.DataRelationship.Name, out var setter))
                 {
-                    setter.SetValue(_datasetsInstance, dataset);
+                    if (dataset.DataGranularity == DataGranularity.SingleRowPerProvider)
+                    {
+                        var row = PopulateRow(type, dataset.Current.Rows.First());
+                        setter.SetValue(_datasetsInstance, row);
+                    }
+                    else
+                    {
+                        Type constructGeneric = typeof(List<>).MakeGenericType(type);
+                        var list = Activator.CreateInstance(constructGeneric);
+                        var addMethod = list.GetType().GetMethod("Add");
+                        var itemType = list.GetType().GenericTypeArguments.First();
+                        var rows = dataset.Current.Rows.Select(x => PopulateRow(itemType, x)).ToArray();
+                        foreach (var row in rows)
+                        {
+                            addMethod.Invoke(list, new[] { row });
+                        }
+
+
+                        setter.SetValue(_datasetsInstance, list);
+                    }
+
                 }
             }
 
@@ -78,6 +139,23 @@ namespace CalculateFunding.Services.Calculator
             }
         }
 
+        private object PopulateRow(Type type, Dictionary<string, object> row)
+        {
+            var data = Activator.CreateInstance(type);
+            foreach (var property in type.GetProperties().Where(x => x.CanWrite).ToArray())
+            {
+                var fieldAttribute = property.GetCustomAttributesData()
+                    .FirstOrDefault(x => x.AttributeType.Name == "FieldAttribute");
+                if (fieldAttribute != null)
+                {
+                    if (row.TryGetValue(GetProperty(fieldAttribute, "Name"), out var value))
+                    {
+                        property.SetValue(data, value);
+                    }
+                }
+            }
+            return data;
+        }
 
 
         private static IEnumerable<Reference> GetReferences(IList<CustomAttributeData> attributes, string attributeName)

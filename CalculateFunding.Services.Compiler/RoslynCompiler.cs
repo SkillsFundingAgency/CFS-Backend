@@ -25,6 +25,7 @@ namespace CalculateFunding.Services.Compiler
                 AssemblyMetadata.CreateFromFile(typeof(object).Assembly.Location).GetReference()
             };
 
+
             using (var ms = new MemoryStream())
             {
                 var build = GenerateCode(sourcefiles, references, ms);

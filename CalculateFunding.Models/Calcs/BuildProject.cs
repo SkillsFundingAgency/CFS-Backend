@@ -16,8 +16,8 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("calculations")]
         public List<Calculation> Calculations { get; set; }
 
-        [JsonProperty("datasetDefinitions")]
-        public List<DatasetDefinition> DatasetDefinitions { get; set; }
+        [JsonProperty("datasetRelationships")]
+        public List<DatasetRelationshipSummary> DatasetRelationships { get; set; }
 
         [JsonProperty("build")]
         public Build Build { get; set; }

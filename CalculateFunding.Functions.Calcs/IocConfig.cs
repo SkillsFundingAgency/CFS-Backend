@@ -13,7 +13,6 @@ using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Calcs.CodeGen;
-using CalculateFunding.Services.CodeGeneration.CSharp;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Calculator;
@@ -57,7 +56,6 @@ namespace CalculateFunding.Functions.Calcs
             builder
                 .AddScoped<CSharpCompiler>()
                 .AddScoped<VisualBasicCompiler>()
-                .AddScoped<CSharpSourceFileGenerator>()
                 .AddScoped<VisualBasicSourceFileGenerator>();
 
             builder

@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.TestRunner
             _vocab = vocab;
         }
 
-        public IEnumerable<GherkinScenarioResult> Execute(CalculationResult calculationResult, List<object> datasets, List<TestScenario> testScenarios)
+        public IEnumerable<GherkinScenarioResult> Execute(CalculationResult calculationResult, List<ProviderSourceDataset> datasets, List<TestScenario> testScenarios)
         {
 
             foreach (var scenario in testScenarios)

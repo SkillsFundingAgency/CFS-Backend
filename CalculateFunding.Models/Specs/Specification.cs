@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Models.Datasets.Schema;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs
@@ -22,9 +23,6 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("policies")]
         public IEnumerable<Policy> Policies { get; set; }
-
-        [JsonProperty("datasetDefinitions")]
-        public List<DatasetDefinition> DatasetDefinitions { get; set; }
 
         [JsonProperty("dataDefinitionRelationshipIds")]
         public IEnumerable<string> DataDefinitionRelationshipIds { get; set; }

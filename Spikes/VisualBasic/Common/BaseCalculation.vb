@@ -15,7 +15,7 @@ Public Class BaseCalculation
         Return value
     End Function
 
-    public Function IIf(Of T)(value as T, one As Boolean, two as Boolean) As Boolean
+    public Function IIf(Of T)(value as T, one As Boolean, two as Boolean) As T
         Return value
     End Function
 

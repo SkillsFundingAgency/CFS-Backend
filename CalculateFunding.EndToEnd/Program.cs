@@ -5,8 +5,10 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -16,6 +18,8 @@ using AutoMapper;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Datasets.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Console;
 using Newtonsoft.Json;
@@ -31,7 +35,6 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Calcs.Validators;
 using CalculateFunding.Services.CodeGeneration;
-using CalculateFunding.Services.CodeGeneration.CSharp;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
@@ -55,6 +58,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Search.Models;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.Data.OData.Query.SemanticAst;
@@ -67,6 +71,7 @@ using YamlDotNet.Core.Tokens;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using StatementSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax;
 using NSubstitute;
+using AllocationFactory = CalculateFunding.Services.Calculator.AllocationFactory;
 using Substitute = NSubstitute.Substitute;
 
 namespace CalculateFunding.EndToEnd
@@ -82,127 +87,152 @@ namespace CalculateFunding.EndToEnd
 
 			var specService = serviceProvider.GetService<ISpecificationsService>();
 			var buildProjectRepo = serviceProvider.GetService<IBuildProjectsRepository>();
+			var dataRelationshipService = serviceProvider.GetService<IDefinitionSpecificationRelationshipService>();
 			var specSearchService = serviceProvider.GetService<ISpecificationsSearchService>();
 			var providerSearchService = serviceProvider.GetService<IResultsSearchService>();
 			var resultsRepo = serviceProvider.GetService<IResultsRepository>();
 			var calcService = serviceProvider.GetService<ICalculationService>();
 			var calc = serviceProvider.GetService<CalculationEngine>();
+		    var provider = serviceProvider.GetService<ISourceFileGeneratorProvider>();
+		    var compilerFactory = serviceProvider.GetService<ICompilerFactory>();
 
-			ConsoleLogger logger = new ConsoleLogger("Default", (s, level) => true, true);
+            ConsoleLogger logger = new ConsoleLogger("Default", (s, level) => true, true);
 
 			var user = new Reference("matt.hammond@education.gov.uk", "Matt Hammond");
-			Task.Run(async () =>
+
+			var testSearchIndex = new SearchRepository<ProviderIndex>(new SearchRepositorySettings
 			{
-				var providerSummaries = new List<ProviderSummary>();
-				ProviderSearchResults providers;
+				SearchServiceName = "esfacfsbtest-search",
+				SearchKey = "28E14ED3D00574840537C748ADCDFAA9"
+			});
 
-				do
-				{
-					var providersSearchResult = await providerSearchService.SearchProviders(GetHttpRequest(new SearchModel
-					{
-						PageNumber = 1,
-						Top = 50,
-						SearchTerm = "*",
-						IncludeFacets = true
-					}));
-					providers = (providersSearchResult as OkObjectResult)?.Value as ProviderSearchResults;
+		    DatasetDefinition datasetDefinition = GetDatasetDefinition();
 
-					providerSummaries.AddRange(providers.Results.Select(x => new ProviderSummary
-					{
-						Name = x.Name,
-						Id = x.UKPRN,
-						UKPRN = x.UKPRN,
-						URN = x.URN,
-						Authority = x.Authority,
-						UPIN = x.UPIN,
-						ProviderSubType = x.ProviderSubType,
-						EstablishmentNumber = x.EstablishmentNumber,
-						ProviderType = x.ProviderType
-					}));
-				} while (providerSummaries.Count < providers.TotalCount);
+		    var datasetStream = File.OpenRead("SourceData/Export APT.XLSX");
 
-				var specSearchResult = await specSearchService.SearchSpecifications(GetHttpRequest(new SearchModel
-				{
-					PageNumber = 1,
-					Top = 50,
-					SearchTerm = "*",
-					IncludeFacets = true
-				}));
-				SpecificationSearchResults specs = (specSearchResult as OkObjectResult)?.Value as SpecificationSearchResults;
-				foreach (var spec in specs.Results)
-				{
-					var fullSpec = await specService.GetSpecificationById(GetHttpRequest("", "specificationId", spec.SpecificationId));
-					var buildProject = await buildProjectRepo.GetBuildProjectBySpecificationId(spec.SpecificationId);
+		    var reader = new ExcelDatatseReader();
 
-					buildProject.Specification = new SpecificationSummary
-					{
-						Id = ((fullSpec as OkObjectResult)?.Value as Specification).Id,
-						Name = ((fullSpec as OkObjectResult)?.Value as Specification).Name,
-						FundingStream = ((fullSpec as OkObjectResult)?.Value as Specification).FundingStream,
-						Period = ((fullSpec as OkObjectResult)?.Value as Specification).AcademicYear
-					};
-					await buildProjectRepo.UpdateBuildProject(buildProject);
-					if (buildProject != null)
-					{
-						buildProject = await buildProjectRepo.GetBuildProjectBySpecificationId(spec.SpecificationId);
-						if (buildProject.Build?.AssemblyBase64 != null)
-						{
-							var results = calc.GenerateAllocations(buildProject, providerSummaries).ToList();
+            // 1. ExcelReader.Read will read and validate according to a given dataset definition
+            //  - this should be triggered on upload so that the validation errors can be viewed (just store them for now, story coming to view them)
 
-							await resultsRepo.UpdateProviderResults(results);
-						}
+		    var tableLoadResults = reader.Read(datasetStream, datasetDefinition).ToList();
 
-					}
-				}
+		    var buildProject = new BuildProject
+		    {
+		        Id = "1234",
+		        Name = "Test",
+		        TargetLanguage = TargetLanguage.VisualBasic,
+		        Specification = new SpecificationSummary
+		        {
+		            Id = "1234",
+		            Name = "Test",
+		            FundingStream = new Reference("tst", "test"),
+		            Period = new Reference("tst", "test")
+		        },
+		        Calculations = new List<Calculation>()
+		        {
+		            new Calculation{ Id="1234", Name = "Get Me A Dataset!", Current = new CalculationVersion{ SourceCode = "Return Datasets.ThisYear.NORPrimary + Datasets.LastYear.NORPrimary"}},
+		            new Calculation{ Id="12345", Name = "Aggregate This!", Current = new CalculationVersion{ SourceCode =
+                        @"  Return Datasets.AllAuthorityProviders.Count"}}
+		        }
+            };
 
 
+ 
+            if (buildProject != null)
+		    {
+		        // 2. When a data relationship is added to a spec a message needs to be sent to calcs to populate the dataset relatioships on the buildproject, with
+		        // the buildproject being recompiled when this is added (This build the typesafe classes for the dataset and adds the Dataset.XXX properties
 
+                buildProject.DatasetRelationships = new List<DatasetRelationshipSummary>
+		        {
+		            new DatasetRelationshipSummary{ Id = "1", Name = "This Year", DatasetDefinition = datasetDefinition},
+		            new DatasetRelationshipSummary{ Id = "2", Name = "Last Year", DatasetDefinition = datasetDefinition},
+		            new DatasetRelationshipSummary{ Id = "3", Name = "All Authority Providers", DatasetDefinition = datasetDefinition, DataGranularity = DataGranularity.MultipleRowsPerProvider},
+                };
 
+		        var generator = provider.CreateSourceFileGenerator(buildProject.TargetLanguage);
+		        var sourceFiles = generator.GenerateCode(buildProject);
 
+		        ICompiler compiler = compilerFactory.GetCompiler(sourceFiles);
 
+		        buildProject.Build = compiler.GenerateCode(sourceFiles?.ToList());
 
+                // FYI - it is really useful to look at the actual code generated to understand the engine - just load the project in VS
+		        foreach (var sourceFile in sourceFiles)
+		        {
+		            Directory.CreateDirectory($@"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\Source\Repos\CalculateFunding-Backend\Spikes\VisualBasic\{Path.GetDirectoryName(sourceFile.FileName)}");
+		            File.WriteAllText($@"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\Source\Repos\CalculateFunding-Backend\Spikes\VisualBasic\{sourceFile.FileName}", sourceFile.SourceCode);
+		        }
 
-				//OnTimerFired.Run(null, logger);
+		        var assembly = Assembly.Load(Convert.FromBase64String(buildProject.Build.AssemblyBase64));
+		        var allocationFactory = new AllocationFactory(assembly);
+		        var allocationModel = allocationFactory.CreateAllocationModel();
 
+		        var providerSummary = new ProviderSummary { UPIN = "124121"};
 
+		        var providerDatasets = new List<ProviderSourceDataset>();
 
+                // 3. When a specific dataset version is mapped to a spec relationship a message should be sent to results to store a providersourcedataset for each
+                // valid row in the table load results
+                // Once complete this should also trigger the calc engine to re-run
 
+		        foreach (var loadResult in tableLoadResults)
+		        {
+		            foreach (var dataRelationship in buildProject.DatasetRelationships)
+		            {
+		                providerDatasets.Add(new ProviderSourceDataset
+		                {
+                            DataGranularity = dataRelationship.DataGranularity,
+                            DefinesScope = dataRelationship.DefinesScope, // states whether this defines the provider scope
+                            DataDefinition = new VersionReference(dataRelationship.DatasetDefinition.Id, dataRelationship.DatasetDefinition.Name, 5),
+                            DataRelationship = new VersionReference("4321", dataRelationship.Name, 5),
+		                    Current = new SourceDataset
+		                    {
+		                        Dataset = new VersionReference("apt", "APT 1819", 4),
+		                        Rows = loadResult.Rows.Where(x => x.Identifier == providerSummary.UPIN && x.IdentifierFieldType == IdentifierFieldType.UPIN).Select(x => x.Fields).ToList()
+		                    }
+		                });
+                    }
 
+		        }
 
-
-				//foreach (var file in Directory.GetFiles("SourceData").Where(x => x.ToLowerInvariant().EndsWith(".xlsx")))
-				//{
-				//    using (var stream = new FileStream(file, FileMode.Open))
-				//    {
-				//        await importer.GetSourceDataAsync(Path.GetFileName(file), stream, budgetDefinition.Id);
-				//    }
-				//}
-
-
-				//if (compilerOutput.Success)
-				//{
-				//    var calc = ServiceFactory.GetService<CalculationEngine>();
-				//    await calc.GenerateAllocations(compilerOutput);
-				//}
-				//else
-				//{
-				//    foreach (var compilerMessage in compilerOutput.CompilerMessages)
-				//    {
-				//        Console.WriteLine(compilerMessage.Message);
-				//    }
-				//    Console.ReadKey();
-				//}
-
-				// await StoreAggregates(budgetDefinition, new AllocationFactory(compilerOutput.Assembly));
-
-
-
-			}
-
-		// Do any async anything you need here without worry
-		).GetAwaiter().GetResult();
+                // 4. This is a single hard coded provider - in reality we need to  implement a repo to load for each provider
+                // TODO - work out the best way of storing/loading the scoped provider list
+                var results = calc.CalculateProviderResults(allocationModel, buildProject, providerSummary, providerDatasets);
+		    }
 		}
-		static void RegisterComponents(IServiceCollection builder)
+
+        private static DatasetDefinition GetDatasetDefinition()
+        {
+            return new DatasetDefinition
+            {
+                Id = "test-apt",
+                Name = "APT",
+                Description = "Test APT Dataset Schema",
+                TableDefinitions = new List<TableDefinition>
+                {
+                    new TableDefinition
+                    {
+                        Id = "table-1",
+                        Name = "*",
+                        FieldDefinitions = new List<FieldDefinition>
+                        {
+                            new FieldDefinition{ Name= "UPIN", Type = FieldType.String, IdentifierFieldType = IdentifierFieldType.UPIN},
+                            new FieldDefinition{ Name= "Date Opened", Type = FieldType.DateTime},
+                            new FieldDefinition{ Name= "Phase", Type = FieldType.String},
+                            new FieldDefinition{ Name= "Acedemy Type", Type = FieldType.String},
+                            new FieldDefinition{ Name= "NOR Primary", Type = FieldType.Integer},
+                            new FieldDefinition{ Name= "Average Year Group Size", Type = FieldType.Decimal},
+                            
+                        }
+                    }
+                }
+
+            };
+        }
+
+        static void RegisterComponents(IServiceCollection builder)
 		{
 			IConfigurationRoot config = ConfigHelper.AddConfig();
 
@@ -337,7 +367,6 @@ namespace CalculateFunding.EndToEnd
 			builder
 				.AddScoped<CSharpCompiler>()
 				.AddScoped<VisualBasicCompiler>()
-				.AddScoped<CSharpSourceFileGenerator>()
 				.AddScoped<VisualBasicSourceFileGenerator>();
 
 			builder

@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Calculator
         {
             foreach (var providerResult in providerResults)
             {
-                var testResult = RunProviderTests(testSuite, providerResult);
+                var testResult = RunProviderTests(testSuite, providerResult, null);
                 currentResults.TryGetValue(testResult.Provider.Id, out var currenTestResult);
                 if (!testResult.Equals(currenTestResult))
                 {
@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Calculator
             }
 
         }
-        public ProviderTestResult RunProviderTests(TestSuite testsuite, ProviderResult providerResult)
+        public ProviderTestResult RunProviderTests(TestSuite testsuite, ProviderResult providerResult, List<ProviderSourceDataset> providerSourceDatasets)
         {
             var gherkinExecutor = new GherkinExecutor(new ProductGherkinVocabulary());
 
@@ -41,7 +41,7 @@ namespace CalculateFunding.Services.Calculator
                 if (test?.TestScenarios != null)
                 {
                     var gherkinScenarioResults =
-                        gherkinExecutor.Execute(productResult, providerResult.SourceDatasets, test.TestScenarios);
+                        gherkinExecutor.Execute(productResult, providerSourceDatasets, test.TestScenarios);
 
                     foreach (var executeResult in gherkinScenarioResults)
                     {
