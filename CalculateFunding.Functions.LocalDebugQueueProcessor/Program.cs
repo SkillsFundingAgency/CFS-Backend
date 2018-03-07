@@ -18,7 +18,9 @@ namespace CalculateFunding.Functions.LocalDebugQueueProcessor
         {
             while (true)
             {
-                await OnCalcsTimerFired.Run(null);
+                await OnCalcsCreateDraftTimerFired.Run(null);
+                await OnCalcsGenerateAllocationResultsTimerFired.Run(null);
+                await OnCalcsInstructAllocationResultsTimerFired.Run(null);
                 await OnSpecsTimerFired.Run(null);
                 await OnResultsTimerFired.Run(null);
                 await Task.Delay(1);
