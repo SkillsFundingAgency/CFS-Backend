@@ -625,6 +625,14 @@
               "value": "calcs"
             },
             {
+              "name": "ApiOptions:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "ApiOptions:ApiEndpoint",
+              "value": "[parameters('ApiEndpoint')]"
+            },
+            {
               "name": "ServiceBusSettings:ServiceBusConnectionString",
               "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
@@ -739,6 +747,14 @@
               "value": "results"
             },
             {
+              "name": "ApiOptions:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "ApiOptions:ApiEndpoint",
+              "value": "[parameters('ApiEndpoint')]"
+            },
+            {
               "name": "ServiceBusSettings:ServiceBusConnectionString",
               "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
@@ -848,6 +864,14 @@
             {
               "name": "CosmosDbSettings:CollectionName",
               "value": "specs"
+            },
+            {
+              "name": "ApiOptions:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "ApiOptions:ApiEndpoint",
+              "value": "[parameters('ApiEndpoint')]"
             },
             {
               "name": "ServiceBusSettings:ServiceBusConnectionString",

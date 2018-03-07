@@ -34,7 +34,6 @@ namespace CalculateFunding.Functions.Calcs
                         {
                             logger.Error(exception, "An error occurred getting message from topic: calc-events for subscription: calc-events-create-draft");
                         }),
-
                     messagePump.ReceiveAsync("calc-events", "calc-events-instruct-generate-allocations",
                         async message =>
                         {

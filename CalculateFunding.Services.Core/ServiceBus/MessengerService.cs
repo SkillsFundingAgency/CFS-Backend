@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.Azure.ServiceBus;
@@ -59,7 +60,7 @@ namespace CalculateFunding.Services.Core
             foreach (var property in properties)
                 message.UserProperties.Add(property.Key, property.Value);
 
-            await topicClient.SendAsync(message);
+            await RetryAgent.DoAsync(() => topicClient.SendAsync(message));
         }
     }
 }
