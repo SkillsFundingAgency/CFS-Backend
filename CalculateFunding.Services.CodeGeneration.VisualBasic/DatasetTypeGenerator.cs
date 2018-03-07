@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using CalculateFunding.Models;
@@ -25,18 +26,18 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 var typesCreated = new HashSet<string>();
 				foreach (var dataset in budget.DatasetRelationships)
 				{
-				    if (!typesCreated.Contains(dataset.Value.Name))
+				    if (!typesCreated.Contains(dataset.DatasetDefinition.Name))
 				    {
 				        var @class = SyntaxFactory.ClassBlock(
 				            SyntaxFactory.ClassStatement(
-				                    $"{Identifier(dataset.Value.Name)}Dataset"
+				                    $"{Identifier(dataset.DatasetDefinition.Name)}Dataset"
 				                )
 				                .WithModifiers(
 				                    SyntaxFactory.TokenList(
 				                        SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
 				            new SyntaxList<InheritsStatementSyntax>(),
 				            new SyntaxList<ImplementsStatementSyntax>(),
-				            SyntaxFactory.List(GetMembers(dataset.Value)),
+				            SyntaxFactory.List(GetMembers(dataset.DatasetDefinition)),
 				            SyntaxFactory.EndClassStatement()
 
 				        );
@@ -46,13 +47,13 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 				            .WithMembers(
 				                SyntaxFactory.SingletonList<StatementSyntax>(@class))
 				            .NormalizeWhitespace();
-				        yield return new SourceFile { FileName = $"Datasets/{Identifier(dataset.Value.Name)}.vb", SourceCode = syntaxTree.ToFullString() };
-				        typesCreated.Add(dataset.Value.Name);
+				        yield return new SourceFile { FileName = $"Datasets/{Identifier(dataset.DatasetDefinition.Name)}.vb", SourceCode = syntaxTree.ToFullString() };
+				        typesCreated.Add(dataset.DatasetDefinition.Name);
 				    }
 
 
 					wrapperSyntaxTree =
-						wrapperSyntaxTree.WithMembers(SyntaxFactory.List(budget.DatasetRelationships.Select(x => GetDatasetProperties(x.Key, x.Value))));
+						wrapperSyntaxTree.WithMembers(SyntaxFactory.List(budget.DatasetRelationships.Select(GetDatasetProperties)));
 				}
 			}
 
@@ -104,11 +105,14 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 .FirstOrDefault();
         }
 
-        private static StatementSyntax GetDatasetProperties(string name, DatasetDefinition datasetDefinition)
+        private static StatementSyntax GetDatasetProperties(DatasetRelationshipSummary datasetRelationship)
         {
             var builder = new StringBuilder();
-            builder.AppendLine($"<DatasetRelationship(Name := \"{name}\")>");
-            builder.AppendLine($"Public Property {Identifier(name)}() As {Identifier($"{datasetDefinition.Name}Dataset")}");
+            builder.AppendLine($"<DatasetRelationship(Id := \"{datasetRelationship.Id}\", Name := \"{datasetRelationship.Name}\")>");
+            builder.AppendLine(datasetRelationship.DataGranularity == DataGranularity.SingleRowPerProvider
+                ? $"Public Property {Identifier(datasetRelationship.Name)}() As {Identifier($"{datasetRelationship.DatasetDefinition.Name}Dataset")}"
+                : $"Public Property {Identifier(datasetRelationship.Name)}() As System.Collections.Generic.List(Of {Identifier($"{datasetRelationship.DatasetDefinition.Name}Dataset")})");
+
             var tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
             return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
                 .FirstOrDefault();

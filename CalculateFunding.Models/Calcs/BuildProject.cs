@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using Newtonsoft.Json;
@@ -18,7 +17,7 @@ namespace CalculateFunding.Models.Calcs
         public List<Calculation> Calculations { get; set; }
 
         [JsonProperty("datasetRelationships")]
-        public Dictionary<string, DatasetDefinition> DatasetRelationships { get; set; }
+        public List<DatasetRelationshipSummary> DatasetRelationships { get; set; }
 
         [JsonProperty("build")]
         public Build Build { get; set; }

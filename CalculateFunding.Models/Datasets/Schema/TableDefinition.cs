@@ -9,12 +9,6 @@ namespace CalculateFunding.Models.Datasets.Schema
         [JsonProperty("id")]
         public string Id { get; set; }
 
-        [JsonProperty("dataGranularity")]
-        public DataGranularity DataGranularity { get; set; }
-
-        [JsonProperty("definesProviderScope")]
-        public bool DefinesTargets { get; set; }
-
         [JsonProperty("name")]
         public string Name { get; set; }
 

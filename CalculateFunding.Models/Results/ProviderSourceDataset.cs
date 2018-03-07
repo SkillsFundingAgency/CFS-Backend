@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Versioning;
+﻿using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
@@ -16,6 +17,9 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("dataRelationship")]
         public VersionReference DataRelationship { get; set; }
+
+        [JsonProperty("dataGranularity")]
+        public DataGranularity DataGranularity { get; set; }
 
         [JsonProperty("definesScope")]
         public bool DefinesScope { get; set; }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -99,9 +100,27 @@ namespace CalculateFunding.Services.Calculator
 
                 if (_datasetSetters.TryGetValue(dataset.DataRelationship.Name, out var setter))
                 {
+                    if (dataset.DataGranularity == DataGranularity.SingleRowPerProvider)
+                    {
+                        var row = PopulateRow(type, dataset.Current.Rows.First());
+                        setter.SetValue(_datasetsInstance, row);
+                    }
+                    else
+                    {
+                        Type constructGeneric = typeof(List<>).MakeGenericType(type);
+                        var list = Activator.CreateInstance(constructGeneric);
+                        var addMethod = list.GetType().GetMethod("Add");
+                        var itemType = list.GetType().GenericTypeArguments.First();
+                        var rows = dataset.Current.Rows.Select(x => PopulateRow(itemType, x)).ToArray();
+                        foreach (var row in rows)
+                        {
+                            addMethod.Invoke(list, new[] { row });
+                        }
 
-                    var row = PopulateRow(type, dataset.Current.Rows.First());
-                    setter.SetValue(_datasetsInstance, row);
+
+                        setter.SetValue(_datasetsInstance, list);
+                    }
+
                 }
             }
 
