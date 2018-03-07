@@ -51,5 +51,21 @@ namespace CalculateFunding.Services.Core.Extensions
 
             return correlationId;
         }
+
+        public static IDictionary<string, string> BuildMessageProperties(this Message message)
+        {
+            Reference user = message.GetUserDetails();
+
+            IDictionary<string, string> properties = new Dictionary<string, string>();
+            properties.Add("sfa-correlationId", message.GetCorrelationId());
+
+            if (user != null)
+            {
+                properties.Add("user-id", user.Id);
+                properties.Add("user-name", user.Name);
+            }
+
+            return properties;
+        }
     }
 }

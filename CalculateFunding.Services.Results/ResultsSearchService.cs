@@ -170,20 +170,24 @@ namespace CalculateFunding.Services.Results
             else
             {
                 results.TotalCount = (int)(searchResult?.TotalCount ?? 0);
-                results.Results = searchResult?.Results?.Select(m => new ProviderSearchResult
+
+                if (!searchModel.CountOnly)
                 {
-                    UKPRN = m.Result.UKPRN,
-					URN = m.Result.URN,
-					UPIN = m.Result.UPIN,
-					Rid = m.Result.Rid,
-					EstablishmentNumber = m.Result.EstablishmentNumber,
-					Name = m.Result.Name,
-					Authority = m.Result.Authority,
-					ProviderType = m.Result.ProviderType,
-					ProviderSubType = m.Result.ProviderSubType,
-					OpenDate = m.Result.OpenDate,
-					CloseDate = m.Result.CloseDate
-                });
+                    results.Results = searchResult?.Results?.Select(m => new ProviderSearchResult
+                    {
+                        UKPRN = m.Result.UKPRN,
+                        URN = m.Result.URN,
+                        UPIN = m.Result.UPIN,
+                        Rid = m.Result.Rid,
+                        EstablishmentNumber = m.Result.EstablishmentNumber,
+                        Name = m.Result.Name,
+                        Authority = m.Result.Authority,
+                        ProviderType = m.Result.ProviderType,
+                        ProviderSubType = m.Result.ProviderSubType,
+                        OpenDate = m.Result.OpenDate,
+                        CloseDate = m.Result.CloseDate
+                    });
+                }
             }
         }
     }

@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CalculateFunding.Models.Datasets.Schema;
-using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Datasets
 {
-
     public class DefinitionSpecificationRelationship : Reference
     {
         public Reference DatasetDefinition { get; set; }
@@ -18,12 +15,8 @@ namespace CalculateFunding.Models.Datasets
 
         public DatasetRelationshipVersion DatasetVersion { get; set; }
 
-        [JsonProperty("dataGranularity")]
-        public DataGranularity DataGranularity { get; set; }
+        public bool IsSetAsProviderData { get; set; }
 
-        [JsonProperty("definesScope")]
-        public bool DefinesScope { get; set; }
+        public bool UsedInDataAggregations { get; set; }
     }
-
-
 }

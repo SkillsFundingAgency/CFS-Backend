@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
@@ -23,16 +24,23 @@ namespace CalculateFunding.Services.Results
 		    return Task.FromResult(results.FirstOrDefault());
 		}
 
-	    public Task<IEnumerable<ProviderResult>> GetSpecificationResults(string providerId)
+        public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId)
+        {
+            var results = _cosmosRepository.Query<ProviderResult>().Where(x => x.Specification.Id == specificationId).ToList();
+
+            return Task.FromResult(results.AsEnumerable());
+        }
+
+        public Task<IEnumerable<ProviderResult>> GetSpecificationResults(string providerId)
 	    {
 		    var results = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId);
 
 		    return Task.FromResult(results.AsEnumerable());
 		}
 
-	    public async Task UpdateProviderResults(List<ProviderResult> results)
+	    public Task<HttpStatusCode> UpdateProviderResults(List<ProviderResult> results)
 	    {
-		    await _cosmosRepository.BulkCreateAsync(results, 50);
+            return _cosmosRepository.BulkUpdateAsync(results, "usp_update_provider_results");
 	    }
     }
 }

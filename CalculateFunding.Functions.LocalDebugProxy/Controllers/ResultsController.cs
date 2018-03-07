@@ -57,5 +57,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _resultsService.GetProviderById(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/results/update-provider-results")]
+        [HttpPost]
+        public Task<IActionResult> RunUpdateProviderResults()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _resultsService.UpdateProviderResults(ControllerContext.HttpContext.Request);
+        }
     }
 }

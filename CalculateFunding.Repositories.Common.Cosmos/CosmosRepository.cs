@@ -56,8 +56,6 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                 _collection = await _documentClient.CreateDocumentCollectionIfNotExistsAsync(
                     UriFactory.CreateDatabaseUri(_databaseName), collection);
             }
-
-
         }
 
         public async Task SetThroughput(int requestUnits)
@@ -166,14 +164,21 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
         public async Task<HttpStatusCode> CreateAsync<T>(T entity) where T : IIdentifiable
         {
-            var doc = new DocumentEntity<T>(entity)
+            try
             {
-                DocumentType = GetDocumentType<T>(),
-                CreatedAt =  DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-            var response = await _documentClient.UpsertDocumentAsync(_collectionUri, doc);
-            return response.StatusCode;
+                var doc = new DocumentEntity<T>(entity)
+                {
+                    DocumentType = GetDocumentType<T>(),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                var response = await _documentClient.UpsertDocumentAsync(_collectionUri, doc);
+                return response.StatusCode;
+            }
+            catch(Exception ex)
+            {
+                return HttpStatusCode.InternalServerError;
+            }
         }
 
         public Task<ResourceResponse<Document>> CreateWithResponseAsync<T>(T entity) where T : IIdentifiable
@@ -221,6 +226,44 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             doc.UpdatedAt = DateTime.UtcNow;
             var response = await _documentClient.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseName, _collectionName, entity.Id), doc);
             return response.StatusCode;
+        }
+
+        public async Task<HttpStatusCode> BulkUpdateAsync<T>(IEnumerable<T> entities, string storedProcedureName) where T : IIdentifiable
+        {
+            var documentType = GetDocumentType<T>();
+
+            IList<DocumentEntity<T>> documents = new List<DocumentEntity<T>>();
+
+            foreach(var entity in entities)
+            {
+                var doc = new DocumentEntity<T>(entity);
+                if (doc.DocumentType != null && doc.DocumentType != documentType)
+                {
+                    throw new ArgumentException($"Cannot change {entity.Id} from {doc.DocumentType} to {typeof(T).Name}");
+                }
+
+                doc.DocumentType = documentType;
+                doc.UpdatedAt = DateTime.UtcNow;
+                documents.Add(doc);
+            }
+
+            try
+            {
+                var documentsAsJson = JsonConvert.SerializeObject(documents);
+
+                var args = new dynamic[] { JsonConvert.DeserializeObject<dynamic>(documentsAsJson) };
+
+                var link = UriFactory.CreateStoredProcedureUri(_databaseName, _collectionName, storedProcedureName);
+
+                var result = await _documentClient.ExecuteStoredProcedureAsync<string>
+                     (link, args);
+
+                return result.StatusCode;
+            }
+            catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
     }

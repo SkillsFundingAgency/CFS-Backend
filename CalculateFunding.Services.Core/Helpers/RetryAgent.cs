@@ -7,7 +7,7 @@
 
     public static class RetryAgent
     {
-        public static async Task DoAsync(Func<Task> func, int maxRetryAttempts = 3)
+        public static async Task DoAsync(Func<Task> func, int maxRetryAttempts = 3, int delay = 100)
         {
             var currentRetryAttempt = 0;
             while (currentRetryAttempt < maxRetryAttempts)
@@ -23,6 +23,7 @@
                     {
                         throw;
                     }
+                    await Task.Delay(currentRetryAttempt * delay);
                 }
             }
         }

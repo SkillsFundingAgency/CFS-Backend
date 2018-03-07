@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Core.Proxies
                 throw new ArgumentException(nameof(url));
             }
 
-            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            HttpResponseMessage response = await RetryAgent.DoRequestAsync(() =>  _httpClient.GetAsync(url), _logger);
 
             if (response == null)
             {
@@ -82,6 +82,49 @@ namespace CalculateFunding.Services.Core.Proxies
             }
 
             return default(T);
+        }
+
+        public async Task<HttpStatusCode> PostAsync<TRequest>(string url, TRequest request)
+        {
+            if (url == null)
+            {
+                throw new ArgumentNullException(nameof(url));
+            }
+
+            string json = JsonConvert.SerializeObject(request, _serializerSettings);
+            _logger.Debug($"ApiClient POST: {{url}} ({typeof(TRequest).Name})", url);
+
+            HttpResponseMessage response = await RetryAgent.DoRequestAsync(() => _httpClient.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")), _logger);
+            if (response == null)
+            {
+                throw new HttpRequestException($"Unable to connect to server. Url={_httpClient.BaseAddress.AbsoluteUri}{url}");
+            }
+
+            return response.StatusCode;
+        }
+
+        public async Task<TResponse> PostAsync<TResponse, TRequest>(string url, TRequest request)
+        {
+            if (url == null)
+            {
+                throw new ArgumentNullException(nameof(url));
+            }
+
+            var json = JsonConvert.SerializeObject(request, _serializerSettings);
+            _logger.Debug($"ApiClient POST: {{url}} ({typeof(TRequest).Name} => {typeof(TResponse).Name})", url);
+            HttpResponseMessage response = await RetryAgent.DoRequestAsync(() => _httpClient.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")), _logger);
+            if (response == null)
+            {
+                throw new HttpRequestException($"Unable to connect to server. Url={_httpClient.BaseAddress.AbsoluteUri}{url}");
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<TResponse>(responseBody, _serializerSettings);
+            }
+
+            return default(TResponse);
         }
     }
 }

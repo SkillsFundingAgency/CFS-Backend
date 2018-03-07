@@ -8,6 +8,7 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Services.Calculator.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using CalculationResult = CalculateFunding.Models.Results.CalculationResult;
@@ -18,7 +19,7 @@ namespace CalculateFunding.Services.Calculator
     {
         IEnumerable<ProviderSourceDataset> GetProviderDatasets(string providerId, string subscriptionId);
     }
-    public class CalculationEngine
+    public class CalculationEngine : ICalculationEngine
     {
         private readonly IProviderSourceDatasetRepository _providerSourceRepository = null;
 
@@ -72,7 +73,6 @@ namespace CalculateFunding.Services.Calculator
 
             foreach (var calculation in buildProject.Calculations)
             {
-
                 var productResult = new CalculationResult
                 {
                     Calculation = calculation.GetReference()

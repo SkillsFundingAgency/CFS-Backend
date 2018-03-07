@@ -68,10 +68,17 @@ namespace CalculateFunding.Services.Results
 		    return properties;
 	    }
 
-	    public Task UpdateProviderData(Message message)
+	    public async Task UpdateProviderData(Message message)
 	    {
-		    throw new NotImplementedException();
-	    }
+            IEnumerable<ProviderResult> results = message.GetPayloadAsInstanceOf<IEnumerable<ProviderResult>>();
+
+            HttpStatusCode statusCode = await _resultsRepository.UpdateProviderResults(results.ToList());
+
+            if (!statusCode.IsSuccess())
+            {
+                _logger.Error($"Failed to bulk update provider data with status code: {statusCode.ToString()}");
+            }
+        }
 
         public async Task<IActionResult> GetProviderById(HttpRequest request)
         {
@@ -122,7 +129,22 @@ namespace CalculateFunding.Services.Results
 			return new NotFoundResult();
 		}
 
-	    public async Task<IActionResult> GetProviderSpecifications(HttpRequest request)
+        public async Task<IActionResult> GetProviderResultsBySpecificationId(HttpRequest request)
+        {
+            var specificationId = GetParameter(request, "specificationId");
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to GetProviderResults");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            IEnumerable<ProviderResult> providerResults = await _resultsRepository.GetProviderResultsBySpecificationId(specificationId);
+
+            return new OkObjectResult(providerResults);
+        }
+
+        public async Task<IActionResult> GetProviderSpecifications(HttpRequest request)
 	    {
 		    var providerId = GetParameter(request, "providerId");
 		    if (string.IsNullOrWhiteSpace(providerId))
@@ -148,7 +170,7 @@ namespace CalculateFunding.Services.Results
 
 	    }
 
-	    private static string GetParameter(HttpRequest request, string name)
+        private static string GetParameter(HttpRequest request, string name)
 	    {
 		    if (request.Query.TryGetValue(name, out var parameter))
 		    {
@@ -156,5 +178,16 @@ namespace CalculateFunding.Services.Results
 		    }
 		    return null;
 	    }
+
+        async public Task<IActionResult> UpdateProviderResults(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            IEnumerable<ProviderResult> results = JsonConvert.DeserializeObject<IEnumerable<ProviderResult>>(json);
+
+            await _resultsRepository.UpdateProviderResults(results.ToList());
+
+            return new NoContentResult();
+        }
     }
 }
