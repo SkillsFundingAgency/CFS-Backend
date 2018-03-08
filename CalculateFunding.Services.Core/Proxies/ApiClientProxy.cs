@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Core.Proxies
 {
-    public class ApiClientProxy : IApiClientProxy
+    public class ApiClientProxy : IApiClientProxy, IDisposable
     {
         private const string SfaCorellationId = "sfa-correlationId";
         private const string SfaUsernameProperty = "sfa-username";
@@ -125,6 +125,19 @@ namespace CalculateFunding.Services.Core.Proxies
             }
 
             return default(TResponse);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _httpClient?.Dispose();
+            }
         }
     }
 }

@@ -16,7 +16,7 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Repositories.Common.Cosmos
 {
-    public class CosmosRepository
+    public class CosmosRepository : IDisposable
     {
         private readonly string _collectionName;
         private readonly string _partitionKey;
@@ -266,5 +266,17 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             }
         }
 
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _documentClient?.Dispose();
+            }
+        }
     }
 }
