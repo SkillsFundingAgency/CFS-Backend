@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.ServiceBus;
 using System.Threading.Tasks;
+using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Calcs.Interfaces
 {
     public interface ICalculationService
     {
-        Task CreateCalculation(Message message);
+        Task CreateCalculation(EventData message);
 
         Task<IActionResult> GetCalculationById(HttpRequest request);
 

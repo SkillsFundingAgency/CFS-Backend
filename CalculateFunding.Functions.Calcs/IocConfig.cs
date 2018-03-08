@@ -82,7 +82,7 @@ namespace CalculateFunding.Functions.Calcs
 
             builder.AddSearch(config);
 
-            builder.AddServiceBus(config);
+            builder.AddEventHub(config);
 
             builder.AddInterServiceClient(config);
 

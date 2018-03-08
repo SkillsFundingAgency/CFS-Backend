@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Specs.Interfaces
 {
@@ -34,7 +35,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetCalculationBySpecificationIdAndCalculationId(HttpRequest request);
 
-        Task AssignDataDefinitionRelationship(Message message);
+        Task AssignDataDefinitionRelationship(EventData message);
 
         Task<IActionResult> ReIndex();
     }

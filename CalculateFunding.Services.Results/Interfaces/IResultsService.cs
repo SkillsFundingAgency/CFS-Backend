@@ -1,14 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Results.Interfaces
 {
     public interface IResultsService
     {
-	    Task UpdateProviderData(Message message);
+	    Task UpdateProviderData(EventData message);
 	    Task<IActionResult> GetProviderResults(HttpRequest request);
 	    Task<IActionResult> GetProviderSpecifications(HttpRequest request);
         Task<IActionResult> GetProviderById(HttpRequest request);

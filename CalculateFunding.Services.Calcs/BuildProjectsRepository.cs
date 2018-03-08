@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using CalculateFunding.Models.Specs;
+using System;
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class BuildProjectsRepository : IBuildProjectsRepository
+    public class BuildProjectsRepository : IBuildProjectsRepository, IDisposable
     {
         private readonly CosmosRepository _cosmosRepository;
 
@@ -44,6 +45,19 @@ namespace CalculateFunding.Services.Calcs
         public Task<HttpStatusCode> UpdateBuildProject(BuildProject buildProject)
         {
             return _cosmosRepository.UpdateAsync(buildProject);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _cosmosRepository?.Dispose();
+            }
         }
     }
 }

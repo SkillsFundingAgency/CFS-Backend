@@ -4,14 +4,9 @@ using System.Text;
 
 namespace CalculateFunding.Services.Core.Options
 {
-    public class ServiceBusSettings
+    public class EventHubSettings
     {
-        public string ServiceBusConnectionString { get; set; }
-
-        public string SpecsServiceBusTopicName { get; set; }
-
-        public string CalcsServiceBusTopicName { get; set; }
-
-        public string DatasetsServiceBusTopicName { get; set; }
+        public string EventHubConnectionString { get; set; }
     }
+
 }

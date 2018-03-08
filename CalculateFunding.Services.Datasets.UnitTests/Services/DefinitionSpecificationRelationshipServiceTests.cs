@@ -4,7 +4,6 @@ using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
@@ -26,6 +25,7 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -1537,11 +1537,11 @@ namespace CalculateFunding.Services.Datasets.Services
 
         static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,
             ILogger logger = null, ISpecificationsRepository specificationsRepository = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
-            IMessengerService messengerService = null, ServiceBusSettings serviceBusSettings = null)
+            IMessengerService messengerService = null, EventHubSettings EventHubSettings = null)
         {
             return new DefinitionSpecificationRelationshipService(datasetRepository ?? CreateDatasetRepository(), logger ?? CreateLogger(),
                 specificationsRepository ?? CreateSpecificationsRepository(), relationshipModelValidator ?? CreateRelationshipModelValidator(),
-                messengerService ?? CreateMessengerService(), serviceBusSettings ?? CreateServiceBusSettings());
+                messengerService ?? CreateMessengerService(), EventHubSettings ?? CreateEventHubSettings());
         }
 
         static IValidator<CreateDefinitionSpecificationRelationshipModel> CreateRelationshipModelValidator(ValidationResult validationResult = null)
@@ -1578,9 +1578,9 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<IMessengerService>();
         }
 
-        static ServiceBusSettings CreateServiceBusSettings()
+        static EventHubSettings CreateEventHubSettings()
         {
-            return new ServiceBusSettings();
+            return new EventHubSettings();
         }
     }
 }

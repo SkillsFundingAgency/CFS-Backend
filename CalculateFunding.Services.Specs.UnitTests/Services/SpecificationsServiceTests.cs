@@ -19,7 +19,6 @@ using System.Linq.Expressions;
 using System.Linq;
 using Newtonsoft.Json;
 using System.IO;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Models;
 using System.Net;
@@ -27,9 +26,10 @@ using System.Security.Claims;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Services.Validators;
-using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
+using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -46,7 +46,6 @@ namespace CalculateFunding.Services.Specs.Services
         const string CalculationName = "Test Calc 001";
         const string Username = "test-user";
         const string UserId = "33d7a71b-f570-4425-801b-250b9129f3d3";
-        const string CalcsServiceBusTopicName = "cals-topic";
         const string SfaCorrelationId = "c625c3f9-6ce8-4f1f-a3a3-4611f1dc3881";
         const string RelationshipId = "cca8ccb3-eb8e-4658-8b3f-f1e4c3a8f419";
 
@@ -1080,7 +1079,7 @@ namespace CalculateFunding.Services.Specs.Services
             await 
                 messengerService
                     .Received(1)
-                    .SendAsync(Arg.Is(CalcsServiceBusTopicName), Arg.Is("calc-events-create-draft"), 
+                    .SendAsync(Arg.Is("calc-events-create-draft"), 
                         Arg.Is<Models.Calcs.Calculation>(m => 
                             m.CalculationSpecification.Id == calculation.Id &&
                             m.CalculationSpecification.Name == calculation.Name &&
@@ -1202,7 +1201,7 @@ namespace CalculateFunding.Services.Specs.Services
             await
                 messengerService
                     .Received(1)
-                    .SendAsync(Arg.Is(CalcsServiceBusTopicName), Arg.Is("calc-events-create-draft"),
+                    .SendAsync(Arg.Is("calc-events-create-draft"),
                         Arg.Is<Models.Calcs.Calculation>(m =>
                             m.CalculationSpecification.Id == calculation.Id &&
                             m.CalculationSpecification.Name == calculation.Name &&
@@ -1351,7 +1350,7 @@ namespace CalculateFunding.Services.Specs.Services
         public void AssignDataDefinitionRelationship_GivenMessageWithNullRealtionshipObject_ThrowsArgumentNullException()
         {
             //Arrange
-            Message message = new Message();
+            EventData message = new EventData(new byte[0]);
 
             ILogger logger = CreateLogger();
 
@@ -1373,13 +1372,13 @@ namespace CalculateFunding.Services.Specs.Services
         public void AssignDataDefinitionRelationship_GivenMessageWithObjectButDoesntValidate_ThrowsInvalidModelException()
         {
             //Arrange
-            Message message = new Message();
-
             dynamic anyObject = new { something = 1 };
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            message.Body = Encoding.UTF8.GetBytes(json);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+
 
             ValidationResult validationResult = new ValidationResult(new[]{
                     new ValidationFailure("prop1", "any error")
@@ -1401,13 +1400,12 @@ namespace CalculateFunding.Services.Specs.Services
         public void AssignDataDefinitionRelationship_GivenValidMessageButUnableToFindSpecification_ThrowsInvalidModelException()
         {
             //Arrange
-            Message message = new Message();
 
             dynamic anyObject = new { specificationId = SpecificationId, relationshipId = RelationshipId };
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            message.Body = Encoding.UTF8.GetBytes(json);
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
@@ -1428,13 +1426,11 @@ namespace CalculateFunding.Services.Specs.Services
         public void AssignDataDefinitionRelationship_GivenFailedToUpdateSpecification_ThrowsException()
         {
             //Arrange
-            Message message = new Message();
-
             dynamic anyObject = new { specificationId = SpecificationId, relationshipId = RelationshipId };
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            message.Body = Encoding.UTF8.GetBytes(json);
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
 
             Specification specification = new Specification();
 
@@ -1467,13 +1463,11 @@ namespace CalculateFunding.Services.Specs.Services
         public void AssignDataDefinitionRelationship_GivenFailedToUpdateSearch_ThrowsFailedToIndexSearchException()
         {
             //Arrange
-            Message message = new Message();
-
             dynamic anyObject = new { specificationId = SpecificationId, relationshipId = RelationshipId };
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            message.Body = Encoding.UTF8.GetBytes(json);
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
 
             Specification specification = new Specification
             {
@@ -1513,13 +1507,11 @@ namespace CalculateFunding.Services.Specs.Services
         public async Task AssignDataDefinitionRelationship_GivenUpdatedCosmosAndSearch_LogsSuccess()
         {
             //Arrange
-            Message message = new Message();
-
             dynamic anyObject = new { specificationId = SpecificationId, relationshipId = RelationshipId };
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            message.Body = Encoding.UTF8.GetBytes(json);
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
 
             Specification specification = new Specification
             {
@@ -1771,12 +1763,12 @@ namespace CalculateFunding.Services.Specs.Services
         static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null, 
             ILogger logs = null, IValidator<PolicyCreateModel> policyCreateModelValidator = null,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null, IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
-            IMessengerService messengerService = null, ServiceBusSettings serviceBusSettings = null, ISearchRepository<SpecificationIndex> searchRepository = null,
+            IMessengerService messengerService = null, EventHubSettings EventHubSettings = null, ISearchRepository<SpecificationIndex> searchRepository = null,
             IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(), specifcationsRepository ?? CreateSpecificationsRepository(), logs ?? CreateLogger(), policyCreateModelValidator ?? CreatePolicyValidator(),
                 specificationCreateModelvalidator ?? CreateSpecificationValidator(), calculationCreateModelValidator ?? CreateCalculationValidator(), messengerService ?? CreateMessengerService(),
-                serviceBusSettings ?? CreateServiceBusSettings(), searchRepository ?? CreateSearchRepository(), assignDefinitionRelationshipMessageValidator ?? CreateAssignDefinitionRelationshipMessageValidator());
+                EventHubSettings ?? CreateEventHubSettings(), searchRepository ?? CreateSearchRepository(), assignDefinitionRelationshipMessageValidator ?? CreateAssignDefinitionRelationshipMessageValidator());
         }
 
         static IMapper CreateMapper()
@@ -1799,11 +1791,10 @@ namespace CalculateFunding.Services.Specs.Services
             return Substitute.For<ILogger>();
         }
 
-        static ServiceBusSettings CreateServiceBusSettings()
+        static EventHubSettings CreateEventHubSettings()
         {
-            return new ServiceBusSettings
+            return new EventHubSettings
             {
-                CalcsServiceBusTopicName = CalcsServiceBusTopicName
             };
         }
 

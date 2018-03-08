@@ -21,7 +21,8 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         private readonly string _collectionName;
         private readonly string _partitionKey;
         private readonly string _databaseName;
-        private readonly DocumentClient _documentClient;
+        private readonly string _connectionString;
+        private DocumentClient _documentClient;
         private readonly Uri _collectionUri;
         private ResourceResponse<DocumentCollection> _collection;
 
@@ -30,8 +31,19 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             _collectionName = settings.CollectionName;
             _partitionKey = settings.PartitionKey;
             _databaseName = settings.DatabaseName;
-            _documentClient = DocumentDbConnectionString.Parse(settings.ConnectionString); ;
+            _connectionString = settings.ConnectionString;
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_databaseName, _collectionName);
+        }
+
+        DocumentClient DocumentClient
+        {
+            get
+            {
+                if(_documentClient == null)
+                    _documentClient = DocumentDbConnectionString.Parse(_connectionString);
+
+                return _documentClient;
+            }
         }
 
         public async Task EnsureCollectionExists()
@@ -46,14 +58,14 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
                 try
                 {
-                    await _documentClient.ReadDatabaseAsync(UriFactory.CreateDatabaseUri(_databaseName));
+                    await DocumentClient.ReadDatabaseAsync(UriFactory.CreateDatabaseUri(_databaseName));
                 }
                 catch (DocumentClientException e)
                 {
-                    await _documentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = _databaseName });
+                    await DocumentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = _databaseName });
                 }
 
-                _collection = await _documentClient.CreateDocumentCollectionIfNotExistsAsync(
+                _collection = await DocumentClient.CreateDocumentCollectionIfNotExistsAsync(
                     UriFactory.CreateDatabaseUri(_databaseName), collection);
             }
         }
@@ -61,7 +73,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         public async Task SetThroughput(int requestUnits)
         {
             //Fetch the resource to be updated
-            OfferV2 offer = (OfferV2) _documentClient.CreateOfferQuery()
+            OfferV2 offer = (OfferV2)DocumentClient.CreateOfferQuery()
                 .Where(r => r.ResourceLink == _collection.Resource.SelfLink)
                 .AsEnumerable()
                 .SingleOrDefault();
@@ -72,7 +84,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                 offer = new OfferV2(offer, requestUnits);
 
                 //Now persist these changes to the database by replacing the original resource
-                await _documentClient.ReplaceOfferAsync(offer);
+                await DocumentClient.ReplaceOfferAsync(offer);
             }
         }
 
@@ -86,7 +98,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             // Set some common query options
             var queryOptions = new FeedOptions { MaxItemCount = maxItemCount };
 
-            return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted);
+            return DocumentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted);
         }
 
         public async Task<DocumentEntity<T>> ReadAsync<T>(string id) where T : IIdentifiable
@@ -104,12 +116,12 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             if (!string.IsNullOrEmpty(directSql))
             {
                 // Here we find the Andersen family via its LastName
-                return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri,
+                return DocumentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri,
                     directSql,
                     queryOptions).Select(x => x.Content).AsQueryable();
             }
 
-            return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted).Select(x => x.Content).AsQueryable();
+            return DocumentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted).Select(x => x.Content).AsQueryable();
         }
 
         public IQueryable<T> RawQuery<T>(string directSql, int maxItemCount = -1)
@@ -117,7 +129,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             // Set some common query options
             var queryOptions = new FeedOptions { MaxItemCount = maxItemCount };
 
-            return _documentClient.CreateDocumentQuery<T>(_collectionUri,
+            return DocumentClient.CreateDocumentQuery<T>(_collectionUri,
                 directSql,
                 queryOptions).AsQueryable();
 
@@ -131,12 +143,12 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             if (!string.IsNullOrEmpty(directSql))
             {
                 // Here we find the Andersen family via its LastName
-                return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri,
+                return DocumentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri,
                     directSql,
                     queryOptions).AsQueryable();
             }
 
-            return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).AsQueryable();
+            return DocumentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).AsQueryable();
         }
 
         public IEnumerable<string> QueryAsJson(string directSql = null, int maxItemCount = -1)
@@ -145,7 +157,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             var queryOptions = new FeedOptions { MaxItemCount = maxItemCount };
 
             
-            IEnumerable<Document> documents = _documentClient.CreateDocumentQuery<Document>(_collectionUri, directSql, queryOptions).ToArray();
+            IEnumerable<Document> documents = DocumentClient.CreateDocumentQuery<Document>(_collectionUri, directSql, queryOptions).ToArray();
             foreach (var document in documents)
             {
                 dynamic json = document;
@@ -157,7 +169,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         {
             var doc = await ReadAsync<T>(id);
             doc.Deleted = true;
-            var response = await _documentClient.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseName, _collectionName, doc.Id), doc);
+            var response = await DocumentClient.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseName, _collectionName, doc.Id), doc);
             return response.StatusCode;
         }
 
@@ -172,7 +184,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
-                var response = await _documentClient.UpsertDocumentAsync(_collectionUri, doc);
+                var response = await DocumentClient.UpsertDocumentAsync(_collectionUri, doc);
                 return response.StatusCode;
             }
             catch(Exception ex)
@@ -189,7 +201,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
-            return _documentClient.UpsertDocumentAsync(_collectionUri, doc);
+            return DocumentClient.UpsertDocumentAsync(_collectionUri, doc);
         }
 
         public async Task BulkCreateAsync<T>(IList<T> entities, int degreeOfParallelism) where T : IIdentifiable
@@ -224,7 +236,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             }
             doc.DocumentType = documentType; // in case not specified
             doc.UpdatedAt = DateTime.UtcNow;
-            var response = await _documentClient.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseName, _collectionName, entity.Id), doc);
+            var response = await DocumentClient.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseName, _collectionName, entity.Id), doc);
             return response.StatusCode;
         }
 
@@ -255,7 +267,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
                 var link = UriFactory.CreateStoredProcedureUri(_databaseName, _collectionName, storedProcedureName);
 
-                var result = await _documentClient.ExecuteStoredProcedureAsync<string>
+                var result = await DocumentClient.ExecuteStoredProcedureAsync<string>
                      (link, args);
 
                 return result.StatusCode;

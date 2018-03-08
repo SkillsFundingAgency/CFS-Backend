@@ -247,7 +247,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
             builder.AddSearch(config);
 
-            builder.AddServiceBus(config);
+            builder.AddEventHub(config);
 
             builder.AddInterServiceClient(config);
 
@@ -255,7 +255,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
             builder.AddScoped<ILogger>(l => new LoggerConfiguration().WriteTo.Console().CreateLogger());
 
-            builder.AddCaching(config);
+           // builder.AddCaching(config);
         }
     }
 }

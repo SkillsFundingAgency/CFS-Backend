@@ -3,7 +3,6 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
@@ -21,9 +20,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
 using CalculateFunding.Services.Core.Options;
-using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -38,7 +37,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly ISearchRepository<DatasetIndex> _searchRepository;
         private readonly IValidator<GetDatasetBlobModel> _getDatasetBlobModelValidator;
 	    private readonly IMessengerService _messengerService;
-	    private readonly ServiceBusSettings _serviceBusSettings;
+	    private readonly EventHubSettings _eventHubSettings;
         private readonly ISpecificationsRepository _specificationsRepository;
 
         const string ProcessDatasetSubscription = "dataset-events-process-dataset";
@@ -47,7 +46,7 @@ namespace CalculateFunding.Services.Datasets
             IDatasetRepository datasetRepository, IValidator<CreateNewDatasetModel> createNewDatasetModelValidator,
             IMapper mapper, IValidator<DatasetMetadataModel> datasetMetadataModelValidator,
             ISearchRepository<DatasetIndex> searchRepository, IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator,
-            ISpecificationsRepository specificationsRepository, IMessengerService messengerService, ServiceBusSettings serviceBusSettings)
+            ISpecificationsRepository specificationsRepository, IMessengerService messengerService, EventHubSettings eventHubSettings)
         {
             _blobClient = blobClient;
             _logger = logger;
@@ -58,7 +57,7 @@ namespace CalculateFunding.Services.Datasets
             _searchRepository = searchRepository;
             _getDatasetBlobModelValidator = getDatasetBlobModelValidator;
 	        _messengerService = messengerService;
-	        _serviceBusSettings = serviceBusSettings;
+	        _eventHubSettings = eventHubSettings;
             _specificationsRepository = specificationsRepository;
         }
 
@@ -202,7 +201,7 @@ namespace CalculateFunding.Services.Datasets
             return new OkResult();
         }
 
-	    public Task ProcessDataset(Message message)
+	    public Task ProcessDataset(EventData message)
 	    {
 		    throw new NotImplementedException();
 	    }
@@ -280,7 +279,7 @@ namespace CalculateFunding.Services.Datasets
 
 	        IDictionary<string, string> properties = CreateMessageProperties(metadataModel);
 
-	        await _messengerService.SendAsync(_serviceBusSettings.CalcsServiceBusTopicName, ProcessDatasetSubscription, dataset, properties);
+	        await _messengerService.SendAsync(ProcessDatasetSubscription, dataset, properties);
 		}
 
         async Task<IEnumerable<IndexError>> AddNewDatasetToSearch(Dataset dataset)

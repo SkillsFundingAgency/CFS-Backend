@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
@@ -17,6 +16,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -440,11 +440,11 @@ namespace CalculateFunding.Services.Results.Services
             IMapper mapper = null,
             ISearchRepository<ProviderIndex> searchRepository = null,
             IMessengerService messengerService = null,
-            ServiceBusSettings serviceBusSettings = null)
+            EventHubSettings EventHubSettings = null)
         {
             return new ResultsService(logger ?? CreateLogger(), resultsRepository ?? CreateResultsRepository(),
                 mapper ?? CreateMapper(), searchRepository ?? CreateSearchRepository(), messengerService ?? CreateMessengerService(),
-                serviceBusSettings ?? CreateServiceBusSettings());
+                EventHubSettings ?? CreateEventHubSettings());
         }
 
         static ILogger CreateLogger()
@@ -472,9 +472,9 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<IMessengerService>();
         }
 
-        static ServiceBusSettings CreateServiceBusSettings()
+        static EventHubSettings CreateEventHubSettings()
         {
-            return new ServiceBusSettings();
+            return new EventHubSettings();
         }
     }
 }

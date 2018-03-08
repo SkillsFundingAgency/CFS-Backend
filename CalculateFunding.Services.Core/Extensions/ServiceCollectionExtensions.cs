@@ -5,11 +5,9 @@ using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Proxies;
-using CalculateFunding.Services.Core.ServiceBus;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -24,8 +22,8 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.EventHub;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -62,20 +60,6 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddCaching(this IServiceCollection builder, IConfigurationRoot config)
-        {
-            RedisSettings redisSettings = new RedisSettings();
-
-            config.Bind("redisSettings", redisSettings);
-
-            builder.AddSingleton<RedisSettings>(redisSettings);
-
-            builder
-                .AddScoped<ICacheProvider, StackExchangeRedisClientCacheProvider>();
-
-            return builder;
-        }
-
         public static IServiceCollection AddSearch(this IServiceCollection builder, IConfigurationRoot config)
         {
             SearchRepositorySettings searchSettings = new SearchRepositorySettings
@@ -101,19 +85,16 @@ namespace CalculateFunding.Services.Core.Extensions
 			return builder;
         }
 
-        public static IServiceCollection AddServiceBus(this IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceCollection AddEventHub(this IServiceCollection builder, IConfigurationRoot config)
         {
-            ServiceBusSettings serviceBusSettings = new ServiceBusSettings();
+            EventHubSettings eventHubSettings = new EventHubSettings();
 
-            config.Bind("ServiceBusSettings", serviceBusSettings);
+            config.Bind("EventHubSettings", eventHubSettings);
 
-            builder.AddSingleton<ServiceBusSettings>(serviceBusSettings);
+            builder.AddSingleton(eventHubSettings);
 
             builder
                 .AddScoped<IMessengerService, MessengerService>();
-
-            builder
-                .AddScoped<IMessagePumpService, MessagePumpService>();
 
             return builder;
         }

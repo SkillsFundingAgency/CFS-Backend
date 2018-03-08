@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System.Threading.Tasks;
-using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Datasets.Interfaces
 {
@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task SaveNewDataset(ICloudBlob blob);
 
         Task<IActionResult> ValidateDataset(HttpRequest request);
-	    Task ProcessDataset(Message message);
+	    Task ProcessDataset(EventData message);
 
         Task<IActionResult> GetDatasetsByDefinitionId(HttpRequest request);
     }

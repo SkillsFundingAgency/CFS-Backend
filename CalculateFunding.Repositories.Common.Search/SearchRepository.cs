@@ -22,18 +22,20 @@ namespace CalculateFunding.Repositories.Common.Search
 
         private static readonly SearchParameters DefaultParameters = new SearchParameters {IncludeTotalResultCount = true};
         private readonly SearchRepositorySettings _settings;
-        private readonly SearchServiceClient _searchServiceClient;
+        private SearchServiceClient _searchServiceClient;
         private readonly string _indexName;
 
         public SearchRepository(SearchRepositorySettings settings)
         {
             _indexName = typeof(T).Name.ToLowerInvariant();
             _settings = settings;
-            _searchServiceClient = new SearchServiceClient(_settings.SearchServiceName, new SearchCredentials(_settings.SearchKey));
         }
 
         public async Task<ISearchIndexClient> GetOrCreateIndex()
         {
+            if(_searchServiceClient == null)
+                _searchServiceClient = new SearchServiceClient(_settings.SearchServiceName, new SearchCredentials(_settings.SearchKey));
+
             if (_searchIndexClient == null)
             {
                 if (!await _searchServiceClient.Indexes.ExistsAsync(_indexName))
@@ -156,6 +158,8 @@ namespace CalculateFunding.Repositories.Common.Search
 
         public async Task DeleteIndex()
         {
+            var client = await GetOrCreateIndex();
+
             bool indexExists = await _searchServiceClient.Indexes.ExistsAsync(_indexName);
 
             if (indexExists)
