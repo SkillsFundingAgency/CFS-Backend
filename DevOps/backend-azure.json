@@ -42,12 +42,51 @@
       "metadata": {
         "description": "Describes plan's instance count"
       }
+    },
+    "cacheSKUName": {
+      "type": "string",
+      "allowedValues": [
+        "Basic",
+        "Standard"
+      ],
+      "defaultValue": "Basic",
+      "metadata": {
+        "description": "The pricing tier of the new Azure Redis Cache."
+      }
+    },
+    "cacheSKUFamily": {
+      "type": "string",
+      "allowedValues": [
+        "C"
+      ],
+      "defaultValue": "C",
+      "metadata": {
+        "description": "The family for the sku."
+      }
+    },
+    "cacheSKUCapacity": {
+      "type": "int",
+      "allowedValues": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "defaultValue": 0,
+      "metadata": {
+        "description": "The size of the new Azure Redis Cache instance. "
+      }
     }
   },
   "variables": {
     "offerType": "Standard",
     "applicationInsightsName": "[concat(resourceGroup().name, '-ai')]",
     "documentDatabaseName": "[concat(resourceGroup().name, '-db')]",
+    "cacheName": "[concat(resourceGroup().name, '-redis')]",
+    "eventHubName": "[concat(resourceGroup().name, '-hub')]",
     "serviceBusNamespaceName": "[concat(resourceGroup().name, 'bus')]",
     "azureSearchName": "[concat(resourceGroup().name, '-search')]",
     "datasetsFunctionAppName": "[concat(resourceGroup().name, '-fapp-datasets')]",
@@ -139,6 +178,38 @@
       "kind": "Storage",
       "sku": {
         "name": "Standard_LRS"
+      }
+    },
+
+    {
+      "name": "[variables('cacheName')]",
+      "type": "Microsoft.Cache/Redis",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-08-01",
+      "dependsOn": [],
+      "tags": {
+        "displayName": "cache"
+      },
+      "properties": {
+        "sku": {
+          "name": "[parameters('cacheSKUName')]",
+          "family": "[parameters('cacheSKUFamily')]",
+          "capacity": "[parameters('cacheSKUCapacity')]"
+        }
+      }
+    },
+
+    {
+      "apiVersion": "2017-04-01",
+      "name": "[variables('eventHubName')]",
+      "type": "Microsoft.EventHub/Namespaces",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {
+        "isAutoInflateEnabled": "true",
+        "maximumThroughputUnits": "20"
       }
     },
 
@@ -437,7 +508,8 @@
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
         "[variables('applicationInsightsName')]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]"
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
+        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
@@ -477,16 +549,12 @@
               "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
             },
             {
-              "name": "CosmosDBConnectionString",
-              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+              "name": "RedisSettings:CacheConnection",
+              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
             },
             {
-              "name": "CosmosDBDatabaseName",
-              "value": "calculate-funding"
-            },
-            {
-              "name": "CosmosDBCollectionName",
-              "value": "datasets"
+              "name": "EventHubSettings:EventHubConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/authorizationRules'),variables('eventHubName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             },
             {
               "name": "CosmosDbSettings:ConnectionString",
@@ -560,7 +628,8 @@
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
         "[variables('applicationInsightsName')]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]"
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
+        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
 
       ],
       "properties": {
@@ -601,16 +670,12 @@
               "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
             },
             {
-              "name": "CosmosDBConnectionString",
-              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+              "name": "RedisSettings:CacheConnection",
+              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
             },
             {
-              "name": "CosmosDBDatabaseName",
-              "value": "calculate-funding"
-            },
-            {
-              "name": "CosmosDBCollectionName",
-              "value": "calcs"
+              "name": "EventHubSettings:EventHubConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/authorizationRules'),variables('eventHubName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             },
             {
               "name": "CosmosDbSettings:ConnectionString",
@@ -683,7 +748,8 @@
         "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
-        "[variables('applicationInsightsName')]"
+        "[variables('applicationInsightsName')]",
+        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
@@ -723,16 +789,12 @@
               "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
             },
             {
-              "name": "CosmosDBConnectionString",
-              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+              "name": "RedisSettings:CacheConnection",
+              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
             },
             {
-              "name": "CosmosDBDatabaseName",
-              "value": "calculate-funding"
-            },
-            {
-              "name": "CosmosDBCollectionName",
-              "value": "results"
+              "name": "EventHubSettings:EventHubConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/authorizationRules'),variables('eventHubName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             },
             {
               "name": "CosmosDbSettings:ConnectionString",
@@ -802,7 +864,8 @@
         "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
-        "[variables('applicationInsightsName')]"
+        "[variables('applicationInsightsName')]",
+        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
@@ -842,16 +905,12 @@
               "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
             },
             {
-              "name": "CosmosDBConnectionString",
-              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+              "name": "RedisSettings:CacheConnection",
+              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
             },
             {
-              "name": "CosmosDBDatabaseName",
-              "value": "calculate-funding"
-            },
-            {
-              "name": "CosmosDBCollectionName",
-              "value": "specs"
+              "name": "EventHubSettings:EventHubConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/authorizationRules'),variables('eventHubName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             },
             {
               "name": "CosmosDbSettings:ConnectionString",
@@ -922,7 +981,8 @@
         "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
-        "[variables('applicationInsightsName')]"
+        "[variables('applicationInsightsName')]",
+        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
@@ -968,6 +1028,14 @@
             {
               "name": "AzureStorageSettings:ConnectionString",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "RedisSettings:CacheConnection",
+              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+            },
+            {
+              "name": "EventHubSettings:EventHubConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/authorizationRules'),variables('eventHubName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             }
           ]
         }
@@ -984,7 +1052,8 @@
         "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
-        "[variables('applicationInsightsName')]"
+        "[variables('applicationInsightsName')]",
+        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
@@ -1024,16 +1093,12 @@
               "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
             },
             {
-              "name": "CosmosDBConnectionString",
-              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+              "name": "RedisSettings:CacheConnection",
+              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
             },
             {
-              "name": "CosmosDBDatabaseName",
-              "value": "calculate-funding"
-            },
-            {
-              "name": "CosmosDBCollectionName",
-              "value": "scenarios"
+              "name": "EventHubSettings:EventHubConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/authorizationRules'),variables('eventHubName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             },
             {
               "name": "CosmosDbSettings:ConnectionString",
