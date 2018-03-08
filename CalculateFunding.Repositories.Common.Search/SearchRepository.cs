@@ -16,26 +16,24 @@ namespace CalculateFunding.Repositories.Common.Search
 
     }
 
-    public class SearchRepository<T> : ISearchRepository<T>, IDisposable where T : class
+    public class SearchRepository<T> : ISearchRepository<T> where T : class
     {
         private ISearchIndexClient _searchIndexClient;
 
-        private static readonly SearchParameters DefaultParameters = new SearchParameters {IncludeTotalResultCount = true};
+        private static readonly SearchParameters DefaultParameters = new SearchParameters { IncludeTotalResultCount = true };
         private readonly SearchRepositorySettings _settings;
-        private SearchServiceClient _searchServiceClient;
+        private readonly SearchServiceClient _searchServiceClient;
         private readonly string _indexName;
 
         public SearchRepository(SearchRepositorySettings settings)
         {
             _indexName = typeof(T).Name.ToLowerInvariant();
             _settings = settings;
+            _searchServiceClient = new SearchServiceClient(_settings.SearchServiceName, new SearchCredentials(_settings.SearchKey));
         }
 
         public async Task<ISearchIndexClient> GetOrCreateIndex()
         {
-            if(_searchServiceClient == null)
-                _searchServiceClient = new SearchServiceClient(_settings.SearchServiceName, new SearchCredentials(_settings.SearchKey));
-
             if (_searchIndexClient == null)
             {
                 if (!await _searchServiceClient.Indexes.ExistsAsync(_indexName))
@@ -76,7 +74,7 @@ namespace CalculateFunding.Repositories.Common.Search
                             Name = m.Value.ToString(),
                             Count = (int)(m.Count ?? 0)
                         })
-                        
+
                     }).ToList(),
                     Results = azureSearchResult.Results.Select(x => new SearchResult<T>
                     {
@@ -87,7 +85,7 @@ namespace CalculateFunding.Repositories.Common.Search
                 };
                 return response;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new FailedToQuerySearchException("Failed to query search", ex);
             }
@@ -149,7 +147,7 @@ namespace CalculateFunding.Repositories.Common.Search
 
                 return errors;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
@@ -158,26 +156,10 @@ namespace CalculateFunding.Repositories.Common.Search
 
         public async Task DeleteIndex()
         {
-            var client = await GetOrCreateIndex();
-
             bool indexExists = await _searchServiceClient.Indexes.ExistsAsync(_indexName);
 
             if (indexExists)
                 await _searchServiceClient.Indexes.DeleteAsync(_indexName);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _searchIndexClient?.Dispose();
-                _searchServiceClient?.Dispose();
-            }
         }
     }
 

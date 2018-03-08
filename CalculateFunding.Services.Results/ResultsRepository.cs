@@ -9,7 +9,7 @@ using CalculateFunding.Services.Results.Interfaces;
 
 namespace CalculateFunding.Services.Results
 {
-    public class ResultsRepository : IResultsRepository, IDisposable
+    public class ResultsRepository : IResultsRepository
     {
         private readonly CosmosRepository _cosmosRepository;
 
@@ -43,18 +43,5 @@ namespace CalculateFunding.Services.Results
 	    {
             return _cosmosRepository.BulkUpdateAsync(results, "usp_update_provider_results");
 	    }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _cosmosRepository?.Dispose();
-            }
-        }
     }
 }

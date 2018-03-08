@@ -5,7 +5,6 @@ using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using CalculateFunding.Functions.Common;
 using FluentValidation;
 using CalculateFunding.Services.Specs.Validators;
 using CalculateFunding.Models.Specs;
@@ -15,6 +14,7 @@ using CalculateFunding.Services.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Services.Validators;
+using CalculateFunding.Repositories.Common.Cosmos;
 
 namespace CalculateFunding.Functions.Specs
 {
@@ -31,7 +31,22 @@ namespace CalculateFunding.Functions.Specs
 
         static public void RegisterComponents(IServiceCollection builder)
         {
+            IConfigurationRoot config = ConfigHelper.AddConfig();
+
             builder.AddScoped<ISpecificationsRepository, SpecificationsRepository>();
+            builder.AddScoped<ISpecificationsRepository, SpecificationsRepository>((ctx) =>
+            {
+                CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", resultsDbSettings);
+
+                resultsDbSettings.CollectionName = "specs";
+
+                CosmosRepository resultsCosmosRepostory = new CosmosRepository(resultsDbSettings);
+
+                return new SpecificationsRepository(resultsCosmosRepostory);
+            });
+
             builder.AddScoped<ISpecificationsService, SpecificationsService>();
             builder.AddScoped<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
             builder.AddScoped<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
@@ -43,9 +58,7 @@ namespace CalculateFunding.Functions.Specs
 
             builder.AddSingleton(mappingConfig.CreateMapper());
 
-            IConfigurationRoot config = Services.Core.Extensions.ConfigHelper.AddConfig();
-
-            builder.AddCosmosDb(config);
+            //builder.AddCosmosDb(config);
 
             builder.AddEventHub(config);
 

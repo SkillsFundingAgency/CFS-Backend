@@ -88,7 +88,7 @@ namespace CalculateFunding.Functions.Datasets
 
             builder.AddInterServiceClient(config);
 
-            builder.AddCosmosDb(config);
+           // builder.AddCosmosDb(config);
 
             builder.AddSearch(config);
 

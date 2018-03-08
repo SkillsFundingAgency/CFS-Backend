@@ -78,7 +78,7 @@ namespace CalculateFunding.Functions.Calcs
 
             IConfigurationRoot config = Services.Core.Extensions.ConfigHelper.AddConfig();
 
-            builder.AddCosmosDb(config);
+            //builder.AddCosmosDb(config);
 
             builder.AddSearch(config);
 
