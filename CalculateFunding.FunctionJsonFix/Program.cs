@@ -17,7 +17,7 @@ namespace CalculateFunding.FunctionJsonFix
                 var contents = File.ReadAllText(file);
                 if (contents.Contains("\"path\""))
                 {
-                    File.WriteAllText(file, contents.Replace("\"path\"", "\"eventHubName\""));
+                    File.WriteAllText(file, contents.Replace("\"path\"", "\"eventHubName\"").Replace("\"generatedBy\": \"Microsoft.NET.Sdk.Functions.Generator-1.0.6\",", ""));
                     Console.WriteLine($"Updated {file}");
                 }
             }
