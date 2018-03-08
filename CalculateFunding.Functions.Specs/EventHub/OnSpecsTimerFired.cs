@@ -10,9 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Functions.Specs.EventHub
 {
-    public static class OnAddRelatioshipEventFired
+    public static class OnAddRelatioshipEvent
     {
-        [FunctionName("on-add-relationship-event-fired")]
+        [FunctionName("on-add-relationship-event")]
         public static async Task Run([EventHubTrigger("spec-events-add-definition-relationship", Connection = "EventHubSettings:EventHubConnectionString")] EventData[] eventHubMessages)
         {
             using (var scope = IocConfig.Build().CreateScope())

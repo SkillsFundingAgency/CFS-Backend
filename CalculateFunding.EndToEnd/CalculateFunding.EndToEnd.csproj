@@ -14,7 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Bootstrapper\CalculateFunding.Bootstrapper.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Calcs\CalculateFunding.Functions.Calcs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Common\CalculateFunding.Functions.Common.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Datasets\CalculateFunding.Functions.Datasets.csproj" />

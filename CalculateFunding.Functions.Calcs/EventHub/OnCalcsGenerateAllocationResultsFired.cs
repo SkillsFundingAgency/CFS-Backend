@@ -10,10 +10,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Functions.Calcs.EventHub
 {
-    public static class OnCalcsGenerateAllocationResultsFired
+    public static class OnCalcsGenerateAllocationResults
     {
-        [FunctionName("on-calcs-generate-allocations-fired")]
-        public static async Task Run([EventHubTrigger("calc-events-generate-allocations", Connection = "EventHubSettings:EventHubConnectionString")] EventData[] eventHubMessages)
+        [FunctionName("on-calcs-generate-allocations-event")]
+        public static async Task Run([EventHubTrigger("calc-events-generate-allocations-results", Connection = "EventHubSettings:EventHubConnectionString")] EventData[] eventHubMessages)
         {
             using (var scope = IocConfig.Build().CreateScope())
             {

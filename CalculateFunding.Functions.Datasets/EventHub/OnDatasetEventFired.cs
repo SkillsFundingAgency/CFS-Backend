@@ -10,9 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Functions.Datasets.EventHub
 {
-    public static class OnDatasetEventFired
+    public static class OnDatasetEvent
     {
-        [FunctionName("on-dataset-event-fired")]
+        [FunctionName("on-dataset-event")]
         public static async Task Run([EventHubTrigger("dataset-events-datasets", Connection = "EventHubSettings:EventHubConnectionString")] EventData[] eventHubMessages)
         {
             using (var scope = IocConfig.Build().CreateScope())

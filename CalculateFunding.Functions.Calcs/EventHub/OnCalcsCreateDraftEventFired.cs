@@ -10,9 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Functions.Calcs.EventHub
 {
-    public static class OnCalcsCreateDraftFired
+    public static class OnCalcsCreateDraftEvent
     {
-        [FunctionName("on-calcs-create-draft-fired")]
+        [FunctionName("on-calcs-create-draft-event")]
         public static async Task Run([EventHubTrigger("calc-events-create-draft", Connection = "EventHubSettings:EventHubConnectionString")] EventData[] eventHubMessages)
         {
             using (var scope = IocConfig.Build().CreateScope())
