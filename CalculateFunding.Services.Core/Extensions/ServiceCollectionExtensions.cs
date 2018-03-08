@@ -5,7 +5,6 @@ using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Proxies;
@@ -23,6 +22,8 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Services.Core.EventHub;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
 
 namespace CalculateFunding.Services.Core.Extensions
 {

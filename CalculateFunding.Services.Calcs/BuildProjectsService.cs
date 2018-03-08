@@ -8,9 +8,7 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
-using Microsoft.Azure.ServiceBus;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -19,6 +17,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
 using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Calcs

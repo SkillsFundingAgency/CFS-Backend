@@ -2,14 +2,12 @@
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.Azure.EventHubs;
-using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 
-
-namespace CalculateFunding.Services.Core
+namespace CalculateFunding.Services.Core.EventHub
 {
     public class MessengerService : IMessengerService
     {

@@ -4,7 +4,6 @@
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "AzureWebJobsDashboard": "UseDevelopmentStorage=true",
     "CosmosDBDatabaseName": "calculate-funding",
-    "CosmosDBCollectionName": "results",
-    "ServiceBusTopicName": "result-events"
+    "CosmosDBCollectionName": "results"
   }
 }

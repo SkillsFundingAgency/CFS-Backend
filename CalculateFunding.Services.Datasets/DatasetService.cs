@@ -3,7 +3,6 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
@@ -21,10 +20,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.Azure.EventHubs;
-using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Datasets
 {

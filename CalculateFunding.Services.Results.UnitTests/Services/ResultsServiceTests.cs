@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
@@ -17,6 +16,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
 
 namespace CalculateFunding.Services.Results.Services
 {

@@ -4,15 +4,12 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.Core.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Search.Models;
-using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
 using System;
@@ -24,9 +21,9 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Models.Calcs.Messages;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
 using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Calcs

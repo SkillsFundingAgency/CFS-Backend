@@ -12,15 +12,14 @@ using System.Net;
 using FluentValidation;
 using CalculateFunding.Services.Core.Extensions;
 using Serilog;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using System;
 using CalculateFunding.Repositories.Common.Search;
-using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
 using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Specs

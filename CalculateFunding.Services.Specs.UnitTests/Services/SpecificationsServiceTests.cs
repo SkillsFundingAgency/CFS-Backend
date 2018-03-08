@@ -19,7 +19,6 @@ using System.Linq.Expressions;
 using System.Linq;
 using Newtonsoft.Json;
 using System.IO;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Models;
 using System.Net;
@@ -27,9 +26,9 @@ using System.Security.Claims;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Services.Validators;
-using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
 using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Specs.Services
@@ -47,7 +46,6 @@ namespace CalculateFunding.Services.Specs.Services
         const string CalculationName = "Test Calc 001";
         const string Username = "test-user";
         const string UserId = "33d7a71b-f570-4425-801b-250b9129f3d3";
-        const string CalcsServiceBusTopicName = "cals-topic";
         const string SfaCorrelationId = "c625c3f9-6ce8-4f1f-a3a3-4611f1dc3881";
         const string RelationshipId = "cca8ccb3-eb8e-4658-8b3f-f1e4c3a8f419";
 

@@ -3,10 +3,8 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calculator.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using FluentAssertions;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
@@ -15,6 +13,7 @@ using System;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
 using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Calcs.Services

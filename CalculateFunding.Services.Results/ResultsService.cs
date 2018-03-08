@@ -13,7 +13,7 @@ using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;

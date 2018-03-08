@@ -4,7 +4,6 @@ using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
@@ -26,6 +25,7 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
 
 namespace CalculateFunding.Services.Datasets.Services
 {

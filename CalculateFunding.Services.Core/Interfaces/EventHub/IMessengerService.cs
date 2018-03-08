@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Core.Interfaces.ServiceBus
+namespace CalculateFunding.Services.Core.Interfaces.EventHub
 {
     public interface IMessengerService
     {

@@ -1,9 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.EventHubs;
-using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Results.Interfaces
 {

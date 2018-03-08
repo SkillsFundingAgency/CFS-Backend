@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;

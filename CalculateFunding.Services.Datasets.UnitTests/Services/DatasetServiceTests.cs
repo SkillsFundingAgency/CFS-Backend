@@ -3,7 +3,6 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
@@ -27,6 +26,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Interfaces.EventHub;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
