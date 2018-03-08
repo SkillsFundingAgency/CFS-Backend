@@ -25,19 +25,7 @@ namespace CalculateFunding.Functions.Results
         {
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            builder.AddScoped<IResultsRepository, ResultsRepository>((ctx) =>
-            {
-                CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
-
-                config.Bind("CosmosDbSettings", resultsDbSettings);
-
-                resultsDbSettings.CollectionName = "results";
-
-                CosmosRepository resultsCosmosRepostory = new CosmosRepository(resultsDbSettings);
-
-                return new ResultsRepository(resultsCosmosRepostory);
-            });
-
+            builder.AddScoped<IResultsRepository, ResultsRepository>();
             builder.AddScoped<IResultsService, ResultsService>();
 	        builder.AddScoped<IResultsSearchService, ResultsSearchService>();
 			MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
@@ -46,7 +34,7 @@ namespace CalculateFunding.Functions.Results
 
             builder.AddInterServiceClient(config);
 
-            //builder.AddCosmosDb(config);
+            builder.AddCosmosDb(config);
 
             builder.AddSearch(config);
 

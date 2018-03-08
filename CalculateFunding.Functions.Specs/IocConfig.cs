@@ -34,19 +34,6 @@ namespace CalculateFunding.Functions.Specs
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
             builder.AddScoped<ISpecificationsRepository, SpecificationsRepository>();
-            builder.AddScoped<ISpecificationsRepository, SpecificationsRepository>((ctx) =>
-            {
-                CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
-
-                config.Bind("CosmosDbSettings", resultsDbSettings);
-
-                resultsDbSettings.CollectionName = "specs";
-
-                CosmosRepository resultsCosmosRepostory = new CosmosRepository(resultsDbSettings);
-
-                return new SpecificationsRepository(resultsCosmosRepostory);
-            });
-
             builder.AddScoped<ISpecificationsService, SpecificationsService>();
             builder.AddScoped<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
             builder.AddScoped<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
@@ -58,7 +45,7 @@ namespace CalculateFunding.Functions.Specs
 
             builder.AddSingleton(mappingConfig.CreateMapper());
 
-            //builder.AddCosmosDb(config);
+            builder.AddCosmosDb(config);
 
             builder.AddEventHub(config);
 

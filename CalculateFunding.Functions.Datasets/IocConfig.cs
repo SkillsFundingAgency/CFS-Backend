@@ -61,18 +61,7 @@ namespace CalculateFunding.Functions.Datasets
                     return new BlobClient(storageSettings);
                 });
 
-            builder.AddScoped<IDatasetRepository, DataSetsRepository>((ctx) =>
-            {
-                CosmosDbSettings datasetsDbSettings = new CosmosDbSettings();
-
-                config.Bind("CosmosDbSettings", datasetsDbSettings);
-
-                datasetsDbSettings.CollectionName = "datasets";
-
-                CosmosRepository datasetsCosmosRepostory = new CosmosRepository(datasetsDbSettings);
-
-                return new DataSetsRepository(datasetsCosmosRepostory);
-            });
+            builder.AddScoped<IDatasetRepository, DataSetsRepository>();
 
             builder.AddScoped<IDatasetSearchService, DatasetSearchService>();
 
@@ -88,7 +77,7 @@ namespace CalculateFunding.Functions.Datasets
 
             builder.AddInterServiceClient(config);
 
-           // builder.AddCosmosDb(config);
+            builder.AddCosmosDb(config);
 
             builder.AddSearch(config);
 
