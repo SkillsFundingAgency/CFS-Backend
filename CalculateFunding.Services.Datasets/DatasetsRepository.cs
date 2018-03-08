@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets
 {
-    public class DataSetsRepository : IDatasetRepository
+    public class DataSetsRepository : IDatasetRepository, IDisposable
     {
         private readonly CosmosRepository _cosmosRepository;
 
@@ -97,6 +97,19 @@ namespace CalculateFunding.Services.Datasets
             var relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Id == relationshipId);
 
             return relationships.FirstOrDefault();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _cosmosRepository?.Dispose();
+            }
         }
     }
 }

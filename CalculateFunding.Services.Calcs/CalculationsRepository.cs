@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class CalculationsRepository : ICalculationsRepository
+    public class CalculationsRepository : ICalculationsRepository, IDisposable
     {
         private readonly CosmosRepository _cosmosRepository;
 
@@ -71,6 +71,19 @@ namespace CalculateFunding.Services.Calcs
         public Task<HttpStatusCode> UpdateCalculation(Calculation calculation)
         {
             return _cosmosRepository.UpdateAsync(calculation);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _cosmosRepository?.Dispose();
+            }
         }
     }
 }

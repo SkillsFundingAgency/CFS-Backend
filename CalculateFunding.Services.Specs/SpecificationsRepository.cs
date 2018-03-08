@@ -11,7 +11,7 @@ using System.Net;
 
 namespace CalculateFunding.Services.Specs
 {
-    public class SpecificationsRepository : ISpecificationsRepository
+    public class SpecificationsRepository : ISpecificationsRepository, IDisposable
     {
         CosmosRepository _repository;
 
@@ -289,6 +289,19 @@ namespace CalculateFunding.Services.Specs
                 return null;
 
             return specification.GetPolicy(policyId);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _repository?.Dispose();
+            }
         }
     }
 }
