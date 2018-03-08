@@ -253,7 +253,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
             builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
 
-            builder.AddScoped<Serilog.ILogger>(l => new LoggerConfiguration().WriteTo.Console().CreateLogger());
+            builder.AddScoped<ILogger>(l => new LoggerConfiguration().WriteTo.Console().CreateLogger());
+
+            builder.AddCaching(config);
         }
     }
 }

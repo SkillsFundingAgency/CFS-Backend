@@ -24,6 +24,8 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -56,6 +58,20 @@ namespace CalculateFunding.Services.Core.Extensions
 
             builder
                 .AddScoped<IHttpClient, HttpClientProxy>();
+
+            return builder;
+        }
+
+        public static IServiceCollection AddCaching(this IServiceCollection builder, IConfigurationRoot config)
+        {
+            RedisSettings redisSettings = new RedisSettings();
+
+            config.Bind("redisSettings", redisSettings);
+
+            builder.AddSingleton<RedisSettings>(redisSettings);
+
+            builder
+                .AddScoped<ICacheProvider, StackExchangeRedisClientCacheProvider>();
 
             return builder;
         }
