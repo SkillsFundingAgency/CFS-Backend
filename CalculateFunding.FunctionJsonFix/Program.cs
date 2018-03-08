@@ -6,6 +6,11 @@ namespace CalculateFunding.FunctionJsonFix
 {
     class Program
     {
+        public static string Extra = @"
+       ""type"": ""eventHubTrigger"",
+      ""direction"": ""in"",
+      ""consumerGroup"": ""$Default"", 
+";
         static int Main(string[] args)
         {
             if (args == null || !args.Any())
@@ -17,7 +22,10 @@ namespace CalculateFunding.FunctionJsonFix
                 var contents = File.ReadAllText(file);
                 if (contents.Contains("\"path\""))
                 {
-                    File.WriteAllText(file, contents.Replace("\"path\"", "\"eventHubName\"").Replace("\"generatedBy\": \"Microsoft.NET.Sdk.Functions.Generator-1.0.6\",", ""));
+                    File.WriteAllText(file, contents
+                        .Replace("\"path\"", "\"eventHubName\"")
+                        .Replace("\"generatedBy\": \"Microsoft.NET.Sdk.Functions.Generator-1.0.6\",", "")
+                    .Replace("\"type\": \"eventHubTrigger\",", Extra));
                     Console.WriteLine($"Updated {file}");
                 }
             }
