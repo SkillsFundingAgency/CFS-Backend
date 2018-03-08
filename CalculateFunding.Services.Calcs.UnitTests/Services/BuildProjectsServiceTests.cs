@@ -15,6 +15,7 @@ using System;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -28,7 +29,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public void GenerateAllocations_GivenNullPayload_ThrowsArgumentNullException()
         {
             //Arrange
-            Message message = new Message();
+            EventData message = new EventData(new byte[0]);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
@@ -44,7 +45,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public void GenerateAllocations_GivenPayloadButNullOrEmptySpecificationId_ThrowsArgumentNullException()
         {
             //Arrange
-            Message message = CreateMessage("");
+            EventData message = CreateMessage("");
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
@@ -60,7 +61,7 @@ namespace CalculateFunding.Services.Calcs.Services
         async public Task GenerateAllocations_GivenBuildProjectCouldNotBeFound_LogsAndReturns()
         {
             //Arrange
-            Message message = CreateMessage();
+            EventData message = CreateMessage();
 
             ILogger logger = CreateLogger();
 
@@ -91,7 +92,7 @@ namespace CalculateFunding.Services.Calcs.Services
         async public Task GenerateAllocations_GivenBuildProjectFoundButNoBuild_LogsAndReturns()
         {
             //Arrange
-            Message message = CreateMessage();
+            EventData message = CreateMessage();
 
             ILogger logger = CreateLogger();
 
@@ -131,7 +132,7 @@ namespace CalculateFunding.Services.Calcs.Services
         async public Task GenerateAllocations_GivenBuildProjectFoundButNoBuildAssembly_LogsAndReturns()
         {
             //Arrange
-            Message message = CreateMessage();
+            EventData message = CreateMessage();
 
             ILogger logger = CreateLogger();
 
@@ -172,7 +173,7 @@ namespace CalculateFunding.Services.Calcs.Services
         async public Task GenerateAllocations_GivenBuildProjectFoundButSpecificationNotFound_LogsAndReturns()
         {
             //Arrange
-            Message message = CreateMessage();
+            EventData message = CreateMessage();
 
             ILogger logger = CreateLogger();
 
@@ -216,7 +217,7 @@ namespace CalculateFunding.Services.Calcs.Services
         async public Task GenerateAllocations_GivenBuildProjectAndSpecButFailsToUpdateBuildProject_LogsAndReturns()
         {
             //Arrange
-            Message message = CreateMessage();
+            EventData message = CreateMessage();
 
             ILogger logger = CreateLogger();
 
@@ -262,25 +263,22 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         static BuildProjectsService CreateBuildProjectsService(IBuildProjectsRepository buildProjectsRepository = null, IMessengerService messengerService = null,
-            ServiceBusSettings serviceBusSettings = null, ILogger logger = null, ICalculationEngine calculationEngine = null,
+            EventHubSettings EventHubSettings = null, ILogger logger = null, ICalculationEngine calculationEngine = null,
             IProviderResultsRepository providerResultsRepository = null, ISpecificationRepository specificationsRepository = null)
         {
             return new BuildProjectsService(buildProjectsRepository ?? CreateBuildProjectsRepository(), messengerService ?? CreateMessengerService(),
-                serviceBusSettings ?? CreateServiceBusSettings(), logger ?? CreateLogger(), calculationEngine ?? CreateCalculationEngine(),
+                EventHubSettings ?? CreateEventHubSettings(), logger ?? CreateLogger(), calculationEngine ?? CreateCalculationEngine(),
                 providerResultsRepository ?? CreateProviderResultsRepository(), specificationsRepository ?? CreateSpecificationRepository());
         }
 
-        static Message CreateMessage(string specificationId = SpecificationId)
+        static EventData CreateMessage(string specificationId = SpecificationId)
         {
-            Message message = new Message();
 
             dynamic anyObject = new { specificationId };
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            message.Body = Encoding.UTF8.GetBytes(json);
-
-            return message;
+            return new EventData(Encoding.UTF8.GetBytes(json));
         }
 
         static ILogger CreateLogger()
@@ -293,11 +291,10 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<IMessengerService>();
         }
 
-        static ServiceBusSettings CreateServiceBusSettings()
+        static EventHubSettings CreateEventHubSettings()
         {
-            return new ServiceBusSettings
+            return new EventHubSettings
             {
-                CalcsServiceBusTopicName = "calcs-events"
             };
         }
 

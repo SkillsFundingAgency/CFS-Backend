@@ -27,6 +27,7 @@ using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Models.Calcs.Messages;
+using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -40,14 +41,14 @@ namespace CalculateFunding.Services.Calcs
 	    private readonly ICompilerFactory _compilerFactory;
 	    private readonly ISourceFileGenerator _sourceFileGenerator;
         private readonly IMessengerService _messengerService;
-        private readonly ServiceBusSettings _serviceBusSettings;
+        private readonly EventHubSettings _eventHubSettings;
 
         const string generateAllocationsSubscription = "calc-events-instruct-generate-allocations";
        
         public CalculationService(ICalculationsRepository calculationsRepository, ILogger logger,
             ISearchRepository<CalculationIndex> searchRepository, IValidator<Calculation> calculationValidator,
             IBuildProjectsRepository buildProjectsRepository, ISourceFileGeneratorProvider sourceFileGeneratorProvider, 
-            ICompilerFactory compilerFactory, IMessengerService messengerService, ServiceBusSettings serviceBusSettings)
+            ICompilerFactory compilerFactory, IMessengerService messengerService, EventHubSettings eventHubSettings)
         {
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -57,7 +58,7 @@ namespace CalculateFunding.Services.Calcs
 	        _compilerFactory = compilerFactory;
 	        _sourceFileGenerator = sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
             _messengerService = messengerService;
-            _serviceBusSettings = serviceBusSettings;
+            _eventHubSettings = eventHubSettings;
         }
 
 	    Build Compile(BuildProject buildProject)
@@ -182,7 +183,7 @@ namespace CalculateFunding.Services.Calcs
             return new NotFoundResult();
         }
 
-        async public Task CreateCalculation(Message message)
+        async public Task CreateCalculation(EventData message)
         {
             Reference user = message.GetUserDetails();
 
@@ -460,7 +461,7 @@ namespace CalculateFunding.Services.Calcs
         {
             IDictionary<string, string> properties = CreateMessageProperties(request);
 
-            return _messengerService.SendAsync(_serviceBusSettings.CalcsServiceBusTopicName, generateAllocationsSubscription,
+            return _messengerService.SendAsync(generateAllocationsSubscription,
                 new InstructGenerateAllocationsMessage { SpecificationId = specificationId },
                 properties);
         }

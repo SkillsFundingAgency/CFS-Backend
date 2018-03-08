@@ -50,7 +50,7 @@ namespace CalculateFunding.Functions.Results
 
             builder.AddSearch(config);
 
-            builder.AddServiceBus(config);
+            builder.AddEventHub(config);
 
             builder.AddLogging(config, "CalculateFunding.Functions.Results");
         }

@@ -30,6 +30,7 @@ using CalculateFunding.Services.Validators;
 using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Repositories.Common.Cosmos;
+using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -1080,7 +1081,7 @@ namespace CalculateFunding.Services.Specs.Services
             await 
                 messengerService
                     .Received(1)
-                    .SendAsync(Arg.Is(CalcsServiceBusTopicName), Arg.Is("calc-events-create-draft"), 
+                    .SendAsync(Arg.Is("calc-events-create-draft"), 
                         Arg.Is<Models.Calcs.Calculation>(m => 
                             m.CalculationSpecification.Id == calculation.Id &&
                             m.CalculationSpecification.Name == calculation.Name &&
@@ -1202,7 +1203,7 @@ namespace CalculateFunding.Services.Specs.Services
             await
                 messengerService
                     .Received(1)
-                    .SendAsync(Arg.Is(CalcsServiceBusTopicName), Arg.Is("calc-events-create-draft"),
+                    .SendAsync(Arg.Is("calc-events-create-draft"),
                         Arg.Is<Models.Calcs.Calculation>(m =>
                             m.CalculationSpecification.Id == calculation.Id &&
                             m.CalculationSpecification.Name == calculation.Name &&
@@ -1351,7 +1352,7 @@ namespace CalculateFunding.Services.Specs.Services
         public void AssignDataDefinitionRelationship_GivenMessageWithNullRealtionshipObject_ThrowsArgumentNullException()
         {
             //Arrange
-            Message message = new Message();
+            EventData message = new EventData(new byte[0]);
 
             ILogger logger = CreateLogger();
 
@@ -1373,13 +1374,13 @@ namespace CalculateFunding.Services.Specs.Services
         public void AssignDataDefinitionRelationship_GivenMessageWithObjectButDoesntValidate_ThrowsInvalidModelException()
         {
             //Arrange
-            Message message = new Message();
-
             dynamic anyObject = new { something = 1 };
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            message.Body = Encoding.UTF8.GetBytes(json);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+
 
             ValidationResult validationResult = new ValidationResult(new[]{
                     new ValidationFailure("prop1", "any error")
@@ -1401,13 +1402,12 @@ namespace CalculateFunding.Services.Specs.Services
         public void AssignDataDefinitionRelationship_GivenValidMessageButUnableToFindSpecification_ThrowsInvalidModelException()
         {
             //Arrange
-            Message message = new Message();
 
             dynamic anyObject = new { specificationId = SpecificationId, relationshipId = RelationshipId };
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            message.Body = Encoding.UTF8.GetBytes(json);
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
@@ -1428,13 +1428,11 @@ namespace CalculateFunding.Services.Specs.Services
         public void AssignDataDefinitionRelationship_GivenFailedToUpdateSpecification_ThrowsException()
         {
             //Arrange
-            Message message = new Message();
-
             dynamic anyObject = new { specificationId = SpecificationId, relationshipId = RelationshipId };
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            message.Body = Encoding.UTF8.GetBytes(json);
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
 
             Specification specification = new Specification();
 
@@ -1467,13 +1465,11 @@ namespace CalculateFunding.Services.Specs.Services
         public void AssignDataDefinitionRelationship_GivenFailedToUpdateSearch_ThrowsFailedToIndexSearchException()
         {
             //Arrange
-            Message message = new Message();
-
             dynamic anyObject = new { specificationId = SpecificationId, relationshipId = RelationshipId };
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            message.Body = Encoding.UTF8.GetBytes(json);
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
 
             Specification specification = new Specification
             {
@@ -1513,13 +1509,11 @@ namespace CalculateFunding.Services.Specs.Services
         public async Task AssignDataDefinitionRelationship_GivenUpdatedCosmosAndSearch_LogsSuccess()
         {
             //Arrange
-            Message message = new Message();
-
             dynamic anyObject = new { specificationId = SpecificationId, relationshipId = RelationshipId };
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            message.Body = Encoding.UTF8.GetBytes(json);
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
 
             Specification specification = new Specification
             {
@@ -1771,12 +1765,12 @@ namespace CalculateFunding.Services.Specs.Services
         static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null, 
             ILogger logs = null, IValidator<PolicyCreateModel> policyCreateModelValidator = null,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null, IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
-            IMessengerService messengerService = null, ServiceBusSettings serviceBusSettings = null, ISearchRepository<SpecificationIndex> searchRepository = null,
+            IMessengerService messengerService = null, EventHubSettings EventHubSettings = null, ISearchRepository<SpecificationIndex> searchRepository = null,
             IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(), specifcationsRepository ?? CreateSpecificationsRepository(), logs ?? CreateLogger(), policyCreateModelValidator ?? CreatePolicyValidator(),
                 specificationCreateModelvalidator ?? CreateSpecificationValidator(), calculationCreateModelValidator ?? CreateCalculationValidator(), messengerService ?? CreateMessengerService(),
-                serviceBusSettings ?? CreateServiceBusSettings(), searchRepository ?? CreateSearchRepository(), assignDefinitionRelationshipMessageValidator ?? CreateAssignDefinitionRelationshipMessageValidator());
+                EventHubSettings ?? CreateEventHubSettings(), searchRepository ?? CreateSearchRepository(), assignDefinitionRelationshipMessageValidator ?? CreateAssignDefinitionRelationshipMessageValidator());
         }
 
         static IMapper CreateMapper()
@@ -1799,11 +1793,10 @@ namespace CalculateFunding.Services.Specs.Services
             return Substitute.For<ILogger>();
         }
 
-        static ServiceBusSettings CreateServiceBusSettings()
+        static EventHubSettings CreateEventHubSettings()
         {
-            return new ServiceBusSettings
+            return new EventHubSettings
             {
-                CalcsServiceBusTopicName = CalcsServiceBusTopicName
             };
         }
 

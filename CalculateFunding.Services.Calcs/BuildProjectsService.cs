@@ -19,6 +19,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -32,19 +33,19 @@ namespace CalculateFunding.Services.Calcs
 
         private readonly IBuildProjectsRepository _buildProjectsRepository;
         private readonly IMessengerService _messengerService;
-        private readonly ServiceBusSettings _serviceBusSettings;
+        private readonly EventHubSettings _eventHubSettings;
         private readonly ILogger _logger;
         private readonly ICalculationEngine _calculationEngine;
         private readonly IProviderResultsRepository _providerResultsRepository;
         private readonly ISpecificationRepository _specificationsRepository;
 
         public BuildProjectsService(IBuildProjectsRepository buildProjectsRepository, IMessengerService messengerService,
-            ServiceBusSettings serviceBusSettings, ILogger logger, ICalculationEngine calculationEngine, 
+            EventHubSettings eventHubSettings, ILogger logger, ICalculationEngine calculationEngine, 
             IProviderResultsRepository providerResultsRepository, ISpecificationRepository specificationsRepository)
         {
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
-            Guard.ArgumentNotNull(serviceBusSettings, nameof(serviceBusSettings));
+            Guard.ArgumentNotNull(eventHubSettings, nameof(eventHubSettings));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calculationEngine, nameof(calculationEngine));
             Guard.ArgumentNotNull(providerResultsRepository, nameof(providerResultsRepository));
@@ -52,14 +53,14 @@ namespace CalculateFunding.Services.Calcs
 
             _buildProjectsRepository = buildProjectsRepository;
             _messengerService = messengerService;
-            _serviceBusSettings = serviceBusSettings;
+            _eventHubSettings = eventHubSettings;
             _logger = logger;
             _calculationEngine = calculationEngine;
             _providerResultsRepository = providerResultsRepository;
             _specificationsRepository = specificationsRepository;
         }
 
-        public async Task UpdateAllocations(Message message)
+        public async Task UpdateAllocations(EventData message)
         {
             GenerateAllocationsResultsMessage generateAllocationsResultsMessage = message.GetPayloadAsInstanceOf<GenerateAllocationsResultsMessage>();
 
@@ -87,10 +88,10 @@ namespace CalculateFunding.Services.Calcs
 
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
-            await _messengerService.SendAsync(_serviceBusSettings.DatasetsServiceBusTopicName, UpdateCosmosResultsCollection, results, properties);
+            await _messengerService.SendAsync(UpdateCosmosResultsCollection, results, properties);
         }
 
-        public async Task GenerateAllocationsInstruction(Message message)
+        public async Task GenerateAllocationsInstruction(EventData message)
         {
             InstructGenerateAllocationsMessage generateAllocationsMessage = message.GetPayloadAsInstanceOf<InstructGenerateAllocationsMessage>();
 
@@ -219,7 +220,7 @@ namespace CalculateFunding.Services.Calcs
             return pageCount;
         }
 
-        async Task SendGenerateAllocationMessages(BuildProject buildProject, Message message)
+        async Task SendGenerateAllocationMessages(BuildProject buildProject, EventData message)
         {
             int totalCount = await GetTotalCount();
 
@@ -241,7 +242,7 @@ namespace CalculateFunding.Services.Calcs
                 {
                     IEnumerable<ProviderSummary> partitionedSummaries = providersFromSearch.Skip(partitionIndex).Take(MaxPartitionSize).ToList();
 
-                    await _messengerService.SendAsync(_serviceBusSettings.CalcsServiceBusTopicName, AllocationResultsSubscription,
+                    await _messengerService.SendAsync(AllocationResultsSubscription,
                             new GenerateAllocationsResultsMessage { ProviderSummaries = partitionedSummaries, BuildProject = buildProject },
                             properties);
                 }

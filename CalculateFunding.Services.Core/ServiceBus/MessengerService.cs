@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
+using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 
@@ -13,54 +13,90 @@ namespace CalculateFunding.Services.Core
 {
     public class MessengerService : IMessengerService
     {
-        private readonly Dictionary<string, TopicClient> _topicClients = new Dictionary<string, TopicClient>();
+        private readonly Dictionary<string, EventHubClient> _topicClients = new Dictionary<string, EventHubClient>();
         private readonly string _connectionString;
 
-        private object topicsLock = new object();
+        private object hubLock = new object();
 
-        public MessengerService(ServiceBusSettings settings)
+        public MessengerService(EventHubSettings settings)
         {
-            _connectionString = settings.ServiceBusConnectionString;
+            _connectionString = settings.EventHubConnectionString;
         }
 
-        TopicClient GetTopicClient(string topicName)
+        EventHubClient GetEventHubClient(string hubName)
         {
-            if (!_topicClients.TryGetValue(topicName, out var topicClient))
+            lock (hubLock)
             {
-                topicClient = new TopicClient(_connectionString, topicName);
-                if (!_topicClients.ContainsKey(topicName))
+                if (!_topicClients.TryGetValue(hubName, out var eventHubClient))
                 {
-                    lock (topicsLock)
+                    var connectionStringBuilder = new EventHubsConnectionStringBuilder(_connectionString)
                     {
-                        _topicClients.Add(topicName, topicClient);
+                        EntityPath = hubName
+                    };
+                    eventHubClient = EventHubClient.CreateFromConnectionString(connectionStringBuilder.ToString());
+
+                    if (!_topicClients.ContainsKey(hubName))
+                    {
+
+                        _topicClients.Add(hubName, eventHubClient);
+
                     }
                 }
+                return eventHubClient;
             }
-            return new TopicClient(_connectionString, topicName);
+
         }
 
-        public async Task SendAsync<T>(string topicName, T command)
-        {
-            var topicClient = GetTopicClient(topicName);
-            var json = JsonConvert.SerializeObject(command);
-                await topicClient.SendAsync(new Message(Encoding.UTF8.GetBytes(json)));
-        }
 
-        async public Task SendAsync<T>(string topicName, string subscriptionName, T data, IDictionary<string, string> properties)
+        async public Task SendAsync<T>(string hubName, T data, IDictionary<string, string> properties)
         {
-            var topicClient = GetTopicClient(topicName);
+            var eventHubClient = GetEventHubClient(hubName);
            
             var json = JsonConvert.SerializeObject(data);
 
-            Message message = new Message(Encoding.UTF8.GetBytes(json))
-            {
-                Label = subscriptionName
-            };
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
 
             foreach (var property in properties)
-                message.UserProperties.Add(property.Key, property.Value);
+                message.Properties.Add(property.Key, property.Value);
 
-            await RetryAgent.DoAsync(() => topicClient.SendAsync(message));
+            await RetryAgent.DoAsync(() => eventHubClient.SendAsync(message));
+        }
+
+        async public Task SendBatchAsync<T>(string hubName, IEnumerable<T> items, IDictionary<string, string> properties)
+        {
+            var eventHubClient = GetEventHubClient(hubName);
+
+            EventDataBatch batch = eventHubClient.CreateBatch();
+
+            foreach (var item in items)
+            {
+                var json = JsonConvert.SerializeObject(item);
+                EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+
+                foreach (var property in properties)
+                    message.Properties.Add(property.Key, property.Value);
+
+                if (!batch.TryAdd(message))
+                {
+                    // batch full? send batch and create a new one
+                    await RetryAgent.DoAsync(() => eventHubClient.SendAsync(batch.ToEnumerable()));
+                    batch = eventHubClient.CreateBatch();
+                    batch.TryAdd(message);
+                }
+                
+            }
+
+            if (batch.Count > 0)
+            {
+                await RetryAgent.DoAsync(() => eventHubClient.SendAsync(batch.ToEnumerable()));
+            }
+
+
+
+
+
         }
     }
+
+
 }

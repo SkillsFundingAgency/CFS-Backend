@@ -31,6 +31,7 @@ using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Models.Calcs.Messages;
 using CalculateFunding.Models.Results;
+using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -45,7 +46,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task CreateCalculation_GivenNullCalculation_LogsDoesNotSave()
         {
             //Arrange
-            Message message = new Message();
+            EventData message = new EventData(new byte[0]);
 
             ICalculationsRepository repository = CreateCalculationsRepository();
 
@@ -71,13 +72,16 @@ namespace CalculateFunding.Services.Calcs.Services
         public void CreateCalculation_GivenInvalidCalculation_LogsDoesNotSave()
         {
             //Arrange
-            Message message = new Message();
 
             dynamic anyObject = new { something = 1 };
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            message.Body = Encoding.UTF8.GetBytes(json);
+
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+
+
 
             ICalculationsRepository repository = CreateCalculationsRepository();
 
@@ -103,16 +107,17 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task CreateCalculation_GivenValidCalculation_ButFailedToSave_DoesNotUpdateSearch()
         {
             //Arrange
-            Message message = new Message();
 
             Calculation calculation = new Calculation { Id = CalculationId };
 
             string json = JsonConvert.SerializeObject(calculation);
 
-            message.Body = Encoding.UTF8.GetBytes(json);
 
-            message.UserProperties.Add("user-id", UserId);
-            message.UserProperties.Add("user-name", Username);
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+
+            message.Properties.Add("user-id", UserId);
+            message.Properties.Add("user-name", Username);
+
 
             ICalculationsRepository repository = CreateCalculationsRepository();
             repository
@@ -156,7 +161,6 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task CreateCalculation_GivenValidCalculation_AndSavesLogs()
         {
             //Arrange
-            Message message = new Message();
 
             Calculation calculation = CreateCalculation();
 
@@ -167,10 +171,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             string json = JsonConvert.SerializeObject(calculation);
 
-            message.Body = Encoding.UTF8.GetBytes(json);
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
 
-            message.UserProperties.Add("user-id", UserId);
-            message.UserProperties.Add("user-name", Username);
+            message.Properties.Add("user-id", UserId);
+            message.Properties.Add("user-name", Username);
 
             ICalculationsRepository repository = CreateCalculationsRepository();
             repository
@@ -1375,7 +1379,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 messengerService
                     .Received(1)
-                    .SendAsync(Arg.Is("calcs-events"), Arg.Is("calc-events-instruct-generate-allocations"),
+                    .SendAsync(Arg.Is("calc-events-instruct-generate-allocations"),
                         Arg.Is<InstructGenerateAllocationsMessage>(m => m.SpecificationId == specificationId),
                         Arg.Any<IDictionary<string, string>>());
         }
@@ -1563,12 +1567,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
         static CalculationService CreateCalculationService(ICalculationsRepository calculationsRepository = null, 
             ILogger logger = null, ISearchRepository<CalculationIndex> serachRepository = null, IValidator<Calculation> calcValidator = null,
-            IBuildProjectsRepository buildProjectsRepository = null, IMessengerService messengerService = null, ServiceBusSettings serviceBusSettings = null)
+            IBuildProjectsRepository buildProjectsRepository = null, IMessengerService messengerService = null, EventHubSettings EventHubSettings = null)
         {
             return new CalculationService(calculationsRepository ?? CreateCalculationsRepository(), 
                 logger ?? CreateLogger(), serachRepository ?? CreateSearchRepository(), calcValidator ?? CreateCalculationValidator(),
                 buildProjectsRepository ?? CreateBuildProjectsRepository(), CreateSourceFileGeneratorProvider(), CreateCompilerFactory(),
-                messengerService ?? CreateMessengerService(), serviceBusSettings ?? CreateServiceBusSettings());
+                messengerService ?? CreateMessengerService(), EventHubSettings ?? CreateEventHubSettings());
         }
 
         static ICalculationsRepository CreateCalculationsRepository()
@@ -1601,11 +1605,11 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<IMessengerService>();
         }
 
-        static ServiceBusSettings CreateServiceBusSettings()
+        static EventHubSettings CreateEventHubSettings()
         {
-            return new ServiceBusSettings
+            return new EventHubSettings
             {
-                CalcsServiceBusTopicName = "calcs-events"
+
             };
         }
 

@@ -47,7 +47,7 @@ namespace CalculateFunding.Functions.Specs
 
             builder.AddCosmosDb(config);
 
-            builder.AddServiceBus(config);
+            builder.AddEventHub(config);
 
             builder.AddSearch(config);
 

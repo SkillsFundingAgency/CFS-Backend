@@ -9,7 +9,6 @@ using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Proxies;
-using CalculateFunding.Services.Core.ServiceBus;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -85,19 +84,16 @@ namespace CalculateFunding.Services.Core.Extensions
 			return builder;
         }
 
-        public static IServiceCollection AddServiceBus(this IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceCollection AddEventHub(this IServiceCollection builder, IConfigurationRoot config)
         {
-            ServiceBusSettings serviceBusSettings = new ServiceBusSettings();
+            EventHubSettings eventHubSettings = new EventHubSettings();
 
-            config.Bind("ServiceBusSettings", serviceBusSettings);
+            config.Bind("EventHubSettings", eventHubSettings);
 
-            builder.AddSingleton<ServiceBusSettings>(serviceBusSettings);
+            builder.AddSingleton(eventHubSettings);
 
             builder
                 .AddScoped<IMessengerService, MessengerService>();
-
-            builder
-                .AddScoped<IMessagePumpService, MessagePumpService>();
 
             return builder;
         }

@@ -18,6 +18,7 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
@@ -32,7 +33,7 @@ namespace CalculateFunding.Services.Results
         private readonly IMapper _mapper;
         private readonly ISearchRepository<ProviderIndex> _searchRepository;
 	    private readonly IMessengerService _messengerService;
-	    private readonly ServiceBusSettings _serviceBusSettings;
+	    private readonly EventHubSettings _eventHubSettings;
 
 	    const string ProcessDatasetSubscription = "dataset-events-datasets";
 
@@ -41,14 +42,14 @@ namespace CalculateFunding.Services.Results
             IMapper mapper, 
             ISearchRepository<ProviderIndex> searchRepository,
             IMessengerService messengerService, 
-            ServiceBusSettings serviceBusSettings)
+            EventHubSettings EventHubSettings)
         {
             _logger = logger;
 	        _resultsRepository = resultsRepository;
             _mapper = mapper;
             _searchRepository = searchRepository;
 	        _messengerService = messengerService;
-	        _serviceBusSettings = serviceBusSettings;
+	        _eventHubSettings = EventHubSettings;
         }
 
 	    public Task ProcessDataset(Message message)
@@ -68,7 +69,7 @@ namespace CalculateFunding.Services.Results
 		    return properties;
 	    }
 
-	    public async Task UpdateProviderData(Message message)
+	    public async Task UpdateProviderData(EventData message)
 	    {
             IEnumerable<ProviderResult> results = message.GetPayloadAsInstanceOf<IEnumerable<ProviderResult>>();
 

@@ -21,6 +21,7 @@ using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
+using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -33,7 +34,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IValidator<SpecificationCreateModel> _specificationCreateModelvalidator;
         private readonly IValidator<CalculationCreateModel> _calculationCreateModelValidator;
         private readonly IMessengerService _messengerService;
-        private readonly ServiceBusSettings _serviceBusSettings;
+        private readonly EventHubSettings _eventHubSettings;
         private readonly ISearchRepository<SpecificationIndex> _searchRepository;
         private readonly IValidator<AssignDefinitionRelationshipMessage> _assignDefinitionRelationshipMessageValidator;
 
@@ -42,7 +43,7 @@ namespace CalculateFunding.Services.Specs
         public SpecificationsService(IMapper mapper, 
             ISpecificationsRepository specificationsRepository, ILogger logger, IValidator<PolicyCreateModel> policyCreateModelValidator,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator, IValidator<CalculationCreateModel> calculationCreateModelValidator,
-            IMessengerService messengerService, ServiceBusSettings serviceBusSettings, ISearchRepository<SpecificationIndex> searchRepository,
+            IMessengerService messengerService, EventHubSettings eventHubSettings, ISearchRepository<SpecificationIndex> searchRepository,
             IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator)
         {
             _mapper = mapper;
@@ -52,7 +53,7 @@ namespace CalculateFunding.Services.Specs
             _specificationCreateModelvalidator = specificationCreateModelvalidator;
             _calculationCreateModelValidator = calculationCreateModelValidator;
             _messengerService = messengerService;
-            _serviceBusSettings = serviceBusSettings;
+            _eventHubSettings = eventHubSettings;
             _searchRepository = searchRepository;
             _assignDefinitionRelationshipMessageValidator = assignDefinitionRelationshipMessageValidator;
         }
@@ -427,7 +428,7 @@ namespace CalculateFunding.Services.Specs
 
             IDictionary<string, string> properties = CreateMessageProperties(request);
 
-            await _messengerService.SendAsync(_serviceBusSettings.CalcsServiceBusTopicName, createDraftcalculationSubscription, 
+            await _messengerService.SendAsync(createDraftcalculationSubscription, 
                 new Models.Calcs.Calculation
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -453,7 +454,7 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(calculation);
         }
 
-        public async Task AssignDataDefinitionRelationship(Message message)
+        public async Task AssignDataDefinitionRelationship(EventData message)
         {
             AssignDefinitionRelationshipMessage relationshipMessage = message.GetPayloadAsInstanceOf<AssignDefinitionRelationshipMessage>();
 

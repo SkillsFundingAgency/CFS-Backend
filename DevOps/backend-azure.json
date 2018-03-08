@@ -628,19 +628,19 @@
               "value": "[parameters('ApiEndpoint')]"
             },
             {
-              "name": "ServiceBusSettings:ServiceBusConnectionString",
+              "name": "EventHubSettings:ServiceBusConnectionString",
               "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
             {
-              "name": "ServiceBusSettings:CalcsServiceBusTopicName",
+              "name": "EventHubSettings:CalcsServiceBusTopicName",
               "value": "calc-events"
             },
             {
-              "name": "ServiceBusSettings:SpecsServiceBusTopicName",
+              "name": "EventHubSettings:SpecsServiceBusTopicName",
               "value": "spec-events"
             },
             {
-              "name": "ServiceBusSettings:DatasetsServiceBusTopicName",
+              "name": "EventHubSettings:DatasetsServiceBusTopicName",
               "value": "dataset-events"
             },
             {
@@ -749,19 +749,19 @@
               "value": "[parameters('ApiEndpoint')]"
             },
             {
-              "name": "ServiceBusSettings:ServiceBusConnectionString",
+              "name": "EventHubSettings:ServiceBusConnectionString",
               "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
             {
-              "name": "ServiceBusSettings:CalcsServiceBusTopicName",
+              "name": "EventHubSettings:CalcsServiceBusTopicName",
               "value": "calc-events"
             },
             {
-              "name": "ServiceBusSettings:SpecsServiceBusTopicName",
+              "name": "EventHubSettings:SpecsServiceBusTopicName",
               "value": "spec-events"
             },
             {
-              "name": "ServiceBusSettings:DatasetsServiceBusTopicName",
+              "name": "EventHubSettings:DatasetsServiceBusTopicName",
               "value": "dataset-events"
             },
             {
@@ -868,19 +868,19 @@
               "value": "[parameters('ApiEndpoint')]"
             },
             {
-              "name": "ServiceBusSettings:ServiceBusConnectionString",
+              "name": "EventHubSettings:ServiceBusConnectionString",
               "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
             {
-              "name": "ServiceBusSettings:CalcsServiceBusTopicName",
+              "name": "EventHubSettings:CalcsServiceBusTopicName",
               "value": "calc-events"
             },
             {
-              "name": "ServiceBusSettings:SpecsServiceBusTopicName",
+              "name": "EventHubSettings:SpecsServiceBusTopicName",
               "value": "spec-events"
             },
             {
-              "name": "ServiceBusSettings:DatasetsServiceBusTopicName",
+              "name": "EventHubSettings:DatasetsServiceBusTopicName",
               "value": "dataset-events"
             },
             {
@@ -984,19 +984,19 @@
               "value": "[parameters('ApiEndpoint')]"
             },
             {
-              "name": "ServiceBusSettings:ServiceBusConnectionString",
+              "name": "EventHubSettings:ServiceBusConnectionString",
               "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
             {
-              "name": "ServiceBusSettings:CalcsServiceBusTopicName",
+              "name": "EventHubSettings:CalcsServiceBusTopicName",
               "value": "calc-events"
             },
             {
-              "name": "ServiceBusSettings:SpecsServiceBusTopicName",
+              "name": "EventHubSettings:SpecsServiceBusTopicName",
               "value": "spec-events"
             },
             {
-              "name": "ServiceBusSettings:DatasetsServiceBusTopicName",
+              "name": "EventHubSettings:DatasetsServiceBusTopicName",
               "value": "dataset-events"
             },
             {
@@ -1164,19 +1164,19 @@
               "value": "scenarios"
             },
             {
-              "name": "ServiceBusSettings:ServiceBusConnectionString",
+              "name": "EventHubSettings:ServiceBusConnectionString",
               "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
             {
-              "name": "ServiceBusSettings:CalcsServiceBusTopicName",
+              "name": "EventHubSettings:CalcsServiceBusTopicName",
               "value": "calc-events"
             },
             {
-              "name": "ServiceBusSettings:SpecsServiceBusTopicName",
+              "name": "EventHubSettings:SpecsServiceBusTopicName",
               "value": "spec-events"
             },
             {
-              "name": "ServiceBusSettings:DatasetsServiceBusTopicName",
+              "name": "EventHubSettings:DatasetsServiceBusTopicName",
               "value": "dataset-events"
             },
             {
