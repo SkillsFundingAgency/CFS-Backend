@@ -23,8 +23,6 @@ namespace CalculateFunding.Services.Core.Proxies
 
         private const string OcpApimSubscriptionKey = "Ocp-Apim-Subscription-Key";
 
-        private readonly ILogger _logger;
-
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings { Formatting = Formatting.Indented, ContractResolver = new CamelCasePropertyNamesContractResolver() };
         private readonly ICorrelationIdProvider _correlationIdProvider;
@@ -58,7 +56,6 @@ namespace CalculateFunding.Services.Core.Proxies
             _httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
             _httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
 
-            _logger = logger;
         }
 
         public async Task<T> GetAsync<T>(string url)
@@ -68,7 +65,7 @@ namespace CalculateFunding.Services.Core.Proxies
                 throw new ArgumentException(nameof(url));
             }
 
-            HttpResponseMessage response = await RetryAgent.DoRequestAsync(() =>  _httpClient.GetAsync(url), _logger);
+            HttpResponseMessage response = await RetryAgent.DoRequestAsync(() =>  _httpClient.GetAsync(url));
 
             if (response == null)
             {
@@ -92,9 +89,9 @@ namespace CalculateFunding.Services.Core.Proxies
             }
 
             string json = JsonConvert.SerializeObject(request, _serializerSettings);
-            _logger.Debug($"ApiClient POST: {{url}} ({typeof(TRequest).Name})", url);
+            //_logger.Debug($"ApiClient POST: {{url}} ({typeof(TRequest).Name})", url);
 
-            HttpResponseMessage response = await RetryAgent.DoRequestAsync(() => _httpClient.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")), _logger);
+            HttpResponseMessage response = await RetryAgent.DoRequestAsync(() => _httpClient.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")));
             if (response == null)
             {
                 throw new HttpRequestException($"Unable to connect to server. Url={_httpClient.BaseAddress.AbsoluteUri}{url}");
@@ -111,8 +108,8 @@ namespace CalculateFunding.Services.Core.Proxies
             }
 
             var json = JsonConvert.SerializeObject(request, _serializerSettings);
-            _logger.Debug($"ApiClient POST: {{url}} ({typeof(TRequest).Name} => {typeof(TResponse).Name})", url);
-            HttpResponseMessage response = await RetryAgent.DoRequestAsync(() => _httpClient.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")), _logger);
+           // _logger.Debug($"ApiClient POST: {{url}} ({typeof(TRequest).Name} => {typeof(TResponse).Name})", url);
+            HttpResponseMessage response = await RetryAgent.DoRequestAsync(() => _httpClient.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")));
             if (response == null)
             {
                 throw new HttpRequestException($"Unable to connect to server. Url={_httpClient.BaseAddress.AbsoluteUri}{url}");

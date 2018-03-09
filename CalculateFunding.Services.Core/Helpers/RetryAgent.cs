@@ -55,7 +55,7 @@
             throw new ApplicationException("The retry agent failed to correctly signal either success or failed.");
         }
 
-        public static async Task<HttpResponseMessage> DoRequestAsync(Func<Task<HttpResponseMessage>> func, ILogger logger, int maxRetryAttempts = 3, Func<HttpResponseMessage, bool, Task> test = null)
+        public static async Task<HttpResponseMessage> DoRequestAsync(Func<Task<HttpResponseMessage>> func, ILogger logger = null, int maxRetryAttempts = 3, Func<HttpResponseMessage, bool, Task> test = null)
         {
             var currentRetryAttempt = 0;
             HttpResponseMessage result = null;
@@ -71,7 +71,7 @@
 
                     if ((int)result.StatusCode >= 500)
                     {
-                        logger.Error($"The request failed with status: {result?.StatusCode.ToString()} with reason: {result?.ReasonPhrase}");
+                        logger?.Error($"The request failed with status: {result?.StatusCode.ToString()} with reason: {result?.ReasonPhrase}");
 
                         throw new Exception($"The request failed with status: {result?.StatusCode.ToString()} with reason: {result?.ReasonPhrase}");
                     }
@@ -80,7 +80,7 @@
                 }
                 catch
                 {
-                    logger.Error($"The request failed with status: {result?.StatusCode.ToString()} with reason: {result?.ReasonPhrase}");
+                    logger?.Error($"The request failed with status: {result?.StatusCode.ToString()} with reason: {result?.ReasonPhrase}");
 
                     if (++currentRetryAttempt == maxRetryAttempts)
                     {
@@ -89,7 +89,7 @@
                 }
             }
 
-            logger.Error("The retry agent failed to correctly signal either success or failed.");
+            logger?.Error("The retry agent failed to correctly signal either success or failed.");
 
             throw new ApplicationException("The retry agent failed to correctly signal either success or failed.");
         }

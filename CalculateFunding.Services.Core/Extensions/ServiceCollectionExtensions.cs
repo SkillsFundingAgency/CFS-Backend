@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Core.Extensions
             builder.AddSingleton<ApiOptions>(apiOptions);
 
             builder
-                .AddScoped<IApiClientProxy, ApiClientProxy>();
+                .AddSingleton<IApiClientProxy, ApiClientProxy>();
 
             builder
                 .AddScoped<IHttpClient, HttpClientProxy>();
