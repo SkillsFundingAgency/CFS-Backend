@@ -16,7 +16,7 @@ namespace CalculateFunding.Repositories.Common.Search
 
     }
 
-    public class SearchRepository<T> : ISearchRepository<T> where T : class
+    public class SearchRepository<T> : ISearchRepository<T>, IDisposable where T : class
     {
         private ISearchIndexClient _searchIndexClient;
 
@@ -160,6 +160,20 @@ namespace CalculateFunding.Repositories.Common.Search
 
             if (indexExists)
                 await _searchServiceClient.Indexes.DeleteAsync(_indexName);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _searchIndexClient?.Dispose();
+                _searchServiceClient?.Dispose();
+            }
         }
     }
 

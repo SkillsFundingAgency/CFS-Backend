@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Core.Extensions
             builder.AddSingleton<CosmosDbSettings>(cosmosDbSettings);
 
             builder
-                .AddScoped<CosmosRepository>();
+                .AddSingleton<CosmosRepository>();
 
             return builder;
         }

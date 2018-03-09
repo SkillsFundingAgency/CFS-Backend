@@ -12,7 +12,17 @@ namespace CalculateFunding.Functions.Results
 {
     static public class IocConfig
     {
-        static public IServiceProvider Build()
+        private static IServiceProvider _serviceProvider;
+
+        public static IServiceProvider Build()
+        {
+            if (_serviceProvider == null)
+                _serviceProvider = BuildServiceProvider();
+
+            return _serviceProvider;
+        }
+
+        static public IServiceProvider BuildServiceProvider()
         {
             var serviceProvider = new ServiceCollection();
 
