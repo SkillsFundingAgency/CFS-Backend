@@ -17,16 +17,25 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         private readonly string _collectionName;
         private readonly string _partitionKey;
         private readonly string _databaseName;
-        private DocumentClient _documentClient;
+        private readonly DocumentClient _documentClient;
         private readonly Uri _collectionUri;
         private ResourceResponse<DocumentCollection> _collection;
 
         public CosmosRepository(CosmosDbSettings settings)
         {
+            if (string.IsNullOrWhiteSpace(settings.CollectionName))
+                throw new ArgumentNullException(nameof(settings.CollectionName));
+
+            if (string.IsNullOrWhiteSpace(settings.ConnectionString))
+                throw new ArgumentNullException(nameof(settings.ConnectionString));
+
+            if (string.IsNullOrWhiteSpace(settings.DatabaseName))
+                throw new ArgumentNullException(nameof(settings.DatabaseName));
+
             _collectionName = settings.CollectionName;
             _partitionKey = settings.PartitionKey;
             _databaseName = settings.DatabaseName;
-            _documentClient = DocumentDbConnectionString.Parse(settings.ConnectionString); ;
+            _documentClient = DocumentDbConnectionString.Parse(settings.ConnectionString);
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_databaseName, _collectionName);
         }
 
