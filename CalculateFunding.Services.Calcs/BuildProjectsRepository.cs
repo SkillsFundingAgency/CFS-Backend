@@ -11,7 +11,7 @@ using System;
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class BuildProjectsRepository : IBuildProjectsRepository, IDisposable
+    public class BuildProjectsRepository : IBuildProjectsRepository
     {
         private readonly CosmosRepository _cosmosRepository;
 
@@ -45,19 +45,6 @@ namespace CalculateFunding.Services.Calcs
         public Task<HttpStatusCode> UpdateBuildProject(BuildProject buildProject)
         {
             return _cosmosRepository.UpdateAsync(buildProject);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _cosmosRepository?.Dispose();
-            }
         }
     }
 }
