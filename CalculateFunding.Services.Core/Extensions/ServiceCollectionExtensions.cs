@@ -71,16 +71,16 @@ namespace CalculateFunding.Services.Core.Extensions
             builder.AddSingleton<SearchRepositorySettings>(searchSettings);
 
             builder
-                .AddScoped<ISearchRepository<CalculationIndex>, SearchRepository<CalculationIndex>>();
+                .AddSingleton<ISearchRepository<CalculationIndex>, SearchRepository<CalculationIndex>>();
 
             builder
-              .AddScoped<ISearchRepository<DatasetIndex>, SearchRepository<DatasetIndex>>();
+              .AddSingleton<ISearchRepository<DatasetIndex>, SearchRepository<DatasetIndex>>();
 
             builder
-              .AddScoped<ISearchRepository<SpecificationIndex>, SearchRepository<SpecificationIndex>>();
+              .AddSingleton<ISearchRepository<SpecificationIndex>, SearchRepository<SpecificationIndex>>();
 
 	        builder
-		        .AddScoped<ISearchRepository<ProviderIndex>, SearchRepository<ProviderIndex>>();
+		        .AddSingleton<ISearchRepository<ProviderIndex>, SearchRepository<ProviderIndex>>();
 
 			return builder;
         }
