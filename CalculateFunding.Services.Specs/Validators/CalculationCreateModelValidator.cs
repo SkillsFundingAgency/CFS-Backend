@@ -20,10 +20,6 @@ namespace CalculateFunding.Services.Specs.Validators
                .NotEmpty()
                .WithMessage("Null or empty specification Id provided");
 
-            RuleFor(model => model.AllocationLineId)
-               .NotEmpty()
-               .WithMessage("You must select an allocation line");
-
             RuleFor(model => model.PolicyId)
                .NotEmpty()
                .WithMessage("You must select a policy or a sub policy");

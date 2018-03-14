@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Specs.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenEmptyAllocationLineId_ValidIsFalse()
+        public void Validate_GivenEmptyAllocationLineId_ValidIsTrue()
         {
             //Arrange
             CalculationCreateModel model = CreateModel();
@@ -59,13 +59,7 @@ namespace CalculateFunding.Services.Specs.Validators
             result
                 .IsValid
                 .Should()
-                .BeFalse();
-
-            result
-                .Errors
-                .Count
-                .Should()
-                .Be(1);
+                .BeTrue();           
         }
 
         [TestMethod]
