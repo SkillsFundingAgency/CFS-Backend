@@ -11,24 +11,18 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Calcs
+namespace CalculateFunding.Services.Datasets
 {
-    public class ProviderResultsRepository : IProviderResultsRepository
+    public class ProviderResultsRepository : Interfaces.IProviderResultsRepository
     {
         const int MaxResultsCount = 1000;
 
         const string cachedProvidersKey = "cached-providers-key";
-
-        const string getProviderResultsUrl = "results/get-provider-results-by-spec-id?specificationId=";
-
-        const string updateProviderResultsUrl = "results/update-provider-results";
-
-        const string getProvidersFromSearch = "results/providers-search";
-
-        const string getProviderSourceDatasets = "results/get-provider-source-datasets?providerId={0}&specificationId={1}";
+        const string GetProviderSourceDatasets = "results/get-provider-source-datasets?providerId={0}specificationId={1}";
+        const string UpdateProviderSourceDatset = "results/update-provider-source-dataset";
+        const string GetProvidersFromSearch = "results/providers-search";
 
         private readonly IApiClientProxy _apiClient;
-
         private readonly ICacheProvider _cacheProvider;
 
         public ProviderResultsRepository(IApiClientProxy apiClient, ICacheProvider cacheProvider)
@@ -40,24 +34,30 @@ namespace CalculateFunding.Services.Calcs
             _cacheProvider = cacheProvider;
         }
 
-        public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId)
+        public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId)
         {
+            if (string.IsNullOrWhiteSpace(providerId))
+                throw new ArgumentNullException(nameof(providerId));
+
             if (string.IsNullOrWhiteSpace(specificationId))
                 throw new ArgumentNullException(nameof(specificationId));
 
-            string url = $"{getProviderResultsUrl}{specificationId}";
+            string url = string.Format(GetProviderSourceDatasets, providerId, specificationId);
 
-            return _apiClient.GetAsync<IEnumerable<ProviderResult>>(url);
+            return _apiClient.GetAsync<IEnumerable<ProviderSourceDataset>>(url);
         }
 
-        public Task<HttpStatusCode> UpdateProviderResults(IEnumerable<ProviderResult> providerResults)
+        public Task<HttpStatusCode> UpdateProviderSourceDataset(ProviderSourceDataset providerSourceDataset)
         {
-            return _apiClient.PostAsync(updateProviderResultsUrl, providerResults);
+            if(providerSourceDataset == null)
+                throw new ArgumentNullException(nameof(providerSourceDataset));
+
+            return _apiClient.PostAsync(UpdateProviderSourceDatset, providerSourceDataset);
         }
 
         public Task<ProviderSearchResults> SearchProviders(SearchModel searchModel)
         {
-            return _apiClient.PostAsync<ProviderSearchResults, SearchModel>(getProvidersFromSearch, searchModel);
+            return _apiClient.PostAsync<ProviderSearchResults, SearchModel>(GetProvidersFromSearch, searchModel);
         }
 
         async public Task<IEnumerable<ProviderSummary>> GetAllProviderSummaries()
@@ -70,19 +70,6 @@ namespace CalculateFunding.Services.Calcs
             }
 
             return providersFromSearch;
-        }
-
-        public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId)
-        {
-            if (string.IsNullOrWhiteSpace(providerId))
-                throw new ArgumentNullException(nameof(providerId));
-
-            if (string.IsNullOrWhiteSpace(specificationId))
-                throw new ArgumentNullException(nameof(specificationId));
-
-            string url = string.Format(getProviderSourceDatasets, providerId, specificationId);
-
-            return _apiClient.GetAsync<IEnumerable<ProviderSourceDataset>>(url);
         }
 
         async Task<IEnumerable<ProviderSummary>> GetProviderSummaries(int pageNumber, int top = 50)
@@ -151,6 +138,5 @@ namespace CalculateFunding.Services.Calcs
 
             return pageCount;
         }
-
     }
 }

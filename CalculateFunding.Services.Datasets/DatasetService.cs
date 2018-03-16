@@ -22,7 +22,16 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Interfaces.EventHub;
 using CalculateFunding.Services.Core.Options;
+using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Services.DataImporter;
+using System.IO;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using Microsoft.Azure.EventHubs;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using CalculateFunding.Models.Results;
+using System.Linq.Expressions;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Calcs.Messages;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -39,14 +48,21 @@ namespace CalculateFunding.Services.Datasets
 	    private readonly IMessengerService _messengerService;
 	    private readonly EventHubSettings _eventHubSettings;
         private readonly ISpecificationsRepository _specificationsRepository;
+        private readonly IExcelDatasetReader _excelDatasetReader;
+        private readonly ICacheProvider _cacheProvider;
+        private readonly ICalcsRepository _calcsRepository;
+        private readonly IProviderResultsRepository _providerResultsRepository;
 
-        const string ProcessDatasetSubscription = "dataset-events-process-dataset";
+        const string dataset_cache_key_prefix = "ds-table-rows";
+        const string generateAllocationsSubscription = "calc-events-generate-allocations-results";
 
-		public DatasetService(IBlobClient blobClient, ILogger logger,
+        public DatasetService(IBlobClient blobClient, ILogger logger,
             IDatasetRepository datasetRepository, IValidator<CreateNewDatasetModel> createNewDatasetModelValidator,
             IMapper mapper, IValidator<DatasetMetadataModel> datasetMetadataModelValidator,
             ISearchRepository<DatasetIndex> searchRepository, IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator,
-            ISpecificationsRepository specificationsRepository, IMessengerService messengerService, EventHubSettings eventHubSettings)
+            ISpecificationsRepository specificationsRepository, IMessengerService messengerService,
+            EventHubSettings eventHubSettings, IExcelDatasetReader excelDatasetReader, ICacheProvider cacheProvider,
+            ICalcsRepository calcsRepository, IProviderResultsRepository providerResultsRepository)
         {
             _blobClient = blobClient;
             _logger = logger;
@@ -59,6 +75,10 @@ namespace CalculateFunding.Services.Datasets
 	        _messengerService = messengerService;
 	        _eventHubSettings = eventHubSettings;
             _specificationsRepository = specificationsRepository;
+            _excelDatasetReader = excelDatasetReader;
+            _cacheProvider = cacheProvider;
+            _calcsRepository = calcsRepository;
+            _providerResultsRepository = providerResultsRepository;
         }
 
         async public Task<IActionResult> CreateNewDataset(HttpRequest request)
@@ -91,6 +111,7 @@ namespace CalculateFunding.Services.Datasets
             responseModel.DatasetId = datasetId;
             responseModel.BlobUrl = blobUrl;
             responseModel.Author = request.GetUser();
+            responseModel.DefinitionId = model.DefinitionId;
 
             return new OkObjectResult(responseModel);
         }
@@ -136,24 +157,10 @@ namespace CalculateFunding.Services.Datasets
             }
 
             IEnumerable<Dataset> datasets = await _datasetRepository.GetDatasetsByQuery(m => m.Definition.Id == datasetDefinitionId.ToLower());
-            List<DatasetViewModel> result = new List<DatasetViewModel>();
-            foreach(Dataset dataset in datasets)
-            {
-                DatasetViewModel datasetVm = _mapper.Map<DatasetViewModel>(dataset);
 
-                result.Add(datasetVm);
-            }
+            IEnumerable<DatasetViewModel> result = datasets?.Select(_mapper.Map<DatasetViewModel>).ToArraySafe();
 
-            //if (!datasets.Any())
-            //{
-            //    _logger.Information($"Dataset was not found for name: {datasetDefinitionId}");
-
-            //    return new NotFoundResult();
-            //}
-
-            //_logger.Information($"Dataset found for name: {datasetDefinitionId}");
-
-            return new OkObjectResult(result);
+            return new OkObjectResult(result ?? Enumerable.Empty<DatasetViewModel>());
         }
 
         async public Task<IActionResult> ValidateDataset(HttpRequest request)
@@ -183,32 +190,134 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(412);
             }
 
-            //TODO: Validate the data set here
+            await blob.FetchAttributesAsync();
 
-            if (model.Version == 1)
+            string dataDefinitionId = blob.Metadata["dataDefinitionId"];
+
+            DatasetDefinition datasetDefinition =
+                (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == dataDefinitionId)).FirstOrDefault();
+
+            if (datasetDefinition == null)
             {
-                try
+                _logger.Error($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
+
+                return new StatusCodeResult(412);
+            }
+
+            IActionResult actionResult = await ValidateTableResults(datasetDefinition, blob);
+
+            if (actionResult is OkResult)
+            {
+                if (model.Version == 1)
                 {
-                    await SaveNewDataset(blob);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, "Failed to save the new dataset");
-                    return new StatusCodeResult(500);
+                    try
+                    {
+                        await SaveNewDataset(blob, datasetDefinition);
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.Error(exception, "Failed to save the new dataset");
+                        return new StatusCodeResult(500);
+                    }
                 }
             }
 
-            return new OkResult();
+            return actionResult;
         }
 
-	    public Task ProcessDataset(EventData message)
+	    async public Task ProcessDataset(EventData message)
 	    {
-		    throw new NotImplementedException();
-	    }
+            Guard.ArgumentNotNull(message, nameof(message));
 
-	    async public Task SaveNewDataset(ICloudBlob blob)
+            IDictionary<string, object> properties = message.Properties;
+
+            Dataset dataset = message.GetPayloadAsInstanceOf<Dataset>();
+
+            if (dataset == null)
+            {
+                _logger.Error("A null dataset was provided to ProcessData");
+
+                throw new ArgumentNullException(nameof(dataset), "A null dataset was provided to ProcessData");
+            }
+
+            if (!message.Properties.ContainsKey("specification-id"))
+            {
+                throw new KeyNotFoundException("Specification Id key is missing");
+            }
+            
+            string specificationId = message.Properties["specification-id"].ToString();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("A null or empty specification id was provided to ProcessData");
+
+                throw new ArgumentNullException(nameof(specificationId), "A null or empty specification id was provided to ProcessData");
+            }
+
+            BuildProject buildProject = null;
+
+            try
+            {
+                buildProject = await ProcessDataset(dataset, specificationId);
+            }
+            catch(Exception exception)
+            {
+                _logger.Error(exception, $"Failed to process data with exception: {exception.Message}");
+            }
+
+            if (buildProject != null)
+            {
+                IDictionary<string, string> messageProperties = message.BuildMessageProperties();
+                messageProperties.Add("specification-id", specificationId);
+
+                await _messengerService.SendAsync(generateAllocationsSubscription,
+                        buildProject, messageProperties);
+            }
+        }
+
+        async Task<IEnumerable<string>> GetProviderIdsForIdentifier(DatasetDefinition datasetDefinition, RowLoadResult row)
+        {
+            IEnumerable<FieldDefinition> identifierFields = datasetDefinition.TableDefinitions?.First().FieldDefinitions.Where(x => x.IdentifierFieldType.HasValue);
+
+            foreach(FieldDefinition field in identifierFields)
+            {
+                var identifier = row.Fields[field.Name].ToString();
+                var lookup = await GetDictionaryForIdentifierType(field.IdentifierFieldType, identifier);
+                if(lookup.TryGetValue(identifier, out List<string> providerIds))
+                {
+                    return providerIds;
+                }
+            }
+
+            return new string[0];
+        }
+
+        async Task<Dictionary<string, List<string>>> GetDictionaryForIdentifierType(IdentifierFieldType? identifierFieldType, string fieldIdentifier)
+        {
+            var identifierMaps = new Dictionary<IdentifierFieldType, Dictionary<string, List<string>>>();
+
+            if (!identifierFieldType.HasValue)
+            {
+                return new Dictionary<string, List<string>>();
+            }
+
+            Dictionary<IdentifierFieldType, Dictionary<string, List<string>>> identifiers = new Dictionary<IdentifierFieldType, Dictionary<string, List<string>>>();
+
+            IEnumerable<ProviderSummary> summaries = await _providerResultsRepository.GetAllProviderSummaries();
+
+            Func<ProviderSummary, string> identifierSelectorExpression = GetIdentifierSelectorExpression(identifierFieldType.Value);
+
+            IEnumerable<string> filteredIdentifiers = summaries.Select(identifierSelectorExpression);
+
+            identifiers.Add(identifierFieldType.Value, new Dictionary<string, List<string>> { { fieldIdentifier, filteredIdentifiers.ToList() } });
+
+            return identifiers[identifierFieldType.Value];
+        }
+
+        async Task SaveNewDataset(ICloudBlob blob, DatasetDefinition datasetDefinition)
         {
             Guard.ArgumentNotNull(blob, nameof(blob));
+            Guard.ArgumentNotNull(datasetDefinition, nameof(datasetDefinition));
 
             IDictionary<string, string> metadata = blob.Metadata;
 
@@ -225,22 +334,13 @@ namespace CalculateFunding.Services.Datasets
                 throw new Exception($"Invalid metadata on blob: {blob.Name}");
             }
 
-            Models.Datasets.Schema.DatasetDefinition datasetDefinition =
-                (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == metadataModel.DataDefinitionId)).FirstOrDefault();
-
-            if (datasetDefinition == null)
-            {
-                _logger.Error($"Unable to find a data definition for id: {metadataModel.DataDefinitionId}, for blob: {blob.Name}");
-
-                throw new Exception($"Unable to find a data definition for id: {metadataModel.DataDefinitionId}, for blob: {blob.Name}");
-            }
-
             DatasetVersion newVersion = new DatasetVersion
             {
                 Author = new Reference(metadataModel.AuthorId, metadataModel.AuthorId),
                 Version = 1,
                 Date = DateTime.UtcNow,
-                PublishStatus = PublishStatus.Draft
+                PublishStatus = PublishStatus.Draft,
+                BlobName = blob.Name
             };
 
             Dataset dataset = new Dataset
@@ -275,12 +375,7 @@ namespace CalculateFunding.Services.Datasets
 
                 throw new Exception($"Failed to save dataset for id: {metadataModel.DatasetId} in search with errors {errors}");
             }
-
-
-	        IDictionary<string, string> properties = CreateMessageProperties(metadataModel);
-
-	        await _messengerService.SendAsync(ProcessDatasetSubscription, dataset, properties);
-		}
+        }
 
         async Task<IEnumerable<IndexError>> AddNewDatasetToSearch(Dataset dataset)
         {
@@ -298,16 +393,199 @@ namespace CalculateFunding.Services.Datasets
             });
         }
 
-		// TODO - refactor to common 
-	    IDictionary<string, string> CreateMessageProperties(DatasetMetadataModel metadataModel)
-	    {
-		    IDictionary<string, string> properties = new Dictionary<string, string>();
-		    // TODO - where does correlation ID come from should it be a blob metadata property?  properties.Add("sfa-correlationId", metadataModel???);
+        Func<ProviderSummary, string> GetIdentifierSelectorExpression(IdentifierFieldType identifierFieldType)
+        {
+            if (identifierFieldType == IdentifierFieldType.URN)
+                return x => x.URN;
 
-			    properties.Add("user-id", metadataModel.AuthorId);
-			    properties.Add("user-name", metadataModel.AuthorName);
+            else if (identifierFieldType == IdentifierFieldType.Authority)
+                return x => x.Authority;
 
-		    return properties;
-	    }
-	}
+            else if (identifierFieldType == IdentifierFieldType.EstablishmentNumber)
+                return x => x.EstablishmentNumber;
+
+            else if (identifierFieldType == IdentifierFieldType.UKPRN)
+                return x => x.UKPRN;
+
+            else if (identifierFieldType == IdentifierFieldType.UPIN)
+                return x => x.UPIN;
+
+            else
+                return null;
+        }
+
+        async Task<IActionResult> ValidateTableResults(DatasetDefinition datasetDefinition, ICloudBlob blob)
+        {
+            string dataset_cache_key = $"{dataset_cache_key_prefix}-{blob.Name}-{datasetDefinition.Id}";
+
+            IEnumerable<TableLoadResult> tableLoadResults = await _cacheProvider.GetAsync<TableLoadResult[]>(dataset_cache_key);
+
+            if (tableLoadResults.IsNullOrEmpty())
+            {
+                var datasetStream = await _blobClient.DownloadToStreamAsync(blob);
+
+                if (datasetStream.Length == 0)
+                {
+                    _logger.Error($"Blob {blob.Name} contains no data");
+                    return new StatusCodeResult(412);
+                }
+
+                tableLoadResults = _excelDatasetReader.Read(datasetStream, datasetDefinition).ToList();
+            }
+
+            var validationErrors = new List<DatasetValidationError>();
+
+            foreach (var tableLoadResult in tableLoadResults)
+            {
+                if (tableLoadResult.GlobalErrors.Any())
+                {
+                    validationErrors.AddRange(tableLoadResult.GlobalErrors);
+                }
+            }
+
+            if (validationErrors.Any())
+            {
+                int errorCount = validationErrors.Count;
+
+                return new OkObjectResult(new DatasetValidationErrorResponse
+                {
+                    Message = $"The dataset failed to validate with {errorCount} {(errorCount == 1 ? "error" : "errors")}",
+                    FileUrl = "http://anyUrl"
+                });
+            }
+
+            await _cacheProvider.SetAsync(dataset_cache_key, tableLoadResults.ToArraySafe(), TimeSpan.FromDays(1), false);
+
+            return new OkResult();
+        }
+
+        async Task<BuildProject> ProcessDataset(Dataset dataset, string specificationId)
+        {
+            string dataDefinitionId = dataset.Definition.Id;
+
+            string fullBlobName = dataset.Current.BlobName;
+
+            DatasetDefinition datasetDefinition =
+                    (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == dataDefinitionId))?.FirstOrDefault();
+
+            if (datasetDefinition == null)
+            {
+                _logger.Error($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
+
+                throw new Exception($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
+            }
+
+            BuildProject buildProject = await _calcsRepository.GetBuildProjectBySpecificationId(specificationId);
+
+            if (buildProject == null)
+            {
+                _logger.Error($"Unable to find a build project for specification id: {specificationId}");
+
+                throw new Exception($"Unable to find a build project for id: {specificationId}");
+            }
+
+            TableLoadResult loadResult = await GetTableResult(fullBlobName, datasetDefinition);
+
+            if (loadResult == null)
+            {
+                _logger.Error($"Failed to load table result");
+
+                throw new Exception($"Failed to load table result");
+            }
+
+            await PersistDataset(loadResult, dataset, datasetDefinition, buildProject, specificationId);
+
+            return buildProject;
+        }
+
+        async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, string specificationId)
+        {
+            IList<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>();
+
+            if(buildProject.DatasetRelationships == null)
+            {
+                _logger.Error($"No dataset relationships found for build project with id : {buildProject.Id}");
+                throw new Exception($"No dataset relationships found for build project with id : {buildProject.Id}");
+            }
+
+            DatasetRelationshipSummary relationshipSummary = buildProject.DatasetRelationships.FirstOrDefault(m => m.DatasetDefinition.Id == datasetDefinition.Id);
+
+            if(relationshipSummary == null)
+            {
+                _logger.Error($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {datasetDefinition.Id}");
+                throw new Exception($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {datasetDefinition.Id}");
+            }
+
+            var resultsByProviderId = new Dictionary<string, ProviderSourceDataset>();
+
+            foreach (RowLoadResult row in loadResult.Rows)
+            {
+                IEnumerable<string> allProviderIds = (await GetProviderIdsForIdentifier(datasetDefinition, row));
+
+                IEnumerable<string> providerIds = allProviderIds.Where(x => x == row.Identifier).ToList();
+
+                foreach (var providerId in providerIds)
+                {
+                    if (!resultsByProviderId.TryGetValue(providerId, out var sourceDataset))
+                    {
+                        sourceDataset = new ProviderSourceDataset
+                        {
+                            DataGranularity = relationshipSummary.DataGranularity,
+                            Specification = new Reference { Id = specificationId },
+                            DefinesScope = relationshipSummary.DefinesScope,
+                            DataDefinition = new Reference(relationshipSummary.DatasetDefinition.Id, relationshipSummary.DatasetDefinition.Name),
+                            DataRelationship = new Reference(relationshipSummary.Id, relationshipSummary.Name),
+                            Id = Guid.NewGuid().ToString(),
+                            Provider = new Reference { Id = providerId },
+                            Current = new SourceDataset
+                            {
+                                Dataset = new VersionReference(dataset.Id, dataset.Name, dataset.Current.Version),
+                                Rows = new List<Dictionary<string, object>>()
+                            }
+                        };
+                        resultsByProviderId.Add(providerId, sourceDataset);
+                    }
+
+                    sourceDataset.Current.Rows.Add(row.Fields);
+                }
+            }
+
+            //need to build a stored procedure, but this is ok for now
+            foreach (ProviderSourceDataset sourceDataset in resultsByProviderId.Values)
+            {
+                await _providerResultsRepository.UpdateProviderSourceDataset(sourceDataset);
+            }
+        }
+
+        async Task<TableLoadResult> GetTableResult(string fullBlobName, DatasetDefinition datasetDefinition)
+        {
+            string dataset_cache_key = $"{dataset_cache_key_prefix}-{fullBlobName}-{datasetDefinition.Id}";
+
+            IEnumerable<TableLoadResult> tableLoadResults = await _cacheProvider.GetAsync<TableLoadResult[]>(dataset_cache_key);
+
+            if (tableLoadResults.IsNullOrEmpty())
+            {
+                ICloudBlob blob = await _blobClient.GetBlobReferenceFromServerAsync(fullBlobName);
+
+                if (blob == null)
+                {
+                    _logger.Error($"Failed to find blob with path: {fullBlobName}");
+                    throw new ArgumentException($"Failed to find blob with path: {fullBlobName}");
+                }
+
+                await blob.FetchAttributesAsync();
+                var datasetStream = await _blobClient.DownloadToStreamAsync(blob);
+
+                if (datasetStream.Length == 0)
+                {
+                    _logger.Error($"Invalid blob returned: {fullBlobName}");
+                    throw new ArgumentException($"Invalid blob returned: {fullBlobName}");
+                }
+
+                tableLoadResults = _excelDatasetReader.Read(datasetStream, datasetDefinition).ToList();
+            }
+
+            return tableLoadResults.FirstOrDefault(); 
+        }
+    }
 }

@@ -10,10 +10,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Functions.Calcs.EventHub
 {
-    public static class OnCalcsInstructAllocationResults
+    public static class CalcsAddRelationshipToBuildProject
     {
-        [FunctionName("on-calcs-instruct-allocations")]
-        public static async Task Run([EventHubTrigger("calc-events-instruct-generate-allocations", Connection = "EventHubSettings:EventHubConnectionString")] EventData[] eventHubMessages)
+        [FunctionName("calc-events-add-relationship-to-buildproject")]
+        public static async Task Run([EventHubTrigger("calc-events-add-relationship-to-buildproject", Connection = "EventHubSettings:EventHubConnectionString")] EventData[] eventHubMessages)
         {
             using (var scope = IocConfig.Build().CreateScope())
             {
@@ -26,7 +26,7 @@ namespace CalculateFunding.Functions.Calcs.EventHub
                     try
                     {
                         correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                        //await buildProjectsService.GenerateAllocationsInstruction(message);
+                        await buildProjectsService.UpdateBuildProjectRelationships(message);
                     }
                     catch (Exception exception)
                     {

@@ -28,6 +28,7 @@ namespace CalculateFunding.Functions.LocalDebugQueueProcessor
                 new ShimHost<CalcsCreateDraftEvent>(config, "calc-events-create-draft"),
                 new ShimHost<CalcsGenerateAllocationsProcessor>(config, "calc-events-generate-allocations-results"),
                 new ShimHost<CalcsInstructGenerationProcessor>(config, "calc-events-instruct-generate-allocations"),
+                new ShimHost<CalcsAddRelationshipToBuildProjectProcessor>(config, "calc-events-add-relationship-to-buildproject")
             };
 
             foreach (var host in hosts)
@@ -42,9 +43,6 @@ namespace CalculateFunding.Functions.LocalDebugQueueProcessor
             {
                 await host.Unregister();
             }
-
-
-
         }
     }
 }

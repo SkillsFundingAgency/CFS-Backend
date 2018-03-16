@@ -7,11 +7,11 @@ namespace CalculateFunding.Services.Core.Interfaces.Caching
 	{
 		Task<T> GetAsync<T>(string key);
 
-		Task SetAsync(string key, object item);
+		Task SetAsync<T>(string key, T item);
 
-		Task SetAsync(string key, object item, TimeSpan expiration, bool isSliding);
+		Task SetAsync<T>(string key, T item, TimeSpan expiration, bool isSliding);
 
-		Task SetAsync(string key, object item, DateTimeOffset absoluteExpiration);
+		Task SetAsync<T>(string key, T item, DateTimeOffset absoluteExpiration);
 
 		Task RemoveAsync<T>(string key);
 	}

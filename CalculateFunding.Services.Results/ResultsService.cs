@@ -4,15 +4,10 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
-using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.EventHub;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Results.Interfaces;
@@ -20,7 +15,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -52,32 +46,28 @@ namespace CalculateFunding.Services.Results
 	        _eventHubSettings = EventHubSettings;
         }
 
-	    public Task ProcessDataset(Message message)
-	    {
-		    throw new NotImplementedException();
-	    }
-
-		// TODO - refactor to common 
-	    IDictionary<string, string> CreateMessageProperties(DatasetMetadataModel metadataModel)
-	    {
-		    IDictionary<string, string> properties = new Dictionary<string, string>();
-		    // TODO - where does correlation ID come from should it be a blob metadata property?  properties.Add("sfa-correlationId", metadataModel???);
-
-			    properties.Add("user-id", metadataModel.AuthorId);
-			    properties.Add("user-name", metadataModel.AuthorName);
-
-		    return properties;
-	    }
-
 	    public async Task UpdateProviderData(EventData message)
 	    {
             IEnumerable<ProviderResult> results = message.GetPayloadAsInstanceOf<IEnumerable<ProviderResult>>();
 
-            HttpStatusCode statusCode = await _resultsRepository.UpdateProviderResults(results.ToList());
-
-            if (!statusCode.IsSuccess())
+            if(results == null)
             {
-                _logger.Error($"Failed to bulk update provider data with status code: {statusCode.ToString()}");
+                _logger.Error("Null results provided to UpdateProviderData");
+                throw new ArgumentNullException(nameof(results), "Null results provided to UpdateProviderData");
+            }
+
+            if (results.Any())
+            {
+                HttpStatusCode statusCode = await _resultsRepository.UpdateProviderResults(results.ToList());
+
+                if (!statusCode.IsSuccess())
+                {
+                    _logger.Error($"Failed to bulk update provider data with status code: {statusCode.ToString()}");
+                }
+            }
+            else
+            {
+                _logger.Warning("An empty list of results were provided to update");
             }
         }
 
@@ -180,15 +170,53 @@ namespace CalculateFunding.Services.Results
 		    return null;
 	    }
 
-        async public Task<IActionResult> UpdateProviderResults(HttpRequest request)
+        async public Task<IActionResult> UpdateProviderSourceDataset(HttpRequest request)
         {
             string json = await request.GetRawBodyStringAsync();
 
-            IEnumerable<ProviderResult> results = JsonConvert.DeserializeObject<IEnumerable<ProviderResult>>(json);
+            ProviderSourceDataset sourceDatset = JsonConvert.DeserializeObject<ProviderSourceDataset>(json);
 
-            await _resultsRepository.UpdateProviderResults(results.ToList());
+            if (sourceDatset == null)
+            {
+                _logger.Error("Null results source dataset was provided to UpdateProviderSourceDataset");
+                throw new ArgumentNullException(nameof(sourceDatset), "Null results source dataset was provided to UpdateProviderSourceDataset");
+            }
+
+            HttpStatusCode statusCode = await _resultsRepository.UpsertProviderSourceDataset(sourceDatset);
+
+            if(!statusCode.IsSuccess())
+            {
+                int status = (int)statusCode;
+
+                _logger.Error($"Failed to update provider source dataset with status code: {status}");
+
+                return new StatusCodeResult(status);
+            }
 
             return new NoContentResult();
+        }
+
+        public async Task<IActionResult> GetProviderSourceDatasetsByProviderIdAndSpecificationId(HttpRequest request)
+        {
+            var specificationId = GetParameter(request, "specificationId");
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to GetProviderResultsBySpecificationId");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            var providerId = GetParameter(request, "providerId");
+
+            if (string.IsNullOrWhiteSpace(providerId))
+            {
+                _logger.Error("No provider Id was provided to GetProviderResultsBySpecificationId");
+                return new BadRequestObjectResult("Null or empty provider Id provided");
+            }
+
+            IEnumerable<ProviderSourceDataset> providerResults = await _resultsRepository.GetProviderSourceDatasets(providerId, specificationId);
+
+            return new OkObjectResult(providerResults);
         }
     }
 }

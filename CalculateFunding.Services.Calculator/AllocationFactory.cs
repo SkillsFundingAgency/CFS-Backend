@@ -1,20 +1,17 @@
-﻿using System;
+﻿using CalculateFunding.Services.Calculator.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
 namespace CalculateFunding.Services.Calculator
 {
-    public class AllocationFactory
+    public class AllocationFactory : IAllocationFactory
     {
-
-        private AllocationModel AllocationModel { get; }
-        
-        public AllocationFactory(Assembly assembly)
+        public IAllocationModel CreateAllocationModel(Assembly assembly)
         {
-
             var types = assembly.GetTypes().Where(x => x.GetFields().Any(p => p.IsStatic && p.Name == "DatasetDefinitionName"));
-           var datasetTypes = new Dictionary<string, Type>();
+            var datasetTypes = new Dictionary<string, Type>();
             foreach (var type in types)
             {
                 var field = type.GetField("DatasetDefinitionName");
@@ -23,18 +20,9 @@ namespace CalculateFunding.Services.Calculator
             }
 
             var allocationType = assembly.GetTypes().FirstOrDefault(x => x.IsClass && x.BaseType.Name == "BaseCalculation");
-            AllocationModel = new AllocationModel(allocationType, datasetTypes);
+
+            return new AllocationModel(allocationType, datasetTypes);
         }
-
-
-
-
-
-        public AllocationModel CreateAllocationModel()
-        {
-            return AllocationModel;
-        }
-
 
     }
 }

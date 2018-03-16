@@ -18,12 +18,19 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Interfaces.EventHub;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets.Schema;
+using Microsoft.Azure.EventHubs;
+using System.Text;
 
 namespace CalculateFunding.Services.Datasets
 {
     public class DefinitionSpecificationRelationshipService : IDefinitionSpecificationRelationshipService
     {
         const string updateSpecificationSearchIndex = "spec-events-add-definition-relationship";
+        const string updateBuildProjectWithNewRelationship = "calc-events-add-relationship-to-buildproject";
+
+        const string processDatasetSubscription = "dataset-events-datasets";
 
         private readonly IDatasetRepository _datasetRepository;
         private readonly ILogger _logger;
@@ -31,11 +38,12 @@ namespace CalculateFunding.Services.Datasets
         private readonly IValidator<CreateDefinitionSpecificationRelationshipModel> _relationshipModelValidator;
         private readonly IMessengerService _messengerService;
         private readonly EventHubSettings _eventHubSettings;
+        private readonly IDatasetService _datasetService;
 
         public DefinitionSpecificationRelationshipService(IDatasetRepository datasetRepository, 
             ILogger logger, ISpecificationsRepository specificationsRepository, 
             IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator, 
-            IMessengerService messengerService, EventHubSettings eventHubSettings)
+            IMessengerService messengerService, EventHubSettings eventHubSettings, IDatasetService datasetService)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -49,6 +57,7 @@ namespace CalculateFunding.Services.Datasets
             _relationshipModelValidator = relationshipModelValidator;
             _messengerService = messengerService;
             _eventHubSettings = eventHubSettings;
+            _datasetService = datasetService;
         }
 
         async public Task<IActionResult> CreateRelationship(HttpRequest request)
@@ -114,6 +123,20 @@ namespace CalculateFunding.Services.Datasets
                    RelationshipId = relationshipId
                 },
                 properties);
+
+            properties.Add("specification-id", specification.Id);
+
+            await _messengerService.SendAsync(updateBuildProjectWithNewRelationship,
+               new DatasetRelationshipSummary
+               {
+                   Name = relationship.Name,
+                   Id = Guid.NewGuid().ToString(),
+                   Relationship = new Reference(relationship.Id, relationship.Name),
+                   DatasetDefinition = definition,
+                   DataGranularity = relationship.UsedInDataAggregations ? DataGranularity.MultipleRowsPerProvider : DataGranularity.SingleRowPerProvider,
+                   DefinesScope = relationship.IsSetAsProviderData
+               },
+               properties);
 
             return new OkObjectResult(relationship);
         }
@@ -232,6 +255,11 @@ namespace CalculateFunding.Services.Datasets
 
                 return new StatusCodeResult((int)statusCode);
             }
+
+            IDictionary<string, string> properties = CreateMessageProperties(request);
+            properties.Add("specification-id", relationship.Specification.Id);
+
+            await _messengerService.SendAsync(processDatasetSubscription, dataset, properties);
 
             return new NoContentResult();
         }

@@ -16,6 +16,7 @@ using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Calculator;
+using CalculateFunding.Services.DataImporter;
 
 namespace CalculateFunding.Functions.Calcs
 {
@@ -78,6 +79,9 @@ namespace CalculateFunding.Functions.Calcs
                 .AddScoped<ICalculationEngine, CalculationEngine>();
 
             builder
+             .AddScoped<IAllocationFactory, AllocationFactory>();
+
+            builder
                 .AddScoped<IProviderResultsRepository, ProviderResultsRepository>();
 
             builder
@@ -85,6 +89,9 @@ namespace CalculateFunding.Functions.Calcs
 
             builder
                 .AddScoped<IBuildProjectsService, BuildProjectsService>();
+
+            builder
+               .AddSingleton<IExcelDatasetReader, ExcelDatasetReader>();
 
             IConfigurationRoot config = Services.Core.Extensions.ConfigHelper.AddConfig();
 
@@ -95,6 +102,8 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddEventHub(config);
 
             builder.AddInterServiceClient(config);
+
+            builder.AddCaching(config);
 
             builder.AddLogging(config, "CalculateFunding.Functions.Calcs");
         }

@@ -10,6 +10,8 @@ using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Calcs.Validators;
+using CalculateFunding.Services.Calculator;
+using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
@@ -20,6 +22,7 @@ using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.Validators;
@@ -130,6 +133,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 .AddScoped<IDatasetSearchService, DatasetSearchService>();
 
             builder
+                .AddScoped<IBuildProjectsService, BuildProjectsService>();
+
+            builder
                 .AddScoped<IDefinitionSpecificationRelationshipService, DefinitionSpecificationRelationshipService>();
 
             builder
@@ -234,6 +240,29 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                 .AddScoped<IValidator<CreateDefinitionSpecificationRelationshipModel>, CreateDefinitionSpecificationRelationshipModelValidator>();
 
+            builder
+                .AddSingleton<IExcelDatasetReader, ExcelDatasetReader>();
+
+            builder
+                .AddScoped<ICalcsRepository, CalcsRepository>();
+
+            builder
+               .AddScoped<ICalculationEngine, CalculationEngine>();
+
+            builder
+              .AddScoped<IAllocationFactory, AllocationFactory>();
+
+            builder
+                .AddScoped<ISpecificationRepository, SpecificationRepository>();
+            builder
+               .AddScoped<Services.Datasets.Interfaces.IProviderResultsRepository, Services.Datasets.ProviderResultsRepository>();
+
+            builder
+              .AddScoped<Services.Calcs.Interfaces.IProviderResultsRepository, Services.Calcs.ProviderResultsRepository>();
+
+            builder
+               .AddSingleton<IExcelDatasetReader, ExcelDatasetReader>();
+
             MapperConfiguration mappingConfig = new MapperConfiguration(c => { c.AddProfile<SpecificationsMappingProfile>(); c.AddProfile<DatasetsMappingProfile>(); });
             builder
                 .AddSingleton(mappingConfig.CreateMapper());
@@ -244,7 +273,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
             builder.AddSearch(config);
 
-            builder.AddEventHub(config);
+            builder.AddHttpEventHub(config);
 
             builder.AddInterServiceClient(config);
 
@@ -252,7 +281,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
             builder.AddScoped<ILogger>(l => new LoggerConfiguration().WriteTo.Console().CreateLogger());
 
-           // builder.AddCaching(config);
+            builder.AddCaching(config);
         }
     }
 }

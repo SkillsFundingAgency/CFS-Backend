@@ -4,59 +4,62 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calculator.Interfaces;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using CalculationResult = CalculateFunding.Models.Results.CalculationResult;
 
 namespace CalculateFunding.Services.Calculator
 {
-    public interface IProviderSourceDatasetRepository
-    {
-        IEnumerable<ProviderSourceDataset> GetProviderDatasets(string providerId, string subscriptionId);
-    }
     public class CalculationEngine : ICalculationEngine
     {
-        private readonly IProviderSourceDatasetRepository _providerSourceRepository = null;
+        private readonly IAllocationFactory _allocationFactory;
 
-        public IEnumerable<ProviderResult> GenerateAllocations(BuildProject buildProject, IEnumerable<ProviderSummary> providers)
+        public CalculationEngine(IAllocationFactory allocationFactory)
+        {
+            _allocationFactory = allocationFactory;
+        }
+
+        async public Task<IEnumerable<ProviderResult>> GenerateAllocations(BuildProject buildProject, IEnumerable<ProviderSummary> providers, Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> getProviderSourceDatasets)
         {
             var assembly = Assembly.Load(Convert.FromBase64String(buildProject.Build.AssemblyBase64));
-            var allocationFactory = new AllocationFactory(assembly);
-            var allocationModel = allocationFactory.CreateAllocationModel();
 
-                foreach (var provider in providers)
-                {
-                    var stopwatch = new Stopwatch();
-                    stopwatch.Start();
-                    var typedDatasets = new List<object>();
+            var allocationModel = _allocationFactory.CreateAllocationModel(assembly);
 
+            IList<ProviderResult> providerResults = new List<ProviderResult>();
 
-                    var providerSourceDatasets =
-                        _providerSourceRepository?.GetProviderDatasets(provider.Id, buildProject.Specification.Id);
+            foreach (var provider in providers)
+            {
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
 
+                IEnumerable<ProviderSourceDataset> providerSourceDatasets = (await getProviderSourceDatasets(provider.Id, buildProject.Specification.Id)).ToList();
 
-                    var result = CalculateProviderResults(allocationModel, buildProject, provider, providerSourceDatasets.ToList());
+                var result = CalculateProviderResults(allocationModel, buildProject, provider, providerSourceDatasets.ToList());
+
+                providerResults.Add(result);
 
                 stopwatch.Stop();
                 Console.WriteLine($"Generated result for ${provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
-                    yield return result;
-                   
-                }
-            
+            }
+
+            return providerResults;
         }
 
-
-
-        public ProviderResult CalculateProviderResults(AllocationModel model, BuildProject buildProject, ProviderSummary provider, List<ProviderSourceDataset> providerSourceDatasets)
+        public ProviderResult CalculateProviderResults(IAllocationModel model, BuildProject buildProject, ProviderSummary provider, List<ProviderSourceDataset> providerSourceDatasets)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            var calculationResults = model.Execute(providerSourceDatasets).ToArray();
+            IEnumerable<CalculationResult> calculationResults;
+            try
+            {
+                calculationResults = model.Execute(providerSourceDatasets).ToArray();
+            }
+            catch(Exception ex)
+            {
+                throw new Exception(ex.ToString());
+            }
+
             var providerCalResults = calculationResults.ToDictionary(x => x.Calculation?.Id);
             stopwatch.Stop();
             Console.WriteLine($"{providerCalResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalResults.Count: 0.0000}ms)");

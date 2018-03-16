@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Core.Proxies
                 throw new ArgumentException(nameof(url));
             }
 
-            HttpResponseMessage response = await RetryAgent.DoRequestAsync(() =>  _httpClient.GetAsync(url));
+            HttpResponseMessage response = await RetryAgent.DoRequestAsync(() => _httpClient.GetAsync(url));
 
             if (response == null)
             {

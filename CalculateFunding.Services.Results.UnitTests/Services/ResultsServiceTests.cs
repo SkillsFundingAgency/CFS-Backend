@@ -17,6 +17,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Interfaces.EventHub;
+using Microsoft.Azure.EventHubs;
+using Newtonsoft.Json;
+using System.Net;
+using System.IO;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -430,6 +434,369 @@ namespace CalculateFunding.Services.Results.Services
             IEnumerable<SpecificationSummary> summaries = okResults.Value as IEnumerable<SpecificationSummary>;
 
             summaries
+                .Count()
+                .Should()
+                .Be(2);
+        }
+
+        [TestMethod]
+        async public Task GetProviderResultsBySpecificationId_GivenNoSpecificationIsProvided_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            ResultsService service = CreateResultsService(logger);
+
+            //Act
+            IActionResult result = await service.GetProviderResultsBySpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+        }
+
+        [TestMethod]
+        async public Task GetProviderResultsBySpecificationId_GivenSpecificationIsProvided_ReturnsResults()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<ProviderResult> providerResults = new[]
+            {
+                new ProviderResult(),
+                new ProviderResult()
+            };
+
+            IResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .GetProviderResultsBySpecificationId(Arg.Is(specificationId))
+                .Returns(providerResults);
+
+            ResultsService service = CreateResultsService(logger, resultsRepository: resultsRepository);
+
+            //Act
+            IActionResult result = await service.GetProviderResultsBySpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okResults = result as OkObjectResult;
+
+            IEnumerable<ProviderResult> okResultsValue = okResults.Value as IEnumerable<ProviderResult>;
+
+            okResultsValue
+                .Count()
+                .Should()
+                .Be(2);
+        }
+
+        [TestMethod]
+        public void UpdateProviderData_GivenNullResults_ThrowsArgumentNullException()
+        {
+            //Arrange
+            EventData message = new EventData(new byte[0]);
+
+            ResultsService service = CreateResultsService();
+
+            //Act
+            Func<Task> test = () => service.UpdateProviderData(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        async public Task UpdateProviderData_GivenEmptyResults_DoesNotUpdateResults()
+        {
+            //Arramge
+            IEnumerable<ProviderResult> results = Enumerable.Empty<ProviderResult>();
+
+            var json = JsonConvert.SerializeObject(results);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            IResultsRepository resultsRepository = CreateResultsRepository();
+
+            ResultsService service = CreateResultsService(logger, resultsRepository);
+
+            //Act
+            await service.UpdateProviderData(message);
+
+            //Assert
+            await
+                resultsRepository
+                    .DidNotReceive()
+                    .UpdateProviderResults(Arg.Any<List<ProviderResult>>());
+
+            logger
+                .Received(1)
+                .Warning("An empty list of results were provided to update");
+        }
+
+        [TestMethod]
+        async public Task UpdateProviderData_GivenResultsButFailsToUpdate_LogsError()
+        {
+            //Arramge
+            IEnumerable<ProviderResult> results = new[]
+            {
+                new ProviderResult()
+            };
+
+            var json = JsonConvert.SerializeObject(results);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            IResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .UpdateProviderResults(Arg.Any<List<ProviderResult>>())
+                .Returns(HttpStatusCode.InternalServerError);
+
+            ResultsService service = CreateResultsService(logger, resultsRepository);
+
+            //Act
+            await service.UpdateProviderData(message);
+
+            //Assert
+            logger
+                .Received(1)
+                .Error("Failed to bulk update provider data with status code: InternalServerError");
+        }
+
+        [TestMethod]
+        async public Task UpdateProviderData_GivenResultsAndupdateIsSuccess_DoesNotLogAnError()
+        {
+            //Arramge
+            IEnumerable<ProviderResult> results = new[]
+            {
+                new ProviderResult()
+            };
+
+            var json = JsonConvert.SerializeObject(results);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            IResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .UpdateProviderResults(Arg.Any<List<ProviderResult>>())
+                .Returns(HttpStatusCode.OK);
+
+            ResultsService service = CreateResultsService(logger, resultsRepository);
+
+            //Act
+            await service.UpdateProviderData(message);
+
+            //Assert
+            logger
+                .DidNotReceive()
+                .Error(Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public void UpdateProviderSourceDataset_GivenNullResults_ThrowsArgumentNullException()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ResultsService service = CreateResultsService();
+
+            //Act
+            Func<Task> test = () => service.UpdateProviderSourceDataset(request);
+
+            //Assert
+            test
+                .ShouldThrowExactly<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        async public Task UpdateProviderSourceDataset_GivenUpdatingDatasetFailsWithInternalServerError_ReturnsStatusCode500()
+        {
+            //Arrange
+            ProviderSourceDataset model = new ProviderSourceDataset();
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .UpsertProviderSourceDataset(Arg.Any<ProviderSourceDataset>())
+                .Returns(HttpStatusCode.InternalServerError);
+
+            ILogger logger = CreateLogger();
+
+            ResultsService service = CreateResultsService(logger, resultsRepository);
+
+            //Act
+            IActionResult result = await service.UpdateProviderSourceDataset(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(500);
+
+            logger
+                .Received(1)
+                .Error("Failed to update provider source dataset with status code: 500");
+        }
+
+        [TestMethod]
+        async public Task UpdateProviderSourceDataset_GivenUpdatingDatasetSucceeds_ReturnsNoContent()
+        {
+            //Arrange
+            ProviderSourceDataset model = new ProviderSourceDataset();
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .UpsertProviderSourceDataset(Arg.Any<ProviderSourceDataset>())
+                .Returns(HttpStatusCode.OK);
+
+            ILogger logger = CreateLogger();
+
+            ResultsService service = CreateResultsService(logger, resultsRepository);
+
+            //Act
+            IActionResult result = await service.UpdateProviderSourceDataset(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+        }
+
+        [TestMethod]
+        async public Task GetProviderSourceDatasetsByProviderIdAndSpecificationId_GivenNullOrEmptySpecificationId_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            ResultsService service = CreateResultsService(logger);
+
+            //Act
+            IActionResult result = await service.GetProviderSourceDatasetsByProviderIdAndSpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No specification Id was provided to GetProviderResultsBySpecificationId"));
+        }
+
+        [TestMethod]
+        async public Task GetProviderSourceDatasetsByProviderIdAndSpecificationId_GivenNullOrEmptyProviderId_ReturnsBadRequest()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ResultsService service = CreateResultsService(logger);
+
+            //Act
+            IActionResult result = await service.GetProviderSourceDatasetsByProviderIdAndSpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No provider Id was provided to GetProviderResultsBySpecificationId"));
+        }
+
+        [TestMethod]
+        async public Task GetProviderSourceDatasetsByProviderIdAndSpecificationId_GivenResultsReturned_ReturnsOKResult()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) },
+                { "providerId", new StringValues(providerId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<ProviderSourceDataset> providerSources = new[] { new ProviderSourceDataset(), new ProviderSourceDataset() };
+
+            IResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .GetProviderSourceDatasets(Arg.Is(providerId), Arg.Is(specificationId))
+                .Returns(providerSources);
+
+            ResultsService service = CreateResultsService(logger, resultsRepository);
+
+            //Act
+            IActionResult result = await service.GetProviderSourceDatasetsByProviderIdAndSpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okResult = result as OkObjectResult;
+
+            IEnumerable<ProviderSourceDataset> sourceDatasets = okResult.Value as IEnumerable<ProviderSourceDataset>;
+
+            sourceDatasets
                 .Count()
                 .Should()
                 .Be(2);

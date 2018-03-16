@@ -4,6 +4,8 @@ namespace CalculateFunding.Models.Datasets
 {
     public class DatasetVersion : VersionedItem
     {
+        public string BlobName { get; set; }
+
         public override VersionedItem Clone()
         {
             return new DatasetVersion
@@ -12,7 +14,8 @@ namespace CalculateFunding.Models.Datasets
                 Version = Version,
                 Date = Date,
                 Author = Author,
-                Commment = Commment
+                Commment = Commment,
+                BlobName = BlobName
             };
         }
     }

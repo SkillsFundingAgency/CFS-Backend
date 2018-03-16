@@ -12,15 +12,13 @@ namespace CalculateFunding.Services.Core.Caching
     public class StackExchangeRedisClientCacheProvider : ICacheProvider, IDisposable
     {
         readonly RedisSettings _systemCacheSettings;
-        readonly ILogger _logger;
         readonly Lazy<ConnectionMultiplexer> _connectionMultiplexer;
 
         public StackExchangeRedisClientCacheProvider(
-            RedisSettings systemCacheSettings, ILogger logger)
+            RedisSettings systemCacheSettings)
         {
             _systemCacheSettings = systemCacheSettings;
-            _logger = logger;
-
+            
             _connectionMultiplexer = new Lazy<ConnectionMultiplexer>(() =>
             {
                 var configurationOptions = ConfigurationOptions.Parse(_systemCacheSettings.CacheConnection);
@@ -45,7 +43,7 @@ namespace CalculateFunding.Services.Core.Caching
                     return default(T);
                 }
 
-                var redisCacheValue = JsonConvert.DeserializeObject<RedisCacheValue>(cachedValue);
+                var redisCacheValue = JsonConvert.DeserializeObject<RedisCacheValue<T>>(cachedValue);
                 if (redisCacheValue == null)
                     return default(T);
 
@@ -57,12 +55,11 @@ namespace CalculateFunding.Services.Core.Caching
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, $"Failed to get from cache with key: {key}");
                 return default(T);
             }
         }
 
-        public Task SetAsync(string key, object item)
+        public Task SetAsync<T>(string key, T item)
         {
             var memoryCacheOptions = new MemoryCacheEntryOptions
             {
@@ -71,7 +68,7 @@ namespace CalculateFunding.Services.Core.Caching
             return SetAsyncImpl(key, item, memoryCacheOptions);
         }
 
-        public Task SetAsync(string key, object item, TimeSpan expiration, bool isSliding)
+        public Task SetAsync<T>(string key, T item, TimeSpan expiration, bool isSliding)
         {
             var memoryCacheOptions = new MemoryCacheEntryOptions
             {
@@ -82,17 +79,17 @@ namespace CalculateFunding.Services.Core.Caching
             return SetAsyncImpl(key, item, memoryCacheOptions);
         }
 
-        public Task SetAsync(string key, object item, DateTimeOffset absoluteExpiration)
+        public Task SetAsync<T>(string key, T item, DateTimeOffset absoluteExpiration)
         {
             var memoryCacheOptions = new MemoryCacheEntryOptions
             {
                 AbsoluteExpiration = absoluteExpiration
             };
 
-            return SetAsyncImpl(key, item, memoryCacheOptions);
+            return SetAsyncImpl<T>(key, item, memoryCacheOptions);
         }
 
-        async Task SetAsyncImpl(string key, object item, MemoryCacheEntryOptions memoryCacheEntryOptions)
+        async Task SetAsyncImpl<T>(string key, T item, MemoryCacheEntryOptions memoryCacheEntryOptions)
         {
             if (item == null)
                 return;
@@ -102,7 +99,7 @@ namespace CalculateFunding.Services.Core.Caching
             try
             {
                 
-                var redisCacheValue = new RedisCacheValue
+                var redisCacheValue = new RedisCacheValue<T>
                 {
                     SlidingExpiration = memoryCacheEntryOptions.SlidingExpiration,
                     Value = item
@@ -119,7 +116,7 @@ namespace CalculateFunding.Services.Core.Caching
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, $"Failed to set key: {key}");
+                Console.Write(ex);
             }
         }
 
@@ -134,7 +131,7 @@ namespace CalculateFunding.Services.Core.Caching
            
             catch (Exception ex)
             {
-                _logger.Error(ex, $"Failed to remove key: {key} from cache");
+                Console.WriteLine(ex);
             }
         }
 
@@ -180,11 +177,11 @@ namespace CalculateFunding.Services.Core.Caching
                 _connectionMultiplexer.Value.Dispose();
         }
 
-        public class RedisCacheValue
+        public class RedisCacheValue<T>
         {
             public TimeSpan? SlidingExpiration { get; set; }
 
-            public object Value { get; set; }
+            public T Value { get; set; }
         }
     }
 }

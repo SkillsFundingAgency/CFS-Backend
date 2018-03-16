@@ -1,9 +1,7 @@
-﻿using CalculateFunding.Models;
-using CalculateFunding.Models.Calcs;
+﻿using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Calcs.Messages;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
@@ -12,22 +10,23 @@ using CalculateFunding.Services.Core.Options;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Interfaces.EventHub;
 using Microsoft.Azure.EventHubs;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
+using CalculateFunding.Services.Compiler.Interfaces;
+using CalculateFunding.Services.CodeGeneration;
+using CalculateFunding.Services.Compiler;
 
 namespace CalculateFunding.Services.Calcs
 {
     public class BuildProjectsService : IBuildProjectsService
     {
         const int MaxPartitionSize = 100;
-        const int MaxResultsCount = 1000;
-
-        const string AllocationResultsSubscription = "calcs-events-generate-allocation-results";
         const string UpdateCosmosResultsCollection = "dataset-events-results";
 
         private readonly IBuildProjectsRepository _buildProjectsRepository;
@@ -37,10 +36,15 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationEngine _calculationEngine;
         private readonly IProviderResultsRepository _providerResultsRepository;
         private readonly ISpecificationRepository _specificationsRepository;
+        private readonly ICompilerFactory _compilerFactory;
+        private readonly ISourceFileGeneratorProvider _sourceFileGeneratorProvider;
+        private readonly ISourceFileGenerator _sourceFileGenerator;
 
         public BuildProjectsService(IBuildProjectsRepository buildProjectsRepository, IMessengerService messengerService,
             EventHubSettings eventHubSettings, ILogger logger, ICalculationEngine calculationEngine, 
-            IProviderResultsRepository providerResultsRepository, ISpecificationRepository specificationsRepository)
+            IProviderResultsRepository providerResultsRepository, ISpecificationRepository specificationsRepository,
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider,
+            ICompilerFactory compilerFactory)
         {
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -57,85 +61,154 @@ namespace CalculateFunding.Services.Calcs
             _calculationEngine = calculationEngine;
             _providerResultsRepository = providerResultsRepository;
             _specificationsRepository = specificationsRepository;
+            _compilerFactory = compilerFactory;
+            _sourceFileGeneratorProvider = sourceFileGeneratorProvider;
+            _sourceFileGenerator = sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
         }
 
         public async Task UpdateAllocations(EventData message)
         {
-            GenerateAllocationsResultsMessage generateAllocationsResultsMessage = message.GetPayloadAsInstanceOf<GenerateAllocationsResultsMessage>();
+            Guard.ArgumentNotNull(message, nameof(message));
 
-            if (generateAllocationsResultsMessage == null)
-            {
-                _logger.Error("A null generate allocations message was provided to UpdateAllocations");
+            BuildProject buildProject = message.GetPayloadAsInstanceOf<BuildProject>();
 
-                throw new ArgumentNullException(nameof(generateAllocationsResultsMessage));
-            }
-            
-            if(generateAllocationsResultsMessage.BuildProject == null)
+            if (buildProject == null)
             {
-                return;
+                _logger.Error("A null build project was provided to UpdateAllocations");
+
+                throw new ArgumentNullException(nameof(buildProject));
             }
 
-            if (generateAllocationsResultsMessage.ProviderSummaries.IsNullOrEmpty())
+            if (buildProject.Specification == null)
             {
-                return;
+                if (!message.Properties.ContainsKey("specification-id"))
+                {
+                    _logger.Error("Specification id key not found in message properties");
+
+                    throw new KeyNotFoundException("Specification id key not found in message properties");
+                }
+
+                string specificationId = message.Properties["specification-id"].ToString();
+
+                if (string.IsNullOrWhiteSpace(specificationId))
+                {
+                    _logger.Error($"Message does not contain a specification id");
+
+                    throw new ArgumentNullException(nameof(specificationId));
+                }
+
+                Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+
+                if (specification == null)
+                {
+                    _logger.Error($"Failed to find specification for specification id: {specificationId}");
+
+                    throw new ArgumentException(nameof(specification));
+                }
+
+                HttpStatusCode statusCode = await UpdateBuildProject(buildProject, specification);
+
+                if (!statusCode.IsSuccess())
+                {
+                    _logger.Error($"Failed to update build project with build project id: {buildProject.Id} with status code: {statusCode.ToString()}");
+
+                    throw new Exception($"Failed to update build project with build project id: {buildProject.Id} with status code: {statusCode.ToString()}");
+                }
             }
 
-            IEnumerable<ProviderResult> results = _calculationEngine.GenerateAllocations(generateAllocationsResultsMessage.BuildProject, 
-                generateAllocationsResultsMessage.ProviderSummaries).ToList();
+            IEnumerable<ProviderSummary> providerSummaries = await _providerResultsRepository.GetAllProviderSummaries();
 
-            //IEnumerable<UpdateProviderResultsModel> updateModels = results.Select(m => new UpdateProviderResultsModel { AllocationLineResults = m.AllocationLineResults, CalculationResults = m.CalculationResults, Id = m.Id });
+            if(providerSummaries.IsNullOrEmpty())
+            {
+                _logger.Error("No provider summaries found");
+
+                throw new Exception("No provider summaries found");
+            }
+
+            Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> getProviderSourceDatasetsFunc = (providerId, specificationId) =>
+            {
+                return _providerResultsRepository.GetProviderSourceDatasetsByProviderIdAndSpecificationId(providerId, specificationId);
+            };
 
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
-            await _messengerService.SendAsync(UpdateCosmosResultsCollection, results, properties);
+            int itemCount = providerSummaries.Count();
+
+            for (int partitionIndex = 0; partitionIndex < itemCount; partitionIndex += MaxPartitionSize)
+            {
+                IEnumerable<ProviderResult> results = (await _calculationEngine.GenerateAllocations(buildProject,
+                         providerSummaries, getProviderSourceDatasetsFunc)).ToList();
+
+                await _messengerService.SendAsync(UpdateCosmosResultsCollection, results, properties);
+            }
         }
 
-        public async Task GenerateAllocationsInstruction(EventData message)
+        public async Task UpdateBuildProjectRelationships(EventData message)
         {
-            InstructGenerateAllocationsMessage generateAllocationsMessage = message.GetPayloadAsInstanceOf<InstructGenerateAllocationsMessage>();
+            Guard.ArgumentNotNull(message, nameof(message));
 
-            if (generateAllocationsMessage == null)
+            DatasetRelationshipSummary relationship = message.GetPayloadAsInstanceOf<DatasetRelationshipSummary>();
+
+            if (relationship == null)
             {
-                _logger.Error("A null generate allocations message was provided to GenerateAllocations");
+                _logger.Error("A null relationship message was provided to UpdateBuildProjectRelationships");
 
-                throw new ArgumentNullException(nameof(generateAllocationsMessage));
+                throw new ArgumentNullException(nameof(relationship));
             }
 
-            if (string.IsNullOrWhiteSpace(generateAllocationsMessage.SpecificationId))
+            if (!message.Properties.ContainsKey("specification-id"))
             {
-                _logger.Error("A null or empty specification id was provided");
+                _logger.Error("Message properties does not contain a specification id");
 
-                throw new ArgumentNullException(nameof(generateAllocationsMessage.SpecificationId));
+                throw new KeyNotFoundException("specification-id");
             }
 
-            string specificationId = generateAllocationsMessage.SpecificationId;
+            string specificationId = message.Properties["specification-id"].ToString();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error($"Message does not contain a specification id");
+
+                throw new ArgumentNullException(nameof(specificationId));
+            }
 
             BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
 
             if (buildProject == null)
             {
-                return;
+                throw new Exception($"Unable to find build project for specification id: {specificationId}");
             }
 
-            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+            if (buildProject.DatasetRelationships == null)
+                buildProject.DatasetRelationships = new List<DatasetRelationshipSummary>();
 
-            if(specification == null)
+            if(!buildProject.DatasetRelationships.Any(m => m.Name == relationship.Name))
             {
-                _logger.Error($"Failed to find specification for specification id: {specificationId}");
+                buildProject.DatasetRelationships.Add(relationship);
 
-                return;
-            }
+                await CompileBuildProject(buildProject);
+            } 
+        }
 
-            HttpStatusCode statusCode = await UpdateBuildProject(buildProject, specification);
+        public async Task<IActionResult> GetBuildProjectBySpecificationId(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out var specId);
 
-            if (!statusCode.IsSuccess())
+            var specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
             {
-                _logger.Error($"Failed to find update build project with build project id: {buildProject.Id} with status code: {statusCode.ToString()}");
+                _logger.Error("No specification Id was provided to GetBuildProjectBySpecificationId");
 
-                return;
+                return new BadRequestObjectResult("Null or empty specificationId Id provided");
             }
 
-            await SendGenerateAllocationMessages(buildProject, message);
+            BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
+
+            if (buildProject == null)
+                return new NotFoundResult();
+
+            return new OkObjectResult(buildProject);
         }
 
         async Task<BuildProject> GetBuildProjectForSpecificationId(string specificationId)
@@ -149,7 +222,7 @@ namespace CalculateFunding.Services.Calcs
                 return null;
             }
 
-            if (buildProject.Build == null || string.IsNullOrWhiteSpace(buildProject.Build.AssemblyBase64))
+            if (buildProject.Build == null)
             {
                 _logger.Error($"Failed to find build project assembly for build project id: {buildProject.Id}");
 
@@ -172,80 +245,26 @@ namespace CalculateFunding.Services.Calcs
             return _buildProjectsRepository.UpdateBuildProject(buildProject);
         }
 
-        async Task<IEnumerable<ProviderSummary>> GetProviderSummaries(int pageNumber, int top = 50)
+       
+        async public Task CompileBuildProject(BuildProject buildProject)
         {
-            ProviderSearchResults providers = await _providerResultsRepository.SearchProviders(new SearchModel
+            buildProject.Build = Compile(buildProject);
+
+            HttpStatusCode statusCode = await _buildProjectsRepository.UpdateBuildProject(buildProject);
+
+            if (!statusCode.IsSuccess())
             {
-                PageNumber = pageNumber,
-                Top = top,
-                IncludeFacets = false
-            });
-
-            IEnumerable<ProviderSearchResult> searchResults = providers.Results;
-
-            return searchResults.Select(x => new ProviderSummary
-                {
-                    Name = x.Name,
-                    Id = x.UKPRN,
-                    UKPRN = x.UKPRN,
-                    URN = x.URN,
-                    Authority = x.Authority,
-                    UPIN = x.UPIN,
-                    ProviderSubType = x.ProviderSubType,
-                    EstablishmentNumber = x.EstablishmentNumber,
-                    ProviderType = x.ProviderType
-                });
-        }
-
-        async Task<int> GetTotalCount()
-        {
-            ProviderSearchResults providers = await _providerResultsRepository.SearchProviders(new SearchModel
-            {
-                PageNumber = 1,
-                Top = 1,
-                IncludeFacets = false
-            });
-
-            return providers.TotalCount;
-        }
-
-        int GetPageCount(int totalCount)
-        {
-            int pageCount = totalCount / MaxResultsCount;
-
-            if (pageCount % MaxResultsCount != 0)
-                pageCount += 1;
-
-            return pageCount;
-        }
-
-        async Task SendGenerateAllocationMessages(BuildProject buildProject, EventData message)
-        {
-            int totalCount = await GetTotalCount();
-
-            int pageCount = GetPageCount(totalCount);
-
-            IDictionary<string, string> properties = message.BuildMessageProperties();
-
-            List<ProviderSummary> allProvidersFromSearch = new List<ProviderSummary>(totalCount);
-
-            IList<Task> messageTasks = new List<Task>();
-
-            for (int pageNumber = 1; pageNumber <= pageCount; pageNumber++)
-            {
-                IEnumerable<ProviderSummary> providersFromSearch = (await GetProviderSummaries(pageNumber, 1000)).ToList();
-
-                int itemCount = providersFromSearch.Count();
-
-                for (int partitionIndex = 0; partitionIndex < itemCount; partitionIndex += MaxPartitionSize)
-                {
-                    IEnumerable<ProviderSummary> partitionedSummaries = providersFromSearch.Skip(partitionIndex).Take(MaxPartitionSize).ToList();
-
-                    await _messengerService.SendAsync(AllocationResultsSubscription,
-                            new GenerateAllocationsResultsMessage { ProviderSummaries = partitionedSummaries, BuildProject = buildProject },
-                            properties);
-                }
+                throw new Exception($"Failed to update build project for id: {buildProject.Id} with status code {statusCode.ToString()}");
             }
+        }
+
+        Build Compile(BuildProject buildProject)
+        {
+            IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject);
+
+            ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
+
+            return compiler.GenerateCode(sourceFiles?.ToList());
         }
     }
 }

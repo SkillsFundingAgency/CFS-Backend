@@ -1,6 +1,7 @@
 ﻿using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,6 +15,10 @@ namespace CalculateFunding.Services.Core.Interfaces.AzureStorage
         ICloudBlob GetBlockBlobReference(string blobName);
 
         Task<ICloudBlob> GetBlobReferenceFromServerAsync(string blobName);
+
+        Task<bool> BlobExistsAsync(string blobName);
+
+        Task<Stream> DownloadToStreamAsync(ICloudBlob blob);
 
         void Initialize();
     }

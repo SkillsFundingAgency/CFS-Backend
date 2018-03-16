@@ -13,10 +13,10 @@ namespace CalculateFunding.Models.Results
         public Reference Provider { get; set; }
 
         [JsonProperty("dataDefinition")]
-        public VersionReference DataDefinition { get; set; }
+        public Reference DataDefinition { get; set; }
 
         [JsonProperty("dataRelationship")]
-        public VersionReference DataRelationship { get; set; }
+        public Reference DataRelationship { get; set; }
 
         [JsonProperty("dataGranularity")]
         public DataGranularity DataGranularity { get; set; }

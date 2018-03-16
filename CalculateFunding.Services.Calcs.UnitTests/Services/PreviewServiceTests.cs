@@ -137,551 +137,551 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Error(Arg.Is($"Calculation could not be found for calculation id {CalculationId}"));
         }
 
-        [TestMethod]
-        public async Task Compile_GivenPreviewRequestButCalculationDoesNotIncludeABuildProjectId_ReturnsPreConditionFailed()
-        {
-            //Arrange
-            Calculation calculation = new Calculation
-            {
-                Id = CalculationId,
-                Current = new CalculationVersion()
-            };
+        //[TestMethod]
+        //public async Task Compile_GivenPreviewRequestButCalculationDoesNotIncludeABuildProjectId_ReturnsPreConditionFailed()
+        //{
+        //    //Arrange
+        //    Calculation calculation = new Calculation
+        //    {
+        //        Id = CalculationId,
+        //        Current = new CalculationVersion()
+        //    };
 
-            PreviewRequest model = new PreviewRequest
-            {
-                CalculationId = CalculationId
-            };
+        //    PreviewRequest model = new PreviewRequest
+        //    {
+        //        CalculationId = CalculationId
+        //    };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+        //    string json = JsonConvert.SerializeObject(model);
+        //    byte[] byteArray = Encoding.UTF8.GetBytes(json);
+        //    MemoryStream stream = new MemoryStream(byteArray);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
+        //    HttpRequest request = Substitute.For<HttpRequest>();
+        //    request
+        //        .Body
+        //        .Returns(stream);
 
-            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+        //    IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
-            ILogger logger = CreateLogger();
+        //    ILogger logger = CreateLogger();
 
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationById(Arg.Is(CalculationId))
-                .Returns(calculation);
+        //    ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+        //    calculationsRepository
+        //        .GetCalculationById(Arg.Is(CalculationId))
+        //        .Returns(calculation);
 
-            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository);
+        //    PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository);
 
-            //Act
-            IActionResult result = await service.Compile(request);
+        //    //Act
+        //    IActionResult result = await service.Compile(request);
 
-            //Assert
-            result
-                .Should()
-                .BeOfType<StatusCodeResult>();
+        //    //Assert
+        //    result
+        //        .Should()
+        //        .BeOfType<StatusCodeResult>();
 
-            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
+        //    StatusCodeResult statusCodeResult = (StatusCodeResult)result;
 
-            statusCodeResult
-                .StatusCode
-                .Should()
-                .Be(412);
+        //    statusCodeResult
+        //        .StatusCode
+        //        .Should()
+        //        .Be(412);
 
-            logger
-                .Received(1)
-                .Error(Arg.Is($"Calculation with id {calculation.Id} does not contain a build project id"));
-        }
+        //    logger
+        //        .Received(1)
+        //        .Error(Arg.Is($"Calculation with id {calculation.Id} does not contain a build project id"));
+        //}
 
-        [TestMethod]
-        public async Task Compile_GivenPreviewRequestButBuildProjectDoesNotExists_ReturnsPreConditionFailed()
-        {
-            //Arrange
-            PreviewRequest model = new PreviewRequest
-            {
-                CalculationId = CalculationId
-            };
-            Calculation calculation = new Calculation
-            {
-                Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion()
-            };
+        //[TestMethod]
+        //public async Task Compile_GivenPreviewRequestButBuildProjectDoesNotExists_ReturnsPreConditionFailed()
+        //{
+        //    //Arrange
+        //    PreviewRequest model = new PreviewRequest
+        //    {
+        //        CalculationId = CalculationId
+        //    };
+        //    Calculation calculation = new Calculation
+        //    {
+        //        Id = CalculationId,
+        //        BuildProjectId = BuildProjectId,
+        //        Current = new CalculationVersion()
+        //    };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+        //    string json = JsonConvert.SerializeObject(model);
+        //    byte[] byteArray = Encoding.UTF8.GetBytes(json);
+        //    MemoryStream stream = new MemoryStream(byteArray);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
+        //    HttpRequest request = Substitute.For<HttpRequest>();
+        //    request
+        //        .Body
+        //        .Returns(stream);
 
-            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+        //    IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
-            ILogger logger = CreateLogger();
+        //    ILogger logger = CreateLogger();
 
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationById(Arg.Is(CalculationId))
-                .Returns(calculation);
+        //    ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+        //    calculationsRepository
+        //        .GetCalculationById(Arg.Is(CalculationId))
+        //        .Returns(calculation);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectById(Arg.Is(BuildProjectId))
-                .Returns((BuildProject)null);
+        //    IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+        //    buildProjectsRepository
+        //        .GetBuildProjectById(Arg.Is(BuildProjectId))
+        //        .Returns((BuildProject)null);
 
-            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+        //    PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
 
-            //Act
-            IActionResult result = await service.Compile(request);
+        //    //Act
+        //    IActionResult result = await service.Compile(request);
 
-            //Assert
-            result
-                .Should()
-                .BeOfType<StatusCodeResult>();
+        //    //Assert
+        //    result
+        //        .Should()
+        //        .BeOfType<StatusCodeResult>();
 
-            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
+        //    StatusCodeResult statusCodeResult = (StatusCodeResult)result;
 
-            statusCodeResult
-                .StatusCode
-                .Should()
-                .Be(412);
+        //    statusCodeResult
+        //        .StatusCode
+        //        .Should()
+        //        .Be(412);
 
-            logger
-                .Received(1)
-                .Error(Arg.Is($"Build project for build project id {BuildProjectId} could not be found"));
-        }
+        //    logger
+        //        .Received(1)
+        //        .Error(Arg.Is($"Build project for build project id {BuildProjectId} could not be found"));
+        //}
 
-        [TestMethod]
-        public async Task Compile_GivenBuildProjectWasfoundbutCalculationsNotFound_ReturnsPreConditionFailed()
-        {
-            //Arrange
-            PreviewRequest model = new PreviewRequest
-            {
-                CalculationId = CalculationId
-            };
-            Calculation calculation = new Calculation
-            {
-                Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion()
-            };
-            BuildProject buildProject = new BuildProject();
+        //[TestMethod]
+        //public async Task Compile_GivenBuildProjectWasfoundbutCalculationsNotFound_ReturnsPreConditionFailed()
+        //{
+        //    //Arrange
+        //    PreviewRequest model = new PreviewRequest
+        //    {
+        //        CalculationId = CalculationId
+        //    };
+        //    Calculation calculation = new Calculation
+        //    {
+        //        Id = CalculationId,
+        //        BuildProjectId = BuildProjectId,
+        //        Current = new CalculationVersion()
+        //    };
+        //    BuildProject buildProject = new BuildProject();
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+        //    string json = JsonConvert.SerializeObject(model);
+        //    byte[] byteArray = Encoding.UTF8.GetBytes(json);
+        //    MemoryStream stream = new MemoryStream(byteArray);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
+        //    HttpRequest request = Substitute.For<HttpRequest>();
+        //    request
+        //        .Body
+        //        .Returns(stream);
 
-            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+        //    IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
-            ILogger logger = CreateLogger();
+        //    ILogger logger = CreateLogger();
 
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationById(Arg.Is(CalculationId))
-                .Returns(calculation);
+        //    ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+        //    calculationsRepository
+        //        .GetCalculationById(Arg.Is(CalculationId))
+        //        .Returns(calculation);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectById(Arg.Is(BuildProjectId))
-                .Returns(buildProject);
+        //    IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+        //    buildProjectsRepository
+        //        .GetBuildProjectById(Arg.Is(BuildProjectId))
+        //        .Returns(buildProject);
 
-            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+        //    PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
 
-            //Act
-            IActionResult result = await service.Compile(request);
+        //    //Act
+        //    IActionResult result = await service.Compile(request);
 
-            //Assert
-            result
-                .Should()
-                .BeOfType<StatusCodeResult>();
+        //    //Assert
+        //    result
+        //        .Should()
+        //        .BeOfType<StatusCodeResult>();
 
-            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
+        //    StatusCodeResult statusCodeResult = (StatusCodeResult)result;
 
-            statusCodeResult
-                .StatusCode
-                .Should()
-                .Be(412);
+        //    statusCodeResult
+        //        .StatusCode
+        //        .Should()
+        //        .Be(412);
 
-            logger
-                .Received(1)
-                .Error(Arg.Is($"Calculation could not be found for on build project id {buildProject.Id}"));
-        }
+        //    logger
+        //        .Received(1)
+        //        .Error(Arg.Is($"Calculation could not be found for on build project id {buildProject.Id}"));
+        //}
 
-        [TestMethod]
-        public async Task Compile_GivenSourceFileGeneratorWasNotFound_ReturnsInternalServerError()
-        {
-            //Arrange
-            PreviewRequest model = new PreviewRequest
-            {
-                CalculationId = CalculationId
-            };
-            Calculation calculation = new Calculation
-            {
-                Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion()
-            };
-            BuildProject buildProject = new BuildProject
-            {
-                Calculations = new List<Calculation>
-                {
-                    calculation
-                }
-            };
+        //[TestMethod]
+        //public async Task Compile_GivenSourceFileGeneratorWasNotFound_ReturnsInternalServerError()
+        //{
+        //    //Arrange
+        //    PreviewRequest model = new PreviewRequest
+        //    {
+        //        CalculationId = CalculationId
+        //    };
+        //    Calculation calculation = new Calculation
+        //    {
+        //        Id = CalculationId,
+        //        BuildProjectId = BuildProjectId,
+        //        Current = new CalculationVersion()
+        //    };
+        //    BuildProject buildProject = new BuildProject
+        //    {
+        //        Calculations = new List<Calculation>
+        //        {
+        //            calculation
+        //        }
+        //    };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+        //    string json = JsonConvert.SerializeObject(model);
+        //    byte[] byteArray = Encoding.UTF8.GetBytes(json);
+        //    MemoryStream stream = new MemoryStream(byteArray);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
+        //    HttpRequest request = Substitute.For<HttpRequest>();
+        //    request
+        //        .Body
+        //        .Returns(stream);
 
-            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+        //    IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
-            ILogger logger = CreateLogger();
+        //    ILogger logger = CreateLogger();
 
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationById(Arg.Is(CalculationId))
-                .Returns(calculation);
+        //    ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+        //    calculationsRepository
+        //        .GetCalculationById(Arg.Is(CalculationId))
+        //        .Returns(calculation);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectById(Arg.Is(BuildProjectId))
-                .Returns(buildProject);
+        //    IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+        //    buildProjectsRepository
+        //        .GetBuildProjectById(Arg.Is(BuildProjectId))
+        //        .Returns(buildProject);
 
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
-            sourceFileGeneratorProvider
-                .CreateSourceFileGenerator(Arg.Any<TargetLanguage>())
-                .Returns((ISourceFileGenerator)null);
+        //    ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
+        //    sourceFileGeneratorProvider
+        //        .CreateSourceFileGenerator(Arg.Any<TargetLanguage>())
+        //        .Returns((ISourceFileGenerator)null);
 
-            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+        //    PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
 
-            //Act
-            IActionResult result = await service.Compile(request);
+        //    //Act
+        //    IActionResult result = await service.Compile(request);
 
-            //Assert
-            result
-                .Should()
-                .BeOfType<StatusCodeResult>();
+        //    //Assert
+        //    result
+        //        .Should()
+        //        .BeOfType<StatusCodeResult>();
 
-            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
+        //    StatusCodeResult statusCodeResult = (StatusCodeResult)result;
 
-            statusCodeResult
-                .StatusCode
-                .Should()
-                .Be(500);
+        //    statusCodeResult
+        //        .StatusCode
+        //        .Should()
+        //        .Be(500);
 
-            logger
-                .Received(1)
-                .Error(Arg.Is($"Source file generator was not created"));
-        }
+        //    logger
+        //        .Received(1)
+        //        .Error(Arg.Is($"Source file generator was not created"));
+        //}
 
-        [TestMethod]
-        public async Task Compile_GivenSourceFileGeneratorWasCreatedButDidNotGenerateAnyFiles_ReturnsInternalServerError()
-        {
-            //Arrange
-            PreviewRequest model = new PreviewRequest
-            {
-                CalculationId = CalculationId
-            };
-            Calculation calculation = new Calculation
-            {
-                Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion()
-            };
-            BuildProject buildProject = new BuildProject
-            {
-                Calculations = new List<Calculation>
-                {
-                    calculation
-                }
-            };
+        //[TestMethod]
+        //public async Task Compile_GivenSourceFileGeneratorWasCreatedButDidNotGenerateAnyFiles_ReturnsInternalServerError()
+        //{
+        //    //Arrange
+        //    PreviewRequest model = new PreviewRequest
+        //    {
+        //        CalculationId = CalculationId
+        //    };
+        //    Calculation calculation = new Calculation
+        //    {
+        //        Id = CalculationId,
+        //        BuildProjectId = BuildProjectId,
+        //        Current = new CalculationVersion()
+        //    };
+        //    BuildProject buildProject = new BuildProject
+        //    {
+        //        Calculations = new List<Calculation>
+        //        {
+        //            calculation
+        //        }
+        //    };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+        //    string json = JsonConvert.SerializeObject(model);
+        //    byte[] byteArray = Encoding.UTF8.GetBytes(json);
+        //    MemoryStream stream = new MemoryStream(byteArray);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
+        //    HttpRequest request = Substitute.For<HttpRequest>();
+        //    request
+        //        .Body
+        //        .Returns(stream);
 
-            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+        //    IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
-            ILogger logger = CreateLogger();
+        //    ILogger logger = CreateLogger();
 
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationById(Arg.Is(CalculationId))
-                .Returns(calculation);
+        //    ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+        //    calculationsRepository
+        //        .GetCalculationById(Arg.Is(CalculationId))
+        //        .Returns(calculation);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectById(Arg.Is(BuildProjectId))
-                .Returns(buildProject);
+        //    IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+        //    buildProjectsRepository
+        //        .GetBuildProjectById(Arg.Is(BuildProjectId))
+        //        .Returns(buildProject);
 
-            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+        //    ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
 
-            IEnumerable<SourceFile> sourceFiles = new List<SourceFile>();
+        //    IEnumerable<SourceFile> sourceFiles = new List<SourceFile>();
 
-            sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject))
-                .Returns(sourceFiles);
+        //    sourceFileGenerator
+        //        .GenerateCode(Arg.Is(buildProject))
+        //        .Returns(sourceFiles);
 
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
+        //    ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
            
-            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, 
-                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider);
+        //    PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, 
+        //        buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider);
 
-            //Act
-            IActionResult result = await service.Compile(request);
+        //    //Act
+        //    IActionResult result = await service.Compile(request);
 
-            //Assert
-            result
-                .Should()
-                .BeOfType<StatusCodeResult>();
+        //    //Assert
+        //    result
+        //        .Should()
+        //        .BeOfType<StatusCodeResult>();
 
-            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
+        //    StatusCodeResult statusCodeResult = (StatusCodeResult)result;
 
-            statusCodeResult
-                .StatusCode
-                .Should()
-                .Be(500);
+        //    statusCodeResult
+        //        .StatusCode
+        //        .Should()
+        //        .Be(500);
 
-            logger
-                .Received(1)
-                .Error(Arg.Is($"Source file generator did not generate any source file"));
-        }
+        //    logger
+        //        .Received(1)
+        //        .Error(Arg.Is($"Source file generator did not generate any source file"));
+        //}
 
-        [TestMethod]
-        public async Task Compile_GivenSourceFileGeneratorCreatedFilesButCodeDidNotSucceed_ReturnsOK()
-        {
-            //Arrange
-            PreviewRequest model = new PreviewRequest
-            {
-                CalculationId = CalculationId,
-                SourceCode = SourceCode
-            };
-            Calculation calculation = new Calculation
-            {
-                Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion()
-            };
-            BuildProject buildProject = new BuildProject
-            {
-                Calculations = new List<Calculation>
-                {
-                    calculation
-                }
-            };
+        //[TestMethod]
+        //public async Task Compile_GivenSourceFileGeneratorCreatedFilesButCodeDidNotSucceed_ReturnsOK()
+        //{
+        //    //Arrange
+        //    PreviewRequest model = new PreviewRequest
+        //    {
+        //        CalculationId = CalculationId,
+        //        SourceCode = SourceCode
+        //    };
+        //    Calculation calculation = new Calculation
+        //    {
+        //        Id = CalculationId,
+        //        BuildProjectId = BuildProjectId,
+        //        Current = new CalculationVersion()
+        //    };
+        //    BuildProject buildProject = new BuildProject
+        //    {
+        //        Calculations = new List<Calculation>
+        //        {
+        //            calculation
+        //        }
+        //    };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+        //    string json = JsonConvert.SerializeObject(model);
+        //    byte[] byteArray = Encoding.UTF8.GetBytes(json);
+        //    MemoryStream stream = new MemoryStream(byteArray);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
+        //    HttpRequest request = Substitute.For<HttpRequest>();
+        //    request
+        //        .Body
+        //        .Returns(stream);
 
-            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+        //    IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
-            ILogger logger = CreateLogger();
+        //    ILogger logger = CreateLogger();
 
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationById(Arg.Is(CalculationId))
-                .Returns(calculation);
+        //    ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+        //    calculationsRepository
+        //        .GetCalculationById(Arg.Is(CalculationId))
+        //        .Returns(calculation);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectById(Arg.Is(BuildProjectId))
-                .Returns(buildProject);
+        //    IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+        //    buildProjectsRepository
+        //        .GetBuildProjectById(Arg.Is(BuildProjectId))
+        //        .Returns(buildProject);
 
-            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+        //    ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
 
-            List<SourceFile> sourceFiles = new List<SourceFile>
-            {
-                new SourceFile()
-            };
+        //    List<SourceFile> sourceFiles = new List<SourceFile>
+        //    {
+        //        new SourceFile()
+        //    };
 
-            sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject))
-                .Returns(sourceFiles);
+        //    sourceFileGenerator
+        //        .GenerateCode(Arg.Is(buildProject))
+        //        .Returns(sourceFiles);
 
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
+        //    ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
 
-            Build build = new Build
-            {
-                Success = false
-            };
+        //    Build build = new Build
+        //    {
+        //        Success = false
+        //    };
 
-            ICompiler compiler = Substitute.For<ICompiler>();
-            compiler
-                .GenerateCode(Arg.Any<List<SourceFile>>())
-                .Returns(build);
+        //    ICompiler compiler = Substitute.For<ICompiler>();
+        //    compiler
+        //        .GenerateCode(Arg.Any<List<SourceFile>>())
+        //        .Returns(build);
 
-            ICompilerFactory compilerFactory = CreateCompilerFactory();
-            compilerFactory
-                .GetCompiler(Arg.Is(sourceFiles))
-                .Returns(compiler);
+        //    ICompilerFactory compilerFactory = CreateCompilerFactory();
+        //    compilerFactory
+        //        .GetCompiler(Arg.Is(sourceFiles))
+        //        .Returns(compiler);
 
-            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory);
+        //    PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+        //        buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory);
 
-            //Act
-            IActionResult result = await service.Compile(request);
+        //    //Act
+        //    IActionResult result = await service.Compile(request);
 
-            //Assert
-            result
-                .Should()
-                .BeOfType<OkObjectResult>();
+        //    //Assert
+        //    result
+        //        .Should()
+        //        .BeOfType<OkObjectResult>();
 
-            OkObjectResult okResult = (OkObjectResult)result;
-            okResult
-                .Value
-                .Should()
-                .BeOfType<PreviewResponse>();
+        //    OkObjectResult okResult = (OkObjectResult)result;
+        //    okResult
+        //        .Value
+        //        .Should()
+        //        .BeOfType<PreviewResponse>();
 
-            PreviewResponse previewResponse = (PreviewResponse)okResult.Value;
-            previewResponse
-                .Calculation
-                .Current
-                .SourceCode
-                .Should()
-                .Be(SourceCode);
+        //    PreviewResponse previewResponse = (PreviewResponse)okResult.Value;
+        //    previewResponse
+        //        .Calculation
+        //        .Current
+        //        .SourceCode
+        //        .Should()
+        //        .Be(SourceCode);
 
-            previewResponse
-                .CompilerOutput
-                .Success
-                .Should()
-                .BeFalse();
+        //    previewResponse
+        //        .CompilerOutput
+        //        .Success
+        //        .Should()
+        //        .BeFalse();
 
-            logger
-                .Received(1)
-                .Information(Arg.Is($"Build did not compile succesfully for calculation id {calculation.Id}"));
-        }
+        //    logger
+        //        .Received(1)
+        //        .Information(Arg.Is($"Build did not compile succesfully for calculation id {calculation.Id}"));
+        //}
 
-        [TestMethod]
-        public async Task Compile_GivenSourceFileGeneratorCreatedFilesAndCodeDidSucceed_ReturnsOK()
-        {
-            //Arrange
-            PreviewRequest model = new PreviewRequest
-            {
-                CalculationId = CalculationId,
-                SourceCode = SourceCode
-            };
-            Calculation calculation = new Calculation
-            {
-                Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion()
-            };
-            BuildProject buildProject = new BuildProject
-            {
-                Calculations = new List<Calculation>
-                {
-                    calculation
-                }
-            };
+        //[TestMethod]
+        //public async Task Compile_GivenSourceFileGeneratorCreatedFilesAndCodeDidSucceed_ReturnsOK()
+        //{
+        //    //Arrange
+        //    PreviewRequest model = new PreviewRequest
+        //    {
+        //        CalculationId = CalculationId,
+        //        SourceCode = SourceCode
+        //    };
+        //    Calculation calculation = new Calculation
+        //    {
+        //        Id = CalculationId,
+        //        BuildProjectId = BuildProjectId,
+        //        Current = new CalculationVersion()
+        //    };
+        //    BuildProject buildProject = new BuildProject
+        //    {
+        //        Calculations = new List<Calculation>
+        //        {
+        //            calculation
+        //        }
+        //    };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+        //    string json = JsonConvert.SerializeObject(model);
+        //    byte[] byteArray = Encoding.UTF8.GetBytes(json);
+        //    MemoryStream stream = new MemoryStream(byteArray);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
+        //    HttpRequest request = Substitute.For<HttpRequest>();
+        //    request
+        //        .Body
+        //        .Returns(stream);
 
-            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+        //    IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
-            ILogger logger = CreateLogger();
+        //    ILogger logger = CreateLogger();
 
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationById(Arg.Is(CalculationId))
-                .Returns(calculation);
+        //    ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+        //    calculationsRepository
+        //        .GetCalculationById(Arg.Is(CalculationId))
+        //        .Returns(calculation);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectById(Arg.Is(BuildProjectId))
-                .Returns(buildProject);
+        //    IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+        //    buildProjectsRepository
+        //        .GetBuildProjectById(Arg.Is(BuildProjectId))
+        //        .Returns(buildProject);
 
-            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+        //    ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
 
-            List<SourceFile> sourceFiles = new List<SourceFile>
-            {
-                new SourceFile()
-            };
+        //    List<SourceFile> sourceFiles = new List<SourceFile>
+        //    {
+        //        new SourceFile()
+        //    };
 
-            sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject))
-                .Returns(sourceFiles);
+        //    sourceFileGenerator
+        //        .GenerateCode(Arg.Is(buildProject))
+        //        .Returns(sourceFiles);
 
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
+        //    ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
 
-            Build build = new Build
-            {
-                Success = true
-            };
+        //    Build build = new Build
+        //    {
+        //        Success = true
+        //    };
 
-            ICompiler compiler = Substitute.For<ICompiler>();
-            compiler
-                .GenerateCode(Arg.Any<List<SourceFile>>())
-                .Returns(build);
+        //    ICompiler compiler = Substitute.For<ICompiler>();
+        //    compiler
+        //        .GenerateCode(Arg.Any<List<SourceFile>>())
+        //        .Returns(build);
 
-            ICompilerFactory compilerFactory = CreateCompilerFactory();
-            compilerFactory
-                .GetCompiler(Arg.Is(sourceFiles))
-                .Returns(compiler);
+        //    ICompilerFactory compilerFactory = CreateCompilerFactory();
+        //    compilerFactory
+        //        .GetCompiler(Arg.Is(sourceFiles))
+        //        .Returns(compiler);
 
-            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory);
+        //    PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+        //        buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory);
 
-            //Act
-            IActionResult result = await service.Compile(request);
+        //    //Act
+        //    IActionResult result = await service.Compile(request);
 
-            //Assert
-            result
-                .Should()
-                .BeOfType<OkObjectResult>();
+        //    //Assert
+        //    result
+        //        .Should()
+        //        .BeOfType<OkObjectResult>();
 
-            OkObjectResult okResult = (OkObjectResult)result;
-            okResult
-                .Value
-                .Should()
-                .BeOfType<PreviewResponse>();
+        //    OkObjectResult okResult = (OkObjectResult)result;
+        //    okResult
+        //        .Value
+        //        .Should()
+        //        .BeOfType<PreviewResponse>();
 
-            PreviewResponse previewResponse = (PreviewResponse)okResult.Value;
-            previewResponse
-                .Calculation
-                .Current
-                .SourceCode
-                .Should()
-                .Be(SourceCode);
+        //    PreviewResponse previewResponse = (PreviewResponse)okResult.Value;
+        //    previewResponse
+        //        .Calculation
+        //        .Current
+        //        .SourceCode
+        //        .Should()
+        //        .Be(SourceCode);
 
-            previewResponse
-                .CompilerOutput
-                .Success
-                .Should()
-                .BeTrue();
+        //    previewResponse
+        //        .CompilerOutput
+        //        .Success
+        //        .Should()
+        //        .BeTrue();
 
-            logger
-                .Received(1)
-                .Information(Arg.Is($"Build compiled succesfully for calculation id {calculation.Id}"));
-        }
+        //    logger
+        //        .Received(1)
+        //        .Information(Arg.Is($"Build compiled succesfully for calculation id {calculation.Id}"));
+        //}
 
         static PreviewService CreateService(ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
             ILogger logger = null, IBuildProjectsRepository buildProjectsRepository = null, ICompilerFactory compilerFactory = null,

@@ -1,4 +1,6 @@
-﻿using CalculateFunding.Models.Specs;
+﻿using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets.Interfaces

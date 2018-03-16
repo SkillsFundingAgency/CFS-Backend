@@ -11,5 +11,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IEnumerable<ProviderResult>> GetSpecificationResults(string providerId);
         Task<HttpStatusCode> UpdateProviderResults(List<ProviderResult> results);
         Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId);
+        Task<HttpStatusCode> UpsertProviderSourceDataset(ProviderSourceDataset providerSourceDataset);
+        Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasets(string providerId, string specificationId);
     }
 }

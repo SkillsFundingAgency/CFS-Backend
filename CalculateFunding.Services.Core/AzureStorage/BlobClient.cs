@@ -47,6 +47,23 @@ namespace CalculateFunding.Services.Core.AzureStorage
             return _container.Value.GetBlobReferenceFromServerAsync(blobName);
         }
 
+        public async Task<bool> BlobExistsAsync(string blobName)
+        {
+            EnsureBlobClient();
+            var blob = await _container.Value.GetBlobReferenceFromServerAsync(blobName);
+
+            return await blob.ExistsAsync(null, null);
+        }
+
+        public async Task<Stream> DownloadToStreamAsync(ICloudBlob blob)
+        {
+            var stream = new MemoryStream();
+            await blob.DownloadToStreamAsync(stream);
+            stream.Position = 0;
+
+            return stream;
+        }
+
         public void Initialize()
         {
             _container = new Lazy<CloudBlobContainer>(() =>

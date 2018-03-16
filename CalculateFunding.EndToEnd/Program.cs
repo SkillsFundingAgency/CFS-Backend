@@ -73,6 +73,7 @@ using StatementSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSynta
 using NSubstitute;
 using AllocationFactory = CalculateFunding.Services.Calculator.AllocationFactory;
 using Substitute = NSubstitute.Substitute;
+using CalculateFunding.Services.Calculator.Interfaces;
 
 namespace CalculateFunding.EndToEnd
 {
@@ -95,6 +96,7 @@ namespace CalculateFunding.EndToEnd
 			var calc = serviceProvider.GetService<CalculationEngine>();
 		    var provider = serviceProvider.GetService<ISourceFileGeneratorProvider>();
 		    var compilerFactory = serviceProvider.GetService<ICompilerFactory>();
+            var allocationFactory = serviceProvider.GetService<IAllocationFactory>();
 
             ConsoleLogger logger = new ConsoleLogger("Default", (s, level) => true, true);
 
@@ -108,9 +110,11 @@ namespace CalculateFunding.EndToEnd
 
 		    DatasetDefinition datasetDefinition = GetDatasetDefinition();
 
+            var json = JsonConvert.SerializeObject(datasetDefinition);
+
 		    var datasetStream = File.OpenRead("SourceData/Export APT.XLSX");
 
-		    var reader = new ExcelDatatseReader();
+		    var reader = new ExcelDatasetReader();
 
             // 1. ExcelReader.Read will read and validate according to a given dataset definition
             //  - this should be triggered on upload so that the validation errors can be viewed (just store them for now, story coming to view them)
@@ -137,8 +141,6 @@ namespace CalculateFunding.EndToEnd
 		        }
             };
 
-
- 
             if (buildProject != null)
 		    {
 		        // 2. When a data relationship is added to a spec a message needs to be sent to calcs to populate the dataset relatioships on the buildproject, with
@@ -166,8 +168,7 @@ namespace CalculateFunding.EndToEnd
 		        }
 
 		        var assembly = Assembly.Load(Convert.FromBase64String(buildProject.Build.AssemblyBase64));
-		        var allocationFactory = new AllocationFactory(assembly);
-		        var allocationModel = allocationFactory.CreateAllocationModel();
+		        var allocationModel = allocationFactory.CreateAllocationModel(assembly);
 
 		        var providerSummary = new ProviderSummary { UPIN = "124121"};
 
@@ -185,8 +186,8 @@ namespace CalculateFunding.EndToEnd
 		                {
                             DataGranularity = dataRelationship.DataGranularity,
                             DefinesScope = dataRelationship.DefinesScope, // states whether this defines the provider scope
-                            DataDefinition = new VersionReference(dataRelationship.DatasetDefinition.Id, dataRelationship.DatasetDefinition.Name, 5),
-                            DataRelationship = new VersionReference("4321", dataRelationship.Name, 5),
+                            DataDefinition = new Reference(dataRelationship.DatasetDefinition.Id, dataRelationship.DatasetDefinition.Name),
+                            DataRelationship = new Reference("4321", dataRelationship.Name),
 		                    Current = new SourceDataset
 		                    {
 		                        Dataset = new VersionReference("apt", "APT 1819", 4),
@@ -199,7 +200,7 @@ namespace CalculateFunding.EndToEnd
 
                 // 4. This is a single hard coded provider - in reality we need to  implement a repo to load for each provider
                 // TODO - work out the best way of storing/loading the scoped provider list
-                var results = calc.CalculateProviderResults(allocationModel, buildProject, providerSummary, providerDatasets);
+                //var results = calc.CalculateProviderResults(allocationModel, buildProject, providerSummary, providerDatasets);
 		    }
 		}
 
@@ -218,12 +219,12 @@ namespace CalculateFunding.EndToEnd
                         Name = "*",
                         FieldDefinitions = new List<FieldDefinition>
                         {
-                            new FieldDefinition{ Name= "UPIN", Type = FieldType.String, IdentifierFieldType = IdentifierFieldType.UPIN},
-                            new FieldDefinition{ Name= "Date Opened", Type = FieldType.DateTime},
+                            new FieldDefinition{ Name= "UPIN", Type = FieldType.String, IdentifierFieldType = IdentifierFieldType.UPIN },
+                            new FieldDefinition{ Name= "Date Opened", Type = FieldType.DateTime },
                             new FieldDefinition{ Name= "Phase", Type = FieldType.String},
-                            new FieldDefinition{ Name= "Acedemy Type", Type = FieldType.String},
-                            new FieldDefinition{ Name= "NOR Primary", Type = FieldType.Integer},
-                            new FieldDefinition{ Name= "Average Year Group Size", Type = FieldType.Decimal},
+                            new FieldDefinition{ Name= "Acedemy Type", Type = FieldType.String, Required = true },
+                            new FieldDefinition{ Name= "NOR Primary", Type = FieldType.Integer },
+                            new FieldDefinition{ Name= "Average Year Group Size", Type = FieldType.Decimal },
                             
                         }
                     }
@@ -286,7 +287,10 @@ namespace CalculateFunding.EndToEnd
 			builder
 			   .AddScoped<ICalculationService, CalculationService>();
 
-			builder
+            builder
+               .AddScoped<IAllocationFactory, AllocationFactory>();
+
+            builder
 			  .AddScoped<ICalculationsSearchService, CalculationSearchService>();
 
 			builder

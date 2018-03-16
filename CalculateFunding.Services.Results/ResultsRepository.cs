@@ -43,5 +43,17 @@ namespace CalculateFunding.Services.Results
 	    {
             return _cosmosRepository.BulkUpdateAsync(results, "usp_update_provider_results");
 	    }
+
+        public Task<HttpStatusCode> UpsertProviderSourceDataset(ProviderSourceDataset providerSourceDataset)
+        {
+            return _cosmosRepository.CreateAsync(providerSourceDataset);
+        }
+
+        public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasets(string providerId, string specificationId)
+        {
+            var results = _cosmosRepository.Query<ProviderSourceDataset>().Where(x => x.Provider.Id == providerId && x.Specification.Id == specificationId);
+
+            return Task.FromResult(results.AsEnumerable());
+        }
     }
 }

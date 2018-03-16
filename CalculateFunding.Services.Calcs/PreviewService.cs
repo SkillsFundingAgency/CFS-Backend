@@ -72,17 +72,16 @@ namespace CalculateFunding.Services.Calcs
                 return new StatusCodeResult(412);
             }
 
-            if (string.IsNullOrWhiteSpace(calculation.BuildProjectId))
+            if (calculation.Specification == null || string.IsNullOrWhiteSpace(calculation.Specification.Id))
             {
-                _logger.Error($"Calculation with id {calculation.Id} does not contain a build project id");
+                _logger.Error($"Calculation with id {calculation.Id} does not contain a Specification property or Specification.ID");
                 return new StatusCodeResult(412);
             }
 
-            BuildProject buildProject = await _buildProjectsRepository.GetBuildProjectById(calculation.BuildProjectId);
-
+            BuildProject buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(calculation.Specification.Id);
             if (buildProject == null)
             {
-                _logger.Error($"Build project for build project id {calculation.BuildProjectId} could not be found");
+                _logger.Error($"Build project for specification {calculation.Specification.Id} could not be found");
 
                 return new StatusCodeResult(412);
             }

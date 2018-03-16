@@ -10,14 +10,16 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         private readonly ICalculationService _calcsService;
         private readonly IPreviewService _previewService;
         private readonly ICalculationsSearchService _calcsSearchService;
+        private readonly IBuildProjectsService _buildProjectsService;
 
         public CalculationsController(ICalculationService calcsService, ICalculationsSearchService calcsSearchService, 
-            IPreviewService previewService, IServiceProvider serviceProvider)
+            IPreviewService previewService, IServiceProvider serviceProvider, IBuildProjectsService buildProjectsService)
             : base(serviceProvider)
         {
             _calcsService = calcsService;
             _previewService = previewService;
             _calcsSearchService = calcsSearchService;
+            _buildProjectsService = buildProjectsService;
         }
 
         [Route("api/calcs/calculations-search")]
@@ -90,6 +92,15 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
             return _previewService.Compile(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/calcs/get-buildproject-by-specification-id")]
+        [HttpGet]
+        public Task<IActionResult> RunGetBuildProjectBySpecificationId()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _buildProjectsService.GetBuildProjectBySpecificationId(ControllerContext.HttpContext.Request);
         }
     }
 }

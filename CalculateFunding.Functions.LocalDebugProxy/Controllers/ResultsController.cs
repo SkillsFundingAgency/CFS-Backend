@@ -58,13 +58,31 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _resultsService.GetProviderById(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/results/update-provider-results")]
+        //[Route("api/results/update-provider-results")]
+        //[HttpPost]
+        //public Task<IActionResult> RunUpdateProviderResults()
+        //{
+        //    SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+        //    return _resultsService.UpdateProviderResults(ControllerContext.HttpContext.Request);
+        //}
+
+        [Route("api/results/update-provider-source-dataset")]
         [HttpPost]
-        public Task<IActionResult> RunUpdateProviderResults()
+        public Task<IActionResult> RunUpdateProviderSourceDataset()
         {
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
-            return _resultsService.UpdateProviderResults(ControllerContext.HttpContext.Request);
+            return _resultsService.UpdateProviderSourceDataset(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/results/get-provider-source-datasets")]
+        [HttpGet]
+        public Task<IActionResult> RunGetProviderSourceDatasetsByProviderIdAndSpecificationId()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _resultsService.GetProviderSourceDatasetsByProviderIdAndSpecificationId(ControllerContext.HttpContext.Request);
         }
     }
 }

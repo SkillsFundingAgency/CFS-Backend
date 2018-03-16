@@ -60,15 +60,27 @@ namespace CalculateFunding.Functions.Results.Http
             }
         }
 
-        [FunctionName("update-provider-results")]
-        public static Task<IActionResult> RunUpdateProviderResults(
+        [FunctionName("update-provider-source-dataset")]
+        public static Task<IActionResult> RunUpdateProviderSourceDataset(
            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
         {
             using (var scope = IocConfig.Build().CreateHttpScope(req))
             {
                 IResultsService svc = scope.ServiceProvider.GetService<IResultsService>();
 
-                return svc.UpdateProviderResults(req);
+                return svc.UpdateProviderSourceDataset(req);
+            }
+        }
+
+        [FunctionName("get-provider-source-datasets")]
+        public static Task<IActionResult> RunGetProviderSourceDatasetsByProviderIdAndSpecificationId(
+           [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IResultsService svc = scope.ServiceProvider.GetService<IResultsService>();
+
+                return svc.GetProviderSourceDatasetsByProviderIdAndSpecificationId(req);
             }
         }
     }

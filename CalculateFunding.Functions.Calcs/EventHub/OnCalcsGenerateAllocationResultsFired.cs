@@ -30,7 +30,7 @@ namespace CalculateFunding.Functions.Calcs.EventHub
                     }
                     catch (Exception exception)
                     {
-                        logger.Error(exception, "An error occurred getting message from hub: calc-events-generate-allocations");
+                        logger.Error(exception, "An error occurred getting message from hub: calc-events-generate-allocations-results");
                         throw;
                     }
                 }

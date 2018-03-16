@@ -75,11 +75,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-
-
             EventData message = new EventData(Encoding.UTF8.GetBytes(json));
-
-
 
             ICalculationsRepository repository = CreateCalculationsRepository();
 
@@ -1377,8 +1373,8 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 messengerService
                     .Received(1)
-                    .SendAsync(Arg.Is("calc-events-instruct-generate-allocations"),
-                        Arg.Is<InstructGenerateAllocationsMessage>(m => m.SpecificationId == specificationId),
+                    .SendAsync(Arg.Is("calc-events-generate-allocations-results"),
+                        Arg.Any<BuildProject>(),
                         Arg.Any<IDictionary<string, string>>());
         }
 

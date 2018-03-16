@@ -5,12 +5,13 @@ using System.Reflection;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Services.Calculator.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace CalculateFunding.Services.Calculator
 {
-    public class AllocationModel
+    public class AllocationModel : IAllocationModel
     {
         private readonly List<Tuple<MethodInfo, CalculationResult>> _methods = new List<Tuple<MethodInfo, CalculationResult>>();
         private readonly Dictionary<string, PropertyInfo> _datasetSetters = new Dictionary<string, PropertyInfo>();

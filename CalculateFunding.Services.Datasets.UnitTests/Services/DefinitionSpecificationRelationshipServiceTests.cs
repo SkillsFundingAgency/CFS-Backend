@@ -1511,7 +1511,10 @@ namespace CalculateFunding.Services.Datasets.Services
             ILogger logger = CreateLogger();
 
             Dataset dataset = new Dataset();
-            DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship();
+            DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship
+            {
+                Specification = new Reference { Id = "spec-id" }
+            };
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
@@ -1537,11 +1540,11 @@ namespace CalculateFunding.Services.Datasets.Services
 
         static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,
             ILogger logger = null, ISpecificationsRepository specificationsRepository = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
-            IMessengerService messengerService = null, EventHubSettings EventHubSettings = null)
+            IMessengerService messengerService = null, EventHubSettings EventHubSettings = null, IDatasetService datasetService = null)
         {
             return new DefinitionSpecificationRelationshipService(datasetRepository ?? CreateDatasetRepository(), logger ?? CreateLogger(),
                 specificationsRepository ?? CreateSpecificationsRepository(), relationshipModelValidator ?? CreateRelationshipModelValidator(),
-                messengerService ?? CreateMessengerService(), EventHubSettings ?? CreateEventHubSettings());
+                messengerService ?? CreateMessengerService(), EventHubSettings ?? CreateEventHubSettings(), datasetService ?? CreateDatasetService());
         }
 
         static IValidator<CreateDefinitionSpecificationRelationshipModel> CreateRelationshipModelValidator(ValidationResult validationResult = null)
@@ -1571,6 +1574,11 @@ namespace CalculateFunding.Services.Datasets.Services
         static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
+        }
+
+        static IDatasetService CreateDatasetService()
+        {
+            return Substitute.For<IDatasetService>();
         }
 
         static IMessengerService CreateMessengerService()

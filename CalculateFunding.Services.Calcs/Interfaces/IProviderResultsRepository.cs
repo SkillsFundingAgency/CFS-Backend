@@ -16,5 +16,9 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<HttpStatusCode> UpdateProviderResults(IEnumerable<ProviderResult> providerResults);
 
         Task<ProviderSearchResults> SearchProviders(SearchModel searchModel);
+
+        Task<IEnumerable<ProviderSummary>> GetAllProviderSummaries();
+
+        Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId);
     }
 }

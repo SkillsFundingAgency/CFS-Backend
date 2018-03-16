@@ -24,7 +24,7 @@ namespace CalculateFunding.Functions.Datasets.Storage
                 {
                     logger.Information($"Starting to process blob: {name}");
 
-                    await datasetService.SaveNewDataset(blob);
+                    //await datasetService.SaveNewDataset(blob);
 
                     logger.Information($"Completed processing of blob: {name}");
                 }

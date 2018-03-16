@@ -7,6 +7,7 @@ using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.Validators;
@@ -81,6 +82,15 @@ namespace CalculateFunding.Functions.Datasets
             builder
                 .AddScoped<ISpecificationsRepository, SpecificationsRepository>();
 
+            builder
+               .AddSingleton<IExcelDatasetReader, ExcelDatasetReader>();
+
+            builder
+                .AddScoped<IProviderResultsRepository, ProviderResultsRepository>();
+
+            builder
+               .AddScoped<ICalcsRepository, CalcsRepository>();
+
             MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             builder
                 .AddSingleton(dataSetsConfig.CreateMapper());
@@ -92,7 +102,9 @@ namespace CalculateFunding.Functions.Datasets
             builder.AddSearch(config);
 
             builder.AddEventHub(config);
-            
+
+            builder.AddCaching(config);
+
             builder.AddLogging(config, "CalculateFunding.Functions.Datasets");
         }
     }

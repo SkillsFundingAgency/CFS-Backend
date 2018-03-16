@@ -24,6 +24,8 @@ using System.Text;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.EventHub;
 using CalculateFunding.Services.Core.Interfaces.EventHub;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -99,6 +101,20 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
+        public static IServiceCollection AddHttpEventHub(this IServiceCollection builder, IConfigurationRoot config)
+        {
+            EventHubSettings eventHubSettings = new EventHubSettings();
+
+            config.Bind("EventHubSettings", eventHubSettings);
+
+            builder.AddSingleton(eventHubSettings);
+
+            builder
+                .AddScoped<IMessengerService, HttpMessengerService>();
+
+            return builder;
+        }
+
         public static IServiceCollection AddLogging(this IServiceCollection builder, IConfigurationRoot config, string serviceName)
         {
             ApplicationInsightsOptions appInsightsOptions = new ApplicationInsightsOptions();
@@ -167,6 +183,20 @@ namespace CalculateFunding.Services.Core.Extensions
                 InstrumentationKey = appInsightsKey,
 
             }, LogEventLevel.Verbose, null, null);
+        }
+
+        public static IServiceCollection AddCaching(this IServiceCollection builder, IConfigurationRoot config)
+        {
+            RedisSettings redisSettings = new RedisSettings();
+
+            config.Bind("redisSettings", redisSettings);
+
+            builder.AddSingleton<RedisSettings>(redisSettings);
+
+            builder
+                .AddSingleton<ICacheProvider, StackExchangeRedisClientCacheProvider>();
+
+            return builder;
         }
     }
 }

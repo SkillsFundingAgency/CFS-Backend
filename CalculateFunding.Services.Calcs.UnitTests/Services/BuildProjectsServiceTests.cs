@@ -15,6 +15,16 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Interfaces.EventHub;
 using Microsoft.Azure.EventHubs;
+using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
+using CalculateFunding.Services.Compiler.Interfaces;
+using CalculateFunding.Models.Calcs.Messages;
+using CalculateFunding.Services.Core.Extensions;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
+using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -25,7 +35,23 @@ namespace CalculateFunding.Services.Calcs.Services
         const string BuildProjectId = "47b680fa-4dbe-41e0-a4ce-c25e41a634c1";
 
         [TestMethod]
-        public void GenerateAllocations_GivenNullPayload_ThrowsArgumentNullException()
+        public void UpdateAllocations_GivenNullMessage_ThrowsArgumentNullException()
+        {
+            //Arrange
+            EventData message = null;
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService();
+
+            //Act
+            Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void UpdateAllocations_GivenNullPayload_ThrowsArgumentNullException()
         {
             //Arrange
             EventData message = new EventData(new byte[0]);
@@ -33,7 +59,7 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
             //Act
-            Func<Task> test = async () => await buildProjectsService.GenerateAllocationsInstruction(message);
+            Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
 
             //Assert
             test
@@ -41,15 +67,41 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void GenerateAllocations_GivenPayloadButNullOrEmptySpecificationId_ThrowsArgumentNullException()
+        public void UpdateAllocations_GivenSpecificationIdKeyyNotFoundOnMessage_ThrowsKeyNotFoundExceptionn()
         {
             //Arrange
-            EventData message = CreateMessage("");
+            BuildProject payload = new BuildProject();
+
+            var json = JsonConvert.SerializeObject(payload);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
             //Act
-            Func<Task> test = async () => await buildProjectsService.GenerateAllocationsInstruction(message);
+            Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<KeyNotFoundException>();
+        }
+
+        [TestMethod]
+        public void UpdateAllocations_GivenNullOrEmptySpecificationId_ThrowsArgumentNullException()
+        {
+            //Arrange
+            BuildProject payload = new BuildProject();
+
+            var json = JsonConvert.SerializeObject(payload);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            message
+               .Properties.Add("specification-id", "");
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService();
+
+            //Act
+            Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
 
             //Assert
             test
@@ -57,50 +109,339 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task GenerateAllocations_GivenBuildProjectCouldNotBeFound_LogsAndReturns()
+        public void UpdateAllocations_GivenSpecificationCouldNotBeFound_ThrowsArgumentException()
         {
             //Arrange
-            EventData message = CreateMessage();
+            BuildProject payload = new BuildProject();
+           
+            var json = JsonConvert.SerializeObject(payload);
 
-            ILogger logger = CreateLogger();
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            message
+                .Properties.Add("specification-id", SpecificationId);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService();
+
+            //Act
+            Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<ArgumentException>();
+        }
+
+        [TestMethod]
+        public void UpdateAllocations_GivenBuildProjectWithNoSpecFoundButFailedToUpdateBuildProject_ThrowsException()
+        {
+            //Arrange
+            Specification specification = new Specification();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = BuildProjectId
+            };
+
+            var json = JsonConvert.SerializeObject(buildProject);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            message
+               .Properties.Add("specification-id", SpecificationId);
+
+            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .UpdateBuildProject(Arg.Is(buildProject))
+                .Returns(HttpStatusCode.InternalServerError);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
+                specificationsRepository: specificationsRepository, buildProjectsRepository: buildProjectsRepository);
+
+            //Act
+            Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<Exception>();
+        }
+
+        [TestMethod]
+        public void UpdateAllocations_GivenNoProviderSummariesFound_ThrowsException()
+        {
+            //Arrange
+            Specification specification = new Specification();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = BuildProjectId
+            };
+
+            var json = JsonConvert.SerializeObject(buildProject);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            message
+               .Properties.Add("specification-id", SpecificationId);
+
+            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .UpdateBuildProject(Arg.Any<BuildProject>())
+                .Returns(HttpStatusCode.OK);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
+                specificationsRepository: specificationsRepository, buildProjectsRepository: buildProjectsRepository);
+
+            //Act
+            Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<Exception>();
+        }
+
+        [TestMethod]
+        public void UpdateAllocations_GivenSpecificationExistsOnBuildProjectButNoProviderSummaries_ThrowsException()
+        {
+            //Arrange
+            SpecificationSummary specification = new SpecificationSummary();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = BuildProjectId,
+                Specification = specification
+            };
+
+            var json = JsonConvert.SerializeObject(buildProject);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            message
+               .Properties.Add("specification-id", SpecificationId);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService();
+
+            //Act
+            Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<Exception>();
+        }
+
+        [TestMethod]
+        async public Task UpdateAllocation_WhenProviderSummariesFound_CallsCalcEngine()
+        {
+            //Arrange
+            SpecificationSummary specification = new SpecificationSummary();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = BuildProjectId,
+                Specification = specification
+            };
+
+            var json = JsonConvert.SerializeObject(buildProject);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            message
+               .Properties.Add("specification-id", SpecificationId);
+
+            IEnumerable<ProviderSummary> summaries = new[]
+            {
+                new ProviderSummary()
+            };
+
+            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+            providerResultsRepository
+                .GetAllProviderSummaries()
+                .Returns(summaries);
+
+            IEnumerable<ProviderResult> results = new[]
+            {
+                new ProviderResult()
+            };
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            ICalculationEngine calculationEngine = CreateCalculationEngine();
+            calculationEngine
+                   .GenerateAllocations(Arg.Any<BuildProject>(), Arg.Is(summaries), Arg.Any<Func<string, string, Task<IEnumerable<ProviderSourceDataset>>>>())
+                   .Returns(results);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(providerResultsRepository: providerResultsRepository,
+                messengerService: messengerService, calculationEngine: calculationEngine);
+
+            //Act
+            await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            await
+                messengerService
+                    .Received(1)
+                    .SendAsync(Arg.Is("dataset-events-results"), Arg.Any<List<ProviderResult>>(), Arg.Any<Dictionary<string, string>>());
+        }
+
+        [TestMethod]
+        public void UpdateBuildProjectRelationships_GivenNullMessage_ThrowsArgumentNullException()
+        {
+            //Arrange
+            EventData message = null;
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService();
+
+            //Act
+            Func<Task> test = () => buildProjectsService.UpdateBuildProjectRelationships(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void UpdateBuildProjectRelationships_GivenPayload_ThrowsArgumentNullException()
+        {
+            //Arrange
+            EventData message = new EventData(new byte[0]);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService();
+
+            //Act
+            Func<Task> test = () => buildProjectsService.UpdateBuildProjectRelationships(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void UpdateBuildProjectRelationships_GivenSpecificationIdKeyyNotFoundOnMessage_ThrowsKeyNotFoundExceptionn()
+        {
+            //Arrange
+            DatasetRelationshipSummary payload = new DatasetRelationshipSummary();
+
+            var json = JsonConvert.SerializeObject(payload);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService();
+
+            //Act
+            Func<Task> test = () => buildProjectsService.UpdateBuildProjectRelationships(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<KeyNotFoundException>();
+        }
+
+        [TestMethod]
+        public void UpdateBuildProjectRelationships_GivenNullOrEmptySpecificationId_ThrowsArgumentNullException()
+        {
+            //Arrange
+            DatasetRelationshipSummary payload = new DatasetRelationshipSummary();
+
+            var json = JsonConvert.SerializeObject(payload);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            message
+               .Properties.Add("specification-id", "");
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService();
+
+            //Act
+            Func<Task> test = () => buildProjectsService.UpdateBuildProjectRelationships(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public void UpdateBuildProjectRelationships_GivenBuildProjectNotFound_ThrowsException()
+        {
+            //Arrange
+            DatasetRelationshipSummary payload = new DatasetRelationshipSummary();
+
+            var json = JsonConvert.SerializeObject(payload);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            message
+               .Properties.Add("specification-id", SpecificationId);
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns((BuildProject)null);
 
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, logger: logger, specificationsRepository: specificationRepository);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
             //Act
-            await buildProjectsService.GenerateAllocationsInstruction(message);
+            Func<Task> test = () => buildProjectsService.UpdateBuildProjectRelationships(message);
 
             //Assert
-            logger
-                .Received(1)
-                .Error($"Failed to find build project for specification id: {SpecificationId}");
-
-            await
-                specificationRepository
-                    .DidNotReceive()
-                    .GetSpecificationById(Arg.Any<string>());
+            test
+                .ShouldThrowExactly<Exception>();
         }
 
         [TestMethod]
-        async public Task GenerateAllocations_GivenBuildProjectFoundButNoBuild_LogsAndReturns()
+        public void UpdateBuildProjectRelationships_GivenBuildProjectWasFoundBuyWithoutABuild_ThrowsException()
         {
             //Arrange
-            EventData message = CreateMessage();
+            DatasetRelationshipSummary payload = new DatasetRelationshipSummary();
 
-            ILogger logger = CreateLogger();
+            var json = JsonConvert.SerializeObject(payload);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            message
+               .Properties.Add("specification-id", SpecificationId);
+
+            BuildProject buildProject = new BuildProject();
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(buildProject);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository: buildProjectsRepository);
+
+            //Act
+            Func<Task> test = () => buildProjectsService.UpdateBuildProjectRelationships(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<Exception>();
+        }
+
+        [TestMethod]
+        async public Task UpdateBuildProjectRelationships_GivenRelationshipNameAlreadyExists_DoesNotCompileAndUpdate()
+        {
+            //Arrange
+            const string relationshipName = "test--name";
+
+            DatasetRelationshipSummary payload = new DatasetRelationshipSummary
+            {
+                Name = relationshipName
+            };
+
+            var json = JsonConvert.SerializeObject(payload);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            message
+               .Properties.Add("specification-id", SpecificationId);
 
             BuildProject buildProject = new BuildProject
             {
                 Id = BuildProjectId,
-                Specification = new SpecificationSummary
+                Build = new Build(),
+                Specification = new SpecificationSummary { Id = SpecificationId },
+                DatasetRelationships = new List<DatasetRelationshipSummary>
                 {
-                    Id = SpecificationId
+                    new DatasetRelationshipSummary{ Name = relationshipName }
                 }
             };
 
@@ -109,131 +450,97 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            ICompilerFactory compilerFactory = CreateCompilerfactory();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, logger: logger, specificationsRepository: specificationRepository);
-
-            //Act
-            await buildProjectsService.GenerateAllocationsInstruction(message);
-
-            //Assert
-            logger
-                .Received(1)
-                .Error($"Failed to find build project assembly for build project id: {BuildProjectId}");
-
-            await
-                specificationRepository
-                    .DidNotReceive()
-                    .GetSpecificationById(Arg.Any<string>());
-        }
-
-        [TestMethod]
-        async public Task GenerateAllocations_GivenBuildProjectFoundButNoBuildAssembly_LogsAndReturns()
-        {
-            //Arrange
-            EventData message = CreateMessage();
-
-            ILogger logger = CreateLogger();
-
-            BuildProject buildProject = new BuildProject
-            {
-                Id = BuildProjectId,
-                Specification = new SpecificationSummary
-                {
-                    Id = SpecificationId
-                },
-                Build = new Build()
-            };
-
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
-                .Returns(buildProject);
-
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, logger: logger, specificationsRepository: specificationRepository);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository: buildProjectsRepository, compilerFactory: compilerFactory);
 
             //Act
-            await buildProjectsService.GenerateAllocationsInstruction(message);
+            await buildProjectsService.UpdateBuildProjectRelationships(message);
 
             //Assert
-            logger
-                .Received(1)
-                .Error($"Failed to find build project assembly for build project id: {BuildProjectId}");
-
-            await
-                specificationRepository
-                    .DidNotReceive()
-                    .GetSpecificationById(Arg.Any<string>());
-        }
-
-        [TestMethod]
-        async public Task GenerateAllocations_GivenBuildProjectFoundButSpecificationNotFound_LogsAndReturns()
-        {
-            //Arrange
-            EventData message = CreateMessage();
-
-            ILogger logger = CreateLogger();
-
-            BuildProject buildProject = new BuildProject
-            {
-                Id = BuildProjectId,
-                Specification = new SpecificationSummary
-                {
-                    Id = SpecificationId
-                },
-                Build = new Build { AssemblyBase64 = "123456789" }
-            };
-
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
-                .Returns(buildProject);
-
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns((Specification)null);
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, logger: logger, specificationsRepository: specificationRepository);
-
-            //Act
-            await buildProjectsService.GenerateAllocationsInstruction(message);
-
-            //Assert
-            logger
-                .Received(1)
-                .Error($"Failed to find specification for specification id: {SpecificationId}");
-
             await
                 buildProjectsRepository
-                    .DidNotReceive()
-                    .UpdateBuildProject(Arg.Any<BuildProject>());
+                .DidNotReceive()
+                .UpdateBuildProject(Arg.Any<BuildProject>());
+
+            compilerFactory
+                .DidNotReceive()
+                .GetCompiler(Arg.Any<IEnumerable<SourceFile>>());
         }
 
         [TestMethod]
-        async public Task GenerateAllocations_GivenBuildProjectAndSpecButFailsToUpdateBuildProject_LogsAndReturns()
+        async public Task UpdateBuildProjectRelationships_GivenRelationship_CompilesAndUpdates()
         {
             //Arrange
-            EventData message = CreateMessage();
+            const string relationshipName = "test--name";
 
-            ILogger logger = CreateLogger();
+            DatasetRelationshipSummary payload = new DatasetRelationshipSummary
+            {
+                Name = relationshipName
+            };
+
+            var json = JsonConvert.SerializeObject(payload);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            message
+               .Properties.Add("specification-id", SpecificationId);
 
             BuildProject buildProject = new BuildProject
             {
                 Id = BuildProjectId,
-                Specification = new SpecificationSummary
-                {
-                    Id = SpecificationId
-                },
-                Build = new Build { AssemblyBase64 = "123456789" }
+                Build = new Build(),
+                Specification = new SpecificationSummary { Id = SpecificationId }
             };
 
-            Specification specification = new Specification
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(buildProject);
+
+            buildProjectsRepository
+                 .UpdateBuildProject(Arg.Is(buildProject))
+                 .Returns(HttpStatusCode.OK);
+
+            ICompilerFactory compilerFactory = CreateCompilerfactory();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository: buildProjectsRepository, compilerFactory: compilerFactory);
+
+            //Act
+            await buildProjectsService.UpdateBuildProjectRelationships(message);
+
+            //Assert
+            await
+                buildProjectsRepository
+                .Received(1)
+                .UpdateBuildProject(Arg.Any<BuildProject>());
+
+            compilerFactory
+                .Received(1)
+                .GetCompiler(Arg.Any<IEnumerable<SourceFile>>());
+        }
+
+        [TestMethod]
+        public void UpdateBuildProjectRelationships_GivenRelationshipButFailsToUpdate_ThrowsException()
+        {
+            //Arrange
+            const string relationshipName = "test--name";
+
+            DatasetRelationshipSummary payload = new DatasetRelationshipSummary
             {
-                Id = SpecificationId,
-                Name = "Any name"
+                Name = relationshipName
+            };
+
+            var json = JsonConvert.SerializeObject(payload);
+
+            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            message
+               .Properties.Add("specification-id", SpecificationId);
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = BuildProjectId,
+                Build = new Build(),
+                Specification = new SpecificationSummary { Id = SpecificationId }
             };
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
@@ -245,29 +552,115 @@ namespace CalculateFunding.Services.Calcs.Services
                 .UpdateBuildProject(Arg.Is(buildProject))
                 .Returns(HttpStatusCode.InternalServerError);
 
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
+            ICompilerFactory compilerFactory = CreateCompilerfactory();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, logger: logger, specificationsRepository: specificationRepository);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository: buildProjectsRepository, compilerFactory: compilerFactory);
 
             //Act
-            await buildProjectsService.GenerateAllocationsInstruction(message);
+            Func<Task> test = () => buildProjectsService.UpdateBuildProjectRelationships(message);
 
             //Assert
+            test
+                .ShouldThrowExactly<Exception>();
+        }
+
+        [TestMethod]
+        async public Task GetBuildProjectBySpecificationId_GivenNoSpecificationId_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+           
+            ILogger logger = CreateLogger();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger);
+
+            //Act
+            IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeAssignableTo<BadRequestObjectResult>();
+
             logger
                 .Received(1)
-                .Error($"Failed to find update build project with build project id: {buildProject.Id} with status code: InternalServerError");
+                .Error(Arg.Is("No specification Id was provided to GetBuildProjectBySpecificationId"));
+        }
+
+        [TestMethod]
+        async public Task GetBuildProjectBySpecificationId_GivenButBuildProjectNotFound_ReturnsNotFound()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
+                .Returns((BuildProject)null);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository);
+
+            //Act
+            IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeAssignableTo<NotFoundResult>();
+        }
+
+        [TestMethod]
+        async public Task GetBuildProjectBySpecificationId_GivenButBuildProjectFound_ReturnsOKResult()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            BuildProject buildProject = new BuildProject
+            {
+                Build = new Build()
+            };
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(buildProject);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository);
+
+            //Act
+            IActionResult result = await buildProjectsService.GetBuildProjectBySpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeAssignableTo<OkObjectResult>();
         }
 
         static BuildProjectsService CreateBuildProjectsService(IBuildProjectsRepository buildProjectsRepository = null, IMessengerService messengerService = null,
             EventHubSettings EventHubSettings = null, ILogger logger = null, ICalculationEngine calculationEngine = null,
-            IProviderResultsRepository providerResultsRepository = null, ISpecificationRepository specificationsRepository = null)
+            IProviderResultsRepository providerResultsRepository = null, ISpecificationRepository specificationsRepository = null, ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
+            ICompilerFactory compilerFactory = null)
         {
             return new BuildProjectsService(buildProjectsRepository ?? CreateBuildProjectsRepository(), messengerService ?? CreateMessengerService(),
                 EventHubSettings ?? CreateEventHubSettings(), logger ?? CreateLogger(), calculationEngine ?? CreateCalculationEngine(),
-                providerResultsRepository ?? CreateProviderResultsRepository(), specificationsRepository ?? CreateSpecificationRepository());
+                providerResultsRepository ?? CreateProviderResultsRepository(), specificationsRepository ?? CreateSpecificationRepository(),
+                sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(), compilerFactory ?? CreateCompilerfactory());
         }
 
         static EventData CreateMessage(string specificationId = SpecificationId)
@@ -278,6 +671,16 @@ namespace CalculateFunding.Services.Calcs.Services
             string json = JsonConvert.SerializeObject(anyObject);
 
             return new EventData(Encoding.UTF8.GetBytes(json));
+        }
+
+        static ISourceFileGeneratorProvider CreateSourceFileGeneratorProvider()
+        {
+            return Substitute.For<ISourceFileGeneratorProvider>();
+        }
+
+        static ICompilerFactory CreateCompilerfactory()
+        {
+            return Substitute.For<ICompilerFactory>();
         }
 
         static ILogger CreateLogger()

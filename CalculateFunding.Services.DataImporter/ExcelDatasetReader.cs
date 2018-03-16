@@ -6,13 +6,11 @@ using System.Text.RegularExpressions;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using OfficeOpenXml;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.RefAndLookup;
 
 namespace CalculateFunding.Services.DataImporter
 {
-    public class ExcelDatatseReader : IExcelDatasetReader
+    public class ExcelDatasetReader : IExcelDatasetReader
     {
-
 
 	    public IEnumerable<TableLoadResult> Read(Stream stream, DatasetDefinition datasetDefinition) 
 	    {

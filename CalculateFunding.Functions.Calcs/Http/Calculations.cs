@@ -95,5 +95,17 @@ namespace CalculateFunding.Functions.Calcs.Http
                 return svc.SaveCalculationVersion(req);
             }
         }
+
+        [FunctionName("get-buildproject-by-specification-id")]
+        public static Task<IActionResult> RunGetBuildProjectBySpecificationId(
+        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IBuildProjectsService svc = scope.ServiceProvider.GetService<IBuildProjectsService>();
+
+                return svc.GetBuildProjectBySpecificationId(req);
+            }
+        }
     }
 }

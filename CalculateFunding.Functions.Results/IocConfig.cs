@@ -50,6 +50,8 @@ namespace CalculateFunding.Functions.Results
 
             builder.AddEventHub(config);
 
+            builder.AddCaching(config);
+
             builder.AddLogging(config, "CalculateFunding.Functions.Results");
         }
     }

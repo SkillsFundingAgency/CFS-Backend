@@ -28,7 +28,7 @@ namespace CalculateFunding.Functions.LocalDebugQueueProcessor
                 PartitionReceiver.DefaultConsumerGroupName,
                 eventHubSettings.EventHubConnectionString,
                 storageSettings.ConnectionString,
-                $"hub{Environment.UserName.ToLowerInvariant()}");
+                $"hub{Environment.UserName.ToLowerInvariant()}1-1");
 
         }
 

@@ -12,6 +12,7 @@ namespace CalculateFunding.Services.Results.Interfaces
 	    Task<IActionResult> GetProviderSpecifications(HttpRequest request);
         Task<IActionResult> GetProviderById(HttpRequest request);
         Task<IActionResult> GetProviderResultsBySpecificationId(HttpRequest request);
-        Task<IActionResult> UpdateProviderResults(HttpRequest request);
+        Task<IActionResult> UpdateProviderSourceDataset(HttpRequest request);
+        Task<IActionResult> GetProviderSourceDatasetsByProviderIdAndSpecificationId(HttpRequest request);
     }
 }

@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly IMessengerService _messengerService;
         private readonly EventHubSettings _eventHubSettings;
 
-        const string generateAllocationsSubscription = "calc-events-instruct-generate-allocations";
+        const string generateAllocationsSubscription = "calc-events-generate-allocations-results";
        
         public CalculationService(ICalculationsRepository calculationsRepository, ILogger logger,
             ISearchRepository<CalculationIndex> searchRepository, IValidator<Calculation> calculationValidator,
@@ -308,13 +308,13 @@ namespace CalculateFunding.Services.Calcs
 
             HttpStatusCode statusCode = await _calculationsRepository.UpdateCalculation(calculation);
 
-            await UpdateBuildProject(calculation.Specification);
+            BuildProject buildProject = await UpdateBuildProject(calculation.Specification);
 
             await UpdateSearch(calculation);
 
             CalculationCurrentVersion currentVersion = GetCurrentVersionFromCalculation(calculation);
 
-            await SendGenerateAllocationsMessage(calculation.Specification.Id, request);
+            await SendGenerateAllocationsMessage(buildProject, request);
 
             return new OkObjectResult(currentVersion);
         }
@@ -391,7 +391,7 @@ namespace CalculateFunding.Services.Calcs
             });
         }
 
-        async Task CreateBuildProject(SpecificationSummary specification, List<Calculation> calculations)
+        async Task<BuildProject> CreateBuildProject(SpecificationSummary specification, List<Calculation> calculations)
         {
 			BuildProject buildproject = new BuildProject
             {
@@ -404,9 +404,11 @@ namespace CalculateFunding.Services.Calcs
 	        buildproject.Build = Compile(buildproject);
 
             await _buildProjectsRepository.CreateBuildProject(buildproject);
+
+            return buildproject;
         }
 
-        async Task UpdateBuildProject(SpecificationSummary specification)
+        async Task<BuildProject> UpdateBuildProject(SpecificationSummary specification)
         {
 	        var calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specification.Id);
 	        var buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specification.Id);
@@ -415,7 +417,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 _logger.Warning($"Build project for specification {specification.Id} could not be found, creating a new one");
 
-                await CreateBuildProject(specification, calculations.ToList());
+                buildProject = await CreateBuildProject(specification, calculations.ToList());
             }
             else
             {
@@ -423,6 +425,8 @@ namespace CalculateFunding.Services.Calcs
 	            buildProject.Build = Compile(buildProject);
 				await _buildProjectsRepository.UpdateBuildProject(buildProject);
             }
+
+            return buildProject;
         }
 
         int GetNextVersionNumberFromCalculationVersions(IEnumerable<CalculationVersion> versions)
@@ -454,12 +458,14 @@ namespace CalculateFunding.Services.Calcs
             return calculationCurrentVersion;
         }
 
-        Task SendGenerateAllocationsMessage(string specificationId, HttpRequest request)
+        Task SendGenerateAllocationsMessage(BuildProject buildProject, HttpRequest request)
         {
             IDictionary<string, string> properties = CreateMessageProperties(request);
 
+            properties.Add("specification-id", buildProject.Specification.Id);
+
             return _messengerService.SendAsync(generateAllocationsSubscription,
-                new InstructGenerateAllocationsMessage { SpecificationId = specificationId },
+                buildProject,
                 properties);
         }
 
