@@ -13,6 +13,8 @@ using CalculateFunding.Services.Calcs.Validators;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.CodeMetadataGenerator;
+using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
@@ -202,6 +204,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
             builder
                .AddScoped<ICompilerFactory, CompilerFactory>();
+
+            builder.AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
 
             builder
                 .AddScoped<CSharpCompiler>()

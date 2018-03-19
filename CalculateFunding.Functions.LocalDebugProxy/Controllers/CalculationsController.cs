@@ -102,5 +102,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _buildProjectsService.GetBuildProjectBySpecificationId(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/calcs/get-calculation-code-context")]
+        [HttpGet]
+        public Task<IActionResult> RunGetCalculationCodeContext()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _calcsService.GetCalculationCodeContext(ControllerContext.HttpContext.Request);
+        }
     }
 }

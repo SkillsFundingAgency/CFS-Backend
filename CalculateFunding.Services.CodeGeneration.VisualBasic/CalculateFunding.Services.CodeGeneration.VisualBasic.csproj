@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <DebugType>full</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +19,7 @@
     <None Remove="CodeResources\CalculationAttribute.vb" />
     <None Remove="CodeResources\CalculationSpecificationAttribute.vb" />
     <None Remove="CodeResources\Common\Attributes\DatasetRelationshipAttribute.vb" />
+    <None Remove="CodeResources\Common\Attributes\DescriptionAttribute.vb" />
     <None Remove="CodeResources\Common\Attributes\FieldAttribute.vb" />
     <None Remove="CodeResources\Common\Provider.vb" />
     <None Remove="CodeResources\Common\Scenario.vb" />
@@ -25,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="CodeResources\Common\Attributes\DescriptionAttribute.vb" />
     <EmbeddedResource Include="CodeResources\Common\Attributes\FieldAttribute.vb" />
     <EmbeddedResource Include="CodeResources\Common\Attributes\DatasetRelationshipAttribute.vb" />
     <EmbeddedResource Include="CodeResources\Common\Attributes\AllocationLineAttribute.vb" />

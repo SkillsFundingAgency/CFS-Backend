@@ -41,11 +41,29 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
         [Route("api/datasets/get-data-definitions")]
         [HttpGet]
-        public Task<IActionResult> RunGetDataDefinitions()
+        public Task<IActionResult> RunGetDatasetDefinitions()
         {
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
             return _definitionService.GetDatasetDefinitions(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/datasets/get-dataset-definition-by-id")]
+        [HttpGet]
+        public Task<IActionResult> RunGetDatasetDefinitionById()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _definitionService.GetDatasetDefinitionById(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/datasets/get-dataset-definitions-by-ids")]
+        [HttpGet]
+        public Task<IActionResult> RunGetDatasetDefinitionsById()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _definitionService.GetDatasetDefinitionsByIds(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/datasets/create-new-dataset")]

@@ -4,6 +4,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -51,7 +52,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 definition = deserializer.Deserialize<DatasetDefinition>(yaml);
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 _logger.Error(exception, $"Invalid yaml was provided for file: {yamlFilename}");
                 return new BadRequestObjectResult($"Invalid yaml was provided for file: {yamlFilename}");
@@ -60,7 +61,7 @@ namespace CalculateFunding.Services.Datasets
             try
             {
                 HttpStatusCode result = await _dataSetsRepository.SaveDefinition(definition);
-                if(!result.IsSuccess())
+                if (!result.IsSuccess())
                 {
                     int statusCode = (int)result;
 
@@ -69,7 +70,7 @@ namespace CalculateFunding.Services.Datasets
                     return new StatusCodeResult(statusCode);
                 }
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 _logger.Error(exception, $"Exception occurred writing to yaml file: {yamlFilename} to cosmos db");
 
@@ -88,6 +89,42 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(definitions);
         }
 
+        public async Task<IActionResult> GetDatasetDefinitionById(HttpRequest request)
+        {
+            request.Query.TryGetValue("datasetDefinitionId", out var requestDatasetDefinitionId);
+
+            var datasetDefinitionId = requestDatasetDefinitionId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(datasetDefinitionId))
+            {
+                _logger.Error("No datasetDefinitionId was provided to GetDatasetDefinitionById");
+
+                return new BadRequestObjectResult("Null or empty datasetDefinitionId provided");
+            }
+
+            DatasetDefinition defintion = await _dataSetsRepository.GetDatasetDefinition(datasetDefinitionId);
+            if(defintion == null)
+            {
+                return new NotFoundResult();
+            }
+            return new OkObjectResult(defintion);
+        }
+
+        public async Task<IActionResult> GetDatasetDefinitionsByIds(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            IEnumerable<string> definitionIds = JsonConvert.DeserializeObject<IEnumerable<string>>(json);
+            if (!definitionIds.Any())
+            {
+                _logger.Error($"No Dataset Definition Ids were provided to lookup");
+                return new BadRequestObjectResult($"No DatasetDefinitionIds were provided to lookup");
+            }
+
+            IEnumerable<DatasetDefinition> defintions =  await _dataSetsRepository.GetDatasetDefinitionsByQuery(d => definitionIds.Contains(d.Id));
+            return new OkObjectResult(definitionIds);
+        }
+
         string GetYamlFileNameFromRequest(HttpRequest request)
         {
             if (request.Headers.ContainsKey("yaml-file"))
@@ -97,5 +134,7 @@ namespace CalculateFunding.Services.Datasets
 
             return "File name not provided";
         }
+
+
     }
 }

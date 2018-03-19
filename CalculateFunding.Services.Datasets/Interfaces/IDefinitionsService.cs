@@ -9,5 +9,9 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> SaveDefinition(HttpRequest request);
 
         Task<IActionResult> GetDatasetDefinitions(HttpRequest request);
+
+        Task<IActionResult> GetDatasetDefinitionById(HttpRequest request);
+
+        Task<IActionResult> GetDatasetDefinitionsByIds(HttpRequest request);
     }
 }

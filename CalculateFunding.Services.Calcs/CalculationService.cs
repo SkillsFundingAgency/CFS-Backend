@@ -25,6 +25,10 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Models.Calcs.Messages;
 using CalculateFunding.Services.Core.Interfaces.EventHub;
 using Microsoft.Azure.EventHubs;
+using CalculateFunding.Services.CodeMetadataGenerator;
+using CalculateFunding.Models.Code;
+using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
+using CalculateFunding.Services.Core.Helpers;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -35,39 +39,50 @@ namespace CalculateFunding.Services.Calcs
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
         private readonly IValidator<Calculation> _calculationValidator;
         private readonly IBuildProjectsRepository _buildProjectsRepository;
-	    private readonly ICompilerFactory _compilerFactory;
-	    private readonly ISourceFileGenerator _sourceFileGenerator;
+        private readonly ICompilerFactory _compilerFactory;
+        private readonly ISourceFileGenerator _sourceFileGenerator;
         private readonly IMessengerService _messengerService;
         private readonly EventHubSettings _eventHubSettings;
+        private readonly ICodeMetadataGeneratorService _codeMetadataGenerator;
 
-        const string generateAllocationsSubscription = "calc-events-generate-allocations-results";
-       
-        public CalculationService(ICalculationsRepository calculationsRepository, ILogger logger,
-            ISearchRepository<CalculationIndex> searchRepository, IValidator<Calculation> calculationValidator,
-            IBuildProjectsRepository buildProjectsRepository, ISourceFileGeneratorProvider sourceFileGeneratorProvider, 
-            ICompilerFactory compilerFactory, IMessengerService messengerService, EventHubSettings eventHubSettings)
+        const string generateAllocationsSubscription = "calc-events-instruct-generate-allocations";
+
+        public CalculationService(
+            ICalculationsRepository calculationsRepository,
+            ILogger logger,
+            ISearchRepository<CalculationIndex> searchRepository,
+            IValidator<Calculation> calculationValidator,
+            IBuildProjectsRepository buildProjectsRepository,
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider,
+            ICompilerFactory compilerFactory,
+            IMessengerService messengerService,
+            EventHubSettings eventHubSettings,
+            ICodeMetadataGeneratorService codeMetadataGenerator)
         {
+            Guard.ArgumentNotNull(codeMetadataGenerator, nameof(codeMetadataGenerator));
+
             _calculationsRepository = calculationsRepository;
             _logger = logger;
             _searchRepository = searchRepository;
             _calculationValidator = calculationValidator;
             _buildProjectsRepository = buildProjectsRepository;
-	        _compilerFactory = compilerFactory;
-	        _sourceFileGenerator = sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
+            _compilerFactory = compilerFactory;
+            _sourceFileGenerator = sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
             _messengerService = messengerService;
             _eventHubSettings = eventHubSettings;
+            _codeMetadataGenerator = codeMetadataGenerator;
         }
 
-	    Build Compile(BuildProject buildProject)
-	    {
-		    IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject);
+        Build Compile(BuildProject buildProject)
+        {
+            IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject);
 
-		    ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
+            ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
 
-		    return compiler.GenerateCode(sourceFiles?.ToList());
-	    }
+            return compiler.GenerateCode(sourceFiles?.ToList());
+        }
 
-		async public Task<IActionResult> GetCalculationHistory(HttpRequest request)
+        async public Task<IActionResult> GetCalculationHistory(HttpRequest request)
         {
             request.Query.TryGetValue("calculationId", out var calcId);
 
@@ -168,7 +183,7 @@ namespace CalculateFunding.Services.Calcs
 
             Calculation calculation = await _calculationsRepository.GetCalculationById(calculationId);
 
-            if(calculation != null)
+            if (calculation != null)
             {
                 _logger.Information($"A calculation was found for calculation id {calculationId}");
 
@@ -222,7 +237,7 @@ namespace CalculateFunding.Services.Calcs
                     }
                 };
 
-               
+
                 HttpStatusCode result = await _calculationsRepository.CreateDraftCalculation(calculation);
 
                 if (result == HttpStatusCode.Created)
@@ -257,7 +272,7 @@ namespace CalculateFunding.Services.Calcs
 
             SaveSourceCodeVersion sourceCodeVersion = JsonConvert.DeserializeObject<SaveSourceCodeVersion>(json);
 
-            if(sourceCodeVersion == null || string.IsNullOrWhiteSpace(sourceCodeVersion.SourceCode))
+            if (sourceCodeVersion == null || string.IsNullOrWhiteSpace(sourceCodeVersion.SourceCode))
             {
                 _logger.Error($"Null or empty source code was provided for calculation id {calculationId}");
 
@@ -283,7 +298,7 @@ namespace CalculateFunding.Services.Calcs
 
             int nextVersionNumber = GetNextVersionNumberFromCalculationVersions(calculation.History);
 
-            if(calculation.Current == null)
+            if (calculation.Current == null)
             {
                 _logger.Warning($"Current for {calculationId} was null and needed recreating.");
                 calculation.Current = new CalculationVersion();
@@ -296,8 +311,8 @@ namespace CalculateFunding.Services.Calcs
                 Author = user,
                 Date = DateTime.UtcNow,
                 DecimalPlaces = 6,
-                PublishStatus = (calculation.Current.PublishStatus == PublishStatus.Published 
-                                    || calculation.Current.PublishStatus == PublishStatus.Updated) 
+                PublishStatus = (calculation.Current.PublishStatus == PublishStatus.Published
+                                    || calculation.Current.PublishStatus == PublishStatus.Updated)
                                     ? PublishStatus.Updated : PublishStatus.Draft,
                 SourceCode = sourceCodeVersion.SourceCode
             };
@@ -353,7 +368,7 @@ namespace CalculateFunding.Services.Calcs
                 calculation.Current.PublishStatus = PublishStatus.Published;
 
                 calculation.Published = calculation.Current;
-                
+
                 await _calculationsRepository.UpdateCalculation(calculation);
 
                 await UpdateBuildProject(calculation.Specification);
@@ -362,6 +377,55 @@ namespace CalculateFunding.Services.Calcs
             }
 
             return new OkObjectResult(calculation.Current);
+        }
+
+        public async Task<IActionResult> GetCalculationCodeContext(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out var specId);
+
+            var specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specificationId was provided to GetCalculationCodeContext");
+
+                return new BadRequestObjectResult("Null or empty specificationId provided");
+            }
+
+            BuildProject project = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId);
+            if (project == null)
+            {
+                _logger.Error($"Build Project was null for Specification {specificationId}");
+
+                return new StatusCodeResult(500);
+            }
+
+            if (project.Build == null)
+            {
+                _logger.Error($"Build was null for Specification {specificationId} with Build Project ID {project.Id}");
+
+                return new StatusCodeResult(500);
+            }
+
+            if (project.Build.AssemblyBase64 == null)
+            {
+                _logger.Error($"Build AssemblyBase64 was null for Specification {specificationId} with Build Project ID {project.Id}");
+
+                return new StatusCodeResult(500);
+            }
+
+            if (project.Build.AssemblyBase64.Length == 0)
+            {
+                _logger.Error($"Build AssemblyBase64 was zero bytes for Specification {specificationId} with Build Project ID {project.Id}");
+
+                return new StatusCodeResult(500);
+            }
+
+            byte[] rawAssembly = Convert.FromBase64String(project.Build.AssemblyBase64);
+
+            IEnumerable<TypeInformation> result = _codeMetadataGenerator.GetTypeInformation(rawAssembly);
+
+            return new OkObjectResult(result);
         }
 
         async Task UpdateSearch(Calculation calculation)
@@ -393,7 +457,7 @@ namespace CalculateFunding.Services.Calcs
 
         async Task<BuildProject> CreateBuildProject(SpecificationSummary specification, List<Calculation> calculations)
         {
-			BuildProject buildproject = new BuildProject
+            BuildProject buildproject = new BuildProject
             {
                 Calculations = calculations,
                 Specification = specification,
@@ -401,7 +465,7 @@ namespace CalculateFunding.Services.Calcs
                 Name = specification.Name
             };
 
-	        buildproject.Build = Compile(buildproject);
+            buildproject.Build = Compile(buildproject);
 
             await _buildProjectsRepository.CreateBuildProject(buildproject);
 
@@ -410,8 +474,8 @@ namespace CalculateFunding.Services.Calcs
 
         async Task<BuildProject> UpdateBuildProject(SpecificationSummary specification)
         {
-	        var calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specification.Id);
-	        var buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specification.Id);
+            var calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specification.Id);
+            var buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specification.Id);
 
             if (buildProject == null)
             {
@@ -421,9 +485,9 @@ namespace CalculateFunding.Services.Calcs
             }
             else
             {
-	            buildProject.Calculations = calculations.ToList();
-	            buildProject.Build = Compile(buildProject);
-				await _buildProjectsRepository.UpdateBuildProject(buildProject);
+                buildProject.Calculations = calculations.ToList();
+                buildProject.Build = Compile(buildProject);
+                await _buildProjectsRepository.UpdateBuildProject(buildProject);
             }
 
             return buildProject;
@@ -484,5 +548,7 @@ namespace CalculateFunding.Services.Calcs
 
             return properties;
         }
+
+
     }
 }

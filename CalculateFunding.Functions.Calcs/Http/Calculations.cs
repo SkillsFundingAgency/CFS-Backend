@@ -96,6 +96,18 @@ namespace CalculateFunding.Functions.Calcs.Http
             }
         }
 
+        [FunctionName("get-calculation-code-context")]
+        public static Task<IActionResult> RunGetCalculationCodeContext(
+        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ICalculationService svc = scope.ServiceProvider.GetService<ICalculationService>();
+
+                return svc.GetCalculationCodeContext(req);
+            }
+        }
+
         [FunctionName("get-buildproject-by-specification-id")]
         public static Task<IActionResult> RunGetBuildProjectBySpecificationId(
         [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)

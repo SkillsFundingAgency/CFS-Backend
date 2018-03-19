@@ -99,7 +99,6 @@ namespace CalculateFunding.Services.Calcs
             return GenerateAndCompile(buildProject, calculation);
         }
 
-
         IActionResult GenerateAndCompile(BuildProject buildProject, Calculation calculation)
         {
             ISourceFileGenerator sourceFileGenerator = _sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);

@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Calcs.CodeGen
                 throw new NotSupportedException("Target language not supported");
             }
 
-            _logger.Information($"Generating {targetLanguage.ToString()} source files");
+            _logger.Verbose($"Generating {targetLanguage.ToString()} source file generator");
 
             return generator;
         }

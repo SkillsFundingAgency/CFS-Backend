@@ -20,5 +20,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IActionResult> SaveCalculationVersion(HttpRequest request);
 
         Task<IActionResult> PublishCalculationVersion(HttpRequest request);
+
+        Task<IActionResult> GetCalculationCodeContext(HttpRequest request);
     }
 }
