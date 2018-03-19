@@ -28,12 +28,12 @@ namespace CalculateFunding.Services.Calculator
 
             IList<ProviderResult> providerResults = new List<ProviderResult>();
 
-            foreach (var provider in providers)
+            Parallel.ForEach(providers, provider => 
             {
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                IEnumerable<ProviderSourceDataset> providerSourceDatasets = await getProviderSourceDatasets(provider.Id, buildProject.Specification.Id);
+                IEnumerable<ProviderSourceDataset> providerSourceDatasets = getProviderSourceDatasets(provider.Id, buildProject.Specification.Id).Result;
 
                 if (providerSourceDatasets == null)
                     providerSourceDatasets = Enumerable.Empty<ProviderSourceDataset>();
@@ -44,7 +44,24 @@ namespace CalculateFunding.Services.Calculator
 
                 stopwatch.Stop();
                 Console.WriteLine($"Generated result for ${provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
-            }
+            });
+            //foreach (var provider in providers)
+            //{
+            //    var stopwatch = new Stopwatch();
+            //    stopwatch.Start();
+
+            //    IEnumerable<ProviderSourceDataset> providerSourceDatasets = await getProviderSourceDatasets(provider.Id, buildProject.Specification.Id);
+
+            //    if (providerSourceDatasets == null)
+            //        providerSourceDatasets = Enumerable.Empty<ProviderSourceDataset>();
+
+            //    var result = CalculateProviderResults(allocationModel, buildProject, provider, providerSourceDatasets.ToList());
+
+            //    providerResults.Add(result);
+
+            //    stopwatch.Stop();
+            //    Console.WriteLine($"Generated result for ${provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
+            //}
 
             return providerResults;
         }

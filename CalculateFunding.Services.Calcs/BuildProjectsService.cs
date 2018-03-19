@@ -137,7 +137,7 @@ namespace CalculateFunding.Services.Calcs
             for (int partitionIndex = 0; partitionIndex < itemCount; partitionIndex += MaxPartitionSize)
             {
                 IEnumerable<ProviderResult> results = (await _calculationEngine.GenerateAllocations(buildProject,
-                         providerSummaries, getProviderSourceDatasetsFunc)).ToList();
+                         providerSummaries.Skip(partitionIndex).Take(MaxPartitionSize), getProviderSourceDatasetsFunc)).ToList();
 
                 await _messengerService.SendAsync(UpdateCosmosResultsCollection, results, properties);
             }
