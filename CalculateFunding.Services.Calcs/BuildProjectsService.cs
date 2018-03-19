@@ -41,7 +41,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ISourceFileGenerator _sourceFileGenerator;
 
         public BuildProjectsService(IBuildProjectsRepository buildProjectsRepository, IMessengerService messengerService,
-            EventHubSettings eventHubSettings, ILogger logger, ICalculationEngine calculationEngine, 
+            EventHubSettings eventHubSettings, ILogger logger, ICalculationEngine calculationEngine,
             IProviderResultsRepository providerResultsRepository, ISpecificationRepository specificationsRepository,
             ISourceFileGeneratorProvider sourceFileGeneratorProvider,
             ICompilerFactory compilerFactory)
@@ -118,7 +118,7 @@ namespace CalculateFunding.Services.Calcs
 
             IEnumerable<ProviderSummary> providerSummaries = await _providerResultsRepository.GetAllProviderSummaries();
 
-            if(providerSummaries.IsNullOrEmpty())
+            if (providerSummaries.IsNullOrEmpty())
             {
                 _logger.Error("No provider summaries found");
 
@@ -136,10 +136,13 @@ namespace CalculateFunding.Services.Calcs
 
             for (int partitionIndex = 0; partitionIndex < itemCount; partitionIndex += MaxPartitionSize)
             {
-                IEnumerable<ProviderResult> results = (await _calculationEngine.GenerateAllocations(buildProject,
-                         providerSummaries.Skip(partitionIndex).Take(MaxPartitionSize), getProviderSourceDatasetsFunc)).ToList();
+                IEnumerable<ProviderResult> results = await _calculationEngine.GenerateAllocations(buildProject,
+                    providerSummaries.Skip(partitionIndex).Take(MaxPartitionSize), getProviderSourceDatasetsFunc);
 
-                await _messengerService.SendAsync(UpdateCosmosResultsCollection, results, properties);
+                if (results != null && results.Any())
+                {
+                    await _messengerService.SendAsync(UpdateCosmosResultsCollection, results, properties);
+                }
             }
         }
 
@@ -182,12 +185,12 @@ namespace CalculateFunding.Services.Calcs
             if (buildProject.DatasetRelationships == null)
                 buildProject.DatasetRelationships = new List<DatasetRelationshipSummary>();
 
-            if(!buildProject.DatasetRelationships.Any(m => m.Name == relationship.Name))
+            if (!buildProject.DatasetRelationships.Any(m => m.Name == relationship.Name))
             {
                 buildProject.DatasetRelationships.Add(relationship);
 
                 await CompileBuildProject(buildProject);
-            } 
+            }
         }
 
         public async Task<IActionResult> GetBuildProjectBySpecificationId(HttpRequest request)
@@ -245,7 +248,7 @@ namespace CalculateFunding.Services.Calcs
             return _buildProjectsRepository.UpdateBuildProject(buildProject);
         }
 
-       
+
         async public Task CompileBuildProject(BuildProject buildProject)
         {
             buildProject.Build = Compile(buildProject);

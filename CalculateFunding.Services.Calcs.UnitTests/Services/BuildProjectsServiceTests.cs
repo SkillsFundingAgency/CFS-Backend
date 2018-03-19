@@ -271,7 +271,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICalculationEngine calculationEngine = CreateCalculationEngine();
             calculationEngine
-                   .GenerateAllocations(Arg.Any<BuildProject>(), Arg.Is(summaries), Arg.Any<Func<string, string, Task<IEnumerable<ProviderSourceDataset>>>>())
+                   .GenerateAllocations(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<ProviderSummary>>(), Arg.Any<Func<string, string, Task<IEnumerable<ProviderSourceDataset>>>>())
                    .Returns(results);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(providerResultsRepository: providerResultsRepository,
@@ -284,7 +284,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 messengerService
                     .Received(1)
-                    .SendAsync(Arg.Is("dataset-events-results"), Arg.Any<List<ProviderResult>>(), Arg.Any<Dictionary<string, string>>());
+                    .SendAsync(Arg.Is("dataset-events-results"), Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<Dictionary<string, string>>());
         }
 
         [TestMethod]

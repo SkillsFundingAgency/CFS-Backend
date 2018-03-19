@@ -6,6 +6,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,7 +62,9 @@ namespace CalculateFunding.Services.Calculator
                 .CreateAllocationModel(Arg.Any<Assembly>())
                 .Returns(allocationModel);
 
-            CalculationEngine calculationEngine = new CalculationEngine(allocationFactory);
+            ILogger logger = CreateLogger();
+
+            CalculationEngine calculationEngine = new CalculationEngine(allocationFactory, logger);
 
             //Act
             Func<Task> test = () => calculationEngine.GenerateAllocations(buildProject, providers, func);
@@ -109,8 +112,10 @@ namespace CalculateFunding.Services.Calculator
             allocationFactory
                 .CreateAllocationModel(Arg.Any<Assembly>())
                 .Returns(allocationModel);
+
+            ILogger logger = CreateLogger();
            
-            CalculationEngine calculationEngine = new CalculationEngine(allocationFactory);
+            CalculationEngine calculationEngine = new CalculationEngine(allocationFactory, logger);
 
             //Act
             IEnumerable<ProviderResult> results = await calculationEngine.GenerateAllocations(buildProject, providers, func);
@@ -145,6 +150,11 @@ namespace CalculateFunding.Services.Calculator
             BuildProject buildProject = JsonConvert.DeserializeObject<BuildProject>(MockData.SerializedBuildProject());
 
             return buildProject;
+        }
+
+        private static ILogger CreateLogger()
+        {
+            return Substitute.For<ILogger>();
         }
 
         

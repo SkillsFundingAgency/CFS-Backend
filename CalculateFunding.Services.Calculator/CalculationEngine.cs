@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calculator.Interfaces;
+using Serilog;
 using CalculationResult = CalculateFunding.Models.Results.CalculationResult;
 
 namespace CalculateFunding.Services.Calculator
@@ -14,10 +15,12 @@ namespace CalculateFunding.Services.Calculator
     public class CalculationEngine : ICalculationEngine
     {
         private readonly IAllocationFactory _allocationFactory;
+        private readonly ILogger _logger;
 
-        public CalculationEngine(IAllocationFactory allocationFactory)
+        public CalculationEngine(IAllocationFactory allocationFactory, ILogger logger)
         {
             _allocationFactory = allocationFactory;
+            _logger = logger;
         }
 
         async public Task<IEnumerable<ProviderResult>> GenerateAllocations(BuildProject buildProject, IEnumerable<ProviderSummary> providers, Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> getProviderSourceDatasets)
@@ -35,15 +38,17 @@ namespace CalculateFunding.Services.Calculator
 
                 IEnumerable<ProviderSourceDataset> providerSourceDatasets = getProviderSourceDatasets(provider.Id, buildProject.Specification.Id).Result;
 
-                if (providerSourceDatasets == null)
-                    providerSourceDatasets = Enumerable.Empty<ProviderSourceDataset>();
+                if (providerSourceDatasets == null || !providerSourceDatasets.Any())
+                {
+                    return;
+                }
 
                 var result = CalculateProviderResults(allocationModel, buildProject, provider, providerSourceDatasets.ToList());
 
                 providerResults.Add(result);
 
                 stopwatch.Stop();
-                Console.WriteLine($"Generated result for ${provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
+                _logger.Information($"Generated result for {provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
             });
             //foreach (var provider in providers)
             //{
@@ -82,7 +87,7 @@ namespace CalculateFunding.Services.Calculator
 
             var providerCalResults = calculationResults.ToDictionary(x => x.Calculation?.Id);
             stopwatch.Stop();
-            Console.WriteLine($"{providerCalResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalResults.Count: 0.0000}ms)");
+            _logger.Information($"{providerCalResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalResults.Count: 0.0000}ms)");
 
             var result = new ProviderResult
             {
