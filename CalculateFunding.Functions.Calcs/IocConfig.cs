@@ -83,7 +83,7 @@ namespace CalculateFunding.Functions.Calcs
              .AddScoped<IAllocationFactory, AllocationFactory>();
 
             builder
-                .AddScoped<IProviderResultsRepository, ProviderResultsRepository>();
+                .AddSingleton<IProviderResultsRepository, ProviderResultsRepository>();
 
             builder
                .AddScoped<ISpecificationRepository, SpecificationRepository>();

@@ -31,6 +31,9 @@ namespace CalculateFunding.Services.Calcs
 
         private readonly ICacheProvider _cacheProvider;
 
+        private static IEnumerable<ProviderSummary> _providerSummaries;
+
+
         public ProviderResultsRepository(IApiClientProxy apiClient, ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
@@ -62,14 +65,19 @@ namespace CalculateFunding.Services.Calcs
 
         async public Task<IEnumerable<ProviderSummary>> GetAllProviderSummaries()
         {
-            List<ProviderSummary> providersFromSearch = await _cacheProvider.GetAsync<List<ProviderSummary>>(cachedProvidersKey);
-
-            if (providersFromSearch.IsNullOrEmpty())
+            if (_providerSummaries.IsNullOrEmpty())
             {
-                providersFromSearch = (await LoadAllProvidersFromSearch()).ToList();
+                List<ProviderSummary> providersFromSearch = await _cacheProvider.GetAsync<List<ProviderSummary>>(cachedProvidersKey);
+
+                if (providersFromSearch.IsNullOrEmpty())
+                {
+                    providersFromSearch = (await LoadAllProvidersFromSearch()).ToList();
+                }
+
+                _providerSummaries = providersFromSearch;
             }
 
-            return providersFromSearch;
+            return _providerSummaries;
         }
 
         public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId)
