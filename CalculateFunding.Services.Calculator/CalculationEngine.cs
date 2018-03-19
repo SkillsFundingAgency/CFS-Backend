@@ -33,7 +33,10 @@ namespace CalculateFunding.Services.Calculator
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                IEnumerable<ProviderSourceDataset> providerSourceDatasets = (await getProviderSourceDatasets(provider.Id, buildProject.Specification.Id)).ToList();
+                IEnumerable<ProviderSourceDataset> providerSourceDatasets = await getProviderSourceDatasets(provider.Id, buildProject.Specification.Id);
+
+                if (providerSourceDatasets == null)
+                    providerSourceDatasets = Enumerable.Empty<ProviderSourceDataset>();
 
                 var result = CalculateProviderResults(allocationModel, buildProject, provider, providerSourceDatasets.ToList());
 

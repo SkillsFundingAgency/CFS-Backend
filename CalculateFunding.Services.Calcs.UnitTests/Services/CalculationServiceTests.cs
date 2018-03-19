@@ -1283,6 +1283,103 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
+        async public Task SaveCalculationVersion_GivenCalculationIsCurrentlyUpdated_SetsPublishStateToUpdated()
+        {
+            //Arrange
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            string specificationId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId,
+                Calculations = new List<Calculation>()
+            };
+
+            Calculation calculation = CreateCalculation();
+            calculation.BuildProjectId = buildProjectId;
+            calculation.Specification = new SpecificationSummary
+            {
+                Id = specificationId
+            };
+            calculation.Current.PublishStatus = PublishStatus.Updated;
+
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .Returns(buildProject);
+
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            CalculationService service = CreateCalculationService(logger: logger,
+                calculationsRepository: calculationsRepository,
+               buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository, messengerService: messengerService);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            calculation
+                .Current
+                .PublishStatus
+                .Should()
+                .Be(PublishStatus.Updated);
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
+
+            await
+                messengerService
+                    .Received(1)
+                    .SendAsync(Arg.Is("calc-events-generate-allocations-results"),
+                        Arg.Any<BuildProject>(),
+                        Arg.Any<IDictionary<string, string>>());
+        }
+
+        [TestMethod]
         async public Task PublishCalculationVersion_GivenNoCalculationIdWasprovided_ReturnsBadRequest()
         {
             //Arrange

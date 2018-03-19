@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly EventHubSettings _eventHubSettings;
         private readonly ICodeMetadataGeneratorService _codeMetadataGenerator;
 
-        const string generateAllocationsSubscription = "calc-events-instruct-generate-allocations";
+        const string generateAllocationsSubscription = "calc-events-generate-allocations-results";
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
