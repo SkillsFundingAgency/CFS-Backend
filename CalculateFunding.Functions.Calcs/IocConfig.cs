@@ -1,7 +1,6 @@
 ﻿using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using CalculateFunding.Functions.Common;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs;
@@ -17,6 +16,8 @@ using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.DataImporter;
+using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
+using CalculateFunding.Services.CodeMetadataGenerator;
 
 namespace CalculateFunding.Functions.Calcs
 {
@@ -92,6 +93,9 @@ namespace CalculateFunding.Functions.Calcs
 
             builder
                .AddSingleton<IExcelDatasetReader, ExcelDatasetReader>();
+
+            builder
+                .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
 
             IConfigurationRoot config = Services.Core.Extensions.ConfigHelper.AddConfig();
 
