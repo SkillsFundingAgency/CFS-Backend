@@ -12,7 +12,7 @@ namespace CalculateFunding.Functions.Datasets.Http
     public static class DataDefinitions
     {
         [FunctionName("data-definitions")]
-        public static Task<IActionResult> RunDataDefinitions(
+        public static Task<IActionResult> RunSaveDefinition(
              [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
         {
             using (var scope = IocConfig.Build().CreateHttpScope(req))
@@ -32,6 +32,30 @@ namespace CalculateFunding.Functions.Datasets.Http
                 IDefinitionsService svc = scope.ServiceProvider.GetService<IDefinitionsService>();
 
                 return svc.GetDatasetDefinitions(req);
+            }
+        }
+
+        [FunctionName("get-dataset-definition-by-id")]
+        public static Task<IActionResult> RunGetDatasetDefinitionById(
+         [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IDefinitionsService svc = scope.ServiceProvider.GetService<IDefinitionsService>();
+
+                return svc.GetDatasetDefinitionById(req);
+            }
+        }
+
+        [FunctionName("get-dataset-definitions-by-ids")]
+        public static Task<IActionResult> RunGetDatasetDefinitionsByIds(
+         [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IDefinitionsService svc = scope.ServiceProvider.GetService<IDefinitionsService>();
+
+                return svc.GetDatasetDefinitionsByIds(req);
             }
         }
 
