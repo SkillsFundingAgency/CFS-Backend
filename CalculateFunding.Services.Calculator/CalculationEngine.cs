@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Calculator
 
             IList<ProviderResult> providerResults = new List<ProviderResult>();
 
-            Parallel.ForEach(providers, provider => 
+            Parallel.ForEach(providers, new ParallelOptions { MaxDegreeOfParallelism = 5 }, provider => 
             {
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
