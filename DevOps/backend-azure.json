@@ -96,6 +96,8 @@
     "calcsFunctionAppName": "[concat(resourceGroup().name, '-fapp-calcs')]",
     "scenariosFunctionAppName": "[concat(resourceGroup().name, '-fapp-scenarios')]",
     "hostingPlanName": "[concat(resourceGroup().name, '-plan')]",
+    "consumptionPlanName": "[concat(resourceGroup().name, '-dplan')]",
+
     "datasetStorageAccountName": "[concat(resourceGroup().name, 'data')]",
     "datasetStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('datasetstorageAccountName'))]",
     "calcsStorageAccountName": "[concat(resourceGroup().name, 'calc')]",
@@ -218,7 +220,11 @@
           "type": "EventHubs",
           "dependsOn": [
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
-          ]
+          ],
+          "properties": {
+            "messageRetentionInDays": "7",
+            "partitionCount": "4"
+          }
         },
         {
           "apiVersion": "2017-04-01",
@@ -226,7 +232,11 @@
           "type": "EventHubs",
           "dependsOn": [
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
-          ]
+          ],
+          "properties": {
+            "messageRetentionInDays": "7",
+            "partitionCount": "30"
+          }
         },
         {
           "apiVersion": "2017-04-01",
@@ -234,7 +244,11 @@
           "type": "EventHubs",
           "dependsOn": [
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
-          ]
+          ],
+          "properties": {
+            "messageRetentionInDays": "7",
+            "partitionCount": "4"
+          }
         },
         {
           "apiVersion": "2017-04-01",
@@ -242,7 +256,11 @@
           "type": "EventHubs",
           "dependsOn": [
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
-          ]
+          ],
+          "properties": {
+            "messageRetentionInDays": "7",
+            "partitionCount": "4"
+          }
         },
         {
           "apiVersion": "2017-04-01",
@@ -250,7 +268,11 @@
           "type": "EventHubs",
           "dependsOn": [
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
-          ]
+          ],
+          "properties": {
+            "messageRetentionInDays": "7",
+            "partitionCount": "4"
+          }
         },
         {
           "apiVersion": "2017-04-01",
@@ -258,7 +280,11 @@
           "type": "EventHubs",
           "dependsOn": [
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
-          ]
+          ],
+          "properties": {
+            "messageRetentionInDays": "7",
+            "partitionCount": "4"
+          }
         }
       ]
     },
@@ -269,265 +295,7 @@
       "type": "Microsoft.ServiceBus/namespaces",
       "location": "[resourceGroup().location]",
       "properties": {},
-      "resources": [
-        {
-          "apiVersion": "2015-08-01",
-          "name": "spec-events",
-          "type": "Topics",
-          "dependsOn": [
-            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
-          ],
-          "properties": {
-            "path": "spec-events"
-          },
-          "resources": [
-            {
-              "apiVersion": "2015-08-01",
-              "name": "spec-events-calcs",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "spec-events"
-              ],
-              "properties": {},
-              "resources": []
-            },
-            {
-              "apiVersion": "2015-08-01",
-              "name": "spec-events-scenarios",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "spec-events"
-              ],
-              "properties": {},
-              "resources": []
-            },
-            {
-              "apiVersion": "2015-08-01",
-              "name": "spec-events-datasets",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "spec-events"
-              ],
-              "properties": {},
-              "resources": []
-            },
-            {
-              "apiVersion": "2015-08-01",
-              "name": "spec-events-results",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "spec-events"
-              ],
-              "properties": {},
-              "resources": []
-            },
-            {
-              "apiVersion": "2015-08-01",
-              "name": "spec-events-add-definition-relationship",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "spec-events"
-              ],
-              "properties": {},
-              "resources": []
-            }
-          ]
-        },
-        {
-          "apiVersion": "2015-08-01",
-          "name": "dataset-events",
-          "type": "Topics",
-          "dependsOn": [
-            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
-          ],
-          "properties": {
-            "path": "dataset-events"
-          },
-          "resources": [
-            {
-              "apiVersion": "2015-08-01",
-              "name": "dataset-events-datasets",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "dataset-events"
-              ],
-              "properties": {
-                "action": {},
-                "filterType": "SqlFilter",
-                "sqlFilter": {
-                  "sqlExpression": "sys.Label='dataset-events-datasets'"
-                }
-              },
-              "resources": []
-            },
-            {
-              "apiVersion": "2015-08-01",
-              "name": "dataset-events-results",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "dataset-events"
-              ],
-              "properties": {
-                "action": {},
-                "filterType": "SqlFilter",
-                "sqlFilter": {
-                  "sqlExpression": "sys.Label='dataset-events-results'"
-                }
-              },
-              "resources": []
-            },
-            {
-              "apiVersion": "2015-08-01",
-              "name": "dataset-events-calcs",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "dataset-events"
-              ],
-              "properties": {
-                "action": {},
-                "filterType": "SqlFilter",
-                "sqlFilter": {
-                  "sqlExpression": "sys.Label='dataset-events-calcs'"
-                }
-              },
-              "resources": []
-            }
-          ]
-        },
-        {
-          "apiVersion": "2015-08-01",
-          "name": "calc-events",
-          "type": "Topics",
-          "dependsOn": [
-            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
-          ],
-          "properties": {
-            "path": "calc-events"
-          },
-          "resources": [
-            {
-              "apiVersion": "2015-08-01",
-              "name": "calc-events-create-draft",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "calc-events"
-              ],
-              "properties": {
-                "action": {},
-                "filterType": "SqlFilter",
-                "sqlFilter": {
-                  "sqlExpression": "sys.Label='calc-events-create-draft'"
-                }
-              },
-              "resources": []
-            },
-            {
-              "apiVersion": "2015-08-01",
-              "name": "calc-events-calcs",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "calc-events"
-              ],
-              "properties": {
-                "action": {},
-                "filterType": "SqlFilter",
-                "sqlFilter": {
-                  "sqlExpression": "sys.Label='calc-events-calcs'"
-                }
-              },
-              "resources": []
-            },
-            {
-              "apiVersion": "2015-08-01",
-              "name": "calc-events-scenarios",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "calc-events"
-              ],
-              "properties": {
-                "action": {},
-                "filterType": "SqlFilter",
-                "sqlFilter": {
-                  "sqlExpression": "sys.Label='calc-events-scenarios'"
-                }
-              },
-              "resources": []
-            },
-            {
-              "apiVersion": "2015-08-01",
-              "name": "calc-events-results",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "calc-events"
-              ],
-              "properties": {
-                "action": {},
-                "filterType": "SqlFilter",
-                "sqlFilter": {
-                  "sqlExpression": "sys.Label='calc-events-results'"
-                }
-              },
-              "resources": []
-            },
-            {
-              "apiVersion": "2015-08-01",
-              "name": "calc-events-instruct-generate-allocations",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "calc-events"
-              ],
-              "properties": {
-                "action": {},
-                "filterType": "SqlFilter",
-                "sqlFilter": {
-                  "sqlExpression": "sys.Label='calc-events-instruct-generate-allocations'"
-                }
-              },
-              "resources": []
-            },
-            {
-              "apiVersion": "2015-08-01",
-              "name": "calcs-events-generate-allocation-results",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "calc-events"
-              ],
-              "properties": {
-                "action": {},
-                "filterType": "SqlFilter",
-                "sqlFilter": {
-                  "sqlExpression": "sys.Label='calcs-events-generate-allocation-results'"
-                }
-              },
-              "resources": []
-            }
-          ]
-        },
-        {
-          "apiVersion": "2015-08-01",
-          "name": "scenario-events",
-          "type": "Topics",
-          "dependsOn": [
-            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
-          ],
-          "properties": {
-            "path": "scenario-events"
-          },
-          "resources": [
-            {
-              "apiVersion": "2015-08-01",
-              "name": "scenario-events-results",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "scenario-events"
-              ],
-              "properties": {},
-              "resources": []
-            }
-          ]
-        }
-
-      ]
+      "resources": []
     },
 
 
@@ -545,6 +313,20 @@
       },
       "properties": {
         "name": "[variables('hostingPlanName')]"
+      }
+    },
+    {
+      "apiVersion": "2016-03-01",
+      "name": "[variables('consumptionPlanName')]",
+      "type": "Microsoft.Web/serverfarms",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "HostingPlan"
+      },
+      "properties": {
+        "name": "[variables('consumptionPlanName')]",
+        "computeMode": "Dynamic",
+        "sku": "Dynamic"
       }
     },
     {
@@ -795,14 +577,14 @@
       "location": "[resourceGroup().location]",
       "kind": "functionapp",
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.Web/serverfarms', variables('consumptionPlanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
         "[variables('applicationInsightsName')]",
         "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
       ],
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('consumptionPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
           "appSettings": [
