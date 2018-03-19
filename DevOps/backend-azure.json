@@ -96,8 +96,6 @@
     "calcsFunctionAppName": "[concat(resourceGroup().name, '-fapp-calcs')]",
     "scenariosFunctionAppName": "[concat(resourceGroup().name, '-fapp-scenarios')]",
     "hostingPlanName": "[concat(resourceGroup().name, '-plan')]",
-    "consumptionPlanName": "[concat(resourceGroup().name, '-dplan')]",
-
     "datasetStorageAccountName": "[concat(resourceGroup().name, 'data')]",
     "datasetStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('datasetstorageAccountName'))]",
     "calcsStorageAccountName": "[concat(resourceGroup().name, 'calc')]",
@@ -313,20 +311,6 @@
       },
       "properties": {
         "name": "[variables('hostingPlanName')]"
-      }
-    },
-    {
-      "apiVersion": "2016-03-01",
-      "name": "[variables('consumptionPlanName')]",
-      "type": "Microsoft.Web/serverfarms",
-      "location": "[resourceGroup().location]",
-      "tags": {
-        "displayName": "HostingPlan"
-      },
-      "properties": {
-        "name": "[variables('consumptionPlanName')]",
-        "computeMode": "Dynamic",
-        "sku": "Dynamic"
       }
     },
     {
@@ -577,14 +561,14 @@
       "location": "[resourceGroup().location]",
       "kind": "functionapp",
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('consumptionPlanName'))]",
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
         "[variables('applicationInsightsName')]",
         "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
       ],
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('consumptionPlanName'))]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
           "appSettings": [
