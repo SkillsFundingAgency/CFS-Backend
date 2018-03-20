@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Calcs
 {
     public class BuildProjectsService : IBuildProjectsService
     {
-        const int MaxPartitionSize = 100;
+        const int MaxPartitionSize = 25;
         const string UpdateCosmosResultsCollection = "dataset-events-results";
 
         private readonly IBuildProjectsRepository _buildProjectsRepository;
@@ -39,12 +39,19 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICompilerFactory _compilerFactory;
         private readonly ISourceFileGeneratorProvider _sourceFileGeneratorProvider;
         private readonly ISourceFileGenerator _sourceFileGenerator;
+        private readonly IProviderSourceDatasetsRepository _providerSourceDatasetsRepository;
 
-        public BuildProjectsService(IBuildProjectsRepository buildProjectsRepository, IMessengerService messengerService,
-            EventHubSettings eventHubSettings, ILogger logger, ICalculationEngine calculationEngine,
-            IProviderResultsRepository providerResultsRepository, ISpecificationRepository specificationsRepository,
+        public BuildProjectsService(
+            IBuildProjectsRepository buildProjectsRepository, 
+            IMessengerService messengerService,
+            EventHubSettings eventHubSettings,
+            ILogger logger, 
+            ICalculationEngine calculationEngine,
+            IProviderResultsRepository providerResultsRepository, 
+            ISpecificationRepository specificationsRepository,
             ISourceFileGeneratorProvider sourceFileGeneratorProvider,
-            ICompilerFactory compilerFactory)
+            ICompilerFactory compilerFactory,
+            IProviderSourceDatasetsRepository providerSourceDatasetsRepository)
         {
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -53,6 +60,9 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(calculationEngine, nameof(calculationEngine));
             Guard.ArgumentNotNull(providerResultsRepository, nameof(providerResultsRepository));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(sourceFileGeneratorProvider, nameof(sourceFileGeneratorProvider));
+            Guard.ArgumentNotNull(compilerFactory, nameof(compilerFactory));
+            Guard.ArgumentNotNull(providerSourceDatasetsRepository, nameof(providerSourceDatasetsRepository));
 
             _buildProjectsRepository = buildProjectsRepository;
             _messengerService = messengerService;
@@ -64,6 +74,8 @@ namespace CalculateFunding.Services.Calcs
             _compilerFactory = compilerFactory;
             _sourceFileGeneratorProvider = sourceFileGeneratorProvider;
             _sourceFileGenerator = sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
+            _providerSourceDatasetsRepository = providerSourceDatasetsRepository;
+            _providerSourceDatasetsRepository = providerSourceDatasetsRepository;
         }
 
         public async Task UpdateAllocations(EventData message)
@@ -127,7 +139,7 @@ namespace CalculateFunding.Services.Calcs
 
             Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> getProviderSourceDatasetsFunc = (providerId, specificationId) =>
             {
-                return _providerResultsRepository.GetProviderSourceDatasetsByProviderIdAndSpecificationId(providerId, specificationId);
+                return _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdAndSpecificationId(providerId, specificationId);
             };
 
             IDictionary<string, string> properties = message.BuildMessageProperties();

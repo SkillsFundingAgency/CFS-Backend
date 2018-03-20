@@ -81,6 +81,19 @@ namespace CalculateFunding.Functions.LocalDebugProxy
         {
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
+            builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>
+            {
+                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", calssDbSettings);
+
+                calssDbSettings.CollectionName = "results";
+
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+
+                return new ProviderSourceDatasetsRepository(calcsCosmosRepostory);
+            });
+
             builder.AddScoped<ICalculationsRepository, CalculationsRepository>((ctx) =>
             {
                 CosmosDbSettings calssDbSettings = new CosmosDbSettings();

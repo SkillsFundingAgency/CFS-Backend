@@ -655,12 +655,12 @@ namespace CalculateFunding.Services.Calcs.Services
         static BuildProjectsService CreateBuildProjectsService(IBuildProjectsRepository buildProjectsRepository = null, IMessengerService messengerService = null,
             EventHubSettings EventHubSettings = null, ILogger logger = null, ICalculationEngine calculationEngine = null,
             IProviderResultsRepository providerResultsRepository = null, ISpecificationRepository specificationsRepository = null, ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
-            ICompilerFactory compilerFactory = null)
+            ICompilerFactory compilerFactory = null, IProviderSourceDatasetsRepository providerSourceDatasetsRepository = null)
         {
             return new BuildProjectsService(buildProjectsRepository ?? CreateBuildProjectsRepository(), messengerService ?? CreateMessengerService(),
                 EventHubSettings ?? CreateEventHubSettings(), logger ?? CreateLogger(), calculationEngine ?? CreateCalculationEngine(),
                 providerResultsRepository ?? CreateProviderResultsRepository(), specificationsRepository ?? CreateSpecificationRepository(),
-                sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(), compilerFactory ?? CreateCompilerfactory());
+                sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(), compilerFactory ?? CreateCompilerfactory(), providerSourceDatasetsRepository ?? CreateProviderSourceDatasetsRepository());
         }
 
         static EventData CreateMessage(string specificationId = SpecificationId)
@@ -671,6 +671,11 @@ namespace CalculateFunding.Services.Calcs.Services
             string json = JsonConvert.SerializeObject(anyObject);
 
             return new EventData(Encoding.UTF8.GetBytes(json));
+        }
+
+        static IProviderSourceDatasetsRepository CreateProviderSourceDatasetsRepository()
+        {
+            return Substitute.For<IProviderSourceDatasetsRepository>();
         }
 
         static ISourceFileGeneratorProvider CreateSourceFileGeneratorProvider()

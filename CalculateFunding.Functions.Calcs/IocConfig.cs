@@ -18,6 +18,7 @@ using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.CodeMetadataGenerator;
+using CalculateFunding.Repositories.Common.Cosmos;
 
 namespace CalculateFunding.Functions.Calcs
 {
@@ -98,6 +99,19 @@ namespace CalculateFunding.Functions.Calcs
                 .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
 
             IConfigurationRoot config = Services.Core.Extensions.ConfigHelper.AddConfig();
+
+            builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>
+            {
+                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", calssDbSettings);
+
+                calssDbSettings.CollectionName = "results";
+
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+
+                return new ProviderSourceDatasetsRepository(calcsCosmosRepostory);
+            });
 
             builder.AddCosmosDb(config);
 
