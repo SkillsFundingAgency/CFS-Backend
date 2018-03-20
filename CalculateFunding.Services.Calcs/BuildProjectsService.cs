@@ -139,7 +139,7 @@ namespace CalculateFunding.Services.Calcs
 
             Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> getProviderSourceDatasetsFunc = (providerId, specificationId) =>
             {
-                return _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdAndSpecificationId(providerId, specificationId);
+                return _providerResultsRepository.GetProviderSourceDatasetsByProviderIdAndSpecificationId(providerId, specificationId);
             };
 
             IDictionary<string, string> properties = message.BuildMessageProperties();
