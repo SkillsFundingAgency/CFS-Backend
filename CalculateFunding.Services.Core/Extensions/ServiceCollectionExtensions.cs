@@ -8,7 +8,6 @@ using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Proxies;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -175,11 +174,12 @@ namespace CalculateFunding.Services.Core.Extensions
             }).Enrich.With(new ILogEventEnricher[]
             {
                 new ServiceNameLogEnricher(serviceName)
-            }).WriteTo.ApplicationInsightsTraces(new TelemetryConfiguration
-            {
-                InstrumentationKey = appInsightsKey,
+            });
+            //.WriteTo.ApplicationInsightsTraces(new TelemetryConfiguration
+            //{
+            //    InstrumentationKey = appInsightsKey,
 
-            }, LogEventLevel.Verbose, null, null);
+            //}, LogEventLevel.Verbose, null, null);
         }
 
         public static IServiceCollection AddCaching(this IServiceCollection builder, IConfigurationRoot config)

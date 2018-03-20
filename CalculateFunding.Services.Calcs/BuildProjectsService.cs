@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Calcs
 {
     public class BuildProjectsService : IBuildProjectsService
     {
-        const int MaxPartitionSize = 25;
+        const int MaxPartitionSize = 50;
         const string UpdateCosmosResultsCollection = "dataset-events-results";
 
         private readonly IBuildProjectsRepository _buildProjectsRepository;
