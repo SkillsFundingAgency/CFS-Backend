@@ -68,7 +68,7 @@ namespace CalculateFunding.EndToEnd
                 .BuildServiceProvider();
 
             Log.Logger = new LoggerConfiguration()
-                //.WriteTo.ApplicationInsightsTraces(Environment.GetEnvironmentVariable("APPINSIGHTS_INSTRUMENTATIONKEY"))
+                .WriteTo.ApplicationInsightsTraces(Environment.GetEnvironmentVariable("APPINSIGHTS_INSTRUMENTATIONKEY"))
                 .MinimumLevel.Debug()
                 .Enrich.FromLogContext()
                 .CreateLogger();

@@ -25,6 +25,7 @@ using CalculateFunding.Services.Core.EventHub;
 using CalculateFunding.Services.Core.Interfaces.EventHub;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Caching;
+using Microsoft.ApplicationInsights.Extensibility;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -117,9 +118,9 @@ namespace CalculateFunding.Services.Core.Extensions
 
             config.Bind("ApplicationInsightsOptions", appInsightsOptions);
 
-            builder.AddScoped<ICorrelationIdProvider, CorrelationIdProvider>();
+            builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
 
-            builder.AddScoped<Serilog.ILogger>(c => GetLoggerConfiguration(c.GetService<ICorrelationIdProvider>(), appInsightsOptions, serviceName).CreateLogger());
+            builder.AddSingleton<Serilog.ILogger>(c => GetLoggerConfiguration(c.GetService<ICorrelationIdProvider>(), appInsightsOptions, serviceName).CreateLogger());
 
             return builder;
         }
@@ -168,18 +169,20 @@ namespace CalculateFunding.Services.Core.Extensions
             {
                 throw new InvalidOperationException("Unable to lookup Application Insights Configuration key from Configuration Provider. The value returned was empty string");
             }
-            return new LoggerConfiguration().Enrich.With(new ILogEventEnricher[]
-            {
-                new CorrelationIdLogEnricher(correlationIdProvider)
-            }).Enrich.With(new ILogEventEnricher[]
+            return new LoggerConfiguration()
+            //.Enrich.With(new ILogEventEnricher[]
+            //{
+            //    new CorrelationIdLogEnricher(correlationIdProvider)
+            //})
+            .Enrich.With(new ILogEventEnricher[]
             {
                 new ServiceNameLogEnricher(serviceName)
-            });
-            //.WriteTo.ApplicationInsightsTraces(new TelemetryConfiguration
-            //{
-            //    InstrumentationKey = appInsightsKey,
+            })
+            .WriteTo.ApplicationInsightsTraces(new TelemetryConfiguration
+             {
+                 InstrumentationKey = appInsightsKey,
 
-            //}, LogEventLevel.Verbose, null, null);
+             }, LogEventLevel.Verbose, null, null);
         }
 
         public static IServiceCollection AddCaching(this IServiceCollection builder, IConfigurationRoot config)

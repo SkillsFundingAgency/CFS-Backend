@@ -12,10 +12,10 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
         private static readonly ConnectionPolicy ConnectionPolicy = new ConnectionPolicy
         {
-            //ConnectionMode = ConnectionMode.Direct,
-            //ConnectionProtocol = Protocol.Tcp,
-            //RequestTimeout = new TimeSpan(1, 0, 0),
-            //MaxConnectionLimit = 1000,
+            ConnectionMode = ConnectionMode.Direct,
+            ConnectionProtocol = Protocol.Tcp,
+            RequestTimeout = new TimeSpan(1, 0, 0),
+            MaxConnectionLimit = 500,
             //RetryOptions = new RetryOptions
             //{
             //    MaxRetryAttemptsOnThrottledRequests = 10,
