@@ -169,6 +169,19 @@ namespace CalculateFunding.Services.Calcs
                 {
                     await _messengerService.SendAsync(UpdateCosmosResultsCollection, results, properties);
                 }
+
+                _telemetry.TrackEvent("CalculationRunProvidersProcessed",
+                new Dictionary<string, string>()
+                {
+                    { "specificationId" , specificationId },
+                    { "buildProjectId" , buildProject.Id }
+                },
+                new Dictionary<string, double>()
+                {
+                    { "calculation-run-providersProcessed", MaxPartitionSize }
+                }
+                );
+
             }
             runCalculationsTimer.Stop();
 
