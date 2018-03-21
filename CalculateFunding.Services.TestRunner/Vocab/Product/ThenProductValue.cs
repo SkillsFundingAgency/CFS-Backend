@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
@@ -7,29 +8,31 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
 {
     public class ThenProductValue : GherkinStepAction
     {
-        public override GherkinResult Execute(CalculationResult calculationResult, List<ProviderSourceDataset> datasets,
-            TestStep step)
+
+        public string CalculationName { get; set; }
+        public ComparisonOperator Operator { get; set; }
+        public string Value { get; set; }
+
+
+        public override GherkinParseResult Execute(ProviderResult providerResult, List<ProviderSourceDataset> datasets)
         {
-            var thenStep = step as ThenStep;
+            var calculationResult = providerResult.CalculationResults.SingleOrDefault(x => x.Calculation.Name == CalculationName);
             var actualValue = calculationResult.Value;
-            if (decimal.TryParse(thenStep.Value, out var expectedValue))
+            if (decimal.TryParse(Value, out var expectedValue))
             {
-                var logicResult = TestLogic(expectedValue, actualValue, thenStep.Operator);
+                var logicResult = TestLogic(expectedValue, actualValue, Operator);
                 if (logicResult)
                 {
-                    return new GherkinResult();
+                    return new GherkinParseResult();
                 }
                 else
                 {
-                    return new GherkinResult($"{calculationResult.Calculation.Name}- {actualValue} is not {thenStep.Operator} {expectedValue}");
+                    return new GherkinParseResult($"{calculationResult.Calculation.Name}- {actualValue} is not {Operator} {expectedValue}");
                 }
             }
-            return new GherkinResult($"{calculationResult.Calculation.Name}- {actualValue} is not a valid number");
+            return new GherkinParseResult($"{calculationResult.Calculation.Name}- {actualValue} is not a valid number");
         }
 
-        public override bool IsMatch(TestStepType stepType)
-        {
-            return stepType == TestStepType.ThenProductValue;
-        }
+
     }
 }

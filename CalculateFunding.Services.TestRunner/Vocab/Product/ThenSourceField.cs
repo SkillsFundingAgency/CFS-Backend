@@ -9,41 +9,42 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
 
     //And 'PrimaryNOR' in 'APT Provider Information' is greater than 0
     //Then 'P004_PriRate' should be greater than 0
-
+    [TestStep("then", "the field '(.*)' in the dataset '(.*)' (.*) (.*)")]
     public class ThenSourceField : GherkinStepAction
     {
-        public override GherkinResult Execute(CalculationResult calculationResult, List<ProviderSourceDataset> datasets,
-            TestStep step)
+        [TestStepArgument(StepArgumentType.FieldName)]
+        public string FieldName { get; set; }
+        [TestStepArgument(StepArgumentType.DatasetName)]
+        public string DatasetName { get; set; }
+        public ComparisonOperator Operator { get; set; }
+        public string Value { get; set; }
+        public override GherkinParseResult Execute(ProviderResult providerResult, List<ProviderSourceDataset> datasets)
         {
-            var givenStep = step as ThenStep;
-            var actualValue = GetActualValue(datasets, givenStep.Dataset, givenStep.Field);
+
+            var actualValue = GetActualValue(datasets, DatasetName, FieldName);
 
             if (actualValue != null)
             {
-                var expectedValue = Convert.ChangeType(givenStep.Value, actualValue.GetType());
-                var logicResult = TestLogic(expectedValue, actualValue, givenStep.Operator);
+                var expectedValue = Convert.ChangeType(Value, actualValue.GetType());
+                var logicResult = TestLogic(expectedValue, actualValue, Operator);
                 if (!logicResult)
                 {
-                    return new GherkinResult(
-                        $"{givenStep.Field} in {givenStep.Dataset} - {actualValue} is not {givenStep.Operator} {expectedValue}")
+                    return new GherkinParseResult(
+                        $"{FieldName} in {DatasetName} - {actualValue} is not {Operator} {expectedValue}")
                     {
-                        Dependencies = { new Dependency(givenStep.Dataset, givenStep.Field, actualValue?.ToString()) }                      
+                        Dependencies = { new Dependency(DatasetName, FieldName, actualValue?.ToString()) }                      
                     };
                 }
-                return new GherkinResult()
+                return new GherkinParseResult()
                 {
-                    Dependencies = { new Dependency(givenStep.Dataset, givenStep.Field, actualValue?.ToString()) }
+                    Dependencies = { new Dependency(DatasetName, FieldName, actualValue?.ToString()) }
                 };
             }
-            return new GherkinResult($"{givenStep.Field} in {givenStep.Dataset} was not found")
+            return new GherkinParseResult($"{FieldName} in {DatasetName} was not found")
             {
-                Dependencies = { new Dependency(givenStep.Dataset, givenStep.Field, actualValue?.ToString()) }
+                Dependencies = { new Dependency(DatasetName, FieldName, actualValue?.ToString()) }
             };
         }
 
-        public override bool IsMatch(TestStepType stepType)
-        {
-            return stepType == TestStepType.ThenSourceField;
-        }
     }
 }

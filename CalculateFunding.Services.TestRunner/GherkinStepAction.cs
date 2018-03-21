@@ -1,16 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
+using Gherkin.Ast;
 
 namespace CalculateFunding.Services.TestRunner
 {
-    public abstract class GherkinStepAction
-    {
 
-        public abstract GherkinResult Execute(CalculationResult calculationResult, List<ProviderSourceDataset> datasets,
-            TestStep step);
+    public interface IStepAction
+    {
+        GherkinParseResult Execute(ProviderResult providerResult, List<ProviderSourceDataset> datasets);
+    }
+    public abstract class GherkinStepAction : IStepAction
+    {
+        public abstract GherkinParseResult Execute(ProviderResult providerResult, List<ProviderSourceDataset> datasets);
         protected bool TestLogic(object expectedValue, object actualValue, ComparisonOperator logic)
         {
             var expected = expectedValue as IComparable;
@@ -61,7 +66,5 @@ namespace CalculateFunding.Services.TestRunner
             }
             return actualValue;
         }
-
-        public abstract bool IsMatch(TestStepType stepType);
     }
 }

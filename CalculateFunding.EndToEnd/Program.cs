@@ -74,6 +74,7 @@ using NSubstitute;
 using AllocationFactory = CalculateFunding.Services.Calculator.AllocationFactory;
 using Substitute = NSubstitute.Substitute;
 using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.TestRunner;
 
 namespace CalculateFunding.EndToEnd
 {
@@ -97,6 +98,37 @@ namespace CalculateFunding.EndToEnd
 		    var provider = serviceProvider.GetService<ISourceFileGeneratorProvider>();
 		    var compilerFactory = serviceProvider.GetService<ICompilerFactory>();
             var allocationFactory = serviceProvider.GetService<IAllocationFactory>();
+
+		    var gherkinParser = serviceProvider.GetService<IGherkinParser>();
+
+		    var invalidGherkin = @"
+Given the field 'Hello' in the dataset 'Hi' is greater than 89
+And the provider is '12345333'
+Then the result for 'Test 123' is greater than 89
+Then the result for 'Test 123' is greater than the field 'Hello' in the dataset 'Hi'";
+		    var validGherkin = @"
+@a
+Feature:
+  @b @c
+  Scenario Outline:
+    Given <x>
+
+    Examples:
+      | x |
+      | y |
+
+  @d @e
+  Scenario Outline:
+    Given <m>
+
+    @f
+    Examples:
+      | m |
+      | n |";
+
+		    var invalidResults = gherkinParser.Parse(invalidGherkin);
+
+		    var valid = gherkinParser.Parse(validGherkin);
 
             ConsoleLogger logger = new ConsoleLogger("Default", (s, level) => true, true);
 
@@ -423,212 +455,10 @@ namespace CalculateFunding.EndToEnd
 			builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
 
 			builder.AddScoped<Serilog.ILogger>(l => new LoggerConfiguration().WriteTo.Console().CreateLogger());
+
+		    builder.AddGherkin();
 		}
 
-
-        private static string ConvertTheStoreScript(Product product)
-        {
-            var tree = SyntaxFactory.ParseSyntaxTree(product.Script);
-
-            var function = tree.GetRoot().DescendantNodes().FirstOrDefault(x => x.Kind() == SyntaxKind.FunctionBlock);
-            var statements = function.ChildNodes().OfType<StatementSyntax>().ToList();
-
-            var builder = new StringBuilder();
-            foreach (var statement in statements)
-            {
-                var kind = statement.Kind();
-                switch (kind)
-                {
-                    case SyntaxKind.FunctionStatement:
-                    case SyntaxKind.EndFunctionStatement:
-                        break;
-                    default:
-                        var line = statement.ToFullString();
-
-
-
-
-                        line = Regex.Replace(line, @"\[Datasets.(\S+)\]", "Datasets.$1", RegexOptions.IgnoreCase);
-                        line = line.Replace("Products.1718_Global_Variables.", "");
-                        line = line.Replace("products.1718_Global_Variables.", "");
-
-                       
-
-                        line = line.Replace("Products.1718_SBS.", "");
-
-                        line = line.Replace("products.1718_SBS.", "");
-                        line = line.Replace("Products.1718_NOR.", "");
-                        line = line.Replace("products.1718_NOR.", "");
-
-                        line = line.Replace("As Double", "As Decimal");
-                        line = line.Replace("Dim result = 0", "Dim result = Decimal.Zero");
-
-                        line = line.Replace(
-                            "datasets.Administration.Providers.Academy_Information.Academy_Parameters.Funding_Basis(2017181)",
-                            "Datasets.AcademyInformation.FundingBasis");
-
-                        line = line.Replace(
-                            "Datasets.Administration.Providers.Academy_Information.Academy_Parameters.Funding_Basis(2017181)",
-                            "Datasets.AcademyInformation.FundingBasis");
-
- 
-
-                        var matches = Regex.Matches(line, @"Datasets.(\S+).(\S+).(\S+).(\S+).(\S+)", RegexOptions.IgnoreCase);
-                        if (matches.Count > 0)
-                        {
-                            var match = matches[0].Value;
-                            var split = match.Split('.');
-                            if (!split.Last().Contains("Funding_Basis"))
-                            {
-                                var dataset = split[split.Length - 2].Replace("_", "");
-                                var field = split[split.Length - 1].Replace("_", "").Replace(" ", "").Replace(@"/", "").Replace("-", "");
-                                line = line.Replace(match, $"Datasets.{dataset}.{field}");
-                            }
-
-                        }
-                        if (line.ToLowerInvariant().Contains("datasets.academy_allocations"))
-                        {
-
-
-                            line = Regex.Replace(line, @"Datasets.(\S+).(\S+).(\S+).(\S+).(\S+)", "$4.$5");
-                        }
-
-                        line = line.Replace("Datasets.ProviderInformation.", "Provider.");
-
-                        var dimAsMatch = Regex.Match(line, @"Dim (\w*) As \w* = (\w*)");
-
-                        if (dimAsMatch.Success)
-                        {
-                            if (dimAsMatch.Groups[1].Value == dimAsMatch.Groups[2].Value)
-                            {
-                                break;
-                            }
-
-                        }
-
-
-                        line = line.Replace("APTNewISBdataset.17–18", "APTNewISBdataset._1718");
-
-
-                        dimAsMatch = Regex.Match(line, @"Dim (\w*) = (\w*)");
-
-                        if (dimAsMatch.Success)
-                        {
-                            if (dimAsMatch.Groups[1].Value == dimAsMatch.Groups[2].Value)
-                            {
-                                break;
-                            }
-
-                        }
-
-                        line = line.Replace(product.Name, $"{product.Name}_Local");
-
-
-                        builder.AppendLine(line);
-                        break;
-                }
-            }
-
-            return builder.ToString();
-        }
-
-        private static async Task<Specification> ImportSpecification(Reference user, ConsoleLogger logger)
-        {
-            var specJson = File.ReadAllText(Path.Combine("SourceData", "spec.json"));
-
-            var spec = JsonConvert.DeserializeObject<Specification>(specJson);
-
-            //await Specifications.RunCommands(GetHttpRequest(new SpecificationCommand
-            //{
-            //    Content = spec,
-            //    Method = CommandMethod.Post,
-            //    Id = Reference.NewId(),
-            //    User = user
-            //}), logger);
-
-            return spec;
-        }
-
-        public class Product
-        {
-            public string Name { get; set; }
-            public string Script { get; set; }
-            public string FolderName { get; set; }
-            public string ScenarioName { get; set; }
-            public string ProductType { get; set; }
-            public int DecimalPlaces { get; set; }
-        }
-
-        private static List<Product> ImportProducts()
-        {
-            var json = File.ReadAllText(Path.Combine("SourceData", "products.json"));
-
-            var products = JsonConvert.DeserializeObject<List<Product>>(json);
-
-
-            return products;
-        }
-
-
-        //private static async Task<SpecificationScope> ImportProviders(Specification specification, Reference user, ConsoleLogger logger)
-        //{
-        //    using (var blob = File.Open(Path.Combine("SourceData", "edubasealldata20171122.csv"), FileMode.Open))
-        //    {
-
-        //        var stopWatch = new Stopwatch();
-        //        stopWatch.Start();
-
-        //        using (var reader = new StreamReader(blob))
-        //        {
-        //           // var providers = new EdubaseImporterService().ImportEdubaseCsv(reader).ToList();
-
-
-        //            //stopWatch.Stop();
-        //            //Console.WriteLine($"Read {providers.Count} providers in {stopWatch.ElapsedMilliseconds}ms");
-        //            //stopWatch.Restart();
-
-        //            //var scope = new SpecificationScope
-        //            //{
-        //            //    Id = Reference.NewId(),
-        //            //    Name = specification.Name,
-        //            //    Specification = specification.GetReference(),
-        //            //    Providers = providers.Select(x => new ProviderSummary
-        //            //    {
-        //            //        Id = x.Id,
-        //            //        URN = x.URN,
-        //            //        Name = x.Name,
-        //            //        Authority = x.Authority,
-        //            //        Phase = x.PhaseOfEducation,
-        //            //        Tags = new List<string>()
-        //            //    }).ToList()
-        //            //};
-
-        //            //await SpecificationScopes.RunCommands(GetHttpRequest(new SpecificationScopeCommand
-        //            //{
-        //            //    Content = scope,
-        //            //    Method = CommandMethod.Post,
-        //            //    Id = Reference.NewId(),
-        //            //    User = user
-        //            //}), logger);
-        //            File.WriteAllText("scope.json", JsonConvert.SerializeObject(scope));
-        //            return scope;
-
-
-
-        //            //foreach (var provider in providers.Take(5))
-        //            //{
-        //            //    await Providers.RunCommands(GetHttpRequest(new ProviderCommand
-        //            //    {
-        //            //        Content = provider,
-        //            //        Method = CommandMethod.Post,
-        //            //        Id =  Reference.NewId(),
-        //            //        User = user
-        //            //    }), logger);
-        //            //}
-        //        }
-
-        //    }
-        //}
 
         private static HttpRequest GetHttpRequest<T>(T payload, string paramName = null, string paramValue = null) 
         {

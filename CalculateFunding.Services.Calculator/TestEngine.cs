@@ -11,11 +11,18 @@ namespace CalculateFunding.Services.Calculator
 {
     public class TestEngine
     {
-        public async Task RunTests(CosmosRepository repository, TestSuite testSuite, IEnumerable<ProviderResult> providerResults, Dictionary<string, ProviderTestResult> currentResults)
+        private readonly GherkinExecutor _gherkinExecutor;
+
+        public TestEngine(GherkinExecutor gherkinExecutor)
+        {
+            _gherkinExecutor = gherkinExecutor;
+        }
+
+        public async Task RunTests(CosmosRepository repository, List<TestScenario> testScenarios, IEnumerable<ProviderResult> providerResults, Dictionary<string, ProviderTestResult> currentResults)
         {
             foreach (var providerResult in providerResults)
             {
-                var testResult = RunProviderTests(testSuite, providerResult, null);
+                var testResult = RunProviderTests(testScenarios, providerResult, null);
                 currentResults.TryGetValue(testResult.Provider.Id, out var currenTestResult);
                 if (!testResult.Equals(currenTestResult))
                 {
@@ -25,23 +32,22 @@ namespace CalculateFunding.Services.Calculator
             }
 
         }
-        public ProviderTestResult RunProviderTests(TestSuite testsuite, ProviderResult providerResult, List<ProviderSourceDataset> providerSourceDatasets)
+        public ProviderTestResult RunProviderTests(List<TestScenario> testScenarios, ProviderResult providerResult, List<ProviderSourceDataset> providerSourceDatasets)
         {
-            var gherkinExecutor = new GherkinExecutor(new ProductGherkinVocabulary());
+
 
             var testResult = new ProviderTestResult
             {
                 Provider = providerResult.Provider,
-                Budget = testsuite.Specification,
+                Budget = providerResult.Specification,
             };
             var scenarioResults = new List<ProductTestScenarioResult>();
             foreach (var productResult in providerResult.CalculationResults)
             {
-                var test = testsuite.CalculationTests?.FirstOrDefault(x => x.Id == productResult.Calculation.Id);
-                if (test?.TestScenarios != null)
+                if (testScenarios != null)
                 {
                     var gherkinScenarioResults =
-                        gherkinExecutor.Execute(productResult, providerSourceDatasets, test.TestScenarios);
+                        _gherkinExecutor.Execute(providerResult, providerSourceDatasets, testScenarios);
 
                     foreach (var executeResult in gherkinScenarioResults)
                     {

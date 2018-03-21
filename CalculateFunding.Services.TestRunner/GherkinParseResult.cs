@@ -1,33 +1,38 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Models.Calcs;
 
 namespace CalculateFunding.Services.TestRunner
 {
-    public class GherkinResult
+    public class GherkinParseResult
     {
-        public GherkinResult()
+        public GherkinParseResult()
         {
             Errors = new List<GherkinError>();
             Dependencies = new List<Dependency>();
         }
 
-        public GherkinResult(string errorMessage)
+        public GherkinParseResult(string errorMessage)
         {
             Errors = new List<GherkinError>();
             Dependencies = new List<Dependency>();
             AddError(errorMessage);
         }
 
-        public void AddError(string errorMessage)
+        public void AddError(string message, int? line = null, int? column = null)
         {
-            Errors.Add(new GherkinError(errorMessage));
+            Errors.Add(new GherkinError(message, line, column));
         }
 
         public bool HasErrors => Errors != null && Errors.Any();
         public List<GherkinError> Errors { get; }
 
+        public List<IStepAction> StepActions { get; }
+
         public List<Dependency> Dependencies { get; }
 
         public bool Abort { get; set; }
+
+        
     }
 }

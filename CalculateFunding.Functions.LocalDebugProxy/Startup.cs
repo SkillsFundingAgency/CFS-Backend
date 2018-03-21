@@ -2,6 +2,7 @@ using AutoMapper;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Repositories.Common.Cosmos;
@@ -30,6 +31,9 @@ using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.Validators;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Scenarios;
+using CalculateFunding.Services.Scenarios.Interfaces;
+using CalculateFunding.Services.Scenarios.Validators;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
@@ -166,6 +170,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                 .AddScoped<ISpecificationsSearchService, SpecificationsSearchService>();
 
+            builder
+                .AddScoped<Services.Scenarios.Interfaces.ISpecificationsRepository, Services.Scenarios.SpecificationsRepository>();
 
             builder
                 .AddScoped<IResultsSearchService, ResultsSearchService>();
@@ -173,10 +179,31 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                 .AddScoped<IResultsService, ResultsService>();
 
+            builder.AddScoped<IScenariosRepository, ScenariosRepository>((ctx) =>
+            {
+                CosmosDbSettings scenariosDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", scenariosDbSettings);
+
+                scenariosDbSettings.CollectionName = "tests";
+
+                CosmosRepository scenariosCosmosRepostory = new CosmosRepository(scenariosDbSettings);
+
+                return new ScenariosRepository(scenariosCosmosRepostory);
+            });
+
+            builder
+                .AddScoped<IScenariosService, ScenariosService>();
+
+            builder
+                .AddScoped<IScenariosSearchService, ScenariosSearchService>();
+
+            builder
+                .AddScoped<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();
 
             builder.AddScoped<IResultsRepository, ResultsRepository>((ctx) =>
-            {
-                CosmosDbSettings specsDbSettings = new CosmosDbSettings();
+	        {
+		        CosmosDbSettings specsDbSettings = new CosmosDbSettings();
 
                 config.Bind("CosmosDbSettings", specsDbSettings);
 

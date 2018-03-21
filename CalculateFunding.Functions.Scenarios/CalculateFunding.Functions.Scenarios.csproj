@@ -14,6 +14,7 @@
     <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
     <ProjectReference Include="..\CalculateFunding.Repositories.Providers\CalculateFunding.Repositories.Providers.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.DataImporter\CalculateFunding.Services.DataImporter.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Scenarios\CalculateFunding.Services.Scenarios.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">
@@ -25,7 +26,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Http\" />
     <Folder Include="EventHub\" />
   </ItemGroup>
 </Project>

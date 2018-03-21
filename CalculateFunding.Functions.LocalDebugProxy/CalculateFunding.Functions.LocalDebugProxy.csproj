@@ -24,6 +24,7 @@
     <ProjectReference Include="..\CalculateFunding.Functions.Specs\CalculateFunding.Functions.Specs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Datasets\CalculateFunding.Services.Datasets.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Results\CalculateFunding.Services.Results.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Scenarios\CalculateFunding.Services.Scenarios.csproj" />
   </ItemGroup>
 
 </Project>

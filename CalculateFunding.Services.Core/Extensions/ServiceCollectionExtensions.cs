@@ -28,6 +28,8 @@ using CalculateFunding.Services.Core.Caching;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.TestRunner;
+using CalculateFunding.Models.Scenarios;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -83,6 +85,9 @@ namespace CalculateFunding.Services.Core.Extensions
             builder
                 .AddSingleton<ISearchRepository<ProviderIndex>, SearchRepository<ProviderIndex>>();
 
+            builder
+               .AddSingleton<ISearchRepository<ScenarioIndex>, SearchRepository<ScenarioIndex>>();
+
             return builder;
         }
 
@@ -96,6 +101,13 @@ namespace CalculateFunding.Services.Core.Extensions
 
             builder
                 .AddScoped<IMessengerService, MessengerService>();
+
+            return builder;
+        }
+
+        public static IServiceCollection AddGherkin(this IServiceCollection builder)
+        {
+            builder.AddScoped<IGherkinParser, GherkinParser>();
 
             return builder;
         }

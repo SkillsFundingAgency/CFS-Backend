@@ -2,7 +2,7 @@
 
 namespace CalculateFunding.Services.TestRunner.Vocab
 {
-    public class ProductGherkinVocabulary : GherkinVocabDefinition
+    public class ProductGherkinVocabulary : StepFactory
     {
         public ProductGherkinVocabulary() : base(
             new GivenSourceField(), 

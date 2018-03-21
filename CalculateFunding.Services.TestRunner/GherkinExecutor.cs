@@ -10,37 +10,33 @@ namespace CalculateFunding.Services.TestRunner
 {
     public class GherkinExecutor
     {
-        private readonly GherkinVocabDefinition _vocab;
+        private readonly StepFactory _stepFactory;
+        private readonly IGherkinParser _parser;
 
-        public GherkinExecutor(GherkinVocabDefinition vocab)
+        public GherkinExecutor(StepFactory stepFactory, IGherkinParser parser)
         {
-            _vocab = vocab;
+            _stepFactory = stepFactory;
+            _parser = parser;
         }
 
-        public IEnumerable<GherkinScenarioResult> Execute(CalculationResult calculationResult, List<ProviderSourceDataset> datasets, List<TestScenario> testScenarios)
+        public IEnumerable<ScenarioResult> Execute(ProviderResult providerResult, List<ProviderSourceDataset> datasets, List<TestScenario> testScenarios)
         {
 
             foreach (var scenario in testScenarios)
             {
-                var scenarioResult = new GherkinScenarioResult { Feature = calculationResult.Calculation.Name, Scenario = new Reference(scenario.Id, scenario.Name)};
-
-                var testSteps = new List<TestStep>();
-                if (scenario.GivenSteps != null)
+                var scenarioResult = new ScenarioResult
                 {
-                    testSteps.AddRange(scenario.GivenSteps);
-                }
-                if (scenario.ThenSteps != null)
-                {
-                    testSteps.AddRange(scenario.ThenSteps);
-                }
+                    Scenario = new Reference(scenario.Id, scenario.Name)
+                };
 
-                scenarioResult.TotalSteps = testSteps.Count;
+                var parseResult = _parser.Parse(scenario.Current.Gherkin);
+                
+                scenarioResult.TotalSteps = parseResult.StepActions.Count;
 
                 scenarioResult.StepsExecuted = 0;
-                foreach (var testStep in testSteps)
+                foreach (var action in parseResult.StepActions)
                 {
-                    var action = _vocab.GetAction(testStep.StepType);
-                    var result = action.Execute(calculationResult, datasets, testStep);
+                    var result = action.Execute(providerResult, datasets);
                     if (result.Dependencies.Any())
                     {
                         foreach (var resultDependency in result.Dependencies)

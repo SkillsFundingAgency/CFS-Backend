@@ -2,7 +2,7 @@
 
 namespace CalculateFunding.Services.TestRunner
 {
-    public class GherkinScenarioResult : GherkinResult
+    public class ScenarioResult : GherkinParseResult
     {
         public string Feature { get; set; }
         public Reference Scenario { get; set; }
