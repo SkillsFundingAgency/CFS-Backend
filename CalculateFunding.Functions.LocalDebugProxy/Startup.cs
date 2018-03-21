@@ -35,6 +35,7 @@ using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
 using CalculateFunding.Services.Validators;
 using FluentValidation;
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -297,6 +298,12 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             // Logging for Local Debugging in the console
             builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
             builder.AddScoped<ILogger>(l => new LoggerConfiguration().WriteTo.Console().CreateLogger());
+            builder.AddSingleton<ITelemetry, ConsoleTelemetrySink>();
+
+            // Logging for Application Insights
+            //builder.AddApplicationInsightsTelemetryClient(config);
+            //builder.AddTelemetry();
+            //builder.AddLogging("LocalDebugProxy");
 
             // Logging for Application Insights
             //builder.AddLogging(config, "LocalDebugProxy");

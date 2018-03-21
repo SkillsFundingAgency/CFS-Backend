@@ -25,6 +25,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -653,12 +654,12 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         static BuildProjectsService CreateBuildProjectsService(IBuildProjectsRepository buildProjectsRepository = null, IMessengerService messengerService = null,
-            EventHubSettings EventHubSettings = null, ILogger logger = null, ICalculationEngine calculationEngine = null,
+            EventHubSettings EventHubSettings = null, ILogger logger = null, ITelemetry telemetry = null, ICalculationEngine calculationEngine = null,
             IProviderResultsRepository providerResultsRepository = null, ISpecificationRepository specificationsRepository = null, ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
             ICompilerFactory compilerFactory = null, IProviderSourceDatasetsRepository providerSourceDatasetsRepository = null)
         {
             return new BuildProjectsService(buildProjectsRepository ?? CreateBuildProjectsRepository(), messengerService ?? CreateMessengerService(),
-                EventHubSettings ?? CreateEventHubSettings(), logger ?? CreateLogger(), calculationEngine ?? CreateCalculationEngine(),
+                EventHubSettings ?? CreateEventHubSettings(), logger ?? CreateLogger(), telemetry ?? CreateTelemetry(), calculationEngine ?? CreateCalculationEngine(),
                 providerResultsRepository ?? CreateProviderResultsRepository(), specificationsRepository ?? CreateSpecificationRepository(),
                 sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(), compilerFactory ?? CreateCompilerfactory(), providerSourceDatasetsRepository ?? CreateProviderSourceDatasetsRepository());
         }
@@ -686,6 +687,11 @@ namespace CalculateFunding.Services.Calcs.Services
         static ICompilerFactory CreateCompilerfactory()
         {
             return Substitute.For<ICompilerFactory>();
+        }
+
+        static ITelemetry CreateTelemetry()
+        {
+            return Substitute.For<ITelemetry>();
         }
 
         static ILogger CreateLogger()

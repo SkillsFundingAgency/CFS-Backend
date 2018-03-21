@@ -52,7 +52,9 @@ namespace CalculateFunding.Functions.Results
 
             builder.AddCaching(config);
 
-            builder.AddLogging(config, "CalculateFunding.Functions.Results");
+            builder.AddApplicationInsightsTelemetryClient(config);
+            builder.AddLogging("CalculateFunding.Functions.Results");
+            builder.AddTelemetry();
         }
     }
 }

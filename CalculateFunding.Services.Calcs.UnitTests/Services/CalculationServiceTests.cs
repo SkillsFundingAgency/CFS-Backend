@@ -31,6 +31,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Interfaces.EventHub;
 using Microsoft.Azure.EventHubs;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -123,7 +124,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            CalculationService service = CreateCalculationService(repository, logger, searchRepository);
+            CalculationService service = CreateCalculationService(calculationsRepository : repository, logger : logger, searchRepository : searchRepository);
 
             //Act
             await service.CreateCalculation(message);
@@ -136,14 +137,14 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                repository
                    .Received(1)
-                   .CreateDraftCalculation(Arg.Is<Calculation>( m =>
-                        m.Id == CalculationId &&
-                        m.Current.PublishStatus == PublishStatus.Draft &&
-                        m.Current.Author.Id == UserId &&
-                        m.Current.Author.Name == Username &&
-                        m.Current.Date.Date == DateTime.UtcNow.Date &&
-                        m.Current.Version == 1 &&
-                        m.Current.DecimalPlaces == 6
+                   .CreateDraftCalculation(Arg.Is<Calculation>(m =>
+                       m.Id == CalculationId &&
+                       m.Current.PublishStatus == PublishStatus.Draft &&
+                       m.Current.Author.Id == UserId &&
+                       m.Current.Author.Name == Username &&
+                       m.Current.Date.Date == DateTime.UtcNow.Date &&
+                       m.Current.Version == 1 &&
+                       m.Current.DecimalPlaces == 6
                    ));
 
             await
@@ -183,7 +184,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            CalculationService service = CreateCalculationService(repository, logger, searchRepository);
+            CalculationService service = CreateCalculationService(calculationsRepository: repository, logger: logger, searchRepository: searchRepository);
 
             //Act
             await service.CreateCalculation(message);
@@ -717,8 +718,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
-            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, 
-                buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -828,9 +829,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
-            CalculationService service = CreateCalculationService(logger: logger, 
-                calculationsRepository: calculationsRepository, 
-                buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
+            CalculationService service = CreateCalculationService(logger: logger,
+                calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -890,9 +891,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
-            CalculationService service = CreateCalculationService(logger: logger, 
-                calculationsRepository: calculationsRepository, 
-                buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
+            CalculationService service = CreateCalculationService(logger: logger,
+                calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -960,9 +961,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
-            CalculationService service = CreateCalculationService(logger: logger, 
-                calculationsRepository: calculationsRepository, 
-                buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
+            CalculationService service = CreateCalculationService(logger: logger,
+                calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1040,7 +1041,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(
                 logger: logger, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
+                buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1112,9 +1113,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
-            CalculationService service = CreateCalculationService(logger: logger, 
-                calculationsRepository: calculationsRepository, 
-               buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
+            CalculationService service = CreateCalculationService(logger: logger,
+                calculationsRepository: calculationsRepository,
+               buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1185,7 +1186,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(logger: logger,
                 calculationsRepository: calculationsRepository,
-               buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
+               buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1260,7 +1261,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(logger: logger,
                 calculationsRepository: calculationsRepository,
-               buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository);
+               buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1350,7 +1351,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(logger: logger,
                 calculationsRepository: calculationsRepository,
-               buildProjectsRepository: buildProjectsRepository, serachRepository: searchRepository, messengerService: messengerService);
+               buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository, messengerService: messengerService);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1560,14 +1561,29 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Warning(Arg.Is($"Build project for specification {calculation.Specification.Id} could not be found, creating a new one"));
         }
 
-        static CalculationService CreateCalculationService(ICalculationsRepository calculationsRepository = null, 
-            ILogger logger = null, ISearchRepository<CalculationIndex> serachRepository = null, IValidator<Calculation> calcValidator = null,
-            IBuildProjectsRepository buildProjectsRepository = null, IMessengerService messengerService = null, EventHubSettings EventHubSettings = null, ICodeMetadataGeneratorService codeMetadataGenerator = null)
+        static CalculationService CreateCalculationService(
+            ICalculationsRepository calculationsRepository = null,
+            ILogger logger = null,
+            ITelemetry telemetry = null,
+            ISearchRepository<CalculationIndex> searchRepository = null,
+            IValidator<Calculation> calcValidator = null,
+            IBuildProjectsRepository buildProjectsRepository = null,
+            IMessengerService messengerService = null,
+            EventHubSettings EventHubSettings = null,
+            ICodeMetadataGeneratorService codeMetadataGenerator = null)
         {
-            return new CalculationService(calculationsRepository ?? CreateCalculationsRepository(), 
-                logger ?? CreateLogger(), serachRepository ?? CreateSearchRepository(), calcValidator ?? CreateCalculationValidator(),
-                buildProjectsRepository ?? CreateBuildProjectsRepository(), CreateSourceFileGeneratorProvider(), CreateCompilerFactory(),
-                messengerService ?? CreateMessengerService(), EventHubSettings ?? CreateEventHubSettings(), codeMetadataGenerator ?? CreateCodeMetadataGenerator());
+            return new CalculationService
+                (calculationsRepository ?? CreateCalculationsRepository(),
+                logger ?? CreateLogger(),
+                telemetry ?? CreateTelemetry(),
+                searchRepository ?? CreateSearchRepository(),
+                calcValidator ?? CreateCalculationValidator(),
+                buildProjectsRepository ?? CreateBuildProjectsRepository(),
+                CreateSourceFileGeneratorProvider(),
+                CreateCompilerFactory(),
+                messengerService ?? CreateMessengerService(),
+                EventHubSettings ?? CreateEventHubSettings(),
+                codeMetadataGenerator ?? CreateCodeMetadataGenerator());
         }
 
         static ICalculationsRepository CreateCalculationsRepository()
@@ -1585,15 +1601,20 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ILogger>();
         }
 
+        static ITelemetry CreateTelemetry()
+        {
+            return Substitute.For<ITelemetry>();
+        }
+
         static ISearchRepository<CalculationIndex> CreateSearchRepository()
         {
             return Substitute.For<ISearchRepository<CalculationIndex>>();
         }
 
-	    static ISourceFileGeneratorProvider CreateSourceFileGeneratorProvider()
-	    {
-		    return Substitute.For<ISourceFileGeneratorProvider>();
-	    }
+        static ISourceFileGeneratorProvider CreateSourceFileGeneratorProvider()
+        {
+            return Substitute.For<ISourceFileGeneratorProvider>();
+        }
 
         static IMessengerService CreateMessengerService()
         {
@@ -1614,7 +1635,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         static ICompilerFactory CreateCompilerFactory()
-	    {
+        {
             ICompiler compiler = Substitute.For<ICompiler>();
 
             ICompilerFactory compilerFactory = Substitute.For<ICompilerFactory>();
@@ -1623,9 +1644,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(compiler);
 
             return compilerFactory;
-	    }
+        }
 
-		static IValidator<Calculation> CreateCalculationValidator(ValidationResult validationResult = null)
+        static IValidator<Calculation> CreateCalculationValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
                 validationResult = new ValidationResult();

@@ -26,6 +26,8 @@ using CalculateFunding.Services.Core.Interfaces.EventHub;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Caching;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights;
+using CalculateFunding.Services.Core.Helpers;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -78,10 +80,10 @@ namespace CalculateFunding.Services.Core.Extensions
             builder
               .AddSingleton<ISearchRepository<SpecificationIndex>, SearchRepository<SpecificationIndex>>();
 
-	        builder
-		        .AddSingleton<ISearchRepository<ProviderIndex>, SearchRepository<ProviderIndex>>();
+            builder
+                .AddSingleton<ISearchRepository<ProviderIndex>, SearchRepository<ProviderIndex>>();
 
-			return builder;
+            return builder;
         }
 
         public static IServiceCollection AddEventHub(this IServiceCollection builder, IConfigurationRoot config)
@@ -112,17 +114,58 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddLogging(this IServiceCollection builder, IConfigurationRoot config, string serviceName)
+        public static IServiceCollection AddLogging(this IServiceCollection builder, string serviceName)
         {
+            builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
+
+            builder.AddSingleton<Serilog.ILogger>((ctx) =>
+            {
+                TelemetryClient client = ctx.GetService<TelemetryClient>();
+
+              return GetLoggerConfiguration(client, serviceName).CreateLogger();
+            });
+
+            //builder.AddSingleton(logger);
+            //builder.AddSingleton<Serilog.ILogger>(c => GetLoggerConfiguration(c.GetService<ICorrelationIdProvider>(), appInsightsOptions, serviceName).CreateLogger());
+
+            return builder;
+        }
+
+        public static IServiceCollection AddTelemetry(this IServiceCollection builder)
+        {
+            builder.AddSingleton<ITelemetry, ApplicationInsightsTelemetrySink>((ctx) =>
+            {
+                TelemetryClient client = ctx.GetService<TelemetryClient>();
+
+                return new ApplicationInsightsTelemetrySink(client);
+            });
+
+            return builder;
+        }
+
+        public static IServiceCollection AddApplicationInsightsTelemetryClient(this IServiceCollection builder, IConfigurationRoot config)
+        {
+            Guard.ArgumentNotNull(config, nameof(config));
+
             ApplicationInsightsOptions appInsightsOptions = new ApplicationInsightsOptions();
 
             config.Bind("ApplicationInsightsOptions", appInsightsOptions);
 
-            builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
+         
+            string appInsightsKey = appInsightsOptions.InstrumentationKey;
 
-            Serilog.ILogger logger = GetLoggerConfiguration(null, appInsightsOptions, serviceName).CreateLogger();
-            builder.AddSingleton(logger);
-            //builder.AddSingleton<Serilog.ILogger>(c => GetLoggerConfiguration(c.GetService<ICorrelationIdProvider>(), appInsightsOptions, serviceName).CreateLogger());
+            if (string.IsNullOrWhiteSpace(appInsightsKey))
+            {
+                throw new InvalidOperationException("Unable to lookup Application Insights Configuration key from Configuration Provider. The value returned was empty string");
+            }
+
+            TelemetryClient telemtryClient = new TelemetryClient(new TelemetryConfiguration
+            {
+                InstrumentationKey = appInsightsKey,
+
+            });
+
+            builder.AddSingleton(telemtryClient);
 
             return builder;
         }
@@ -135,7 +178,7 @@ namespace CalculateFunding.Services.Core.Extensions
 
             correlationIdProvider.SetCorrelationId(correlationId);
 
-            if(!request.HttpContext.Response.Headers.ContainsKey("sfa-correlationId"))
+            if (!request.HttpContext.Response.Headers.ContainsKey("sfa-correlationId"))
                 request.HttpContext.Response.Headers.Add("sfa-correlationId", correlationId);
 
             string userId = "unknown";
@@ -155,18 +198,11 @@ namespace CalculateFunding.Services.Core.Extensions
             return serviceProvider.CreateScope();
         }
 
-        public static LoggerConfiguration GetLoggerConfiguration(ICorrelationIdProvider correlationIdProvider, ApplicationInsightsOptions options, string serviceName)
+        public static LoggerConfiguration GetLoggerConfiguration(TelemetryClient telemetryClient, string serviceName)
         {
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(correlationIdProvider));
-            }
-            string appInsightsKey = options.InstrumentationKey;
+            Guard.ArgumentNotNull(telemetryClient, nameof(telemetryClient));
+            Guard.IsNullOrWhiteSpace(serviceName, nameof(serviceName));
 
-            if (string.IsNullOrWhiteSpace(appInsightsKey))
-            {
-                throw new InvalidOperationException("Unable to lookup Application Insights Configuration key from Configuration Provider. The value returned was empty string");
-            }
             return new LoggerConfiguration()
             //.Enrich.With(new ILogEventEnricher[]
             //{
@@ -176,11 +212,7 @@ namespace CalculateFunding.Services.Core.Extensions
             {
                 new ServiceNameLogEnricher(serviceName)
             })
-            .WriteTo.ApplicationInsightsTraces(new TelemetryConfiguration
-             {
-                 InstrumentationKey = appInsightsKey,
-
-             }, LogEventLevel.Verbose, null, null);
+            .WriteTo.ApplicationInsightsTraces(telemetryClient, LogEventLevel.Verbose, null, null);
         }
 
         public static IServiceCollection AddCaching(this IServiceCollection builder, IConfigurationRoot config)

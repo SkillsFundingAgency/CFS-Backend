@@ -61,7 +61,9 @@ namespace CalculateFunding.Functions.Specs
 
             builder.AddSearch(config);
 
-            builder.AddLogging(config, "CalculateFunding.Functions.Specs");
+            builder.AddApplicationInsightsTelemetryClient(config);
+            builder.AddLogging("CalculateFunding.Functions.Specs");
+            builder.AddTelemetry();
         }
     }
 }

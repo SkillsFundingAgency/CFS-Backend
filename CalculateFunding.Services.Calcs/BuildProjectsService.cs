@@ -22,6 +22,7 @@ using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.Compiler;
 using System.Diagnostics;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -34,6 +35,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly IMessengerService _messengerService;
         private readonly EventHubSettings _eventHubSettings;
         private readonly ILogger _logger;
+        private readonly ITelemetry _telemetry;
         private readonly ICalculationEngine _calculationEngine;
         private readonly IProviderResultsRepository _providerResultsRepository;
         private readonly ISpecificationRepository _specificationsRepository;
@@ -47,6 +49,7 @@ namespace CalculateFunding.Services.Calcs
             IMessengerService messengerService,
             EventHubSettings eventHubSettings,
             ILogger logger,
+            ITelemetry telemetry,
             ICalculationEngine calculationEngine,
             IProviderResultsRepository providerResultsRepository,
             ISpecificationRepository specificationsRepository,
@@ -58,6 +61,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(eventHubSettings, nameof(eventHubSettings));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(calculationEngine, nameof(calculationEngine));
             Guard.ArgumentNotNull(providerResultsRepository, nameof(providerResultsRepository));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -69,6 +73,7 @@ namespace CalculateFunding.Services.Calcs
             _messengerService = messengerService;
             _eventHubSettings = eventHubSettings;
             _logger = logger;
+            _telemetry = telemetry;
             _calculationEngine = calculationEngine;
             _providerResultsRepository = providerResultsRepository;
             _specificationsRepository = specificationsRepository;
@@ -168,6 +173,19 @@ namespace CalculateFunding.Services.Calcs
             runCalculationsTimer.Stop();
 
             long timeTaken = runCalculationsTimer.ElapsedMilliseconds;
+
+            _telemetry.TrackEvent("CalculationRun",
+                new Dictionary<string, string>()
+                {
+                    { "specificationId" , specificationId },
+                    { "buildProjectId" , buildProject.Id }
+                },
+                new Dictionary<string, double>()
+                {
+                    { "calculationElapsedMilliseconds", runCalculationsTimer.ElapsedMilliseconds },
+                    { "totalProviders", itemCount }
+                }
+                );
 
             _logger.Information("Completed running calculations for specification ID {specificationId}, completed in {timeTaken} for total of {itemCount}", specificationId, timeTaken, itemCount);
         }

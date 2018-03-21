@@ -29,6 +29,8 @@ using CalculateFunding.Services.CodeMetadataGenerator;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Logging;
+using System.Diagnostics;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -44,12 +46,14 @@ namespace CalculateFunding.Services.Calcs
         private readonly IMessengerService _messengerService;
         private readonly EventHubSettings _eventHubSettings;
         private readonly ICodeMetadataGeneratorService _codeMetadataGenerator;
+        private readonly ITelemetry _telemetry;
 
         const string generateAllocationsSubscription = "calc-events-generate-allocations-results";
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
             ILogger logger,
+            ITelemetry telemetry,
             ISearchRepository<CalculationIndex> searchRepository,
             IValidator<Calculation> calculationValidator,
             IBuildProjectsRepository buildProjectsRepository,
@@ -63,6 +67,7 @@ namespace CalculateFunding.Services.Calcs
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
+            _telemetry = telemetry;
             _searchRepository = searchRepository;
             _calculationValidator = calculationValidator;
             _buildProjectsRepository = buildProjectsRepository;
@@ -392,6 +397,8 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("Null or empty specificationId provided");
             }
 
+            _logger.Information("Generating code context for {specificationId}", specificationId);
+
             BuildProject project = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId);
             if (project == null)
             {
@@ -423,7 +430,21 @@ namespace CalculateFunding.Services.Calcs
 
             byte[] rawAssembly = Convert.FromBase64String(project.Build.AssemblyBase64);
 
+            Stopwatch generatorWatch = new Stopwatch();
+            generatorWatch.Start();
             IEnumerable<TypeInformation> result = _codeMetadataGenerator.GetTypeInformation(rawAssembly);
+            generatorWatch.Stop();
+
+            _telemetry.TrackEvent("GetTypeInformation",
+                new Dictionary<string, string>() {
+                {
+                        "specificationId" , specificationId }
+                },
+                new Dictionary<string, double>()
+                {
+                    {"timeTaken", generatorWatch.ElapsedMilliseconds }
+                }
+                );
 
             return new OkObjectResult(result);
         }

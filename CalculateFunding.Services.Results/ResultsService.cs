@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.EventHub;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -23,34 +25,40 @@ namespace CalculateFunding.Services.Results
     public class ResultsService : IResultsService
     {
         private readonly ILogger _logger;
+        private readonly ITelemetry _telemetry;
         private readonly IResultsRepository _resultsRepository;
         private readonly IMapper _mapper;
         private readonly ISearchRepository<ProviderIndex> _searchRepository;
-	    private readonly IMessengerService _messengerService;
-	    private readonly EventHubSettings _eventHubSettings;
+        private readonly IMessengerService _messengerService;
+        private readonly EventHubSettings _eventHubSettings;
 
-	    const string ProcessDatasetSubscription = "dataset-events-datasets";
+        const string ProcessDatasetSubscription = "dataset-events-datasets";
 
-		public ResultsService(ILogger logger,
-            IResultsRepository resultsRepository, 
-            IMapper mapper, 
+        public ResultsService(ILogger logger,
+            IResultsRepository resultsRepository,
+            IMapper mapper,
             ISearchRepository<ProviderIndex> searchRepository,
-            IMessengerService messengerService, 
-            EventHubSettings EventHubSettings)
+            IMessengerService messengerService,
+            EventHubSettings EventHubSettings,
+            ITelemetry telemetry)
         {
             _logger = logger;
-	        _resultsRepository = resultsRepository;
+            _resultsRepository = resultsRepository;
             _mapper = mapper;
             _searchRepository = searchRepository;
-	        _messengerService = messengerService;
-	        _eventHubSettings = EventHubSettings;
+            _messengerService = messengerService;
+            _eventHubSettings = EventHubSettings;
+            _telemetry = telemetry;
         }
 
-	    public async Task UpdateProviderData(EventData message)
-	    {
+        public async Task UpdateProviderData(EventData message)
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             IEnumerable<ProviderResult> results = message.GetPayloadAsInstanceOf<IEnumerable<ProviderResult>>();
 
-            if(results == null)
+            if (results == null)
             {
                 _logger.Error("Null results provided to UpdateProviderData");
                 throw new ArgumentNullException(nameof(results), "Null results provided to UpdateProviderData");
@@ -59,11 +67,26 @@ namespace CalculateFunding.Services.Results
             if (results.Any())
             {
                 HttpStatusCode statusCode = await _resultsRepository.UpdateProviderResults(results.ToList());
+                stopwatch.Stop();
 
                 if (!statusCode.IsSuccess())
                 {
                     _logger.Error($"Failed to bulk update provider data with status code: {statusCode.ToString()}");
                 }
+                else
+                {
+                    _telemetry.TrackEvent("UpdateProviderData",
+                        new Dictionary<string, string>() {
+                            { "CorrelationId", message.GetCorrelationId() }
+                        },
+                        new Dictionary<string, double>()
+                        {
+                            { "timeTaken", stopwatch.ElapsedMilliseconds },
+                            { "recordsUpdated", results.Count() },
+                        }
+                    );
+                }
+
             }
             else
             {
@@ -89,36 +112,36 @@ namespace CalculateFunding.Services.Results
             return new OkObjectResult(provider);
         }
 
-	    public async Task<IActionResult> GetProviderResults(HttpRequest request)
-	    {
-		    var providerId = GetParameter(request, "providerId");
-		    var specificationId = GetParameter(request, "specificationId");
+        public async Task<IActionResult> GetProviderResults(HttpRequest request)
+        {
+            var providerId = GetParameter(request, "providerId");
+            var specificationId = GetParameter(request, "specificationId");
 
-			if (string.IsNullOrWhiteSpace(providerId))
-		    {
-			    _logger.Error("No provider Id was provided to GetProviderResults");
-			    return new BadRequestObjectResult("Null or empty provider Id provided");
-		    }
+            if (string.IsNullOrWhiteSpace(providerId))
+            {
+                _logger.Error("No provider Id was provided to GetProviderResults");
+                return new BadRequestObjectResult("Null or empty provider Id provided");
+            }
 
-		    if (string.IsNullOrWhiteSpace(specificationId))
-		    {
-			    _logger.Error("No specification Id was provided to GetProviderResults");
-			    return new BadRequestObjectResult("Null or empty specification Id provided");
-		    }
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to GetProviderResults");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
 
-			ProviderResult providerResult = await _resultsRepository.GetProviderResult(providerId, specificationId);
+            ProviderResult providerResult = await _resultsRepository.GetProviderResult(providerId, specificationId);
 
             if (providerResult != null)
-		    {
-			    _logger.Information($"A result was found for provider id {providerId}, specification id {specificationId}");
+            {
+                _logger.Information($"A result was found for provider id {providerId}, specification id {specificationId}");
 
-			    return new OkObjectResult(providerResult);
-		    }
+                return new OkObjectResult(providerResult);
+            }
 
-		    _logger.Information($"A result was not found for provider id {providerId}, specification id {specificationId}");
+            _logger.Information($"A result was not found for provider id {providerId}, specification id {specificationId}");
 
-			return new NotFoundResult();
-		}
+            return new NotFoundResult();
+        }
 
         public async Task<IActionResult> GetProviderResultsBySpecificationId(HttpRequest request)
         {
@@ -136,39 +159,39 @@ namespace CalculateFunding.Services.Results
         }
 
         public async Task<IActionResult> GetProviderSpecifications(HttpRequest request)
-	    {
-		    var providerId = GetParameter(request, "providerId");
-		    if (string.IsNullOrWhiteSpace(providerId))
-		    {
-			    _logger.Error("No provider Id was provided to GetProviderSpecifications");
-			    return new BadRequestObjectResult("Null or empty provider Id provided");
-		    }
+        {
+            var providerId = GetParameter(request, "providerId");
+            if (string.IsNullOrWhiteSpace(providerId))
+            {
+                _logger.Error("No provider Id was provided to GetProviderSpecifications");
+                return new BadRequestObjectResult("Null or empty provider Id provided");
+            }
 
-		    IEnumerable<ProviderResult> providerResults = (await _resultsRepository.GetSpecificationResults(providerId)).ToList();
+            IEnumerable<ProviderResult> providerResults = (await _resultsRepository.GetSpecificationResults(providerId)).ToList();
 
-		    if (!providerResults.IsNullOrEmpty())
-		    {
-			    _logger.Information($"A results was found for provider id {providerId}");
+            if (!providerResults.IsNullOrEmpty())
+            {
+                _logger.Information($"A results was found for provider id {providerId}");
 
                 var specs = providerResults.Where(m => m.Specification != null).Select(m => m.Specification).DistinctBy(m => m.Id).ToList();
-			   
-			    return new OkObjectResult(specs);
-		    }
 
-		    _logger.Information($"Results were not found for provider id {providerId}");
+                return new OkObjectResult(specs);
+            }
 
-		    return new OkObjectResult(Enumerable.Empty<SpecificationSummary>());
+            _logger.Information($"Results were not found for provider id {providerId}");
 
-	    }
+            return new OkObjectResult(Enumerable.Empty<SpecificationSummary>());
+
+        }
 
         private static string GetParameter(HttpRequest request, string name)
-	    {
-		    if (request.Query.TryGetValue(name, out var parameter))
-		    {
-			    return parameter.FirstOrDefault();
-		    }
-		    return null;
-	    }
+        {
+            if (request.Query.TryGetValue(name, out var parameter))
+            {
+                return parameter.FirstOrDefault();
+            }
+            return null;
+        }
 
         async public Task<IActionResult> UpdateProviderSourceDataset(HttpRequest request)
         {
@@ -184,7 +207,7 @@ namespace CalculateFunding.Services.Results
 
             HttpStatusCode statusCode = await _resultsRepository.UpsertProviderSourceDataset(sourceDatset);
 
-            if(!statusCode.IsSuccess())
+            if (!statusCode.IsSuccess())
             {
                 int status = (int)statusCode;
 

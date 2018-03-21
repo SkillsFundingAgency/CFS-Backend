@@ -21,6 +21,7 @@ using Microsoft.Azure.EventHubs;
 using Newtonsoft.Json;
 using System.Net;
 using System.IO;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -807,16 +808,27 @@ namespace CalculateFunding.Services.Results.Services
             IMapper mapper = null,
             ISearchRepository<ProviderIndex> searchRepository = null,
             IMessengerService messengerService = null,
-            EventHubSettings EventHubSettings = null)
+            EventHubSettings EventHubSettings = null,
+            ITelemetry telemetry = null)
         {
-            return new ResultsService(logger ?? CreateLogger(), resultsRepository ?? CreateResultsRepository(),
-                mapper ?? CreateMapper(), searchRepository ?? CreateSearchRepository(), messengerService ?? CreateMessengerService(),
-                EventHubSettings ?? CreateEventHubSettings());
+            return new ResultsService(
+                logger ?? CreateLogger(),
+                resultsRepository ?? CreateResultsRepository(),
+                mapper ?? CreateMapper(),
+                searchRepository ?? CreateSearchRepository(),
+                messengerService ?? CreateMessengerService(),
+                EventHubSettings ?? CreateEventHubSettings(),
+                telemetry ?? CreateTelemetry());
         }
 
         static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
+        }
+
+        static ITelemetry CreateTelemetry()
+        {
+            return Substitute.For<ITelemetry>();
         }
 
         static IResultsRepository CreateResultsRepository()

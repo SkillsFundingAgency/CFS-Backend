@@ -31,7 +31,7 @@ namespace CalculateFunding.Functions.Results.EventHub
                     }
                     catch (Exception exception)
                     {
-                        logger.Error(exception, "An error occurred getting message from hub: calc-events-results");
+                        logger.Error(exception, "An error occurred getting message from hub: dataset-events-results");
                         throw;
                     }
                 }
