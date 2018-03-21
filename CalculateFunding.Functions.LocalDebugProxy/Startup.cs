@@ -166,27 +166,27 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 .AddScoped<ISpecificationsSearchService, SpecificationsSearchService>();
 
 
-			builder
-		        .AddScoped<IResultsSearchService, ResultsSearchService>();
+            builder
+                .AddScoped<IResultsSearchService, ResultsSearchService>();
 
-	        builder
-		        .AddScoped<IResultsService, ResultsService>();
+            builder
+                .AddScoped<IResultsService, ResultsService>();
 
 
-	        builder.AddScoped<IResultsRepository, ResultsRepository>((ctx) =>
-	        {
-		        CosmosDbSettings specsDbSettings = new CosmosDbSettings();
+            builder.AddScoped<IResultsRepository, ResultsRepository>((ctx) =>
+            {
+                CosmosDbSettings specsDbSettings = new CosmosDbSettings();
 
-		        config.Bind("CosmosDbSettings", specsDbSettings);
+                config.Bind("CosmosDbSettings", specsDbSettings);
 
-		        specsDbSettings.CollectionName = "results";
+                specsDbSettings.CollectionName = "results";
 
-		        CosmosRepository specsCosmosRepostory = new CosmosRepository(specsDbSettings);
+                CosmosRepository specsCosmosRepostory = new CosmosRepository(specsDbSettings);
 
-		        return new ResultsRepository(specsCosmosRepostory);
-	        });
+                return new ResultsRepository(specsCosmosRepostory);
+            });
 
-			builder.AddScoped<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>((ctx) =>
+            builder.AddScoped<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>((ctx) =>
             {
                 CosmosDbSettings specsDbSettings = new CosmosDbSettings();
 
@@ -294,9 +294,12 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
             builder.AddInterServiceClient(config);
 
+            // Logging for Local Debugging in the console
             builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
-
             builder.AddScoped<ILogger>(l => new LoggerConfiguration().WriteTo.Console().CreateLogger());
+
+            // Logging for Application Insights
+            //builder.AddLogging(config, "LocalDebugProxy");
 
             builder.AddCaching(config);
         }

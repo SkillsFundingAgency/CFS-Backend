@@ -21,6 +21,7 @@ using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.Compiler;
+using System.Diagnostics;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -42,12 +43,12 @@ namespace CalculateFunding.Services.Calcs
         private readonly IProviderSourceDatasetsRepository _providerSourceDatasetsRepository;
 
         public BuildProjectsService(
-            IBuildProjectsRepository buildProjectsRepository, 
+            IBuildProjectsRepository buildProjectsRepository,
             IMessengerService messengerService,
             EventHubSettings eventHubSettings,
-            ILogger logger, 
+            ILogger logger,
             ICalculationEngine calculationEngine,
-            IProviderResultsRepository providerResultsRepository, 
+            IProviderResultsRepository providerResultsRepository,
             ISpecificationRepository specificationsRepository,
             ISourceFileGeneratorProvider sourceFileGeneratorProvider,
             ICompilerFactory compilerFactory,
@@ -91,6 +92,8 @@ namespace CalculateFunding.Services.Calcs
                 throw new ArgumentNullException(nameof(buildProject));
             }
 
+            string specificationId = null;
+
             if (buildProject.Specification == null)
             {
                 if (!message.Properties.ContainsKey("specification-id"))
@@ -100,7 +103,7 @@ namespace CalculateFunding.Services.Calcs
                     throw new KeyNotFoundException("Specification id key not found in message properties");
                 }
 
-                string specificationId = message.Properties["specification-id"].ToString();
+                specificationId = message.Properties["specification-id"].ToString();
 
                 if (string.IsNullOrWhiteSpace(specificationId))
                 {
@@ -127,6 +130,10 @@ namespace CalculateFunding.Services.Calcs
                     throw new Exception($"Failed to update build project with build project id: {buildProject.Id} with status code: {statusCode.ToString()}");
                 }
             }
+            else
+            {
+                specificationId = buildProject.Specification.Id;
+            }
 
             IEnumerable<ProviderSummary> providerSummaries = await _providerResultsRepository.GetAllProviderSummaries();
 
@@ -137,15 +144,17 @@ namespace CalculateFunding.Services.Calcs
                 throw new Exception("No provider summaries found");
             }
 
-            Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> getProviderSourceDatasetsFunc = (providerId, specificationId) =>
+            Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> getProviderSourceDatasetsFunc = (providerId, specId) =>
             {
-                return _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdAndSpecificationId(providerId, specificationId);
+                return _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdAndSpecificationId(providerId, specId);
             };
 
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
             int itemCount = providerSummaries.Count();
 
+            Stopwatch runCalculationsTimer = new Stopwatch();
+            runCalculationsTimer.Start();
             for (int partitionIndex = 0; partitionIndex < itemCount; partitionIndex += MaxPartitionSize)
             {
                 IEnumerable<ProviderResult> results = await _calculationEngine.GenerateAllocations(buildProject,
@@ -156,6 +165,11 @@ namespace CalculateFunding.Services.Calcs
                     await _messengerService.SendAsync(UpdateCosmosResultsCollection, results, properties);
                 }
             }
+            runCalculationsTimer.Stop();
+
+            long timeTaken = runCalculationsTimer.ElapsedMilliseconds;
+
+            _logger.Information("Completed running calculations for specification ID {specificationId}, completed in {timeTaken} for total of {itemCount}", specificationId, timeTaken, itemCount);
         }
 
         public async Task UpdateBuildProjectRelationships(EventData message)

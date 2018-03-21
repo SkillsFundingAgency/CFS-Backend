@@ -120,7 +120,9 @@ namespace CalculateFunding.Services.Core.Extensions
 
             builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
 
-            builder.AddSingleton<Serilog.ILogger>(c => GetLoggerConfiguration(c.GetService<ICorrelationIdProvider>(), appInsightsOptions, serviceName).CreateLogger());
+            Serilog.ILogger logger = GetLoggerConfiguration(null, appInsightsOptions, serviceName).CreateLogger();
+            builder.AddSingleton(logger);
+            //builder.AddSingleton<Serilog.ILogger>(c => GetLoggerConfiguration(c.GetService<ICorrelationIdProvider>(), appInsightsOptions, serviceName).CreateLogger());
 
             return builder;
         }
@@ -155,10 +157,6 @@ namespace CalculateFunding.Services.Core.Extensions
 
         public static LoggerConfiguration GetLoggerConfiguration(ICorrelationIdProvider correlationIdProvider, ApplicationInsightsOptions options, string serviceName)
         {
-            if (correlationIdProvider == null)
-            {
-                throw new ArgumentNullException(nameof(correlationIdProvider));
-            }
             if (options == null)
             {
                 throw new ArgumentNullException(nameof(correlationIdProvider));
