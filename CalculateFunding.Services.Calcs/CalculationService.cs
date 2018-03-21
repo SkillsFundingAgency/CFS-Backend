@@ -430,21 +430,7 @@ namespace CalculateFunding.Services.Calcs
 
             byte[] rawAssembly = Convert.FromBase64String(project.Build.AssemblyBase64);
 
-            Stopwatch generatorWatch = new Stopwatch();
-            generatorWatch.Start();
             IEnumerable<TypeInformation> result = _codeMetadataGenerator.GetTypeInformation(rawAssembly);
-            generatorWatch.Stop();
-
-            _telemetry.TrackEvent("GetTypeInformation",
-                new Dictionary<string, string>() {
-                {
-                        "specificationId" , specificationId }
-                },
-                new Dictionary<string, double>()
-                {
-                    {"timeTaken", generatorWatch.ElapsedMilliseconds }
-                }
-                );
 
             return new OkObjectResult(result);
         }

@@ -182,8 +182,8 @@ namespace CalculateFunding.Services.Calcs
                 },
                 new Dictionary<string, double>()
                 {
-                    { "calculationElapsedMilliseconds", runCalculationsTimer.ElapsedMilliseconds },
-                    { "totalProviders", itemCount }
+                    { "calculation-run-elapsedMilliseconds", runCalculationsTimer.ElapsedMilliseconds },
+                    { "calculation-run-totalProviders", itemCount }
                 }
                 );
 

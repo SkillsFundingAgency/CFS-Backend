@@ -81,8 +81,8 @@ namespace CalculateFunding.Services.Results
                         },
                         new Dictionary<string, double>()
                         {
-                            { "timeTaken", stopwatch.ElapsedMilliseconds },
-                            { "recordsUpdated", results.Count() },
+                            { "update-provider-data-elapsedMilliseconds", stopwatch.ElapsedMilliseconds },
+                            { "update-provider-data-recordsUpdated", results.Count() },
                         }
                     );
                 }
