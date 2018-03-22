@@ -16,6 +16,8 @@ namespace CalculateFunding.Services.Core.EventHub
 
         private object hubLock = new object();
 
+        private EventHubClient _eventHubClient;
+
         public MessengerService(EventHubSettings settings)
         {
             _connectionString = settings.EventHubConnectionString;
@@ -23,26 +25,29 @@ namespace CalculateFunding.Services.Core.EventHub
 
         EventHubClient GetEventHubClient(string hubName)
         {
-            lock (hubLock)
+            if (_eventHubClient == null)
             {
-                if (!_topicClients.TryGetValue(hubName, out var eventHubClient))
+                lock (hubLock)
                 {
-                    var connectionStringBuilder = new EventHubsConnectionStringBuilder(_connectionString)
+                    if (!_topicClients.TryGetValue(hubName, out var eventHubClient))
                     {
-                        EntityPath = hubName
-                    };
-                    eventHubClient = EventHubClient.CreateFromConnectionString(connectionStringBuilder.ToString());
+                        var connectionStringBuilder = new EventHubsConnectionStringBuilder(_connectionString)
+                        {
+                            EntityPath = hubName
+                        };
 
-                    if (!_topicClients.ContainsKey(hubName))
-                    {
+                        _eventHubClient = EventHubClient.CreateFromConnectionString(connectionStringBuilder.ToString());
 
-                        _topicClients.Add(hubName, eventHubClient);
+                        if (!_topicClients.ContainsKey(hubName))
+                        {
 
+                            _topicClients.Add(hubName, eventHubClient);
+
+                        }
                     }
                 }
-                return eventHubClient;
             }
-
+            return _eventHubClient;
         }
 
 
@@ -57,7 +62,7 @@ namespace CalculateFunding.Services.Core.EventHub
             foreach (var property in properties)
                 message.Properties.Add(property.Key, property.Value);
 
-            await RetryAgent.DoAsync(() => eventHubClient.SendAsync(message));
+            await RetryAgent.DoAsync(() => eventHubClient.SendAsync(message), delay: 300);
         }
 
         async public Task SendBatchAsync<T>(string hubName, IEnumerable<T> items, IDictionary<string, string> properties)
@@ -77,7 +82,7 @@ namespace CalculateFunding.Services.Core.EventHub
                 if (!batch.TryAdd(message))
                 {
                     // batch full? send batch and create a new one
-                    await RetryAgent.DoAsync(() => eventHubClient.SendAsync(batch.ToEnumerable()));
+                    await RetryAgent.DoAsync(() => eventHubClient.SendAsync(batch));
                     batch = eventHubClient.CreateBatch();
                     batch.TryAdd(message);
                 }
@@ -86,7 +91,7 @@ namespace CalculateFunding.Services.Core.EventHub
 
             if (batch.Count > 0)
             {
-                await RetryAgent.DoAsync(() => eventHubClient.SendAsync(batch.ToEnumerable()));
+                await RetryAgent.DoAsync(() => eventHubClient.SendAsync(batch));
             }
 
 

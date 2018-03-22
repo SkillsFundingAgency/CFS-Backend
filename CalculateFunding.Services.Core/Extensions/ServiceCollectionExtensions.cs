@@ -100,7 +100,7 @@ namespace CalculateFunding.Services.Core.Extensions
             builder.AddSingleton(eventHubSettings);
 
             builder
-                .AddScoped<IMessengerService, MessengerService>();
+                .AddSingleton<IMessengerService, MessengerService>();
 
             return builder;
         }
@@ -121,7 +121,7 @@ namespace CalculateFunding.Services.Core.Extensions
             builder.AddSingleton(eventHubSettings);
 
             builder
-                .AddScoped<IMessengerService, HttpMessengerService>();
+                .AddSingleton<IMessengerService, HttpMessengerService>();
 
             return builder;
         }
