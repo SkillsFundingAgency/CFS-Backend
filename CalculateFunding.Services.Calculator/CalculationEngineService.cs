@@ -59,14 +59,29 @@ namespace CalculateFunding.Services.Calculator
                 throw new ArgumentNullException(nameof(buildProject));
             }
 
-            if (!message.Properties.ContainsKey("provider-summaries-cache-key"))
+            if (!message.Properties.ContainsKey("provider-summaries-partition-index"))
             {
-                _logger.Error("Provider summaries cache key not found in message properties");
+                _logger.Error("Provider summaries partition index key not found in message properties");
 
-                throw new KeyNotFoundException("Provider summaries cache key not found in message properties");
+                throw new KeyNotFoundException("Provider summaries partition index key not found in message properties");
             }
 
-            IEnumerable<ProviderSummary> summaries = await _cacheProvider.GetAsync<List<ProviderSummary>>(message.Properties["provider-summaries-cache-key"].ToString());
+            if (!message.Properties.ContainsKey("provider-summaries-partition-size"))
+            {
+                _logger.Error("Provider summaries partition size key not found in message properties");
+
+                throw new KeyNotFoundException("Provider summaries partition size key not found in message properties");
+            }
+
+            int partitionIndex = int.Parse(message.Properties["provider-summaries-partition-index"].ToString());
+
+            int partitionSize = int.Parse(message.Properties["provider-summaries-partition-size"].ToString());
+
+            int start = partitionIndex;
+
+            int stop = start + partitionSize;
+
+            IEnumerable<ProviderSummary> summaries = await _cacheProvider.ListRangeAsync<ProviderSummary>("all-cached-providers", start, stop);
 
             //if summaries = null, shouldnt be!!, but if is then get from search
 

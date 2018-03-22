@@ -61,24 +61,26 @@ namespace CalculateFunding.Services.Core.Caching
             }
         }
 
+        public Task KeyDeleteAsync<T>(string key)
+        {
+            key = GenerateCacheKey<T>(key);
+
+            var database = GetDatabase();
+
+            return database.KeyDeleteAsync(key);
+        }
+
         async public Task CreateListAsync<T>(IEnumerable<T> items, string key)
         {
             key = GenerateCacheKey<T>(key);
 
             var database = GetDatabase();
 
-            await database.KeyDeleteAsync(key);
-
             IList<RedisValue> redisValues = new List<RedisValue>();
 
             foreach (var item in items)
             {
-                var redisCacheValue = new RedisCacheValue<T>
-                {
-                    Value = item
-                };
-
-                var valueToCache = JsonConvert.SerializeObject(redisCacheValue);
+                var valueToCache = JsonConvert.SerializeObject(item);
 
                 redisValues.Add(valueToCache);
             }
@@ -93,9 +95,15 @@ namespace CalculateFunding.Services.Core.Caching
 
             var items = await database.ListRangeAsync(key, start, stop);
 
+            IList<T> results = new List<T>();
             try
             {
-                return items.Select(m => JsonConvert.DeserializeObject<T>(m));
+                foreach(var item in items)
+                {
+                    T resultItem = JsonConvert.DeserializeObject<T>(item.ToString());
+                    results.Add(resultItem);
+                }
+                return results;
             }
             catch(Exception ex)
             {

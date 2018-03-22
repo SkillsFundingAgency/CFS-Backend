@@ -169,71 +169,71 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ShouldThrowExactly<Exception>();
         }
 
-        [TestMethod]
-        public void UpdateAllocations_GivenNoProviderSummariesFound_ThrowsException()
-        {
-            //Arrange
-            Specification specification = new Specification();
+        //[TestMethod]
+        //public void UpdateAllocations_GivenNoProviderSummariesFound_ThrowsException()
+        //{
+        //    //Arrange
+        //    Specification specification = new Specification();
 
-            BuildProject buildProject = new BuildProject
-            {
-                Id = BuildProjectId
-            };
+        //    BuildProject buildProject = new BuildProject
+        //    {
+        //        Id = BuildProjectId
+        //    };
 
-            var json = JsonConvert.SerializeObject(buildProject);
+        //    var json = JsonConvert.SerializeObject(buildProject);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
-            message
-               .Properties.Add("specification-id", SpecificationId);
+        //    EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+        //    message
+        //       .Properties.Add("specification-id", SpecificationId);
 
-            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
+        //    ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
+        //    specificationsRepository
+        //        .GetSpecificationById(Arg.Is(SpecificationId))
+        //        .Returns(specification);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .UpdateBuildProject(Arg.Any<BuildProject>())
-                .Returns(HttpStatusCode.OK);
+        //    IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+        //    buildProjectsRepository
+        //        .UpdateBuildProject(Arg.Any<BuildProject>())
+        //        .Returns(HttpStatusCode.OK);
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                specificationsRepository: specificationsRepository, buildProjectsRepository: buildProjectsRepository);
+        //    BuildProjectsService buildProjectsService = CreateBuildProjectsService(
+        //        specificationsRepository: specificationsRepository, buildProjectsRepository: buildProjectsRepository);
 
-            //Act
-            Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
+        //    //Act
+        //    Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
 
-            //Assert
-            test
-                .ShouldThrowExactly<Exception>();
-        }
+        //    //Assert
+        //    test
+        //        .ShouldThrowExactly<Exception>();
+        //}
 
-        [TestMethod]
-        public void UpdateAllocations_GivenSpecificationExistsOnBuildProjectButNoProviderSummaries_ThrowsException()
-        {
-            //Arrange
-            SpecificationSummary specification = new SpecificationSummary();
+        //[TestMethod]
+        //public void UpdateAllocations_GivenSpecificationExistsOnBuildProjectButNoProviderSummaries_ThrowsException()
+        //{
+        //    //Arrange
+        //    SpecificationSummary specification = new SpecificationSummary();
 
-            BuildProject buildProject = new BuildProject
-            {
-                Id = BuildProjectId,
-                Specification = specification
-            };
+        //    BuildProject buildProject = new BuildProject
+        //    {
+        //        Id = BuildProjectId,
+        //        Specification = specification
+        //    };
 
-            var json = JsonConvert.SerializeObject(buildProject);
+        //    var json = JsonConvert.SerializeObject(buildProject);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
-            message
-               .Properties.Add("specification-id", SpecificationId);
+        //    EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+        //    message
+        //       .Properties.Add("specification-id", SpecificationId);
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService();
+        //    BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
-            //Act
-            Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
+        //    //Act
+        //    Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
 
-            //Assert
-            test
-                .ShouldThrowExactly<Exception>();
-        }
+        //    //Assert
+        //    test
+        //        .ShouldThrowExactly<Exception>();
+        //}
 
         //[TestMethod]
         //async public Task UpdateAllocation_WhenProviderSummariesFound_CallsCalcEngine()

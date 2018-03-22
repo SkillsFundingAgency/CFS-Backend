@@ -129,14 +129,14 @@ namespace CalculateFunding.Services.Calcs
                 specificationId = buildProject.Specification.Id;
             }
 
-            IEnumerable<ProviderSummary> providerSummaries = await _providerResultsRepository.GetAllProviderSummaries();
+            //IEnumerable<ProviderSummary> providerSummaries = await _providerResultsRepository.GetAllProviderSummaries();
 
-            if (providerSummaries.IsNullOrEmpty())
-            {
-                _logger.Error("No provider summaries found");
+            //if (providerSummaries.IsNullOrEmpty())
+            //{
+            //    _logger.Error("No provider summaries found");
 
-                throw new Exception("No provider summaries found");
-            }
+            //    throw new Exception("No provider summaries found");
+            //}
 
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
@@ -186,24 +186,30 @@ namespace CalculateFunding.Services.Calcs
 
             //_logger.Information("Completed running calculations for specification ID {specificationId}, completed in {timeTaken} for total of {itemCount}", specificationId, timeTaken, itemCount);
 
-            int pageCount = await _providerResultsRepository.PartitionProviderSummaries(25);
+            int totalCount = await _providerResultsRepository.LoadAllProvidersFromSearch();
 
-            const string providerSummariesCacheKeyProperty = "provider-summaries-cache-key";
+            const string providerSummariesPartitionIndex = "provider-summaries-partition-index";
+
+            const string providerSummariesPartitionSize = "provider-summaries-partition-size";
+
+           
+             properties.Add(providerSummariesPartitionSize, MaxPartitionSize.ToString());
             
+
             Stopwatch runCalculationsTimer = new Stopwatch();
             runCalculationsTimer.Start();
-            for (int partitionIndex = 1; partitionIndex < pageCount; partitionIndex++)
+            for (int partitionIndex = 0; partitionIndex < totalCount; partitionIndex += MaxPartitionSize)
             {
-                string providersSummmmariesCacheKey = $"provider-summaries-{partitionIndex}";
-
-                if (properties.ContainsKey(providerSummariesCacheKeyProperty))
+                
+                if (properties.ContainsKey(providerSummariesPartitionIndex))
                 {
-                    properties[providerSummariesCacheKeyProperty] = providersSummmmariesCacheKey;
+                    properties[providerSummariesPartitionIndex] = partitionIndex.ToString();
                 }
                 else
                 {
-                    properties.Add(providerSummariesCacheKeyProperty, providersSummmmariesCacheKey);
+                    properties.Add(providerSummariesPartitionIndex, partitionIndex.ToString());
                 }
+
 
                 await _messengerService.SendAsync(GenerateAllocationResultsSubscription, buildProject, properties);
             }

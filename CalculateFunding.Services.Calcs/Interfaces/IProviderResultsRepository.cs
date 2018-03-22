@@ -17,10 +17,12 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<ProviderSearchResults> SearchProviders(SearchModel searchModel);
 
-        Task<IEnumerable<ProviderSummary>> GetAllProviderSummaries();
+       // Task<IEnumerable<ProviderSummary>> GetAllProviderSummaries();
 
         Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId);
 
-        Task<int> PartitionProviderSummaries(int partitionSize);
+        // Task<int> PartitionProviderSummaries(int partitionSize);
+
+        Task<int> LoadAllProvidersFromSearch();
     }
 }

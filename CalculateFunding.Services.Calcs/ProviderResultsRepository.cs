@@ -63,44 +63,32 @@ namespace CalculateFunding.Services.Calcs
             return _apiClient.PostAsync<ProviderSearchResults, SearchModel>(getProvidersFromSearch, searchModel);
         }
 
-        async public Task<IEnumerable<ProviderSummary>> GetAllProviderSummaries()
+        //async public Task<IEnumerable<ProviderSummary>> GetAllProviderSummaries()
+        //{
+        //    if (_providerSummaries.IsNullOrEmpty())
+        //    {
+        //        List<ProviderSummary> providersFromSearch = await _cacheProvider.GetAsync<List<ProviderSummary>>(cachedProvidersKey);
+
+        //        if (providersFromSearch.IsNullOrEmpty())
+        //        {
+        //            providersFromSearch = (await LoadAllProvidersFromSearch()).ToList();
+        //        }
+
+        //        _providerSummaries = providersFromSearch;
+        //    }
+
+        //    return _providerSummaries;
+        //}
+
+  
+
+        async public Task<IEnumerable<ProviderSummary>> GetProviderSummariesFromCache(int start, int stop)
         {
-            if (_providerSummaries.IsNullOrEmpty())
-            {
-                List<ProviderSummary> providersFromSearch = await _cacheProvider.GetAsync<List<ProviderSummary>>(cachedProvidersKey);
+            string cacheKey = "all-cached-providers";
 
-                if (providersFromSearch.IsNullOrEmpty())
-                {
-                    providersFromSearch = (await LoadAllProvidersFromSearch()).ToList();
-                }
+            await LoadAllProvidersFromSearch();
 
-                _providerSummaries = providersFromSearch;
-            }
-
-            return _providerSummaries;
-        }
-
-        async public Task<int> PartitionProviderSummaries(int partitionSize)
-        {
-            IEnumerable<ProviderSummary> summaries = await GetAllProviderSummaries();
-
-            int totalCount = await GetTotalCount();
-
-            int pageCount = GetPageCount(totalCount, partitionSize);
-
-            for (int pageNumber = 0; pageNumber < pageCount; pageNumber++)
-            {
-                string cacheKey = $"provider-summaries-{pageNumber + 1}";
-
-                List<ProviderSummary> providerSummaries = summaries.Skip(pageNumber * partitionSize).Take(partitionSize).ToList();
-
-                bool keyExists = await _cacheProvider.KeyExists<List<ProviderSummary>>(cacheKey);
-
-                if(!keyExists)
-                    await _cacheProvider.SetAsync(cacheKey, providerSummaries, TimeSpan.FromDays(7), true);
-            }
-
-            return pageCount;
+            return await _cacheProvider.ListRangeAsync<ProviderSummary>(cacheKey, start, stop);
         }
 
         public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId)
@@ -141,24 +129,34 @@ namespace CalculateFunding.Services.Calcs
             });
         }
 
-        async Task<IEnumerable<ProviderSummary>> LoadAllProvidersFromSearch()
+        async public Task<int> LoadAllProvidersFromSearch()
         {
+            string cacheKey = "all-cached-providers";
+
             int totalCount = await GetTotalCount();
 
-            int pageCount = GetPageCount(totalCount);
+            string currentProviderCount = await _cacheProvider.GetAsync<string>("provider-summary-count");
 
-            List<ProviderSummary> providersFromSearch = new List<ProviderSummary>();
+            IList<int> pageIndexes = new List<int>();
 
-            for (int pageNumber = 1; pageNumber <= pageCount; pageNumber++)
+            if (string.IsNullOrWhiteSpace(currentProviderCount) || int.Parse(currentProviderCount) != totalCount)
             {
-                IEnumerable<ProviderSummary> summaries = (await GetProviderSummaries(pageNumber, MaxResultsCount)).ToList();
+                int pageCount = GetPageCount(totalCount);
 
-                providersFromSearch.AddRange(summaries);
+                List<ProviderSummary> providersFromSearch = new List<ProviderSummary>();
+
+                await _cacheProvider.KeyDeleteAsync<List<ProviderSummary>>(cacheKey);
+
+                for (int pageNumber = 1; pageNumber <= pageCount; pageNumber++)
+                {
+                    IEnumerable<ProviderSummary> summaries = (await GetProviderSummaries(pageNumber, MaxResultsCount)).ToList();
+                    await _cacheProvider.CreateListAsync(summaries.ToList(), cacheKey);
+                }
+
+                await _cacheProvider.SetAsync("provider-summary-count", totalCount.ToString(), TimeSpan.FromDays(7), true);
             }
 
-            await _cacheProvider.SetAsync(cachedProvidersKey, providersFromSearch, TimeSpan.FromDays(7), true);
-
-            return providersFromSearch;
+            return totalCount;
         }
 
         async Task<int> GetTotalCount()
