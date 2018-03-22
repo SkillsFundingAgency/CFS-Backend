@@ -1375,7 +1375,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 messengerService
                     .Received(1)
-                    .SendAsync(Arg.Is("calc-events-generate-allocations-results"),
+                    .SendAsync(Arg.Is("calc-events-instruct-generate-allocations"),
                         Arg.Any<BuildProject>(),
                         Arg.Any<IDictionary<string, string>>());
         }

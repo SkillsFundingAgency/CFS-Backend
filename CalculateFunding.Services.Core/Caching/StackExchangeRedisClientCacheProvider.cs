@@ -59,6 +59,15 @@ namespace CalculateFunding.Services.Core.Caching
             }
         }
 
+        public Task<bool> KeyExists<T>(string key)
+        {
+            key = GenerateCacheKey<T>(key);
+
+            var database = GetDatabase();
+
+            return database.KeyExistsAsync(key);
+        }
+
         public Task SetAsync<T>(string key, T item)
         {
             var memoryCacheOptions = new MemoryCacheEntryOptions

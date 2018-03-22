@@ -1,13 +1,13 @@
 ﻿using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
-using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Calculator.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Calcs
+namespace CalculateFunding.Services.Calculator
 {
     public class ProviderSourceDatasetsRepository : IProviderSourceDatasetsRepository
     {

@@ -23,6 +23,13 @@ namespace CalculateFunding.Services.Calculator
             _logger = logger;
         }
 
+        public IAllocationModel GenerateAllocationModel(BuildProject buildProject)
+        {
+            Assembly assembly = Assembly.Load(Convert.FromBase64String(buildProject.Build.AssemblyBase64));
+
+            return _allocationFactory.CreateAllocationModel(assembly);
+        }
+
         async public Task<IEnumerable<ProviderResult>> GenerateAllocations(BuildProject buildProject, IEnumerable<ProviderSummary> providers, Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> getProviderSourceDatasets)
         {
             var assembly = Assembly.Load(Convert.FromBase64String(buildProject.Build.AssemblyBase64));

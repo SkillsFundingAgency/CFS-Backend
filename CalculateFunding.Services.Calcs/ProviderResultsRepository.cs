@@ -80,6 +80,29 @@ namespace CalculateFunding.Services.Calcs
             return _providerSummaries;
         }
 
+        async public Task<int> PartitionProviderSummaries(int partitionSize)
+        {
+            IEnumerable<ProviderSummary> summaries = await GetAllProviderSummaries();
+
+            int totalCount = await GetTotalCount();
+
+            int pageCount = GetPageCount(totalCount, partitionSize);
+
+            for (int pageNumber = 0; pageNumber < pageCount; pageNumber++)
+            {
+                string cacheKey = $"provider-summaries-{pageNumber + 1}";
+
+                List<ProviderSummary> providerSummaries = summaries.Skip(pageNumber * partitionSize).Take(partitionSize).ToList();
+
+                bool keyExists = await _cacheProvider.KeyExists<List<ProviderSummary>>(cacheKey);
+
+                if(!keyExists)
+                    await _cacheProvider.SetAsync(cacheKey, providerSummaries, TimeSpan.FromDays(7), true);
+            }
+
+            return pageCount;
+        }
+
         public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId)
         {
             if (string.IsNullOrWhiteSpace(providerId))
@@ -150,9 +173,9 @@ namespace CalculateFunding.Services.Calcs
             return providers.TotalCount;
         }
 
-        int GetPageCount(int totalCount)
+        int GetPageCount(int totalCount, int maxResultsCount = MaxResultsCount)
         {
-            int pageCount = totalCount / MaxResultsCount;
+            int pageCount = totalCount / maxResultsCount;
 
             if (pageCount % MaxResultsCount != 0)
                 pageCount += 1;

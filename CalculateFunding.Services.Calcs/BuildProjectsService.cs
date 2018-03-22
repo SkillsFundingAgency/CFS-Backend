@@ -1,9 +1,7 @@
 ﻿using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Calcs.Messages;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
@@ -28,21 +26,19 @@ namespace CalculateFunding.Services.Calcs
 {
     public class BuildProjectsService : IBuildProjectsService
     {
-        const int MaxPartitionSize = 50;
-        const string UpdateCosmosResultsCollection = "dataset-events-results";
+        const int MaxPartitionSize = 25;
+        const string GenerateAllocationResultsSubscription = "calc-events-generate-allocations-results";
 
         private readonly IBuildProjectsRepository _buildProjectsRepository;
         private readonly IMessengerService _messengerService;
         private readonly EventHubSettings _eventHubSettings;
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
-        private readonly ICalculationEngine _calculationEngine;
         private readonly IProviderResultsRepository _providerResultsRepository;
         private readonly ISpecificationRepository _specificationsRepository;
         private readonly ICompilerFactory _compilerFactory;
         private readonly ISourceFileGeneratorProvider _sourceFileGeneratorProvider;
         private readonly ISourceFileGenerator _sourceFileGenerator;
-        private readonly IProviderSourceDatasetsRepository _providerSourceDatasetsRepository;
 
         public BuildProjectsService(
             IBuildProjectsRepository buildProjectsRepository,
@@ -50,38 +46,31 @@ namespace CalculateFunding.Services.Calcs
             EventHubSettings eventHubSettings,
             ILogger logger,
             ITelemetry telemetry,
-            ICalculationEngine calculationEngine,
             IProviderResultsRepository providerResultsRepository,
             ISpecificationRepository specificationsRepository,
             ISourceFileGeneratorProvider sourceFileGeneratorProvider,
-            ICompilerFactory compilerFactory,
-            IProviderSourceDatasetsRepository providerSourceDatasetsRepository)
+            ICompilerFactory compilerFactory)
         {
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(eventHubSettings, nameof(eventHubSettings));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
-            Guard.ArgumentNotNull(calculationEngine, nameof(calculationEngine));
             Guard.ArgumentNotNull(providerResultsRepository, nameof(providerResultsRepository));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(sourceFileGeneratorProvider, nameof(sourceFileGeneratorProvider));
             Guard.ArgumentNotNull(compilerFactory, nameof(compilerFactory));
-            Guard.ArgumentNotNull(providerSourceDatasetsRepository, nameof(providerSourceDatasetsRepository));
 
             _buildProjectsRepository = buildProjectsRepository;
             _messengerService = messengerService;
             _eventHubSettings = eventHubSettings;
             _logger = logger;
             _telemetry = telemetry;
-            _calculationEngine = calculationEngine;
             _providerResultsRepository = providerResultsRepository;
             _specificationsRepository = specificationsRepository;
             _compilerFactory = compilerFactory;
             _sourceFileGeneratorProvider = sourceFileGeneratorProvider;
             _sourceFileGenerator = sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
-            _providerSourceDatasetsRepository = providerSourceDatasetsRepository;
-            _providerSourceDatasetsRepository = providerSourceDatasetsRepository;
         }
 
         public async Task UpdateAllocations(EventData message)
@@ -149,58 +138,75 @@ namespace CalculateFunding.Services.Calcs
                 throw new Exception("No provider summaries found");
             }
 
-            Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> getProviderSourceDatasetsFunc = (providerId, specId) =>
-            {
-                return _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdAndSpecificationId(providerId, specId);
-            };
-
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
-            int itemCount = providerSummaries.Count();
+            //int itemCount = providerSummaries.Count();
 
+            //Stopwatch runCalculationsTimer = new Stopwatch();
+            //runCalculationsTimer.Start();
+            //for (int partitionIndex = 0; partitionIndex < itemCount; partitionIndex += MaxPartitionSize)
+            //{
+            //    IEnumerable<ProviderResult> results = await _calculationEngine.GenerateAllocations(buildProject,
+            //        providerSummaries.Skip(partitionIndex).Take(MaxPartitionSize), getProviderSourceDatasetsFunc);
+
+            //    if (results != null && results.Any())
+            //    {
+            //        await _messengerService.SendAsync(UpdateCosmosResultsCollection, results, properties);
+            //    }
+
+            //    _telemetry.TrackEvent("CalculationRunProvidersProcessed",
+            //    new Dictionary<string, string>()
+            //    {
+            //        { "specificationId" , specificationId },
+            //        { "buildProjectId" , buildProject.Id }
+            //    },
+            //    new Dictionary<string, double>()
+            //    {
+            //        { "calculation-run-providersProcessed", MaxPartitionSize }
+            //    }
+            //    );
+
+            //}
+            //runCalculationsTimer.Stop();
+
+            //long timeTaken = runCalculationsTimer.ElapsedMilliseconds;
+
+            //_telemetry.TrackEvent("CalculationRun",
+            //    new Dictionary<string, string>()
+            //    {
+            //        { "specificationId" , specificationId },
+            //        { "buildProjectId" , buildProject.Id }
+            //    },
+            //    new Dictionary<string, double>()
+            //    {
+            //        { "calculation-run-elapsedMilliseconds", runCalculationsTimer.ElapsedMilliseconds },
+            //        { "calculation-run-totalProviders", itemCount }
+            //    }
+            //    );
+
+            //_logger.Information("Completed running calculations for specification ID {specificationId}, completed in {timeTaken} for total of {itemCount}", specificationId, timeTaken, itemCount);
+
+            int pageCount = await _providerResultsRepository.PartitionProviderSummaries(25);
+
+            const string providerSummariesCacheKeyProperty = "provider-summaries-cache-key";
+            
             Stopwatch runCalculationsTimer = new Stopwatch();
             runCalculationsTimer.Start();
-            for (int partitionIndex = 0; partitionIndex < itemCount; partitionIndex += MaxPartitionSize)
+            for (int partitionIndex = 1; partitionIndex < pageCount; partitionIndex++)
             {
-                IEnumerable<ProviderResult> results = await _calculationEngine.GenerateAllocations(buildProject,
-                    providerSummaries.Skip(partitionIndex).Take(MaxPartitionSize), getProviderSourceDatasetsFunc);
+                string providersSummmmariesCacheKey = $"provider-summaries-{partitionIndex}";
 
-                if (results != null && results.Any())
+                if (properties.ContainsKey(providerSummariesCacheKeyProperty))
                 {
-                    await _messengerService.SendAsync(UpdateCosmosResultsCollection, results, properties);
+                    properties[providerSummariesCacheKeyProperty] = providersSummmmariesCacheKey;
+                }
+                else
+                {
+                    properties.Add(providerSummariesCacheKeyProperty, providersSummmmariesCacheKey);
                 }
 
-                _telemetry.TrackEvent("CalculationRunProvidersProcessed",
-                new Dictionary<string, string>()
-                {
-                    { "specificationId" , specificationId },
-                    { "buildProjectId" , buildProject.Id }
-                },
-                new Dictionary<string, double>()
-                {
-                    { "calculation-run-providersProcessed", MaxPartitionSize }
-                }
-                );
-
+                await _messengerService.SendAsync(GenerateAllocationResultsSubscription, buildProject, properties);
             }
-            runCalculationsTimer.Stop();
-
-            long timeTaken = runCalculationsTimer.ElapsedMilliseconds;
-
-            _telemetry.TrackEvent("CalculationRun",
-                new Dictionary<string, string>()
-                {
-                    { "specificationId" , specificationId },
-                    { "buildProjectId" , buildProject.Id }
-                },
-                new Dictionary<string, double>()
-                {
-                    { "calculation-run-elapsedMilliseconds", runCalculationsTimer.ElapsedMilliseconds },
-                    { "calculation-run-totalProviders", itemCount }
-                }
-                );
-
-            _logger.Information("Completed running calculations for specification ID {specificationId}, completed in {timeTaken} for total of {itemCount}", specificationId, timeTaken, itemCount);
         }
 
         public async Task UpdateBuildProjectRelationships(EventData message)

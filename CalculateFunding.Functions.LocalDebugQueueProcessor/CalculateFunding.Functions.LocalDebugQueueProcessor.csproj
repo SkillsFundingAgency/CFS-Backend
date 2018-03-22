@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CalculateFunding.Functions.CalcEngine\CalculateFunding.Functions.CalcEngine.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Calcs\CalculateFunding.Functions.Calcs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Datasets\CalculateFunding.Functions.Datasets.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Results\CalculateFunding.Functions.Results.csproj" />

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.EventHubs;
@@ -8,7 +8,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CalculateFunding.Functions.Calcs.EventHub
+namespace CalculateFunding.Functions.CalcEngine.EventHub
 {
     public static class OnCalcsGenerateAllocationResults
     {
@@ -18,7 +18,7 @@ namespace CalculateFunding.Functions.Calcs.EventHub
             using (var scope = IocConfig.Build().CreateScope())
             {
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                var buildProjectsService = scope.ServiceProvider.GetService<IBuildProjectsService>();
+                var calculationEngineService = scope.ServiceProvider.GetService<ICalculationEngineService>();
                 var logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
 
                 foreach (var message in eventHubMessages)
@@ -26,7 +26,7 @@ namespace CalculateFunding.Functions.Calcs.EventHub
                     try
                     {
                         correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                        await buildProjectsService.UpdateAllocations(message);
+                        await calculationEngineService.GenerateAllocations(message);
                     }
                     catch (Exception exception)
                     {

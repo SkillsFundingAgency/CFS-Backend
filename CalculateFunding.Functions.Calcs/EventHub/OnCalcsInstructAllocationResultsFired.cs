@@ -26,7 +26,7 @@ namespace CalculateFunding.Functions.Calcs.EventHub
                     try
                     {
                         correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                        //await buildProjectsService.GenerateAllocationsInstruction(message);
+                        await buildProjectsService.UpdateAllocations(message);
                     }
                     catch (Exception exception)
                     {

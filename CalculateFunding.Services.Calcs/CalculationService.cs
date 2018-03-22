@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICodeMetadataGeneratorService _codeMetadataGenerator;
         private readonly ITelemetry _telemetry;
 
-        const string generateAllocationsSubscription = "calc-events-generate-allocations-results";
+        const string GenerateAllocationsInstructionSubscription = "calc-events-instruct-generate-allocations";
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
@@ -535,7 +535,7 @@ namespace CalculateFunding.Services.Calcs
 
             properties.Add("specification-id", buildProject.Specification.Id);
 
-            return _messengerService.SendAsync(generateAllocationsSubscription,
+            return _messengerService.SendAsync(GenerateAllocationsInstructionSubscription,
                 buildProject,
                 properties);
         }

@@ -12,6 +12,7 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using Newtonsoft.Json.Linq;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Calculator.Interfaces;
 
 namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 {
@@ -20,18 +21,35 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         private readonly IBuildProjectsService _buildProjectService;
         private readonly IDatasetService _datsetService;
         private readonly IResultsService _resultsService;
+        private readonly ICalculationEngineService _calculationEngineService;
 
-        public EventHubsController(IServiceProvider serviceProvider, 
-            IBuildProjectsService buildProjectService, IDatasetService datsetService, IResultsService resultsService) : base(serviceProvider)
+        public EventHubsController(
+            IServiceProvider serviceProvider, 
+            IBuildProjectsService buildProjectService, 
+            IDatasetService datsetService, 
+            IResultsService resultsService,
+            ICalculationEngineService calculationEngineService) : base(serviceProvider)
         {
             _buildProjectService = buildProjectService;
             _datsetService = datsetService;
             _resultsService = resultsService;
+            _calculationEngineService = calculationEngineService;
         }
 
         [Route("api/events/calc-events-generate-allocations-results")]
         [HttpPost]
         async public Task RunGenerateAllocationResults()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            EventData message = await GeEventMessage(ControllerContext.HttpContext.Request);
+
+            await _calculationEngineService.GenerateAllocations(message);
+        }
+
+        [Route("api/events/calc-events-instruct-generate-allocations")]
+        [HttpPost]
+        async public Task RunUpdateAllocations()
         {
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 

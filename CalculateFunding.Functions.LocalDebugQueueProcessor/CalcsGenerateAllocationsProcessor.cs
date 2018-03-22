@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using CalculateFunding.Functions.CalcEngine.EventHub;
 using CalculateFunding.Functions.Calcs.EventHub;
 using Microsoft.Azure.EventHubs;
 

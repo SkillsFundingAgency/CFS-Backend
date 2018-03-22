@@ -100,19 +100,6 @@ namespace CalculateFunding.Functions.Calcs
 
             IConfigurationRoot config = Services.Core.Extensions.ConfigHelper.AddConfig();
 
-            builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>
-            {
-                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
-
-                config.Bind("CosmosDbSettings", calssDbSettings);
-
-                calssDbSettings.CollectionName = "results";
-
-                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
-
-                return new ProviderSourceDatasetsRepository(calcsCosmosRepostory);
-            });
-
             builder.AddCosmosDb(config);
 
             builder.AddSearch(config);

@@ -14,5 +14,7 @@ namespace CalculateFunding.Services.Core.Interfaces.Caching
 		Task SetAsync<T>(string key, T item, DateTimeOffset absoluteExpiration);
 
 		Task RemoveAsync<T>(string key);
-	}
+
+        Task<bool> KeyExists<T>(string key);
+    }
 }
