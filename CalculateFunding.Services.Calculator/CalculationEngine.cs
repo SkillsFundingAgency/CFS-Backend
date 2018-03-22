@@ -75,14 +75,14 @@ namespace CalculateFunding.Services.Calculator
             return providerResults;
         }
 
-        public ProviderResult CalculateProviderResults(IAllocationModel model, BuildProject buildProject, ProviderSummary provider, List<ProviderSourceDataset> providerSourceDatasets)
+        public ProviderResult CalculateProviderResults(IAllocationModel model, BuildProject buildProject, ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             IEnumerable<CalculationResult> calculationResults;
             try
             {
-                calculationResults = model.Execute(providerSourceDatasets).ToArray();
+                calculationResults = model.Execute(providerSourceDatasets.ToList()).ToArray();
             }
             catch(Exception ex)
             {
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Calculator
 
             var providerCalResults = calculationResults.ToDictionary(x => x.Calculation?.Id);
             stopwatch.Stop();
-            _logger.Information($"{providerCalResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalResults.Count: 0.0000}ms)");
+            _logger.Debug($"{providerCalResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalResults.Count: 0.0000}ms)");
 
             var result = new ProviderResult
             {

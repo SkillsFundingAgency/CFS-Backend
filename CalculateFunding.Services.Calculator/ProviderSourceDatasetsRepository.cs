@@ -24,5 +24,16 @@ namespace CalculateFunding.Services.Calculator
 
             return Task.FromResult(results.AsEnumerable());
         }
+
+        public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdsAndSpecificationId(IEnumerable<string> providerIds, string specificationId)
+        {
+            string providerIdList = string.Join(",", providerIds.Select(m => $"\"{m}\""));
+
+            string sql = $"SELECT * FROM Root r where r.documentType = \"ProviderSourceDataset\" and r.content.specification.id = \"{specificationId}\" and r.content.provider.id in ({providerIdList})";
+
+            var results = _cosmosRepository.RawQuery<ProviderSourceDataset>(sql);
+
+            return Task.FromResult(results.AsEnumerable());
+        }
     }
 }

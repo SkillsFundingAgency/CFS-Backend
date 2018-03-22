@@ -75,27 +75,31 @@ namespace CalculateFunding.Services.Calculator
             IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(buildProject);
 
             var calcTiming = Stopwatch.StartNew();
-            
+
+            IEnumerable<string> providerIdList = summaries.Select(m => m.Id);
+
+            IEnumerable<ProviderSourceDataset> providerSourceDatasets = await _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIdList, specificationId);
+
+            if (providerSourceDatasets == null)
+            {
+                providerSourceDatasets = Enumerable.Empty<ProviderSourceDataset>();
+            }
+
             Parallel.ForEach(summaries, new ParallelOptions { MaxDegreeOfParallelism = 5 }, provider =>
             {
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                IEnumerable<ProviderSourceDataset> providerSourceDatasets = _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdAndSpecificationId(provider.Id, buildProject.Specification.Id).Result;
+                IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.Provider.Id == provider.Id);
 
-                if (providerSourceDatasets == null)
-                {
-                    providerSourceDatasets = Enumerable.Empty<ProviderSourceDataset>();
-                }
-
-                var result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, provider, providerSourceDatasets.ToList());
+                var result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, provider, providerDatasets);
 
                 if(result != null)
                     providerResults.Add(result);
 
                 stopwatch.Stop();
 
-                _logger.Information($"Generated result for {provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
+                _logger.Debug($"Generated result for {provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
             });
 
             if (providerResults.Any())
