@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Core.Interfaces.Caching
@@ -16,5 +17,9 @@ namespace CalculateFunding.Services.Core.Interfaces.Caching
 		Task RemoveAsync<T>(string key);
 
         Task<bool> KeyExists<T>(string key);
+
+        Task CreateListAsync<T>(IEnumerable<T> items, string key);
+
+        Task<IEnumerable<T>> ListRangeAsync<T>(string key, int start, int stop);
     }
 }

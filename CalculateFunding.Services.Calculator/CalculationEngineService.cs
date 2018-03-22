@@ -13,6 +13,7 @@ using CalculateFunding.Services.Core.Interfaces.EventHub;
 using CalculateFunding.Models.Results;
 using System.Diagnostics;
 using System.Linq;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -25,19 +26,22 @@ namespace CalculateFunding.Services.Calculator
         private readonly ICacheProvider _cacheProvider;
         private readonly IMessengerService _messengerService;
         private readonly IProviderSourceDatasetsRepository _providerSourceDatasetsRepository;
+        private readonly ITelemetry _telemetry;
 
         public CalculationEngineService(
             ILogger logger, 
             ICalculationEngine calculationEngine, 
             ICacheProvider cacheProvider,
             IMessengerService messengerService,
-            IProviderSourceDatasetsRepository providerSourceDatasetsRepository)
+            IProviderSourceDatasetsRepository providerSourceDatasetsRepository,
+            ITelemetry telemetry)
         {
             _logger = logger;
             _calculationEngine = calculationEngine;
             _cacheProvider = cacheProvider;
             _messengerService = messengerService;
             _providerSourceDatasetsRepository = providerSourceDatasetsRepository;
+            _telemetry = telemetry;
         }
 
         public async Task GenerateAllocations(EventData message)
@@ -45,6 +49,8 @@ namespace CalculateFunding.Services.Calculator
             Guard.ArgumentNotNull(message, nameof(message));
 
             BuildProject buildProject = message.GetPayloadAsInstanceOf<BuildProject>();
+
+            string specificationId = buildProject.Specification.Id;
 
             if (buildProject == null)
             {
@@ -66,6 +72,10 @@ namespace CalculateFunding.Services.Calculator
 
             IList<ProviderResult> providerResults = new List<ProviderResult>();
 
+            IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(buildProject);
+
+            var calcTiming = Stopwatch.StartNew();
+            
             Parallel.ForEach(summaries, new ParallelOptions { MaxDegreeOfParallelism = 5 }, provider =>
             {
                 var stopwatch = new Stopwatch();
@@ -77,8 +87,6 @@ namespace CalculateFunding.Services.Calculator
                 {
                     providerSourceDatasets = Enumerable.Empty<ProviderSourceDataset>();
                 }
-
-                IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(buildProject);
 
                 var result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, provider, providerSourceDatasets.ToList());
 
@@ -96,6 +104,21 @@ namespace CalculateFunding.Services.Calculator
 
                 await _messengerService.SendAsync(UpdateCosmosResultsCollection, providerResults, properties);
             }
+
+            calcTiming.Stop();
+
+            _telemetry.TrackEvent("CalculationRunProvidersProcessed",
+                new Dictionary<string, string>()
+                {
+                        { "specificationId" , specificationId },
+                        { "buildProjectId" , buildProject.Id }
+                },
+                new Dictionary<string, double>()
+                {
+                        { "calculation-run-providersProcessed", summaries.Count() }
+                }
+            );
+
         }
     }
 }

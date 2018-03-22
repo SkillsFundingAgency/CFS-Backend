@@ -5,6 +5,8 @@ using Newtonsoft.Json;
 using Serilog;
 using StackExchange.Redis;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Core.Caching
@@ -56,6 +58,48 @@ namespace CalculateFunding.Services.Core.Caching
             catch (Exception ex)
             {
                 return default(T);
+            }
+        }
+
+        async public Task CreateListAsync<T>(IEnumerable<T> items, string key)
+        {
+            key = GenerateCacheKey<T>(key);
+
+            var database = GetDatabase();
+
+            await database.KeyDeleteAsync(key);
+
+            IList<RedisValue> redisValues = new List<RedisValue>();
+
+            foreach (var item in items)
+            {
+                var redisCacheValue = new RedisCacheValue<T>
+                {
+                    Value = item
+                };
+
+                var valueToCache = JsonConvert.SerializeObject(redisCacheValue);
+
+                redisValues.Add(valueToCache);
+            }
+            await database.ListRightPushAsync(key, redisValues.ToArray());
+        }
+
+        async public Task<IEnumerable<T>> ListRangeAsync<T>(string key, int start, int stop)
+        {
+            key = GenerateCacheKey<T>(key);
+
+            var database = GetDatabase();
+
+            var items = await database.ListRangeAsync(key, start, stop);
+
+            try
+            {
+                return items.Select(m => JsonConvert.DeserializeObject<T>(m));
+            }
+            catch(Exception ex)
+            {
+                return default(IEnumerable<T>);
             }
         }
 

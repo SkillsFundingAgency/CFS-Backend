@@ -26,7 +26,7 @@ namespace System.Linq
 			return (enumerable ?? Enumerable.Empty<T>()).ToArray();
 		}
 
-		static public bool EqualTo<T>(this IEnumerable<T> enumerable, IEnumerable<T> other)
+        static public bool EqualTo<T>(this IEnumerable<T> enumerable, IEnumerable<T> other)
 		{
 			return enumerable.OrderBy(m => m).SequenceEqual(other.OrderBy(m => m));
 		}

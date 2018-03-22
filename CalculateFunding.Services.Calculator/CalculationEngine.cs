@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Calculator
                 providerResults.Add(result);
 
                 stopwatch.Stop();
-                _logger.Information($"Generated result for {provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
+                _logger.Debug($"Generated result for {provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
             });
             //foreach (var provider in providers)
             //{
