@@ -82,7 +82,7 @@ namespace CalculateFunding.Services.Core.EventHub
                 if (!batch.TryAdd(message))
                 {
                     // batch full? send batch and create a new one
-                    await RetryAgent.DoAsync(() => eventHubClient.SendAsync(batch));
+                    await RetryAgent.DoAsync(() => eventHubClient.SendAsync(batch.ToEnumerable()));
                     batch = eventHubClient.CreateBatch();
                     batch.TryAdd(message);
                 }
@@ -91,13 +91,8 @@ namespace CalculateFunding.Services.Core.EventHub
 
             if (batch.Count > 0)
             {
-                await RetryAgent.DoAsync(() => eventHubClient.SendAsync(batch));
+                await RetryAgent.DoAsync(() => eventHubClient.SendAsync(batch.ToEnumerable()));
             }
-
-
-
-
-
         }
     }
 
