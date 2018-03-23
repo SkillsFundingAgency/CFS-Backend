@@ -119,6 +119,16 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted).Select(x => x.Content).AsQueryable();
         }
 
+        public IQueryable<dynamic> DynamicQuery<dynamic>(string sql)
+        {
+            // Set some common query options
+            var queryOptions = new FeedOptions {  };
+
+            var query = _documentClient.CreateDocumentQuery<dynamic>(_collectionUri, sql, queryOptions);
+
+            return query;
+        }
+
         public IQueryable<T> RawQuery<T>(string directSql, int maxItemCount = -1)
         {
             // Set some common query options

@@ -223,44 +223,6 @@ namespace CalculateFunding.Services.Calcs.Validators
         }
 
         [TestMethod]
-        async public Task ValidateAsync_WhenAllocationIsNull_ValidIsFalse()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.AllocationLine = null;
-
-            CalculationModelValidator validator = new CalculationModelValidator();
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(calculation);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
-
-        [TestMethod]
-        async public Task ValidateAsync_WhenAllocationIdIsEmpty_ValidIsFalse()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.AllocationLine.Id = string.Empty;
-
-            CalculationModelValidator validator = new CalculationModelValidator();
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(calculation);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
-
-        [TestMethod]
         async public Task ValidateAsync_WhenFuncfingStreamIsEmpty_ValidIsFalse()
         {
             //Arrange

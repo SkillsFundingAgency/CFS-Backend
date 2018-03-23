@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Results.Interfaces;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Results
 {
@@ -34,10 +35,20 @@ namespace CalculateFunding.Services.Results
 
         public Task<IEnumerable<ProviderResult>> GetSpecificationResults(string providerId)
 	    {
-		    var results = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId);
+            string sql = $"select * from r where r.content.provider.id = \"{ providerId }\"";
 
-		    return Task.FromResult(results.AsEnumerable());
-		}
+            var resultsArray = _cosmosRepository.DynamicQuery<dynamic>(sql).ToArray();
+
+            var resultsString = JsonConvert.SerializeObject(resultsArray);
+
+            resultsString = resultsString.Replace("-7.9228162514264338E+28", "0");
+
+            DocumentEntity<ProviderResult>[] documentEntities = JsonConvert.DeserializeObject<DocumentEntity<ProviderResult>[]>(resultsString);
+
+            IEnumerable<ProviderResult> providerResults = documentEntities.Select(m => m.Content).ToList();
+
+            return Task.FromResult(providerResults);
+        }
 
 	    public Task<HttpStatusCode> UpdateProviderResults(List<ProviderResult> results)
 	    {
