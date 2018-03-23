@@ -55,6 +55,9 @@ namespace CalculateFunding.Services.Datasets
 
         const string dataset_cache_key_prefix = "ds-table-rows";
         const string generateAllocationsSubscription = "calc-events-generate-allocations-results";
+        const string GenerateAllocationsInstructionSubscription = "calc-events-instruct-generate-allocations";
+
+        static IEnumerable<ProviderSummary> _providerSummaries = new List<ProviderSummary>();
 
         public DatasetService(IBlobClient blobClient, ILogger logger,
             IDatasetRepository datasetRepository, IValidator<CreateNewDatasetModel> createNewDatasetModelValidator,
@@ -270,7 +273,7 @@ namespace CalculateFunding.Services.Datasets
                 IDictionary<string, string> messageProperties = message.BuildMessageProperties();
                 messageProperties.Add("specification-id", specificationId);
 
-                await _messengerService.SendAsync(generateAllocationsSubscription,
+                await _messengerService.SendAsync(GenerateAllocationsInstructionSubscription,
                         buildProject, messageProperties);
             }
         }
@@ -303,11 +306,9 @@ namespace CalculateFunding.Services.Datasets
 
             Dictionary<IdentifierFieldType, Dictionary<string, List<string>>> identifiers = new Dictionary<IdentifierFieldType, Dictionary<string, List<string>>>();
 
-            IEnumerable<ProviderSummary> summaries = await _providerResultsRepository.GetAllProviderSummaries();
-
             Func<ProviderSummary, string> identifierSelectorExpression = GetIdentifierSelectorExpression(identifierFieldType.Value);
 
-            IEnumerable<string> filteredIdentifiers = summaries.Select(identifierSelectorExpression);
+            IEnumerable<string> filteredIdentifiers = _providerSummaries.Select(identifierSelectorExpression);
 
             identifiers.Add(identifierFieldType.Value, new Dictionary<string, List<string>> { { fieldIdentifier, filteredIdentifiers.ToList() } });
 
@@ -500,6 +501,9 @@ namespace CalculateFunding.Services.Datasets
 
         async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, string specificationId)
         {
+            if (_providerSummaries.IsNullOrEmpty())
+                _providerSummaries = await _providerResultsRepository.GetAllProviderSummaries();
+
             IList<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>();
 
             if(buildProject.DatasetRelationships == null)
