@@ -22,18 +22,21 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         private readonly IDatasetService _datsetService;
         private readonly IResultsService _resultsService;
         private readonly ICalculationEngineService _calculationEngineService;
+        private readonly ICalculationService _calculationService;
 
         public EventHubsController(
             IServiceProvider serviceProvider, 
             IBuildProjectsService buildProjectService, 
             IDatasetService datsetService, 
             IResultsService resultsService,
-            ICalculationEngineService calculationEngineService) : base(serviceProvider)
+            ICalculationEngineService calculationEngineService,
+            ICalculationService calculationService) : base(serviceProvider)
         {
             _buildProjectService = buildProjectService;
             _datsetService = datsetService;
             _resultsService = resultsService;
             _calculationEngineService = calculationEngineService;
+            _calculationService = calculationService;
         }
 
         [Route("api/events/calc-events-generate-allocations-results")]
@@ -67,6 +70,17 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             EventData message = await GeEventMessage(ControllerContext.HttpContext.Request);
 
             await _buildProjectService.UpdateBuildProjectRelationships(message);
+        }
+
+        [Route("api/events/calc-events-create-draft")]
+        [HttpPost]
+        async public Task RunCreateDraftCalc()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            EventData message = await GeEventMessage(ControllerContext.HttpContext.Request);
+
+            await _calculationService.CreateCalculation(message);
         }
 
         [Route("api/events/dataset-events-datasets")]

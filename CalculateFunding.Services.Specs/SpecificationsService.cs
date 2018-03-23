@@ -410,7 +410,8 @@ namespace CalculateFunding.Services.Specs
                 return new StatusCodeResult(412);
             }
 
-            calculation.AllocationLine = await _specificationsRepository.GetAllocationLineById(createModel.AllocationLineId);
+            if(!string.IsNullOrWhiteSpace(createModel.AllocationLineId))
+                calculation.AllocationLine = await _specificationsRepository.GetAllocationLineById(createModel.AllocationLineId);
 
             policy.Calculations = (policy.Calculations == null
                 ? new[] { calculation }

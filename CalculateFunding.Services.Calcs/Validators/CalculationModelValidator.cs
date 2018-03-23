@@ -30,10 +30,6 @@ namespace CalculateFunding.Services.Calcs.Validators
                 .Must(m => m != null && !string.IsNullOrWhiteSpace(m.Id) && !string.IsNullOrWhiteSpace(m.Name))
                 .WithMessage("Invalid period provided");
 
-            RuleFor(calc => calc.AllocationLine)
-                .Must(m => m != null && !string.IsNullOrWhiteSpace(m.Id) && !string.IsNullOrWhiteSpace(m.Name))
-                .WithMessage("Invalid allocation line provided");
-
             RuleFor(calc => calc.Policies)
             .NotEmpty()
             .WithMessage("No policies were propvided");

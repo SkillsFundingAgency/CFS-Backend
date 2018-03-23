@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using CalculateFunding.Models.Scenarios;
+using CalculateFunding.Models.Specs;
 using Gherkin;
 
 namespace CalculateFunding.Services.TestRunner

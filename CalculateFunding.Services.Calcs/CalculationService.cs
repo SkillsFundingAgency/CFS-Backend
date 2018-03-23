@@ -245,7 +245,7 @@ namespace CalculateFunding.Services.Calcs
 
                 HttpStatusCode result = await _calculationsRepository.CreateDraftCalculation(calculation);
 
-                if (result == HttpStatusCode.Created)
+                if (result.IsSuccess())
                 {
                     _logger.Information($"Calculation with id: {calculation.Id} was succesfully saved to Cosmos Db");
 
@@ -449,8 +449,8 @@ namespace CalculateFunding.Services.Calcs
                     SpecificationId = calculation.Specification.Id,
                     PeriodId = calculation.Period.Id,
                     PeriodName = calculation.Period.Name,
-                    AllocationLineId = calculation.AllocationLine.Id,
-                    AllocationLineName = calculation.AllocationLine.Name,
+                    AllocationLineId = calculation.AllocationLine?.Id,
+                    AllocationLineName = calculation.AllocationLine?.Name,
                     PolicySpecificationIds   = calculation.Policies.Select(m => m.Id).ToArraySafe(),
                     PolicySpecificationNames = calculation.Policies.Select(m => m.Name).ToArraySafe(),
                     SourceCode = calculation.Current.SourceCode,
