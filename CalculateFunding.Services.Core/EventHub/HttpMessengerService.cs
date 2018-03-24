@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Core.EventHub
             foreach (var property in properties)
                 message.Properties.Add(property.Key, property.Value);
 
-            await RetryAgent.DoAsync(() => _apiClient.PostAsync($"events/{hubName}", message));
+            await  _apiClient.PostAsync($"events/{hubName}", message);
         }
 
         public Task SendBatchAsync<T>(string hubName, IEnumerable<T> data, IDictionary<string, string> properties)

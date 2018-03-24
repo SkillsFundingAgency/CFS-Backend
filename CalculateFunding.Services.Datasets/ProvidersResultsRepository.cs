@@ -18,9 +18,22 @@ namespace CalculateFunding.Services.Datasets
             _cosmosRepository = cosmosRepository;
         }
 
-        public Task UpdateSourceDatsets(IEnumerable<ProviderSourceDataset> providerSourceDatasets)
+        async public Task UpdateSourceDatsets(IEnumerable<ProviderSourceDataset> providerSourceDatasets)
         {
-            return _cosmosRepository.BulkCreateAsync(providerSourceDatasets.ToList(), 10);
+            try
+            { 
+                await _cosmosRepository.BulkCreateAsync(providerSourceDatasets.ToList());
+            }
+            catch (Exception ex)
+            {
+                
+                foreach (ProviderSourceDataset sourceDataset in providerSourceDatasets)
+                {
+                    await _cosmosRepository.CreateAsync(sourceDataset);
+                }
+            }
         }
+
+        
     }
 }

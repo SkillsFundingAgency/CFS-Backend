@@ -13,6 +13,7 @@ using Newtonsoft.Json.Linq;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.Specs.Interfaces;
 
 namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 {
@@ -23,6 +24,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         private readonly IResultsService _resultsService;
         private readonly ICalculationEngineService _calculationEngineService;
         private readonly ICalculationService _calculationService;
+        private readonly ISpecificationsService _specificationsService;
 
         public EventHubsController(
             IServiceProvider serviceProvider, 
@@ -30,13 +32,15 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             IDatasetService datsetService, 
             IResultsService resultsService,
             ICalculationEngineService calculationEngineService,
-            ICalculationService calculationService) : base(serviceProvider)
+            ICalculationService calculationService,
+            ISpecificationsService specificationsService) : base(serviceProvider)
         {
             _buildProjectService = buildProjectService;
             _datsetService = datsetService;
             _resultsService = resultsService;
             _calculationEngineService = calculationEngineService;
             _calculationService = calculationService;
+            _specificationsService = specificationsService;
         }
 
         [Route("api/events/calc-events-generate-allocations-results")]
@@ -103,6 +107,17 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             EventData message = await GeEventMessage(ControllerContext.HttpContext.Request);
 
             await _resultsService.UpdateProviderData(message);
+        }
+
+        [Route("api/events/spec-events-add-definition-relationship")]
+        [HttpPost]
+        async public Task RunAddDefinitionSpecificationService()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            EventData message = await GeEventMessage(ControllerContext.HttpContext.Request);
+
+            await _specificationsService.AssignDataDefinitionRelationship(message);
         }
 
         async Task<EventData> GeEventMessage(HttpRequest request)

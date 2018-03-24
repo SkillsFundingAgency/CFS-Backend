@@ -556,12 +556,6 @@ namespace CalculateFunding.Services.Datasets
                 }
             }
 
-            //need to build a stored procedure, but this is ok for now
-            //foreach (ProviderSourceDataset sourceDataset in resultsByProviderId.Values)
-            //{
-            //    await _providerRepository.UpdateProviderSourceDataset(sourceDataset);
-            //}
-
             await _providersResultsRepository.UpdateSourceDatsets(resultsByProviderId.Values);
         }
 

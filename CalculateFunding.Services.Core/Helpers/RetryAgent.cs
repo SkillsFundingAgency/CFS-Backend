@@ -78,7 +78,7 @@
 
                     return result;
                 }
-                catch
+                catch(Exception ex)
                 {
                     logger?.Error($"The request failed with status: {result?.StatusCode.ToString()} with reason: {result?.ReasonPhrase}");
 

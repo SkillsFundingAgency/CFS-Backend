@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Core.Proxies
                 throw new ArgumentException(nameof(url));
             }
 
-            HttpResponseMessage response = await RetryAgent.DoRequestAsync(() => _httpClient.GetAsync(url));
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
 
             if (response == null)
             {
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Core.Proxies
             string json = JsonConvert.SerializeObject(request, _serializerSettings);
             //_logger.Debug($"ApiClient POST: {{url}} ({typeof(TRequest).Name})", url);
 
-            HttpResponseMessage response = await RetryAgent.DoRequestAsync(() => _httpClient.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")));
+            HttpResponseMessage response = await _httpClient.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json"));
             if (response == null)
             {
                 throw new HttpRequestException($"Unable to connect to server. Url={_httpClient.BaseAddress.AbsoluteUri}{url}");
@@ -109,7 +109,7 @@ namespace CalculateFunding.Services.Core.Proxies
 
             var json = JsonConvert.SerializeObject(request, _serializerSettings);
            // _logger.Debug($"ApiClient POST: {{url}} ({typeof(TRequest).Name} => {typeof(TResponse).Name})", url);
-            HttpResponseMessage response = await RetryAgent.DoRequestAsync(() => _httpClient.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")));
+            HttpResponseMessage response = await _httpClient.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json"));
             if (response == null)
             {
                 throw new HttpRequestException($"Unable to connect to server. Url={_httpClient.BaseAddress.AbsoluteUri}{url}");

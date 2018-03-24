@@ -25,7 +25,6 @@ namespace CalculateFunding.Services.Compiler
                 AssemblyMetadata.CreateFromFile(typeof(object).Assembly.Location).GetReference()
             };
 
-
             using (var ms = new MemoryStream())
             {
                 var build = GenerateCode(sourcefiles, references, ms);
@@ -54,14 +53,12 @@ namespace CalculateFunding.Services.Compiler
 
             var compilerOutput = new Build
             {
-                SourceFiles = sourceFiles
+                SourceFiles = sourceFiles,
+                Success = result.Success
             };
-
 
             stopwatch.Stop();
             Logger.Information($"Compilation complete success = {compilerOutput.Success} ({stopwatch.ElapsedMilliseconds}ms)");
-
-            compilerOutput.Success = result.Success;
 
             compilerOutput.CompilerMessages = result.Diagnostics.Where(x  => x.Severity != DiagnosticSeverity.Hidden).Select(x => new CompilerMessage
             {
