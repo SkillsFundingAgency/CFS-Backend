@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Datasets
     public class DefinitionSpecificationRelationshipService : IDefinitionSpecificationRelationshipService
     {
         const string updateSpecificationSearchIndex = "spec-events-add-definition-relationship";
-        const string updateBuildProjectWithNewRelationship = "calc-events-add-relationship-to-buildproject";
+        const string updateBuildProjectWithNewRelationship = "calc-events-add-data-to-buildproject";
 
         const string processDatasetSubscription = "dataset-events-datasets";
 
