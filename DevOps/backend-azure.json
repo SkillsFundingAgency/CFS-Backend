@@ -602,6 +602,7 @@
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
         "siteConfig": {
+          "alwaysOn": true,
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
