@@ -97,6 +97,7 @@
     "calcEngineFunctionAppName": "[concat(resourceGroup().name, '-fapp-calcengine')]",
     "scenariosFunctionAppName": "[concat(resourceGroup().name, '-fapp-scenarios')]",
     "hostingPlanName": "[concat(resourceGroup().name, '-plan')]",
+    "dynamicHostingPlanName": "[concat(resourceGroup().name, '2-plan')]",
     "datasetStorageAccountName": "[concat(resourceGroup().name, 'data')]",
     "datasetStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('datasetstorageAccountName'))]",
     "calcsStorageAccountName": "[concat(resourceGroup().name, 'calc')]",
@@ -324,6 +325,25 @@
       },
       "properties": {
         "name": "[variables('hostingPlanName')]"
+      }
+    },
+    {
+      "apiVersion": "2016-03-01",
+      "name": "[variables('dynamicHostingPlanName')]",
+      "type": "Microsoft.Web/serverfarms",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "DynamicHostingPlan"
+      },
+      "sku": {
+        "name": "Y1",
+        "tier": "Dynamic",
+        "size": "Y1",
+        "family": "Y",
+        "capacity": 0
+      },
+      "properties": {
+        "name": "[variables('dynamicHostingPlanName')]"
       }
     },
     {
@@ -574,7 +594,7 @@
       "location": "[resourceGroup().location]",
       "kind": "functionapp",
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.Web/serverfarms', variables('dynamicHostingPlanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
         "[variables('applicationInsightsName')]",
@@ -583,7 +603,7 @@
 
       ],
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('dynamicHostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
           "appSettings": [
