@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets
 {
-    public class ProviderResultsRepository : Interfaces.IProviderResultsRepository
+    public class ProviderRepository : Interfaces.IProviderRepository
     {
         const int MaxResultsCount = 1000;
 
@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IApiClientProxy _apiClient;
         private readonly ICacheProvider _cacheProvider;
 
-        public ProviderResultsRepository(IApiClientProxy apiClient, ICacheProvider cacheProvider)
+        public ProviderRepository(IApiClientProxy apiClient, ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));

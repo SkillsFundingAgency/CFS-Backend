@@ -209,7 +209,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
             int taskCount;
             // set TaskCount = 10 for each 10k RUs, minimum 1, maximum 250
-            taskCount = Math.Max(degreeOfParallelism, 1);
+            taskCount = Math.Max(degreeOfParallelism, 10);
             taskCount = Math.Min(taskCount, 250);
 
 

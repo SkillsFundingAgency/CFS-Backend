@@ -1832,12 +1832,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IProviderResultsRepository resultsRepository = CreateProviderResultsRepository();
+            IProviderRepository resultsRepository = CreateProviderRepository();
 
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
-                providerResultsRepository: resultsRepository);
+                providerRepository: resultsRepository);
 
             //Act
             await service.ProcessDataset(message);
@@ -1914,12 +1914,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IProviderResultsRepository resultsRepository = CreateProviderResultsRepository();
+            IProviderRepository resultsRepository = CreateProviderRepository();
 
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
-                providerResultsRepository: resultsRepository);
+                providerRepository: resultsRepository);
 
             //Act
             await service.ProcessDataset(message);
@@ -2013,12 +2013,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IProviderResultsRepository resultsRepository = CreateProviderResultsRepository();
+            IProviderRepository resultsRepository = CreateProviderRepository();
 
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
-                providerResultsRepository: resultsRepository);
+                providerRepository: resultsRepository);
 
             //Act
             await service.ProcessDataset(message);
@@ -2114,30 +2114,32 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IEnumerable<ProviderSummary> summaries = new[] { new ProviderSummary { UPIN = "123456" } };
 
-            IProviderResultsRepository resultsRepository = CreateProviderResultsRepository();
+            IProviderRepository resultsRepository = CreateProviderRepository();
             resultsRepository
                 .GetAllProviderSummaries()
                 .Returns(summaries);
 
+            IProvidersResultsRepository providerResultsRepository = CreateProvidesrResultsRepository();
+
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
-                providerResultsRepository: resultsRepository);
+                providerRepository: resultsRepository, providersResultsRepository: providerResultsRepository);
 
             //Act
             await service.ProcessDataset(message);
 
             //Assert
             await
-                resultsRepository
+                providerResultsRepository
                     .Received(1)
-                    .UpdateProviderSourceDataset(Arg.Is<ProviderSourceDataset>(
-                        m => m.DataDefinition.Id == DataDefintionId &&
-                             m.DataGranularity == DataGranularity.SingleRowPerProvider &&
-                             m.DefinesScope == false &&
-                             !string.IsNullOrWhiteSpace(m.Id) &&
-                             m.Specification.Id == SpecificationId &&
-                             m.Provider.Id == "123456"
+                    .UpdateSourceDatsets(Arg.Is<IEnumerable<ProviderSourceDataset>>(
+                        m => m.First().DataDefinition.Id == DataDefintionId &&
+                             m.First().DataGranularity == DataGranularity.SingleRowPerProvider &&
+                             m.First().DefinesScope == false &&
+                             !string.IsNullOrWhiteSpace(m.First().Id) &&
+                             m.First().Specification.Id == SpecificationId &&
+                             m.First().Provider.Id == "123456"
                         ));
         }
 
@@ -2226,24 +2228,26 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IEnumerable<ProviderSummary> summaries = new[] { new ProviderSummary { UPIN = "123456" }, new ProviderSummary { UPIN = "222333" } };
 
-            IProviderResultsRepository resultsRepository = CreateProviderResultsRepository();
+            IProviderRepository resultsRepository = CreateProviderRepository();
             resultsRepository
                 .GetAllProviderSummaries()
                 .Returns(summaries);
 
+            IProvidersResultsRepository providerResultsRepository = CreateProvidesrResultsRepository();
+
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
-                providerResultsRepository: resultsRepository);
+                providerRepository: resultsRepository, providersResultsRepository: providerResultsRepository);
 
             //Act
             await service.ProcessDataset(message);
 
             //Assert
             await
-                resultsRepository
-                    .Received(2)
-                    .UpdateProviderSourceDataset(Arg.Any<ProviderSourceDataset>());
+                providerResultsRepository
+                    .Received(1)
+                    .UpdateSourceDatsets(Arg.Any<IEnumerable<ProviderSourceDataset>>());
         }
 
         static DatasetService CreateDatasetService(IBlobClient blobClient = null, ILogger logger = null, 
@@ -2252,7 +2256,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IValidator<DatasetMetadataModel> datasetMetadataModelValidator = null, ISearchRepository<DatasetIndex> searchRepository = null,
             IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator = null, ISpecificationsRepository specificationsRepository = null,
             IMessengerService messengerService = null, EventHubSettings eventHubSettings = null, IExcelDatasetReader excelDatasetReader = null,
-            ICacheProvider cacheProvider = null, ICalcsRepository calcsRepository = null, IProviderResultsRepository providerResultsRepository = null)
+            ICacheProvider cacheProvider = null, ICalcsRepository calcsRepository = null, IProviderRepository providerRepository = null, IProvidersResultsRepository providersResultsRepository = null)
         {
             return new DatasetService(blobClient ?? CreateBlobClient(), logger ?? CreateLogger(), 
                 datasetRepository ?? CreateDatasetsRepository(), 
@@ -2261,7 +2265,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 searchRepository ?? CreateSearchRepository(), getDatasetBlobModelValidator ?? CreateGetDatasetBlobModelValidator(),
                 specificationsRepository ?? CreateSpecificationsRepository(), messengerService ?? CreateMessengerService(), 
                 eventHubSettings ?? CreateEventHubSettings(), excelDatasetReader ?? CreateExcelDatasetReader(), 
-                cacheProvider ?? CreateCacheProvider(), calcsRepository ?? CreateCalcsRepository(), providerResultsRepository ?? CreateProviderResultsRepository());
+                cacheProvider ?? CreateCacheProvider(), calcsRepository ?? CreateCalcsRepository(), providerRepository ?? CreateProviderRepository(), providersResultsRepository ?? CreateProvidesrResultsRepository());
         }
 
         static ICalcsRepository CreateCalcsRepository()
@@ -2269,9 +2273,14 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<ICalcsRepository>();
         }
 
-        static IProviderResultsRepository CreateProviderResultsRepository()
+        static IProviderRepository CreateProviderRepository()
         {
-            return Substitute.For<IProviderResultsRepository>();
+            return Substitute.For<IProviderRepository>();
+        }
+
+        static IProvidersResultsRepository CreateProvidesrResultsRepository()
+        {
+            return Substitute.For<IProvidersResultsRepository>();
         }
 
         static IExcelDatasetReader CreateExcelDatasetReader()

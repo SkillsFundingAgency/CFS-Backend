@@ -132,6 +132,19 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                     return new BlobClient(storageSettings);
                 });
 
+            builder.AddSingleton<IProvidersResultsRepository, ProvidersResultsRepository>((ctx) =>
+            {
+                CosmosDbSettings dbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", dbSettings);
+
+                dbSettings.CollectionName = "results";
+
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(dbSettings);
+
+                return new ProvidersResultsRepository(calcsCosmosRepostory);
+            });
+
             builder
               .AddScoped<IDatasetService, DatasetService>();
 
@@ -305,7 +318,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                 .AddScoped<ISpecificationRepository, SpecificationRepository>();
             builder
-               .AddScoped<Services.Datasets.Interfaces.IProviderResultsRepository, Services.Datasets.ProviderResultsRepository>();
+               .AddScoped<Services.Datasets.Interfaces.IProviderRepository, Services.Datasets.ProviderRepository>();
 
             builder
               .AddScoped<Services.Calcs.Interfaces.IProviderResultsRepository, Services.Calcs.ProviderResultsRepository>();

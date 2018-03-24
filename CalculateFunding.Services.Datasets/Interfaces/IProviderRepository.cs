@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace CalculateFunding.Services.Datasets.Interfaces
 {
 
-    public interface IProviderResultsRepository
+    public interface IProviderRepository
     {
         Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId);
 

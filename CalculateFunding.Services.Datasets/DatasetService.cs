@@ -51,7 +51,8 @@ namespace CalculateFunding.Services.Datasets
         private readonly IExcelDatasetReader _excelDatasetReader;
         private readonly ICacheProvider _cacheProvider;
         private readonly ICalcsRepository _calcsRepository;
-        private readonly IProviderResultsRepository _providerResultsRepository;
+        private readonly IProviderRepository _providerRepository;
+        private readonly IProvidersResultsRepository _providersResultsRepository;
 
         const string dataset_cache_key_prefix = "ds-table-rows";
         const string generateAllocationsSubscription = "calc-events-generate-allocations-results";
@@ -65,7 +66,7 @@ namespace CalculateFunding.Services.Datasets
             ISearchRepository<DatasetIndex> searchRepository, IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator,
             ISpecificationsRepository specificationsRepository, IMessengerService messengerService,
             EventHubSettings eventHubSettings, IExcelDatasetReader excelDatasetReader, ICacheProvider cacheProvider,
-            ICalcsRepository calcsRepository, IProviderResultsRepository providerResultsRepository)
+            ICalcsRepository calcsRepository, IProviderRepository providerRepository, IProvidersResultsRepository providersResultsRepository)
         {
             _blobClient = blobClient;
             _logger = logger;
@@ -81,7 +82,8 @@ namespace CalculateFunding.Services.Datasets
             _excelDatasetReader = excelDatasetReader;
             _cacheProvider = cacheProvider;
             _calcsRepository = calcsRepository;
-            _providerResultsRepository = providerResultsRepository;
+            _providerRepository = providerRepository;
+            _providersResultsRepository = providersResultsRepository;
         }
 
         async public Task<IActionResult> CreateNewDataset(HttpRequest request)
@@ -502,7 +504,7 @@ namespace CalculateFunding.Services.Datasets
         async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, string specificationId)
         {
             if (_providerSummaries.IsNullOrEmpty())
-                _providerSummaries = await _providerResultsRepository.GetAllProviderSummaries();
+                _providerSummaries = await _providerRepository.GetAllProviderSummaries();
 
             IList<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>();
 
@@ -555,10 +557,12 @@ namespace CalculateFunding.Services.Datasets
             }
 
             //need to build a stored procedure, but this is ok for now
-            foreach (ProviderSourceDataset sourceDataset in resultsByProviderId.Values)
-            {
-                await _providerResultsRepository.UpdateProviderSourceDataset(sourceDataset);
-            }
+            //foreach (ProviderSourceDataset sourceDataset in resultsByProviderId.Values)
+            //{
+            //    await _providerRepository.UpdateProviderSourceDataset(sourceDataset);
+            //}
+
+            await _providersResultsRepository.UpdateSourceDatsets(resultsByProviderId.Values);
         }
 
         async Task<TableLoadResult> GetTableResult(string fullBlobName, DatasetDefinition datasetDefinition)
