@@ -12,7 +12,7 @@ namespace CalculateFunding.Functions.Calcs.EventHub
 {
     public static class CalcsAddRelationshipToBuildProject
     {
-        [FunctionName("calc-events-add-data-to-buildproject")]
+        [FunctionName("calcs-add-data-relationship")]
         public static async Task Run([EventHubTrigger("calc-events-add-data-to-buildproject", Connection = "EventHubSettings:EventHubConnectionString")] EventData[] eventHubMessages)
         {
             using (var scope = IocConfig.Build().CreateScope())
