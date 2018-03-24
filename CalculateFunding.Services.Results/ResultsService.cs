@@ -56,13 +56,15 @@ namespace CalculateFunding.Services.Results
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            IEnumerable<ProviderResult> results = message.GetPayloadAsInstanceOf<IEnumerable<ProviderResult>>();
+            ProviderResult result = message.GetPayloadAsInstanceOf<ProviderResult>();
 
-            if (results == null)
+            if (result == null)
             {
                 _logger.Error("Null results provided to UpdateProviderData");
-                throw new ArgumentNullException(nameof(results), "Null results provided to UpdateProviderData");
+                throw new ArgumentNullException(nameof(result), "Null results provided to UpdateProviderData");
             }
+
+            IEnumerable<ProviderResult> results = new[] { result };
 
             if (results.Any())
             {

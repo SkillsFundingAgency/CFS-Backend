@@ -522,97 +522,97 @@ namespace CalculateFunding.Services.Results.Services
                 .ShouldThrowExactly<ArgumentNullException>();
         }
 
-        [TestMethod]
-        async public Task UpdateProviderData_GivenEmptyResults_DoesNotUpdateResults()
-        {
-            //Arramge
-            IEnumerable<ProviderResult> results = Enumerable.Empty<ProviderResult>();
+        //[TestMethod]
+        //async public Task UpdateProviderData_GivenEmptyResults_DoesNotUpdateResults()
+        //{
+        //    //Arramge
+        //    IEnumerable<ProviderResult> results = Enumerable.Empty<ProviderResult>();
 
-            var json = JsonConvert.SerializeObject(results);
+        //    var json = JsonConvert.SerializeObject(results);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+        //    EventData message = new EventData(Encoding.UTF8.GetBytes(json));
 
-            ILogger logger = CreateLogger();
+        //    ILogger logger = CreateLogger();
 
-            IResultsRepository resultsRepository = CreateResultsRepository();
+        //    IResultsRepository resultsRepository = CreateResultsRepository();
 
-            ResultsService service = CreateResultsService(logger, resultsRepository);
+        //    ResultsService service = CreateResultsService(logger, resultsRepository);
 
-            //Act
-            await service.UpdateProviderData(message);
+        //    //Act
+        //    await service.UpdateProviderData(message);
 
-            //Assert
-            await
-                resultsRepository
-                    .DidNotReceive()
-                    .UpdateProviderResults(Arg.Any<List<ProviderResult>>());
+        //    //Assert
+        //    await
+        //        resultsRepository
+        //            .DidNotReceive()
+        //            .UpdateProviderResults(Arg.Any<List<ProviderResult>>());
 
-            logger
-                .Received(1)
-                .Warning("An empty list of results were provided to update");
-        }
+        //    logger
+        //        .Received(1)
+        //        .Warning("An empty list of results were provided to update");
+        //}
 
-        [TestMethod]
-        async public Task UpdateProviderData_GivenResultsButFailsToUpdate_LogsError()
-        {
-            //Arramge
-            IEnumerable<ProviderResult> results = new[]
-            {
-                new ProviderResult()
-            };
+        //[TestMethod]
+        //async public Task UpdateProviderData_GivenResultsButFailsToUpdate_LogsError()
+        //{
+        //    //Arramge
+        //    IEnumerable<ProviderResult> results = new[]
+        //    {
+        //        new ProviderResult()
+        //    };
 
-            var json = JsonConvert.SerializeObject(results);
+        //    var json = JsonConvert.SerializeObject(results);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+        //    EventData message = new EventData(Encoding.UTF8.GetBytes(json));
 
-            ILogger logger = CreateLogger();
+        //    ILogger logger = CreateLogger();
 
-            IResultsRepository resultsRepository = CreateResultsRepository();
-            resultsRepository
-                .UpdateProviderResults(Arg.Any<List<ProviderResult>>())
-                .Returns(HttpStatusCode.InternalServerError);
+        //    IResultsRepository resultsRepository = CreateResultsRepository();
+        //    resultsRepository
+        //        .UpdateProviderResults(Arg.Any<List<ProviderResult>>())
+        //        .Returns(HttpStatusCode.InternalServerError);
 
-            ResultsService service = CreateResultsService(logger, resultsRepository);
+        //    ResultsService service = CreateResultsService(logger, resultsRepository);
 
-            //Act
-            await service.UpdateProviderData(message);
+        //    //Act
+        //    await service.UpdateProviderData(message);
 
-            //Assert
-            logger
-                .Received(1)
-                .Error("Failed to bulk update provider data with status code: InternalServerError");
-        }
+        //    //Assert
+        //    logger
+        //        .Received(1)
+        //        .Error("Failed to bulk update provider data with status code: InternalServerError");
+        //}
 
-        [TestMethod]
-        async public Task UpdateProviderData_GivenResultsAndupdateIsSuccess_DoesNotLogAnError()
-        {
-            //Arramge
-            IEnumerable<ProviderResult> results = new[]
-            {
-                new ProviderResult()
-            };
+        //[TestMethod]
+        //async public Task UpdateProviderData_GivenResultsAndupdateIsSuccess_DoesNotLogAnError()
+        //{
+        //    //Arramge
+        //    IEnumerable<ProviderResult> results = new[]
+        //    {
+        //        new ProviderResult()
+        //    };
 
-            var json = JsonConvert.SerializeObject(results);
+        //    var json = JsonConvert.SerializeObject(results);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+        //    EventData message = new EventData(Encoding.UTF8.GetBytes(json));
 
-            ILogger logger = CreateLogger();
+        //    ILogger logger = CreateLogger();
 
-            IResultsRepository resultsRepository = CreateResultsRepository();
-            resultsRepository
-                .UpdateProviderResults(Arg.Any<List<ProviderResult>>())
-                .Returns(HttpStatusCode.OK);
+        //    IResultsRepository resultsRepository = CreateResultsRepository();
+        //    resultsRepository
+        //        .UpdateProviderResults(Arg.Any<List<ProviderResult>>())
+        //        .Returns(HttpStatusCode.OK);
 
-            ResultsService service = CreateResultsService(logger, resultsRepository);
+        //    ResultsService service = CreateResultsService(logger, resultsRepository);
 
-            //Act
-            await service.UpdateProviderData(message);
+        //    //Act
+        //    await service.UpdateProviderData(message);
 
-            //Assert
-            logger
-                .DidNotReceive()
-                .Error(Arg.Any<string>());
-        }
+        //    //Assert
+        //    logger
+        //        .DidNotReceive()
+        //        .Error(Arg.Any<string>());
+        //}
 
         [TestMethod]
         public void UpdateProviderSourceDataset_GivenNullResults_ThrowsArgumentNullException()
