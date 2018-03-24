@@ -96,8 +96,8 @@
     "calcsFunctionAppName": "[concat(resourceGroup().name, '-fapp-calcs')]",
     "calcEngineFunctionAppName": "[concat(resourceGroup().name, '-fapp-calcengine')]",
     "scenariosFunctionAppName": "[concat(resourceGroup().name, '-fapp-scenarios')]",
-    "hostingPlanName": "[concat(resourceGroup().name, '-plan')]",
-    "dynamicHostingPlanName": "[concat(resourceGroup().name, '2-plan')]",
+    "hostingPlanName": "[concat(resourceGroup().name, 'api-plan')]",
+    "engineHostingPlanName": "[concat(resourceGroup().name, 'engine-plan')]",
     "datasetStorageAccountName": "[concat(resourceGroup().name, 'data')]",
     "datasetStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('datasetstorageAccountName'))]",
     "calcsStorageAccountName": "[concat(resourceGroup().name, 'calc')]",
@@ -329,21 +329,18 @@
     },
     {
       "apiVersion": "2016-03-01",
-      "name": "[variables('dynamicHostingPlanName')]",
+      "name": "[variables('engineHostingPlanName')]",
       "type": "Microsoft.Web/serverfarms",
       "location": "[resourceGroup().location]",
       "tags": {
-        "displayName": "DynamicHostingPlan"
+        "displayName": "EngineHostingHostingPlan"
       },
       "sku": {
-        "name": "Y1",
-        "tier": "Dynamic",
-        "size": "Y1",
-        "family": "Y",
-        "capacity": 0
+        "name": "[parameters('skuName')]",
+        "capacity": "[parameters('skuCapacity')]"
       },
       "properties": {
-        "name": "[variables('dynamicHostingPlanName')]"
+        "name": "[variables('engineHostingPlanName')]"
       }
     },
     {
@@ -594,7 +591,7 @@
       "location": "[resourceGroup().location]",
       "kind": "functionapp",
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('dynamicHostingPlanName'))]",
+        "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
         "[variables('applicationInsightsName')]",
@@ -603,7 +600,7 @@
 
       ],
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('dynamicHostingPlanName'))]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
         "siteConfig": {
           "appSettings": [
             {
