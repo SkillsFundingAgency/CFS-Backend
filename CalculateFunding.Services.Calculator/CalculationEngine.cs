@@ -82,7 +82,7 @@ namespace CalculateFunding.Services.Calculator
             IEnumerable<CalculationResult> calculationResults;
             try
             {
-                calculationResults = model.Execute(providerSourceDatasets.ToList()).ToArray();
+                calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>()).ToArray();
             }
             catch(Exception ex)
             {
@@ -112,7 +112,9 @@ namespace CalculateFunding.Services.Calculator
                 if (providerCalResults.TryGetValue(calculation.Id, out var calculationResult))
                 {
                     productResult.CalculationSpecification = calculationResult.CalculationSpecification;
-                    productResult.AllocationLine = calculationResult.AllocationLine;
+                    if(calculationResult.AllocationLine != null)
+                        productResult.AllocationLine = calculationResult.AllocationLine;
+
                     productResult.PolicySpecifications = calculationResult.PolicySpecifications;
 	                if (calculationResult.Value != decimal.MinValue)
 	                {

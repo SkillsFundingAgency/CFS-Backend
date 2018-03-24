@@ -105,7 +105,7 @@ namespace CalculateFunding.Services.Calculator
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.Provider.Id == provider.Id);
+                IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.Provider?.Id == provider.Id);
 
                 var result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, provider, providerDatasets);
 
