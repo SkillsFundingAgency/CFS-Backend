@@ -124,19 +124,28 @@ namespace CalculateFunding.Services.Datasets
                 },
                 properties);
 
+            properties = CreateMessageProperties(request);
+
             properties.Add("specification-id", specification.Id);
 
-            await _messengerService.SendAsync(updateBuildProjectWithNewRelationship,
-               new DatasetRelationshipSummary
-               {
-                   Name = relationship.Name,
-                   Id = Guid.NewGuid().ToString(),
-                   Relationship = new Reference(relationship.Id, relationship.Name),
-                   DatasetDefinition = definition,
-                   DataGranularity = relationship.UsedInDataAggregations ? DataGranularity.MultipleRowsPerProvider : DataGranularity.SingleRowPerProvider,
-                   DefinesScope = relationship.IsSetAsProviderData
-               },
-               properties);
+            try
+            {
+                await _messengerService.SendAsync(updateBuildProjectWithNewRelationship,
+                   new DatasetRelationshipSummary
+                   {
+                       Name = relationship.Name,
+                       Id = Guid.NewGuid().ToString(),
+                       Relationship = new Reference(relationship.Id, relationship.Name),
+                       DatasetDefinition = definition,
+                       DataGranularity = relationship.UsedInDataAggregations ? DataGranularity.MultipleRowsPerProvider : DataGranularity.SingleRowPerProvider,
+                       DefinesScope = relationship.IsSetAsProviderData
+                   },
+                   properties);
+            }
+            catch(Exception ex)
+            {
+                _logger.Error(ex, $"Failed to send message to {updateBuildProjectWithNewRelationship}");
+            }
 
             return new OkObjectResult(relationship);
         }
