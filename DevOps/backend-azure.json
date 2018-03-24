@@ -96,7 +96,8 @@
     "calcsFunctionAppName": "[concat(resourceGroup().name, '-fapp-calcs')]",
     "calcEngineFunctionAppName": "[concat(resourceGroup().name, '-fapp-calcengine')]",
     "scenariosFunctionAppName": "[concat(resourceGroup().name, '-fapp-scenarios')]",
-    "hostingPlanName": "[concat(resourceGroup().name, '-plan')]",
+    "hostingPlanName": "[concat(resourceGroup().name, 'api-plan')]",
+    "engineHostingPlanName": "[concat(resourceGroup().name, 'engine-plan')]",
     "datasetStorageAccountName": "[concat(resourceGroup().name, 'data')]",
     "datasetStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('datasetstorageAccountName'))]",
     "calcsStorageAccountName": "[concat(resourceGroup().name, 'calc')]",
@@ -221,7 +222,7 @@
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
           ],
           "properties": {
-            "messageRetentionInDays": "7",
+            "messageRetentionInDays": "1",
             "partitionCount": "4"
           }
         },
@@ -233,7 +234,7 @@
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
           ],
           "properties": {
-            "messageRetentionInDays": "7",
+            "messageRetentionInDays": "1",
             "partitionCount": "30"
           }
         },
@@ -245,7 +246,7 @@
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
           ],
           "properties": {
-            "messageRetentionInDays": "7",
+            "messageRetentionInDays": "1",
             "partitionCount": "4"
           }
         },
@@ -257,7 +258,7 @@
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
           ],
           "properties": {
-            "messageRetentionInDays": "7",
+            "messageRetentionInDays": "1",
             "partitionCount": "4"
           }
         },
@@ -269,7 +270,7 @@
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
           ],
           "properties": {
-            "messageRetentionInDays": "7",
+            "messageRetentionInDays": "1",
             "partitionCount": "4"
           }
         },
@@ -281,7 +282,7 @@
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
           ],
           "properties": {
-            "messageRetentionInDays": "7",
+            "messageRetentionInDays": "1",
             "partitionCount": "4"
           }
         },
@@ -293,7 +294,7 @@
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
           ],
           "properties": {
-            "messageRetentionInDays": "7",
+            "messageRetentionInDays": "1",
             "partitionCount": "4"
           }
         }
@@ -324,6 +325,22 @@
       },
       "properties": {
         "name": "[variables('hostingPlanName')]"
+      }
+    },
+    {
+      "apiVersion": "2016-03-01",
+      "name": "[variables('engineHostingPlanName')]",
+      "type": "Microsoft.Web/serverfarms",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "EngineHostingHostingPlan"
+      },
+      "sku": {
+        "name": "[parameters('skuName')]",
+        "capacity": "[parameters('skuCapacity')]"
+      },
+      "properties": {
+        "name": "[variables('engineHostingPlanName')]"
       }
     },
     {
@@ -574,7 +591,7 @@
       "location": "[resourceGroup().location]",
       "kind": "functionapp",
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
         "[variables('applicationInsightsName')]",
@@ -583,7 +600,7 @@
 
       ],
       "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
           "appSettings": [
