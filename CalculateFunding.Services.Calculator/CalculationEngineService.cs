@@ -121,7 +121,14 @@ namespace CalculateFunding.Services.Calculator
             {
                 IDictionary<string, string> properties = message.BuildMessageProperties();
 
-                await _messengerService.SendAsync(UpdateCosmosResultsCollection, providerResults, properties);
+                int itemCount = providerResults.Count();
+
+                for (int i = 0; i < itemCount; i += 5)
+                {
+                    IEnumerable<ProviderResult> partitionedResults = providerResults.Skip(i).Take(5).ToList();
+
+                    await _messengerService.SendAsync(UpdateCosmosResultsCollection, partitionedResults, properties);
+                }
             }
 
             calcTiming.Stop();
