@@ -222,7 +222,7 @@
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
           ],
           "properties": {
-            "messageRetentionInDays": "7",
+            "messageRetentionInDays": "1",
             "partitionCount": "4"
           }
         },
@@ -234,7 +234,7 @@
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
           ],
           "properties": {
-            "messageRetentionInDays": "7",
+            "messageRetentionInDays": "1",
             "partitionCount": "30"
           }
         },
@@ -246,7 +246,7 @@
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
           ],
           "properties": {
-            "messageRetentionInDays": "7",
+            "messageRetentionInDays": "1",
             "partitionCount": "4"
           }
         },
@@ -258,7 +258,7 @@
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
           ],
           "properties": {
-            "messageRetentionInDays": "7",
+            "messageRetentionInDays": "1",
             "partitionCount": "4"
           }
         },
@@ -270,7 +270,7 @@
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
           ],
           "properties": {
-            "messageRetentionInDays": "7",
+            "messageRetentionInDays": "1",
             "partitionCount": "4"
           }
         },
@@ -282,7 +282,7 @@
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
           ],
           "properties": {
-            "messageRetentionInDays": "7",
+            "messageRetentionInDays": "1",
             "partitionCount": "4"
           }
         },
@@ -294,7 +294,7 @@
             "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
           ],
           "properties": {
-            "messageRetentionInDays": "7",
+            "messageRetentionInDays": "1",
             "partitionCount": "4"
           }
         }
@@ -605,7 +605,6 @@
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('dynamicHostingPlanName'))]",
         "siteConfig": {
-          "alwaysOn": true,
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
