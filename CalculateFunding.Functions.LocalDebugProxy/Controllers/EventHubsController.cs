@@ -65,7 +65,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             await _buildProjectService.UpdateAllocations(message);
         }
 
-        [Route("api/events/calc-events-add-relationship-to-buildproject")]
+        [Route("api/events/calc-events-add-data-to-buildproject")]
         [HttpPost]
         async public Task RunAddRelationshipToBuildProject()
         {
