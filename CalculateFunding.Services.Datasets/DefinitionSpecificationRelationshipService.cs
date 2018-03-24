@@ -39,11 +39,12 @@ namespace CalculateFunding.Services.Datasets
         private readonly IMessengerService _messengerService;
         private readonly EventHubSettings _eventHubSettings;
         private readonly IDatasetService _datasetService;
+        private readonly ICalcsRepository _calcsRepository;
 
         public DefinitionSpecificationRelationshipService(IDatasetRepository datasetRepository, 
             ILogger logger, ISpecificationsRepository specificationsRepository, 
             IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator, 
-            IMessengerService messengerService, EventHubSettings eventHubSettings, IDatasetService datasetService)
+            IMessengerService messengerService, EventHubSettings eventHubSettings, IDatasetService datasetService, ICalcsRepository calcsRepository)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -58,6 +59,7 @@ namespace CalculateFunding.Services.Datasets
             _messengerService = messengerService;
             _eventHubSettings = eventHubSettings;
             _datasetService = datasetService;
+            _calcsRepository = calcsRepository;
         }
 
         async public Task<IActionResult> CreateRelationship(HttpRequest request)
@@ -124,28 +126,43 @@ namespace CalculateFunding.Services.Datasets
                 },
                 properties);
 
-            properties = CreateMessageProperties(request);
+            //properties = CreateMessageProperties(request);
 
-            properties.Add("specification-id", specification.Id);
+            //properties.Add("specification-id", specification.Id);
 
-            try
+            //try
+            //{
+            //    await _messengerService.SendAsync(updateBuildProjectWithNewRelationship,
+            //       new DatasetRelationshipSummary
+            //       {
+            //           Name = relationship.Name,
+            //           Id = Guid.NewGuid().ToString(),
+            //           Relationship = new Reference(relationship.Id, relationship.Name),
+            //           DatasetDefinition = definition,
+            //           DataGranularity = relationship.UsedInDataAggregations ? DataGranularity.MultipleRowsPerProvider : DataGranularity.SingleRowPerProvider,
+            //           DefinesScope = relationship.IsSetAsProviderData
+            //       },
+            //       properties);
+            //}
+            //catch(Exception ex)
+            //{
+            //    _logger.Error(ex, $"Failed to send message to {updateBuildProjectWithNewRelationship}");
+            //}
+
+            DatasetRelationshipSummary relationshipSummary = new DatasetRelationshipSummary
             {
-                await _messengerService.SendAsync(updateBuildProjectWithNewRelationship,
-                   new DatasetRelationshipSummary
-                   {
-                       Name = relationship.Name,
-                       Id = Guid.NewGuid().ToString(),
-                       Relationship = new Reference(relationship.Id, relationship.Name),
-                       DatasetDefinition = definition,
-                       DataGranularity = relationship.UsedInDataAggregations ? DataGranularity.MultipleRowsPerProvider : DataGranularity.SingleRowPerProvider,
-                       DefinesScope = relationship.IsSetAsProviderData
-                   },
-                   properties);
-            }
-            catch(Exception ex)
-            {
-                _logger.Error(ex, $"Failed to send message to {updateBuildProjectWithNewRelationship}");
-            }
+                Name = relationship.Name,
+                Id = Guid.NewGuid().ToString(),
+                Relationship = new Reference(relationship.Id, relationship.Name),
+                DatasetDefinition = definition,
+                DataGranularity = relationship.UsedInDataAggregations ? DataGranularity.MultipleRowsPerProvider : DataGranularity.SingleRowPerProvider,
+                DefinesScope = relationship.IsSetAsProviderData
+            };
+
+            BuildProject buildProject = await _calcsRepository.UpdateBuildProjectRelationships(specification.Id, relationshipSummary);
+
+
+            //should put a check here, will do when i get time!
 
             return new OkObjectResult(relationship);
         }

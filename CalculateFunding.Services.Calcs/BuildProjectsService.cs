@@ -21,6 +21,7 @@ using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.Compiler;
 using System.Diagnostics;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -213,6 +214,50 @@ namespace CalculateFunding.Services.Calcs
 
                 await _messengerService.SendAsync(GenerateAllocationResultsSubscription, buildProject, properties);
             }
+        }
+
+        public async Task<IActionResult> UpdateBuildProjectRelationships(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out var specId);
+
+            var specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to UpdateBuildProjectRelationships");
+
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            string json = await request.GetRawBodyStringAsync();
+
+            DatasetRelationshipSummary relationship = JsonConvert.DeserializeObject<DatasetRelationshipSummary>(json);
+
+            if (relationship == null)
+            {
+                _logger.Error("A null relationship message was provided to UpdateBuildProjectRelationships");
+
+                return new BadRequestObjectResult("Null relationship provided");
+            }
+
+            BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
+
+            if (buildProject == null)
+            {
+                return new StatusCodeResult(412);
+            }
+
+            if (buildProject.DatasetRelationships == null)
+                buildProject.DatasetRelationships = new List<DatasetRelationshipSummary>();
+
+            if (!buildProject.DatasetRelationships.Any(m => m.Name == relationship.Name))
+            {
+                buildProject.DatasetRelationships.Add(relationship);
+
+                await CompileBuildProject(buildProject);
+            }
+
+            return new OkObjectResult(buildProject);
         }
 
         public async Task UpdateBuildProjectRelationships(EventData message)

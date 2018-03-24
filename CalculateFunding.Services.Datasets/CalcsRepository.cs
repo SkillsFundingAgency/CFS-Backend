@@ -11,6 +11,8 @@ namespace CalculateFunding.Services.Datasets
     {
         const string buildProjectsUrl = "calcs/get-buildproject-by-specification-id?specificationId=";
 
+        const string updateRelationshipsUrl = "calcs/update-buildproject-relationships?specificationId=";
+
         private readonly IApiClientProxy _apiClient;
 
         public CalcsRepository(IApiClientProxy apiClient)
@@ -28,6 +30,18 @@ namespace CalculateFunding.Services.Datasets
             string url = $"{buildProjectsUrl}{specificationId}";
 
             return _apiClient.GetAsync<BuildProject>(url);
+        }
+
+        public Task<BuildProject> UpdateBuildProjectRelationships(string specificationId, DatasetRelationshipSummary datasetRelationshipSummary)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
+                throw new ArgumentNullException(nameof(specificationId));
+
+            Guard.ArgumentNotNull(datasetRelationshipSummary, nameof(datasetRelationshipSummary));
+
+            string url = $"{updateRelationshipsUrl}{specificationId}";
+
+            return _apiClient.PostAsync<BuildProject, DatasetRelationshipSummary>(url, datasetRelationshipSummary);
         }
     }
 }

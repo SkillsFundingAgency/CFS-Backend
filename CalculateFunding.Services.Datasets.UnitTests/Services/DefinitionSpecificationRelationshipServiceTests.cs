@@ -1540,11 +1540,11 @@ namespace CalculateFunding.Services.Datasets.Services
 
         static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,
             ILogger logger = null, ISpecificationsRepository specificationsRepository = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
-            IMessengerService messengerService = null, EventHubSettings EventHubSettings = null, IDatasetService datasetService = null)
+            IMessengerService messengerService = null, EventHubSettings EventHubSettings = null, IDatasetService datasetService = null, ICalcsRepository calcsRepository = null)
         {
             return new DefinitionSpecificationRelationshipService(datasetRepository ?? CreateDatasetRepository(), logger ?? CreateLogger(),
                 specificationsRepository ?? CreateSpecificationsRepository(), relationshipModelValidator ?? CreateRelationshipModelValidator(),
-                messengerService ?? CreateMessengerService(), EventHubSettings ?? CreateEventHubSettings(), datasetService ?? CreateDatasetService());
+                messengerService ?? CreateMessengerService(), EventHubSettings ?? CreateEventHubSettings(), datasetService ?? CreateDatasetService(), calcsRepository ?? CreateCalcsRepository());
         }
 
         static IValidator<CreateDefinitionSpecificationRelationshipModel> CreateRelationshipModelValidator(ValidationResult validationResult = null)
@@ -1564,6 +1564,11 @@ namespace CalculateFunding.Services.Datasets.Services
         static ISpecificationsRepository CreateSpecificationsRepository()
         {
             return Substitute.For<ISpecificationsRepository>();
+        }
+
+        static ICalcsRepository CreateCalcsRepository()
+        {
+            return Substitute.For<ICalcsRepository>();
         }
 
         static IDatasetRepository CreateDatasetRepository()

@@ -119,5 +119,17 @@ namespace CalculateFunding.Functions.Calcs.Http
                 return svc.GetBuildProjectBySpecificationId(req);
             }
         }
+
+        [FunctionName("update-buildproject-relationships")]
+        public static Task<IActionResult> RunUpdateBuildProjectRealtionships(
+       [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IBuildProjectsService svc = scope.ServiceProvider.GetService<IBuildProjectsService>();
+
+                return svc.UpdateBuildProjectRelationships(req);
+            }
+        }
     }
 }

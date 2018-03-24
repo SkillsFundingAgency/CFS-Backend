@@ -10,5 +10,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task UpdateAllocations(EventData message);
         Task UpdateBuildProjectRelationships(EventData message);
         Task<IActionResult> GetBuildProjectBySpecificationId(HttpRequest request);
+        Task<IActionResult> UpdateBuildProjectRelationships(HttpRequest request);
     }
 }

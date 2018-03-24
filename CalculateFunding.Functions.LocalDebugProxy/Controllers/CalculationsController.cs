@@ -111,5 +111,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _calcsService.GetCalculationCodeContext(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/calcs/update-buildproject-relationships")]
+        [HttpPost]
+        public Task<IActionResult> RunUpdateBuildProjectRealtionships()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _buildProjectsService.UpdateBuildProjectRelationships(ControllerContext.HttpContext.Request);
+        }
     }
 }
