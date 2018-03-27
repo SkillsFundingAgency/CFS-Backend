@@ -3,39 +3,38 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
-using CalculateFunding.Services.TestRunner;
-using CalculateFunding.Services.TestRunner.Vocab;
+using CalculateFunding.Services.TestRunner.Interfaces;
 
-namespace CalculateFunding.Services.Calculator
+namespace CalculateFunding.Services.TestRunner
 {
     public class TestEngine
     {
-        private readonly GherkinExecutor _gherkinExecutor;
+        private readonly IGherkinExecutor _gherkinExecutor;
+        private readonly CosmosRepository _cosmosRepository;
 
-        public TestEngine(GherkinExecutor gherkinExecutor)
+        public TestEngine(IGherkinExecutor gherkinExecutor, CosmosRepository cosmosRepository)
         {
             _gherkinExecutor = gherkinExecutor;
+            _cosmosRepository = cosmosRepository;
         }
 
-        public async Task RunTests(CosmosRepository repository, List<TestScenario> testScenarios, IEnumerable<ProviderResult> providerResults, Dictionary<string, ProviderTestResult> currentResults)
+        public async Task RunTests(IEnumerable<TestScenario> testScenarios, IEnumerable<ProviderResult> providerResults, Dictionary<string, ProviderTestResult> currentResults, Specification specification)
         {
             foreach (var providerResult in providerResults)
             {
-                var testResult = RunProviderTests(testScenarios, providerResult, null);
+                var testResult = RunProviderTests(testScenarios, providerResult, null, specification);
                 currentResults.TryGetValue(testResult.Provider.Id, out var currenTestResult);
                 if (!testResult.Equals(currenTestResult))
                 {
-                    await repository.CreateAsync(testResult);
+                    await _cosmosRepository.CreateAsync(testResult);
                 }
-                
             }
-
         }
-        public ProviderTestResult RunProviderTests(List<TestScenario> testScenarios, ProviderResult providerResult, List<ProviderSourceDataset> providerSourceDatasets)
+
+        public ProviderTestResult RunProviderTests(IEnumerable<TestScenario> testScenarios, ProviderResult providerResult, IEnumerable<ProviderSourceDataset> providerSourceDatasets, Specification specification)
         {
-
-
             var testResult = new ProviderTestResult
             {
                 Provider = providerResult.Provider,
@@ -47,7 +46,7 @@ namespace CalculateFunding.Services.Calculator
                 if (testScenarios != null)
                 {
                     var gherkinScenarioResults =
-                        _gherkinExecutor.Execute(providerResult, providerSourceDatasets, testScenarios);
+                        _gherkinExecutor.Execute(providerResult, providerSourceDatasets, testScenarios, specification);
 
                     foreach (var executeResult in gherkinScenarioResults)
                     {

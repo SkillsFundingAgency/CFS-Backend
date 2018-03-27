@@ -37,6 +37,9 @@ using CalculateFunding.Services.Scenarios.Validators;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
+using CalculateFunding.Services.TestRunner;
+using CalculateFunding.Services.TestRunner.Interfaces;
+using CalculateFunding.Services.TestRunner.Services;
 using CalculateFunding.Services.Validators;
 using FluentValidation;
 using Microsoft.ApplicationInsights;
@@ -329,6 +332,21 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             MapperConfiguration mappingConfig = new MapperConfiguration(c => { c.AddProfile<SpecificationsMappingProfile>(); c.AddProfile<DatasetsMappingProfile>(); });
             builder
                 .AddSingleton(mappingConfig.CreateMapper());
+
+            builder
+              .AddScoped<Services.TestRunner.Interfaces.IBuildProjectRepository, Services.TestRunner.Services.BuildProjectRepository>();
+
+            builder
+                .AddScoped<IGherkinParserService, GherkinParserService>();
+
+            builder
+               .AddScoped<IGherkinParser, GherkinParser>();
+
+            builder
+                .AddScoped<IStepParserFactory, StepParserFactory>();
+
+            builder
+               .AddSingleton<Services.TestRunner.Interfaces.IProviderRepository, Services.TestRunner.Services.ProviderRepository>();
 
             //MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             //builder

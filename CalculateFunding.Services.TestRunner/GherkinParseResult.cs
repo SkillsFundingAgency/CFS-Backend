@@ -25,6 +25,7 @@ namespace CalculateFunding.Services.TestRunner
         }
 
         public bool HasErrors => Errors != null && Errors.Any();
+
         public List<GherkinError> Errors { get; }
 
         public List<IStepAction> StepActions { get; }
@@ -32,7 +33,5 @@ namespace CalculateFunding.Services.TestRunner
         public List<Dependency> Dependencies { get; }
 
         public bool Abort { get; set; }
-
-        
     }
 }

@@ -126,9 +126,9 @@ Feature:
       | m |
       | n |";
 
-		    var invalidResults = gherkinParser.Parse(invalidGherkin);
+		    var invalidResults = gherkinParser.Parse(invalidGherkin, new BuildProject()).Result;
 
-		    var valid = gherkinParser.Parse(validGherkin);
+		    var valid = gherkinParser.Parse(validGherkin, new BuildProject()).Result;
 
             ConsoleLogger logger = new ConsoleLogger("Default", (s, level) => true, true);
 
@@ -456,7 +456,7 @@ Feature:
 
 			builder.AddScoped<Serilog.ILogger>(l => new LoggerConfiguration().WriteTo.Console().CreateLogger());
 
-		    builder.AddGherkin();
+		    //builder.AddGherkin();
 		}
 
 

@@ -18,9 +18,9 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
         public string DatasetName { get; set; }
         public ComparisonOperator Operator { get; set; }
         public string Value { get; set; }
-        public override GherkinParseResult Execute(ProviderResult providerResult, List<ProviderSourceDataset> datasets)
-        {
 
+        public override GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets)
+        {
             var actualValue = GetActualValue(datasets, DatasetName, FieldName);
 
             if (actualValue != null)

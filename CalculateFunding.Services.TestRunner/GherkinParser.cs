@@ -1,30 +1,42 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using CalculateFunding.Models.Scenarios;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.TestRunner.Interfaces;
+using CalculateFunding.Services.TestRunner.Services;
 using Gherkin;
 
 namespace CalculateFunding.Services.TestRunner
 {
-    [TestStep("given", "the field '(.*)' in the dataset '(.*)' (.*) (.*)")]
-    public class SourceDatasetStep
-    {
-        [TestStepArgument(StepArgumentType.FieldName)]
-        public string FieldName { get; set; }
-        [TestStepArgument(StepArgumentType.DatasetName)]
-        public string DatasetName { get; set; }
-        public ComparisonOperator Operator { get; set; }
-        public string Value { get; set; }
-    }
-
-
     public class GherkinParser : IGherkinParser
     {
-        private readonly Parser _parser = new Parser();
+        const string souceDatasetExpression = @"(the)(\s)+(field)(\s)+'(.*)'(\s)+(in)(\s)+(the)(\s)+(dataset)(\s)+'(.*)'(\s)+(.*)(\s)+(.*)";
+        const string providerExpression = @"(the)(\s)+(provider)(\s)+(is)(\s)+'(.*)'";
+        const string assertCalcExpression = @"(the)(\s)+(result)(\s)+(for)(\s)+'(.*)'(\s)+(.*)(\s)+(.*)";
+        const string assertCalcDatasetExpression = @"(the)(\s)+(result)(\s)+(for)(\s)+'(.*)'(\s)+(.*)(\s)+(the)(\s)+(field)(\s)+'(.*)'(\s)+(in)(\s)+(the)(\s)+dataset(\s)+(.*)";
 
-        public GherkinParseResult Parse(string gherkin)
+        static IDictionary<StepType, string> stepExpressions = new Dictionary<StepType, string>
+            {
+                { StepType.Datasets, souceDatasetExpression },
+                { StepType.Provider, providerExpression },
+                { StepType.AssertCalcDataset, assertCalcDatasetExpression },
+                { StepType.AssertCalc, assertCalcExpression },
+            };
+
+        private readonly Parser _parser = new Parser();
+        private readonly IStepParserFactory _stepParserFactory;
+
+        public GherkinParser(IStepParserFactory stepParserFactory)
+        {
+            _stepParserFactory = stepParserFactory;
+        }
+
+        async public Task<GherkinParseResult> Parse(string gherkin, BuildProject buildProject)
         {
             var result = new GherkinParseResult();
             try
@@ -42,29 +54,32 @@ namespace CalculateFunding.Services.TestRunner
                         {
                             if (scenario.Steps != null)
                             {
+
                                 foreach (var step in scenario.Steps)
                                 {
-                                    var souceDataset = "the field '(.*)' in the dataset '(.*)' (.*) (.*)";
-                                    var provider = "the provider is '12345333'";
-                                    var calc = "the result for '(.*)' (.*) (.*)";
-                                    var calcdataset = "the result for '(.*)' (.*) (.*) the field '(.*)' in the dataset";
-                                    //And 
-                                    //Then the result for 'Test 123' is greater than 89
-                                    //Then the result for 'Test 123' is greater than the field 'Hello' in the dataset 'Hi'""
-                                    if (Regex.IsMatch(step.Text, souceDataset, RegexOptions.IgnorePatternWhitespace | RegexOptions.IgnoreCase))
+
+                                    IEnumerable<KeyValuePair<StepType, string>> expression = stepExpressions.Where(m => Regex.IsMatch(step.Text, m.Value, RegexOptions.IgnoreCase));
+                                    
+                                    if(expression.Any())
                                     {
-                                        var matches = Regex.Split(step.Text, souceDataset, RegexOptions.IgnorePatternWhitespace |  RegexOptions.IgnoreCase);
+                                        IStepParser stepParser = _stepParserFactory.GetStepParser(expression.First().Key);
+
+                                        if(stepParser == null)
+                                            result.AddError("The supplied gherkin could not be parsed", step.Location.Line, step.Location.Column);
+                                        else
+                                            await stepParser.Parse(step, expression.First().Value, result, buildProject);
+                                    }
+                                    else
+                                    {
+                                        result.AddError("The supplied gherkin could not be parsed", step.Location.Line, step.Location.Column);
                                     }
 
                                     var keyword = step.Keyword?.ToLowerInvariant().Trim();
-                                    
-
                                 }
                             }
                         }
                     }
                 }
-
             }
             catch(CompositeParserException exception)
             {
@@ -75,7 +90,6 @@ namespace CalculateFunding.Services.TestRunner
             }
 
             return result;
-
         }
     }
 }

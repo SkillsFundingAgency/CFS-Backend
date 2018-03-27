@@ -10,9 +10,6 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
     //And 'PrimaryNOR' in 'APT Provider Information' is greater than 0
     //Then 'P004_PriRate' should be greater than 0
 
-
-
-
     [TestStep("given", "the field '(.*)' in the dataset '(.*)' (.*) (.*)")]
     public class GivenSourceField : GherkinStepAction
     {
@@ -23,7 +20,7 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
         public ComparisonOperator Operator { get; set; }
         public string Value { get; set; }
 
-        public override GherkinParseResult Execute(ProviderResult providerResult, List<ProviderSourceDataset> datasets)
+        public override GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets)
         {
             var actualValue = GetActualValue(datasets, DatasetName, FieldName);
 

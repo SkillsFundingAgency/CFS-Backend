@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
@@ -8,7 +9,7 @@ using CalculationResult = CalculateFunding.Models.Results.CalculationResult;
 
 namespace CalculateFunding.Services.TestRunner
 {
-    public class GherkinExecutor
+    public class GherkinExecutor 
     {
         private readonly StepFactory _stepFactory;
         private readonly IGherkinParser _parser;
@@ -19,9 +20,8 @@ namespace CalculateFunding.Services.TestRunner
             _parser = parser;
         }
 
-        public IEnumerable<ScenarioResult> Execute(ProviderResult providerResult, List<ProviderSourceDataset> datasets, List<TestScenario> testScenarios)
+        public IEnumerable<ScenarioResult> Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets, IEnumerable<TestScenario> testScenarios, BuildProject buildProject)
         {
-
             foreach (var scenario in testScenarios)
             {
                 var scenarioResult = new ScenarioResult
@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.TestRunner
                     Scenario = new Reference(scenario.Id, scenario.Name)
                 };
 
-                var parseResult = _parser.Parse(scenario.Current.Gherkin);
+                var parseResult = _parser.Parse(scenario.Current.Gherkin, buildProject).Result;
                 
                 scenarioResult.TotalSteps = parseResult.StepActions.Count;
 

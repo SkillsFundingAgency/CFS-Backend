@@ -11,11 +11,12 @@ namespace CalculateFunding.Services.TestRunner
 
     public interface IStepAction
     {
-        GherkinParseResult Execute(ProviderResult providerResult, List<ProviderSourceDataset> datasets);
+        GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets);
     }
+
     public abstract class GherkinStepAction : IStepAction
     {
-        public abstract GherkinParseResult Execute(ProviderResult providerResult, List<ProviderSourceDataset> datasets);
+        public abstract GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets);
         protected bool TestLogic(object expectedValue, object actualValue, ComparisonOperator logic)
         {
             var expected = expectedValue as IComparable;
@@ -41,7 +42,7 @@ namespace CalculateFunding.Services.TestRunner
             }
         }
 
-        protected static object GetActualValue(List<ProviderSourceDataset> datasets, string datasetName, string fieldName)
+        protected static object GetActualValue(IEnumerable<ProviderSourceDataset> datasets, string datasetName, string fieldName)
         {
             object actualValue = null;
 
