@@ -3,6 +3,7 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
@@ -28,6 +29,17 @@ namespace CalculateFunding.Services.Calcs
             string url = $"{specsUrl}{specificationId}";
 
             return _apiClient.GetAsync<Specification>(url);
+        }
+
+
+        public Task<IEnumerable<Calculation>> GetCalculationSpecificationsForSpecification(string specificationId)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
+                throw new ArgumentNullException(nameof(specificationId));
+
+            string url = $"specs/calculations-by-specificationid?specificationId={specificationId}";
+
+            return _apiClient.GetAsync<IEnumerable<Calculation>>(url);
         }
     }
 }

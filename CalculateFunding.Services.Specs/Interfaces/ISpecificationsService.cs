@@ -35,6 +35,8 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetCalculationBySpecificationIdAndCalculationId(HttpRequest request);
 
+        Task<IActionResult> GetCalculationsBySpecificationId(HttpRequest request);
+
         Task AssignDataDefinitionRelationship(EventData message);
 
         Task<IActionResult> ReIndex();

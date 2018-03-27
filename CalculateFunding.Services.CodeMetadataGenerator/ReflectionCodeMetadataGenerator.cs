@@ -17,6 +17,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                 return Enumerable.Empty<TypeInformation>();
             }
 
+            // Used for outputting assembly to local filesystem for debugging
             //using (FileStream fs = new FileStream("c:\\dev\\out.dll", FileMode.Create))
             //{
             //    fs.Write(rawAssembly, 0, rawAssembly.Length);
@@ -40,7 +41,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                     TypeInformation typeInformationModel = new TypeInformation()
                     {
                         Name = typeInfo.Name,
-                        Description = typeInfo.Name,
+                        Description = GetAttributeProperty(typeInfo.CustomAttributes, "Description", "Description"),
                         Type = ConvertTypeName(typeInfo.FullName),
                     };
 
@@ -75,11 +76,20 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                             MethodInformation methodInformation = new MethodInformation()
                             {
                                 Name = methodInfo.Name,
-                                Description = methodInfo.Name + " description from backend",
                                 ReturnType = ConvertTypeName(methodInfo.ReturnType),
                                 Parameters = parameters,
                                 EntityId = entityId,
                             };
+
+                            if (string.IsNullOrWhiteSpace(methodInformation.FriendlyName))
+                            {
+                                methodInformation.FriendlyName = GetAttributeProperty(methodInfo.CustomAttributes, "Calculation", "Name");
+                            }
+
+                            if (string.IsNullOrWhiteSpace(methodInformation.Description))
+                            {
+                                methodInformation.Description = GetAttributeProperty(methodInfo.CustomAttributes, "Description", "Description");
+                            }
 
                             methods.Add(methodInformation);
                         }
@@ -95,8 +105,27 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                             {
                                 Name = property.Name,
                                 Type = ConvertTypeName(property.PropertyType),
-                                Description = property.Name + " description from backend",
                             };
+
+                            if (string.IsNullOrWhiteSpace(propertyInformation.FriendlyName))
+                            {
+                                propertyInformation.FriendlyName = GetAttributeProperty(property.CustomAttributes, "Field", "Name");
+                            }
+
+                            if (string.IsNullOrWhiteSpace(propertyInformation.FriendlyName))
+                            {
+                                propertyInformation.FriendlyName = GetAttributeProperty(property.CustomAttributes, "DatasetRelationship", "Name");
+                            }
+
+                            if (string.IsNullOrWhiteSpace(propertyInformation.FriendlyName))
+                            {
+                                propertyInformation.FriendlyName = GetAttributeProperty(property.CustomAttributes, "Calculation", "Name");
+                            }
+
+                            if (string.IsNullOrWhiteSpace(propertyInformation.Description))
+                            {
+                                propertyInformation.Description = GetAttributeProperty(property.CustomAttributes, "Description", "Description");
+                            }
 
                             properties.Add(propertyInformation);
                         }
@@ -112,6 +141,18 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
 
 
             return results;
+        }
+
+        public string GetAttributeProperty(IEnumerable<CustomAttributeData> customAttibutes, string attributeName, string propertyName)
+        {
+            CustomAttributeData descriptionProperty = customAttibutes.Where(c => c.AttributeType.Name == $"{attributeName}Attribute").SingleOrDefault();
+            if (descriptionProperty != null)
+            {
+                CustomAttributeNamedArgument argument = descriptionProperty.NamedArguments.Where(a => a.MemberName == propertyName).FirstOrDefault();
+                return argument.TypedValue.Value?.ToString();
+            }
+
+            return null;
         }
 
         private string ConvertTypeName(Type type)

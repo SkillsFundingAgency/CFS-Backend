@@ -1,4 +1,4 @@
-﻿
+﻿<Description(Description:="Current Provider")>
 Public Class Provider
 
     Public Property Id() As String

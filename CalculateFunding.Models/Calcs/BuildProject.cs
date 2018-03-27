@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using Newtonsoft.Json;
@@ -21,6 +22,5 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("build")]
         public Build Build { get; set; }
-
     }
 }

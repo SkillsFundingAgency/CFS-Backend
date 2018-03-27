@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
     public class ProductTypeGenerator : VisualBasicTypeGenerator
     {
 
-        public IEnumerable<SourceFile> GenerateCalcs(BuildProject budget)
+        public IEnumerable<SourceFile> GenerateCalcs(BuildProject buildProject)
         {
             var syntaxTree = SyntaxFactory.CompilationUnit()
                 .WithImports(StandardImports())
@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                             SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
                 SyntaxFactory.SingletonList(SyntaxFactory.InheritsStatement(SyntaxFactory.ParseTypeName("BaseCalculation"))),
                 new SyntaxList<ImplementsStatementSyntax>(),
-                SyntaxFactory.List(Methods(budget)),
+                SyntaxFactory.List(Methods(buildProject)),
                 SyntaxFactory.EndClassStatement()
             )
   
@@ -48,7 +48,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             }
         }
 
-
         private static StatementSyntax GetMethod(Calculation calc)
         {
             var builder = new StringBuilder();
@@ -57,16 +56,23 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             {
                 builder.AppendLine($"<CalculationSpecification(Id := \"{calc.CalculationSpecification.Id}\", Name := \"{calc.CalculationSpecification.Name}\")>");
             }
+
             if (calc.AllocationLine != null)
             {
                 builder.AppendLine($"<AllocationLine(Id := \"{calc.AllocationLine.Id}\", Name := \"{calc.AllocationLine.Name}\")>");
             }
+
             if (calc.Policies != null)
             {
                 foreach (var policySpecification in calc.Policies)
                 {
                     builder.AppendLine($"<PolicySpecification(Id := \"{policySpecification.Id}\", Name := \"{policySpecification.Name}\")>");
                 }
+            }
+
+            if (!string.IsNullOrWhiteSpace(calc.Description))
+            {
+                builder.AppendLine($"<Description(Description := \"{calc.Description}\")>");
             }
 
             builder.AppendLine($"Public Function {Identifier(calc.Name)} As Decimal");
@@ -82,8 +88,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
                 .FirstOrDefault();
         }
-
-
 
         private static StatementSyntax GetStandardProperties()
         {

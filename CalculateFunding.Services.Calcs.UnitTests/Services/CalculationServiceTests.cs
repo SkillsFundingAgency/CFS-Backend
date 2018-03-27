@@ -32,6 +32,7 @@ using CalculateFunding.Services.Core.Interfaces.EventHub;
 using Microsoft.Azure.EventHubs;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.CodeGeneration;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -124,7 +125,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            CalculationService service = CreateCalculationService(calculationsRepository : repository, logger : logger, searchRepository : searchRepository);
+            CalculationService service = CreateCalculationService(calculationsRepository: repository, logger: logger, searchRepository: searchRepository);
 
             //Act
             await service.CreateCalculation(message);
@@ -1057,6 +1058,258 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
+        async public Task SaveCalculationVersion_GivenCalculationExistsWithBuildIdButNoCalculations_EnsuresCalculationSpecificationDescriptionSetWithSingleCalculation()
+        {
+            //Arrange
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId
+            };
+
+            string specificationId = "789";
+
+            List<Models.Specs.Calculation> specCalculations = new List<Models.Specs.Calculation>();
+
+            Models.Specs.Calculation specCalculation = new Models.Specs.Calculation()
+            {
+                Id = "1234",
+                Name = "Calculation Name",
+                Description = "Calculation Description"
+            };
+
+            specCalculations.Add(specCalculation);
+
+            List<Calculation> calcCalculations = new List<Calculation>();
+
+            Calculation calculation = CreateCalculation();
+            calculation.BuildProjectId = buildProjectId;
+            calculation.Specification.Id = specificationId;
+            calculation.CalculationSpecification.Id = specCalculation.Id;
+            calculation.CalculationSpecification.Name = specCalculation.Name;
+
+            calcCalculations.Add(calculation);
+
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(specificationId)
+                .Returns(calcCalculations.AsEnumerable());
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .Returns(buildProject);
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetCalculationSpecificationsForSpecification(specificationId)
+                .Returns(specCalculations.AsEnumerable());
+
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+
+           ISourceFileGeneratorProvider sourceFileGeneratorProvider = Substitute.For<ISourceFileGeneratorProvider>();
+            sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic)
+                .Returns(sourceFileGenerator);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
+                calculationsRepository: calculationsRepository,
+                specificationRepository: specificationRepository,
+                buildProjectsRepository: buildProjectsRepository,
+                searchRepository: searchRepository,
+                sourceFileGeneratorProvider : sourceFileGeneratorProvider);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            logger
+                .Received(1)
+                .Warning(Arg.Is($"Build project for specification {calculation.Specification.Id} could not be found, creating a new one"));
+
+            sourceFileGenerator
+                .Received()
+                .GenerateCode(Arg.Is<BuildProject>(b => b.Calculations[0].Description == specCalculation.Description));
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenCalculationExistsWithBuildIdButNoCalculations_EnsuresCalculationSpecificationDescriptionSetWithMultipleCalculations()
+        {
+            //Arrange
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId
+            };
+
+            string specificationId = "789";
+
+            List<Models.Specs.Calculation> specCalculations = new List<Models.Specs.Calculation>();
+
+            Models.Specs.Calculation specCalculation1 = new Models.Specs.Calculation()
+            {
+                Id = "121",
+                Name = "Calculation One",
+                Description = "Calculation Description One"
+            };
+
+            specCalculations.Add(specCalculation1);
+
+            Models.Specs.Calculation specCalculation2 = new Models.Specs.Calculation()
+            {
+                Id = "122",
+                Name = "Calculation Two",
+                Description = "Calculation Description Two"
+            };
+
+            specCalculations.Add(specCalculation2);
+
+            List<Calculation> calcCalculations = new List<Calculation>();
+
+            Calculation calculation = CreateCalculation();
+            calculation.BuildProjectId = buildProjectId;
+            calculation.Specification.Id = specificationId;
+            calculation.CalculationSpecification.Id = specCalculation1.Id;
+            calculation.CalculationSpecification.Name = specCalculation1.Name;
+
+            calcCalculations.Add(calculation);
+
+            Calculation calculation2 = CreateCalculation();
+            calculation2.Id = "12555";
+            calculation2.BuildProjectId = buildProjectId;
+            calculation2.Specification.Id = specificationId;
+            calculation2.CalculationSpecification.Id = specCalculation2.Id;
+            calculation2.CalculationSpecification.Name = specCalculation2.Name;
+
+            calcCalculations.Add(calculation2);
+
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(specificationId)
+                .Returns(calcCalculations.AsEnumerable());
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .Returns(buildProject);
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetCalculationSpecificationsForSpecification(specificationId)
+                .Returns(specCalculations.AsEnumerable());
+
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider = Substitute.For<ISourceFileGeneratorProvider>();
+            sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic)
+                .Returns(sourceFileGenerator);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
+                calculationsRepository: calculationsRepository,
+                specificationRepository: specificationRepository,
+                buildProjectsRepository: buildProjectsRepository,
+                searchRepository: searchRepository,
+                sourceFileGeneratorProvider: sourceFileGeneratorProvider);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            logger
+                .Received(1)
+                .Warning(Arg.Is($"Build project for specification {calculation.Specification.Id} could not be found, creating a new one"));
+
+            sourceFileGenerator
+                .Received()
+                .GenerateCode(Arg.Is<BuildProject>(b => 
+                b.Calculations[0].Description == specCalculation1.Description && b.Calculations[0].CalculationSpecification.Id == specCalculation1.Id &&
+                b.Calculations[1].Description == specCalculation2.Description && b.Calculations[1].CalculationSpecification.Id == specCalculation2.Id));
+        }
+
+        [TestMethod]
         async public Task SaveCalculationVersion_GivenCalculationExistsWithBuildIdButCalculationCouldNotBeFound_AddsCalculationUpdatesBuildProject()
         {
             //Arrange
@@ -1568,9 +1821,12 @@ namespace CalculateFunding.Services.Calcs.Services
             ISearchRepository<CalculationIndex> searchRepository = null,
             IValidator<Calculation> calcValidator = null,
             IBuildProjectsRepository buildProjectsRepository = null,
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
+            ICompilerFactory compilerFactory = null,
             IMessengerService messengerService = null,
             EventHubSettings EventHubSettings = null,
-            ICodeMetadataGeneratorService codeMetadataGenerator = null)
+            ICodeMetadataGeneratorService codeMetadataGenerator = null,
+            ISpecificationRepository specificationRepository = null)
         {
             return new CalculationService
                 (calculationsRepository ?? CreateCalculationsRepository(),
@@ -1579,11 +1835,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository ?? CreateSearchRepository(),
                 calcValidator ?? CreateCalculationValidator(),
                 buildProjectsRepository ?? CreateBuildProjectsRepository(),
-                CreateSourceFileGeneratorProvider(),
-                CreateCompilerFactory(),
+               sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(),
+                compilerFactory ?? CreateCompilerFactory(),
                 messengerService ?? CreateMessengerService(),
                 EventHubSettings ?? CreateEventHubSettings(),
-                codeMetadataGenerator ?? CreateCodeMetadataGenerator());
+                codeMetadataGenerator ?? CreateCodeMetadataGenerator(),
+                specificationRepository ?? CreateSpecificationRepository());
         }
 
         static ICalculationsRepository CreateCalculationsRepository()
@@ -1628,6 +1885,13 @@ namespace CalculateFunding.Services.Calcs.Services
 
             };
         }
+
+        //
+        static ISpecificationRepository CreateSpecificationRepository()
+        {
+            return Substitute.For<ISpecificationRepository>();
+        }
+
 
         static ICodeMetadataGeneratorService CreateCodeMetadataGenerator()
         {

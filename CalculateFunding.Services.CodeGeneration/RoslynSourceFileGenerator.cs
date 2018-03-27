@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using CalculateFunding.Models.Calcs;
 using Serilog;
 
@@ -28,15 +27,16 @@ namespace CalculateFunding.Services.CodeGeneration
 
             sourceFiles.AddRange(GenerateDatasetSourceFiles(buildProject));
 
-            sourceFiles.AddRange(GenerateProductSourceFiles(buildProject));
+            sourceFiles.AddRange(GenerateCalculationSourceFiles(buildProject));
             stopwatch.Stop();
             _logger.Information($"${buildProject.Id} created syntax tree ({stopwatch.ElapsedMilliseconds}ms)");
             return sourceFiles;
-
         }
 
-        protected abstract IEnumerable<SourceFile> GenerateProductSourceFiles(BuildProject budget);
-        protected abstract IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject budget);
+        protected abstract IEnumerable<SourceFile> GenerateCalculationSourceFiles(BuildProject buildProject);
+
+        protected abstract IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject buildProject);
+
         protected IEnumerable<SourceFile> GenerateStaticSourceFiles()
         {
             var assembly = GetType().Assembly;
@@ -69,15 +69,8 @@ namespace CalculateFunding.Services.CodeGeneration
                         }
                     }
                 }
-
-
-
-
-
             }
         }
         public abstract string GetIdentifier(string name);
-
-
     }
 }

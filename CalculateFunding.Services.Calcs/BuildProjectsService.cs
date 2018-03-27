@@ -196,9 +196,6 @@ namespace CalculateFunding.Services.Calcs
            
              properties.Add(providerSummariesPartitionSize, MaxPartitionSize.ToString());
             
-
-            Stopwatch runCalculationsTimer = new Stopwatch();
-            runCalculationsTimer.Start();
             for (int partitionIndex = 0; partitionIndex < totalCount; partitionIndex += MaxPartitionSize)
             {
                 

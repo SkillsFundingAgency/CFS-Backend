@@ -58,6 +58,18 @@ namespace CalculateFunding.Functions.Specs.Http
             }
         }
 
+        [FunctionName("calculations-by-specificationid")]
+        public static Task<IActionResult> RunCalculationsBySpecificationId(
+         [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+
+                return svc.GetCalculationsBySpecificationId(req);
+            }
+        }
+
         [FunctionName("allocation-lines")]
         public static Task<IActionResult> RunAllocationLines(
          [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)

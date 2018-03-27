@@ -73,7 +73,7 @@ namespace CalculateFunding.Services.Specs.Services
         }
 
         [TestMethod]
-        public async Task GetSpecificationById_GivenSpecificationWasNotFound_ReturnsNotFoundt()
+        public async Task GetSpecificationById_GivenSpecificationWasNotFound_ReturnsNotFound()
         {
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -110,7 +110,7 @@ namespace CalculateFunding.Services.Specs.Services
         }
 
         [TestMethod]
-        public async Task GetSpecificationById_GivenSpecificationWasFound_ReturnsSuccesst()
+        public async Task GetSpecificationById_GivenSpecificationWasFound_ReturnsSuccess()
         {
             //Arrange
             Specification specification = new Specification();
@@ -178,7 +178,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .Should()
                 .BeOfType<OkObjectResult>();
 
-            IEnumerable<Specification> objContent = (IEnumerable<Specification>)((OkObjectResult) result).Value;
+            IEnumerable<Specification> objContent = (IEnumerable<Specification>)((OkObjectResult)result).Value;
 
             objContent
                 .Count()
@@ -756,7 +756,7 @@ namespace CalculateFunding.Services.Specs.Services
         {
             //Arrange
             CalculationCreateModel model = new CalculationCreateModel();
-            
+
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
@@ -1076,19 +1076,19 @@ namespace CalculateFunding.Services.Specs.Services
                 .Should()
                 .BeOfType<OkObjectResult>();
 
-            await 
+            await
                 messengerService
                     .Received(1)
-                    .SendAsync(Arg.Is("calc-events-create-draft"), 
-                        Arg.Is<Models.Calcs.Calculation>(m => 
+                    .SendAsync(Arg.Is("calc-events-create-draft"),
+                        Arg.Is<Models.Calcs.Calculation>(m =>
                             m.CalculationSpecification.Id == calculation.Id &&
                             m.CalculationSpecification.Name == calculation.Name &&
                             m.Name == calculation.Name &&
                             !string.IsNullOrEmpty(m.Id) &&
                             m.AllocationLine.Id == allocationLine.Id &&
                             m.AllocationLine.Name == allocationLine.Name),
-                        Arg.Is<IDictionary<string, string>>(m => 
-                            m["user-id"] == UserId && 
+                        Arg.Is<IDictionary<string, string>>(m =>
+                            m["user-id"] == UserId &&
                             m["user-name"] == Username &&
                             m["sfa-correlationId"] == SfaCorrelationId));
         }
@@ -1213,6 +1213,153 @@ namespace CalculateFunding.Services.Specs.Services
                             m["user-id"] == UserId &&
                             m["user-name"] == Username &&
                             m["sfa-correlationId"] == SfaCorrelationId));
+        }
+
+        [TestMethod]
+        public async Task GetCalculationsBySpecificationId_GivenSpecificationIdDoesNotExist_ReturnsBadRequest()
+        {
+            // Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            // Act
+            IActionResult result = await service.GetCalculationsBySpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No specification Id was provided to GetCalculationsBySpecificationId"));
+        }
+
+        [TestMethod]
+        public async Task GetCalculationsBySpecificationId_GivenNoCalculationsExist_ReturnsOK()
+        {
+            // Arrange
+            IEnumerable<Calculation> calculations = Enumerable.Empty<Calculation>();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) },
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+
+            // Act
+            IActionResult result = await service.GetCalculationsBySpecificationId(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            logger
+                .Received(1)
+                .Verbose(Arg.Is("Calculations were found for specification id {specificationId}"), Arg.Is(SpecificationId));
+        }
+
+        [TestMethod]
+        public async Task GetCalculationsBySpecificationId_GivenCalculationsExist_ReturnsOK()
+        {
+            // Arrange
+            List<Calculation> calculations = new List<Calculation>();
+            Calculation calc = new Calculation()
+            {
+                Name = "Test Calc 1",
+            };
+
+            calculations.Add(calc);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) },
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations.AsEnumerable());
+
+            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+
+            // Act
+            IActionResult result = await service.GetCalculationsBySpecificationId(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which.Value.Should().BeAssignableTo<IEnumerable<Calculation>>()
+                .Which.Should().HaveCount(calculations.Count);
+
+            logger
+                .Received(1)
+                .Verbose(Arg.Is("Calculations were found for specification id {specificationId}"), Arg.Is(SpecificationId));
+        }
+
+        [TestMethod]
+        public async Task GetCalculationsBySpecificationId_GivenNullResponseFromRepository_ReturnsNotFound()
+        {
+            // Arrange
+            List<Calculation> calculations = null;
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) },
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+
+            // Act
+            IActionResult result = await service.GetCalculationsBySpecificationId(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<NotFoundObjectResult>()
+                .Which.Value.Should().BeAssignableTo<string>()
+                .Which.Should().Be("No calculations could be retrieved");
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No calculations could be retrieved found for specification id {specificationId}"), Arg.Is(SpecificationId));
         }
 
         [TestMethod]
@@ -1411,7 +1558,7 @@ namespace CalculateFunding.Services.Specs.Services
             specificationsRepository
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns((Specification)null);
-           
+
             SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository);
 
             //Act
@@ -1492,7 +1639,7 @@ namespace CalculateFunding.Services.Specs.Services
             searchRepository
                 .Index(Arg.Any<List<SpecificationIndex>>())
                 .Returns(errors);
-            
+
             SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, searchRepository: searchRepository);
 
             //Act
@@ -1539,7 +1686,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, 
+            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository,
                 searchRepository: searchRepository, logs: logger);
 
             //Act
@@ -1609,7 +1756,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             ILogger logger = CreateLogger();
 
-            ISpecificationsService service = CreateService(searchRepository: searchRepository, logs: logger, 
+            ISpecificationsService service = CreateService(searchRepository: searchRepository, logs: logger,
                 specifcationsRepository: specificationsRepository);
 
             //Act
@@ -1693,9 +1840,9 @@ namespace CalculateFunding.Services.Specs.Services
         {
             //Arrange
             IEnumerable<SpecificationSearchModel> specifications = new SpecificationSearchModel[0];
-           
+
             ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-           
+
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
                 .GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<string>())
@@ -1760,7 +1907,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .BeOfType<NoContentResult>();
         }
 
-        static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null, 
+        static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null,
             ILogger logs = null, IValidator<PolicyCreateModel> policyCreateModelValidator = null,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null, IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
             IMessengerService messengerService = null, EventHubSettings EventHubSettings = null, ISearchRepository<SpecificationIndex> searchRepository = null,
@@ -1860,5 +2007,5 @@ namespace CalculateFunding.Services.Specs.Services
         }
     }
 
-   
+
 }

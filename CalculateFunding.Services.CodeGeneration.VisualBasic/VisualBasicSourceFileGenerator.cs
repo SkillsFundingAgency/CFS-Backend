@@ -15,18 +15,17 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
         }
 
-        protected override IEnumerable<SourceFile> GenerateProductSourceFiles(BuildProject budget)
+        protected override IEnumerable<SourceFile> GenerateCalculationSourceFiles(BuildProject buildProject)
         {
-            var productTypeGenerator = new ProductTypeGenerator();
-            return productTypeGenerator.GenerateCalcs(budget);
+            ProductTypeGenerator productTypeGenerator = new ProductTypeGenerator();
+            return productTypeGenerator.GenerateCalcs(buildProject);
         }
 
-        protected override IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject budget)
+        protected override IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject buildProject)
         {
-            var datasetTypeGenerator = new DatasetTypeGenerator();
-            return datasetTypeGenerator.GenerateDatasets(budget);
+            DatasetTypeGenerator datasetTypeGenerator = new DatasetTypeGenerator();
+            return datasetTypeGenerator.GenerateDatasets(buildProject);
         }
-
 
         public override string GetIdentifier(string name)
         {

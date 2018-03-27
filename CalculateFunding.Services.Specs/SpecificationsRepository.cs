@@ -273,6 +273,15 @@ namespace CalculateFunding.Services.Specs
             return specification.GetCalculations().FirstOrDefault(m => m.Id == calculationId);
         }
 
+        public async Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId)
+        {
+            var specification = await GetSpecificationById(specificationId);
+            if (specification == null)
+                return null;
+
+            return specification.GetCalculations();
+        }
+
         async public Task<Policy> GetPolicyBySpecificationIdAndPolicyName(string specificationId, string policyByName)
         {
             var specification = await GetSpecificationById(specificationId);

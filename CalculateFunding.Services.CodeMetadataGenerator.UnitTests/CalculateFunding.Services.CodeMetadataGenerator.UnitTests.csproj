@@ -7,11 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="calculationsWithDescriptions.dll.dat" />
     <None Remove="calculationsWithListDatasets.dll.dat" />
     <None Remove="out.dll.dat" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="calculationsWithDescriptions.dll.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="calculationsWithListDatasets.dll.dat">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

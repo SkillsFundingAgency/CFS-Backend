@@ -31,6 +31,7 @@ using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using System.Diagnostics;
+using CalculateFunding.Models.Datasets.Schema;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -46,6 +47,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly IMessengerService _messengerService;
         private readonly EventHubSettings _eventHubSettings;
         private readonly ICodeMetadataGeneratorService _codeMetadataGenerator;
+        private readonly ISpecificationRepository _specsRepository;
         private readonly ITelemetry _telemetry;
 
         const string GenerateAllocationsInstructionSubscription = "calc-events-instruct-generate-allocations";
@@ -61,9 +63,11 @@ namespace CalculateFunding.Services.Calcs
             ICompilerFactory compilerFactory,
             IMessengerService messengerService,
             EventHubSettings eventHubSettings,
-            ICodeMetadataGeneratorService codeMetadataGenerator)
+            ICodeMetadataGeneratorService codeMetadataGenerator,
+            ISpecificationRepository specificationRepository)
         {
             Guard.ArgumentNotNull(codeMetadataGenerator, nameof(codeMetadataGenerator));
+            Guard.ArgumentNotNull(specificationRepository, nameof(specificationRepository));
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -76,6 +80,7 @@ namespace CalculateFunding.Services.Calcs
             _messengerService = messengerService;
             _eventHubSettings = eventHubSettings;
             _codeMetadataGenerator = codeMetadataGenerator;
+            _specsRepository = specificationRepository;
         }
 
         Build Compile(BuildProject buildProject)
@@ -481,18 +486,36 @@ namespace CalculateFunding.Services.Calcs
 
         async Task<BuildProject> UpdateBuildProject(SpecificationSummary specification)
         {
-            var calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specification.Id);
-            var buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specification.Id);
+            Task<IEnumerable<Calculation>> calculationsRequest = _calculationsRepository.GetCalculationsBySpecificationId(specification.Id);
+            Task<BuildProject> buildProjectRequest = _buildProjectsRepository.GetBuildProjectBySpecificationId(specification.Id);
+            Task<IEnumerable<Models.Specs.Calculation>> calculationSpecificationsRequest = _specsRepository.GetCalculationSpecificationsForSpecification(specification.Id);
+
+            await TaskHelpers.WhenAllAndThrow(calculationsRequest);
+
+            List<Calculation> calculations = new List<Calculation>(calculationsRequest.Result);
+            BuildProject buildProject = buildProjectRequest.Result;
+            IEnumerable<Models.Specs.Calculation> calculationSpecifications = calculationSpecificationsRequest.Result;
+
+            // Adds the Calculation Description retreived from the Calculation Specification.
+            // Other descriptions are included as part of the denormalised data storage in CosmosDB
+            foreach(Models.Specs.Calculation specCalculation in calculationSpecifications)
+            {
+                Calculation calculation = calculations.Where(c => c.CalculationSpecification.Id == specCalculation.Id).FirstOrDefault();
+                if (calculation != null)
+                {
+                    calculation.Description = specCalculation.Description;
+                }
+            }
 
             if (buildProject == null)
             {
                 _logger.Warning($"Build project for specification {specification.Id} could not be found, creating a new one");
 
-                buildProject = await CreateBuildProject(specification, calculations.ToList());
+                buildProject = await CreateBuildProject(specification, calculations);
             }
             else
             {
-                buildProject.Calculations = calculations.ToList();
+                buildProject.Calculations = calculations;
                 buildProject.Build = Compile(buildProject);
                 await _buildProjectsRepository.UpdateBuildProject(buildProject);
             }

@@ -1,4 +1,5 @@
-﻿Public Class Scenario
+﻿<Description(Description:="Scenario")>
+Public Class Scenario
 
     Public Property periodid() As Integer
 
