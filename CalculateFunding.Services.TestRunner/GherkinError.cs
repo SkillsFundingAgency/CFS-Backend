@@ -6,7 +6,7 @@ namespace CalculateFunding.Services.TestRunner
         public GherkinError(string errorMessage, int? line, int? column)
         {
             ErrorMessage = errorMessage;
-            Line = line;
+            Line = line.HasValue ? line - 2 : null ;
             Column = column;
         }
 

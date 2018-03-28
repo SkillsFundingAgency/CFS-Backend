@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.TestRunner
                     {
                         foreach (var scenario in document.Feature?.Children)
                         {
-                            if (scenario.Steps != null)
+                            if (!scenario.Steps.IsNullOrEmpty())
                             {
 
                                 foreach (var step in scenario.Steps)
@@ -77,6 +77,10 @@ namespace CalculateFunding.Services.TestRunner
                                     var keyword = step.Keyword?.ToLowerInvariant().Trim();
                                 }
                             }
+                            else
+                            {
+                                result.AddError("The supplied gherkin could not be parsed", 0, 0);
+                            }
                         }
                     }
                 }
@@ -88,6 +92,7 @@ namespace CalculateFunding.Services.TestRunner
                     result.AddError(error.Message, error.Location.Line, error.Location.Column);
                 }
             }
+
 
             return result;
         }
