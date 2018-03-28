@@ -95,12 +95,14 @@ namespace CalculateFunding.Services.Calculator
 
         public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets)
         {
+            var datasetNamesUsed = new HashSet<string>();
             foreach (var dataset in datasets)
             {
                 var type = GetDatasetType(dataset.DataDefinition.Name);
 
                 if (_datasetSetters.TryGetValue(dataset.DataRelationship.Name, out var setter))
                 {
+                    datasetNamesUsed.Add(dataset.DataDefinition.Name);
                     if (dataset.DataGranularity == DataGranularity.SingleRowPerProvider)
                     {
                         var row = PopulateRow(type, dataset.Current.Rows.First());
@@ -122,6 +124,15 @@ namespace CalculateFunding.Services.Calculator
                         setter.SetValue(_datasetsInstance, list);
                     }
 
+                }
+            }
+
+            // Add default object for any missing datasets to help reduce null exceptions
+            foreach (var key in _datasetSetters.Keys.Where(x => !datasetNamesUsed.Contains(x)))
+            {
+                if (_datasetSetters.TryGetValue(key, out var setter))
+                {
+                    setter.SetValue(_datasetsInstance, Activator.CreateInstance(setter.PropertyType));
                 }
             }
 

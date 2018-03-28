@@ -57,20 +57,6 @@ namespace CalculateFunding.Services.Calculator
                 stopwatch.Stop();
                 _logger.Debug($"Generated result for {provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
             });
-            //foreach (var provider in providers)
-            //{
-            //    var stopwatch = new Stopwatch();
-            //    stopwatch.Start();
-
-            //    IEnumerable<ProviderSourceDataset> providerSourceDatasets = await getProviderSourceDatasets(provider.Id, buildProject.Specification.Id);
-
-            //    var result = CalculateProviderResults(allocationModel, buildProject, provider, providerSourceDatasets.ToList());
-
-            //    providerResults.Add(result);
-
-            //    stopwatch.Stop();
-            //    Console.WriteLine($"Generated result for ${provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
-            //}
 
             return providerResults;
         }
