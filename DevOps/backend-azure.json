@@ -1129,6 +1129,14 @@
               "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
             },
             {
+              "name": "ApiOptions:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "ApiOptions:ApiEndpoint",
+              "value": "[parameters('ApiEndpoint')]"
+            },
+            {
               "name": "CosmosDbSettings:DatabaseName",
               "value": "calculate-funding"
             },

@@ -30,6 +30,8 @@ namespace CalculateFunding.Services.Core.Proxies
         public ApiClientProxy(ApiOptions options, ILogger logger, ICorrelationIdProvider correlationIdProvider)
         {
             Guard.ArgumentNotNull(options, nameof(options));
+            Guard.IsNullOrWhiteSpace(options.ApiEndpoint, nameof(options.ApiEndpoint));
+            Guard.IsNullOrWhiteSpace(options.ApiKey, nameof(options.ApiKey));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
 
