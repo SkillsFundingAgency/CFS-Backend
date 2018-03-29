@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
+using Newtonsoft.Json;
 using OfficeOpenXml;
 
 namespace CalculateFunding.Services.DataImporter
@@ -54,7 +55,6 @@ namespace CalculateFunding.Services.DataImporter
                     result.GlobalErrors.Add(new DatasetValidationError(fieldDefinition, 0, $"Required column '{fieldDefinition.Name}' cannot be found"));
                 }
             }
-
 
             foreach (var row in rows.Skip(1))
             {
@@ -148,18 +148,26 @@ namespace CalculateFunding.Services.DataImporter
                 var valAsString = val.GetValue<string>()?.ToLowerInvariant();
                 if (valAsString != null)
                 {
-                    var column = tableDefinition.FieldDefinitions.FirstOrDefault(x => MatchColumn(x, valAsString));
-                    if (column != null)
-                    {
-                        if (!headerDictionary.ContainsKey(column.Name))
-                        {
-                            headerDictionary.Add(column.Name, col);
-                        }
-                    }
+                    AddToDictionary(headerDictionary, tableDefinition, valAsString, col);
                 }
             }
 
             return headerDictionary;
+        }
+
+        public static void AddToDictionary(IDictionary<string, int> headers, TableDefinition tableDefinition, string headerCellValue, int colIndex)
+        {
+            var columns = tableDefinition.FieldDefinitions.Where(x => MatchColumn(x, headerCellValue)).ToList();
+            if (columns != null)
+            {
+                foreach (var column in columns)
+                {
+                    if (!headers.ContainsKey(column.Name))
+                    {
+                        headers.Add(column.Name, colIndex);
+                    }
+                }
+            }
         }
 
         private static bool MatchColumn(FieldDefinition x, string valAsString)
