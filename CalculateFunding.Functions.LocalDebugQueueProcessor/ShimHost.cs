@@ -25,10 +25,10 @@ namespace CalculateFunding.Functions.LocalDebugQueueProcessor
 
             _eventProcessorHost = new EventProcessorHost(
                 hubName,
-                PartitionReceiver.DefaultConsumerGroupName,
+                $"{Environment.UserName.ToLowerInvariant()}-debug",
                 eventHubSettings.EventHubConnectionString,
                 storageSettings.ConnectionString,
-                $"hub{Environment.UserName.ToLowerInvariant()}1-1");
+                $"{Environment.UserName.ToLowerInvariant()}-{hubName}");
 
         }
 
