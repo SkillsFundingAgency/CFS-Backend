@@ -39,6 +39,7 @@ using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
+using CalculateFunding.Services.TestRunner.Repositories;
 using CalculateFunding.Services.TestRunner.Services;
 using CalculateFunding.Services.Validators;
 using FluentValidation;
@@ -347,6 +348,19 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
             builder
                .AddSingleton<Services.TestRunner.Interfaces.IProviderRepository, Services.TestRunner.Services.ProviderRepository>();
+
+            builder.AddScoped<ITestResultsRepository, TestResultsRepository>((ctx) =>
+            {
+                CosmosDbSettings testResultsDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", testResultsDbSettings);
+
+                testResultsDbSettings.CollectionName = "tests";
+
+                CosmosRepository testResultsCosmosRepostory = new CosmosRepository(testResultsDbSettings);
+
+                return new TestResultsRepository(testResultsCosmosRepostory);
+            });
 
             //MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             //builder

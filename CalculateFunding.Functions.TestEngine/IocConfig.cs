@@ -8,6 +8,7 @@ using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
+using CalculateFunding.Services.TestRunner.Repositories;
 using CalculateFunding.Services.TestRunner.Services;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
@@ -57,6 +58,10 @@ namespace CalculateFunding.Functions.TestEngine
 
             builder
                 .AddScoped<IStepParserFactory, StepParserFactory>();
+
+            builder.AddSingleton<ITestResultsRepository, TestResultsRepository>();
+
+            builder.AddCosmosDb(config);
 
             builder.AddInterServiceClient(config);
 
