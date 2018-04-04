@@ -19,10 +19,10 @@ namespace CalculateFunding.Models
             return str;
         }
 
-        public static IEnumerable<IEnumerable<T>> ToBatches<T>(this IList<T> items, int batchSize)
+        public static IEnumerable<IEnumerable<T>> ToBatches<T>(this IEnumerable<T> items, int batchSize)
         {
             int total = 0;
-            while (total < items.Count)
+            while (total < items.Count())
             {
                 yield return items.Skip(total).Take(batchSize);
                 total += batchSize;

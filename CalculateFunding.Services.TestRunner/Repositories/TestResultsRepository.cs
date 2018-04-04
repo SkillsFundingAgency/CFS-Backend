@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             }
             else
             {
-                return HttpStatusCode.NoContent;
+                return HttpStatusCode.NotModified;
             }
 
             return HttpStatusCode.Created;

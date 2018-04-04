@@ -442,7 +442,7 @@ namespace CalculateFunding.Services.Calcs
 
         async Task UpdateSearch(Calculation calculation)
         {
-            IList<IndexError> indexingResults = await _searchRepository.Index(new List<CalculationIndex>
+            IEnumerable<IndexError> indexingResults = await _searchRepository.Index(new List<CalculationIndex>
             {
                 new CalculationIndex
                 {

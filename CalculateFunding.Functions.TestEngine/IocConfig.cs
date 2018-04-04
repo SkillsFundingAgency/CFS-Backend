@@ -93,7 +93,15 @@ namespace CalculateFunding.Functions.TestEngine
                 return new Services.TestRunner.Services.ProviderRepository(providersCosmosRepostory, cacheProvider);
             });
 
+            MapperConfiguration resultsMappingConfiguration = new MapperConfiguration(c => c.AddProfile<ResultsMappingProfile>());
+            builder
+                .AddSingleton(resultsMappingConfiguration.CreateMapper());
+
+            builder.AddSingleton<ITestResultsService, TestResultsService>();
+
             builder.AddCosmosDb(config);
+
+            builder.AddSearch(config);
 
             builder.AddInterServiceClient(config);
 

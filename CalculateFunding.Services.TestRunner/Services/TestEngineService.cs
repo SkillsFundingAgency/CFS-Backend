@@ -24,6 +24,7 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly ITestEngine _testEngine;
         private readonly IScenariosRepository _scenariosRepository;
         private readonly IProviderRepository _providerRepository;
+        private readonly ITestResultsService _testResultsService;
         private readonly ITestResultsRepository _testResultsRepository;
 
         public TestEngineService(
@@ -33,6 +34,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             ITestEngine testEngine,
             IScenariosRepository scenariosRepository,
             IProviderRepository providerRepository,
+            ITestResultsService testResultsService,
             ITestResultsRepository testResultsRepository)
         {
             _cacheProvider = cacheProvider;
@@ -41,6 +43,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             _testEngine = testEngine;
             _scenariosRepository = scenariosRepository;
             _providerRepository = providerRepository;
+            _testResultsService = testResultsService;
             _testResultsRepository = testResultsRepository;
         }
 
@@ -112,7 +115,7 @@ namespace CalculateFunding.Services.TestRunner.Services
 
             if (results.Any())
             {
-                HttpStatusCode status = await _testResultsRepository.SaveTestProviderResults(results);
+                HttpStatusCode status = await _testResultsService.SaveTestProviderResults(results);
 
                 if (!status.IsSuccess())
                 {

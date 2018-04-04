@@ -126,7 +126,7 @@ namespace CalculateFunding.Repositories.Common.Search
 
         }
 
-        public async Task<IList<IndexError>> Index(IList<T> documents)
+        public async Task<IEnumerable<IndexError>> Index(IEnumerable<T> documents)
         {
             try
             {

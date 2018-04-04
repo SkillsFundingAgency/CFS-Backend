@@ -349,7 +349,12 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                .AddSingleton<IExcelDatasetReader, ExcelDatasetReader>();
 
-            MapperConfiguration mappingConfig = new MapperConfiguration(c => { c.AddProfile<SpecificationsMappingProfile>(); c.AddProfile<DatasetsMappingProfile>(); });
+            MapperConfiguration mappingConfig = new MapperConfiguration(c => {
+                c.AddProfile<SpecificationsMappingProfile>();
+                c.AddProfile<DatasetsMappingProfile>();
+                c.AddProfile<ResultsMappingProfile>();
+            });
+
             builder
                 .AddSingleton(mappingConfig.CreateMapper());
 
@@ -382,6 +387,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 return new TestResultsRepository(testResultsCosmosRepostory, logger);
             });
+
+            builder.AddSingleton<ITestResultsService, TestResultsService>();
 
             builder.AddSingleton<Services.TestRunner.Interfaces.IProviderRepository, Services.TestRunner.Services.ProviderRepository>((ctx) =>
             {

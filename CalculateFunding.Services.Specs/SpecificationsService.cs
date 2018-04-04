@@ -544,7 +544,7 @@ namespace CalculateFunding.Services.Specs
 
                 specIndex.DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.ToArraySafe();
 
-                IList<IndexError> errors = await _searchRepository.Index(new List<SpecificationIndex>{specIndex});
+                IEnumerable<IndexError> errors = await _searchRepository.Index(new List<SpecificationIndex>{specIndex});
 
                 if (errors.Any())
                 {
