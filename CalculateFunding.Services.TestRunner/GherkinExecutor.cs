@@ -6,6 +6,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.TestRunner.Interfaces;
+using System.Threading.Tasks;
 using CalculationResult = CalculateFunding.Models.Results.CalculationResult;
 
 namespace CalculateFunding.Services.TestRunner
@@ -19,8 +20,10 @@ namespace CalculateFunding.Services.TestRunner
             _parser = parser;
         }
 
-        public IEnumerable<ScenarioResult> Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets, IEnumerable<TestScenario> testScenarios, BuildProject buildProject)
+        public async Task<IEnumerable<ScenarioResult>> Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets, IEnumerable<TestScenario> testScenarios, BuildProject buildProject)
         {
+            IList<ScenarioResult> scenarioResults = new List<ScenarioResult>();
+
             foreach (var scenario in testScenarios)
             {
                 var scenarioResult = new ScenarioResult
@@ -28,9 +31,9 @@ namespace CalculateFunding.Services.TestRunner
                     Scenario = new Reference(scenario.Id, scenario.Name)
                 };
 
-                var parseResult = _parser.Parse(scenario.Current.Gherkin, buildProject)?.Result;
+                var parseResult = await _parser.Parse(scenario.Current.Gherkin, buildProject);
                 
-                if(parseResult != null)
+                if(parseResult != null && !parseResult.StepActions.IsNullOrEmpty())
                 { 
                     scenarioResult.TotalSteps = parseResult.StepActions.Count;
 
@@ -38,7 +41,7 @@ namespace CalculateFunding.Services.TestRunner
                     foreach (var action in parseResult.StepActions)
                     {
                         var result = action.Execute(providerResult, datasets);
-                        if (result.Dependencies.Any())
+                        if (!result.Dependencies.IsNullOrEmpty())
                         {
                             foreach (var resultDependency in result.Dependencies)
                             {
@@ -60,8 +63,9 @@ namespace CalculateFunding.Services.TestRunner
                     }
                 }
 
-                yield return scenarioResult;
+                scenarioResults.Add(scenarioResult);
             }
+            return scenarioResults;
         }
      }
 }

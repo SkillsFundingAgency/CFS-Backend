@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.TestRunner
             {
                 var providerSourceDatasets = sourceDatasets.Where(m => m.Provider.Id == providerResult.Provider.Id);
 
-                var testResults = RunTests(testScenarios, providerResult, providerSourceDatasets, buildProject);
+                var testResults = await RunTests(testScenarios, providerResult, providerSourceDatasets, buildProject);
 
                 if (!testResults.IsNullOrEmpty())
                 {
@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.TestRunner
             return scenarioResults;
         }
 
-        IEnumerable<ScenarioResult> RunTests(IEnumerable<TestScenario> testScenarios, ProviderResult providerResult, 
+        async Task<IEnumerable<ScenarioResult>> RunTests(IEnumerable<TestScenario> testScenarios, ProviderResult providerResult, 
             IEnumerable<ProviderSourceDataset> providerSourceDatasets, BuildProject buildProject)
         {
             var scenarioResults = new List<ScenarioResult>();
@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.TestRunner
                 if (testScenarios != null)
                 {
                     var gherkinScenarioResults =
-                        _gherkinExecutor.Execute(providerResult, providerSourceDatasets, testScenarios, buildProject);
+                        await _gherkinExecutor.Execute(providerResult, providerSourceDatasets, testScenarios, buildProject);
 
                     if (!gherkinScenarioResults.IsNullOrEmpty())
                     {

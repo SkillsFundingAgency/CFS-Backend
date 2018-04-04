@@ -5,11 +5,12 @@ using CalculateFunding.Models.Specs;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.Interfaces
 {
     public interface IGherkinExecutor
     {
-        IEnumerable<ScenarioResult> Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets, IEnumerable<TestScenario> testScenarios, BuildProject buildProject);
+        Task<IEnumerable<ScenarioResult>> Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets, IEnumerable<TestScenario> testScenarios, BuildProject buildProject);
     }
 }
