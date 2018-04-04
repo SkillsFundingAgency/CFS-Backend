@@ -12,5 +12,7 @@ namespace CalculateFunding.Services.Scenarios.Interfaces
         Task<TestScenario> GetTestScenarioById(string testScenarioId);
 
         Task<HttpStatusCode> SaveTestScenario(TestScenario testScenario);
+
+        Task<IEnumerable<TestScenario>> GetTestScenariosBySpecificationId(string specificationId);
     }
 }

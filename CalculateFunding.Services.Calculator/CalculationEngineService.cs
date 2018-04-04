@@ -21,12 +21,15 @@ namespace CalculateFunding.Services.Calculator
     {
         const string UpdateCosmosResultsCollection = "dataset-events-results";
 
+        const string ExecuteTestsEventSubscription = "test-events-execute-tests";
+
         private readonly ILogger _logger;
         private readonly ICalculationEngine _calculationEngine;
         private readonly ICacheProvider _cacheProvider;
         private readonly IMessengerService _messengerService;
         private readonly IProviderSourceDatasetsRepository _providerSourceDatasetsRepository;
         private readonly ITelemetry _telemetry;
+        private readonly IProviderResultsRepository _providerResultsRepository;
 
         public CalculationEngineService(
             ILogger logger, 
@@ -34,7 +37,8 @@ namespace CalculateFunding.Services.Calculator
             ICacheProvider cacheProvider,
             IMessengerService messengerService,
             IProviderSourceDatasetsRepository providerSourceDatasetsRepository,
-            ITelemetry telemetry)
+            ITelemetry telemetry,
+            IProviderResultsRepository providerResultsRepository)
         {
             _logger = logger;
             _calculationEngine = calculationEngine;
@@ -42,6 +46,7 @@ namespace CalculateFunding.Services.Calculator
             _messengerService = messengerService;
             _providerSourceDatasetsRepository = providerSourceDatasetsRepository;
             _telemetry = telemetry;
+            _providerResultsRepository = providerResultsRepository;
         }
 
         public async Task GenerateAllocations(EventData message)
@@ -119,9 +124,17 @@ namespace CalculateFunding.Services.Calculator
 
             if (providerResults.Any())
             {
+                await _providerResultsRepository.SaveProviderResults(providerResults);
+
+                string providerResultsCacheKey = Guid.NewGuid().ToString();
+
+                await _cacheProvider.SetAsync<List<ProviderResult>>(providerResultsCacheKey, providerResults.ToList(), TimeSpan.FromHours(12), false);
+
                 IDictionary<string, string> properties = message.BuildMessageProperties();
 
-                await _messengerService.SendBatchAsync(UpdateCosmosResultsCollection, providerResults, properties);
+                properties.Add("specificationId", specificationId);
+
+                await _messengerService.SendAsync(ExecuteTestsEventSubscription, providerResultsCacheKey, properties);
             }
 
             calcTiming.Stop();

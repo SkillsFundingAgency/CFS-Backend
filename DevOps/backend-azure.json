@@ -298,6 +298,18 @@
             "messageRetentionInDays": "1",
             "partitionCount": "4"
           }
+        },
+        {
+          "apiVersion": "2017-04-01",
+          "name": "test-events-execute-tests",
+          "type": "EventHubs",
+          "dependsOn": [
+            "[concat('Microsoft.EventHub/namespaces/', variables('eventHubName'))]"
+          ],
+          "properties": {
+            "messageRetentionInDays": "1",
+            "partitionCount": "24"
+          }
         }
       ]
     },

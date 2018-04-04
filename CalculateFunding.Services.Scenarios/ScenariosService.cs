@@ -145,6 +145,25 @@ namespace CalculateFunding.Services.Scenarios
             return new OkObjectResult(newVersion);
         }
 
+
+        async public Task<IActionResult> GetTestScenariosBySpecificationId(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out var specId);
+
+            var specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to GetTestScenariusBySpecificationId");
+
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            IEnumerable<TestScenario> testScenarios = await _scenariosRepository.GetTestScenariosBySpecificationId(specificationId);
+
+            return new OkObjectResult(testScenarios.IsNullOrEmpty() ? Enumerable.Empty<TestScenario>() : testScenarios);
+        }
+
         int GetNextVersionNumberFromCalculationVersions(IEnumerable<TestScenarioVersion> versions)
         {
             if (!versions.Any())

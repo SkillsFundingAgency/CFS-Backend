@@ -1,34 +1,43 @@
 ﻿using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.Services
 {
     public class ProviderRepository : IProviderRepository
     {
-        const string providerUrl = "results/get-provider-results?providerid={0}&specificationId={1}";
+        private readonly CosmosRepository _cosmosRepository;
 
-        private readonly IApiClientProxy _apiClient;
-
-        public ProviderRepository(IApiClientProxy apiClient)
+        public ProviderRepository(CosmosRepository cosmosRepository)
         {
-            Guard.ArgumentNotNull(apiClient, nameof(apiClient));
+            Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
 
-            _apiClient = apiClient;
+            _cosmosRepository = cosmosRepository;
         }
 
-        public Task<ProviderResult> GetProviderById(string providerId, string specificationId)
+        public Task<ProviderResult> GetProviderByIdAndSpecificationId(string providerId, string specificationId)
         {
             if (string.IsNullOrWhiteSpace(providerId))
                 throw new ArgumentNullException(nameof(providerId));
 
-            string url = string.Format(providerUrl, providerId, specificationId);
+            ProviderResult providerResult = _cosmosRepository.Query<ProviderResult>().Where(m => m.Provider.Id == providerId && m.Specification.Id == specificationId).FirstOrDefault();
 
-            return _apiClient.GetAsync<ProviderResult>(url);
+            return Task.FromResult(providerResult);
+        }
+
+        public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsBySpecificationId(string specificationId)
+        {
+            IQueryable<ProviderSourceDataset> sourceDatasets = _cosmosRepository.Query<ProviderSourceDataset>().Where(m => m.Specification.Id == specificationId);
+
+            return Task.FromResult(sourceDatasets.AsEnumerable());
         }
     }
 }

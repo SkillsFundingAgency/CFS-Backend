@@ -165,6 +165,19 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 return new DataSetsRepository(datasetsCosmosRepostory);
             });
 
+            builder.AddSingleton<Services.Calculator.Interfaces.IProviderResultsRepository, Services.Calculator.ProviderResultsRepository>((ctx) =>
+            {
+                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", calssDbSettings);
+
+                calssDbSettings.CollectionName = "results";
+
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+
+                return new Services.Calculator.ProviderResultsRepository(calcsCosmosRepostory);
+            });
+
             builder
                .AddScoped<ICalculationService, CalculationService>();
 
@@ -184,6 +197,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 .AddScoped<Services.Datasets.Interfaces.ISpecificationsRepository, Services.Datasets.SpecificationsRepository>();
 
             builder
+               .AddScoped<Services.Calcs.Interfaces.ISpecificationRepository, Services.Calcs.SpecificationRepository>();
+
+            builder
                 .AddScoped<IValidator<Models.Calcs.Calculation>, CalculationModelValidator>();
 
             builder
@@ -193,7 +209,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 .AddScoped<ISpecificationsSearchService, SpecificationsSearchService>();
 
             builder
-                .AddScoped<Services.Scenarios.Interfaces.ISpecificationsRepository, Services.Scenarios.SpecificationsRepository>();
+                .AddScoped<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>();
 
             builder
                 .AddScoped<IResultsSearchService, ResultsSearchService>();
@@ -201,7 +217,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                 .AddScoped<IResultsService, ResultsService>();
 
-            builder.AddScoped<IScenariosRepository, ScenariosRepository>((ctx) =>
+            builder.AddScoped<Services.Scenarios.Interfaces.IScenariosRepository, Services.Scenarios.ScenariosRepository>((ctx) =>
             {
                 CosmosDbSettings scenariosDbSettings = new CosmosDbSettings();
 
@@ -211,7 +227,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 CosmosRepository scenariosCosmosRepostory = new CosmosRepository(scenariosDbSettings);
 
-                return new ScenariosRepository(scenariosCosmosRepostory);
+                return new Services.Scenarios.ScenariosRepository(scenariosCosmosRepostory);
             });
 
             builder
@@ -320,7 +336,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
               .AddScoped<IAllocationFactory, AllocationFactory>();
 
             builder
-                .AddScoped<ISpecificationRepository, SpecificationRepository>();
+                .AddScoped<Services.TestRunner.Interfaces.ISpecificationRepository, Services.TestRunner.SpecificationRepository>();
             builder
                .AddScoped<Services.Datasets.Interfaces.IProviderRepository, Services.Datasets.ProviderRepository>();
 
@@ -363,6 +379,37 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 return new TestResultsRepository(testResultsCosmosRepostory, logger);
             });
+
+            builder.AddSingleton<Services.TestRunner.Interfaces.IProviderRepository, Services.TestRunner.Services.ProviderRepository>((ctx) =>
+            {
+                CosmosDbSettings providersDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", providersDbSettings);
+
+                providersDbSettings.CollectionName = "results";
+
+                CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
+
+                return new Services.TestRunner.Services.ProviderRepository(providersCosmosRepostory);
+            });
+
+            builder
+                .AddSingleton<Services.TestRunner.Interfaces.ISpecificationRepository, Services.TestRunner.SpecificationRepository>();
+
+            builder
+                .AddSingleton<Services.TestRunner.Interfaces.IScenariosRepository, Services.TestRunner.Services.ScenariosRepository>();
+
+            builder
+                .AddScoped<ITestEngineService, TestEngineService>();
+
+            builder
+                .AddScoped<ITestEngine, TestEngine>();
+
+            builder
+              .AddScoped<IGherkinExecutor, GherkinExecutor>();
+
+            builder
+                .AddSingleton<Services.Scenarios.Interfaces.ISpecificationsRepository, Services.Scenarios.SpecificationsRepository>();
 
             //MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             //builder

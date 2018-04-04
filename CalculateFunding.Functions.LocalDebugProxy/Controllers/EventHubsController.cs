@@ -14,6 +14,7 @@ using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Services.TestRunner.Interfaces;
 
 namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 {
@@ -25,6 +26,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         private readonly ICalculationEngineService _calculationEngineService;
         private readonly ICalculationService _calculationService;
         private readonly ISpecificationsService _specificationsService;
+        private readonly ITestEngineService _testEngineService;
 
         public EventHubsController(
             IServiceProvider serviceProvider, 
@@ -33,7 +35,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             IResultsService resultsService,
             ICalculationEngineService calculationEngineService,
             ICalculationService calculationService,
-            ISpecificationsService specificationsService) : base(serviceProvider)
+            ISpecificationsService specificationsService,
+            ITestEngineService testEngineService) : base(serviceProvider)
         {
             _buildProjectService = buildProjectService;
             _datsetService = datsetService;
@@ -41,6 +44,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             _calculationEngineService = calculationEngineService;
             _calculationService = calculationService;
             _specificationsService = specificationsService;
+            _testEngineService = testEngineService;
         }
 
         [Route("api/events/calc-events-generate-allocations-results")]
@@ -118,6 +122,17 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             EventData message = await GeEventMessage(ControllerContext.HttpContext.Request);
 
             await _specificationsService.AssignDataDefinitionRelationship(message);
+        }
+
+        [Route("api/events/test-events-execute-tests")]
+        [HttpPost]
+        async public Task RunExecuteTestsService()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            EventData message = await GeEventMessage(ControllerContext.HttpContext.Request);
+
+            await _testEngineService.RunTests(message);
         }
 
         async Task<EventData> GeEventMessage(HttpRequest request)

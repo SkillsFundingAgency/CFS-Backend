@@ -8,7 +8,7 @@ using Microsoft.Azure.WebJobs.Host;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace CalculateFunding.Functions.TestEngine
+namespace CalculateFunding.Functions.TestEngineService
 {
     public static class HealthCheck
     {

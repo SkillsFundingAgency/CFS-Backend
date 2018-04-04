@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
 
             string providerId = matches[7];
 
-            ProviderResult providerResult = await _providerRepository.GetProviderById(providerId, buildProject.Specification.Id);
+            ProviderResult providerResult = await _providerRepository.GetProviderByIdAndSpecificationId(providerId, buildProject.Specification.Id);
 
             if(providerResult == null)
             {

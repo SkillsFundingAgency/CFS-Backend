@@ -5,18 +5,17 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculationResult = CalculateFunding.Models.Results.CalculationResult;
 
 namespace CalculateFunding.Services.TestRunner
 {
-    public class GherkinExecutor 
+    public class GherkinExecutor : IGherkinExecutor
     {
-        private readonly StepFactory _stepFactory;
         private readonly IGherkinParser _parser;
 
-        public GherkinExecutor(StepFactory stepFactory, IGherkinParser parser)
+        public GherkinExecutor(IGherkinParser parser)
         {
-            _stepFactory = stepFactory;
             _parser = parser;
         }
 

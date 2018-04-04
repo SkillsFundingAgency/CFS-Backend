@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
-    // TODO: Update search index columns for new test results
     [SearchIndex(IndexerForType = typeof(TestScenarioResult),
         CollectionName = "results",
         DatabaseName = "allocations",

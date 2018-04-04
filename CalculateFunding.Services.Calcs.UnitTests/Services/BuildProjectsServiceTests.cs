@@ -655,7 +655,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
         static BuildProjectsService CreateBuildProjectsService(IBuildProjectsRepository buildProjectsRepository = null, IMessengerService messengerService = null,
             EventHubSettings EventHubSettings = null, ILogger logger = null, ITelemetry telemetry = null,
-            IProviderResultsRepository providerResultsRepository = null, ISpecificationRepository specificationsRepository = null, ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
+            Interfaces.IProviderResultsRepository providerResultsRepository = null, ISpecificationRepository specificationsRepository = null, ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
             ICompilerFactory compilerFactory = null)
         {
             return new BuildProjectsService(buildProjectsRepository ?? CreateBuildProjectsRepository(), messengerService ?? CreateMessengerService(),
@@ -716,9 +716,9 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ICalculationEngine>();
         }
 
-        static IProviderResultsRepository CreateProviderResultsRepository()
+        static Interfaces.IProviderResultsRepository CreateProviderResultsRepository()
         {
-            return Substitute.For<IProviderResultsRepository>();
+            return Substitute.For<Interfaces.IProviderResultsRepository>();
         }
 
         static ISpecificationRepository CreateSpecificationRepository()

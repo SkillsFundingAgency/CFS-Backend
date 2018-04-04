@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.Interfaces
 {
-    public interface IBuildProjectRepository
+
+    public interface IScenariosRepository
     {
-        Task<BuildProject> GetBuildProjectBySpecificationId(string specificationId);
+        Task<IEnumerable<TestScenario>> GetTestScenariosBySpecificationId(string specificationId);
     }
 }

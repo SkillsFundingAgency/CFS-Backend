@@ -61,6 +61,34 @@ namespace CalculateFunding.Functions.TestEngine
 
             builder.AddSingleton<ITestResultsRepository, TestResultsRepository>();
 
+            builder
+                .AddSingleton<ISpecificationRepository, SpecificationRepository>();
+
+            builder
+                .AddSingleton<IScenariosRepository, ScenariosRepository>();
+
+            builder
+                .AddScoped<ITestEngineService, Services.TestRunner.Services.TestEngineService>();
+
+            builder
+                .AddScoped<ITestEngine, Services.TestRunner.TestEngine>();
+
+            builder
+               .AddScoped<IGherkinExecutor, GherkinExecutor>();
+
+            builder.AddSingleton<Services.TestRunner.Interfaces.IProviderRepository, Services.TestRunner.Services.ProviderRepository>((ctx) =>
+            {
+                CosmosDbSettings providersDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", providersDbSettings);
+
+                providersDbSettings.CollectionName = "results";
+
+                CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
+
+                return new Services.TestRunner.Services.ProviderRepository(providersCosmosRepostory);
+            });
+
             builder.AddCosmosDb(config);
 
             builder.AddInterServiceClient(config);
