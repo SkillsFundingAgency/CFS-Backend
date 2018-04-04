@@ -31,9 +31,9 @@ namespace CalculateFunding.Services.Calculator
 
             string sql = $"SELECT * FROM Root r where r.documentType = \"ProviderSourceDataset\" and r.content.specification.id = \"{specificationId}\" and r.content.provider.id in ({providerIdList})";
 
-            var results = _cosmosRepository.RawQuery<ProviderSourceDataset>(sql);
+            var results = _cosmosRepository.RawQuery<DocumentEntity<ProviderSourceDataset>>(sql);
 
-            return Task.FromResult(results.AsEnumerable());
+            return Task.FromResult(results.AsEnumerable().Select(m => m.Content));
         }
     }
 }

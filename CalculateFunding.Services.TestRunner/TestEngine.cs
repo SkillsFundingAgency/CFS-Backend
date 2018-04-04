@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
@@ -40,7 +41,7 @@ namespace CalculateFunding.Services.TestRunner
                                     : testResult.HasErrors
                                         ? TestResult.Failed
                                         : TestResult.Passed;
-
+                        
                         var filteredCurrentResults = currentResults.FirstOrDefault(m => m.Provider.Id == providerResult.Provider.Id && m.TestScenario.Id == testResult.Scenario.Id && m.TestResult == status);
 
                         if (filteredCurrentResults == null)

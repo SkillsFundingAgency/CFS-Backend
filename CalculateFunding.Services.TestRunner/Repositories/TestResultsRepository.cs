@@ -32,9 +32,9 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
             string sql = $"SELECT * FROM Root r where r.documentType = \"{nameof(TestScenarioResult)}\" and r.content.specification.id = \"{specificationId}\" and r.content.provider.id in ({providerIdList})";
 
-            IQueryable<TestScenarioResult> results = _cosmosRepository.RawQuery<TestScenarioResult>(sql);
+            IQueryable<DocumentEntity<TestScenarioResult>> results = _cosmosRepository.RawQuery<DocumentEntity<TestScenarioResult>>(sql);
 
-            return Task.FromResult(results.AsEnumerable());
+            return Task.FromResult(results.AsEnumerable().Select(m => m.Content));
         }
 
         public async Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> providerResult)
