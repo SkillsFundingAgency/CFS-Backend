@@ -120,11 +120,10 @@ namespace CalculateFunding.Services.Calculator
                             addMethod.Invoke(list, new[] { row });
                         }
 
-
                         setter.SetValue(_datasetsInstance, list);
                     }
-
                 }
+               
             }
 
             // Add default object for any missing datasets to help reduce null exceptions
@@ -162,6 +161,13 @@ namespace CalculateFunding.Services.Calculator
                 {
                     if (row.TryGetValue(GetProperty(fieldAttribute, "Name"), out var value))
                     {
+                        var propType = property.PropertyType.ToString();
+
+                        if (propType == "System.Decimal")
+                        {
+                            value = Convert.ToDecimal(value);
+                        }
+
                         property.SetValue(data, value);
                     }
                 }
