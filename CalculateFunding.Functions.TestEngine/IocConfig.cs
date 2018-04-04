@@ -59,7 +59,8 @@ namespace CalculateFunding.Functions.TestEngine
             builder
                 .AddScoped<IStepParserFactory, StepParserFactory>();
 
-            builder.AddSingleton<ITestResultsRepository, TestResultsRepository>();
+            builder
+                .AddSingleton<ITestResultsRepository, TestResultsRepository>();
 
             builder
                 .AddSingleton<ISpecificationRepository, SpecificationRepository>();

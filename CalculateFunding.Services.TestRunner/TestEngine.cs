@@ -31,26 +31,29 @@ namespace CalculateFunding.Services.TestRunner
 
                 var testResults = RunTests(testScenarios, providerResult, providerSourceDatasets, buildProject);
 
-                foreach(var testResult in testResults)
+                if (!testResults.IsNullOrEmpty())
                 {
-                    var status = testResult.StepsExecuted < testResult.TotalSteps
-                                ? TestResult.Ignored
-                                : testResult.HasErrors
-                                    ? TestResult.Failed
-                                    : TestResult.Passed;
-
-                    var filteredCurrentResults = currentResults.FirstOrDefault(m => m.Provider.Id == providerResult.Provider.Id && m.TestScenario.Id == testResult.Scenario.Id && m.TestResult == status);
-
-                    if (filteredCurrentResults == null)
+                    foreach (var testResult in testResults)
                     {
-                        scenarioResults.Add(new TestScenarioResult
-                        {
-                            TestResult = status,
-                            Specification = new Reference(specification.Id, specification.Name),
-                            TestScenario = new Reference(testResult.Scenario.Id, testResult.Scenario.Name),
-                            Provider = new Reference(providerResult.Provider.Id, providerResult.Provider.Name)
-                        });
+                        var status = testResult.StepsExecuted < testResult.TotalSteps
+                                    ? TestResult.Ignored
+                                    : testResult.HasErrors
+                                        ? TestResult.Failed
+                                        : TestResult.Passed;
 
+                        var filteredCurrentResults = currentResults.FirstOrDefault(m => m.Provider.Id == providerResult.Provider.Id && m.TestScenario.Id == testResult.Scenario.Id && m.TestResult == status);
+
+                        if (filteredCurrentResults == null)
+                        {
+                            scenarioResults.Add(new TestScenarioResult
+                            {
+                                TestResult = status,
+                                Specification = new Reference(specification.Id, specification.Name),
+                                TestScenario = new Reference(testResult.Scenario.Id, testResult.Scenario.Name),
+                                Provider = new Reference(providerResult.Provider.Id, providerResult.Provider.Name)
+                            });
+
+                        }
                     }
                 }
 
@@ -119,7 +122,10 @@ namespace CalculateFunding.Services.TestRunner
                     var gherkinScenarioResults =
                         _gherkinExecutor.Execute(providerResult, providerSourceDatasets, testScenarios, buildProject);
 
-                    scenarioResults.AddRange(gherkinScenarioResults);
+                    if (!gherkinScenarioResults.IsNullOrEmpty())
+                    {
+                        scenarioResults.AddRange(gherkinScenarioResults);
+                    }
                 }
             }
 

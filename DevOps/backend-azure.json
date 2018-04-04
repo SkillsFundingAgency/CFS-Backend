@@ -760,7 +760,7 @@
             },
             {
               "name": "CosmosDbSettings:CollectionName",
-              "value": "results"
+              "value": "tests"
             },
             {
               "name": "SearchServiceName",
@@ -1154,7 +1154,7 @@
             },
             {
               "name": "CosmosDbSettings:CollectionName",
-              "value": "scenarios"
+              "value": "tests"
             },
             {
               "name": "EventHubSettings:ServiceBusConnectionString",

@@ -28,33 +28,36 @@ namespace CalculateFunding.Services.TestRunner
                     Scenario = new Reference(scenario.Id, scenario.Name)
                 };
 
-                var parseResult = _parser.Parse(scenario.Current.Gherkin, buildProject).Result;
+                var parseResult = _parser.Parse(scenario.Current.Gherkin, buildProject)?.Result;
                 
-                scenarioResult.TotalSteps = parseResult.StepActions.Count;
+                if(parseResult != null)
+                { 
+                    scenarioResult.TotalSteps = parseResult.StepActions.Count;
 
-                scenarioResult.StepsExecuted = 0;
-                foreach (var action in parseResult.StepActions)
-                {
-                    var result = action.Execute(providerResult, datasets);
-                    if (result.Dependencies.Any())
+                    scenarioResult.StepsExecuted = 0;
+                    foreach (var action in parseResult.StepActions)
                     {
-                        foreach (var resultDependency in result.Dependencies)
+                        var result = action.Execute(providerResult, datasets);
+                        if (result.Dependencies.Any())
                         {
-                            if (!scenarioResult.Dependencies.Contains(resultDependency))
+                            foreach (var resultDependency in result.Dependencies)
                             {
-                                scenarioResult.Dependencies.Add(resultDependency);
+                                if (!scenarioResult.Dependencies.Contains(resultDependency))
+                                {
+                                    scenarioResult.Dependencies.Add(resultDependency);
+                                }
                             }
                         }
+                        if (result.HasErrors)
+                        {
+                            scenarioResult.Errors.AddRange(result.Errors);
+                        }
+                        if (result.Abort)
+                        {
+                            break;
+                        }
+                        scenarioResult.StepsExecuted++;
                     }
-                    if (result.HasErrors)
-                    {
-                        scenarioResult.Errors.AddRange(result.Errors);
-                    }
-                    if (result.Abort)
-                    {
-                        break;
-                    }
-                    scenarioResult.StepsExecuted++;
                 }
 
                 yield return scenarioResult;
