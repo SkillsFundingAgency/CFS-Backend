@@ -6,6 +6,7 @@ using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets;
@@ -82,7 +83,9 @@ namespace CalculateFunding.Functions.Datasets
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(dbSettings);
 
-                return new ProvidersResultsRepository(calcsCosmosRepostory);
+                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
+
+                return new ProvidersResultsRepository(calcsCosmosRepostory, cacheProvider);
             });
 
             builder.AddScoped<IDatasetRepository, DataSetsRepository>();

@@ -556,7 +556,7 @@ namespace CalculateFunding.Services.Datasets
                 }
             }
 
-            await _providersResultsRepository.UpdateSourceDatsets(resultsByProviderId.Values);
+            await _providersResultsRepository.UpdateSourceDatsets(resultsByProviderId.Values, specificationId);
         }
 
         async Task<TableLoadResult> GetTableResult(string fullBlobName, DatasetDefinition datasetDefinition)

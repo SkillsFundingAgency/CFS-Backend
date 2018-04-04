@@ -1,9 +1,11 @@
 ﻿using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,22 +14,33 @@ namespace CalculateFunding.Services.TestRunner.Services
     public class ScenariosRepository : IScenariosRepository
     {
         private readonly IApiClientProxy _apiClient;
+        private readonly ICacheProvider _cacheProvider;
 
-        public ScenariosRepository(IApiClientProxy apiClient)
+        public ScenariosRepository(IApiClientProxy apiClient, ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
 
             _apiClient = apiClient;
+            _cacheProvider = cacheProvider;
         }
 
-        public Task<IEnumerable<TestScenario>> GetTestScenariosBySpecificationId(string specificationId)
+        public async Task<IEnumerable<TestScenario>> GetTestScenariosBySpecificationId(string specificationId)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
                 throw new ArgumentNullException(nameof(specificationId));
 
-            string url = $"scenarios/get-scenarios-by-specificationId?specificationId={specificationId}";
+            IEnumerable<TestScenario> testScenarios = await _cacheProvider.GetAsync<List<TestScenario>>(specificationId);
 
-            return _apiClient.GetAsync<IEnumerable<TestScenario>>(url);
+            if (testScenarios.IsNullOrEmpty())
+            {
+                string url = $"scenarios/get-scenarios-by-specificationId?specificationId={specificationId}";
+
+                testScenarios = await _apiClient.GetAsync<IEnumerable<TestScenario>>(url);
+
+                await _cacheProvider.SetAsync<List<TestScenario>>(specificationId, testScenarios.ToList(), TimeSpan.FromHours(1), false);
+            }
+
+            return testScenarios;
         }
     }
 }

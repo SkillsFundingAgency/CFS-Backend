@@ -2140,7 +2140,7 @@ namespace CalculateFunding.Services.Datasets.Services
                              !string.IsNullOrWhiteSpace(m.First().Id) &&
                              m.First().Specification.Id == SpecificationId &&
                              m.First().Provider.Id == "123456"
-                        ));
+                        ), Arg.Is(SpecificationId));
         }
 
         [TestMethod]
@@ -2247,7 +2247,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 providerResultsRepository
                     .Received(1)
-                    .UpdateSourceDatsets(Arg.Any<IEnumerable<ProviderSourceDataset>>());
+                    .UpdateSourceDatsets(Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Is(SpecificationId));
         }
 
         static DatasetService CreateDatasetService(IBlobClient blobClient = null, ILogger logger = null, 

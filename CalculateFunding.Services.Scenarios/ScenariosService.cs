@@ -6,6 +6,7 @@ using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
@@ -28,10 +29,15 @@ namespace CalculateFunding.Services.Scenarios
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly IValidator<CreateNewTestScenarioVersion> _createNewTestScenarioVersionValidator;
         private readonly ISearchRepository<ScenarioIndex> _searchRepository;
+        private readonly ICacheProvider _cacheProvider;
 
-        public ScenariosService(ILogger logger, IScenariosRepository scenariosRepository, 
-            ISpecificationsRepository specificationsRepository, IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator,
-            ISearchRepository<ScenarioIndex> searchRepository)
+        public ScenariosService(
+            ILogger logger, 
+            IScenariosRepository scenariosRepository, 
+            ISpecificationsRepository specificationsRepository, 
+            IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator,
+            ISearchRepository<ScenarioIndex> searchRepository,
+            ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(scenariosRepository, nameof(scenariosRepository));
@@ -44,6 +50,7 @@ namespace CalculateFunding.Services.Scenarios
             _specificationsRepository = specificationsRepository;
             _createNewTestScenarioVersionValidator = createNewTestScenarioVersionValidator;
             _searchRepository = searchRepository;
+            _cacheProvider = cacheProvider;
         }
 
         async public Task<IActionResult> SaveVersion(HttpRequest request)
@@ -141,6 +148,8 @@ namespace CalculateFunding.Services.Scenarios
             };
 
             await _searchRepository.Index(new List<ScenarioIndex> { scenarioIndex });
+
+            await _cacheProvider.RemoveAsync<List<TestScenario>>(testScenario.Specification.Id);
 
             return new OkObjectResult(newVersion);
         }

@@ -6,6 +6,7 @@ using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.CodeMetadataGenerator;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Repositories;
@@ -87,7 +88,9 @@ namespace CalculateFunding.Functions.TestEngine
 
                 CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
 
-                return new Services.TestRunner.Services.ProviderRepository(providersCosmosRepostory);
+                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
+
+                return new Services.TestRunner.Services.ProviderRepository(providersCosmosRepostory, cacheProvider);
             });
 
             builder.AddCosmosDb(config);

@@ -134,7 +134,9 @@ namespace CalculateFunding.Services.Calculator
 
                 properties.Add("specificationId", specificationId);
 
-                await _messengerService.SendAsync(ExecuteTestsEventSubscription, providerResultsCacheKey, properties);
+                properties.Add("providerResultsCacheKey", providerResultsCacheKey);
+
+                await _messengerService.SendAsync(ExecuteTestsEventSubscription, buildProject, properties);
             }
 
             calcTiming.Stop();

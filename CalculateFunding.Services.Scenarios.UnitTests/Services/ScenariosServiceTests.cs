@@ -20,6 +20,7 @@ using CalculateFunding.Models;
 using System.Net;
 using System.Linq;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 
 namespace CalculateFunding.Services.Scenarios.Services
 {
@@ -342,15 +343,20 @@ namespace CalculateFunding.Services.Scenarios.Services
 
         static ScenariosService CreateScenariosService(ILogger logger = null, IScenariosRepository scenariosRepository = null,
             ISpecificationsRepository specificationsRepository = null, IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator = null,
-            ISearchRepository<ScenarioIndex> searchRepository = null)
+            ISearchRepository<ScenarioIndex> searchRepository = null, ICacheProvider cacheProvider = null)
         {
             return new ScenariosService(logger ?? CreateLogger(), scenariosRepository ?? CreateScenariosRepository(), specificationsRepository ?? CreateSpecificationsRepository(),
-                createNewTestScenarioVersionValidator ?? CreateValidator(), searchRepository ?? CreateSearchRepository());
+                createNewTestScenarioVersionValidator ?? CreateValidator(), searchRepository ?? CreateSearchRepository(), cacheProvider ?? CreateCacheProvider());
         }
 
         static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
+        }
+
+        static ICacheProvider CreateCacheProvider()
+        {
+            return Substitute.For<ICacheProvider>();
         }
 
         static IScenariosRepository CreateScenariosRepository()

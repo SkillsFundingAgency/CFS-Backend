@@ -22,6 +22,7 @@ using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
@@ -146,7 +147,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(dbSettings);
 
-                return new ProvidersResultsRepository(calcsCosmosRepostory);
+                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
+
+                return new ProvidersResultsRepository(calcsCosmosRepostory, cacheProvider);
             });
 
             builder
@@ -390,7 +393,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
 
-                return new Services.TestRunner.Services.ProviderRepository(providersCosmosRepostory);
+                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
+
+                return new Services.TestRunner.Services.ProviderRepository(providersCosmosRepostory, cacheProvider);
             });
 
             builder

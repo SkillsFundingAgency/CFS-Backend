@@ -61,55 +61,6 @@ namespace CalculateFunding.Services.TestRunner
             return scenarioResults;
         }
 
-        //public ProviderTestResult RunProviderTests(IEnumerable<TestScenario> testScenarios, ProviderResult providerResult, IEnumerable<ProviderSourceDataset> providerSourceDatasets, Specification specification)
-        //{
-        //    var testResult = new ProviderTestResult
-        //    {
-        //        Provider = providerResult.Provider,
-        //        Budget = providerResult.Specification,
-        //    };
-        //    var scenarioResults = new List<ProductTestScenarioResult>();
-        //    foreach (var productResult in providerResult.CalculationResults)
-        //    {
-        //        if (testScenarios != null)
-        //        {
-        //            var gherkinScenarioResults =
-        //                _gherkinExecutor.Execute(providerResult, providerSourceDatasets, testScenarios, specification);
-
-        //            foreach (var executeResult in gherkinScenarioResults)
-        //            {
-        //                scenarioResults.Add(new ProductTestScenarioResult
-        //                {
-        //                    Calculation = productResult.Calculation,
-        //                    CalculationSpecification = productResult.CalculationSpecification,
-        //                    AllocationLine = productResult.AllocationLine,
-        //                    PolicySpecifications = productResult.PolicySpecifications,
-        //                    Value = productResult.Value,
-        //                    Scenario = executeResult.Scenario,
-        //                    TestResult =
-        //                        executeResult.StepsExecuted < executeResult.TotalSteps
-        //                            ? TestResult.Ignored
-        //                            : executeResult.HasErrors
-        //                                ? TestResult.Failed
-        //                                : TestResult.Passed,
-        //                    StepExected = executeResult.StepsExecuted,
-        //                    TotalSteps = executeResult.TotalSteps,
-        //                    DatasetReferences = executeResult.Dependencies.Select(x => new DatasetReference
-        //                    {
-        //                        DatasetName = x.DatasetName,
-        //                        FieldName = x.FieldName,
-        //                        Value = x.Value
-        //                    }).ToArray()
-        //                });
-        //            }
-        //        }
-        //    }
-
-        //    testResult.ScenarioResults = scenarioResults.ToArray();
-
-        //    return testResult;
-        //}
-
         IEnumerable<ScenarioResult> RunTests(IEnumerable<TestScenario> testScenarios, ProviderResult providerResult, 
             IEnumerable<ProviderSourceDataset> providerSourceDatasets, BuildProject buildProject)
         {

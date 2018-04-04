@@ -25,7 +25,6 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly IScenariosRepository _scenariosRepository;
         private readonly IProviderRepository _providerRepository;
         private readonly ITestResultsRepository _testResultsRepository;
-        private readonly IBuildProjectRepository _buildProjectRepository;
 
         public TestEngineService(
             ICacheProvider cacheProvider, 
@@ -34,8 +33,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             ITestEngine testEngine,
             IScenariosRepository scenariosRepository,
             IProviderRepository providerRepository,
-            ITestResultsRepository testResultsRepository,
-            IBuildProjectRepository buildProjectRepository)
+            ITestResultsRepository testResultsRepository)
         {
             _cacheProvider = cacheProvider;
             _specificationRepository = specificationRepository;
@@ -44,16 +42,15 @@ namespace CalculateFunding.Services.TestRunner.Services
             _scenariosRepository = scenariosRepository;
             _providerRepository = providerRepository;
             _testResultsRepository = testResultsRepository;
-            _buildProjectRepository = buildProjectRepository;
         }
 
         public async Task RunTests(EventData message)
         {
-            string cacheKey = message.GetPayloadAsInstanceOf<string>();
+            BuildProject buildProject = message.GetPayloadAsInstanceOf<BuildProject>();
 
-            if (string.IsNullOrWhiteSpace(cacheKey))
+            if (buildProject == null)
             {
-                _logger.Error("Null or empty cache key provided");
+                _logger.Error("Null build project provided");
                 return;
             }
 
@@ -62,6 +59,14 @@ namespace CalculateFunding.Services.TestRunner.Services
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("Null or empty specification id provided");
+                return;
+            }
+
+            string cacheKey = message.Properties["providerResultsCacheKey"].ToString();
+
+            if (string.IsNullOrWhiteSpace(cacheKey))
+            {
+                _logger.Error("Null or empty cache key provided");
                 return;
             }
 
@@ -98,8 +103,6 @@ namespace CalculateFunding.Services.TestRunner.Services
                 _logger.Error($"No source datasets found for specification id: {specificationId}");
                 return;
             }
-
-            BuildProject buildProject = await _buildProjectRepository.GetBuildProjectBySpecificationId(specificationId);
 
             IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id).ToList();
 
