@@ -9,6 +9,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -75,6 +76,47 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             await searchRepository
                 .Received(1)
                 .Index(Arg.Any<IEnumerable<TestScenarioResultIndex>>());
+        }
+
+        [TestMethod]
+        public async Task SaveTestProviderResults_WhenItemsPasssed_ThenSearchResultsMapped()
+        {
+            // Arrange
+            ITestResultsRepository testResultsRepository = CreateTestResultsRepository();
+            ISearchRepository<TestScenarioResultIndex> searchRepository = CreateSearchRespository();
+
+            ITestResultsService service = CreateTestResultsService(testResultsRepository, searchRepository);
+
+            List<TestScenarioResult> itemsToUpdate = new List<TestScenarioResult>();
+            TestScenarioResult testScenarioResult = CreateTestScenarioResult();
+            itemsToUpdate.Add(testScenarioResult);
+
+            testResultsRepository
+                .SaveTestProviderResults(Arg.Any<IEnumerable<TestScenarioResult>>())
+                .Returns(HttpStatusCode.Created);
+
+            // Act
+            HttpStatusCode result = await service.SaveTestProviderResults(itemsToUpdate);
+
+            // Assert
+            result.Should().Be(HttpStatusCode.Created);
+
+            await testResultsRepository
+                .Received(1)
+                .SaveTestProviderResults(itemsToUpdate);
+
+            await searchRepository
+                .Received(1)
+                .Index(Arg.Is<IEnumerable<TestScenarioResultIndex>>(c =>
+                    c.First().Id == testScenarioResult.Id  &&
+                    c.First().ProviderId == testScenarioResult.Provider.Id &&
+                    c.First().ProviderName == testScenarioResult.Provider.Name &&
+                    c.First().SpecificationId == testScenarioResult.Specification.Id &&
+                    c.First().SpecificationName == testScenarioResult.Specification.Name &&
+                    c.First().TestResult == Enum.GetName(typeof(Models.Results.TestResult), testScenarioResult.TestResult) &&
+                    c.First().TestScenarioId == testScenarioResult.TestScenario.Id &&
+                    c.First().TestScenarioName == testScenarioResult.TestScenario.Name
+                ));
         }
 
         [TestMethod]

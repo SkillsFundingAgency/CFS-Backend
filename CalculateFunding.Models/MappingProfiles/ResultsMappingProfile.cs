@@ -17,7 +17,7 @@ namespace CalculateFunding.Models.MappingProfiles
                 .ForMember(m => m.ProviderId, opt => opt.MapFrom(s => s.Provider.Id))
                 .ForMember(m => m.ProviderName, opt => opt.MapFrom(s => s.Provider.Name))
                 .ForMember(m => m.TestScenarioId, opt => opt.MapFrom(s => s.TestScenario.Id))
-                .ForMember(m => m.TestScenarioName, opt => opt.MapFrom(s => s.TestScenario.Id));
+                .ForMember(m => m.TestScenarioName, opt => opt.MapFrom(s => s.TestScenario.Name));
         }
     }
 }
