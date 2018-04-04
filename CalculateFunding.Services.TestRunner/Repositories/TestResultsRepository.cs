@@ -8,16 +8,19 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
 using CalculateFunding.Services.Core.Helpers;
+using Serilog;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
 {
     public class TestResultsRepository : ITestResultsRepository
     {
         private readonly CosmosRepository _cosmosRepository;
+        private readonly ILogger _logger;
 
-        public TestResultsRepository(CosmosRepository cosmosRepository)
+        public TestResultsRepository(CosmosRepository cosmosRepository, ILogger logger)
         {
             _cosmosRepository = cosmosRepository;
+            _logger = logger;
         }
 
         public Task<IEnumerable<TestScenarioResult>> GetCurrentTestResults(IEnumerable<string> providerIds, string specificationId)
@@ -34,9 +37,37 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             return Task.FromResult(results.AsEnumerable());
         }
 
-        public Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> providerResult)
+        public async Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> providerResult)
         {
-            throw new NotImplementedException();
+            Guard.ArgumentNotNull(providerResult, nameof(providerResult));
+
+            List<TestScenarioResult> items = new List<TestScenarioResult>(providerResult);
+            for(int i = 0; i < items.Count; i++)
+            {
+                TestScenarioResult result = items[i];
+                if(result == null)
+                {
+                    _logger.Error("Result {i} provided was null", i);
+                    throw new InvalidOperationException($"Result {i} provided was null");
+                }
+
+                if (!result.IsValid())
+                {
+                    _logger.Error("Result {i} provided was not valid", i);
+                    throw new InvalidOperationException($"Result {i} provided was valid");
+                }
+            }
+
+            if (items.Any())
+            {
+                await _cosmosRepository.BulkCreateAsync<TestScenarioResult>(items);
+            }
+            else
+            {
+                return HttpStatusCode.NoContent;
+            }
+
+            return HttpStatusCode.Created;
         }
     }
 }

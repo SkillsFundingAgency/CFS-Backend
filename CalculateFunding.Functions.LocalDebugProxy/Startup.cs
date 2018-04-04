@@ -359,7 +359,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 CosmosRepository testResultsCosmosRepostory = new CosmosRepository(testResultsDbSettings);
 
-                return new TestResultsRepository(testResultsCosmosRepostory);
+                ILogger logger = ctx.GetService<ILogger>();
+
+                return new TestResultsRepository(testResultsCosmosRepostory, logger);
             });
 
             //MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
