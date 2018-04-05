@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Calculator
         public async Task GenerateAllocations(EventData message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
-
+            
             BuildProject buildProject = message.GetPayloadAsInstanceOf<BuildProject>();
 
             string specificationId = buildProject.Specification.Id;
@@ -81,10 +81,16 @@ namespace CalculateFunding.Services.Calculator
             int partitionIndex = int.Parse(message.Properties["provider-summaries-partition-index"].ToString());
 
             int partitionSize = int.Parse(message.Properties["provider-summaries-partition-size"].ToString());
+            if (partitionSize <= 0)
+            {
+                _logger.Error("Partition size is zero or less. {partitionSize}", partitionSize);
+
+                throw new KeyNotFoundException($"Partition size is zero or less. {partitionSize}");
+            }
 
             int start = partitionIndex;
 
-            int stop = start + partitionSize;
+            int stop = start + partitionSize - 1;
 
             IEnumerable<ProviderSummary> summaries = await _cacheProvider.ListRangeAsync<ProviderSummary>("all-cached-providers", start, stop);
 

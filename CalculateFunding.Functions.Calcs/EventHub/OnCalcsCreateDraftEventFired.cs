@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.WebJobs;
@@ -12,21 +13,29 @@ namespace CalculateFunding.Functions.Calcs.EventHub
 {
     public static class OnCalcsCreateDraftEvent
     {
+        public const string EventHubName = "calc-events-create-draft";
+
         [FunctionName("on-calcs-create-draft-event")]
-        public static async Task Run([EventHubTrigger("calc-events-create-draft", Connection = "EventHubSettings:EventHubConnectionString")] EventData[] eventHubMessages)
+        public static async Task Run([EventHubTrigger(EventHubName, Connection = "EventHubSettings:EventHubConnectionString")] EventData[] eventHubMessages)
         {
             using (var scope = IocConfig.Build().CreateScope())
             {
                 var calculationService = scope.ServiceProvider.GetService<ICalculationService>();
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 var logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
+                ICacheProvider cacheProvider = scope.ServiceProvider.GetService<ICacheProvider>();
 
                 foreach (var message in eventHubMessages)
                 {
                     try
                     {
-                        correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                        await calculationService.CreateCalculation(message);
+                        bool alreadyExists = await cacheProvider.HasMessageBeenProcessed(EventHubName, message);
+                        if (!alreadyExists)
+                        {
+                            correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
+                            await calculationService.CreateCalculation(message);
+                            await cacheProvider.MarkMessageAsProcessed(EventHubName, message);
+                        }
                     }
                     catch (Exception exception)
                     {

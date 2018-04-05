@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.Azure.EventHubs;
@@ -12,21 +13,29 @@ namespace CalculateFunding.Functions.TestEngine.EventHub
 {
     public static class OnTestExecution
     {
+        public const string EventHubName = "test-events-execute-tests";
+
         [FunctionName("on-test-execution-event")]
-        public static async Task Run([EventHubTrigger("test-events-execute-tests", Connection = "EventHubSettings:EventHubConnectionString")] EventData[] eventHubMessages)
+        public static async Task Run([EventHubTrigger(EventHubName, Connection = "EventHubSettings:EventHubConnectionString")] EventData[] eventHubMessages)
         {
             using (var scope = IocConfig.Build().CreateScope())
             {
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 var testEngineService = scope.ServiceProvider.GetService<ITestEngineService>();
                 var logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
+                ICacheProvider cacheProvider = scope.ServiceProvider.GetService<ICacheProvider>();
 
                 foreach (var message in eventHubMessages)
                 {
                     try
                     {
-                        correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                        await testEngineService.RunTests(message);
+                        bool alreadyExists = await cacheProvider.HasMessageBeenProcessed(EventHubName, message);
+                        if (!alreadyExists)
+                        {
+                            correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
+                            await testEngineService.RunTests(message);
+                            await cacheProvider.MarkMessageAsProcessed(EventHubName, message);
+                        }
                     }
                     catch (Exception exception)
                     {
