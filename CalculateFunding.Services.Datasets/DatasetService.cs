@@ -32,6 +32,7 @@ using CalculateFunding.Models.Results;
 using System.Linq.Expressions;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Calcs.Messages;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -53,20 +54,21 @@ namespace CalculateFunding.Services.Datasets
         private readonly ICalcsRepository _calcsRepository;
         private readonly IProviderRepository _providerRepository;
         private readonly IProvidersResultsRepository _providersResultsRepository;
+        private readonly ITelemetry _telemetry;
 
         const string dataset_cache_key_prefix = "ds-table-rows";
         const string generateAllocationsSubscription = "calc-events-generate-allocations-results";
         const string GenerateAllocationsInstructionSubscription = "calc-events-instruct-generate-allocations";
 
         static IEnumerable<ProviderSummary> _providerSummaries = new List<ProviderSummary>();
-
+       
         public DatasetService(IBlobClient blobClient, ILogger logger,
             IDatasetRepository datasetRepository, IValidator<CreateNewDatasetModel> createNewDatasetModelValidator,
             IMapper mapper, IValidator<DatasetMetadataModel> datasetMetadataModelValidator,
             ISearchRepository<DatasetIndex> searchRepository, IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator,
             ISpecificationsRepository specificationsRepository, IMessengerService messengerService,
             EventHubSettings eventHubSettings, IExcelDatasetReader excelDatasetReader, ICacheProvider cacheProvider,
-            ICalcsRepository calcsRepository, IProviderRepository providerRepository, IProvidersResultsRepository providersResultsRepository)
+            ICalcsRepository calcsRepository, IProviderRepository providerRepository, IProvidersResultsRepository providersResultsRepository, ITelemetry telemetry)
         {
             _blobClient = blobClient;
             _logger = logger;
@@ -84,6 +86,7 @@ namespace CalculateFunding.Services.Datasets
             _calcsRepository = calcsRepository;
             _providerRepository = providerRepository;
             _providersResultsRepository = providersResultsRepository;
+            _telemetry = telemetry;
         }
 
         async public Task<IActionResult> CreateNewDataset(HttpRequest request)
@@ -277,6 +280,17 @@ namespace CalculateFunding.Services.Datasets
 
                 await _messengerService.SendAsync(GenerateAllocationsInstructionSubscription,
                         buildProject, messageProperties);
+
+                _telemetry.TrackEvent("InstructCalculationAllocationEventRun",
+                      new Dictionary<string, string>()
+                      {
+                            { "specificationId" , buildProject.Specification.Id },
+                            { "buildProjectId" , buildProject.Id },
+                            { "datasetId", dataset.Id }
+                      },
+                      new Dictionary<string, double>()
+                      { }
+                );
             }
         }
 

@@ -341,6 +341,17 @@ namespace CalculateFunding.Services.Calcs
 
             await SendGenerateAllocationsMessage(buildProject, request);
 
+            _telemetry.TrackEvent("InstructCalculationAllocationEventRun",
+               new Dictionary<string, string>()
+               {
+                        { "specificationId" , buildProject.Specification.Id },
+                        { "buildProjectId" , buildProject.Id },
+                        { "calculationId" , calculationId }
+               },
+               new Dictionary<string, double>()
+               {}
+           );
+
             return new OkObjectResult(currentVersion);
         }
 

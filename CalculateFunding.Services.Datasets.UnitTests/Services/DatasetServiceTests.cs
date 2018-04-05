@@ -36,6 +36,7 @@ using Microsoft.Azure.EventHubs;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -1824,7 +1825,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 DatasetRelationships = new List<DatasetRelationshipSummary>
                 {
                     new DatasetRelationshipSummary{ DatasetDefinition = new DatasetDefinition { Id = DataDefintionId } }
-                }
+                },
+                Specification = new SpecificationSummary { Id = SpecificationId }
             };
 
             ICalcsRepository calcsRepository = CreateCalcsRepository();
@@ -2005,7 +2007,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 DatasetRelationships = new List<DatasetRelationshipSummary>
                 {
                     new DatasetRelationshipSummary{ DatasetDefinition = new DatasetDefinition { Id = DataDefintionId } }
-                }
+                },
+                Specification = new SpecificationSummary { Id = SpecificationId }
             };
 
             ICalcsRepository calcsRepository = CreateCalcsRepository();
@@ -2104,7 +2107,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 DatasetRelationships = new List<DatasetRelationshipSummary>
                 {
                     new DatasetRelationshipSummary{ DatasetDefinition = new DatasetDefinition { Id = DataDefintionId } }
-                }
+                },
+                Specification = new SpecificationSummary { Id = SpecificationId }
             };
 
             ICalcsRepository calcsRepository = CreateCalcsRepository();
@@ -2218,7 +2222,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 DatasetRelationships = new List<DatasetRelationshipSummary>
                 {
                     new DatasetRelationshipSummary{ DatasetDefinition = new DatasetDefinition { Id = DataDefintionId } }
-                }
+                },
+                Specification = new SpecificationSummary { Id = SpecificationId }
             };
 
             ICalcsRepository calcsRepository = CreateCalcsRepository();
@@ -2256,7 +2261,8 @@ namespace CalculateFunding.Services.Datasets.Services
             IValidator<DatasetMetadataModel> datasetMetadataModelValidator = null, ISearchRepository<DatasetIndex> searchRepository = null,
             IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator = null, ISpecificationsRepository specificationsRepository = null,
             IMessengerService messengerService = null, EventHubSettings eventHubSettings = null, IExcelDatasetReader excelDatasetReader = null,
-            ICacheProvider cacheProvider = null, ICalcsRepository calcsRepository = null, IProviderRepository providerRepository = null, IProvidersResultsRepository providersResultsRepository = null)
+            ICacheProvider cacheProvider = null, ICalcsRepository calcsRepository = null, IProviderRepository providerRepository = null, IProvidersResultsRepository providersResultsRepository = null,
+            ITelemetry telemetry = null)
         {
             return new DatasetService(blobClient ?? CreateBlobClient(), logger ?? CreateLogger(), 
                 datasetRepository ?? CreateDatasetsRepository(), 
@@ -2265,12 +2271,18 @@ namespace CalculateFunding.Services.Datasets.Services
                 searchRepository ?? CreateSearchRepository(), getDatasetBlobModelValidator ?? CreateGetDatasetBlobModelValidator(),
                 specificationsRepository ?? CreateSpecificationsRepository(), messengerService ?? CreateMessengerService(), 
                 eventHubSettings ?? CreateEventHubSettings(), excelDatasetReader ?? CreateExcelDatasetReader(), 
-                cacheProvider ?? CreateCacheProvider(), calcsRepository ?? CreateCalcsRepository(), providerRepository ?? CreateProviderRepository(), providersResultsRepository ?? CreateProvidesrResultsRepository());
+                cacheProvider ?? CreateCacheProvider(), calcsRepository ?? CreateCalcsRepository(), providerRepository ?? CreateProviderRepository(), 
+                providersResultsRepository ?? CreateProvidesrResultsRepository(), telemetry ?? CreateTelemetry());
         }
 
         static ICalcsRepository CreateCalcsRepository()
         {
             return Substitute.For<ICalcsRepository>();
+        }
+
+        static ITelemetry CreateTelemetry()
+        {
+            return Substitute.For<ITelemetry>();
         }
 
         static IProviderRepository CreateProviderRepository()
