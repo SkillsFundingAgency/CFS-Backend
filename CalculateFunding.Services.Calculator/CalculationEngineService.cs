@@ -32,8 +32,8 @@ namespace CalculateFunding.Services.Calculator
         private readonly IProviderResultsRepository _providerResultsRepository;
 
         public CalculationEngineService(
-            ILogger logger, 
-            ICalculationEngine calculationEngine, 
+            ILogger logger,
+            ICalculationEngine calculationEngine,
             ICacheProvider cacheProvider,
             IMessengerService messengerService,
             IProviderSourceDatasetsRepository providerSourceDatasetsRepository,
@@ -149,12 +149,18 @@ namespace CalculateFunding.Services.Calculator
                     new Dictionary<string, string>()
                     {
                         { "specificationId" , specificationId },
-                        { "buildProjectId" , buildProject.Id }
+                        { "buildProjectId" , buildProject.Id },
+                        { "eventHubPartitionKey" , message.SystemProperties.PartitionKey},
+                        { "eventHubPartitionSequenceNumber" , message.SystemProperties.SequenceNumber.ToString() },
+                        { "messageEnqueuedTimeUtc" , message.SystemProperties.EnqueuedTimeUtc.ToString()}
+
                     },
                     new Dictionary<string, double>()
                     {
                         { "calculation-run-providersProcessed", partitionedSummaries.Count() },
-                        { "calculation-run-elapsedMilliseconds", calcTiming.ElapsedMilliseconds }
+                        { "calculation-run-elapsedMilliseconds", calcTiming.ElapsedMilliseconds },
+                        { "calculation-run-providersResultsFromCache", summaries.Count() },
+                        { "calculation-run-partitionSize", partitionSize },
                     }
                 );
             }
