@@ -90,13 +90,13 @@ namespace CalculateFunding.Services.Calculator
 
             //if summaries = null, shouldnt be!!, but if is then get from search
 
-            IList<ProviderResult> providerResults = new List<ProviderResult>();
-
             IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(buildProject);
 
             for (int i = 0; i < summaries.Count(); i += 100)
             {
                 var calcTiming = Stopwatch.StartNew();
+
+                IList<ProviderResult> providerResults = new List<ProviderResult>();
 
                 IEnumerable<ProviderSummary> partitionedSummaries = summaries.Skip(i).Take(100);
 
