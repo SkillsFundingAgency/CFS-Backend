@@ -26,21 +26,23 @@ namespace CalculateFunding.Services.Results
     {
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
-        private readonly IResultsRepository _resultsRepository;
+        private readonly ICalculationResultsRepository _resultsRepository;
         private readonly IMapper _mapper;
         private readonly ISearchRepository<ProviderIndex> _searchRepository;
         private readonly IMessengerService _messengerService;
         private readonly EventHubSettings _eventHubSettings;
+        private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
 
         const string ProcessDatasetSubscription = "dataset-events-datasets";
 
         public ResultsService(ILogger logger,
-            IResultsRepository resultsRepository,
+            ICalculationResultsRepository resultsRepository,
             IMapper mapper,
             ISearchRepository<ProviderIndex> searchRepository,
             IMessengerService messengerService,
             EventHubSettings EventHubSettings,
-            ITelemetry telemetry)
+            ITelemetry telemetry,
+            IProviderSourceDatasetRepository providerSourceDatasetRepository)
         {
             _logger = logger;
             _resultsRepository = resultsRepository;
@@ -49,6 +51,7 @@ namespace CalculateFunding.Services.Results
             _messengerService = messengerService;
             _eventHubSettings = EventHubSettings;
             _telemetry = telemetry;
+            _providerSourceDatasetRepository = providerSourceDatasetRepository;
         }
 
         public async Task UpdateProviderData(EventData message)
@@ -207,7 +210,7 @@ namespace CalculateFunding.Services.Results
                 throw new ArgumentNullException(nameof(sourceDatset), "Null results source dataset was provided to UpdateProviderSourceDataset");
             }
 
-            HttpStatusCode statusCode = await _resultsRepository.UpsertProviderSourceDataset(sourceDatset);
+            HttpStatusCode statusCode = await _providerSourceDatasetRepository.UpsertProviderSourceDataset(sourceDatset);
 
             if (!statusCode.IsSuccess())
             {
@@ -239,7 +242,7 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty provider Id provided");
             }
 
-            IEnumerable<ProviderSourceDataset> providerResults = await _resultsRepository.GetProviderSourceDatasets(providerId, specificationId);
+            IEnumerable<ProviderSourceDataset> providerResults = await _providerSourceDatasetRepository.GetProviderSourceDatasets(providerId, specificationId);
 
             return new OkObjectResult(providerResults);
         }

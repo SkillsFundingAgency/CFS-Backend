@@ -92,7 +92,7 @@ namespace CalculateFunding.EndToEnd
 			var dataRelationshipService = serviceProvider.GetService<IDefinitionSpecificationRelationshipService>();
 			var specSearchService = serviceProvider.GetService<ISpecificationsSearchService>();
 			var providerSearchService = serviceProvider.GetService<IResultsSearchService>();
-			var resultsRepo = serviceProvider.GetService<IResultsRepository>();
+			var resultsRepo = serviceProvider.GetService<ICalculationResultsRepository>();
 			var calcService = serviceProvider.GetService<ICalculationService>();
 			var calc = serviceProvider.GetService<CalculationEngine>();
 		    var provider = serviceProvider.GetService<ISourceFileGeneratorProvider>();
@@ -351,7 +351,7 @@ Feature:
 				.AddScoped<IResultsService, ResultsService>();
 
 
-			builder.AddScoped<IResultsRepository, ResultsRepository>((ctx) =>
+			builder.AddScoped<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
 			{
 				CosmosDbSettings specsDbSettings = new CosmosDbSettings();
 
@@ -361,7 +361,7 @@ Feature:
 
 				CosmosRepository specsCosmosRepostory = new CosmosRepository(specsDbSettings);
 
-				return new ResultsRepository(specsCosmosRepostory);
+				return new CalculationResultsRepository(specsCosmosRepostory);
 			});
 
 			builder

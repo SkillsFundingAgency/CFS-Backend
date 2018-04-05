@@ -174,7 +174,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 config.Bind("CosmosDbSettings", calssDbSettings);
 
-                calssDbSettings.CollectionName = "results";
+                calssDbSettings.CollectionName = "calculationresults";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 
@@ -242,7 +242,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                 .AddScoped<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();
 
-            builder.AddScoped<IResultsRepository, ResultsRepository>((ctx) =>
+            builder.AddScoped<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
 	        {
 		        CosmosDbSettings specsDbSettings = new CosmosDbSettings();
 
@@ -252,7 +252,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 CosmosRepository specsCosmosRepostory = new CosmosRepository(specsDbSettings);
 
-                return new ResultsRepository(specsCosmosRepostory);
+                return new CalculationResultsRepository(specsCosmosRepostory);
             });
 
             builder.AddScoped<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>((ctx) =>
@@ -426,6 +426,33 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             //MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             //builder
             //    .AddSingleton(dataSetsConfig.CreateMapper());
+
+
+            builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
+            {
+                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", calssDbSettings);
+
+                calssDbSettings.CollectionName = "calculationresults";
+
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+
+                return new CalculationResultsRepository(calcsCosmosRepostory);
+            });
+
+            builder.AddSingleton<IProviderSourceDatasetRepository, ProviderSourceDatasetRepository>((ctx) =>
+            {
+                CosmosDbSettings provDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", provDbSettings);
+
+                provDbSettings.CollectionName = "results";
+
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(provDbSettings);
+
+                return new ProviderSourceDatasetRepository(calcsCosmosRepostory);
+            });
 
             builder.AddSearch(config);
 

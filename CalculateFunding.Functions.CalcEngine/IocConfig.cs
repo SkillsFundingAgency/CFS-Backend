@@ -60,7 +60,7 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 config.Bind("CosmosDbSettings", calssDbSettings);
 
-                calssDbSettings.CollectionName = "results";
+                calssDbSettings.CollectionName = "calculationresults";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 

@@ -194,7 +194,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            IResultsRepository resultsRepository = CreateResultsRepository();
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
                 .GetProviderResult(Arg.Is(providerId), Arg.Is(specificationId))
                 .Returns((ProviderResult)null);
@@ -233,7 +233,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ProviderResult providerResult = new ProviderResult();
 
-            IResultsRepository resultsRepository = CreateResultsRepository();
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
                 .GetProviderResult(Arg.Is(providerId), Arg.Is(specificationId))
                 .Returns(providerResult);
@@ -290,7 +290,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IEnumerable<ProviderResult> providerResults = Enumerable.Empty<ProviderResult>();
 
-            IResultsRepository resultsRepository = CreateResultsRepository();
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
                 .GetSpecificationResults(Arg.Is(providerId))
                 .Returns(providerResults);
@@ -349,7 +349,7 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            IResultsRepository resultsRepository = CreateResultsRepository();
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
                 .GetSpecificationResults(Arg.Is(providerId))
                 .Returns(providerResults);
@@ -415,7 +415,7 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            IResultsRepository resultsRepository = CreateResultsRepository();
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
                 .GetSpecificationResults(Arg.Is(providerId))
                 .Returns(providerResults);
@@ -481,7 +481,7 @@ namespace CalculateFunding.Services.Results.Services
                 new ProviderResult()
             };
 
-            IResultsRepository resultsRepository = CreateResultsRepository();
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
                 .GetProviderResultsBySpecificationId(Arg.Is(specificationId))
                 .Returns(providerResults);
@@ -644,14 +644,14 @@ namespace CalculateFunding.Services.Results.Services
                 .Body
                 .Returns(stream);
 
-            IResultsRepository resultsRepository = CreateResultsRepository();
-            resultsRepository
-                .UpsertProviderSourceDataset(Arg.Any<ProviderSourceDataset>())
-                .Returns(HttpStatusCode.InternalServerError);
-
             ILogger logger = CreateLogger();
 
-            ResultsService service = CreateResultsService(logger, resultsRepository);
+            IProviderSourceDatasetRepository providerSourceDatasetRepository = CreateProviderSourceDatasetRepository();
+            providerSourceDatasetRepository
+                 .UpsertProviderSourceDataset(Arg.Any<ProviderSourceDataset>())
+                .Returns(HttpStatusCode.InternalServerError);
+
+            ResultsService service = CreateResultsService(logger, providerSourceDatasetRepository: providerSourceDatasetRepository);
 
             //Act
             IActionResult result = await service.UpdateProviderSourceDataset(request);
@@ -687,14 +687,14 @@ namespace CalculateFunding.Services.Results.Services
                 .Body
                 .Returns(stream);
 
-            IResultsRepository resultsRepository = CreateResultsRepository();
-            resultsRepository
+            ILogger logger = CreateLogger();
+
+            IProviderSourceDatasetRepository providerSourceDatasetRepository = CreateProviderSourceDatasetRepository();
+            providerSourceDatasetRepository
                 .UpsertProviderSourceDataset(Arg.Any<ProviderSourceDataset>())
                 .Returns(HttpStatusCode.OK);
 
-            ILogger logger = CreateLogger();
-
-            ResultsService service = CreateResultsService(logger, resultsRepository);
+            ResultsService service = CreateResultsService(logger, providerSourceDatasetRepository: providerSourceDatasetRepository);
 
             //Act
             IActionResult result = await service.UpdateProviderSourceDataset(request);
@@ -778,12 +778,12 @@ namespace CalculateFunding.Services.Results.Services
 
             IEnumerable<ProviderSourceDataset> providerSources = new[] { new ProviderSourceDataset(), new ProviderSourceDataset() };
 
-            IResultsRepository resultsRepository = CreateResultsRepository();
-            resultsRepository
+            IProviderSourceDatasetRepository providerSourceDatasetRepository = CreateProviderSourceDatasetRepository();
+            providerSourceDatasetRepository
                 .GetProviderSourceDatasets(Arg.Is(providerId), Arg.Is(specificationId))
                 .Returns(providerSources);
 
-            ResultsService service = CreateResultsService(logger, resultsRepository);
+            ResultsService service = CreateResultsService(logger, providerSourceDatasetRepository: providerSourceDatasetRepository);
 
             //Act
             IActionResult result = await service.GetProviderSourceDatasetsByProviderIdAndSpecificationId(request);
@@ -804,12 +804,13 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         static ResultsService CreateResultsService(ILogger logger = null,
-            IResultsRepository resultsRepository = null,
+            ICalculationResultsRepository resultsRepository = null,
             IMapper mapper = null,
             ISearchRepository<ProviderIndex> searchRepository = null,
             IMessengerService messengerService = null,
             EventHubSettings EventHubSettings = null,
-            ITelemetry telemetry = null)
+            ITelemetry telemetry = null,
+            IProviderSourceDatasetRepository providerSourceDatasetRepository = null)
         {
             return new ResultsService(
                 logger ?? CreateLogger(),
@@ -818,7 +819,8 @@ namespace CalculateFunding.Services.Results.Services
                 searchRepository ?? CreateSearchRepository(),
                 messengerService ?? CreateMessengerService(),
                 EventHubSettings ?? CreateEventHubSettings(),
-                telemetry ?? CreateTelemetry());
+                telemetry ?? CreateTelemetry(),
+                providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository());
         }
 
         static ILogger CreateLogger()
@@ -831,9 +833,14 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<ITelemetry>();
         }
 
-        static IResultsRepository CreateResultsRepository()
+        static ICalculationResultsRepository CreateResultsRepository()
         {
-            return Substitute.For<IResultsRepository>();
+            return Substitute.For<ICalculationResultsRepository>();
+        }
+
+        static IProviderSourceDatasetRepository CreateProviderSourceDatasetRepository()
+        {
+            return Substitute.For<IProviderSourceDatasetRepository>();
         }
 
         static IMapper CreateMapper()

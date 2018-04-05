@@ -35,7 +35,7 @@ namespace CalculateFunding.Functions.Results
         {
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            builder.AddScoped<IResultsRepository, ResultsRepository>();
+            builder.AddScoped<ICalculationResultsRepository, CalculationResultsRepository>();
             builder.AddScoped<IResultsService, ResultsService>();
 	        builder.AddScoped<IResultsSearchService, ResultsSearchService>();
 			MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
@@ -44,7 +44,31 @@ namespace CalculateFunding.Functions.Results
 
             builder.AddInterServiceClient(config);
 
-            builder.AddCosmosDb(config);
+            builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
+            {
+                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", calssDbSettings);
+
+                calssDbSettings.CollectionName = "calculationresults";
+
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+
+                return new CalculationResultsRepository(calcsCosmosRepostory);
+            });
+
+            builder.AddSingleton<IProviderSourceDatasetRepository, ProviderSourceDatasetRepository>((ctx) =>
+            {
+                CosmosDbSettings provDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", provDbSettings);
+
+                provDbSettings.CollectionName = "results";
+
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(provDbSettings);
+
+                return new ProviderSourceDatasetRepository(calcsCosmosRepostory);
+            });
 
             builder.AddSearch(config);
 
