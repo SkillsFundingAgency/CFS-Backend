@@ -148,12 +148,13 @@ namespace CalculateFunding.Services.Calculator
                 _telemetry.TrackEvent("CalculationRunProvidersProcessed",
                     new Dictionary<string, string>()
                     {
-                    { "specificationId" , specificationId },
-                    { "buildProjectId" , buildProject.Id }
+                        { "specificationId" , specificationId },
+                        { "buildProjectId" , buildProject.Id }
                     },
                     new Dictionary<string, double>()
                     {
-                    { "calculation-run-providersProcessed", partitionedSummaries.Count() }
+                        { "calculation-run-providersProcessed", partitionedSummaries.Count() },
+                        { "calculation-run-elapsedMilliseconds", calcTiming.ElapsedMilliseconds }
                     }
                 );
             }

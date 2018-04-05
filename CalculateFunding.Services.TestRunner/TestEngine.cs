@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.TestRunner
                 {
                     foreach (var testResult in testResults)
                     {
-                        var status = testResult.StepsExecuted < testResult.TotalSteps
+                        var status = (testResult.StepsExecuted == 0 || testResult.StepsExecuted < testResult.TotalSteps)
                                     ? TestResult.Ignored
                                     : testResult.HasErrors
                                         ? TestResult.Failed
