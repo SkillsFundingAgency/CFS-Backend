@@ -2,10 +2,12 @@
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -19,21 +21,25 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly ISearchRepository<TestScenarioResultIndex> _searchRepository;
         private readonly IMapper _mapper;
         private readonly ILogger _logger;
+        private readonly ITelemetry _telemetry;
 
         public TestResultsService(ITestResultsRepository testResultsRepository,
-            ISearchRepository<TestScenarioResultIndex> searchRepository, 
+            ISearchRepository<TestScenarioResultIndex> searchRepository,
             IMapper mapper,
-            ILogger logger)
+            ILogger logger,
+            ITelemetry telemetry)
         {
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(testResultsRepository, nameof(testResultsRepository));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(telemetry, nameof(telemetry));
 
             _testResultsRepository = testResultsRepository;
             _searchRepository = searchRepository;
             _mapper = mapper;
             _logger = logger;
+            _telemetry = telemetry;
         }
 
         public async Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> testResults)
@@ -45,6 +51,8 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return HttpStatusCode.NotModified;
             }
 
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
             Task<HttpStatusCode> repoUpdateTask = _testResultsRepository.SaveTestProviderResults(testResults);
 
             IEnumerable<TestScenarioResultIndex> searchIndexItems = _mapper.Map<IEnumerable<TestScenarioResultIndex>>(testResults);
@@ -55,17 +63,30 @@ namespace CalculateFunding.Services.TestRunner.Services
             IEnumerable<IndexError> indexErrors = searchUpdateTask.Result;
             HttpStatusCode repositoryUpdateStatusCode = repoUpdateTask.Result;
 
-            if(!indexErrors.Any() && (repoUpdateTask.Result == HttpStatusCode.Created || repoUpdateTask.Result  == HttpStatusCode.NotModified))
+            stopwatch.Stop();
+
+            if (!indexErrors.Any() && (repoUpdateTask.Result == HttpStatusCode.Created || repoUpdateTask.Result == HttpStatusCode.NotModified))
             {
+                _telemetry.TrackEvent("UpdateTestScenario",
+                        new Dictionary<string, string>() {
+                            { "SpecificationId", testResults.First().Specification.Id }
+                        },
+                        new Dictionary<string, double>()
+                        {
+                            { "update-testscenario-elapsedMilliseconds", stopwatch.ElapsedMilliseconds },
+                            { "update-testscenario-recordsUpdated", testResults.Count() },
+                        }
+                    );
+
                 return HttpStatusCode.Created;
             }
 
-            foreach(IndexError indexError in indexErrors)
+            foreach (IndexError indexError in indexErrors)
             {
                 _logger.Error($"SaveTestProviderResults index error {{key}}: {indexError.ErrorMessage}", indexError.Key);
             }
 
-            if(repositoryUpdateStatusCode == default(HttpStatusCode))
+            if (repositoryUpdateStatusCode == default(HttpStatusCode))
             {
                 _logger.Error("SaveTestProviderResults repository failed with no response code");
             }

@@ -3,6 +3,7 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Services;
 using FluentAssertions;
@@ -120,6 +121,47 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         }
 
         [TestMethod]
+        public async Task SaveTestProviderResults_WhenItemsPasssed_ThenTelemetryLogged()
+        {
+            // Arrange
+            ITestResultsRepository testResultsRepository = CreateTestResultsRepository();
+            ISearchRepository<TestScenarioResultIndex> searchRepository = CreateSearchRespository();
+            ITelemetry telemetry = CreateTelemetry();
+
+            ITestResultsService service = CreateTestResultsService(testResultsRepository, searchRepository, telemetry: telemetry);
+
+            List<TestScenarioResult> itemsToUpdate = new List<TestScenarioResult>();
+            TestScenarioResult testScenarioResult = CreateTestScenarioResult();
+            itemsToUpdate.Add(testScenarioResult);
+
+            testResultsRepository
+                .SaveTestProviderResults(Arg.Any<IEnumerable<TestScenarioResult>>())
+                .Returns(HttpStatusCode.Created);
+
+            // Act
+            HttpStatusCode result = await service.SaveTestProviderResults(itemsToUpdate);
+
+            // Assert
+            result.Should().Be(HttpStatusCode.Created);
+
+            telemetry
+                .Received(1)
+                .TrackEvent(
+                Arg.Is("UpdateTestScenario"),
+                Arg.Is<IDictionary<string, string>>(p => 
+                    p.ContainsKey("SpecificationId") &&
+                    p["SpecificationId"] == testScenarioResult.Specification.Id
+                ),
+                Arg.Is<IDictionary<string, double>>(
+                    m=>m.ContainsKey("update-testscenario-elapsedMilliseconds") &&
+                    m.ContainsKey("update-testscenario-recordsUpdated") &&
+                    m["update-testscenario-elapsedMilliseconds"] > 0 &&
+                    m["update-testscenario-recordsUpdated"] == 1
+                    )
+                );
+        }
+
+        [TestMethod]
         public async Task SaveTestProviderResults_WhenItemsPasssedAndRepositoryFailed_ThenItemsNotSaved()
         {
             // Arrange
@@ -149,13 +191,15 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             ITestResultsRepository testResultsRepository = null,
             ISearchRepository<TestScenarioResultIndex> searchRepository = null,
             IMapper mapper = null,
-            ILogger logger = null)
+            ILogger logger = null,
+            ITelemetry telemetry = null)
         {
             return new TestResultsService(
                 testResultsRepository ?? CreateTestResultsRepository(),
                 searchRepository ?? CreateSearchRespository(),
                 mapper ?? CreateMapper(),
-                logger ?? CreateLogger()
+                logger ?? CreateLogger(),
+                telemetry ?? CreateTelemetry()
                 );
         }
 
@@ -182,6 +226,11 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         private ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
+        }
+
+        private ITelemetry CreateTelemetry()
+        {
+            return Substitute.For<ITelemetry>();
         }
 
         private TestScenarioResult CreateTestScenarioResult()
