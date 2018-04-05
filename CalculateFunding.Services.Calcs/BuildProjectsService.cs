@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Calcs
 {
     public class BuildProjectsService : IBuildProjectsService
     {
-        const int MaxPartitionSize = 25;
+        const int MaxPartitionSize = 1000;
         const string GenerateAllocationResultsSubscription = "calc-events-generate-allocations-results";
 
         private readonly IBuildProjectsRepository _buildProjectsRepository;

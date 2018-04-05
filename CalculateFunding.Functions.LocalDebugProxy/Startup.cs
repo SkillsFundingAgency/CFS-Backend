@@ -373,7 +373,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                .AddSingleton<Services.TestRunner.Interfaces.IProviderRepository, Services.TestRunner.Services.ProviderRepository>();
 
-            builder.AddScoped<ITestResultsRepository, TestResultsRepository>((ctx) =>
+            builder.AddSingleton<ITestResultsRepository, TestResultsRepository>((ctx) =>
             {
                 CosmosDbSettings testResultsDbSettings = new CosmosDbSettings();
 
@@ -435,7 +435,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
             // Logging for Local Debugging in the console
             builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
-            builder.AddScoped<ILogger>(l => new LoggerConfiguration().WriteTo.Console().CreateLogger());
+            builder.AddSingleton<ILogger>(l => new LoggerConfiguration().WriteTo.Console().CreateLogger());
             builder.AddSingleton<ITelemetry, ConsoleTelemetrySink>();
 
             // Logging for Application Insights

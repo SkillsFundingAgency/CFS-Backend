@@ -94,65 +94,69 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(buildProject);
 
-            var calcTiming = Stopwatch.StartNew();
-
-            IEnumerable<string> providerIdList = summaries.Select(m => m.Id);
-
-            IEnumerable<ProviderSourceDataset> providerSourceDatasets = await _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIdList, specificationId);
-
-            if (providerSourceDatasets == null)
+            for (int i = 0; i < summaries.Count(); i += 100)
             {
-                providerSourceDatasets = Enumerable.Empty<ProviderSourceDataset>();
-            }
+                var calcTiming = Stopwatch.StartNew();
 
-            Parallel.ForEach(summaries, new ParallelOptions { MaxDegreeOfParallelism = 5 }, provider =>
-            {
-                var stopwatch = new Stopwatch();
-                stopwatch.Start();
+                IEnumerable<ProviderSummary> partitionedSummaries = summaries.Skip(i).Take(100);
 
-                IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.Provider?.Id == provider.Id);
+                IList<string> providerIdList = partitionedSummaries.Select(m => m.Id).ToList();
 
-                var result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, provider, providerDatasets);
+                IEnumerable<ProviderSourceDataset> providerSourceDatasets = await _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIdList, specificationId);
 
-                if(result != null)
-                    providerResults.Add(result);
-
-                stopwatch.Stop();
-
-                _logger.Debug($"Generated result for {provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
-            });
-
-            if (providerResults.Any())
-            {
-                await _providerResultsRepository.SaveProviderResults(providerResults);
-
-                string providerResultsCacheKey = Guid.NewGuid().ToString();
-
-                await _cacheProvider.SetAsync<List<ProviderResult>>(providerResultsCacheKey, providerResults.ToList(), TimeSpan.FromHours(12), false);
-
-                IDictionary<string, string> properties = message.BuildMessageProperties();
-
-                properties.Add("specificationId", specificationId);
-
-                properties.Add("providerResultsCacheKey", providerResultsCacheKey);
-
-                await _messengerService.SendAsync(ExecuteTestsEventSubscription, buildProject, properties);
-            }
-
-            calcTiming.Stop();
-
-            _telemetry.TrackEvent("CalculationRunProvidersProcessed",
-                new Dictionary<string, string>()
+                if (providerSourceDatasets == null)
                 {
-                        { "specificationId" , specificationId },
-                        { "buildProjectId" , buildProject.Id }
-                },
-                new Dictionary<string, double>()
-                {
-                        { "calculation-run-providersProcessed", summaries.Count() }
+                    providerSourceDatasets = Enumerable.Empty<ProviderSourceDataset>();
                 }
-            );
 
+                Parallel.ForEach(partitionedSummaries, new ParallelOptions { MaxDegreeOfParallelism = 5 }, provider =>
+                {
+                    var stopwatch = new Stopwatch();
+                    stopwatch.Start();
+
+                    IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.Provider?.Id == provider.Id);
+
+                    var result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, provider, providerDatasets);
+
+                    if (result != null)
+                        providerResults.Add(result);
+
+                    stopwatch.Stop();
+
+                    _logger.Debug($"Generated result for {provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
+                });
+
+                if (providerResults.Any())
+                {
+                    await _providerResultsRepository.SaveProviderResults(providerResults);
+
+                    string providerResultsCacheKey = Guid.NewGuid().ToString();
+
+                    await _cacheProvider.SetAsync<List<ProviderResult>>(providerResultsCacheKey, providerResults.ToList(), TimeSpan.FromHours(12), false);
+
+                    IDictionary<string, string> properties = message.BuildMessageProperties();
+
+                    properties.Add("specificationId", specificationId);
+
+                    properties.Add("providerResultsCacheKey", providerResultsCacheKey);
+
+                    await _messengerService.SendAsync(ExecuteTestsEventSubscription, buildProject, properties);
+                }
+
+                calcTiming.Stop();
+
+                _telemetry.TrackEvent("CalculationRunProvidersProcessed",
+                    new Dictionary<string, string>()
+                    {
+                    { "specificationId" , specificationId },
+                    { "buildProjectId" , buildProject.Id }
+                    },
+                    new Dictionary<string, double>()
+                    {
+                    { "calculation-run-providersProcessed", partitionedSummaries.Count() }
+                    }
+                );
+            }
         }
     }
 }

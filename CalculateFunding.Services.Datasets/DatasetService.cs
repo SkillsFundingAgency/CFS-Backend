@@ -289,7 +289,10 @@ namespace CalculateFunding.Services.Datasets
                             { "datasetId", dataset.Id }
                       },
                       new Dictionary<string, double>()
-                      { }
+                      {
+                            { "InstructCalculationAllocationEventRunDataset" , 1 },
+                            { "InstructCalculationAllocationEventRun" , 1 }
+                      }
                 );
             }
         }

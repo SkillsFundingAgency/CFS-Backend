@@ -349,7 +349,10 @@ namespace CalculateFunding.Services.Calcs
                         { "calculationId" , calculationId }
                },
                new Dictionary<string, double>()
-               {}
+               {
+                    { "InstructCalculationAllocationEventRunCalc" , 1 },
+                    { "InstructCalculationAllocationEventRun" , 1 }
+               }
            );
 
             return new OkObjectResult(currentVersion);
