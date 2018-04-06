@@ -103,10 +103,14 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return response.FirstOrDefault();
         }
 
-        public IQueryable<T> Query<T>(string directSql = null, int maxItemCount = -1) where T : IIdentifiable
+        public IQueryable<T> Query<T>(string directSql = null, int maxItemCount = -1, bool enableCrossPartitionQuery = false) where T : IIdentifiable
         {
             // Set some common query options
-            var queryOptions = new FeedOptions { MaxItemCount = maxItemCount };
+            var queryOptions = new FeedOptions
+            {
+                MaxItemCount = maxItemCount,
+                EnableCrossPartitionQuery = enableCrossPartitionQuery,
+            };
 
             if (!string.IsNullOrEmpty(directSql))
             {
@@ -119,20 +123,27 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted).Select(x => x.Content).AsQueryable();
         }
 
-        public IQueryable<dynamic> DynamicQuery<dynamic>(string sql)
+        public IQueryable<dynamic> DynamicQuery<dynamic>(string sql, bool enableCrossPartitionQuery = false)
         {
             // Set some common query options
-            var queryOptions = new FeedOptions {  };
+            var queryOptions = new FeedOptions
+            {
+                EnableCrossPartitionQuery = enableCrossPartitionQuery,
+            };
 
             var query = _documentClient.CreateDocumentQuery<dynamic>(_collectionUri, sql, queryOptions);
 
             return query;
         }
 
-        public IQueryable<T> RawQuery<T>(string directSql, int maxItemCount = -1)
+        public IQueryable<T> RawQuery<T>(string directSql, int maxItemCount = -1, bool enableCrossPartitionQuery = false)
         {
             // Set some common query options
-            var queryOptions = new FeedOptions { MaxItemCount = maxItemCount };
+            var queryOptions = new FeedOptions
+            {
+                MaxItemCount = maxItemCount,
+                EnableCrossPartitionQuery = enableCrossPartitionQuery,
+            };
 
             return _documentClient.CreateDocumentQuery<T>(_collectionUri,
                 directSql,

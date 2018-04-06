@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Calculator
 
         public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId)
         {
-            var results = _cosmosRepository.Query<ProviderSourceDataset>().Where(x => x.Provider.Id == providerId && x.Specification.Id == specificationId);
+            var results = _cosmosRepository.Query<ProviderSourceDataset>(enableCrossPartitionQuery: true).Where(x => x.Provider.Id == providerId && x.Specification.Id == specificationId);
 
             return Task.FromResult(results.AsEnumerable());
         }
@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Calculator
 
             string sql = $"SELECT * FROM Root r where r.documentType = \"ProviderSourceDataset\" and r.content.specification.id = \"{specificationId}\" and r.content.provider.id in ({providerIdList})";
 
-            var results = _cosmosRepository.RawQuery<DocumentEntity<ProviderSourceDataset>>(sql);
+            var results = _cosmosRepository.RawQuery<DocumentEntity<ProviderSourceDataset>>(sql, enableCrossPartitionQuery: true);
 
             return Task.FromResult(results.AsEnumerable().Select(m => m.Content));
         }

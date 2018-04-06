@@ -41,13 +41,13 @@ namespace CalculateFunding.Functions.TestEngine
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
             builder
-                .AddScoped<IBuildProjectRepository, BuildProjectRepository>();
+                .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
 
             builder
-                .AddScoped<IGherkinParserService, GherkinParserService>();
+                .AddSingleton<IGherkinParserService, GherkinParserService>();
 
             builder
-               .AddScoped<IGherkinParser, GherkinParser>();
+               .AddSingleton<IGherkinParser, GherkinParser>();
 
             builder
                 .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
@@ -56,7 +56,7 @@ namespace CalculateFunding.Functions.TestEngine
               .AddSingleton<IProviderRepository, ProviderRepository>();
 
             builder
-                .AddScoped<IStepParserFactory, StepParserFactory>();
+                .AddSingleton<IStepParserFactory, StepParserFactory>();
 
             builder
                 .AddSingleton<ITestResultsRepository, TestResultsRepository>();
@@ -68,13 +68,13 @@ namespace CalculateFunding.Functions.TestEngine
                 .AddSingleton<IScenariosRepository, ScenariosRepository>();
 
             builder
-                .AddScoped<ITestEngineService, Services.TestRunner.Services.TestEngineService>();
+                .AddSingleton<ITestEngineService, Services.TestRunner.Services.TestEngineService>();
 
             builder
-                .AddScoped<ITestEngine, Services.TestRunner.TestEngine>();
+                .AddSingleton<ITestEngine, Services.TestRunner.TestEngine>();
 
             builder
-               .AddScoped<IGherkinExecutor, GherkinExecutor>();
+               .AddSingleton<IGherkinExecutor, GherkinExecutor>();
 
             builder.AddSingleton<Services.TestRunner.Interfaces.IProviderRepository, Services.TestRunner.Services.ProviderRepository>((ctx) =>
             {

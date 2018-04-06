@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Results
 
         public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId)
         {
-            var results = _cosmosRepository.Query<ProviderResult>().Where(x => x.Specification.Id == specificationId).ToList();
+            var results = _cosmosRepository.Query<ProviderResult>(enableCrossPartitionQuery: true).Where(x => x.Specification.Id == specificationId).ToList();
 
             return Task.FromResult(results.AsEnumerable());
         }
@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Results
 	    {
             string sql = $"select * from r where r.content.provider.id = \"{ providerId }\"";
 
-            var resultsArray = _cosmosRepository.DynamicQuery<dynamic>(sql).ToArray();
+            var resultsArray = _cosmosRepository.DynamicQuery<dynamic>(sql, enableCrossPartitionQuery: true).ToArray();
 
             var resultsString = JsonConvert.SerializeObject(resultsArray);
 

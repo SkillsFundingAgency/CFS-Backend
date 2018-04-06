@@ -97,13 +97,15 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(buildProject);
 
-            for (int i = 0; i < summaries.Count(); i += 100)
+            int providerBatchSize = 100;
+
+            for (int i = 0; i < summaries.Count(); i += providerBatchSize)
             {
                 var calcTiming = Stopwatch.StartNew();
 
                 IList<ProviderResult> providerResults = new List<ProviderResult>();
 
-                IEnumerable<ProviderSummary> partitionedSummaries = summaries.Skip(i).Take(100);
+                IEnumerable<ProviderSummary> partitionedSummaries = summaries.Skip(i).Take(providerBatchSize);
 
                 IList<string> providerIdList = partitionedSummaries.Select(m => m.Id).ToList();
 

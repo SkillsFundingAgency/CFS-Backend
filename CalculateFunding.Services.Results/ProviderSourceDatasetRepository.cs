@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Results
 
         public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasets(string providerId, string specificationId)
         {
-            var results = _cosmosRepository.Query<ProviderSourceDataset>().Where(x => x.Provider.Id == providerId && x.Specification.Id == specificationId);
+            var results = _cosmosRepository.Query<ProviderSourceDataset>(enableCrossPartitionQuery: true).Where(x => x.Provider.Id == providerId && x.Specification.Id == specificationId);
 
             return Task.FromResult(results.AsEnumerable());
         }
