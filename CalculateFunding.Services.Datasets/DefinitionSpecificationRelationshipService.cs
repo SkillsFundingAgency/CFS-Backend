@@ -20,16 +20,12 @@ using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Services.Core.Constants;
 
 namespace CalculateFunding.Services.Datasets
 {
     public class DefinitionSpecificationRelationshipService : IDefinitionSpecificationRelationshipService
     {
-        const string updateSpecificationSearchIndex = "spec-events-add-definition-relationship";
-        const string updateBuildProjectWithNewRelationship = "calc-events-add-data-to-buildproject";
-
-        const string processDatasetSubscription = "dataset-events-datasets";
-
         private readonly IDatasetRepository _datasetRepository;
         private readonly ILogger _logger;
         private readonly ISpecificationsRepository _specificationsRepository;
@@ -116,7 +112,7 @@ namespace CalculateFunding.Services.Datasets
 
             IDictionary<string, string> properties = CreateMessageProperties(request);
 
-            await _messengerService.SendToQueue(updateSpecificationSearchIndex,
+            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification,
                 new AssignDefinitionRelationshipMessage
                 {
                    SpecificationId = specification.Id,
@@ -283,7 +279,7 @@ namespace CalculateFunding.Services.Datasets
             IDictionary<string, string> properties = CreateMessageProperties(request);
             properties.Add("specification-id", relationship.Specification.Id);
 
-            await _messengerService.SendToQueue(processDatasetSubscription, dataset, properties);
+            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.ProcessDataset, dataset, properties);
 
             return new NoContentResult();
         }

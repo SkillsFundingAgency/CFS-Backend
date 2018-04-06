@@ -109,7 +109,9 @@ namespace CalculateFunding.Services.Calculator
 
                 IList<string> providerIdList = partitionedSummaries.Select(m => m.Id).ToList();
 
+                Stopwatch providerSourceDatasetsStopwatch = Stopwatch.StartNew();
                 IEnumerable<ProviderSourceDataset> providerSourceDatasets = await _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIdList, specificationId);
+                providerSourceDatasetsStopwatch.Stop();
 
                 if (providerSourceDatasets == null)
                 {
@@ -133,13 +135,25 @@ namespace CalculateFunding.Services.Calculator
                     _logger.Debug($"Generated result for {provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
                 });
 
+                double saveCosmosElapsedMs = 0;
+                double saveRedisElapsedMs = 0;
+                double saveQueueElapsedMs = 0;
+
                 if (providerResults.Any())
                 {
+                    Stopwatch saveCosmosStopwatch = Stopwatch.StartNew();
                     await _providerResultsRepository.SaveProviderResults(providerResults);
+                    saveCosmosStopwatch.Stop();
+
+                    saveCosmosElapsedMs = saveCosmosStopwatch.ElapsedMilliseconds;
 
                     string providerResultsCacheKey = Guid.NewGuid().ToString();
 
+                    Stopwatch saveRedisStopwatch = Stopwatch.StartNew();
                     await _cacheProvider.SetAsync<List<ProviderResult>>(providerResultsCacheKey, providerResults.ToList(), TimeSpan.FromHours(12), false);
+                    saveRedisStopwatch.Stop();
+
+                    saveRedisElapsedMs = saveRedisStopwatch.ElapsedMilliseconds;
 
                     IDictionary<string, string> properties = message.BuildMessageProperties();
 
@@ -147,7 +161,11 @@ namespace CalculateFunding.Services.Calculator
 
                     properties.Add("providerResultsCacheKey", providerResultsCacheKey);
 
+                    Stopwatch saveQueueStopwatch = Stopwatch.StartNew();
                     await _messengerService.SendToQueue(ExecuteTestsEventSubscription, buildProject, properties);
+                    saveQueueStopwatch.Stop();
+
+                    saveQueueElapsedMs = saveQueueStopwatch.ElapsedMilliseconds;
                 }
 
                 calcTiming.Stop();
@@ -165,6 +183,10 @@ namespace CalculateFunding.Services.Calculator
                         { "calculation-run-elapsedMilliseconds", calcTiming.ElapsedMilliseconds },
                         { "calculation-run-providersResultsFromCache", summaries.Count() },
                         { "calculation-run-partitionSize", partitionSize },
+                        { "calculation-run-providerSourceDatasetQueryMs", providerSourceDatasetsStopwatch.ElapsedMilliseconds },
+                        { "calculation-run-saveProviderResultsCosmosMs", saveCosmosElapsedMs },
+                        { "calculation-run-saveProviderResultsRedisMs", saveRedisElapsedMs },
+                        { "calculation-run-saveProviderResultsServiceBusMs", saveQueueElapsedMs },
                     }
                 );
             }

@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
 {
     public class MessengerService : IMessengerService
     {
-        private readonly Dictionary<string, QueueClient> _queueClients = new Dictionary<string, QueueClient>();
+        private static readonly Dictionary<string, QueueClient> _queueClients = new Dictionary<string, QueueClient>();
         private readonly string _connectionString;
 
         private object queueClientLock = new object();
@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
                     }
                 }
             }
-            return new QueueClient(_connectionString, queueName);
+            return _queueClients[queueName];
         }
 
         public async Task SendToQueue<T>(string queueName, T data, IDictionary<string, string> properties)
