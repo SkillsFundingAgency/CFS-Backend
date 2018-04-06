@@ -338,7 +338,10 @@
               "maxDeliveryCount": 5,
               "enablePartitioning": true,
               "enableExpress": false
-          }
+          },
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ]
         },
         {
           "type": "queues",
@@ -357,7 +360,10 @@
               "maxDeliveryCount": 5,
               "enablePartitioning": true,
               "enableExpress": false
-          }
+          },
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ]
         },
         {
           "type": "queues",
@@ -376,7 +382,10 @@
               "maxDeliveryCount": 5,
               "enablePartitioning": true,
               "enableExpress": false
-          }
+          },
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ]
         },
         {
           "type": "queues",
@@ -395,7 +404,10 @@
               "maxDeliveryCount": 5,
               "enablePartitioning": true,
               "enableExpress": false
-          }
+          },
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ]
         },
         {
           "type": "queues",
@@ -414,7 +426,10 @@
               "maxDeliveryCount": 5,
               "enablePartitioning": true,
               "enableExpress": false
-          }
+          },
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ]
         },
         {
           "type": "queues",
@@ -433,7 +448,10 @@
               "maxDeliveryCount": 10,
               "enablePartitioning": true,
               "enableExpress": false
-          }
+          },
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ]
         },
         {
           "type": "queues",
@@ -452,7 +470,10 @@
               "maxDeliveryCount": 10,
               "enablePartitioning": true,
               "enableExpress": false
-          }
+          },
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ]
         }
       ]
 
