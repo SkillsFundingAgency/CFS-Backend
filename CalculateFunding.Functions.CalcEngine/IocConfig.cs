@@ -37,9 +37,9 @@ namespace CalculateFunding.Functions.CalcEngine
         {
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            builder.AddScoped<ICalculationEngineService, CalculationEngineService>();
-            builder.AddScoped<ICalculationEngine, CalculationEngine>();
-            builder.AddScoped<IAllocationFactory, AllocationFactory>();
+            builder.AddSingleton<ICalculationEngineService, CalculationEngineService>();
+            builder.AddSingleton<ICalculationEngine, CalculationEngine>();
+            builder.AddSingleton<IAllocationFactory, AllocationFactory>();
 
             builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>
             {

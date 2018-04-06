@@ -16,7 +16,13 @@ namespace CalculateFunding.Services.Core.Extensions
             Guard.IsNullOrWhiteSpace(eventHubName, nameof(eventHubName));
             Guard.ArgumentNotNull(eventData, nameof(eventData));
 
-            return cacheProvider.KeyExists<string>($"eh:{eventHubName}:{eventData.SystemProperties.PartitionKey}:{eventData.SystemProperties.SequenceNumber}");
+            string messageId = eventData.GetMessageId();
+            if (string.IsNullOrWhiteSpace(messageId))
+            {
+                return Task.FromResult(false);
+            }
+
+            return cacheProvider.KeyExists<string>($"eh:{eventHubName}:{messageId}");
         }
 
         public static Task MarkMessageAsProcessed(this ICacheProvider cacheProvider, string eventHubName, EventData eventData)
@@ -26,7 +32,13 @@ namespace CalculateFunding.Services.Core.Extensions
             Guard.ArgumentNotNull(eventData, nameof(eventData));
             DateTimeOffset expiry = new DateTimeOffset(eventData.SystemProperties.EnqueuedTimeUtc.AddDays(1));
 
-            return cacheProvider.SetAsync($"eh:{eventHubName}:{eventData.SystemProperties.PartitionKey}:{eventData.SystemProperties.SequenceNumber}", "y", expiry);
+            string messageId = eventData.GetMessageId();
+            if (string.IsNullOrWhiteSpace(messageId))
+            {
+                return Task.CompletedTask;
+            }
+
+            return cacheProvider.SetAsync($"eh:{eventHubName}:{messageId}", "y", expiry);
         }
     }
 }

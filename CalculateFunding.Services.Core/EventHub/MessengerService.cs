@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Helpers;
@@ -11,6 +12,8 @@ namespace CalculateFunding.Services.Core.EventHub
 {
     public class MessengerService : IMessengerService
     {
+        public const string MessageIdPropertyName = "sfa-messageId";
+
         private readonly Dictionary<string, EventHubClient> _topicClients = new Dictionary<string, EventHubClient>();
         private readonly string _connectionString;
 
@@ -61,6 +64,8 @@ namespace CalculateFunding.Services.Core.EventHub
 
             foreach (var property in properties)
                 message.Properties.Add(property.Key, property.Value);
+
+            message.Properties.Add(MessageIdPropertyName, Guid.NewGuid().ToString());
 
             await RetryAgent.DoAsync(() => eventHubClient.SendAsync(message), delay: 300);
         }

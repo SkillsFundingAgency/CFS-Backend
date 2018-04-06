@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Azure.EventHubs;
+using CalculateFunding.Services.Core.EventHub;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -50,6 +51,16 @@ namespace CalculateFunding.Services.Core.Extensions
             }
 
             return correlationId;
+        }
+
+        public static string GetMessageId(this EventData message)
+        {
+            if (message.Properties.ContainsKey(MessengerService.MessageIdPropertyName))
+            {
+                return message.Properties[MessengerService.MessageIdPropertyName]?.ToString();
+            }
+
+            return null;
         }
 
         public static IDictionary<string, string> BuildMessageProperties(this EventData message)
