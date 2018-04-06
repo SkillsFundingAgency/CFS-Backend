@@ -130,62 +130,7 @@ namespace CalculateFunding.Services.Calcs
                 specificationId = buildProject.Specification.Id;
             }
 
-            //IEnumerable<ProviderSummary> providerSummaries = await _providerResultsRepository.GetAllProviderSummaries();
-
-            //if (providerSummaries.IsNullOrEmpty())
-            //{
-            //    _logger.Error("No provider summaries found");
-
-            //    throw new Exception("No provider summaries found");
-            //}
-
             IDictionary<string, string> properties = message.BuildMessageProperties();
-
-            //int itemCount = providerSummaries.Count();
-
-            //Stopwatch runCalculationsTimer = new Stopwatch();
-            //runCalculationsTimer.Start();
-            //for (int partitionIndex = 0; partitionIndex < itemCount; partitionIndex += MaxPartitionSize)
-            //{
-            //    IEnumerable<ProviderResult> results = await _calculationEngine.GenerateAllocations(buildProject,
-            //        providerSummaries.Skip(partitionIndex).Take(MaxPartitionSize), getProviderSourceDatasetsFunc);
-
-            //    if (results != null && results.Any())
-            //    {
-            //        await _messengerService.SendAsync(UpdateCosmosResultsCollection, results, properties);
-            //    }
-
-            //    _telemetry.TrackEvent("CalculationRunProvidersProcessed",
-            //    new Dictionary<string, string>()
-            //    {
-            //        { "specificationId" , specificationId },
-            //        { "buildProjectId" , buildProject.Id }
-            //    },
-            //    new Dictionary<string, double>()
-            //    {
-            //        { "calculation-run-providersProcessed", MaxPartitionSize }
-            //    }
-            //    );
-
-            //}
-            //runCalculationsTimer.Stop();
-
-            //long timeTaken = runCalculationsTimer.ElapsedMilliseconds;
-
-            //_telemetry.TrackEvent("CalculationRun",
-            //    new Dictionary<string, string>()
-            //    {
-            //        { "specificationId" , specificationId },
-            //        { "buildProjectId" , buildProject.Id }
-            //    },
-            //    new Dictionary<string, double>()
-            //    {
-            //        { "calculation-run-elapsedMilliseconds", runCalculationsTimer.ElapsedMilliseconds },
-            //        { "calculation-run-totalProviders", itemCount }
-            //    }
-            //    );
-
-            //_logger.Information("Completed running calculations for specification ID {specificationId}, completed in {timeTaken} for total of {itemCount}", specificationId, timeTaken, itemCount);
 
             int totalCount = await _providerResultsRepository.LoadAllProvidersFromSearch();
 

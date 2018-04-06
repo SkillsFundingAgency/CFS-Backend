@@ -29,9 +29,13 @@ namespace CalculateFunding.Functions.Calcs.EventHub
                 {
                     try
                     {
+                        message.AssertIntendedHub(EventHubName);
+
                         bool alreadyExists = await cacheProvider.HasMessageBeenProcessed(EventHubName, message);
                         if (!alreadyExists)
                         {
+                            string messageId = message.GetMessageId();
+
                             correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
                             await buildProjectsService.UpdateAllocations(message);
                             await cacheProvider.MarkMessageAsProcessed(EventHubName, message);
@@ -39,7 +43,7 @@ namespace CalculateFunding.Functions.Calcs.EventHub
                     }
                     catch (Exception exception)
                     {
-                        logger.Error(exception, "An error occurred getting message from hub: calc-events-generate-allocations");
+                        logger.Error(exception, "An error occurred getting message from hub: {EventHubName}", EventHubName);
                         throw;
                     }
                 }

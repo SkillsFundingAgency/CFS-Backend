@@ -13,6 +13,7 @@ namespace CalculateFunding.Services.Core.EventHub
     public class MessengerService : IMessengerService
     {
         public const string MessageIdPropertyName = "sfa-messageId";
+        public const string IntentedEventHubNameProperyName = "sfa-hubName";
 
         private readonly Dictionary<string, EventHubClient> _topicClients = new Dictionary<string, EventHubClient>();
         private readonly string _connectionString;
@@ -54,7 +55,7 @@ namespace CalculateFunding.Services.Core.EventHub
         }
 
 
-        async public Task SendAsync<T>(string hubName, T data, IDictionary<string, string> properties)
+        public Task SendAsync<T>(string hubName, T data, IDictionary<string, string> properties)
         {
             var eventHubClient = GetEventHubClient(hubName);
            
@@ -66,8 +67,11 @@ namespace CalculateFunding.Services.Core.EventHub
                 message.Properties.Add(property.Key, property.Value);
 
             message.Properties.Add(MessageIdPropertyName, Guid.NewGuid().ToString());
+            message.Properties.Add(IntentedEventHubNameProperyName, hubName);
 
-            await RetryAgent.DoAsync(() => eventHubClient.SendAsync(message), delay: 300);
+            return eventHubClient.SendAsync(message);
+
+            //await RetryAgent.DoAsync(() => , delay: 300);
         }
 
         async public Task SendBatchAsync<T>(string hubName, IEnumerable<T> items, IDictionary<string, string> properties)

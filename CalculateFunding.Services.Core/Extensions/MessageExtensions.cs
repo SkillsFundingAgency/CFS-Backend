@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.Azure.EventHubs;
 using CalculateFunding.Services.Core.EventHub;
+using CalculateFunding.Services.Core.Helpers;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -61,6 +62,32 @@ namespace CalculateFunding.Services.Core.Extensions
             }
 
             return null;
+        }
+
+        public static void AssertIntendedHub(this EventData message, string eventHubName)
+        {
+            Guard.IsNullOrWhiteSpace(eventHubName, nameof(eventHubName));
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            string intendedEventHub = null;
+            if (message.Properties.ContainsKey(MessengerService.IntentedEventHubNameProperyName))
+            {
+                intendedEventHub = message.Properties[MessengerService.IntentedEventHubNameProperyName]?.ToString();
+            }
+            else
+            {
+                throw new InvalidOperationException($"Expected message contain a property with property '{MessengerService.IntentedEventHubNameProperyName}'");
+            }
+
+            if (string.IsNullOrWhiteSpace(intendedEventHub))
+            {
+                throw new InvalidOperationException($"Messge property '{MessengerService.IntentedEventHubNameProperyName}' was null or empty");
+            }
+
+            if(intendedEventHub != eventHubName)
+            {
+                throw new InvalidOperationException($"Expected message to be going to Event Hub {intendedEventHub}, but was processed by {eventHubName}");
+            }
         }
 
         public static IDictionary<string, string> BuildMessageProperties(this EventData message)

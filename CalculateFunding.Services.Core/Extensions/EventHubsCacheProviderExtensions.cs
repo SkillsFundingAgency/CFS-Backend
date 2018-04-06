@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Core.Extensions
             string messageId = eventData.GetMessageId();
             if (string.IsNullOrWhiteSpace(messageId))
             {
-                return Task.FromResult(false);
+                throw new InvalidOperationException("Expected message to have MessageId");
             }
 
             return cacheProvider.KeyExists<string>($"eh:{eventHubName}:{messageId}");
@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Core.Extensions
             string messageId = eventData.GetMessageId();
             if (string.IsNullOrWhiteSpace(messageId))
             {
-                return Task.CompletedTask;
+                throw new InvalidOperationException("Expected message to have MessageId");
             }
 
             return cacheProvider.SetAsync($"eh:{eventHubName}:{messageId}", "y", expiry);
