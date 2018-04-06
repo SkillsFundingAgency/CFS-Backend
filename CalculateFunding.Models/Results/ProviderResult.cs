@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using CalculateFunding.Models.Datasets;
-using Microsoft.Azure.Search;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
-	public class ProviderResult : IIdentifiable
+    public class ProviderResult : IIdentifiable
     {
 	    [JsonProperty("id")]
 		public string Id { get; set; }

@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text;
 
 namespace System.Linq
 {
-	[EditorBrowsable(EditorBrowsableState.Never)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
 	static public class IEnumerableExtensions
     {
 		static public bool AnyWithNullCheck<T>(this IEnumerable<T> enumerable)

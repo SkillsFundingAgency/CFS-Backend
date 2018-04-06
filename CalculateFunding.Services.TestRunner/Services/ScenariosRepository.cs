@@ -6,7 +6,6 @@ using CalculateFunding.Services.TestRunner.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.Services

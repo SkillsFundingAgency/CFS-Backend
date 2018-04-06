@@ -1,8 +1,5 @@
 ﻿using System;
-using AutoMapper;
-using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Scenarios;
 using CalculateFunding.Services.Scenarios.Interfaces;
@@ -52,7 +49,7 @@ namespace CalculateFunding.Functions.Scenarios
 
             builder.AddSearch(config);
 
-            builder.AddEventHub(config);
+            builder.AddServiceBus(config);
 
             builder.AddCaching(config);
 

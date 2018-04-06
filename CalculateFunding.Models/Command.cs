@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace CalculateFunding.Models
+﻿namespace CalculateFunding.Models
 {
     public class Command
     {

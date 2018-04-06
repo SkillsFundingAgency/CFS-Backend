@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Serilog.Core;
+﻿using Serilog.Core;
 using Serilog.Events;
 using System;
 

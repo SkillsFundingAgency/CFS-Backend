@@ -2,8 +2,6 @@
 using Serilog.Core;
 using Serilog.Events;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Services.Core.Logging
 {

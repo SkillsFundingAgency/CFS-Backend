@@ -4,10 +4,8 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using System.Threading.Tasks;
-using CalculationResult = CalculateFunding.Models.Results.CalculationResult;
 
 namespace CalculateFunding.Services.TestRunner
 {

@@ -1,8 +1,5 @@
 ﻿using AutoMapper;
 using CalculateFunding.Models.Results;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Models.MappingProfiles
 {

@@ -1,5 +1,4 @@
 ﻿using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;

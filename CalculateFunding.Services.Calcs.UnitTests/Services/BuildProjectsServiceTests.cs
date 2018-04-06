@@ -13,19 +13,16 @@ using System;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.EventHub;
-using Microsoft.Azure.EventHubs;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Compiler.Interfaces;
-using CalculateFunding.Models.Calcs.Messages;
-using CalculateFunding.Services.Core.Extensions;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -39,7 +36,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public void UpdateAllocations_GivenNullMessage_ThrowsArgumentNullException()
         {
             //Arrange
-            EventData message = null;
+            Message message = null;
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
@@ -55,7 +52,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public void UpdateAllocations_GivenNullPayload_ThrowsArgumentNullException()
         {
             //Arrange
-            EventData message = new EventData(new byte[0]);
+            Message message = new Message(new byte[0]);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
@@ -75,7 +72,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             var json = JsonConvert.SerializeObject(payload);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
@@ -95,9 +92,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             var json = JsonConvert.SerializeObject(payload);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-               .Properties.Add("specification-id", "");
+               .UserProperties.Add("specification-id", "");
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
@@ -117,9 +114,9 @@ namespace CalculateFunding.Services.Calcs.Services
            
             var json = JsonConvert.SerializeObject(payload);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-                .Properties.Add("specification-id", SpecificationId);
+                .UserProperties.Add("specification-id", SpecificationId);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
@@ -144,9 +141,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             var json = JsonConvert.SerializeObject(buildProject);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-               .Properties.Add("specification-id", SpecificationId);
+               .UserProperties.Add("specification-id", SpecificationId);
 
             ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
             specificationsRepository
@@ -182,9 +179,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
         //    var json = JsonConvert.SerializeObject(buildProject);
 
-        //    EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+        //    Message message = new Message(Encoding.UTF8.GetBytes(json));
         //    message
-        //       .Properties.Add("specification-id", SpecificationId);
+        //       .UserProperties.Add("specification-id", SpecificationId);
 
         //    ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
         //    specificationsRepository
@@ -221,9 +218,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
         //    var json = JsonConvert.SerializeObject(buildProject);
 
-        //    EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+        //    Message message = new Message(Encoding.UTF8.GetBytes(json));
         //    message
-        //       .Properties.Add("specification-id", SpecificationId);
+        //       .UserProperties.Add("specification-id", SpecificationId);
 
         //    BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
@@ -249,9 +246,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
         //    var json = JsonConvert.SerializeObject(buildProject);
 
-        //    EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+        //    Message message = new Message(Encoding.UTF8.GetBytes(json));
         //    message
-        //       .Properties.Add("specification-id", SpecificationId);
+        //       .UserProperties.Add("specification-id", SpecificationId);
 
         //    IEnumerable<ProviderSummary> summaries = new[]
         //    {
@@ -292,7 +289,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public void UpdateBuildProjectRelationships_GivenNullMessage_ThrowsArgumentNullException()
         {
             //Arrange
-            EventData message = null;
+            Message message = null;
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
@@ -308,7 +305,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public void UpdateBuildProjectRelationships_GivenPayload_ThrowsArgumentNullException()
         {
             //Arrange
-            EventData message = new EventData(new byte[0]);
+            Message message = new Message(new byte[0]);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
@@ -328,7 +325,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             var json = JsonConvert.SerializeObject(payload);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
@@ -348,9 +345,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             var json = JsonConvert.SerializeObject(payload);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-               .Properties.Add("specification-id", "");
+               .UserProperties.Add("specification-id", "");
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
@@ -370,9 +367,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             var json = JsonConvert.SerializeObject(payload);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-               .Properties.Add("specification-id", SpecificationId);
+               .UserProperties.Add("specification-id", SpecificationId);
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
@@ -397,9 +394,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             var json = JsonConvert.SerializeObject(payload);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-               .Properties.Add("specification-id", SpecificationId);
+               .UserProperties.Add("specification-id", SpecificationId);
 
             BuildProject buildProject = new BuildProject();
 
@@ -431,9 +428,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             var json = JsonConvert.SerializeObject(payload);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-               .Properties.Add("specification-id", SpecificationId);
+               .UserProperties.Add("specification-id", SpecificationId);
 
             BuildProject buildProject = new BuildProject
             {
@@ -482,9 +479,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             var json = JsonConvert.SerializeObject(payload);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-               .Properties.Add("specification-id", SpecificationId);
+               .UserProperties.Add("specification-id", SpecificationId);
 
             BuildProject buildProject = new BuildProject
             {
@@ -533,9 +530,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             var json = JsonConvert.SerializeObject(payload);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-               .Properties.Add("specification-id", SpecificationId);
+               .UserProperties.Add("specification-id", SpecificationId);
 
             BuildProject buildProject = new BuildProject
             {
@@ -654,7 +651,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         static BuildProjectsService CreateBuildProjectsService(IBuildProjectsRepository buildProjectsRepository = null, IMessengerService messengerService = null,
-            EventHubSettings EventHubSettings = null, ILogger logger = null, ITelemetry telemetry = null,
+            ServiceBusSettings EventHubSettings = null, ILogger logger = null, ITelemetry telemetry = null,
             Interfaces.IProviderResultsRepository providerResultsRepository = null, ISpecificationRepository specificationsRepository = null, ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
             ICompilerFactory compilerFactory = null)
         {
@@ -664,14 +661,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(), compilerFactory ?? CreateCompilerfactory());
         }
 
-        static EventData CreateMessage(string specificationId = SpecificationId)
+        static Message CreateMessage(string specificationId = SpecificationId)
         {
 
             dynamic anyObject = new { specificationId };
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            return new EventData(Encoding.UTF8.GetBytes(json));
+            return new Message(Encoding.UTF8.GetBytes(json));
         }
 
         static ISourceFileGeneratorProvider CreateSourceFileGeneratorProvider()
@@ -699,9 +696,9 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<IMessengerService>();
         }
 
-        static EventHubSettings CreateEventHubSettings()
+        static ServiceBusSettings CreateEventHubSettings()
         {
-            return new EventHubSettings
+            return new ServiceBusSettings
             {
             };
         }

@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Repositories.Common.Search.Results
 {
-	public class ProviderSearchResult
+    public class ProviderSearchResult
 	{
 		public string UKPRN { get; set; }
 		public string URN { get; set; }

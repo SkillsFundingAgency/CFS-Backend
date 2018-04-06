@@ -1,7 +1,6 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.CodeMetadataGenerator;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
@@ -11,7 +10,6 @@ using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Repositories;
 using CalculateFunding.Services.TestRunner.Services;
-using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

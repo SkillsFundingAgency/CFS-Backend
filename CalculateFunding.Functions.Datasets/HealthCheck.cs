@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
 using CalculateFunding.Models.Specs;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Specs;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {

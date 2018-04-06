@@ -1,11 +1,8 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.Azure.Search;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
-	public class ProviderSummary : Reference
+    public class ProviderSummary : Reference
 	{
 		[JsonProperty("urn")]
 		// ReSharper disable once InconsistentNaming

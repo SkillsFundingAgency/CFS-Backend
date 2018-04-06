@@ -1,7 +1,4 @@
-﻿using System;
-using System.Text;
-
-namespace CalculateFunding.Models.Calcs.Messages
+﻿namespace CalculateFunding.Models.Calcs.Messages
 {
     public class InstructGenerateAllocationsMessage
     {

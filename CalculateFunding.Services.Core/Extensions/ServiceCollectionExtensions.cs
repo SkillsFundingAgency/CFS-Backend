@@ -11,24 +11,20 @@ using CalculateFunding.Services.Core.Proxies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using System;
-using System.IO;
-using System.Reflection;
 using System.Security.Claims;
-using System.Text;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Core.EventHub;
-using CalculateFunding.Services.Core.Interfaces.EventHub;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Caching;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Models.Scenarios;
+using CalculateFunding.Services.Core.ServiceBus;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -93,30 +89,16 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddEventHub(this IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceCollection AddServiceBus(this IServiceCollection builder, IConfigurationRoot config)
         {
-            EventHubSettings eventHubSettings = new EventHubSettings();
+            ServiceBusSettings serviceBusSettings = new ServiceBusSettings();
 
-            config.Bind("EventHubSettings", eventHubSettings);
+            config.Bind("ServiceBusSettings", serviceBusSettings);
 
-            builder.AddSingleton(eventHubSettings);
+            builder.AddSingleton(serviceBusSettings);
 
             builder
                 .AddSingleton<IMessengerService, MessengerService>();
-
-            return builder;
-        }
-
-        public static IServiceCollection AddHttpEventHub(this IServiceCollection builder, IConfigurationRoot config)
-        {
-            EventHubSettings eventHubSettings = new EventHubSettings();
-
-            config.Bind("EventHubSettings", eventHubSettings);
-
-            builder.AddSingleton(eventHubSettings);
-
-            builder
-                .AddSingleton<IMessengerService, HttpMessengerService>();
 
             return builder;
         }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Text;
-
-namespace CalculateFunding.Repositories.Common.Search.Results
+﻿namespace CalculateFunding.Repositories.Common.Search.Results
 {
 
     public class CalculationSearchResult

@@ -9,12 +9,8 @@ using FluentValidation;
 using CalculateFunding.Services.Specs.Validators;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Calcs;
-using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Services.Validators;
-using CalculateFunding.Repositories.Common.Cosmos;
 
 namespace CalculateFunding.Functions.Specs
 {
@@ -57,7 +53,7 @@ namespace CalculateFunding.Functions.Specs
 
             builder.AddCosmosDb(config);
 
-            builder.AddEventHub(config);
+            builder.AddServiceBus(config);
 
             builder.AddSearch(config);
 

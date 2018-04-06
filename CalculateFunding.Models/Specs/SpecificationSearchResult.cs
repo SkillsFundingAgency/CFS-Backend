@@ -1,7 +1,4 @@
-﻿using System;
-using System.Text;
-
-namespace CalculateFunding.Models.Specs
+﻿namespace CalculateFunding.Models.Specs
 {
     public class SpecificationSearchResult
     {

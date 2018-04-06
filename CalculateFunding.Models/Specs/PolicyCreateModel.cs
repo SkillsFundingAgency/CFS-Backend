@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CalculateFunding.Models.Specs
+﻿namespace CalculateFunding.Models.Specs
 {
     public class PolicyCreateModel
     {

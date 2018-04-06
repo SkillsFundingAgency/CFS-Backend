@@ -1,11 +1,9 @@
 ﻿using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calcs.Interfaces;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs

@@ -72,7 +72,7 @@ namespace CalculateFunding.Functions.Results
 
             builder.AddSearch(config);
 
-            builder.AddEventHub(config);
+            builder.AddServiceBus(config);
 
             builder.AddCaching(config);
 

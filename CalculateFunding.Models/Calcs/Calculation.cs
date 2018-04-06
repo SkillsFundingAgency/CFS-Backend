@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 

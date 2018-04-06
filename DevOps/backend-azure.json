@@ -315,12 +315,147 @@
     },
 
     {
-      "apiVersion": "2015-08-01",
+      "apiVersion": "2017-04-01",
       "name": "[variables('serviceBusNamespaceName')]",
       "type": "Microsoft.ServiceBus/namespaces",
       "location": "[resourceGroup().location]",
       "properties": {},
-      "resources": []
+      "resources": [
+        {
+          "type": "queues",
+          "name": "calc-events-instruct-generate-allocations",
+          "apiVersion": "2017-04-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+              "lockDuration": "PT5M",
+              "maxSizeInMegabytes": 1024,
+              "requiresDuplicateDetection": false,
+              "requiresSession": false,
+              "defaultMessageTimeToLive": "P1D",
+              "deadLetteringOnMessageExpiration": false,
+              "enableBatchedOperations": true,
+              "duplicateDetectionHistoryTimeWindow": "PT10M",
+              "maxDeliveryCount": 5,
+              "enablePartitioning": true,
+              "enableExpress": false
+          }
+        },
+        {
+          "type": "queues",
+          "name": "calc-events-generate-allocations-results",
+          "apiVersion": "2017-04-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+              "lockDuration": "PT5M",
+              "maxSizeInMegabytes": 2048,
+              "requiresDuplicateDetection": false,
+              "requiresSession": false,
+              "defaultMessageTimeToLive": "P1D",
+              "deadLetteringOnMessageExpiration": false,
+              "enableBatchedOperations": true,
+              "duplicateDetectionHistoryTimeWindow": "PT10M",
+              "maxDeliveryCount": 5,
+              "enablePartitioning": true,
+              "enableExpress": false
+          }
+        },
+        {
+          "type": "queues",
+          "name": "test-events-execute-tests",
+          "apiVersion": "2017-04-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+              "lockDuration": "PT5M",
+              "maxSizeInMegabytes": 5120,
+              "requiresDuplicateDetection": false,
+              "requiresSession": false,
+              "defaultMessageTimeToLive": "P1D",
+              "deadLetteringOnMessageExpiration": false,
+              "enableBatchedOperations": true,
+              "duplicateDetectionHistoryTimeWindow": "PT10M",
+              "maxDeliveryCount": 5,
+              "enablePartitioning": true,
+              "enableExpress": false
+          }
+        },
+        {
+          "type": "queues",
+          "name": "spec-events-add-definition-relationship",
+          "apiVersion": "2017-04-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+              "lockDuration": "PT5M",
+              "maxSizeInMegabytes": 1024,
+              "requiresDuplicateDetection": false,
+              "requiresSession": false,
+              "defaultMessageTimeToLive": "P1D",
+              "deadLetteringOnMessageExpiration": false,
+              "enableBatchedOperations": true,
+              "duplicateDetectionHistoryTimeWindow": "PT10M",
+              "maxDeliveryCount": 5,
+              "enablePartitioning": true,
+              "enableExpress": false
+          }
+        },
+        {
+          "type": "queues",
+          "name": "dataset-events-datasets",
+          "apiVersion": "2017-04-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+              "lockDuration": "PT5M",
+              "maxSizeInMegabytes": 2048,
+              "requiresDuplicateDetection": false,
+              "requiresSession": false,
+              "defaultMessageTimeToLive": "P1D",
+              "deadLetteringOnMessageExpiration": false,
+              "enableBatchedOperations": true,
+              "duplicateDetectionHistoryTimeWindow": "PT10M",
+              "maxDeliveryCount": 5,
+              "enablePartitioning": true,
+              "enableExpress": false
+          }
+        },
+        {
+          "type": "queues",
+          "name": "calc-events-create-draft",
+          "apiVersion": "2017-04-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+              "lockDuration": "PT5M",
+              "maxSizeInMegabytes": 1024,
+              "requiresDuplicateDetection": false,
+              "requiresSession": false,
+              "defaultMessageTimeToLive": "P1D",
+              "deadLetteringOnMessageExpiration": false,
+              "enableBatchedOperations": true,
+              "duplicateDetectionHistoryTimeWindow": "PT10M",
+              "maxDeliveryCount": 10,
+              "enablePartitioning": true,
+              "enableExpress": false
+          }
+        },
+        {
+          "type": "queues",
+          "name": "calc-events-add-relationship-to-buildproject",
+          "apiVersion": "2017-04-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+              "lockDuration": "PT5M",
+              "maxSizeInMegabytes": 2048,
+              "requiresDuplicateDetection": false,
+              "requiresSession": false,
+              "defaultMessageTimeToLive": "P1D",
+              "deadLetteringOnMessageExpiration": false,
+              "enableBatchedOperations": true,
+              "duplicateDetectionHistoryTimeWindow": "PT10M",
+              "maxDeliveryCount": 10,
+              "enablePartitioning": true,
+              "enableExpress": false
+          }
+        }
+      ]
+
     },
 
 
@@ -436,24 +571,8 @@
               "value": "[parameters('ApiEndpoint')]"
             },
             {
-              "name": "EventHubSettings:ServiceBusConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
-            },
-            {
-              "name": "EventHubSettings:CalcsServiceBusTopicName",
-              "value": "calc-events"
-            },
-            {
-              "name": "EventHubSettings:SpecsServiceBusTopicName",
-              "value": "spec-events"
-            },
-            {
-              "name": "EventHubSettings:DatasetsServiceBusTopicName",
-              "value": "dataset-events"
-            },
-            {
-              "name": "ServiceBusConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
+              "name": "ServiceBusSettings:ConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             },
             {
               "name": "SearchServiceName",
@@ -533,10 +652,6 @@
               "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
             },
             {
-              "name": "EventHubSettings:EventHubConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/authorizationRules'),variables('eventHubName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
-            },
-            {
               "name": "CosmosDbSettings:ConnectionString",
               "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
             },
@@ -557,20 +672,8 @@
               "value": "[parameters('ApiEndpoint')]"
             },
             {
-              "name": "EventHubSettings:ServiceBusConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
-            },
-            {
-              "name": "EventHubSettings:CalcsServiceBusTopicName",
-              "value": "calc-events"
-            },
-            {
-              "name": "EventHubSettings:SpecsServiceBusTopicName",
-              "value": "spec-events"
-            },
-            {
-              "name": "EventHubSettings:DatasetsServiceBusTopicName",
-              "value": "dataset-events"
+              "name": "ServiceBusSettings:ConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             },
             {
               "name": "ServiceBusConnectionString",
@@ -654,8 +757,8 @@
               "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
             },
             {
-              "name": "EventHubSettings:EventHubConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/authorizationRules'),variables('eventHubName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+              "name": "ServiceBusSettings:ConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             },
             {
               "name": "CosmosDbSettings:ConnectionString",
@@ -747,8 +850,8 @@
               "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
             },
             {
-              "name": "EventHubSettings:EventHubConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/authorizationRules'),variables('eventHubName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+              "name": "ServiceBusSettings:ConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             },
             {
               "name": "CosmosDbSettings:ConnectionString",
@@ -829,8 +932,8 @@
               "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
             },
             {
-              "name": "EventHubSettings:EventHubConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/authorizationRules'),variables('eventHubName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+              "name": "ServiceBusSettings:ConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             },
             {
               "name": "CosmosDbSettings:ConnectionString",
@@ -851,26 +954,6 @@
             {
               "name": "ApiOptions:ApiEndpoint",
               "value": "[parameters('ApiEndpoint')]"
-            },
-            {
-              "name": "EventHubSettings:ServiceBusConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
-            },
-            {
-              "name": "EventHubSettings:CalcsServiceBusTopicName",
-              "value": "calc-events"
-            },
-            {
-              "name": "EventHubSettings:SpecsServiceBusTopicName",
-              "value": "spec-events"
-            },
-            {
-              "name": "EventHubSettings:DatasetsServiceBusTopicName",
-              "value": "dataset-events"
-            },
-            {
-              "name": "ServiceBusConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
             {
               "name": "SearchServiceName",
@@ -945,8 +1028,8 @@
               "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
             },
             {
-              "name": "EventHubSettings:EventHubConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/authorizationRules'),variables('eventHubName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+              "name": "ServiceBusSettings:ConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             },
             {
               "name": "CosmosDbSettings:ConnectionString",
@@ -967,26 +1050,6 @@
             {
               "name": "ApiOptions:ApiEndpoint",
               "value": "[parameters('ApiEndpoint')]"
-            },
-            {
-              "name": "EventHubSettings:ServiceBusConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
-            },
-            {
-              "name": "EventHubSettings:CalcsServiceBusTopicName",
-              "value": "calc-events"
-            },
-            {
-              "name": "EventHubSettings:SpecsServiceBusTopicName",
-              "value": "spec-events"
-            },
-            {
-              "name": "EventHubSettings:DatasetsServiceBusTopicName",
-              "value": "dataset-events"
-            },
-            {
-              "name": "ServiceBusConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
             {
               "name": "SearchServiceName",
@@ -1070,8 +1133,8 @@
               "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
             },
             {
-              "name": "EventHubSettings:EventHubConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/authorizationRules'),variables('eventHubName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+              "name": "ServiceBusSettings:ConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             }
           ]
         }
@@ -1133,8 +1196,8 @@
               "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
             },
             {
-              "name": "EventHubSettings:EventHubConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/authorizationRules'),variables('eventHubName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+              "name": "ServiceBusSettings:ConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             },
             {
               "name": "CosmosDbSettings:ConnectionString",
@@ -1155,26 +1218,6 @@
             {
               "name": "CosmosDbSettings:CollectionName",
               "value": "tests"
-            },
-            {
-              "name": "EventHubSettings:ServiceBusConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
-            },
-            {
-              "name": "EventHubSettings:CalcsServiceBusTopicName",
-              "value": "calc-events"
-            },
-            {
-              "name": "EventHubSettings:SpecsServiceBusTopicName",
-              "value": "spec-events"
-            },
-            {
-              "name": "EventHubSettings:DatasetsServiceBusTopicName",
-              "value": "dataset-events"
-            },
-            {
-              "name": "ServiceBusConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
             },
             {
               "name": "SearchServiceName",

@@ -1,7 +1,6 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search.Results;
-using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Proxies;

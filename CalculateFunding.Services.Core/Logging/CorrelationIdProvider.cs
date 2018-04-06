@@ -1,9 +1,5 @@
 ﻿using CalculateFunding.Services.Core.Interfaces.Logging;
-using Microsoft.AspNetCore.Http;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CalculateFunding.Services.Core.Logging
 {

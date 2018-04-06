@@ -1,9 +1,7 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
@@ -25,7 +23,7 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.EventHub;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -1540,7 +1538,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
         static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,
             ILogger logger = null, ISpecificationsRepository specificationsRepository = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
-            IMessengerService messengerService = null, EventHubSettings EventHubSettings = null, IDatasetService datasetService = null, ICalcsRepository calcsRepository = null)
+            IMessengerService messengerService = null, ServiceBusSettings EventHubSettings = null, IDatasetService datasetService = null, ICalcsRepository calcsRepository = null)
         {
             return new DefinitionSpecificationRelationshipService(datasetRepository ?? CreateDatasetRepository(), logger ?? CreateLogger(),
                 specificationsRepository ?? CreateSpecificationsRepository(), relationshipModelValidator ?? CreateRelationshipModelValidator(),
@@ -1591,9 +1589,9 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<IMessengerService>();
         }
 
-        static EventHubSettings CreateEventHubSettings()
+        static ServiceBusSettings CreateEventHubSettings()
         {
-            return new EventHubSettings();
+            return new ServiceBusSettings();
         }
     }
 }

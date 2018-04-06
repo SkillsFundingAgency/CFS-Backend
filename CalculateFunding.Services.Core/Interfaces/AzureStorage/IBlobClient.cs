@@ -1,8 +1,6 @@
 ﻿using Microsoft.WindowsAzure.Storage.Blob;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Core.Interfaces.AzureStorage

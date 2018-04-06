@@ -5,17 +5,15 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
-using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.EventHub;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
@@ -30,7 +28,7 @@ namespace CalculateFunding.Services.Results
         private readonly IMapper _mapper;
         private readonly ISearchRepository<ProviderIndex> _searchRepository;
         private readonly IMessengerService _messengerService;
-        private readonly EventHubSettings _eventHubSettings;
+        private readonly ServiceBusSettings _eventHubSettings;
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
 
         const string ProcessDatasetSubscription = "dataset-events-datasets";
@@ -40,7 +38,7 @@ namespace CalculateFunding.Services.Results
             IMapper mapper,
             ISearchRepository<ProviderIndex> searchRepository,
             IMessengerService messengerService,
-            EventHubSettings EventHubSettings,
+            ServiceBusSettings EventHubSettings,
             ITelemetry telemetry,
             IProviderSourceDatasetRepository providerSourceDatasetRepository)
         {
@@ -54,7 +52,7 @@ namespace CalculateFunding.Services.Results
             _providerSourceDatasetRepository = providerSourceDatasetRepository;
         }
 
-        public async Task UpdateProviderData(EventData message)
+        public async Task UpdateProviderData(Message message)
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();

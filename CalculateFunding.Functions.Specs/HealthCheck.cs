@@ -1,15 +1,9 @@
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using CalculateFunding.Models.Specs;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace CalculateFunding.Functions.Specs
 {

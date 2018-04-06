@@ -20,18 +20,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.EventHub;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.DataImporter;
-using System.IO;
 using CalculateFunding.Services.Core.Interfaces.Caching;
-using Microsoft.Azure.EventHubs;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using CalculateFunding.Models.Results;
-using System.Linq.Expressions;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Calcs.Messages;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 
 namespace CalculateFunding.Services.Datasets
@@ -47,7 +42,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly ISearchRepository<DatasetIndex> _searchRepository;
         private readonly IValidator<GetDatasetBlobModel> _getDatasetBlobModelValidator;
 	    private readonly IMessengerService _messengerService;
-	    private readonly EventHubSettings _eventHubSettings;
+	    private readonly ServiceBusSettings _eventHubSettings;
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly IExcelDatasetReader _excelDatasetReader;
         private readonly ICacheProvider _cacheProvider;
@@ -67,7 +62,7 @@ namespace CalculateFunding.Services.Datasets
             IMapper mapper, IValidator<DatasetMetadataModel> datasetMetadataModelValidator,
             ISearchRepository<DatasetIndex> searchRepository, IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator,
             ISpecificationsRepository specificationsRepository, IMessengerService messengerService,
-            EventHubSettings eventHubSettings, IExcelDatasetReader excelDatasetReader, ICacheProvider cacheProvider,
+            ServiceBusSettings eventHubSettings, IExcelDatasetReader excelDatasetReader, ICacheProvider cacheProvider,
             ICalcsRepository calcsRepository, IProviderRepository providerRepository, IProvidersResultsRepository providersResultsRepository, ITelemetry telemetry)
         {
             _blobClient = blobClient;
@@ -233,11 +228,11 @@ namespace CalculateFunding.Services.Datasets
             return actionResult;
         }
 
-	    async public Task ProcessDataset(EventData message)
+	    async public Task ProcessDataset(Message message)
 	    {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            IDictionary<string, object> properties = message.Properties;
+            IDictionary<string, object> properties = message.UserProperties;
 
             Dataset dataset = message.GetPayloadAsInstanceOf<Dataset>();
 
@@ -248,12 +243,12 @@ namespace CalculateFunding.Services.Datasets
                 throw new ArgumentNullException(nameof(dataset), "A null dataset was provided to ProcessData");
             }
 
-            if (!message.Properties.ContainsKey("specification-id"))
+            if (!message.UserProperties.ContainsKey("specification-id"))
             {
                 throw new KeyNotFoundException("Specification Id key is missing");
             }
             
-            string specificationId = message.Properties["specification-id"].ToString();
+            string specificationId = message.UserProperties["specification-id"].ToString();
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -278,7 +273,7 @@ namespace CalculateFunding.Services.Datasets
                 IDictionary<string, string> messageProperties = message.BuildMessageProperties();
                 messageProperties.Add("specification-id", specificationId);
 
-                await _messengerService.SendAsync(GenerateAllocationsInstructionSubscription,
+                await _messengerService.SendToQueue(GenerateAllocationsInstructionSubscription,
                         buildProject, messageProperties);
 
                 _telemetry.TrackEvent("InstructCalculationAllocationEventRun",

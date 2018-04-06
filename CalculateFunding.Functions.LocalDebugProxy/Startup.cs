@@ -44,7 +44,6 @@ using CalculateFunding.Services.TestRunner.Repositories;
 using CalculateFunding.Services.TestRunner.Services;
 using CalculateFunding.Services.Validators;
 using FluentValidation;
-using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -456,8 +455,6 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
             builder.AddSearch(config);
 
-            builder.AddHttpEventHub(config);
-
             builder.AddInterServiceClient(config);
 
             // Logging for Local Debugging in the console
@@ -474,6 +471,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             //builder.AddLogging(config, "LocalDebugProxy");
 
             builder.AddCaching(config);
+
+            builder.AddServiceBus(config);
         }
     }
 }

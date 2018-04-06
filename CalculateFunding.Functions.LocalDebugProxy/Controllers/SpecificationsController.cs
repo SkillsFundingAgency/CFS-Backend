@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CalculateFunding.Functions.Specs.Http;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 

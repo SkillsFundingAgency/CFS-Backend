@@ -26,13 +26,12 @@ using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Models.Calcs.Messages;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Core.Interfaces.EventHub;
-using Microsoft.Azure.EventHubs;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.CodeGeneration;
+using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -47,7 +46,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task CreateCalculation_GivenNullCalculation_LogsDoesNotSave()
         {
             //Arrange
-            EventData message = new EventData(new byte[0]);
+            Message message = new Message(new byte[0]);
 
             ICalculationsRepository repository = CreateCalculationsRepository();
 
@@ -78,7 +77,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
 
             ICalculationsRepository repository = CreateCalculationsRepository();
 
@@ -110,10 +109,10 @@ namespace CalculateFunding.Services.Calcs.Services
             string json = JsonConvert.SerializeObject(calculation);
 
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
 
-            message.Properties.Add("user-id", UserId);
-            message.Properties.Add("user-name", Username);
+            message.UserProperties.Add("user-id", UserId);
+            message.UserProperties.Add("user-name", Username);
 
 
             ICalculationsRepository repository = CreateCalculationsRepository();
@@ -168,10 +167,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             string json = JsonConvert.SerializeObject(calculation);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
 
-            message.Properties.Add("user-id", UserId);
-            message.Properties.Add("user-name", Username);
+            message.UserProperties.Add("user-id", UserId);
+            message.UserProperties.Add("user-name", Username);
 
             ICalculationsRepository repository = CreateCalculationsRepository();
             repository
@@ -1628,7 +1627,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 messengerService
                     .Received(1)
-                    .SendAsync(Arg.Is("calc-events-instruct-generate-allocations"),
+                    .SendToQueue(Arg.Is("calc-events-instruct-generate-allocations"),
                         Arg.Any<BuildProject>(),
                         Arg.Any<IDictionary<string, string>>());
         }
@@ -1824,7 +1823,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
             ICompilerFactory compilerFactory = null,
             IMessengerService messengerService = null,
-            EventHubSettings EventHubSettings = null,
+            ServiceBusSettings EventHubSettings = null,
             ICodeMetadataGeneratorService codeMetadataGenerator = null,
             ISpecificationRepository specificationRepository = null)
         {
@@ -1878,9 +1877,9 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<IMessengerService>();
         }
 
-        static EventHubSettings CreateEventHubSettings()
+        static ServiceBusSettings CreateEventHubSettings()
         {
-            return new EventHubSettings
+            return new ServiceBusSettings
             {
 
             };

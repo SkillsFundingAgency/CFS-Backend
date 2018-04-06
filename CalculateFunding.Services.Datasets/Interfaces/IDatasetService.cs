@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.WindowsAzure.Storage.Blob;
 using System.Threading.Tasks;
-using Microsoft.Azure.EventHubs;
+using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Datasets.Interfaces
 {
@@ -14,7 +13,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<IActionResult> ValidateDataset(HttpRequest request);
 
-	    Task ProcessDataset(EventData message);
+	    Task ProcessDataset(Message message);
 
         Task<IActionResult> GetDatasetsByDefinitionId(HttpRequest request);
     }

@@ -17,11 +17,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.EventHub;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
-using Microsoft.Azure.EventHubs;
-using System.Text;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -37,14 +35,14 @@ namespace CalculateFunding.Services.Datasets
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly IValidator<CreateDefinitionSpecificationRelationshipModel> _relationshipModelValidator;
         private readonly IMessengerService _messengerService;
-        private readonly EventHubSettings _eventHubSettings;
+        private readonly ServiceBusSettings _eventHubSettings;
         private readonly IDatasetService _datasetService;
         private readonly ICalcsRepository _calcsRepository;
 
         public DefinitionSpecificationRelationshipService(IDatasetRepository datasetRepository, 
             ILogger logger, ISpecificationsRepository specificationsRepository, 
             IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator, 
-            IMessengerService messengerService, EventHubSettings eventHubSettings, IDatasetService datasetService, ICalcsRepository calcsRepository)
+            IMessengerService messengerService, ServiceBusSettings eventHubSettings, IDatasetService datasetService, ICalcsRepository calcsRepository)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -118,7 +116,7 @@ namespace CalculateFunding.Services.Datasets
 
             IDictionary<string, string> properties = CreateMessageProperties(request);
 
-            await _messengerService.SendAsync(updateSpecificationSearchIndex,
+            await _messengerService.SendToQueue(updateSpecificationSearchIndex,
                 new AssignDefinitionRelationshipMessage
                 {
                    SpecificationId = specification.Id,
@@ -285,7 +283,7 @@ namespace CalculateFunding.Services.Datasets
             IDictionary<string, string> properties = CreateMessageProperties(request);
             properties.Add("specification-id", relationship.Specification.Id);
 
-            await _messengerService.SendAsync(processDatasetSubscription, dataset, properties);
+            await _messengerService.SendToQueue(processDatasetSubscription, dataset, properties);
 
             return new NoContentResult();
         }

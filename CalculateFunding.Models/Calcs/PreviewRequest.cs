@@ -1,6 +1,3 @@
-using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Models.Specs;
-
 namespace CalculateFunding.Models.Calcs
 {
     public class PreviewRequest

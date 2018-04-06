@@ -27,16 +27,15 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.EventHub;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Caching;
-using System.Dynamic;
 using Newtonsoft.Json.Linq;
 using CalculateFunding.Models.Datasets.ViewModels;
-using Microsoft.Azure.EventHubs;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -411,7 +410,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
-            
+
             GetDatasetBlobModel model = new GetDatasetBlobModel
             {
                 DatasetId = "dataset-id",
@@ -1272,7 +1271,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public void ProcessDataset_GivenNullMessage_ThrowsArgumentNullException()
         {
             //Arrange
-            EventData message = null;
+            Message message = null;
 
             DatasetService service = CreateDatasetService();
 
@@ -1288,7 +1287,7 @@ namespace CalculateFunding.Services.Datasets.Services
         public void ProcessDataset_GivenNullPayload_ThrowsArgumentException()
         {
             //Arrange
-            EventData message = new EventData(new byte[0]);
+            Message message = new Message(new byte[0]);
 
             DatasetService service = CreateDatasetService();
 
@@ -1308,7 +1307,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
 
             DatasetService service = CreateDatasetService();
 
@@ -1328,9 +1327,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-                .Properties
+                .UserProperties
                 .Add("specification-id", "");
 
             DatasetService service = CreateDatasetService();
@@ -1357,10 +1356,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-                .Properties
-                .Add("specification-id", SpecificationId);
+                 .UserProperties
+                 .Add("specification-id", SpecificationId);
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
@@ -1398,10 +1397,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-                .Properties
-                .Add("specification-id", SpecificationId);
+                 .UserProperties
+                 .Add("specification-id", SpecificationId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -1449,9 +1448,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-                .Properties
+                .UserProperties
                 .Add("specification-id", SpecificationId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -1479,7 +1478,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(buildProject);
 
             DatasetService service = CreateDatasetService(
-                datasetRepository: datasetRepository, logger: logger, 
+                datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient);
 
             //Act
@@ -1509,9 +1508,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-                .Properties
+                .UserProperties
                 .Add("specification-id", SpecificationId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -1576,9 +1575,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-                .Properties
+                .UserProperties
                 .Add("specification-id", SpecificationId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -1650,9 +1649,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-                .Properties
+                .UserProperties
                 .Add("specification-id", SpecificationId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -1719,9 +1718,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-                .Properties
+                .UserProperties
                 .Add("specification-id", SpecificationId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -1795,9 +1794,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-                .Properties
+                .UserProperties
                 .Add("specification-id", SpecificationId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -1878,9 +1877,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-                .Properties
+                .UserProperties
                 .Add("specification-id", SpecificationId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -1960,9 +1959,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-                .Properties
+                .UserProperties
                 .Add("specification-id", SpecificationId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -2060,9 +2059,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-                .Properties
+                .UserProperties
                 .Add("specification-id", SpecificationId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -2175,9 +2174,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-                .Properties
+                .UserProperties
                 .Add("specification-id", SpecificationId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -2255,23 +2254,23 @@ namespace CalculateFunding.Services.Datasets.Services
                     .UpdateSourceDatsets(Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Is(SpecificationId));
         }
 
-        static DatasetService CreateDatasetService(IBlobClient blobClient = null, ILogger logger = null, 
-            IDatasetRepository datasetRepository = null, 
+        static DatasetService CreateDatasetService(IBlobClient blobClient = null, ILogger logger = null,
+            IDatasetRepository datasetRepository = null,
             IValidator<CreateNewDatasetModel> createNewDatasetModelValidator = null, IMapper mapper = null,
             IValidator<DatasetMetadataModel> datasetMetadataModelValidator = null, ISearchRepository<DatasetIndex> searchRepository = null,
             IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator = null, ISpecificationsRepository specificationsRepository = null,
-            IMessengerService messengerService = null, EventHubSettings eventHubSettings = null, IExcelDatasetReader excelDatasetReader = null,
+            IMessengerService messengerService = null, ServiceBusSettings eventHubSettings = null, IExcelDatasetReader excelDatasetReader = null,
             ICacheProvider cacheProvider = null, ICalcsRepository calcsRepository = null, IProviderRepository providerRepository = null, IProvidersResultsRepository providersResultsRepository = null,
             ITelemetry telemetry = null)
         {
-            return new DatasetService(blobClient ?? CreateBlobClient(), logger ?? CreateLogger(), 
-                datasetRepository ?? CreateDatasetsRepository(), 
+            return new DatasetService(blobClient ?? CreateBlobClient(), logger ?? CreateLogger(),
+                datasetRepository ?? CreateDatasetsRepository(),
                 createNewDatasetModelValidator ?? CreateNewDatasetModelValidator(), mapper ?? CreateMapper(),
-                datasetMetadataModelValidator ?? CreateDatasetMetadataModelValidator(), 
+                datasetMetadataModelValidator ?? CreateDatasetMetadataModelValidator(),
                 searchRepository ?? CreateSearchRepository(), getDatasetBlobModelValidator ?? CreateGetDatasetBlobModelValidator(),
-                specificationsRepository ?? CreateSpecificationsRepository(), messengerService ?? CreateMessengerService(), 
-                eventHubSettings ?? CreateEventHubSettings(), excelDatasetReader ?? CreateExcelDatasetReader(), 
-                cacheProvider ?? CreateCacheProvider(), calcsRepository ?? CreateCalcsRepository(), providerRepository ?? CreateProviderRepository(), 
+                specificationsRepository ?? CreateSpecificationsRepository(), messengerService ?? CreateMessengerService(),
+                eventHubSettings ?? CreateEventHubSettings(), excelDatasetReader ?? CreateExcelDatasetReader(),
+                cacheProvider ?? CreateCacheProvider(), calcsRepository ?? CreateCalcsRepository(), providerRepository ?? CreateProviderRepository(),
                 providersResultsRepository ?? CreateProvidesrResultsRepository(), telemetry ?? CreateTelemetry());
         }
 
@@ -2315,9 +2314,9 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<IMessengerService>();
         }
 
-        static EventHubSettings CreateEventHubSettings()
+        static ServiceBusSettings CreateEventHubSettings()
         {
-            return new EventHubSettings();
+            return new ServiceBusSettings();
         }
 
         static ICacheProvider CreateCacheProvider()

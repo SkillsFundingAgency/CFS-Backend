@@ -117,7 +117,7 @@ namespace CalculateFunding.Functions.Datasets
 
             builder.AddSearch(config);
 
-            builder.AddEventHub(config);
+            builder.AddServiceBus(config);
 
             builder.AddCaching(config);
 

@@ -16,12 +16,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.EventHub;
-using Microsoft.Azure.EventHubs;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using Newtonsoft.Json;
 using System.Net;
 using System.IO;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -510,7 +510,7 @@ namespace CalculateFunding.Services.Results.Services
         public void UpdateProviderData_GivenNullResults_ThrowsArgumentNullException()
         {
             //Arrange
-            EventData message = new EventData(new byte[0]);
+            Message message = new Message(new byte[0]);
 
             ResultsService service = CreateResultsService();
 
@@ -530,7 +530,7 @@ namespace CalculateFunding.Services.Results.Services
 
         //    var json = JsonConvert.SerializeObject(results);
 
-        //    EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+        //    Message message = new Message(Encoding.UTF8.GetBytes(json));
 
         //    ILogger logger = CreateLogger();
 
@@ -563,7 +563,7 @@ namespace CalculateFunding.Services.Results.Services
 
         //    var json = JsonConvert.SerializeObject(results);
 
-        //    EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+        //    Message message = new Message(Encoding.UTF8.GetBytes(json));
 
         //    ILogger logger = CreateLogger();
 
@@ -594,7 +594,7 @@ namespace CalculateFunding.Services.Results.Services
 
         //    var json = JsonConvert.SerializeObject(results);
 
-        //    EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+        //    Message message = new Message(Encoding.UTF8.GetBytes(json));
 
         //    ILogger logger = CreateLogger();
 
@@ -808,7 +808,7 @@ namespace CalculateFunding.Services.Results.Services
             IMapper mapper = null,
             ISearchRepository<ProviderIndex> searchRepository = null,
             IMessengerService messengerService = null,
-            EventHubSettings EventHubSettings = null,
+            ServiceBusSettings EventHubSettings = null,
             ITelemetry telemetry = null,
             IProviderSourceDatasetRepository providerSourceDatasetRepository = null)
         {
@@ -858,9 +858,9 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<IMessengerService>();
         }
 
-        static EventHubSettings CreateEventHubSettings()
+        static ServiceBusSettings CreateEventHubSettings()
         {
-            return new EventHubSettings();
+            return new ServiceBusSettings();
         }
     }
 }

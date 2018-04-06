@@ -1,7 +1,6 @@
 using CalculateFunding.Models.Results;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
 namespace CalculateFunding.Models.UnitTests
 {

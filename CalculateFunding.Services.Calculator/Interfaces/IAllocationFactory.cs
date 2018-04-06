@@ -1,6 +1,4 @@
-﻿using System;
-using System.Reflection;
-using System.Text;
+﻿using System.Reflection;
 
 namespace CalculateFunding.Services.Calculator.Interfaces
 {

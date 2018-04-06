@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Models.Specs;
-using Gherkin.Ast;
 
 namespace CalculateFunding.Services.TestRunner
 {

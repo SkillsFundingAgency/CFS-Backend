@@ -22,16 +22,13 @@ using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Models.Calcs.Messages;
-using CalculateFunding.Services.Core.Interfaces.EventHub;
-using Microsoft.Azure.EventHubs;
-using CalculateFunding.Services.CodeMetadataGenerator;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
-using System.Diagnostics;
-using CalculateFunding.Models.Datasets.Schema;
+using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Services.Core.Constants;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -45,12 +42,10 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICompilerFactory _compilerFactory;
         private readonly ISourceFileGenerator _sourceFileGenerator;
         private readonly IMessengerService _messengerService;
-        private readonly EventHubSettings _eventHubSettings;
+        private readonly ServiceBusSettings _eventHubSettings;
         private readonly ICodeMetadataGeneratorService _codeMetadataGenerator;
         private readonly ISpecificationRepository _specsRepository;
         private readonly ITelemetry _telemetry;
-
-        const string GenerateAllocationsInstructionSubscription = "calc-events-instruct-generate-allocations";
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
@@ -62,7 +57,7 @@ namespace CalculateFunding.Services.Calcs
             ISourceFileGeneratorProvider sourceFileGeneratorProvider,
             ICompilerFactory compilerFactory,
             IMessengerService messengerService,
-            EventHubSettings eventHubSettings,
+            ServiceBusSettings eventHubSettings,
             ICodeMetadataGeneratorService codeMetadataGenerator,
             ISpecificationRepository specificationRepository)
         {
@@ -205,7 +200,7 @@ namespace CalculateFunding.Services.Calcs
             return new NotFoundResult();
         }
 
-        async public Task CreateCalculation(EventData message)
+        async public Task CreateCalculation(Message message)
         {
             Reference user = message.GetUserDetails();
 
@@ -572,7 +567,7 @@ namespace CalculateFunding.Services.Calcs
 
             properties.Add("specification-id", buildProject.Specification.Id);
 
-            return _messengerService.SendAsync(GenerateAllocationsInstructionSubscription,
+            return _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
                 buildProject,
                 properties);
         }

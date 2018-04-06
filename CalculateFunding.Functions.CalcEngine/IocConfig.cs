@@ -1,12 +1,8 @@
 ﻿using System;
-using AutoMapper;
-using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
-using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -67,7 +63,7 @@ namespace CalculateFunding.Functions.CalcEngine
                 return new ProviderResultsRepository(calcsCosmosRepostory);
             });
 
-            builder.AddEventHub(config);
+            builder.AddServiceBus(config);
 
             builder.AddCaching(config);
 

@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
-using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;

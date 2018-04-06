@@ -11,28 +11,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.EventHub;
-using Microsoft.Azure.EventHubs;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.Compiler;
-using System.Diagnostics;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Newtonsoft.Json;
+using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Services.Core.Constants;
 
 namespace CalculateFunding.Services.Calcs
 {
     public class BuildProjectsService : IBuildProjectsService
     {
         const int MaxPartitionSize = 1000;
-        const string GenerateAllocationResultsSubscription = "calc-events-generate-allocations-results";
 
         private readonly IBuildProjectsRepository _buildProjectsRepository;
         private readonly IMessengerService _messengerService;
-        private readonly EventHubSettings _eventHubSettings;
+        private readonly ServiceBusSettings _eventHubSettings;
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
         private readonly IProviderResultsRepository _providerResultsRepository;
@@ -44,7 +43,7 @@ namespace CalculateFunding.Services.Calcs
         public BuildProjectsService(
             IBuildProjectsRepository buildProjectsRepository,
             IMessengerService messengerService,
-            EventHubSettings eventHubSettings,
+            ServiceBusSettings eventHubSettings,
             ILogger logger,
             ITelemetry telemetry,
             IProviderResultsRepository providerResultsRepository,
@@ -74,7 +73,7 @@ namespace CalculateFunding.Services.Calcs
             _sourceFileGenerator = sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
         }
 
-        public async Task UpdateAllocations(EventData message)
+        public async Task UpdateAllocations(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
@@ -91,14 +90,14 @@ namespace CalculateFunding.Services.Calcs
 
             if (buildProject.Specification == null)
             {
-                if (!message.Properties.ContainsKey("specification-id"))
+                if (!message.UserProperties.ContainsKey("specification-id"))
                 {
                     _logger.Error("Specification id key not found in message properties");
 
                     throw new KeyNotFoundException("Specification id key not found in message properties");
                 }
 
-                specificationId = message.Properties["specification-id"].ToString();
+                specificationId = message.UserProperties["specification-id"].ToString();
 
                 if (string.IsNullOrWhiteSpace(specificationId))
                 {
@@ -154,7 +153,7 @@ namespace CalculateFunding.Services.Calcs
                 }
 
 
-                await _messengerService.SendAsync(GenerateAllocationResultsSubscription, buildProject, properties);
+                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, buildProject, properties);
             }
         }
 
@@ -202,7 +201,7 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(buildProject);
         }
 
-        public async Task UpdateBuildProjectRelationships(EventData message)
+        public async Task UpdateBuildProjectRelationships(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
@@ -215,14 +214,14 @@ namespace CalculateFunding.Services.Calcs
                 throw new ArgumentNullException(nameof(relationship));
             }
 
-            if (!message.Properties.ContainsKey("specification-id"))
+            if (!message.UserProperties.ContainsKey("specification-id"))
             {
                 _logger.Error("Message properties does not contain a specification id");
 
                 throw new KeyNotFoundException("specification-id");
             }
 
-            string specificationId = message.Properties["specification-id"].ToString();
+            string specificationId = message.UserProperties["specification-id"].ToString();
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {

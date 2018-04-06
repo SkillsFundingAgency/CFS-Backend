@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CalculateFunding.Models.Datasets.Schema;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs

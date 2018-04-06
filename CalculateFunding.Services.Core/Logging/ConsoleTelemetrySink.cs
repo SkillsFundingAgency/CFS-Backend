@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 
 namespace CalculateFunding.Services.Core.Logging

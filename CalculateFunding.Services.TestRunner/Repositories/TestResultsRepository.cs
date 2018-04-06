@@ -4,7 +4,6 @@ using CalculateFunding.Services.TestRunner.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
 using CalculateFunding.Services.Core.Helpers;

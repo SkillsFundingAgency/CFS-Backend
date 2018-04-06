@@ -2,7 +2,6 @@
 using CalculateFunding.Services.Core.Options;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
-using Serilog;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;

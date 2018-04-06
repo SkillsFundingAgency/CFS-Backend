@@ -5,13 +5,11 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.TestRunner.Interfaces;
-using Microsoft.Azure.EventHubs;
+using Microsoft.Azure.ServiceBus;
 using Serilog;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.Services
@@ -47,7 +45,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             _testResultsRepository = testResultsRepository;
         }
 
-        public async Task RunTests(EventData message)
+        public async Task RunTests(Message message)
         {
             BuildProject buildProject = message.GetPayloadAsInstanceOf<BuildProject>();
 
@@ -57,7 +55,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return;
             }
 
-            string specificationId = message.Properties["specificationId"].ToString();
+            string specificationId = message.UserProperties["specificationId"].ToString();
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -65,7 +63,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return;
             }
 
-            string cacheKey = message.Properties["providerResultsCacheKey"].ToString();
+            string cacheKey = message.UserProperties["providerResultsCacheKey"].ToString();
 
             if (string.IsNullOrWhiteSpace(cacheKey))
             {

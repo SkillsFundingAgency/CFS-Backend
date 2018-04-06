@@ -18,7 +18,6 @@ using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.CodeMetadataGenerator;
-using CalculateFunding.Repositories.Common.Cosmos;
 
 namespace CalculateFunding.Functions.Calcs
 {
@@ -104,7 +103,7 @@ namespace CalculateFunding.Functions.Calcs
 
             builder.AddSearch(config);
 
-            builder.AddEventHub(config);
+            builder.AddServiceBus(config);
 
             builder.AddInterServiceClient(config);
 

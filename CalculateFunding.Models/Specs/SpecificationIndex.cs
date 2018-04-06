@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using CalculateFunding.Models.Specs;
 using Microsoft.Azure.Search;
 using Newtonsoft.Json;
 

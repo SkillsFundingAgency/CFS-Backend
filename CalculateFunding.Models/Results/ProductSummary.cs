@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Models.Specs;
 using Newtonsoft.Json;
 using Calculation = CalculateFunding.Models.Specs.Calculation;
 

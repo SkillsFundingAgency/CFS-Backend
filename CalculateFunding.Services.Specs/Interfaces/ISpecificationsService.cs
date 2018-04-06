@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Azure.EventHubs;
 
 namespace CalculateFunding.Services.Specs.Interfaces
 {
@@ -37,7 +33,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetCalculationsBySpecificationId(HttpRequest request);
 
-        Task AssignDataDefinitionRelationship(EventData message);
+        Task AssignDataDefinitionRelationship(Message message);
 
         Task<IActionResult> ReIndex();
     }

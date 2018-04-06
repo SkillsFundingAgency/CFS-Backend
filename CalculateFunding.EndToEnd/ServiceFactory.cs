@@ -9,7 +9,6 @@ using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Languages;
-using CalculateFunding.Services.DataImporter;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

@@ -25,11 +25,9 @@ using System.Net;
 using System.Security.Claims;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Models.Specs.Messages;
-using CalculateFunding.Services.Validators;
 using CalculateFunding.Models.Exceptions;
-using CalculateFunding.Repositories.Common.Cosmos;
-using CalculateFunding.Services.Core.Interfaces.EventHub;
-using Microsoft.Azure.EventHubs;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -1079,7 +1077,7 @@ namespace CalculateFunding.Services.Specs.Services
             await
                 messengerService
                     .Received(1)
-                    .SendAsync(Arg.Is("calc-events-create-draft"),
+                    .SendToQueue(Arg.Is("calc-events-create-draft"),
                         Arg.Is<Models.Calcs.Calculation>(m =>
                             m.CalculationSpecification.Id == calculation.Id &&
                             m.CalculationSpecification.Name == calculation.Name &&
@@ -1201,7 +1199,7 @@ namespace CalculateFunding.Services.Specs.Services
             await
                 messengerService
                     .Received(1)
-                    .SendAsync(Arg.Is("calc-events-create-draft"),
+                    .SendToQueue(Arg.Is("calc-events-create-draft"),
                         Arg.Is<Models.Calcs.Calculation>(m =>
                             m.CalculationSpecification.Id == calculation.Id &&
                             m.CalculationSpecification.Name == calculation.Name &&
@@ -1497,7 +1495,7 @@ namespace CalculateFunding.Services.Specs.Services
         public void AssignDataDefinitionRelationship_GivenMessageWithNullRealtionshipObject_ThrowsArgumentNullException()
         {
             //Arrange
-            EventData message = new EventData(new byte[0]);
+            Message message = new Message(new byte[0]);
 
             ILogger logger = CreateLogger();
 
@@ -1524,7 +1522,7 @@ namespace CalculateFunding.Services.Specs.Services
             string json = JsonConvert.SerializeObject(anyObject);
 
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
 
 
             ValidationResult validationResult = new ValidationResult(new[]{
@@ -1552,7 +1550,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
@@ -1577,7 +1575,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
 
             Specification specification = new Specification();
 
@@ -1614,7 +1612,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
 
             Specification specification = new Specification
             {
@@ -1658,7 +1656,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             string json = JsonConvert.SerializeObject(anyObject);
 
-            EventData message = new EventData(Encoding.UTF8.GetBytes(json));
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
 
             Specification specification = new Specification
             {
@@ -1910,7 +1908,7 @@ namespace CalculateFunding.Services.Specs.Services
         static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null,
             ILogger logs = null, IValidator<PolicyCreateModel> policyCreateModelValidator = null,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null, IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
-            IMessengerService messengerService = null, EventHubSettings EventHubSettings = null, ISearchRepository<SpecificationIndex> searchRepository = null,
+            IMessengerService messengerService = null, ServiceBusSettings EventHubSettings = null, ISearchRepository<SpecificationIndex> searchRepository = null,
             IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(), specifcationsRepository ?? CreateSpecificationsRepository(), logs ?? CreateLogger(), policyCreateModelValidator ?? CreatePolicyValidator(),
@@ -1938,9 +1936,9 @@ namespace CalculateFunding.Services.Specs.Services
             return Substitute.For<ILogger>();
         }
 
-        static EventHubSettings CreateEventHubSettings()
+        static ServiceBusSettings CreateEventHubSettings()
         {
-            return new EventHubSettings
+            return new ServiceBusSettings
             {
             };
         }

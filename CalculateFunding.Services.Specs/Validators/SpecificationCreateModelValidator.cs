@@ -1,9 +1,6 @@
 ﻿using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Services.Specs.Validators
 {

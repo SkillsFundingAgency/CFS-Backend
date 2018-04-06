@@ -5,7 +5,6 @@ using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using System;
-using System.Linq.Expressions;
 
 namespace CalculateFunding.Services.Specs.Validators
 {

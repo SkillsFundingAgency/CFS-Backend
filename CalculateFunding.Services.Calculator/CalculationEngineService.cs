@@ -2,18 +2,17 @@
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Azure.EventHubs;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Core.Interfaces.EventHub;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Models.Results;
 using System.Diagnostics;
 using System.Linq;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -49,7 +48,7 @@ namespace CalculateFunding.Services.Calculator
             _providerResultsRepository = providerResultsRepository;
         }
 
-        public async Task GenerateAllocations(EventData message)
+        public async Task GenerateAllocations(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
             
@@ -64,23 +63,23 @@ namespace CalculateFunding.Services.Calculator
                 throw new ArgumentNullException(nameof(buildProject));
             }
 
-            if (!message.Properties.ContainsKey("provider-summaries-partition-index"))
+            if (!message.UserProperties.ContainsKey("provider-summaries-partition-index"))
             {
                 _logger.Error("Provider summaries partition index key not found in message properties");
 
                 throw new KeyNotFoundException("Provider summaries partition index key not found in message properties");
             }
 
-            if (!message.Properties.ContainsKey("provider-summaries-partition-size"))
+            if (!message.UserProperties.ContainsKey("provider-summaries-partition-size"))
             {
                 _logger.Error("Provider summaries partition size key not found in message properties");
 
                 throw new KeyNotFoundException("Provider summaries partition size key not found in message properties");
             }
 
-            int partitionIndex = int.Parse(message.Properties["provider-summaries-partition-index"].ToString());
+            int partitionIndex = int.Parse(message.UserProperties["provider-summaries-partition-index"].ToString());
 
-            int partitionSize = int.Parse(message.Properties["provider-summaries-partition-size"].ToString());
+            int partitionSize = int.Parse(message.UserProperties["provider-summaries-partition-size"].ToString());
             if (partitionSize <= 0)
             {
                 _logger.Error("Partition size is zero or less. {partitionSize}", partitionSize);
@@ -146,7 +145,7 @@ namespace CalculateFunding.Services.Calculator
 
                     properties.Add("providerResultsCacheKey", providerResultsCacheKey);
 
-                    await _messengerService.SendAsync(ExecuteTestsEventSubscription, buildProject, properties);
+                    await _messengerService.SendToQueue(ExecuteTestsEventSubscription, buildProject, properties);
                 }
 
                 calcTiming.Stop();
@@ -156,9 +155,6 @@ namespace CalculateFunding.Services.Calculator
                     {
                         { "specificationId" , specificationId },
                         { "buildProjectId" , buildProject.Id },
-                        { "eventHubPartitionKey" , message.SystemProperties.PartitionKey},
-                        { "eventHubPartitionSequenceNumber" , message.SystemProperties.SequenceNumber.ToString() },
-                        { "messageEnqueuedTimeUtc" , message.SystemProperties.EnqueuedTimeUtc.ToString()}
 
                     },
                     new Dictionary<string, double>()

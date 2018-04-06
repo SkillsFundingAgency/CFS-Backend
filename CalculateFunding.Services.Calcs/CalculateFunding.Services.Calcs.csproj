@@ -8,7 +8,6 @@
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="7.3.4" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="WindowsAzure.ServiceBus" Version="4.1.6" />
   </ItemGroup>
 
   <ItemGroup>

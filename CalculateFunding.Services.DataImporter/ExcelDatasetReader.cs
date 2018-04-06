@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
-using Newtonsoft.Json;
 using OfficeOpenXml;
 
 namespace CalculateFunding.Services.DataImporter

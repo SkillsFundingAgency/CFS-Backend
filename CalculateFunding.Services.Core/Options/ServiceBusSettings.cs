@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CalculateFunding.Services.Core.Options
+﻿namespace CalculateFunding.Services.Core.Options
 {
-    public class EventHubSettings
+    public class ServiceBusSettings
     {
-        public string EventHubConnectionString { get; set; }
+        public string ConnectionString { get; set; }
     }
 
 }

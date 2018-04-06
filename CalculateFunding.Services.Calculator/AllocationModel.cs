@@ -6,8 +6,6 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calculator.Interfaces;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace CalculateFunding.Services.Calculator
 {

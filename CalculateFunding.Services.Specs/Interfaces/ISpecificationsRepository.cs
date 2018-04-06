@@ -4,7 +4,6 @@ using System;
 using System.Linq.Expressions;
 using System.Collections.Generic;
 using System.Net;
-using CalculateFunding.Repositories.Common.Cosmos;
 
 namespace CalculateFunding.Services.Specs.Interfaces
 {
