@@ -118,6 +118,7 @@ namespace CalculateFunding.Services.Calculator
                     providerSourceDatasets = Enumerable.Empty<ProviderSourceDataset>();
                 }
 
+                Stopwatch calculationStopwatch = Stopwatch.StartNew();
                 Parallel.ForEach(partitionedSummaries, new ParallelOptions { MaxDegreeOfParallelism = 5 }, provider =>
                 {
                     var stopwatch = new Stopwatch();
@@ -134,6 +135,7 @@ namespace CalculateFunding.Services.Calculator
 
                     _logger.Debug($"Generated result for {provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
                 });
+                calculationStopwatch.Stop();
 
                 double saveCosmosElapsedMs = 0;
                 double saveRedisElapsedMs = 0;
@@ -187,6 +189,7 @@ namespace CalculateFunding.Services.Calculator
                         { "calculation-run-saveProviderResultsCosmosMs", saveCosmosElapsedMs },
                         { "calculation-run-saveProviderResultsRedisMs", saveRedisElapsedMs },
                         { "calculation-run-saveProviderResultsServiceBusMs", saveQueueElapsedMs },
+                        { "calculation-run-runningCalculationMs", calculationStopwatch.ElapsedMilliseconds },
                     }
                 );
             }
