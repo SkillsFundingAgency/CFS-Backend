@@ -15,7 +15,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             ConnectionMode = ConnectionMode.Direct,
             ConnectionProtocol = Protocol.Tcp,
             RequestTimeout = new TimeSpan(1, 0, 0),
-            MaxConnectionLimit = 500,
+            MaxConnectionLimit = 200,
             //RetryOptions = new RetryOptions
             //{
             //    MaxRetryAttemptsOnThrottledRequests = 10,

@@ -110,30 +110,24 @@ namespace CalculateFunding.Services.Calculator
                 IList<string> providerIdList = partitionedSummaries.Select(m => m.Id).ToList();
 
                 Stopwatch providerSourceDatasetsStopwatch = Stopwatch.StartNew();
-                IEnumerable<ProviderSourceDataset> providerSourceDatasets = await _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIdList, specificationId);
+                // Convert to list to ensure no deferred execution in cosmos
+                List<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>(await _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIdList, specificationId));
                 providerSourceDatasetsStopwatch.Stop();
 
                 if (providerSourceDatasets == null)
                 {
-                    providerSourceDatasets = Enumerable.Empty<ProviderSourceDataset>();
+                    providerSourceDatasets = new List<ProviderSourceDataset>();
                 }
 
                 Stopwatch calculationStopwatch = Stopwatch.StartNew();
                 Parallel.ForEach(partitionedSummaries, new ParallelOptions { MaxDegreeOfParallelism = 5 }, provider =>
                 {
-                    var stopwatch = new Stopwatch();
-                    stopwatch.Start();
-
                     IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.Provider?.Id == provider.Id);
 
                     var result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, provider, providerDatasets);
 
                     if (result != null)
                         providerResults.Add(result);
-
-                    stopwatch.Stop();
-
-                    _logger.Debug($"Generated result for {provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
                 });
                 calculationStopwatch.Stop();
 
