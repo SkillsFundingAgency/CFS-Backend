@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Linq;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Services.Core.Options;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -29,6 +30,7 @@ namespace CalculateFunding.Services.Calculator
         private readonly IProviderSourceDatasetsRepository _providerSourceDatasetsRepository;
         private readonly ITelemetry _telemetry;
         private readonly IProviderResultsRepository _providerResultsRepository;
+        private readonly EngineSettings _engineSettings;
 
         public CalculationEngineService(
             ILogger logger,
@@ -37,8 +39,11 @@ namespace CalculateFunding.Services.Calculator
             IMessengerService messengerService,
             IProviderSourceDatasetsRepository providerSourceDatasetsRepository,
             ITelemetry telemetry,
-            IProviderResultsRepository providerResultsRepository)
+            IProviderResultsRepository providerResultsRepository,
+            EngineSettings engineSettings)
         {
+            Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
+
             _logger = logger;
             _calculationEngine = calculationEngine;
             _cacheProvider = cacheProvider;
@@ -46,6 +51,7 @@ namespace CalculateFunding.Services.Calculator
             _providerSourceDatasetsRepository = providerSourceDatasetsRepository;
             _telemetry = telemetry;
             _providerResultsRepository = providerResultsRepository;
+            _engineSettings = engineSettings;
         }
 
         public async Task GenerateAllocations(Message message)
@@ -97,7 +103,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(buildProject);
 
-            int providerBatchSize = 100;
+            int providerBatchSize = _engineSettings.ProviderBatchSize;
 
             for (int i = 0; i < summaries.Count(); i += providerBatchSize)
             {
@@ -120,7 +126,7 @@ namespace CalculateFunding.Services.Calculator
                 }
 
                 Stopwatch calculationStopwatch = Stopwatch.StartNew();
-                Parallel.ForEach(partitionedSummaries, new ParallelOptions { MaxDegreeOfParallelism = 5 }, provider =>
+                Parallel.ForEach(partitionedSummaries, new ParallelOptions { MaxDegreeOfParallelism = _engineSettings.CalculateProviderResultsDegreeOfParallelism }, provider =>
                 {
                     IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.Provider?.Id == provider.Id);
 
@@ -138,7 +144,7 @@ namespace CalculateFunding.Services.Calculator
                 if (providerResults.Any())
                 {
                     Stopwatch saveCosmosStopwatch = Stopwatch.StartNew();
-                    await _providerResultsRepository.SaveProviderResults(providerResults);
+                    await _providerResultsRepository.SaveProviderResults(providerResults, _engineSettings.SaveProviderDegreeOfParallelism);
                     saveCosmosStopwatch.Stop();
 
                     saveCosmosElapsedMs = saveCosmosStopwatch.ElapsedMilliseconds;

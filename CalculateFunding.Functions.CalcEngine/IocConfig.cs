@@ -63,6 +63,8 @@ namespace CalculateFunding.Functions.CalcEngine
                 return new ProviderResultsRepository(calcsCosmosRepostory);
             });
 
+            builder.AddEngineSettings(config);
+
             builder.AddServiceBus(config);
 
             builder.AddCaching(config);

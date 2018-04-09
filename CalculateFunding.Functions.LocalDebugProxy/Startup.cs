@@ -473,6 +473,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder.AddCaching(config);
 
             builder.AddServiceBus(config);
+
+            builder.AddEngineSettings(config);
         }
     }
 }

@@ -217,5 +217,16 @@ namespace CalculateFunding.Services.Core.Extensions
 
             return builder;
         }
+
+        public static IServiceCollection AddEngineSettings(this IServiceCollection builder, IConfigurationRoot config)
+        {
+            EngineSettings engineSettings = new EngineSettings();
+
+            config.Bind("engineSettings", engineSettings);
+
+            builder.AddSingleton<EngineSettings>(engineSettings);
+
+            return builder;
+        }
     }
 }

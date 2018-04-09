@@ -16,9 +16,10 @@ namespace CalculateFunding.Services.Calculator
             _cosmosRepository = cosmosRepository;
         }
 
-        public Task SaveProviderResults(IEnumerable<ProviderResult> providerResults)
+        public Task SaveProviderResults(IEnumerable<ProviderResult> providerResults, int degreeOfParallelism = 5)
         {
-            return _cosmosRepository.BulkCreateAsync(providerResults.ToList());
+            IEnumerable<KeyValuePair<string, ProviderResult>> results = providerResults.Select(m => new KeyValuePair<string, ProviderResult>(m.Provider.Id, m));
+            return _cosmosRepository.BulkCreateAsync(results, degreeOfParallelism);
         }
     }
 }

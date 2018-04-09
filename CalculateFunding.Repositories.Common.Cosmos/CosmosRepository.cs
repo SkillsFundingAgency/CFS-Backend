@@ -210,7 +210,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         }
 
 
-        public async Task<HttpStatusCode> CreateAsync<T>(T entity) where T : IIdentifiable
+        public async Task<HttpStatusCode> CreateAsync<T>(T entity, string partitionKey = null) where T : IIdentifiable
         {
             var doc = new DocumentEntity<T>(entity)
             {
@@ -218,7 +218,26 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
+
             var response = await _documentClient.UpsertDocumentAsync(_collectionUri, doc);
+            return response.StatusCode;
+        }
+
+        public async Task<HttpStatusCode> CreateAsync<T>(KeyValuePair<string, T> entity) where T : IIdentifiable
+        {
+            var doc = new DocumentEntity<T>(entity.Value)
+            {
+                DocumentType = GetDocumentType<T>(),
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            RequestOptions options = new RequestOptions()
+            {
+                PartitionKey = new PartitionKey(entity.Key),
+            };
+
+            var response = await _documentClient.UpsertDocumentAsync(_collectionUri, doc, options);
             return response.StatusCode;
         }
 
@@ -235,24 +254,18 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
         public async Task BulkCreateAsync<T>(IList<T> entities, int degreeOfParallelism = 5) where T : IIdentifiable
         {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            int taskCount;
-            // set TaskCount = 10 for each 10k RUs, minimum 1, maximum 250
-            taskCount = Math.Max(degreeOfParallelism, 10);
-            taskCount = Math.Min(taskCount, 250);
-
-
             await Task.Run(() => Parallel.ForEach(entities, new ParallelOptions { MaxDegreeOfParallelism = degreeOfParallelism }, (item) =>
             {
                 Task.WaitAll(CreateAsync(item));
             }));
+        }
 
-
-            stopwatch.Stop();
-
-            var itemsPerSec = entities.Count / (stopwatch.ElapsedMilliseconds / 1000M);
+        public async Task BulkCreateAsync<T>(IEnumerable<KeyValuePair<string, T>> entities, int degreeOfParallelism = 5) where T : IIdentifiable
+        {
+            await Task.Run(() => Parallel.ForEach(entities, new ParallelOptions { MaxDegreeOfParallelism = degreeOfParallelism }, (item) =>
+            {
+                Task.WaitAll(CreateAsync(item));
+            }));
         }
 
         public async Task<HttpStatusCode> UpdateAsync<T>(T entity) where T : Reference

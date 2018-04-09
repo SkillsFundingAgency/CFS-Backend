@@ -6,6 +6,6 @@ namespace CalculateFunding.Services.Calculator.Interfaces
 {
     public interface IProviderResultsRepository
     {
-        Task SaveProviderResults(IEnumerable<ProviderResult> providerResults);
+        Task SaveProviderResults(IEnumerable<ProviderResult> providerResults, int degreeOfParallelism = 5);
     }
 }
