@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.Core.Helpers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,15 +24,36 @@ namespace CalculateFunding.Services.Calculator
             return Task.FromResult(results.AsEnumerable());
         }
 
-        public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdsAndSpecificationId(IEnumerable<string> providerIds, string specificationId)
+        public async Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdsAndSpecificationId(IEnumerable<string> providerIds, string specificationId)
         {
-            string providerIdList = string.Join(",", providerIds.Select(m => $"\"{m}\""));
+            if (providerIds.IsNullOrEmpty())
+            {
+                return Enumerable.Empty<ProviderSourceDataset>();
+            }
 
-            string sql = $"SELECT * FROM Root r where r.documentType = \"ProviderSourceDataset\" and r.content.specification.id = \"{specificationId}\" and r.content.provider.id in ({providerIdList})";
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            var results = _cosmosRepository.RawQuery<DocumentEntity<ProviderSourceDataset>>(sql, enableCrossPartitionQuery: true);
+            List<Task<IQueryable<ProviderSourceDataset>>> queryTasks = new List<Task<IQueryable<ProviderSourceDataset>>>(providerIds.Count());
+            foreach (string providerId in providerIds)
+            {
+                queryTasks.Add(Task.Factory.StartNew(() =>
+                    _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>($"SELECT * FROM Root r where r.documentType = 'ProviderSourceDataset' and r.content.specification.id = '{specificationId}' and r.content.provider.id ='{providerId}' AND r.deleted = false")));
+            }
 
-            return Task.FromResult(results.AsEnumerable().Select(m => m.Content));
+            await TaskHelper.WhenAllAndThrow(queryTasks.ToArray());
+
+            List<ProviderSourceDataset> result = new List<ProviderSourceDataset>();
+            foreach (Task<IQueryable<ProviderSourceDataset>> queryTask in queryTasks)
+            {
+                IQueryable<ProviderSourceDataset> providerSourceDatasets = queryTask.Result;
+                if (!providerSourceDatasets.IsNullOrEmpty())
+                {
+
+                    result.AddRange(providerSourceDatasets);
+                }
+            }
+
+            return result;
         }
     }
 }
