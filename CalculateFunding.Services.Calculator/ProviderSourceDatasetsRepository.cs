@@ -33,19 +33,18 @@ namespace CalculateFunding.Services.Calculator
 
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            List<Task<IQueryable<ProviderSourceDataset>>> queryTasks = new List<Task<IQueryable<ProviderSourceDataset>>>(providerIds.Count());
+            List<Task<IEnumerable<ProviderSourceDataset>>> queryTasks = new List<Task<IEnumerable<ProviderSourceDataset>>>(providerIds.Count());
             foreach (string providerId in providerIds)
             {
-                queryTasks.Add(Task.Factory.StartNew(() =>
-                    _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>($"SELECT * FROM Root r where r.documentType = 'ProviderSourceDataset' and r.content.specification.id = '{specificationId}' and r.content.provider.id ='{providerId}' AND r.deleted = false")));
+                queryTasks.Add( _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>($"SELECT * FROM Root r where r.documentType = 'ProviderSourceDataset' and r.content.specification.id = '{specificationId}' and r.content.provider.id ='{providerId}' AND r.deleted = false", partitionEntityId: providerId));
             }
 
             await TaskHelper.WhenAllAndThrow(queryTasks.ToArray());
 
             List<ProviderSourceDataset> result = new List<ProviderSourceDataset>();
-            foreach (Task<IQueryable<ProviderSourceDataset>> queryTask in queryTasks)
+            foreach (Task<IEnumerable<ProviderSourceDataset>> queryTask in queryTasks)
             {
-                IQueryable<ProviderSourceDataset> providerSourceDatasets = queryTask.Result;
+                IEnumerable<ProviderSourceDataset> providerSourceDatasets = queryTask.Result;
                 if (!providerSourceDatasets.IsNullOrEmpty())
                 {
 

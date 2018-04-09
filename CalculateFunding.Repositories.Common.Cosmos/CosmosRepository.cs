@@ -123,7 +123,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted).Select(x => x.Content).AsQueryable();
         }
 
-        public IQueryable<T> QueryPartitionedEntity<T>(string directSql, int maxItemCount = -1, string partitionEntityId = null) where T : IIdentifiable
+        public async Task<IEnumerable<T>> QueryPartitionedEntity<T>(string directSql, int maxItemCount = -1, string partitionEntityId = null) where T : IIdentifiable
         {
             if (string.IsNullOrEmpty(directSql))
             {
@@ -138,9 +138,9 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                 PartitionKey = new PartitionKey(partitionEntityId),
             };
 
-            return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri,
-                    directSql,
-                    queryOptions).Select(x => x.Content).AsQueryable();
+            return (await _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri,
+                       directSql,
+                       queryOptions).AsDocumentQuery().ExecuteNextAsync<DocumentEntity<T>>()).Select(x => x.Content);
         }
 
         public IQueryable<dynamic> DynamicQuery<dynamic>(string sql, bool enableCrossPartitionQuery = false)
