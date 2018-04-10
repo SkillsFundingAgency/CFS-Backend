@@ -14,6 +14,9 @@ using System.Linq;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core.Options;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -52,6 +55,51 @@ namespace CalculateFunding.Services.Calculator
             _telemetry = telemetry;
             _providerResultsRepository = providerResultsRepository;
             _engineSettings = engineSettings;
+        }
+
+        async public Task<IActionResult> GenerateAllocations(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out var specId);
+
+            var specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to GetTestScenariusBySpecificationId");
+
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+
+            request.Query.TryGetValue("providerId", out var provId);
+
+            var providerId = provId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(providerId))
+            {
+                _logger.Error("No provider Id was provided to GetTestScenariusBySpecificationId");
+
+                return new BadRequestObjectResult("Null or empty provider Id provided");
+            }
+
+            string json = await request.GetRawBodyStringAsync();
+
+            BuildProject buildProject = JsonConvert.DeserializeObject<BuildProject>(json);
+
+
+            List<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>(await _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(new[] { providerId }, specificationId));
+
+            if (providerSourceDatasets == null)
+            {
+                providerSourceDatasets = new List<ProviderSourceDataset>();
+            }
+
+            IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(buildProject);
+
+
+            var result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, new ProviderSummary { Id = providerId }, providerSourceDatasets);
+
+            return new OkObjectResult(result);
         }
 
         public async Task GenerateAllocations(Message message)

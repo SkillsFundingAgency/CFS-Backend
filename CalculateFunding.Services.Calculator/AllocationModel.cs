@@ -100,7 +100,7 @@ namespace CalculateFunding.Services.Calculator
 
                 if (_datasetSetters.TryGetValue(dataset.DataRelationship.Name, out var setter))
                 {
-                    datasetNamesUsed.Add(dataset.DataDefinition.Name);
+                    datasetNamesUsed.Add(dataset.DataRelationship.Name);
                     if (dataset.DataGranularity == DataGranularity.SingleRowPerProvider)
                     {
                         var row = PopulateRow(type, dataset.Current.Rows.First());

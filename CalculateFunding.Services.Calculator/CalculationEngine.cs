@@ -121,8 +121,5 @@ namespace CalculateFunding.Services.Calculator
 		        }).ToList();
             return result;
         }
-
-
-
     }
 }
