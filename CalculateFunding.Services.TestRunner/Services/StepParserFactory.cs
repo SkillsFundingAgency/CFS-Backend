@@ -8,11 +8,11 @@ namespace CalculateFunding.Services.TestRunner.Services
     public class StepParserFactory : IStepParserFactory
     {
         private readonly ICodeMetadataGeneratorService _codeMetadataGeneratorService;
-        private readonly IProviderRepository _providerRepository;
+        private readonly IProviderResultsRepository _providerRepository;
 
         public StepParserFactory(
             ICodeMetadataGeneratorService codeMetadataGeneratorService,
-            IProviderRepository providerRepository)
+            IProviderResultsRepository providerRepository)
         {
             _codeMetadataGeneratorService = codeMetadataGeneratorService;
             _providerRepository = providerRepository;

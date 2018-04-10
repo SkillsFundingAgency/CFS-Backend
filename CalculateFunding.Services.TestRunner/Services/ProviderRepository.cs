@@ -23,21 +23,6 @@ namespace CalculateFunding.Services.TestRunner.Services
             _cacheProvider = cacheProvider;
         }
 
-        public async Task<ProviderResult> GetProviderByIdAndSpecificationId(string providerId, string specificationId)
-        {
-            if (string.IsNullOrWhiteSpace(providerId))
-                throw new ArgumentNullException(nameof(providerId));
-
-            if (string.IsNullOrWhiteSpace(specificationId))
-                throw new ArgumentNullException(nameof(specificationId));
-
-            string sql = $"select * from c where c.documentType = 'ProviderResult' and c.content.provider.id = '{providerId}' and c.content.specification.id = '{specificationId}'";
-
-            ProviderResult providerResult = (await _cosmosRepository.QueryPartitionedEntity<ProviderResult>(sql, partitionEntityId: providerId)).FirstOrDefault();
-
-            return providerResult;
-        }
-
         public async Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsBySpecificationId(string specificationId)
         {
             IEnumerable<ProviderSourceDataset> sourceDatasets = await _cacheProvider.GetAsync<List<ProviderSourceDataset>>(specificationId);

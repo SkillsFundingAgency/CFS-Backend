@@ -9,11 +9,11 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
 {
     public class ProviderStepParser : IStepParser
     {
-        private readonly IProviderRepository _providerRepository;
+        private readonly IProviderResultsRepository _providerResultsRepository;
 
-        public ProviderStepParser(IProviderRepository providerRepository)
+        public ProviderStepParser(IProviderResultsRepository providerResultsRepository)
         {
-            _providerRepository = providerRepository;
+            _providerResultsRepository = providerResultsRepository;
         }
 
         async public Task Parse(Step step, string stepExpression, GherkinParseResult parseResult, BuildProject buildProject)
@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
 
             string providerId = matches[7];
 
-            ProviderResult providerResult = await _providerRepository.GetProviderByIdAndSpecificationId(providerId, buildProject.Specification.Id);
+            ProviderResult providerResult = await _providerResultsRepository.GetProviderByIdAndSpecificationId(providerId, buildProject.Specification.Id);
 
             if(providerResult == null)
             {

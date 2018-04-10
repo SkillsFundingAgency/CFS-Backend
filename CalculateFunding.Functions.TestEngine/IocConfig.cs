@@ -76,7 +76,7 @@ namespace CalculateFunding.Functions.TestEngine
             builder
                .AddSingleton<IGherkinExecutor, GherkinExecutor>();
 
-            builder.AddSingleton<Services.TestRunner.Interfaces.IProviderRepository, Services.TestRunner.Services.ProviderRepository>((ctx) =>
+            builder.AddSingleton<IProviderRepository, ProviderRepository>((ctx) =>
             {
                 CosmosDbSettings providersDbSettings = new CosmosDbSettings();
 
@@ -88,7 +88,22 @@ namespace CalculateFunding.Functions.TestEngine
 
                 ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
 
-                return new Services.TestRunner.Services.ProviderRepository(providersCosmosRepostory, cacheProvider);
+                return new ProviderRepository(providersCosmosRepostory, cacheProvider);
+            });
+
+            builder.AddSingleton<IProviderResultsRepository, ProviderResultsRepository>((ctx) =>
+            {
+                CosmosDbSettings providersDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", providersDbSettings);
+
+                providersDbSettings.CollectionName = "calculationresults";
+
+                CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
+
+                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
+
+                return new ProviderResultsRepository(providersCosmosRepostory);
             });
 
             builder.AddSingleton<ITestResultsSearchService, TestResultsSearchService>();

@@ -457,6 +457,21 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 return new ProviderSourceDatasetRepository(calcsCosmosRepostory);
             });
 
+            builder.AddSingleton<Services.TestRunner.Interfaces.IProviderResultsRepository, Services.TestRunner.Services.ProviderResultsRepository>((ctx) =>
+            {
+                CosmosDbSettings providersDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", providersDbSettings);
+
+                providersDbSettings.CollectionName = "calculationresults";
+
+                CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
+
+                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
+
+                return new Services.TestRunner.Services.ProviderResultsRepository(providersCosmosRepostory);
+            });
+
             builder.AddSearch(config);
 
             builder.AddInterServiceClient(config);
