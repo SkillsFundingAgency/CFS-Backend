@@ -24,33 +24,37 @@ namespace CalculateFunding.Models.Results
 
         [IsSearchable]
         [IsFacetable]
+        [IsFilterable]
         [JsonProperty("testResult")]
         public string TestResult { get; set; }
 
-        [IsFacetable]
+        [IsFilterable]
         [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }
 
         [IsSearchable]
         [IsFacetable]
+        [IsSortable]
         [JsonProperty("specificationName")]
         public string SpecificationName { get; set; }
 
-        [IsFacetable]
+        [IsFilterable]
         [JsonProperty("testScenarioId")]
         public string TestScenarioId { get; set; }
 
         [IsSearchable]
         [IsFacetable]
+        [IsSortable]
         [JsonProperty("testScenarioName")]
         public string TestScenarioName { get; set; }
 
-        [IsFacetable]
+        [IsFilterable]
         [JsonProperty("providerId")]
         public string ProviderId { get; set; }
 
         [IsSearchable]
         [IsFacetable]
+        [IsSortable]
         [JsonProperty("providerName")]
         public string ProviderName { get; set; }
 

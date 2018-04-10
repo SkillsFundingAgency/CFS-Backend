@@ -122,7 +122,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                             {
                                 Facets = new[]{ filterPair.Key },
                                 SearchMode = SearchMode.Any,
-                                SearchFields = new List<string>{ "name" },
+                                SearchFields = new List<string>{ "testScenarioName" },
                                 IncludeTotalResultCount = true,
                                 Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
                                 QueryType = QueryType.Full
@@ -150,7 +150,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                     Skip = skip,
                     Top = searchModel.Top,
                     SearchMode = SearchMode.Any,
-                    SearchFields = new List<string>(),
+                    SearchFields = new List<string>() { "testScenarioName" },
                     IncludeTotalResultCount = true,
                     Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
                     OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),

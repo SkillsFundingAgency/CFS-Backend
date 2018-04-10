@@ -65,7 +65,8 @@ namespace CalculateFunding.Functions.EnvironmentSetup.Http
                 },
                 new RequestOptions()
                 {
-                    OfferThroughput = 1000
+                    // 1100 to get over 1000, you get up to 50000RU, rather than 10000 when created with 1000
+                    OfferThroughput = 1100
                 }
                 , log);
 
@@ -81,7 +82,8 @@ namespace CalculateFunding.Functions.EnvironmentSetup.Http
                 },
                 new RequestOptions()
                 {
-                    OfferThroughput = 1000
+                    // 1100 to get over 1000, you get up to 50000RU, rather than 10000 when created with 1000
+                    OfferThroughput = 1100
                 }
                 , log);
 
