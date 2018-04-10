@@ -499,7 +499,7 @@ namespace CalculateFunding.Services.Calcs
             Task<BuildProject> buildProjectRequest = _buildProjectsRepository.GetBuildProjectBySpecificationId(specification.Id);
             Task<IEnumerable<Models.Specs.Calculation>> calculationSpecificationsRequest = _specsRepository.GetCalculationSpecificationsForSpecification(specification.Id);
 
-            await TaskHelpers.WhenAllAndThrow(calculationsRequest);
+            await TaskHelper.WhenAllAndThrow(calculationsRequest);
 
             List<Calculation> calculations = new List<Calculation>(calculationsRequest.Result);
             BuildProject buildProject = buildProjectRequest.Result;

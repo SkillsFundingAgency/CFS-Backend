@@ -79,7 +79,7 @@ namespace CalculateFunding.Functions.Datasets
 
                 config.Bind("CosmosDbSettings", dbSettings);
 
-                dbSettings.CollectionName = "results";
+                dbSettings.CollectionName = "providersources";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(dbSettings);
 

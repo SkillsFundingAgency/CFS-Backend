@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Results
 
             try
             {
-                await TaskHelpers.WhenAllAndThrow(searchTasks.ToArraySafe());
+                await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
 
                 foreach (var searchTask in searchTasks)
                     ProcessSearchResults(searchTask.Result, searchModel);

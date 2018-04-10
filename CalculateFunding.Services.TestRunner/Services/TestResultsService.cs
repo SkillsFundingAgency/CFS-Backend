@@ -4,6 +4,8 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.TestRunner.Interfaces;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -95,6 +97,11 @@ namespace CalculateFunding.Services.TestRunner.Services
             }
 
             return HttpStatusCode.InternalServerError;
+        }
+
+        public Task<IActionResult> Reindex(HttpRequest request)
+        {
+            return Task.FromResult<IActionResult>(new OkResult());
         }
     }
 }

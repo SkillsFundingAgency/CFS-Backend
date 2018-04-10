@@ -108,14 +108,15 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             await searchRepository
                 .Received(1)
                 .Index(Arg.Is<IEnumerable<TestScenarioResultIndex>>(c =>
-                    c.First().Id == testScenarioResult.Id  &&
+                    c.First().Id == testScenarioResult.Id &&
                     c.First().ProviderId == testScenarioResult.Provider.Id &&
                     c.First().ProviderName == testScenarioResult.Provider.Name &&
                     c.First().SpecificationId == testScenarioResult.Specification.Id &&
                     c.First().SpecificationName == testScenarioResult.Specification.Name &&
                     c.First().TestResult == Enum.GetName(typeof(Models.Results.TestResult), testScenarioResult.TestResult) &&
                     c.First().TestScenarioId == testScenarioResult.TestScenario.Id &&
-                    c.First().TestScenarioName == testScenarioResult.TestScenario.Name
+                    c.First().TestScenarioName == testScenarioResult.TestScenario.Name &&
+                    c.First().LastUpdatedDate > DateTime.UtcNow.AddDays(-1)
                 ));
         }
 

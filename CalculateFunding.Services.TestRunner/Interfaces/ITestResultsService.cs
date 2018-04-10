@@ -1,4 +1,6 @@
 ﻿using CalculateFunding.Models.Results;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -9,5 +11,6 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
     {
         Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> testResults);
 
+        Task<IActionResult> Reindex(HttpRequest req);
     }
 }

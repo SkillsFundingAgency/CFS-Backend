@@ -336,13 +336,13 @@ Feature:
 
 			builder.AddScoped<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
 			{
-				CosmosDbSettings specsDbSettings = new CosmosDbSettings();
+				CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
 
-				config.Bind("CosmosDbSettings", specsDbSettings);
+				config.Bind("CosmosDbSettings", resultsDbSettings);
 
-				specsDbSettings.CollectionName = "results";
+				resultsDbSettings.CollectionName = "calculationresults";
 
-				CosmosRepository specsCosmosRepostory = new CosmosRepository(specsDbSettings);
+				CosmosRepository specsCosmosRepostory = new CosmosRepository(resultsDbSettings);
 
 				return new CalculationResultsRepository(specsCosmosRepostory);
 			});

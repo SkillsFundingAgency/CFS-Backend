@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.Azure.Search;
 using Newtonsoft.Json;
 
@@ -52,5 +53,9 @@ namespace CalculateFunding.Models.Results
         [IsFacetable]
         [JsonProperty("providerName")]
         public string ProviderName { get; set; }
+
+        [IsFilterable, IsSortable]
+        [JsonProperty("lastUpdatedDate")]
+        public DateTimeOffset LastUpdatedDate { get; set; }
     }
 }

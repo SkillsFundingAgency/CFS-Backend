@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -34,7 +36,7 @@ namespace CalculateFunding.Functions.EnvironmentSetup.Http
 
             IConfiguration configuration = builder.Build();
 
-            if(log == null)
+            if (log == null)
             {
                 Console.WriteLine("ILogger is null");
                 return new StatusCodeResult(500);
@@ -49,13 +51,46 @@ namespace CalculateFunding.Functions.EnvironmentSetup.Http
 
             DocumentClient client = DocumentDbConnectionString.Parse(cosmosDbConnectionString);
 
-            await CreateDatabaseAndCollections(client, "calculate-funding", new []{ "specs", "calcs", "tests", "datasets", "results" }, log);
+            await CreateDatabaseAndCollections(client, "calculate-funding", new[] { "specs", "calcs", "tests", "datasets" }, log);
+
+            // Create unlimited sized collection for providersources
+            await CreateDatabaseAndCollection(client, "calculate-funding",
+                new DocumentCollection()
+                {
+                    Id = "providersources",
+                    PartitionKey = new PartitionKeyDefinition()
+                    {
+                        Paths = new Collection<string>() { "/content/provider/id" }
+                    },
+                },
+                new RequestOptions()
+                {
+                    OfferThroughput = 1000
+                }
+                , log);
+
+            // Create unlimited sized collection for calculationresults
+            await CreateDatabaseAndCollection(client, "calculate-funding",
+                new DocumentCollection()
+                {
+                    Id = "calculationresults",
+                    PartitionKey = new PartitionKeyDefinition()
+                    {
+                        Paths = new Collection<string>() { "/content/provider/id" }
+                    },
+                },
+                new RequestOptions()
+                {
+                    OfferThroughput = 1000
+                }
+                , log);
+
 
             try
             {
                 await CreateStoredProcedures(client, "calculate-funding");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 log.LogCritical($"Failed to create stored procedures with message: {ex.Message}");
                 return new StatusCodeResult(500);
@@ -79,13 +114,32 @@ namespace CalculateFunding.Functions.EnvironmentSetup.Http
             foreach (string collectionName in collectionNames)
             {
                 log.LogInformation($"Ensuring Collection Exists: {collectionName}");
-                DocumentCollection specsDocumentCollection = new DocumentCollection()
+                DocumentCollection documentCollection = new DocumentCollection()
                 {
                     Id = collectionName,
                 };
 
-                await client.CreateDocumentCollectionIfNotExistsAsync(databaseUri, specsDocumentCollection);
+                await client.CreateDocumentCollectionIfNotExistsAsync(databaseUri, documentCollection);
             }
+        }
+
+        private static async Task CreateDatabaseAndCollection(DocumentClient client, string databaseName, DocumentCollection documentCollection, RequestOptions requestOptions, ILogger log)
+        {
+            Database databaes = new Database()
+            {
+                Id = databaseName
+            };
+
+            log.LogInformation($"Ensuring database exists: '{databaseName}");
+            ResourceResponse<Database> createdDatabase = await client.CreateDatabaseIfNotExistsAsync(databaes);
+
+            Uri databaseUri = UriFactory.CreateDatabaseUri(databaes.Id);
+
+
+            log.LogInformation($"Ensuring Collection Exists: {documentCollection.Id}");
+
+            await client.CreateDocumentCollectionIfNotExistsAsync(databaseUri, documentCollection, requestOptions);
+
         }
 
         private static async Task CreateStoredProcedures(DocumentClient client, string databaseName)
@@ -100,9 +154,9 @@ namespace CalculateFunding.Functions.EnvironmentSetup.Http
             {
                 await client.ReadStoredProcedureAsync(UriFactory.CreateStoredProcedureUri(databaseName, "results", "usp_update_provider_results"));
             }
-            catch(DocumentClientException dex)
+            catch (DocumentClientException dex)
             {
-                if(dex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                if (dex.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     StoredProcedure sproc = await client.CreateStoredProcedureAsync(UriFactory.CreateDocumentCollectionUri(databaseName, "results"), spDefinition);
                 }

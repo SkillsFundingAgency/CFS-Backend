@@ -82,7 +82,7 @@ namespace CalculateFunding.Functions.TestEngine
 
                 config.Bind("CosmosDbSettings", providersDbSettings);
 
-                providersDbSettings.CollectionName = "results";
+                providersDbSettings.CollectionName = "providersources";
 
                 CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
 
@@ -90,6 +90,8 @@ namespace CalculateFunding.Functions.TestEngine
 
                 return new Services.TestRunner.Services.ProviderRepository(providersCosmosRepostory, cacheProvider);
             });
+
+            builder.AddSingleton<ITestResultsSearchService, TestResultsSearchService>();
 
             MapperConfiguration resultsMappingConfiguration = new MapperConfiguration(c => c.AddProfile<ResultsMappingProfile>());
             builder

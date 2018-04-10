@@ -1,47 +1,48 @@
 ﻿using CalculateFunding.Models;
-using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
-using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
 using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Calcs
+namespace CalculateFunding.Services.TestRunner.Services
 {
-    public class CalculationSearchService : ICalculationsSearchService
+    public class TestResultsSearchService : ITestResultsSearchService
     {
         private readonly ILogger _logger;
-        private readonly ISearchRepository<CalculationIndex> _searchRepository;
+        private readonly ISearchRepository<TestScenarioResultIndex> _searchRepository;
 
         private FacetFilterType[] Facets = {
-            new FacetFilterType("allocationLineName"),
-            new FacetFilterType("policySpecificationNames", true),
-            new FacetFilterType("status"),
+            new FacetFilterType("testResult"),
+            new FacetFilterType("specificationId"),
             new FacetFilterType("specificationName"),
-            new FacetFilterType("periodName"),
-            new FacetFilterType("fundingStreamName")
+            new FacetFilterType("testScenarioId"),
+            new FacetFilterType("testScenarioName"),
+            new FacetFilterType("providerId"),
+            new FacetFilterType("providerName"),
         };
 
         private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
 
-        private CalculationSearchResults results = new CalculationSearchResults();
-
-        public CalculationSearchService(ILogger logger,
-            ISearchRepository<CalculationIndex> searchRepository)
+        public TestResultsSearchService(ILogger logger,
+            ISearchRepository<TestScenarioResultIndex> searchRepository)
         {
             _logger = logger;
             _searchRepository = searchRepository;
         }
 
-        async public Task<IActionResult> SearchCalculations(HttpRequest request)
+        async public Task<IActionResult> SearchTestScenarioResults(HttpRequest request)
         {
             string json = await request.GetRawBodyStringAsync();
 
@@ -52,16 +53,18 @@ namespace CalculateFunding.Services.Calcs
                 _logger.Error("A null or invalid search model was provided for searching calculations");
 
                 return new BadRequestObjectResult("An invalid search model was provided");
-            }    
+            }
 
-            IEnumerable<Task<SearchResults<CalculationIndex>>> searchTasks = BuildSearchTasks(searchModel);
+            IEnumerable<Task<SearchResults<TestScenarioResultIndex>>> searchTasks = BuildSearchTasks(searchModel);
 
             try
             {
                 await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
 
-                foreach(var searchTask in searchTasks)
-                    ProcessSearchResults(searchTask.Result, searchModel);
+                TestScenarioSearchResults results = new TestScenarioSearchResults();
+
+                foreach (var searchTask in searchTasks)
+                    ProcessSearchResults(searchTask.Result, results);
 
                 return new OkObjectResult(results);
             }
@@ -73,7 +76,7 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
-        IDictionary<string,string> BuildFacetDictionary(SearchModel searchModel)
+        IDictionary<string, string> BuildFacetDictionary(SearchModel searchModel)
         {
             if (searchModel.Filters == null)
                 searchModel.Filters = new Dictionary<string, string[]>();
@@ -99,11 +102,11 @@ namespace CalculateFunding.Services.Calcs
             return facetDictionary;
         }
 
-        IEnumerable<Task<SearchResults<CalculationIndex>>> BuildSearchTasks(SearchModel searchModel)
+        IEnumerable<Task<SearchResults<TestScenarioResultIndex>>> BuildSearchTasks(SearchModel searchModel)
         {
             IDictionary<string, string> facetDictionary = BuildFacetDictionary(searchModel);
 
-            IEnumerable<Task<SearchResults<CalculationIndex>>> searchTasks = new Task<SearchResults<CalculationIndex>>[0];
+            IEnumerable<Task<SearchResults<TestScenarioResultIndex>>> searchTasks = new Task<SearchResults<TestScenarioResultIndex>>[0];
 
             if (searchModel.IncludeFacets)
             {
@@ -137,7 +140,7 @@ namespace CalculateFunding.Services.Calcs
             return searchTasks;
         }
 
-        Task<SearchResults<CalculationIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel)
+        Task<SearchResults<TestScenarioResultIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel)
         {
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
             return Task.Run(() =>
@@ -147,7 +150,7 @@ namespace CalculateFunding.Services.Calcs
                     Skip = skip,
                     Top = searchModel.Top,
                     SearchMode = SearchMode.Any,
-                    SearchFields = new List<string> { "name" },
+                    SearchFields = new List<string>(),
                     IncludeTotalResultCount = true,
                     Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
                     OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
@@ -156,7 +159,7 @@ namespace CalculateFunding.Services.Calcs
             });
         }
 
-        void ProcessSearchResults(SearchResults<CalculationIndex> searchResult, SearchModel searchModel)
+        private void ProcessSearchResults(SearchResults<TestScenarioResultIndex> searchResult, TestScenarioSearchResults results)
         {
             if (!searchResult.Facets.IsNullOrEmpty())
             {
@@ -165,13 +168,17 @@ namespace CalculateFunding.Services.Calcs
             else
             {
                 results.TotalCount = (int)(searchResult?.TotalCount ?? 0);
-                results.Results = searchResult?.Results?.Select(m => new CalculationSearchResult
+                results.Results = searchResult?.Results?.Select(m => new TestScenarioSearchResult
                 {
                     Id = m.Result.Id,
-                    Name = m.Result.Name,
-                    PeriodName = m.Result.PeriodName,
+                    ProviderId = m.Result.ProviderId,
+                    ProviderName = m.Result.ProviderName,
                     SpecificationName = m.Result.SpecificationName,
-                    Status = m.Result.Status
+                    SpecificationId = m.Result.SpecificationId,
+                    TestResult = m.Result.TestResult,
+                    TestScenarioId = m.Result.TestScenarioId,
+                    TestScenarioName = m.Result.TestScenarioName,
+                    LastUpdatedDate = m.Result.LastUpdatedDate,
                 });
             }
         }

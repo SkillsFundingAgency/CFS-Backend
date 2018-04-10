@@ -100,7 +100,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 config.Bind("CosmosDbSettings", calssDbSettings);
 
-                calssDbSettings.CollectionName = "results";
+                calssDbSettings.CollectionName = "providersources";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 
@@ -142,7 +142,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 config.Bind("CosmosDbSettings", dbSettings);
 
-                dbSettings.CollectionName = "results";
+                dbSettings.CollectionName = "providersources";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(dbSettings);
 
@@ -247,7 +247,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 config.Bind("CosmosDbSettings", specsDbSettings);
 
-                specsDbSettings.CollectionName = "results";
+                specsDbSettings.CollectionName = "calculationresults";
 
                 CosmosRepository specsCosmosRepostory = new CosmosRepository(specsDbSettings);
 
@@ -395,7 +395,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 config.Bind("CosmosDbSettings", providersDbSettings);
 
-                providersDbSettings.CollectionName = "results";
+                providersDbSettings.CollectionName = "providersources";
 
                 CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
 
@@ -403,6 +403,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 return new Services.TestRunner.Services.ProviderRepository(providersCosmosRepostory, cacheProvider);
             });
+
+            builder.AddSingleton<ITestResultsSearchService, TestResultsSearchService>();
 
             builder
                 .AddSingleton<Services.TestRunner.Interfaces.ISpecificationRepository, Services.TestRunner.SpecificationRepository>();
@@ -446,7 +448,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 config.Bind("CosmosDbSettings", provDbSettings);
 
-                provDbSettings.CollectionName = "results";
+                provDbSettings.CollectionName = "providersources";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(provDbSettings);
 
