@@ -44,10 +44,10 @@ namespace CalculateFunding.Functions.TestEngine
                 .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
 
             builder
-                .AddSingleton<IGherkinParserService, GherkinParserService>();
+                .AddScoped<IGherkinParserService, GherkinParserService>();
 
             builder
-               .AddSingleton<IGherkinParser, GherkinParser>();
+               .AddScoped<IGherkinParser, GherkinParser>();
 
             builder
                 .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
@@ -74,7 +74,7 @@ namespace CalculateFunding.Functions.TestEngine
                 .AddSingleton<ITestEngine, Services.TestRunner.TestEngine>();
 
             builder
-               .AddSingleton<IGherkinExecutor, GherkinExecutor>();
+               .AddScoped<IGherkinExecutor, GherkinExecutor>();
 
             builder.AddSingleton<IProviderRepository, ProviderRepository>((ctx) =>
             {
