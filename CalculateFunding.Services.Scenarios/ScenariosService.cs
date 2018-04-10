@@ -1,12 +1,15 @@
 ﻿using CalculateFunding.Models;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
@@ -29,6 +32,8 @@ namespace CalculateFunding.Services.Scenarios
         private readonly IValidator<CreateNewTestScenarioVersion> _createNewTestScenarioVersionValidator;
         private readonly ISearchRepository<ScenarioIndex> _searchRepository;
         private readonly ICacheProvider _cacheProvider;
+        private readonly IMessengerService _messengerService;
+        private readonly IBuildProjectRepository _buildProjectRepository;
 
         public ScenariosService(
             ILogger logger, 
@@ -36,13 +41,17 @@ namespace CalculateFunding.Services.Scenarios
             ISpecificationsRepository specificationsRepository, 
             IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator,
             ISearchRepository<ScenarioIndex> searchRepository,
-            ICacheProvider cacheProvider)
+            ICacheProvider cacheProvider,
+            IMessengerService messengerService,
+            IBuildProjectRepository buildProjectRepository)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(scenariosRepository, nameof(scenariosRepository));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(createNewTestScenarioVersionValidator, nameof(createNewTestScenarioVersionValidator));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
 
             _scenariosRepository = scenariosRepository;
             _logger = logger;
@@ -50,6 +59,8 @@ namespace CalculateFunding.Services.Scenarios
             _createNewTestScenarioVersionValidator = createNewTestScenarioVersionValidator;
             _searchRepository = searchRepository;
             _cacheProvider = cacheProvider;
+            _messengerService = messengerService;
+            _buildProjectRepository = buildProjectRepository;
         }
 
         async public Task<IActionResult> SaveVersion(HttpRequest request)
@@ -150,6 +161,17 @@ namespace CalculateFunding.Services.Scenarios
 
             await _cacheProvider.RemoveAsync<List<TestScenario>>(testScenario.Specification.Id);
 
+            BuildProject buildProject = await _buildProjectRepository.GetBuildProjectBySpecificationId(testScenario.Specification.Id);
+
+            if(buildProject == null)
+            {
+                _logger.Error($"Failed to find a build project for specification id {testScenario.Specification.Id}");
+            }
+            else
+            {
+                await SendGenerateAllocationsMessage(buildProject, request);
+            }
+
             return new OkObjectResult(newVersion);
         }
 
@@ -180,6 +202,35 @@ namespace CalculateFunding.Services.Scenarios
             int maxVersion = versions.Max(m => m.Version);
 
             return maxVersion + 1;
+        }
+
+        IDictionary<string, string> CreateMessageProperties(HttpRequest request)
+        {
+            Reference user = request.GetUser();
+
+            IDictionary<string, string> properties = new Dictionary<string, string>();
+            properties.Add("sfa-correlationId", request.GetCorrelationId());
+
+            if (user != null)
+            {
+                properties.Add("user-id", user.Id);
+                properties.Add("user-name", user.Name);
+            }
+
+            return properties;
+        }
+
+        Task SendGenerateAllocationsMessage(BuildProject buildProject, HttpRequest request)
+        {
+            IDictionary<string, string> properties = CreateMessageProperties(request);
+
+            properties.Add("specification-id", buildProject.Specification.Id);
+
+            properties.Add("ignore-save-provider-results", "true");
+
+            return _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
+                buildProject,
+                properties);
         }
     }
 }

@@ -1823,7 +1823,6 @@ namespace CalculateFunding.Services.Calcs.Services
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
             ICompilerFactory compilerFactory = null,
             IMessengerService messengerService = null,
-            ServiceBusSettings EventHubSettings = null,
             ICodeMetadataGeneratorService codeMetadataGenerator = null,
             ISpecificationRepository specificationRepository = null)
         {
@@ -1834,10 +1833,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository ?? CreateSearchRepository(),
                 calcValidator ?? CreateCalculationValidator(),
                 buildProjectsRepository ?? CreateBuildProjectsRepository(),
-               sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(),
+                sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(),
                 compilerFactory ?? CreateCompilerFactory(),
                 messengerService ?? CreateMessengerService(),
-                EventHubSettings ?? CreateEventHubSettings(),
                 codeMetadataGenerator ?? CreateCodeMetadataGenerator(),
                 specificationRepository ?? CreateSpecificationRepository());
         }
@@ -1877,20 +1875,10 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<IMessengerService>();
         }
 
-        static ServiceBusSettings CreateEventHubSettings()
-        {
-            return new ServiceBusSettings
-            {
-
-            };
-        }
-
-        //
         static ISpecificationRepository CreateSpecificationRepository()
         {
             return Substitute.For<ISpecificationRepository>();
         }
-
 
         static ICodeMetadataGeneratorService CreateCodeMetadataGenerator()
         {

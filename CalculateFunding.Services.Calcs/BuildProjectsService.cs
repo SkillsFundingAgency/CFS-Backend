@@ -137,9 +137,13 @@ namespace CalculateFunding.Services.Calcs
 
             const string providerSummariesPartitionSize = "provider-summaries-partition-size";
 
-           
-             properties.Add(providerSummariesPartitionSize, MaxPartitionSize.ToString());
-            
+            properties.Add(providerSummariesPartitionSize, MaxPartitionSize.ToString());
+
+            if (message.UserProperties.ContainsKey("ignore-save-provider-results"))
+            {
+                properties.Add("ignore-save-provider-results", "true");
+            }
+
             for (int partitionIndex = 0; partitionIndex < totalCount; partitionIndex += MaxPartitionSize)
             {
                 

@@ -185,17 +185,19 @@ namespace CalculateFunding.Services.Calculator
                 });
                 calculationStopwatch.Stop();
 
-                double saveCosmosElapsedMs = 0;
+                double? saveCosmosElapsedMs =  null;
                 double saveRedisElapsedMs = 0;
                 double saveQueueElapsedMs = 0;
 
                 if (providerResults.Any())
                 {
-                    Stopwatch saveCosmosStopwatch = Stopwatch.StartNew();
-                    await _providerResultsRepository.SaveProviderResults(providerResults, _engineSettings.SaveProviderDegreeOfParallelism);
-                    saveCosmosStopwatch.Stop();
-
-                    saveCosmosElapsedMs = saveCosmosStopwatch.ElapsedMilliseconds;
+                    if (!message.UserProperties.ContainsKey("ignore-save-provider-results"))
+                    {
+                        Stopwatch saveCosmosStopwatch = Stopwatch.StartNew();
+                        await _providerResultsRepository.SaveProviderResults(providerResults, _engineSettings.SaveProviderDegreeOfParallelism);
+                        saveCosmosStopwatch.Stop();
+                        saveCosmosElapsedMs = saveCosmosStopwatch.ElapsedMilliseconds;
+                    }
 
                     string providerResultsCacheKey = Guid.NewGuid().ToString();
 
@@ -220,25 +222,35 @@ namespace CalculateFunding.Services.Calculator
 
                 calcTiming.Stop();
 
+                IDictionary<string, double> metrics = new Dictionary<string, double>()
+                    {
+                        { "calculation-run-providersProcessed", partitionedSummaries.Count() },
+                        
+                        { "calculation-run-providersResultsFromCache", summaries.Count() },
+                        { "calculation-run-partitionSize", partitionSize },
+                        { "calculation-run-providerSourceDatasetQueryMs", providerSourceDatasetsStopwatch.ElapsedMilliseconds },
+                        { "calculation-run-saveProviderResultsRedisMs", saveRedisElapsedMs },
+                        { "calculation-run-saveProviderResultsServiceBusMs", saveQueueElapsedMs },
+                        { "calculation-run-runningCalculationMs", calculationStopwatch.ElapsedMilliseconds },
+                    };
+
+                if (saveCosmosElapsedMs.HasValue)
+                {
+                    metrics.Add("calculation-run-elapsedMilliseconds", calcTiming.ElapsedMilliseconds);
+                    metrics.Add("calculation-run-saveProviderResultsCosmosMs", saveCosmosElapsedMs.Value);
+                }
+                else
+                {
+                    metrics.Add("calculation-run-for-tests-ms", calcTiming.ElapsedMilliseconds);
+                }
+
                 _telemetry.TrackEvent("CalculationRunProvidersProcessed",
                     new Dictionary<string, string>()
                     {
                         { "specificationId" , specificationId },
                         { "buildProjectId" , buildProject.Id },
-
                     },
-                    new Dictionary<string, double>()
-                    {
-                        { "calculation-run-providersProcessed", partitionedSummaries.Count() },
-                        { "calculation-run-elapsedMilliseconds", calcTiming.ElapsedMilliseconds },
-                        { "calculation-run-providersResultsFromCache", summaries.Count() },
-                        { "calculation-run-partitionSize", partitionSize },
-                        { "calculation-run-providerSourceDatasetQueryMs", providerSourceDatasetsStopwatch.ElapsedMilliseconds },
-                        { "calculation-run-saveProviderResultsCosmosMs", saveCosmosElapsedMs },
-                        { "calculation-run-saveProviderResultsRedisMs", saveRedisElapsedMs },
-                        { "calculation-run-saveProviderResultsServiceBusMs", saveQueueElapsedMs },
-                        { "calculation-run-runningCalculationMs", calculationStopwatch.ElapsedMilliseconds },
-                    }
+                    metrics
                 );
             }
         }

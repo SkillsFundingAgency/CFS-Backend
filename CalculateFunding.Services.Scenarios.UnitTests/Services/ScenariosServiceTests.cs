@@ -21,6 +21,7 @@ using System.Net;
 using System.Linq;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 
 namespace CalculateFunding.Services.Scenarios.Services
 {
@@ -343,15 +344,21 @@ namespace CalculateFunding.Services.Scenarios.Services
 
         static ScenariosService CreateScenariosService(ILogger logger = null, IScenariosRepository scenariosRepository = null,
             ISpecificationsRepository specificationsRepository = null, IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator = null,
-            ISearchRepository<ScenarioIndex> searchRepository = null, ICacheProvider cacheProvider = null)
+            ISearchRepository<ScenarioIndex> searchRepository = null, ICacheProvider cacheProvider = null, IMessengerService messengerService = null, IBuildProjectRepository buildProjectRepository = null)
         {
             return new ScenariosService(logger ?? CreateLogger(), scenariosRepository ?? CreateScenariosRepository(), specificationsRepository ?? CreateSpecificationsRepository(),
-                createNewTestScenarioVersionValidator ?? CreateValidator(), searchRepository ?? CreateSearchRepository(), cacheProvider ?? CreateCacheProvider());
+                createNewTestScenarioVersionValidator ?? CreateValidator(), searchRepository ?? CreateSearchRepository(), 
+                cacheProvider ?? CreateCacheProvider(), messengerService ?? CreateMessengerService(), buildProjectRepository ?? CreateBuildProjectRepository());
         }
 
         static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
+        }
+
+        static IMessengerService CreateMessengerService()
+        {
+            return Substitute.For<IMessengerService>();
         }
 
         static ICacheProvider CreateCacheProvider()
@@ -362,6 +369,11 @@ namespace CalculateFunding.Services.Scenarios.Services
         static IScenariosRepository CreateScenariosRepository()
         {
             return Substitute.For<IScenariosRepository>();
+        }
+
+        static IBuildProjectRepository CreateBuildProjectRepository()
+        {
+            return Substitute.For<IBuildProjectRepository>();
         }
 
         static ISpecificationsRepository CreateSpecificationsRepository()

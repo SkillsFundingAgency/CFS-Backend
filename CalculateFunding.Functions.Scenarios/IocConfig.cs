@@ -43,6 +43,9 @@ namespace CalculateFunding.Functions.Scenarios
             builder
                 .AddScoped<ISpecificationsRepository, SpecificationsRepository>();
 
+            builder
+               .AddScoped<IBuildProjectRepository, BuildProjectRepository>();
+
             builder.AddInterServiceClient(config);
 
             builder.AddCosmosDb(config);

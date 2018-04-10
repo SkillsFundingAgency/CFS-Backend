@@ -42,7 +42,6 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICompilerFactory _compilerFactory;
         private readonly ISourceFileGenerator _sourceFileGenerator;
         private readonly IMessengerService _messengerService;
-        private readonly ServiceBusSettings _eventHubSettings;
         private readonly ICodeMetadataGeneratorService _codeMetadataGenerator;
         private readonly ISpecificationRepository _specsRepository;
         private readonly ITelemetry _telemetry;
@@ -57,7 +56,6 @@ namespace CalculateFunding.Services.Calcs
             ISourceFileGeneratorProvider sourceFileGeneratorProvider,
             ICompilerFactory compilerFactory,
             IMessengerService messengerService,
-            ServiceBusSettings eventHubSettings,
             ICodeMetadataGeneratorService codeMetadataGenerator,
             ISpecificationRepository specificationRepository)
         {
@@ -73,7 +71,6 @@ namespace CalculateFunding.Services.Calcs
             _compilerFactory = compilerFactory;
             _sourceFileGenerator = sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
             _messengerService = messengerService;
-            _eventHubSettings = eventHubSettings;
             _codeMetadataGenerator = codeMetadataGenerator;
             _specsRepository = specificationRepository;
         }
@@ -587,7 +584,5 @@ namespace CalculateFunding.Services.Calcs
 
             return properties;
         }
-
-
     }
 }

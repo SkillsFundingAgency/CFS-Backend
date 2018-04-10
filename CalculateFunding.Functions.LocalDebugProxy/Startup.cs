@@ -424,6 +424,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                 .AddSingleton<Services.Scenarios.Interfaces.ISpecificationsRepository, Services.Scenarios.SpecificationsRepository>();
 
+            builder
+              .AddScoped<Services.Scenarios.Interfaces.IBuildProjectRepository, Services.Scenarios.BuildProjectRepository>();
             //MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             //builder
             //    .AddSingleton(dataSetsConfig.CreateMapper());
