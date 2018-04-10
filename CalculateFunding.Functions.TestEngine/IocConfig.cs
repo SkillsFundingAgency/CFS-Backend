@@ -44,10 +44,10 @@ namespace CalculateFunding.Functions.TestEngine
                 .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
 
             builder
-                .AddScoped<IGherkinParserService, GherkinParserService>();
+                .AddSingleton<IGherkinParserService, GherkinParserService>();
 
             builder
-               .AddScoped<IGherkinParser, GherkinParser>();
+               .AddSingleton<IGherkinParser, GherkinParser>();
 
             builder
                 .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();

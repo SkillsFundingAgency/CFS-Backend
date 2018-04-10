@@ -26,7 +26,6 @@ namespace CalculateFunding.Services.TestRunner
                 { StepType.AssertCalc, assertCalcExpression },
             };
 
-        private readonly Parser _parser = new Parser();
         private readonly IStepParserFactory _stepParserFactory;
 
         public GherkinParser(IStepParserFactory stepParserFactory)
@@ -45,7 +44,8 @@ namespace CalculateFunding.Services.TestRunner
                 builder.Append(gherkin);
                 using (var reader = new StringReader(builder.ToString()))
                 {
-                    var document = _parser.Parse(reader);
+                    Parser parser = new Parser();
+                    var document = parser.Parse(reader);
                     if (document.Feature?.Children != null)
                     {
                         foreach (var scenario in document.Feature?.Children)
