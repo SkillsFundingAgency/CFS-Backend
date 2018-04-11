@@ -6,16 +6,42 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using System;
+using CalculateFunding.Models.Gherkin;
 
 namespace CalculateFunding.Services.TestRunner
 {
     public class GherkinExecutor : IGherkinExecutor
     {
         private readonly IGherkinParser _parser;
+        private readonly ICacheProvider _cacheProvider;
 
-        public GherkinExecutor(IGherkinParser parser)
+        private const string cachePrefix = "gherkin-parse-result-";
+
+        public GherkinExecutor(IGherkinParser parser, ICacheProvider cacheProvider)
         {
             _parser = parser;
+            _cacheProvider = cacheProvider;
+        }
+
+        async Task<GherkinParseResult> GetGherkinParseResult(TestScenario testScenario, BuildProject buildProject)
+        {
+
+            string cacheKey = $"{cachePrefix}{testScenario.Id}";
+
+            GherkinParseResult gherkinParseResult = await _cacheProvider.GetAsync<GherkinParseResult>(cacheKey);
+            if (gherkinParseResult == null)
+            {
+                gherkinParseResult = await _parser.Parse(testScenario.Current.Gherkin, buildProject);
+
+                if (gherkinParseResult != null && !gherkinParseResult.StepActions.IsNullOrEmpty())
+                {
+                    await _cacheProvider.SetAsync<GherkinParseResult>(cacheKey, gherkinParseResult, TimeSpan.FromHours(24), true);
+                }
+            }
+
+            return gherkinParseResult;
         }
 
         public async Task<IEnumerable<ScenarioResult>> Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets, IEnumerable<TestScenario> testScenarios, BuildProject buildProject)
@@ -29,7 +55,7 @@ namespace CalculateFunding.Services.TestRunner
                     Scenario = new Reference(scenario.Id, scenario.Name)
                 };
 
-                GherkinParseResult parseResult = await _parser.Parse(scenario.Current.Gherkin, buildProject);
+                var parseResult = await GetGherkinParseResult(scenario, buildProject);
                 
                 if(parseResult != null && !parseResult.StepActions.IsNullOrEmpty())
                 { 

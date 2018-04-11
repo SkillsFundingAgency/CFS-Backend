@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
@@ -61,6 +62,7 @@ namespace CalculateFunding.Services.Scenarios
             _cacheProvider = cacheProvider;
             _messengerService = messengerService;
             _buildProjectRepository = buildProjectRepository;
+            _cacheProvider = cacheProvider;
         }
 
         async public Task<IActionResult> SaveVersion(HttpRequest request)
@@ -160,6 +162,8 @@ namespace CalculateFunding.Services.Scenarios
             await _searchRepository.Index(new List<ScenarioIndex> { scenarioIndex });
 
             await _cacheProvider.RemoveAsync<List<TestScenario>>(testScenario.Specification.Id);
+
+            await _cacheProvider.RemoveAsync<GherkinParseResult>($"gherkin-parse-result-{testScenario.Id}");
 
             BuildProject buildProject = await _buildProjectRepository.GetBuildProjectBySpecificationId(testScenario.Specification.Id);
 

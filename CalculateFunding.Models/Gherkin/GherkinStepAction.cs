@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 
-namespace CalculateFunding.Services.TestRunner
+namespace CalculateFunding.Models.Gherkin
 {
 
     public interface IStepAction

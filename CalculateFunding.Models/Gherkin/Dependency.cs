@@ -1,4 +1,4 @@
-﻿namespace CalculateFunding.Services.TestRunner
+﻿namespace CalculateFunding.Models.Gherkin
 {
     public class Dependency
     {

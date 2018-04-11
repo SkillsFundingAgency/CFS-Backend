@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models;
+using CalculateFunding.Models.Gherkin;
 
 namespace CalculateFunding.Services.TestRunner
 {
