@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,8 @@ using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Services;
 using Gherkin;
+using Gherkin.Ast;
+using Serilog;
 
 namespace CalculateFunding.Services.TestRunner
 {
@@ -28,10 +31,12 @@ namespace CalculateFunding.Services.TestRunner
             };
 
         private readonly IStepParserFactory _stepParserFactory;
+        private readonly ILogger _logger;
 
-        public GherkinParser(IStepParserFactory stepParserFactory)
+        public GherkinParser(IStepParserFactory stepParserFactory, ILogger logger)
         {
             _stepParserFactory = stepParserFactory;
+            _logger = logger;
         }
 
         async public Task<GherkinParseResult> Parse(string gherkin, BuildProject buildProject)
@@ -46,23 +51,33 @@ namespace CalculateFunding.Services.TestRunner
                 builder.Append(gherkin);
                 using (var reader = new StringReader(builder.ToString()))
                 {
-                    var document = parser.Parse(reader);
+                    GherkinDocument document = null;
+                    try
+                    {
+                        document = parser.Parse(reader);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        string buildProjectId = buildProject.Id;
+                        _logger.Error(ex, $"Gherkin parser error for build project {{buildProjectId}}: {builder.ToString()}", buildProjectId);
+                        throw;
+                    }
+
                     if (document.Feature?.Children != null)
                     {
                         foreach (var scenario in document.Feature?.Children)
                         {
                             if (!scenario.Steps.IsNullOrEmpty())
                             {
-
                                 foreach (var step in scenario.Steps)
                                 {
                                     IEnumerable<KeyValuePair<StepType, string>> expression = stepExpressions.Where(m => Regex.IsMatch(step.Text, m.Value, RegexOptions.IgnoreCase));
-                                    
-                                    if(expression.Any())
+
+                                    if (expression.Any())
                                     {
                                         IStepParser stepParser = _stepParserFactory.GetStepParser(expression.First().Key);
 
-                                        if(stepParser == null)
+                                        if (stepParser == null)
                                             result.AddError("The supplied gherkin could not be parsed", step.Location.Line, step.Location.Column);
                                         else
                                             await stepParser.Parse(step, expression.First().Value, result, buildProject);
@@ -83,7 +98,7 @@ namespace CalculateFunding.Services.TestRunner
                     }
                 }
             }
-            catch(CompositeParserException exception)
+            catch (CompositeParserException exception)
             {
                 foreach (var error in exception.Errors)
                 {
