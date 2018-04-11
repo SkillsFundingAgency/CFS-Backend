@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.TestRunner
         private readonly IGherkinParser _parser;
         private readonly ICacheProvider _cacheProvider;
 
-        private const string cachePrefix = "gherkin-parse-result-";
+        private const string cachePrefix = "gherkin-parse-result:";
 
         public GherkinExecutor(IGherkinParser parser, ICacheProvider cacheProvider)
         {

@@ -110,7 +110,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return;
             }
 
-            IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id).ToList();
+            IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id);
 
             Stopwatch providerSourceDatasetsStopwatch = Stopwatch.StartNew();
             IEnumerable<ProviderSourceDataset> sourceDatasets = await _providerRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIds, specificationId);

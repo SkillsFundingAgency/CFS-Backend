@@ -9,6 +9,7 @@ using System.Linq;
 using CalculateFunding.Services.Core.Helpers;
 using Serilog;
 using CalculateFunding.Services.Core.Options;
+using System.Collections.Concurrent;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
 {
@@ -29,39 +30,29 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             _engineSettings = engineSettings;
         }
 
-        public async Task<IEnumerable<TestScenarioResult>> GetCurrentTestResults(IEnumerable<string> providerIds, string specificationId)
+        public Task<IEnumerable<TestScenarioResult>> GetCurrentTestResults(IEnumerable<string> providerIds, string specificationId)
         {
             Guard.ArgumentNotNull(providerIds, nameof(providerIds));
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             if (providerIds.IsNullOrEmpty())
             {
-                return Enumerable.Empty<TestScenarioResult>();
+                return Task.FromResult(Enumerable.Empty<TestScenarioResult>());
             }
 
+            ConcurrentBag<TestScenarioResult> results = new ConcurrentBag<TestScenarioResult>();
 
-            List<Task<IEnumerable<TestScenarioResult>>> queryTasks = new List<Task<IEnumerable<TestScenarioResult>>>(providerIds.Count());
-            foreach (string providerId in providerIds)
+            ParallelLoopResult result = Parallel.ForEach(providerIds, new ParallelOptions() { MaxDegreeOfParallelism = _engineSettings.GetCurrentProviderTestResultsDegreeOfParallelism },  async (providerId) =>
             {
                 string sql = $"SELECT * FROM Root r WHERE r.documentType = \"{nameof(TestScenarioResult)}\" AND r.content.specification.id = \"{specificationId}\" AND r.content.provider.id = '{providerId}' AND r.deleted = false";
-
-                queryTasks.Add(_cosmosRepository.QueryPartitionedEntity<TestScenarioResult>(sql, partitionEntityId: providerId));
-            }
-
-            await TaskHelper.WhenAllAndThrow(queryTasks.ToArray());
-
-            List<TestScenarioResult> result = new List<TestScenarioResult>();
-            foreach (Task<IEnumerable<TestScenarioResult>> queryTask in queryTasks)
-            {
-                IEnumerable<TestScenarioResult> providerSourceDatasets = queryTask.Result;
-                if (!providerSourceDatasets.IsNullOrEmpty())
+                IEnumerable<TestScenarioResult> testScenarioResults =  await _cosmosRepository.QueryPartitionedEntity<TestScenarioResult>(sql, partitionEntityId: providerId);
+                foreach(TestScenarioResult testScenarioResult in testScenarioResults)
                 {
-
-                    result.AddRange(providerSourceDatasets);
+                    results.Add(testScenarioResult);
                 }
-            }
+            });
 
-            return result;
+            return Task.FromResult(results.AsEnumerable());
         }
 
         public async Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> providerResult)
@@ -74,7 +65,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             for (int i = 0; i < items.Count; i++)
             {
                 TestScenarioResult result = items[i];
-                if(result == null)
+                if (result == null)
                 {
                     _logger.Error("Result {i} provided was null", i);
                     throw new InvalidOperationException($"Result {i} provided was null");

@@ -9,5 +9,7 @@
         public int CalculateProviderResultsDegreeOfParallelism { get; set; } = 5;
 
         public int SaveTestProviderResultsDegreeOfParallelism { get; set; } = 5;
+
+        public int GetCurrentProviderTestResultsDegreeOfParallelism { get; set; } = 5;
     }
 }
