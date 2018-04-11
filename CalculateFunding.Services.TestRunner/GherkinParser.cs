@@ -28,7 +28,6 @@ namespace CalculateFunding.Services.TestRunner
             };
 
         private readonly IStepParserFactory _stepParserFactory;
-        private readonly Parser parser = new Parser();
 
         public GherkinParser(IStepParserFactory stepParserFactory)
         {
@@ -38,6 +37,7 @@ namespace CalculateFunding.Services.TestRunner
         async public Task<GherkinParseResult> Parse(string gherkin, BuildProject buildProject)
         {
             GherkinParseResult result = new GherkinParseResult();
+            Parser parser = new Parser();
             try
             {
                 var builder = new StringBuilder();

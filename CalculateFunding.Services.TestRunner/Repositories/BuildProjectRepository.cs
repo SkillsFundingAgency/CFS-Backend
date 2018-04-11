@@ -1,33 +1,33 @@
-﻿using CalculateFunding.Models.Specs;
+﻿using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using System;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.TestRunner
+namespace CalculateFunding.Services.TestRunner.Repositories
 {
-    public class SpecificationRepository : ISpecificationRepository
+    public class BuildProjectRepository : IBuildProjectRepository
     {
-        const string specsUrl = "specs/specifications?specificationId=";
+        const string buildProjectUrl = "calcs/get-buildproject-by-specification-id?specificationId=";
 
         private readonly IApiClientProxy _apiClient;
 
-        public SpecificationRepository(IApiClientProxy apiClient)
+        public BuildProjectRepository(IApiClientProxy apiClient)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
 
             _apiClient = apiClient;
         }
 
-        public Task<Specification> GetSpecificationById(string specificationId)
+        public Task<BuildProject> GetBuildProjectBySpecificationId(string specificationId)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
                 throw new ArgumentNullException(nameof(specificationId));
 
-            string url = $"{specsUrl}{specificationId}";
+            string url = $"{buildProjectUrl}{specificationId}";
 
-            return _apiClient.GetAsync<Specification>(url);
+            return _apiClient.GetAsync<BuildProject>(url);
         }
     }
 }

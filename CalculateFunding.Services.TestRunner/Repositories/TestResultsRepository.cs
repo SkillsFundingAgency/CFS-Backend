@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using CalculateFunding.Services.Core.Helpers;
 using Serilog;
+using CalculateFunding.Services.Core.Options;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
 {
@@ -15,25 +16,52 @@ namespace CalculateFunding.Services.TestRunner.Repositories
     {
         private readonly CosmosRepository _cosmosRepository;
         private readonly ILogger _logger;
+        private readonly EngineSettings _engineSettings;
 
-        public TestResultsRepository(CosmosRepository cosmosRepository, ILogger logger)
+        public TestResultsRepository(CosmosRepository cosmosRepository, ILogger logger, EngineSettings engineSettings)
         {
+            Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
+
             _cosmosRepository = cosmosRepository;
             _logger = logger;
+            _engineSettings = engineSettings;
         }
 
-        public Task<IEnumerable<TestScenarioResult>> GetCurrentTestResults(IEnumerable<string> providerIds, string specificationId)
+        public async Task<IEnumerable<TestScenarioResult>> GetCurrentTestResults(IEnumerable<string> providerIds, string specificationId)
         {
             Guard.ArgumentNotNull(providerIds, nameof(providerIds));
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            string providerIdList = string.Join(",", providerIds.Select(m => $"\"{m}\""));
+            if (providerIds.IsNullOrEmpty())
+            {
+                return Enumerable.Empty<TestScenarioResult>();
+            }
 
-            string sql = $"SELECT * FROM Root r where r.documentType = \"{nameof(TestScenarioResult)}\" and r.content.specification.id = \"{specificationId}\" and r.content.provider.id in ({providerIdList})";
 
-            IQueryable<DocumentEntity<TestScenarioResult>> results = _cosmosRepository.RawQuery<DocumentEntity<TestScenarioResult>>(sql);
+            List<Task<IEnumerable<TestScenarioResult>>> queryTasks = new List<Task<IEnumerable<TestScenarioResult>>>(providerIds.Count());
+            foreach (string providerId in providerIds)
+            {
+                string sql = $"SELECT * FROM Root r WHERE r.documentType = \"{nameof(TestScenarioResult)}\" AND r.content.specification.id = \"{specificationId}\" AND r.content.provider.id = '{providerId}' AND r.deleted = false";
 
-            return Task.FromResult(results.AsEnumerable().Select(m => m.Content));
+                queryTasks.Add(_cosmosRepository.QueryPartitionedEntity<TestScenarioResult>(sql, partitionEntityId: providerId));
+            }
+
+            await TaskHelper.WhenAllAndThrow(queryTasks.ToArray());
+
+            List<TestScenarioResult> result = new List<TestScenarioResult>();
+            foreach (Task<IEnumerable<TestScenarioResult>> queryTask in queryTasks)
+            {
+                IEnumerable<TestScenarioResult> providerSourceDatasets = queryTask.Result;
+                if (!providerSourceDatasets.IsNullOrEmpty())
+                {
+
+                    result.AddRange(providerSourceDatasets);
+                }
+            }
+
+            return result;
         }
 
         public async Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> providerResult)
@@ -41,7 +69,9 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             Guard.ArgumentNotNull(providerResult, nameof(providerResult));
 
             List<TestScenarioResult> items = new List<TestScenarioResult>(providerResult);
-            for(int i = 0; i < items.Count; i++)
+            List<KeyValuePair<string, TestScenarioResult>> resultItems = new List<KeyValuePair<string, TestScenarioResult>>(items.Count());
+
+            for (int i = 0; i < items.Count; i++)
             {
                 TestScenarioResult result = items[i];
                 if(result == null)
@@ -55,11 +85,13 @@ namespace CalculateFunding.Services.TestRunner.Repositories
                     _logger.Error("Result {i} provided was not valid", i);
                     throw new InvalidOperationException($"Result {i} provided was valid");
                 }
+
+                resultItems.Add(new KeyValuePair<string, TestScenarioResult>(result.Provider.Id, result));
             }
 
-            if (items.Any())
+            if (resultItems.Any())
             {
-                await _cosmosRepository.BulkCreateAsync<TestScenarioResult>(items);
+                await _cosmosRepository.BulkCreateAsync<TestScenarioResult>(resultItems, degreeOfParallelism: _engineSettings.SaveTestProviderResultsDegreeOfParallelism);
             }
             else
             {

@@ -87,6 +87,23 @@ namespace CalculateFunding.Functions.EnvironmentSetup.Http
                 }
                 , log);
 
+            // Create unlimited sized collection for calculationresults
+            await CreateDatabaseAndCollection(client, "calculate-funding",
+                new DocumentCollection()
+                {
+                    Id = "testresults",
+                    PartitionKey = new PartitionKeyDefinition()
+                    {
+                        Paths = new Collection<string>() { "/content/provider/id" }
+                    },
+                },
+                new RequestOptions()
+                {
+                    // 1100 to get over 1000, you get up to 50000RU, rather than 10000 when created with 1000
+                    OfferThroughput = 1100
+                }
+                , log);
+
 
             try
             {

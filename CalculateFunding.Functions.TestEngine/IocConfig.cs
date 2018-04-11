@@ -53,9 +53,6 @@ namespace CalculateFunding.Functions.TestEngine
                 .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
 
             builder
-              .AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>();
-
-            builder
                 .AddSingleton<IStepParserFactory, StepParserFactory>();
 
             builder
@@ -127,6 +124,8 @@ namespace CalculateFunding.Functions.TestEngine
             builder.AddLogging("CalculateFunding.Functions.TestRunner");
 
             builder.AddTelemetry();
+
+            builder.AddEngineSettings(config);
         }
     }
 }

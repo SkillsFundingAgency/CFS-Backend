@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.TestRunner.Services
+namespace CalculateFunding.Services.TestRunner.Repositories
 {
     public class ScenariosRepository : IScenariosRepository
     {

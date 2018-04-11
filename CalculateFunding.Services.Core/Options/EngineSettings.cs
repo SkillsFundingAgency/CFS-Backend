@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CalculateFunding.Services.Core.Options
+﻿namespace CalculateFunding.Services.Core.Options
 {
     public class EngineSettings
     {
@@ -11,5 +7,7 @@ namespace CalculateFunding.Services.Core.Options
         public int SaveProviderDegreeOfParallelism { get; set; } = 5;
 
         public int CalculateProviderResultsDegreeOfParallelism { get; set; } = 5;
+
+        public int SaveTestProviderResultsDegreeOfParallelism { get; set; } = 5;
     }
 }

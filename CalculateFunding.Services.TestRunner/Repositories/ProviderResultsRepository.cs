@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.TestRunner.Services
+namespace CalculateFunding.Services.TestRunner.Repositories
 {
     public class ProviderResultsRepository : IProviderResultsRepository
     {

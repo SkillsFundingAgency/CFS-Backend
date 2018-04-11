@@ -338,7 +338,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
               .AddScoped<IAllocationFactory, AllocationFactory>();
 
             builder
-                .AddScoped<Services.TestRunner.Interfaces.ISpecificationRepository, Services.TestRunner.SpecificationRepository>();
+                .AddScoped<Services.TestRunner.Interfaces.ISpecificationRepository, Services.TestRunner.Repositories.SpecificationRepository>();
             builder
                .AddScoped<Services.Datasets.Interfaces.IProviderRepository, Services.Datasets.ProviderRepository>();
 
@@ -358,7 +358,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 .AddSingleton(mappingConfig.CreateMapper());
 
             builder
-              .AddScoped<Services.TestRunner.Interfaces.IBuildProjectRepository, Services.TestRunner.Services.BuildProjectRepository>();
+              .AddScoped<Services.TestRunner.Interfaces.IBuildProjectRepository, Services.TestRunner.Repositories.BuildProjectRepository>();
 
             builder
                 .AddScoped<IGherkinParserService, GherkinParserService>();
@@ -384,7 +384,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 ILogger logger = ctx.GetService<ILogger>();
 
-                return new TestResultsRepository(testResultsCosmosRepostory, logger);
+                EngineSettings engineSettings = ctx.GetService<EngineSettings>();
+
+                return new TestResultsRepository(testResultsCosmosRepostory, logger, engineSettings);
             });
 
             builder.AddSingleton<ITestResultsService, TestResultsService>();
@@ -407,10 +409,10 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder.AddSingleton<ITestResultsSearchService, TestResultsSearchService>();
 
             builder
-                .AddSingleton<Services.TestRunner.Interfaces.ISpecificationRepository, Services.TestRunner.SpecificationRepository>();
+                .AddSingleton<Services.TestRunner.Interfaces.ISpecificationRepository, Services.TestRunner.Repositories.SpecificationRepository>();
 
             builder
-                .AddSingleton<Services.TestRunner.Interfaces.IScenariosRepository, Services.TestRunner.Services.ScenariosRepository>();
+                .AddSingleton<Services.TestRunner.Interfaces.IScenariosRepository, Services.TestRunner.Repositories.ScenariosRepository>();
 
             builder
                 .AddScoped<ITestEngineService, TestEngineService>();
@@ -457,7 +459,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 return new ProviderSourceDatasetRepository(calcsCosmosRepostory);
             });
 
-            builder.AddSingleton<Services.TestRunner.Interfaces.IProviderResultsRepository, Services.TestRunner.Services.ProviderResultsRepository>((ctx) =>
+            builder.AddSingleton<Services.TestRunner.Interfaces.IProviderResultsRepository, Services.TestRunner.Repositories.ProviderResultsRepository>((ctx) =>
             {
                 CosmosDbSettings providersDbSettings = new CosmosDbSettings();
 
@@ -469,7 +471,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
 
-                return new Services.TestRunner.Services.ProviderResultsRepository(providersCosmosRepostory);
+                return new Services.TestRunner.Repositories.ProviderResultsRepository(providersCosmosRepostory);
             });
 
             builder.AddSearch(config);
