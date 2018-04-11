@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.TestRunner
                     Scenario = new Reference(scenario.Id, scenario.Name)
                 };
 
-                var parseResult = await _parser.Parse(scenario.Current.Gherkin, buildProject);
+                GherkinParseResult parseResult = await _parser.Parse(scenario.Current.Gherkin, buildProject);
                 
                 if(parseResult != null && !parseResult.StepActions.IsNullOrEmpty())
                 { 

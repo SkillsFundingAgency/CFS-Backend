@@ -5,7 +5,7 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
 {
     public interface IProviderResultsRepository
     {
-        Task<ProviderResult> GetProviderByIdAndSpecificationId(string providerId, string specificationId);
+        Task<ProviderResult> GetProviderResultByProviderIdAndSpecificationId(string providerId, string specificationId);
     }
 }   
 

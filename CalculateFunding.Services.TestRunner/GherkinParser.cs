@@ -27,6 +27,7 @@ namespace CalculateFunding.Services.TestRunner
             };
 
         private readonly IStepParserFactory _stepParserFactory;
+        private readonly Parser parser = new Parser();
 
         public GherkinParser(IStepParserFactory stepParserFactory)
         {
@@ -35,7 +36,7 @@ namespace CalculateFunding.Services.TestRunner
 
         async public Task<GherkinParseResult> Parse(string gherkin, BuildProject buildProject)
         {
-            var result = new GherkinParseResult();
+            GherkinParseResult result = new GherkinParseResult();
             try
             {
                 var builder = new StringBuilder();
@@ -44,7 +45,6 @@ namespace CalculateFunding.Services.TestRunner
                 builder.Append(gherkin);
                 using (var reader = new StringReader(builder.ToString()))
                 {
-                    Parser parser = new Parser();
                     var document = parser.Parse(reader);
                     if (document.Feature?.Children != null)
                     {
@@ -55,7 +55,6 @@ namespace CalculateFunding.Services.TestRunner
 
                                 foreach (var step in scenario.Steps)
                                 {
-
                                     IEnumerable<KeyValuePair<StepType, string>> expression = stepExpressions.Where(m => Regex.IsMatch(step.Text, m.Value, RegexOptions.IgnoreCase));
                                     
                                     if(expression.Any())
@@ -90,7 +89,6 @@ namespace CalculateFunding.Services.TestRunner
                     result.AddError(error.Message, error.Location.Line, error.Location.Column);
                 }
             }
-
 
             return result;
         }

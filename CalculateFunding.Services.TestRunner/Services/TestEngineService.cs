@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly ILogger _logger;
         private readonly ITestEngine _testEngine;
         private readonly IScenariosRepository _scenariosRepository;
-        private readonly IProviderRepository _providerRepository;
+        private readonly IProviderSourceDatasetsRepository _providerRepository;
         private readonly ITestResultsService _testResultsService;
         private readonly ITestResultsRepository _testResultsRepository;
         private readonly ITelemetry _telemetry;
@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             ILogger logger,
             ITestEngine testEngine,
             IScenariosRepository scenariosRepository,
-            IProviderRepository providerRepository,
+            IProviderSourceDatasetsRepository providerRepository,
             ITestResultsService testResultsService,
             ITestResultsRepository testResultsRepository,
             ITelemetry telemetry)
@@ -110,8 +110,10 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return;
             }
 
+            IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id).ToList();
+
             Stopwatch providerSourceDatasetsStopwatch = Stopwatch.StartNew();
-            IEnumerable<ProviderSourceDataset> sourceDatasets = await _providerRepository.GetProviderSourceDatasetsBySpecificationId(specificationId);
+            IEnumerable<ProviderSourceDataset> sourceDatasets = await _providerRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIds, specificationId);
             providerSourceDatasetsStopwatch.Stop();
 
             if (sourceDatasets.IsNullOrEmpty())
@@ -119,8 +121,6 @@ namespace CalculateFunding.Services.TestRunner.Services
                 _logger.Error($"No source datasets found for specification id: {specificationId}");
                 return;
             }
-
-            IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id).ToList();
 
             Stopwatch existingTestResultsStopwatch = Stopwatch.StartNew();
             IEnumerable<TestScenarioResult> testScenarioResults = await _testResultsRepository.GetCurrentTestResults(providerIds, specificationId);

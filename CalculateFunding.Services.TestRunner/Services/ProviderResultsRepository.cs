@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             _cosmosRepository = cosmosRepository;
         }
 
-        public async Task<ProviderResult> GetProviderByIdAndSpecificationId(string providerId, string specificationId)
+        public async Task<ProviderResult> GetProviderResultByProviderIdAndSpecificationId(string providerId, string specificationId)
         {
             if (string.IsNullOrWhiteSpace(providerId))
                 throw new ArgumentNullException(nameof(providerId));

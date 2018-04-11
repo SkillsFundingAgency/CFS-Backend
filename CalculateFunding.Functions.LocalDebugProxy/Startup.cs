@@ -94,7 +94,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder.AddScoped<ICalculationEngine, CalculationEngine>();
             builder.AddScoped<IAllocationFactory, AllocationFactory>();
 
-            builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>
+            builder.AddSingleton<Services.Calculator.Interfaces.IProviderSourceDatasetsRepository, Services.Calculator.ProviderSourceDatasetsRepository>((ctx) =>
             {
                 CosmosDbSettings calssDbSettings = new CosmosDbSettings();
 
@@ -104,7 +104,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 
-                return new ProviderSourceDatasetsRepository(calcsCosmosRepostory);
+                return new Services.Calculator.ProviderSourceDatasetsRepository(calcsCosmosRepostory);
             });
 
 
@@ -370,7 +370,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 .AddScoped<IStepParserFactory, StepParserFactory>();
 
             builder
-               .AddSingleton<Services.TestRunner.Interfaces.IProviderRepository, Services.TestRunner.Services.ProviderRepository>();
+               .AddSingleton<Services.TestRunner.Interfaces.IProviderSourceDatasetsRepository, Services.TestRunner.Repositories.ProviderSourceDatasetsRepository>();
 
             builder.AddSingleton<ITestResultsRepository, TestResultsRepository>((ctx) =>
             {
@@ -389,7 +389,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
             builder.AddSingleton<ITestResultsService, TestResultsService>();
 
-            builder.AddSingleton<Services.TestRunner.Interfaces.IProviderRepository, Services.TestRunner.Services.ProviderRepository>((ctx) =>
+            builder.AddSingleton<Services.TestRunner.Interfaces.IProviderSourceDatasetsRepository, Services.TestRunner.Repositories.ProviderSourceDatasetsRepository>((ctx) =>
             {
                 CosmosDbSettings providersDbSettings = new CosmosDbSettings();
 
@@ -401,7 +401,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
 
-                return new Services.TestRunner.Services.ProviderRepository(providersCosmosRepostory, cacheProvider);
+                return new Services.TestRunner.Repositories.ProviderSourceDatasetsRepository(providersCosmosRepostory, cacheProvider);
             });
 
             builder.AddSingleton<ITestResultsSearchService, TestResultsSearchService>();

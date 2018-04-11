@@ -53,7 +53,7 @@ namespace CalculateFunding.Functions.TestEngine
                 .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
 
             builder
-              .AddSingleton<IProviderRepository, ProviderRepository>();
+              .AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>();
 
             builder
                 .AddSingleton<IStepParserFactory, StepParserFactory>();
@@ -76,7 +76,7 @@ namespace CalculateFunding.Functions.TestEngine
             builder
                .AddScoped<IGherkinExecutor, GherkinExecutor>();
 
-            builder.AddSingleton<IProviderRepository, ProviderRepository>((ctx) =>
+            builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>
             {
                 CosmosDbSettings providersDbSettings = new CosmosDbSettings();
 
@@ -88,7 +88,7 @@ namespace CalculateFunding.Functions.TestEngine
 
                 ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
 
-                return new ProviderRepository(providersCosmosRepostory, cacheProvider);
+                return new ProviderSourceDatasetsRepository(providersCosmosRepostory, cacheProvider);
             });
 
             builder.AddSingleton<IProviderResultsRepository, ProviderResultsRepository>((ctx) =>

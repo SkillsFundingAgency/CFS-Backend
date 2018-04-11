@@ -18,6 +18,7 @@ namespace CalculateFunding.Services.TestRunner.Services
         public ScenariosRepository(IApiClientProxy apiClient, ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
 
             _apiClient = apiClient;
             _cacheProvider = cacheProvider;
@@ -36,7 +37,10 @@ namespace CalculateFunding.Services.TestRunner.Services
 
                 testScenarios = await _apiClient.GetAsync<IEnumerable<TestScenario>>(url);
 
-                await _cacheProvider.SetAsync<List<TestScenario>>(specificationId, testScenarios.ToList(), TimeSpan.FromHours(1), false);
+                if (!testScenarios.IsNullOrEmpty())
+                {
+                    await _cacheProvider.SetAsync<List<TestScenario>>(specificationId, testScenarios.ToList(), TimeSpan.FromHours(1), false);
+                }
             }
 
             return testScenarios;
