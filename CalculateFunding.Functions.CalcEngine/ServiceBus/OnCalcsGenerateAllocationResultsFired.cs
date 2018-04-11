@@ -7,6 +7,7 @@ using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace CalculateFunding.Functions.CalcEngine.ServiceBus
 {
@@ -19,18 +20,18 @@ namespace CalculateFunding.Functions.CalcEngine.ServiceBus
             {
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 var calculationEngineService = scope.ServiceProvider.GetService<ICalculationEngineService>();
-                var logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
 
                 try
                 {
-
                     correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
                     await calculationEngineService.GenerateAllocations(message);
 
                 }
                 catch (Exception exception)
                 {
-                    logger.Error(exception, "An error occurred getting message from hub: calc-events-generate-allocations-results");
+                    ILogger logger = scope.ServiceProvider.GetService<ILogger>();
+
+                    logger.Error(exception, $"An error occurred processing message on queue: {ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults}");
                     throw;
                 }
             }

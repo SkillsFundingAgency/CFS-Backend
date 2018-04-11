@@ -4,10 +4,12 @@ using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -24,16 +26,18 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly IProviderRepository _providerRepository;
         private readonly ITestResultsService _testResultsService;
         private readonly ITestResultsRepository _testResultsRepository;
+        private readonly ITelemetry _telemetry;
 
         public TestEngineService(
-            ICacheProvider cacheProvider, 
-            ISpecificationRepository specificationRepository, 
+            ICacheProvider cacheProvider,
+            ISpecificationRepository specificationRepository,
             ILogger logger,
             ITestEngine testEngine,
             IScenariosRepository scenariosRepository,
             IProviderRepository providerRepository,
             ITestResultsService testResultsService,
-            ITestResultsRepository testResultsRepository)
+            ITestResultsRepository testResultsRepository,
+            ITelemetry telemetry)
         {
             _cacheProvider = cacheProvider;
             _specificationRepository = specificationRepository;
@@ -43,10 +47,13 @@ namespace CalculateFunding.Services.TestRunner.Services
             _providerRepository = providerRepository;
             _testResultsService = testResultsService;
             _testResultsRepository = testResultsRepository;
+            _telemetry = telemetry;
         }
 
         public async Task RunTests(Message message)
         {
+            Stopwatch runTestsStopWatch = Stopwatch.StartNew();
+
             BuildProject buildProject = message.GetPayloadAsInstanceOf<BuildProject>();
 
             if (buildProject == null)
@@ -71,7 +78,9 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return;
             }
 
+            Stopwatch providerResultsQueryStopwatch = Stopwatch.StartNew();
             IEnumerable<ProviderResult> providerResults = await _cacheProvider.GetAsync<List<ProviderResult>>(cacheKey);
+            providerResultsQueryStopwatch.Stop();
 
             if (providerResults.IsNullOrEmpty())
             {
@@ -81,7 +90,9 @@ namespace CalculateFunding.Services.TestRunner.Services
 
             await _cacheProvider.RemoveAsync<List<ProviderResult>>(cacheKey);
 
+            Stopwatch testScenariosStopwatch = Stopwatch.StartNew();
             IEnumerable<TestScenario> testScenarios = await _scenariosRepository.GetTestScenariosBySpecificationId(specificationId);
+            testScenariosStopwatch.Stop();
 
             if (testScenarios.IsNullOrEmpty())
             {
@@ -89,15 +100,19 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return;
             }
 
+            Stopwatch specificationLookupStopwatch = Stopwatch.StartNew();
             Specification specification = await _specificationRepository.GetSpecificationById(specificationId);
+            specificationLookupStopwatch.Stop();
 
-            if(specification == null)
+            if (specification == null)
             {
                 _logger.Error($"No specification found for specification id: {specificationId}");
                 return;
             }
 
+            Stopwatch providerSourceDatasetsStopwatch = Stopwatch.StartNew();
             IEnumerable<ProviderSourceDataset> sourceDatasets = await _providerRepository.GetProviderSourceDatasetsBySpecificationId(specificationId);
+            providerSourceDatasetsStopwatch.Stop();
 
             if (sourceDatasets.IsNullOrEmpty())
             {
@@ -107,19 +122,58 @@ namespace CalculateFunding.Services.TestRunner.Services
 
             IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id).ToList();
 
+            Stopwatch existingTestResultsStopwatch = Stopwatch.StartNew();
             IEnumerable<TestScenarioResult> testScenarioResults = await _testResultsRepository.GetCurrentTestResults(providerIds, specificationId);
+            existingTestResultsStopwatch.Stop();
 
+            Stopwatch runTestsStopwatch = Stopwatch.StartNew();
             IEnumerable<TestScenarioResult> results = await _testEngine.RunTests(testScenarios, providerResults, sourceDatasets, testScenarioResults.ToList(), specification, buildProject);
+            runTestsStopwatch.Stop();
 
+            Stopwatch saveResultsStopwatch = new Stopwatch();
             if (results.Any())
             {
+                saveResultsStopwatch.Start();
                 HttpStatusCode status = await _testResultsService.SaveTestProviderResults(results);
+                saveResultsStopwatch.Stop();
 
                 if (!status.IsSuccess())
                 {
                     _logger.Error($"Failed to save test results with status code: {status.ToString()}");
                 }
             }
+
+            runTestsStopWatch.Stop();
+
+            IDictionary<string, double> metrics = new Dictionary<string, double>()
+                    {
+                        { "tests-run-totalMs", runTestsStopWatch.ElapsedMilliseconds },
+                        { "tests-run-testScenarioQueryMs", testScenariosStopwatch.ElapsedMilliseconds },
+                        { "tests-run-numberOfTestScenarios", testScenarios.Count() },
+                        { "tests-run-providersResultsQueryMs", providerResultsQueryStopwatch.ElapsedMilliseconds},
+                        { "tests-run-totalProvidersProcessed", providerIds.Count() },
+                        { "tests-run-specificationQueryMs", specificationLookupStopwatch.ElapsedMilliseconds },
+                        { "tests-run-providerSourceDatasetsQueryMs", providerSourceDatasetsStopwatch.ElapsedMilliseconds },
+                        { "tests-run-existingTestsQueryMs", existingTestResultsStopwatch.ElapsedMilliseconds },
+                        { "tests-run-existingTestScenarioResultsTotal",testScenarioResults.Count() },
+                        { "tests-run-runTestsMs", runTestsStopwatch.ElapsedMilliseconds },
+                    };
+
+            if (results.Any())
+            {
+                metrics.Add("tests-run-saveTestResultsMs", saveResultsStopwatch.ElapsedMilliseconds);
+                metrics.Add("tests-run-numberOfSavedResults", results.Count());
+            }
+
+            _telemetry.TrackEvent("RunTests",
+                new Dictionary<string, string>()
+                {
+                        { "specificationId" , specificationId },
+                        { "buildProjectId" , buildProject.Id },
+                        { "cacheKey" , cacheKey },
+                },
+                metrics
+            );
         }
     }
 }
