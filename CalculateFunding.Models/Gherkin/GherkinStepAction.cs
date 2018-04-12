@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 
@@ -43,23 +44,22 @@ namespace CalculateFunding.Models.Gherkin
         {
             object actualValue = null;
 
+            var datasetsByType = new Dictionary<string, ProviderSourceDataset>();
 
-            var datasetsByType = new Dictionary<string, object>();
             foreach (var dataset in datasets)
             {
-                var field = dataset.GetType().GetField("DatasetDefinitionName");
-                var definitionName = field.GetValue(null).ToString();
-                datasetsByType.Add(definitionName, dataset);
+                var field = dataset.GetType().GetProperty("DataRelationship");
+                var relationship = field.GetValue(dataset) as Reference;
+                datasetsByType.Add(relationship.Name, dataset);
             }
 
             if (datasetsByType.TryGetValue(datasetName, out var selectedDataset))
             {
-                foreach (var prop in selectedDataset.GetType().GetProperties())
+                var rows = selectedDataset.Current.Rows;
+
+                if (rows.Count > 0)
                 {
-                    if (prop.Name == fieldName)
-                    {
-                        actualValue = prop.GetValue(selectedDataset);
-                    }
+                    actualValue = rows.First()[fieldName];
                 }
             }
             return actualValue;

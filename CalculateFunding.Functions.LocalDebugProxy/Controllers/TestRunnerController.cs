@@ -9,15 +9,18 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
     {
         private readonly IGherkinParserService _gherkinParserService;
         private readonly ITestResultsSearchService _testResultsSearchService;
+        private readonly ITestEngineService _testEngineService;
 
         public TestRunnerController(
             IServiceProvider serviceProvider, 
             IGherkinParserService gherkinParserService,
-            ITestResultsSearchService testResultsSearchService
+            ITestResultsSearchService testResultsSearchService,
+            ITestEngineService testEngineService
             ) : base(serviceProvider)
         {
             _gherkinParserService = gherkinParserService;
             _testResultsSearchService = testResultsSearchService;
+            _testEngineService = testEngineService;
         }
 
         [Route("api/tests/validate-test")]
@@ -36,6 +39,15 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
             return _testResultsSearchService.SearchTestScenarioResults(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/tests/run-tests")]
+        [HttpPost]
+        public Task<IActionResult> RunTests()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _testEngineService.RunTests(ControllerContext.HttpContext.Request);
         }
     }
 }

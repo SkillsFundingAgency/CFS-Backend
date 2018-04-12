@@ -382,7 +382,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 config.Bind("CosmosDbSettings", testResultsDbSettings);
 
-                testResultsDbSettings.CollectionName = "tests";
+                testResultsDbSettings.CollectionName = "testresults";
 
                 CosmosRepository testResultsCosmosRepostory = new CosmosRepository(testResultsDbSettings);
 

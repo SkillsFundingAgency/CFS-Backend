@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
     //And 'PrimaryNOR' in 'APT Provider Information' is greater than 0
     //Then 'P004_PriRate' should be greater than 0
 
-    [TestStep("given", "the field '(.*)' in the dataset '(.*)' (.*) (.*)")]
+    [TestStep("given", @"(the)(\s)+(field)(\s)+'(.*)'(\s)+(in)(\s)+(the)(\s)+(dataset)(\s)+'(.*)'")]
     public class GivenSourceField : GherkinStepAction
     {
         [TestStepArgument(StepArgumentType.FieldName)]
@@ -26,17 +26,17 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
 
             if (actualValue != null)
             {
-                var expectedValue = Convert.ChangeType(Value, actualValue.GetType());
-                var logicResult = TestLogic(expectedValue, actualValue, Operator);
-                if (!logicResult)
-                {
-                    return new GherkinParseResult(
-                        $"{FieldName} in {DatasetName} - {actualValue} is not {Operator} {expectedValue}")
-                    {
-                        Abort = true,
-                        Dependencies = { new Dependency(DatasetName, FieldName, actualValue?.ToString()) }                      
-                    };
-                }
+               // var expectedValue = Convert.ChangeType(Value, actualValue.GetType());
+                //var logicResult = TestLogic(expectedValue, actualValue, Operator);
+                //if (!logicResult)
+                //{
+                //    return new GherkinParseResult(
+                //        $"{FieldName} in {DatasetName} - {actualValue} is not {Operator} {expectedValue}")
+                //    {
+                //        Abort = true,
+                //        Dependencies = { new Dependency(DatasetName, FieldName, actualValue?.ToString()) }                      
+                //    };
+                //}
                 return new GherkinParseResult()
                 {
                     Dependencies = { new Dependency(DatasetName, FieldName, actualValue?.ToString()) }

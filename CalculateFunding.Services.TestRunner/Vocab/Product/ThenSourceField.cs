@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
@@ -7,9 +8,7 @@ using CalculateFunding.Models.Scenarios;
 namespace CalculateFunding.Services.TestRunner.Vocab.Product
 {
 
-    //And 'PrimaryNOR' in 'APT Provider Information' is greater than 0
-    //Then 'P004_PriRate' should be greater than 0
-    [TestStep("then", "the field '(.*)' in the dataset '(.*)' (.*) (.*)")]
+    [TestStep("then", @"(the)(\s)+(result)(\s)+(for)(\s)+'(.*)'(\s)+(.*)(\s)+(the)(\s)+(field)(\s)+'(.*)'(\s)+(in)(\s)+(the)(\s)+dataset(\s)+'(.*)'")]
     public class ThenSourceField : GherkinStepAction
     {
         [TestStepArgument(StepArgumentType.FieldName)]
@@ -17,16 +16,18 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
         [TestStepArgument(StepArgumentType.DatasetName)]
         public string DatasetName { get; set; }
         public ComparisonOperator Operator { get; set; }
-        public string Value { get; set; }
+        public string CalculationName { get; set; }
 
         public override GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets)
         {
+            var calculationResult = providerResult.CalculationResults.SingleOrDefault(x => x.Calculation.Name == CalculationName);
+
             var actualValue = GetActualValue(datasets, DatasetName, FieldName);
 
             if (actualValue != null)
             {
-                var expectedValue = Convert.ChangeType(Value, actualValue.GetType());
-                var logicResult = TestLogic(expectedValue, actualValue, Operator);
+                var expectedValue = Convert.ChangeType(calculationResult.Value, actualValue.GetType());
+                var logicResult = TestLogic(actualValue, expectedValue, Operator);
                 if (!logicResult)
                 {
                     return new GherkinParseResult(

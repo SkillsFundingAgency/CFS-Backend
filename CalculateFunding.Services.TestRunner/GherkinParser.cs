@@ -17,16 +17,17 @@ namespace CalculateFunding.Services.TestRunner
 {
     public class GherkinParser : IGherkinParser
     {
-        const string souceDatasetExpression = @"(the)(\s)+(field)(\s)+'(.*)'(\s)+(in)(\s)+(the)(\s)+(dataset)(\s)+'(.*)'(\s)+(.*)(\s)+(.*)";
-        const string providerExpression = @"(the)(\s)+(provider)(\s)+(is)(\s)+'(.*)'";
+        //const string sourceDatasetExpression = @"(the)(\s)+(field)(\s)+'(.*)'(\s)+(in)(\s)+(the)(\s)+(dataset)(\s)+'(.*)'(\s)+(.*)(\s)+(.*)";
+        const string sourceDatasetsetExpression = @"(the)(\s)+(field)(\s)+'(.*)'(\s)+(in)(\s)+(the)(\s)+(dataset)(\s)+'(.*)'";
+        const string providerExpression = @"(the)(\s)+(provider)(\s)+(.*)+(\s)+'(.*)'";
         const string assertCalcExpression = @"(the)(\s)+(result)(\s)+(for)(\s)+'(.*)'(\s)+(.*)(\s)+(.*)";
-        const string assertCalcDatasetExpression = @"(the)(\s)+(result)(\s)+(for)(\s)+'(.*)'(\s)+(.*)(\s)+(the)(\s)+(field)(\s)+'(.*)'(\s)+(in)(\s)+(the)(\s)+dataset(\s)+(.*)";
+        const string assertCalcDatasetExpression = @"(the)(\s)+(result)(\s)+(for)(\s)+'(.*)'(\s)+(.*)(\s)+(the)(\s)+(field)(\s)+'(.*)'(\s)+(in)(\s)+(the)(\s)+dataset(\s)+'(.*)'";
 
         static IDictionary<StepType, string> stepExpressions = new Dictionary<StepType, string>
             {
-                { StepType.Datasets, souceDatasetExpression },
-                { StepType.Provider, providerExpression },
                 { StepType.AssertCalcDataset, assertCalcDatasetExpression },
+                { StepType.Datasets, sourceDatasetsetExpression },
+                { StepType.Provider, providerExpression },
                 { StepType.AssertCalc, assertCalcExpression },
             };
 

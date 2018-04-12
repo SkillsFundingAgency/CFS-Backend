@@ -72,9 +72,16 @@ namespace CalculateFunding.Services.TestRunner
                     scenarioResult.TotalSteps = parseResult.StepActions.Count;
 
                     scenarioResult.StepsExecuted = 0;
+                   
                     foreach (var action in parseResult.StepActions)
                     {
                         var result = action.Execute(providerResult, datasets);
+
+                        if (result.Abort)
+                        {
+                            break;
+                        }
+
                         if (!result.Dependencies.IsNullOrEmpty())
                         {
                             foreach (var resultDependency in result.Dependencies)

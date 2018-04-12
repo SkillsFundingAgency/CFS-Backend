@@ -3,6 +3,7 @@ using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.TestRunner.Interfaces;
+using CalculateFunding.Services.TestRunner.Vocab.Product;
 using Gherkin.Ast;
 using System;
 using System.Collections.Generic;
@@ -54,7 +55,7 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
                         parseResult.AddError($"Calculation: '{calcName}' was not found to test", step.Location.Line, step.Location.Column);
                     }
 
-                    if (!ComparisonOperations.Contains(comparison.ToLower()))
+                    if (!ComparisonOperators.Values.Contains(comparison.ToLower()))
                     {
                         parseResult.AddError($"'{comparison}' is not a valid comparison", step.Location.Line, step.Location.Column);
                     }
@@ -63,7 +64,15 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
                     {
                         parseResult.AddError($"'{value}' is not a valid decimal", step.Location.Line, step.Location.Column);
                     }
+
+                    parseResult.StepActions.Add(new ThenProductValue
+                    {
+                        CalculationName = calcName,
+                        Operator = ComparisonOperators.FirstOrDefault(x => x.Value == comparison).Key,
+                        Value = value
+                    });
                 }
+
             }
 
             return Task.CompletedTask;

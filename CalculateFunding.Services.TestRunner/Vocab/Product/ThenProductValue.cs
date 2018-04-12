@@ -8,11 +8,9 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
 {
     public class ThenProductValue : GherkinStepAction
     {
-
         public string CalculationName { get; set; }
         public ComparisonOperator Operator { get; set; }
         public string Value { get; set; }
-
 
         public override GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets)
         {
@@ -32,7 +30,5 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
             }
             return new GherkinParseResult($"{calculationResult.Calculation.Name}- {actualValue} is not a valid number");
         }
-
-
     }
 }

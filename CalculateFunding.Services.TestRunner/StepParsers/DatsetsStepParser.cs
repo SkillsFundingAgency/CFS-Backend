@@ -3,6 +3,7 @@ using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.TestRunner.Interfaces;
+using CalculateFunding.Services.TestRunner.Vocab.Product;
 using Gherkin.Ast;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.StepParsers
 {
-    public class DatsetsStepParser : IStepParser
+    public class DatsetsStepParser : CalcStepParser, IStepParser
     {
         private readonly ICodeMetadataGeneratorService _codeMetadataGeneratorService;
 
@@ -63,6 +64,12 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
                             parseResult.AddError($"'{fieldName}' does not exis in the dataset '{datasetName}'", step.Location.Line, step.Location.Column);
                         }
                     }
+
+                    parseResult.StepActions.Add(new GivenSourceField
+                    {
+                        FieldName = fieldName,
+                        DatasetName = datasetName
+                    });
                 }
             }
 

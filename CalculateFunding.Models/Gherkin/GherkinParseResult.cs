@@ -9,12 +9,14 @@ namespace CalculateFunding.Models.Gherkin
         {
             Errors = new List<GherkinError>();
             Dependencies = new List<Dependency>();
+            StepActions = new List<IStepAction>();
         }
 
         public GherkinParseResult(string errorMessage)
         {
             Errors = new List<GherkinError>();
             Dependencies = new List<Dependency>();
+            StepActions = new List<IStepAction>();
             AddError(errorMessage);
         }
 

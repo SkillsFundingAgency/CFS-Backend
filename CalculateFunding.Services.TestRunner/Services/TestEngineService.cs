@@ -6,7 +6,12 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.TestRunner.Interfaces;
+using CalculateFunding.Services.TestRunner.Testing;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
+using Polly;
+using Newtonsoft.Json;
 using Serilog;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -189,6 +194,76 @@ namespace CalculateFunding.Services.TestRunner.Services
                 },
                 metrics
             );
+        }
+
+        public async Task<IActionResult> RunTests(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            TestExecutionModel testExecutionModel = JsonConvert.DeserializeObject<TestExecutionModel>(json);
+
+            BuildProject buildProject = testExecutionModel.BuildProject;
+
+            if (buildProject == null)
+            {
+                _logger.Error("Null build project provided");
+                return new BadRequestObjectResult("Null build project provided");
+            }
+
+            string specificationId = buildProject.Specification.Id;
+
+            IEnumerable<ProviderResult> providerResults = testExecutionModel.ProviderResults;
+           
+            if (providerResults.IsNullOrEmpty())
+            {
+                _logger.Error("No provider results were provided");
+                return new BadRequestObjectResult("No provider results were provided");
+            }
+
+            IEnumerable<TestScenario> testScenarios = await _scenariosRepository.GetTestScenariosBySpecificationId(specificationId);
+           
+            if (testScenarios.IsNullOrEmpty())
+            {
+                _logger.Warning($"No test scenarios found for specification id: {specificationId}");
+                return new StatusCodeResult(412);
+            }
+
+            Specification specification = await _specificationRepository.GetSpecificationById(specificationId);
+
+            if (specification == null)
+            {
+                _logger.Error($"No specification found for specification id: {specificationId}");
+                return new StatusCodeResult(412);
+            }
+
+            IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id).ToList();
+
+            IEnumerable<ProviderSourceDataset> sourceDatasets = await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(() =>
+                                                     _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIds, specificationId));
+
+            if (sourceDatasets.IsNullOrEmpty())
+            {
+                _logger.Error($"No source datasets found for specification id: {specificationId}");
+                return new StatusCodeResult(412);
+            }
+
+            IEnumerable<TestScenarioResult> testScenarioResults = await _testResultsRepository.GetCurrentTestResults(providerIds, specificationId);
+
+            IEnumerable<TestScenarioResult> results = await _testEngine.RunTests(testScenarios, providerResults, sourceDatasets, testScenarioResults.ToList(), specification, buildProject);
+
+          
+            if (results.Any())
+            {
+               
+                HttpStatusCode status = await _testResultsService.SaveTestProviderResults(results);
+                
+                if (!status.IsSuccess())
+                {
+                    _logger.Error($"Failed to save test results with status code: {status.ToString()}");
+                }
+            }
+
+            return new OkObjectResult(results);
         }
     }
 }
