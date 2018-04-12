@@ -3,6 +3,7 @@ using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Gherkin.Ast;
+using Polly;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -11,10 +12,12 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
     public class ProviderStepParser : IStepParser
     {
         private readonly IProviderResultsRepository _providerResultsRepository;
+        private readonly Policy _providerResultsRepositoryPolicy;
 
-        public ProviderStepParser(IProviderResultsRepository providerResultsRepository)
+        public ProviderStepParser(IProviderResultsRepository providerResultsRepository, ITestRunnerResiliencePolicies resiliencePolicies)
         {
             _providerResultsRepository = providerResultsRepository;
+            _providerResultsRepositoryPolicy = resiliencePolicies.ProviderResultsRepository;
         }
 
         async public Task Parse(Step step, string stepExpression, GherkinParseResult parseResult, BuildProject buildProject)
@@ -23,8 +26,8 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
 
             string providerId = matches[7];
 
-            ProviderResult providerResult = await _providerResultsRepository.GetProviderResultByProviderIdAndSpecificationId(providerId, buildProject.Specification.Id);
-            if(providerResult == null)
+            ProviderResult providerResult = await _providerResultsRepositoryPolicy.ExecuteAsync(() => _providerResultsRepository.GetProviderResultByProviderIdAndSpecificationId(providerId, buildProject.Specification.Id));
+            if (providerResult == null)
             {
                 parseResult.AddError($"Provider results for provider id : '{providerId}' could not be found", step.Location.Line, step.Location.Column);
             }

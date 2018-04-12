@@ -192,14 +192,16 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             ISearchRepository<TestScenarioResultIndex> searchRepository = null,
             IMapper mapper = null,
             ILogger logger = null,
-            ITelemetry telemetry = null)
+            ITelemetry telemetry = null,
+            ResiliencePolicies policies = null)
         {
             return new TestResultsService(
                 testResultsRepository ?? CreateTestResultsRepository(),
                 searchRepository ?? CreateSearchRespository(),
                 mapper ?? CreateMapper(),
                 logger ?? CreateLogger(),
-                telemetry ?? CreateTelemetry()
+                telemetry ?? CreateTelemetry(),
+                policies ?? TestRunnerResilienceTestHelper.GenerateTestPolicies()
                 );
         }
 

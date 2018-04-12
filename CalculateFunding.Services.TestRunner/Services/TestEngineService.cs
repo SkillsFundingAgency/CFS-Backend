@@ -23,10 +23,16 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly ILogger _logger;
         private readonly ITestEngine _testEngine;
         private readonly IScenariosRepository _scenariosRepository;
-        private readonly IProviderSourceDatasetsRepository _providerRepository;
+        private readonly IProviderSourceDatasetsRepository _providerSourceDatasetsRepository;
         private readonly ITestResultsService _testResultsService;
         private readonly ITestResultsRepository _testResultsRepository;
         private readonly ITelemetry _telemetry;
+
+        private readonly Polly.Policy _cacheProviderPolicy;
+        private readonly Polly.Policy _specificationRepositoryPolicy;
+        private readonly Polly.Policy _scenariosRepositoryPolicy;
+        private readonly Polly.Policy _providerSourceDatasetsRepositoryPolicy;
+        private readonly Polly.Policy _testResultsRepositoryPolicy;
 
         public TestEngineService(
             ICacheProvider cacheProvider,
@@ -34,20 +40,27 @@ namespace CalculateFunding.Services.TestRunner.Services
             ILogger logger,
             ITestEngine testEngine,
             IScenariosRepository scenariosRepository,
-            IProviderSourceDatasetsRepository providerRepository,
+            IProviderSourceDatasetsRepository providerSourceDatasetsRepository,
             ITestResultsService testResultsService,
             ITestResultsRepository testResultsRepository,
-            ITelemetry telemetry)
+            ITelemetry telemetry,
+            ITestRunnerResiliencePolicies resiliencePolicies)
         {
             _cacheProvider = cacheProvider;
             _specificationRepository = specificationRepository;
             _logger = logger;
             _testEngine = testEngine;
             _scenariosRepository = scenariosRepository;
-            _providerRepository = providerRepository;
+            _providerSourceDatasetsRepository = providerSourceDatasetsRepository;
             _testResultsService = testResultsService;
             _testResultsRepository = testResultsRepository;
             _telemetry = telemetry;
+
+            _cacheProviderPolicy = resiliencePolicies.CacheProviderRepository;
+            _specificationRepositoryPolicy = resiliencePolicies.SpecificationRepository;
+            _scenariosRepositoryPolicy = resiliencePolicies.ScenariosRepository;
+            _providerSourceDatasetsRepositoryPolicy = resiliencePolicies.ProviderSourceDatasetsRepository;
+            _testResultsRepositoryPolicy = resiliencePolicies.TestResultsRepository;
         }
 
         public async Task RunTests(Message message)
@@ -79,7 +92,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             }
 
             Stopwatch providerResultsQueryStopwatch = Stopwatch.StartNew();
-            IEnumerable<ProviderResult> providerResults = await _cacheProvider.GetAsync<List<ProviderResult>>(cacheKey);
+            IEnumerable<ProviderResult> providerResults = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<List<ProviderResult>>(cacheKey));
             providerResultsQueryStopwatch.Stop();
 
             if (providerResults.IsNullOrEmpty())
@@ -88,10 +101,10 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return;
             }
 
-            await _cacheProvider.RemoveAsync<List<ProviderResult>>(cacheKey);
+            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<ProviderResult>>(cacheKey));
 
             Stopwatch testScenariosStopwatch = Stopwatch.StartNew();
-            IEnumerable<TestScenario> testScenarios = await _scenariosRepository.GetTestScenariosBySpecificationId(specificationId);
+            IEnumerable<TestScenario> testScenarios = await _scenariosRepositoryPolicy.ExecuteAsync(() => _scenariosRepository.GetTestScenariosBySpecificationId(specificationId));
             testScenariosStopwatch.Stop();
 
             if (testScenarios.IsNullOrEmpty())
@@ -101,7 +114,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             }
 
             Stopwatch specificationLookupStopwatch = Stopwatch.StartNew();
-            Specification specification = await _specificationRepository.GetSpecificationById(specificationId);
+            Specification specification = await _specificationRepositoryPolicy.ExecuteAsync(() => _specificationRepository.GetSpecificationById(specificationId));
             specificationLookupStopwatch.Stop();
 
             if (specification == null)
@@ -113,7 +126,9 @@ namespace CalculateFunding.Services.TestRunner.Services
             IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id);
 
             Stopwatch providerSourceDatasetsStopwatch = Stopwatch.StartNew();
-            IEnumerable<ProviderSourceDataset> sourceDatasets = await _providerRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIds, specificationId);
+            IEnumerable<ProviderSourceDataset> sourceDatasets = await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(() =>
+                                                     _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIds, specificationId));
+
             providerSourceDatasetsStopwatch.Stop();
 
             if (sourceDatasets.IsNullOrEmpty())
@@ -123,7 +138,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             }
 
             Stopwatch existingTestResultsStopwatch = Stopwatch.StartNew();
-            IEnumerable<TestScenarioResult> testScenarioResults = await _testResultsRepository.GetCurrentTestResults(providerIds, specificationId);
+            IEnumerable<TestScenarioResult> testScenarioResults = await _testResultsRepositoryPolicy.ExecuteAsync(() => _testResultsRepository.GetCurrentTestResults(providerIds, specificationId));
             existingTestResultsStopwatch.Stop();
 
             Stopwatch runTestsStopwatch = Stopwatch.StartNew();

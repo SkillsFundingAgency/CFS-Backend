@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -713,10 +714,14 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         }
 
         static TestResultsSearchService CreateTestResultsSearchService(
-           ILogger logger = null, ISearchRepository<TestScenarioResultIndex> serachRepository = null)
+           ILogger logger = null,
+           ISearchRepository<TestScenarioResultIndex> serachRepository = null,
+           ITestRunnerResiliencePolicies resiliencePolicies = null)
         {
             return new TestResultsSearchService(
-                logger ?? CreateLogger(), serachRepository ?? CreateSearchRepository());
+                logger ?? CreateLogger(), 
+                serachRepository ?? CreateSearchRepository(),
+                resiliencePolicies ?? TestRunnerResilienceTestHelper.GenerateTestPolicies());
         }
 
         static ILogger CreateLogger()

@@ -2,10 +2,12 @@
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Polly;
 using Serilog;
 using System.Threading.Tasks;
 
@@ -16,15 +18,21 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly IGherkinParser _gherkinParser;
         private readonly ILogger _logger;
         private readonly IBuildProjectRepository _buildProjectRepository;
+        private readonly Policy _buildProjectRepositoryPolicy;
 
         public GherkinParserService(
-            IGherkinParser gherkinParser, 
+            IGherkinParser gherkinParser,
             ILogger logger,
-            IBuildProjectRepository buildProjectRepository)
+            IBuildProjectRepository buildProjectRepository,
+            ITestRunnerResiliencePolicies resiliencePolicies)
         {
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+
             _gherkinParser = gherkinParser;
             _logger = logger;
             _buildProjectRepository = buildProjectRepository;
+
+            _buildProjectRepositoryPolicy = resiliencePolicies.BuildProjectRepository;
         }
 
         public async Task<IActionResult> ValidateGherkin(HttpRequest request)
@@ -33,7 +41,7 @@ namespace CalculateFunding.Services.TestRunner.Services
 
             ValidateGherkinRequestModel model = JsonConvert.DeserializeObject<ValidateGherkinRequestModel>(json);
 
-            if(model == null)
+            if (model == null)
             {
                 _logger.Error("Null model was provided to ValidateGherkin");
                 return new BadRequestObjectResult("Null or empty specification id provided");
@@ -51,9 +59,9 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return new BadRequestObjectResult("Null or empty gherkin name provided");
             }
 
-            BuildProject buildProject = await _buildProjectRepository.GetBuildProjectBySpecificationId(model.SpecificationId);
+            BuildProject buildProject = await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectRepository.GetBuildProjectBySpecificationId(model.SpecificationId));
 
-            if(buildProject == null || buildProject.Build == null)
+            if (buildProject == null || buildProject.Build == null)
             {
                 _logger.Error($"Failed to find a valid build project for specification id: {model.SpecificationId}");
 

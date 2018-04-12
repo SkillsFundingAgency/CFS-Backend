@@ -27,10 +27,10 @@ namespace CalculateFunding.Services.Core.ServiceBus
         {
             if (!_queueClients.TryGetValue(queueName, out var queueClient))
             {
-                queueClient = new QueueClient(_connectionString, queueName);
-                if (!_queueClients.ContainsKey(queueName))
+                queueClient = new QueueClient(_connectionString, queueName, ReceiveMode.PeekLock, RetryExponential.Default);
+                lock (queueClientLock)
                 {
-                    lock (queueClientLock)
+                    if (!_queueClients.ContainsKey(queueName))
                     {
                         _queueClients.Add(queueName, queueClient);
                     }
@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
             foreach (var property in properties)
                 message.UserProperties.Add(property.Key, property.Value);
 
-            await RetryAgent.DoAsync(() => queueClient.SendAsync(message));
+            await queueClient.SendAsync(message);
         }
     }
 }

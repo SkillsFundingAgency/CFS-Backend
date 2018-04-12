@@ -3,8 +3,12 @@ using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly;
+using Polly.Bulkhead;
 
 namespace CalculateFunding.Functions.CalcEngine
 {
@@ -74,6 +78,25 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddLogging("CalculateFunding.Functions.CalcEngine");
 
             builder.AddTelemetry();
+
+            builder.AddPolicySettings(config);
+
+            builder.AddSingleton<ICalculatorResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                CalculatorResiliencePolicies resiliencePolicies = new CalculatorResiliencePolicies()
+                {
+                    ProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    ProviderSourceDatasetsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
+                    Messenger = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
+                };
+
+                return resiliencePolicies;
+            });
         }
     }
 }

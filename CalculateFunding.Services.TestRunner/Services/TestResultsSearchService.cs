@@ -9,11 +9,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
+using Polly;
 using Serilog;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.Services
@@ -22,6 +21,7 @@ namespace CalculateFunding.Services.TestRunner.Services
     {
         private readonly ILogger _logger;
         private readonly ISearchRepository<TestScenarioResultIndex> _searchRepository;
+        private readonly Policy _searchRepositoryPolicy;
 
         private FacetFilterType[] Facets = {
             new FacetFilterType("testResult"),
@@ -36,10 +36,12 @@ namespace CalculateFunding.Services.TestRunner.Services
         private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
 
         public TestResultsSearchService(ILogger logger,
-            ISearchRepository<TestScenarioResultIndex> searchRepository)
+            ISearchRepository<TestScenarioResultIndex> searchRepository,
+            ITestRunnerResiliencePolicies resiliencePolicies)
         {
             _logger = logger;
             _searchRepository = searchRepository;
+            _searchRepositoryPolicy = resiliencePolicies.TestResultsSearchRepository;
         }
 
         async public Task<IActionResult> SearchTestScenarioResults(HttpRequest request)
@@ -118,7 +120,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                         {
                             var s = facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value);
 
-                            return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
+                            return _searchRepositoryPolicy.ExecuteAsync(()=> _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
                             {
                                 Facets = new[]{ filterPair.Key },
                                 SearchMode = SearchMode.Any,
@@ -126,7 +128,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                                 IncludeTotalResultCount = true,
                                 Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
                                 QueryType = QueryType.Full
-                            });
+                            }));
                         })
                     });
                 }
@@ -145,7 +147,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
             return Task.Run(() =>
             {
-                return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
+                return _searchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
                 {
                     Skip = skip,
                     Top = searchModel.Top,
@@ -155,7 +157,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                     Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
                     OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
                     QueryType = QueryType.Full
-                });
+                }));
             });
         }
 

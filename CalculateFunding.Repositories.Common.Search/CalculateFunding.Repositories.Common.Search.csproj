@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Search" Version="3.0.4" />
+    <PackageReference Include="Polly-Signed" Version="5.9.0" />
   </ItemGroup>
 
   <ItemGroup>

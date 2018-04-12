@@ -6,6 +6,7 @@ using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Polly;
 using Serilog;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -22,24 +23,31 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly IMapper _mapper;
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
+        private readonly Policy _testResultsPolicy;
+        private readonly Policy _testResultsSearchPolicy;
 
         public TestResultsService(ITestResultsRepository testResultsRepository,
             ISearchRepository<TestScenarioResultIndex> searchRepository,
             IMapper mapper,
             ILogger logger,
-            ITelemetry telemetry)
+            ITelemetry telemetry,
+            ITestRunnerResiliencePolicies policies)
         {
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(testResultsRepository, nameof(testResultsRepository));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
+            Guard.ArgumentNotNull(policies, nameof(policies));
 
             _testResultsRepository = testResultsRepository;
             _searchRepository = searchRepository;
             _mapper = mapper;
             _logger = logger;
             _telemetry = telemetry;
+
+            _testResultsPolicy = policies.TestResultsRepository;
+            _testResultsSearchPolicy = policies.TestResultsSearchRepository;
         }
 
         public async Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> testResults)
@@ -53,10 +61,10 @@ namespace CalculateFunding.Services.TestRunner.Services
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            Task<HttpStatusCode> repoUpdateTask = _testResultsRepository.SaveTestProviderResults(testResults);
+            Task<HttpStatusCode> repoUpdateTask = _testResultsPolicy.ExecuteAsync(() => _testResultsRepository.SaveTestProviderResults(testResults));
 
             IEnumerable<TestScenarioResultIndex> searchIndexItems = _mapper.Map<IEnumerable<TestScenarioResultIndex>>(testResults);
-            Task<IEnumerable<IndexError>> searchUpdateTask = _searchRepository.Index(searchIndexItems);
+            Task<IEnumerable<IndexError>> searchUpdateTask = _testResultsSearchPolicy.ExecuteAsync(() => _searchRepository.Index(searchIndexItems));
 
             await TaskHelper.WhenAllAndThrow(searchUpdateTask, repoUpdateTask);
 

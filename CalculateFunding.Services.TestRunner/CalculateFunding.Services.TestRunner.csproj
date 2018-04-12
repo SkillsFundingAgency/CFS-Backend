@@ -9,6 +9,7 @@
     <PackageReference Include="gherkin" Version="5.0.0" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.6.0-beta2" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.0" />
+    <PackageReference Include="Polly-Signed" Version="5.9.0" />
   </ItemGroup>
 
   <ItemGroup>

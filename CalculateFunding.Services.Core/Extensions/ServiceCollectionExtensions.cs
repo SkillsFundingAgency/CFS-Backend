@@ -228,5 +228,16 @@ namespace CalculateFunding.Services.Core.Extensions
 
             return builder;
         }
+
+        public static IServiceCollection AddPolicySettings(this IServiceCollection builder, IConfigurationRoot config)
+        {
+            PolicySettings policySettings = new PolicySettings();
+
+            config.Bind("policy", policySettings);
+
+            builder.AddSingleton<PolicySettings>(policySettings);
+
+            return builder;
+        }
     }
 }

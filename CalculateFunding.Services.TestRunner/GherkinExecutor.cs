@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using System;
 using CalculateFunding.Models.Gherkin;
+using CalculateFunding.Services.Core.Helpers;
+using Polly;
 
 namespace CalculateFunding.Services.TestRunner
 {
@@ -16,13 +18,21 @@ namespace CalculateFunding.Services.TestRunner
     {
         private readonly IGherkinParser _parser;
         private readonly ICacheProvider _cacheProvider;
-
+        private readonly Policy _cacheProviderPolicy;
         private const string cachePrefix = "gherkin-parse-result:";
 
-        public GherkinExecutor(IGherkinParser parser, ICacheProvider cacheProvider)
+        public GherkinExecutor(IGherkinParser parser,
+            ICacheProvider cacheProvider,
+            ITestRunnerResiliencePolicies resiliencePolicies)
         {
+            Guard.ArgumentNotNull(parser, nameof(parser));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+
             _parser = parser;
             _cacheProvider = cacheProvider;
+
+            _cacheProviderPolicy = resiliencePolicies.CacheProviderRepository;
         }
 
         async Task<GherkinParseResult> GetGherkinParseResult(TestScenario testScenario, BuildProject buildProject)
@@ -30,14 +40,14 @@ namespace CalculateFunding.Services.TestRunner
 
             string cacheKey = $"{cachePrefix}{testScenario.Id}";
 
-            GherkinParseResult gherkinParseResult = await _cacheProvider.GetAsync<GherkinParseResult>(cacheKey);
+            GherkinParseResult gherkinParseResult = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<GherkinParseResult>(cacheKey));
             if (gherkinParseResult == null)
             {
                 gherkinParseResult = await _parser.Parse(testScenario.Current.Gherkin, buildProject);
 
                 if (gherkinParseResult != null && !gherkinParseResult.StepActions.IsNullOrEmpty())
                 {
-                    await _cacheProvider.SetAsync<GherkinParseResult>(cacheKey, gherkinParseResult, TimeSpan.FromHours(24), true);
+                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<GherkinParseResult>(cacheKey, gherkinParseResult, TimeSpan.FromHours(24), true));
                 }
             }
 
@@ -56,9 +66,9 @@ namespace CalculateFunding.Services.TestRunner
                 };
 
                 var parseResult = await GetGherkinParseResult(scenario, buildProject);
-                
-                if(parseResult != null && !parseResult.StepActions.IsNullOrEmpty())
-                { 
+
+                if (parseResult != null && !parseResult.StepActions.IsNullOrEmpty())
+                {
                     scenarioResult.TotalSteps = parseResult.StepActions.Count;
 
                     scenarioResult.StepsExecuted = 0;
@@ -91,5 +101,5 @@ namespace CalculateFunding.Services.TestRunner
             }
             return scenarioResults;
         }
-     }
+    }
 }

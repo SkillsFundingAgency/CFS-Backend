@@ -6,6 +6,7 @@ using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -21,6 +22,7 @@ using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
@@ -49,6 +51,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly.Bulkhead;
 using Serilog;
 
 namespace CalculateFunding.Functions.LocalDebugProxy
@@ -242,8 +245,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 .AddScoped<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();
 
             builder.AddScoped<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
-	        {
-		        CosmosDbSettings specsDbSettings = new CosmosDbSettings();
+            {
+                CosmosDbSettings specsDbSettings = new CosmosDbSettings();
 
                 config.Bind("CosmosDbSettings", specsDbSettings);
 
@@ -348,7 +351,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
                .AddSingleton<IExcelDatasetReader, ExcelDatasetReader>();
 
-            MapperConfiguration mappingConfig = new MapperConfiguration(c => {
+            MapperConfiguration mappingConfig = new MapperConfiguration(c =>
+            {
                 c.AddProfile<SpecificationsMappingProfile>();
                 c.AddProfile<DatasetsMappingProfile>();
                 c.AddProfile<ResultsMappingProfile>();
@@ -496,6 +500,41 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder.AddServiceBus(config);
 
             builder.AddEngineSettings(config);
+
+            builder.AddPolicySettings(config);
+
+            BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(new PolicySettings() { MaximumSimultaneousNetworkRequests = 250 });
+            Polly.Policy redisPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy);
+
+            builder.AddSingleton<ICalculatorResiliencePolicies>((ctx) => {
+                CalculatorResiliencePolicies resiliencePolicies = new CalculatorResiliencePolicies()
+                {
+                    ProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    ProviderSourceDatasetsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
+                    Messenger = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
+                };
+
+                return resiliencePolicies;
+            });
+
+            builder.AddSingleton<ITestRunnerResiliencePolicies>((ctx) =>
+            {
+                ResiliencePolicies resiliencePolicies = new ResiliencePolicies()
+                {
+                    BuildProjectRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    CacheProviderRepository = redisPolicy,
+                    ProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    ProviderSourceDatasetsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    ScenariosRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(new[] { totalNetworkRequestsPolicy, redisPolicy }),
+                    SpecificationRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    TestResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    TestResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                };
+
+                return resiliencePolicies;
+            });
+
         }
     }
 }

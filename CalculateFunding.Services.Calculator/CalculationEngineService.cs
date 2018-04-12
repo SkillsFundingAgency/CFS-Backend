@@ -17,6 +17,7 @@ using CalculateFunding.Services.Core.Options;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using Polly;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -34,6 +35,10 @@ namespace CalculateFunding.Services.Calculator
         private readonly ITelemetry _telemetry;
         private readonly IProviderResultsRepository _providerResultsRepository;
         private readonly EngineSettings _engineSettings;
+        private readonly Policy _cacheProviderPolicy;
+        private readonly Policy _messengerServicePolicy;
+        private readonly Policy _providerSourceDatasetsRepositoryPolicy;
+        private readonly Policy _providerResultsRepositoryPolicy;
 
         public CalculationEngineService(
             ILogger logger,
@@ -43,9 +48,11 @@ namespace CalculateFunding.Services.Calculator
             IProviderSourceDatasetsRepository providerSourceDatasetsRepository,
             ITelemetry telemetry,
             IProviderResultsRepository providerResultsRepository,
-            EngineSettings engineSettings)
+            EngineSettings engineSettings,
+            ICalculatorResiliencePolicies resiliencePolicies)
         {
             Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
 
             _logger = logger;
             _calculationEngine = calculationEngine;
@@ -55,6 +62,11 @@ namespace CalculateFunding.Services.Calculator
             _telemetry = telemetry;
             _providerResultsRepository = providerResultsRepository;
             _engineSettings = engineSettings;
+
+            _cacheProviderPolicy = resiliencePolicies.CacheProvider;
+            _messengerServicePolicy = resiliencePolicies.Messenger;
+            _providerSourceDatasetsRepositoryPolicy = resiliencePolicies.ProviderSourceDatasetsRepository;
+            _providerResultsRepositoryPolicy = resiliencePolicies.ProviderResultsRepository;
         }
 
         async public Task<IActionResult> GenerateAllocations(HttpRequest request)
@@ -87,7 +99,8 @@ namespace CalculateFunding.Services.Calculator
             BuildProject buildProject = JsonConvert.DeserializeObject<BuildProject>(json);
 
 
-            List<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>(await _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(new[] { providerId }, specificationId));
+            List<ProviderSourceDataset> providerSourceDatasets =
+                new List<ProviderSourceDataset>(await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(new[] { providerId }, specificationId)));
 
             if (providerSourceDatasets == null)
             {
@@ -105,7 +118,7 @@ namespace CalculateFunding.Services.Calculator
         public async Task GenerateAllocations(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
-            
+
             BuildProject buildProject = message.GetPayloadAsInstanceOf<BuildProject>();
 
             string specificationId = buildProject.Specification.Id;
@@ -145,7 +158,7 @@ namespace CalculateFunding.Services.Calculator
 
             int stop = start + partitionSize - 1;
 
-            IEnumerable<ProviderSummary> summaries = await _cacheProvider.ListRangeAsync<ProviderSummary>("all-cached-providers", start, stop);
+            IEnumerable<ProviderSummary> summaries = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.ListRangeAsync<ProviderSummary>("all-cached-providers", start, stop));
 
             //if summaries = null, shouldnt be!!, but if is then get from search
 
@@ -165,7 +178,7 @@ namespace CalculateFunding.Services.Calculator
 
                 Stopwatch providerSourceDatasetsStopwatch = Stopwatch.StartNew();
                 // Convert to list to ensure no deferred execution in cosmos
-                List<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>(await _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIdList, specificationId));
+                List<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>(await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIdList, specificationId)));
                 providerSourceDatasetsStopwatch.Stop();
 
                 if (providerSourceDatasets == null)
@@ -185,7 +198,7 @@ namespace CalculateFunding.Services.Calculator
                 });
                 calculationStopwatch.Stop();
 
-                double? saveCosmosElapsedMs =  null;
+                double? saveCosmosElapsedMs = null;
                 double saveRedisElapsedMs = 0;
                 double saveQueueElapsedMs = 0;
 
@@ -194,7 +207,7 @@ namespace CalculateFunding.Services.Calculator
                     if (!message.UserProperties.ContainsKey("ignore-save-provider-results"))
                     {
                         Stopwatch saveCosmosStopwatch = Stopwatch.StartNew();
-                        await _providerResultsRepository.SaveProviderResults(providerResults, _engineSettings.SaveProviderDegreeOfParallelism);
+                        await _providerResultsRepositoryPolicy.ExecuteAsync(() => _providerResultsRepository.SaveProviderResults(providerResults, _engineSettings.SaveProviderDegreeOfParallelism));
                         saveCosmosStopwatch.Stop();
                         saveCosmosElapsedMs = saveCosmosStopwatch.ElapsedMilliseconds;
                     }
@@ -202,7 +215,7 @@ namespace CalculateFunding.Services.Calculator
                     string providerResultsCacheKey = Guid.NewGuid().ToString();
 
                     Stopwatch saveRedisStopwatch = Stopwatch.StartNew();
-                    await _cacheProvider.SetAsync<List<ProviderResult>>(providerResultsCacheKey, providerResults.ToList(), TimeSpan.FromHours(12), false);
+                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<List<ProviderResult>>(providerResultsCacheKey, providerResults.ToList(), TimeSpan.FromHours(12), false));
                     saveRedisStopwatch.Stop();
 
                     saveRedisElapsedMs = saveRedisStopwatch.ElapsedMilliseconds;
@@ -214,7 +227,7 @@ namespace CalculateFunding.Services.Calculator
                     properties.Add("providerResultsCacheKey", providerResultsCacheKey);
 
                     Stopwatch saveQueueStopwatch = Stopwatch.StartNew();
-                    await _messengerService.SendToQueue(ExecuteTestsEventSubscription, buildProject, properties);
+                    await _messengerServicePolicy.ExecuteAsync(() => _messengerService.SendToQueue(ExecuteTestsEventSubscription, buildProject, properties));
                     saveQueueStopwatch.Stop();
 
                     saveQueueElapsedMs = saveQueueStopwatch.ElapsedMilliseconds;
@@ -225,7 +238,7 @@ namespace CalculateFunding.Services.Calculator
                 IDictionary<string, double> metrics = new Dictionary<string, double>()
                     {
                         { "calculation-run-providersProcessed", partitionedSummaries.Count() },
-                        
+
                         { "calculation-run-providersResultsFromCache", summaries.Count() },
                         { "calculation-run-partitionSize", partitionSize },
                         { "calculation-run-providerSourceDatasetQueryMs", providerSourceDatasetsStopwatch.ElapsedMilliseconds },
