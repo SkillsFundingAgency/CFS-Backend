@@ -107,7 +107,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 
-                return new Services.Calculator.ProviderSourceDatasetsRepository(calcsCosmosRepostory);
+                EngineSettings engineSettings = ctx.GetService<EngineSettings>();
+
+                return new Services.Calculator.ProviderSourceDatasetsRepository(calcsCosmosRepostory, engineSettings);
             });
 
 
@@ -405,9 +407,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
 
-                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
+                EngineSettings engineSettings = ctx.GetService<EngineSettings>();
 
-                return new Services.TestRunner.Repositories.ProviderSourceDatasetsRepository(providersCosmosRepostory, cacheProvider);
+                return new Services.TestRunner.Repositories.ProviderSourceDatasetsRepository(providersCosmosRepostory, engineSettings);
             });
 
             builder.AddSingleton<ITestResultsSearchService, TestResultsSearchService>();

@@ -6,6 +6,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.TestRunner.Interfaces;
 
 namespace CalculateFunding.Services.TestRunner
@@ -13,16 +14,20 @@ namespace CalculateFunding.Services.TestRunner
     public class TestEngine : ITestEngine
     {
         private readonly IGherkinExecutor _gherkinExecutor;
+        private readonly ITelemetry _telemetry;
 
-        public TestEngine(IGherkinExecutor gherkinExecutor)
+        public TestEngine(IGherkinExecutor gherkinExecutor,
+            ITelemetry telemetry)
         {
             _gherkinExecutor = gherkinExecutor;
+            _telemetry = telemetry;
         }
 
-        public async Task<IEnumerable<TestScenarioResult>> RunTests(IEnumerable<TestScenario> testScenarios, IEnumerable<ProviderResult> providerResults, 
+        public async Task<IEnumerable<TestScenarioResult>> RunTests(IEnumerable<TestScenario> testScenarios, IEnumerable<ProviderResult> providerResults,
             IEnumerable<ProviderSourceDataset> sourceDatasets, IEnumerable<TestScenarioResult> currentResults, Specification specification, BuildProject buildProject)
         {
             IList<TestScenarioResult> scenarioResults = new List<TestScenarioResult>();
+
 
             foreach (var providerResult in providerResults)
             {
@@ -39,7 +44,7 @@ namespace CalculateFunding.Services.TestRunner
                                     : testResult.HasErrors
                                         ? TestResult.Failed
                                         : TestResult.Passed;
-                        
+
                         var filteredCurrentResults = currentResults.FirstOrDefault(m => m.Provider.Id == providerResult.Provider.Id && m.TestScenario.Id == testResult.Scenario.Id && m.TestResult == status);
 
                         if (filteredCurrentResults == null)
@@ -60,22 +65,19 @@ namespace CalculateFunding.Services.TestRunner
             return scenarioResults;
         }
 
-        async Task<IEnumerable<ScenarioResult>> RunTests(IEnumerable<TestScenario> testScenarios, ProviderResult providerResult, 
+        async Task<IEnumerable<ScenarioResult>> RunTests(IEnumerable<TestScenario> testScenarios, ProviderResult providerResult,
             IEnumerable<ProviderSourceDataset> providerSourceDatasets, BuildProject buildProject)
         {
-            var scenarioResults = new List<ScenarioResult>();
+            List<ScenarioResult> scenarioResults = new List<ScenarioResult>();
 
-            foreach (var productResult in providerResult.CalculationResults)
+            if (testScenarios != null)
             {
-                if (testScenarios != null)
-                {
-                    var gherkinScenarioResults =
-                        await _gherkinExecutor.Execute(providerResult, providerSourceDatasets, testScenarios, buildProject);
+                var gherkinScenarioResults =
+                    await _gherkinExecutor.Execute(providerResult, providerSourceDatasets, testScenarios, buildProject);
 
-                    if (!gherkinScenarioResults.IsNullOrEmpty())
-                    {
-                        scenarioResults.AddRange(gherkinScenarioResults);
-                    }
+                if (!gherkinScenarioResults.IsNullOrEmpty())
+                {
+                    scenarioResults.AddRange(gherkinScenarioResults);
                 }
             }
 

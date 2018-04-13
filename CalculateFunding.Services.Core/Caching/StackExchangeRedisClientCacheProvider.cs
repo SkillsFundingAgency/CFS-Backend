@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Core.Caching
             RedisSettings systemCacheSettings)
         {
             _systemCacheSettings = systemCacheSettings;
-            
+
             _connectionMultiplexer = new Lazy<ConnectionMultiplexer>(() =>
             {
                 var configurationOptions = ConfigurationOptions.Parse(_systemCacheSettings.CacheConnection);
@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Core.Caching
             });
         }
 
-        async public Task<T> GetAsync<T>(string key)
+        async public Task<T> GetAsync<T>(string key, JsonSerializerSettings jsonSerializerSettings)
         {
             key = GenerateCacheKey<T>(key);
 
@@ -44,7 +44,16 @@ namespace CalculateFunding.Services.Core.Caching
                     return default(T);
                 }
 
-                var redisCacheValue = JsonConvert.DeserializeObject<RedisCacheValue<T>>(cachedValue);
+                RedisCacheValue<T> redisCacheValue;
+                if (jsonSerializerSettings == null)
+                {
+                    redisCacheValue = JsonConvert.DeserializeObject<RedisCacheValue<T>>(cachedValue);
+                }
+                else
+                {
+                    redisCacheValue = JsonConvert.DeserializeObject<RedisCacheValue<T>>(cachedValue, jsonSerializerSettings);
+                }
+
                 if (redisCacheValue == null)
                     return default(T);
 
@@ -97,14 +106,14 @@ namespace CalculateFunding.Services.Core.Caching
             IList<T> results = new List<T>();
             try
             {
-                foreach(var item in items)
+                foreach (var item in items)
                 {
                     T resultItem = JsonConvert.DeserializeObject<T>(item.ToString());
                     results.Add(resultItem);
                 }
                 return results;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return default(IEnumerable<T>);
             }
@@ -119,16 +128,16 @@ namespace CalculateFunding.Services.Core.Caching
             return database.KeyExistsAsync(key);
         }
 
-        public Task SetAsync<T>(string key, T item)
+        public Task SetAsync<T>(string key, T item, JsonSerializerSettings jsonSerializerSettings = null)
         {
             var memoryCacheOptions = new MemoryCacheEntryOptions
             {
             };
 
-            return SetAsyncImpl(key, item, memoryCacheOptions);
+            return SetAsyncImpl(key, item, memoryCacheOptions, jsonSerializerSettings);
         }
 
-        public Task SetAsync<T>(string key, T item, TimeSpan expiration, bool isSliding)
+        public Task SetAsync<T>(string key, T item, TimeSpan expiration, bool isSliding, JsonSerializerSettings jsonSerializerSettings = null)
         {
             var memoryCacheOptions = new MemoryCacheEntryOptions
             {
@@ -136,20 +145,20 @@ namespace CalculateFunding.Services.Core.Caching
                 SlidingExpiration = isSliding ? (TimeSpan?)expiration : null
             };
 
-            return SetAsyncImpl(key, item, memoryCacheOptions);
+            return SetAsyncImpl(key, item, memoryCacheOptions, jsonSerializerSettings);
         }
 
-        public Task SetAsync<T>(string key, T item, DateTimeOffset absoluteExpiration)
+        public Task SetAsync<T>(string key, T item, DateTimeOffset absoluteExpiration, JsonSerializerSettings jsonSerializerSettings = null)
         {
             var memoryCacheOptions = new MemoryCacheEntryOptions
             {
                 AbsoluteExpiration = absoluteExpiration
             };
 
-            return SetAsyncImpl<T>(key, item, memoryCacheOptions);
+            return SetAsyncImpl<T>(key, item, memoryCacheOptions, jsonSerializerSettings);
         }
 
-        async Task SetAsyncImpl<T>(string key, T item, MemoryCacheEntryOptions memoryCacheEntryOptions)
+        async Task SetAsyncImpl<T>(string key, T item, MemoryCacheEntryOptions memoryCacheEntryOptions, JsonSerializerSettings jsonSerializerSettings = null)
         {
             if (item == null)
                 return;
@@ -158,14 +167,19 @@ namespace CalculateFunding.Services.Core.Caching
 
             try
             {
-                
+
                 var redisCacheValue = new RedisCacheValue<T>
                 {
                     SlidingExpiration = memoryCacheEntryOptions.SlidingExpiration,
                     Value = item
                 };
 
-                var valueToCache = JsonConvert.SerializeObject(redisCacheValue);
+                if (jsonSerializerSettings == null)
+                {
+                    jsonSerializerSettings = new JsonSerializerSettings();
+                }
+
+                var valueToCache = JsonConvert.SerializeObject(redisCacheValue, Formatting.None, jsonSerializerSettings);
 
                 var expirationTimespan = ConvertToTimeSpan(memoryCacheEntryOptions);
                 if (expirationTimespan < TimeSpan.Zero)
@@ -188,7 +202,7 @@ namespace CalculateFunding.Services.Core.Caching
                 var database = GetDatabase();
                 await database.KeyDeleteAsync(key, flags: CommandFlags.FireAndForget).ConfigureAwait(false);
             }
-           
+
             catch (Exception ex)
             {
                 Console.WriteLine(ex);

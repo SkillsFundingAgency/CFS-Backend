@@ -1,0 +1,6 @@
+﻿{
+  "serviceBus": {
+    "maxConcurrentCalls": 1,
+    "prefetchCount": 0
+  }
+}

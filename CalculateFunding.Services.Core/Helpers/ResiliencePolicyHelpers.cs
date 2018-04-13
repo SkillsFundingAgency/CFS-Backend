@@ -28,9 +28,9 @@ namespace CalculateFunding.Services.Core.Helpers
             Policy circuitBreakerRedisServerException = Policy.Handle<RedisServerException>().CircuitBreakerAsync(1000, TimeSpan.FromMinutes(1));
 
             Policy connectionExceptionRetry = Policy.Handle<RedisConnectionException>()
-                .WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15) });
+                .WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15) });
 
-            Policy connectionExceptionCircuitBreaker = Policy.Handle<RedisConnectionException>().CircuitBreakerAsync(50, TimeSpan.FromMinutes(1));
+            Policy connectionExceptionCircuitBreaker = Policy.Handle<RedisConnectionException>().CircuitBreakerAsync(250, TimeSpan.FromMinutes(1));
 
             List<IAsyncPolicy> policies = new List<IAsyncPolicy>(8)
             {

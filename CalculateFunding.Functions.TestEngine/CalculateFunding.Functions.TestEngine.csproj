@@ -4,6 +4,16 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AzureFunctionsVersion>v2</AzureFunctionsVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="host.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="host.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="6.2.2" />
     <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.0-beta5" />

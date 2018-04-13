@@ -88,9 +88,9 @@ namespace CalculateFunding.Functions.TestEngine
 
                 CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
 
-                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
+                EngineSettings engineSettings = ctx.GetService<EngineSettings>();
 
-                return new ProviderSourceDatasetsRepository(providersCosmosRepostory, cacheProvider);
+                return new ProviderSourceDatasetsRepository(providersCosmosRepostory, engineSettings);
             });
 
             builder.AddSingleton<IProviderResultsRepository, ProviderResultsRepository>((ctx) =>

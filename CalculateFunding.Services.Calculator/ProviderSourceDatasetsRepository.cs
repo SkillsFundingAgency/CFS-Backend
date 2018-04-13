@@ -2,6 +2,8 @@
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Options;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,41 +13,36 @@ namespace CalculateFunding.Services.Calculator
     public class ProviderSourceDatasetsRepository : IProviderSourceDatasetsRepository
     {
         private readonly CosmosRepository _cosmosRepository;
+        private readonly EngineSettings _engineSettings;
 
-        public ProviderSourceDatasetsRepository(CosmosRepository cosmosRepository)
+        public ProviderSourceDatasetsRepository(CosmosRepository cosmosRepository, EngineSettings engineSettings)
         {
             _cosmosRepository = cosmosRepository;
+            _engineSettings = engineSettings;
         }
 
-        public async Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdsAndSpecificationId(IEnumerable<string> providerIds, string specificationId)
+        public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdsAndSpecificationId(IEnumerable<string> providerIds, string specificationId)
         {
             if (providerIds.IsNullOrEmpty())
             {
-                return Enumerable.Empty<ProviderSourceDataset>();
+                return Task.FromResult(Enumerable.Empty<ProviderSourceDataset>());
             }
 
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            List<Task<IEnumerable<ProviderSourceDataset>>> queryTasks = new List<Task<IEnumerable<ProviderSourceDataset>>>(providerIds.Count());
-            foreach (string providerId in providerIds)
-            {
-                queryTasks.Add( _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>($"SELECT * FROM Root r where r.documentType = 'ProviderSourceDataset' and r.content.specification.id = '{specificationId}' and r.content.provider.id ='{providerId}' AND r.deleted = false", partitionEntityId: providerId));
-            }
+            ConcurrentBag<ProviderSourceDataset> results = new ConcurrentBag<ProviderSourceDataset>();
 
-            await TaskHelper.WhenAllAndThrow(queryTasks.ToArray());
-
-            List<ProviderSourceDataset> result = new List<ProviderSourceDataset>();
-            foreach (Task<IEnumerable<ProviderSourceDataset>> queryTask in queryTasks)
+            ParallelLoopResult result = Parallel.ForEach(providerIds, new ParallelOptions() { MaxDegreeOfParallelism = _engineSettings.GetProviderSourceDatasetsDegreeOfParallelism }, async (providerId) =>
             {
-                IEnumerable<ProviderSourceDataset> providerSourceDatasets = queryTask.Result;
-                if (!providerSourceDatasets.IsNullOrEmpty())
+                string sql = $"SELECT * FROM Root r where r.documentType = 'ProviderSourceDataset' and r.content.specification.id = '{specificationId}' and r.content.provider.id ='{providerId}' AND r.deleted = false";
+                IEnumerable<ProviderSourceDataset> providerSourceDatasetResults = await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>(sql, partitionEntityId: providerId);
+                foreach (ProviderSourceDataset repoResult in providerSourceDatasetResults)
                 {
-
-                    result.AddRange(providerSourceDatasets);
+                    results.Add(repoResult);
                 }
-            }
+            });
 
-            return result;
+            return Task.FromResult(results.AsEnumerable());
         }
     }
 }

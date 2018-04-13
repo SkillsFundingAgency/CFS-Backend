@@ -11,6 +11,8 @@ using System;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Services.Core.Helpers;
 using Polly;
+using System.Diagnostics;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.TestRunner
 {
@@ -40,14 +42,19 @@ namespace CalculateFunding.Services.TestRunner
 
             string cacheKey = $"{cachePrefix}{testScenario.Id}";
 
-            GherkinParseResult gherkinParseResult = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<GherkinParseResult>(cacheKey));
+            JsonSerializerSettings jsonSerializerSettings = new Newtonsoft.Json.JsonSerializerSettings()
+            {
+                TypeNameHandling = TypeNameHandling.All
+            };
+
+            GherkinParseResult gherkinParseResult = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<GherkinParseResult>(cacheKey, jsonSerializerSettings));
             if (gherkinParseResult == null)
             {
                 gherkinParseResult = await _parser.Parse(testScenario.Current.Gherkin, buildProject);
 
                 if (gherkinParseResult != null && !gherkinParseResult.StepActions.IsNullOrEmpty())
                 {
-                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<GherkinParseResult>(cacheKey, gherkinParseResult, TimeSpan.FromHours(24), true));
+                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<GherkinParseResult>(cacheKey, gherkinParseResult, TimeSpan.FromHours(24), true, jsonSerializerSettings));
                 }
             }
 
@@ -75,7 +82,7 @@ namespace CalculateFunding.Services.TestRunner
                    
                     foreach (var action in parseResult.StepActions)
                     {
-                        var result = action.Execute(providerResult, datasets);
+                        GherkinParseResult result = action.Execute(providerResult, datasets);
 
                         if (result.Abort)
                         {
@@ -96,10 +103,7 @@ namespace CalculateFunding.Services.TestRunner
                         {
                             scenarioResult.Errors.AddRange(result.Errors);
                         }
-                        if (result.Abort)
-                        {
-                            break;
-                        }
+                       
                         scenarioResult.StepsExecuted++;
                     }
                 }

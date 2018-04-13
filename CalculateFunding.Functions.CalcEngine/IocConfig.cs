@@ -51,7 +51,9 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 
-                return new ProviderSourceDatasetsRepository(calcsCosmosRepostory);
+                EngineSettings engineSettings = ctx.GetService<EngineSettings>();
+
+                return new ProviderSourceDatasetsRepository(calcsCosmosRepostory, engineSettings);
             });
 
             builder.AddSingleton<IProviderResultsRepository, ProviderResultsRepository>((ctx) =>

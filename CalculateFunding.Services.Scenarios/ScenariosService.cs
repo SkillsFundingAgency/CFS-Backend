@@ -163,7 +163,7 @@ namespace CalculateFunding.Services.Scenarios
 
             await _cacheProvider.RemoveAsync<List<TestScenario>>(testScenario.Specification.Id);
 
-            await _cacheProvider.RemoveAsync<GherkinParseResult>($"gherkin-parse-result-{testScenario.Id}");
+            await _cacheProvider.RemoveAsync<GherkinParseResult>($"gherkin-parse-result:{testScenario.Id}");
 
             BuildProject buildProject = await _buildProjectRepository.GetBuildProjectBySpecificationId(testScenario.Specification.Id);
 
