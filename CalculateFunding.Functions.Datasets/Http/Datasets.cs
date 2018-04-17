@@ -71,6 +71,18 @@ namespace CalculateFunding.Functions.Datasets.Http
             }
         }
 
+        [FunctionName("download-dataset-file")]
+        public static Task<IActionResult> RunDownloadDatasetFile(
+        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IDatasetService svc = scope.ServiceProvider.GetService<IDatasetService>();
+
+                return svc.DownloadDatasetFile(req);
+            }
+        }
+
         [FunctionName("test-http-client")]
         public static IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequest req)
         {

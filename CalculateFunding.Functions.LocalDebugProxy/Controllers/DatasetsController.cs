@@ -153,5 +153,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _definitionSpecificationRelationshipService.AssignDatasourceVersionToRelationship(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/datasets/download-dataset-file")]
+        [HttpGet]
+        public Task<IActionResult> RunDownloadDatasetFile()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _datasetService.DownloadDatasetFile(ControllerContext.HttpContext.Request);
+        }
     }
 }

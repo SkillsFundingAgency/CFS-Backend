@@ -48,6 +48,7 @@ namespace CalculateFunding.Services.Datasets.Services
         const string DataDefintionId = "45d7a71b-f570-4425-801b-250b9129f124";
         const string SpecificationId = "d557a71b-f570-4425-801b-250b9129f111";
         const string BuildProjectId = "d557a71b-f570-4425-801b-250b9129f111";
+        const string DatasetId = "e557a71b-f570-4436-801b-250b9129f999";
 
         [TestMethod]
         public async Task GetDatasetByName_GivenDatasetNameDoesNotExist_ReturnsBadRequest()
@@ -2252,6 +2253,217 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerResultsRepository
                     .Received(1)
                     .UpdateSourceDatsets(Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Is(SpecificationId));
+        }
+
+        [TestMethod]
+        public async Task DownloadDatasetFile_GivenNoDatasetIdProvided_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            DatasetService service = CreateDatasetService(logger: logger);
+
+            //Act
+            IActionResult result = await service.DownloadDatasetFile(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No currentDatasetId was provided to DownloadDatasetFile"));
+        }
+
+        [TestMethod]
+        public async Task DownloadDatasetFile_GivenDatasetCouldNotBeFound_ReturnsPreConditionFailed()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "datasetId", new StringValues(DatasetId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            DatasetService service = CreateDatasetService(logger: logger);
+
+            //Act
+            IActionResult result = await service.DownloadDatasetFile(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(412);
+
+            logger
+                .Received(1)
+                .Error($"A dataset could not be found for dataset id: {DatasetId}");
+        }
+
+        [TestMethod]
+        public async Task DownloadDatasetFile_GivenDatasetCurrentBlobNameDoesnotExist_ReturnsPreConditionFailed()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "datasetId", new StringValues(DatasetId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            Dataset dataset = new Dataset();
+
+            ILogger logger = CreateLogger();
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(DatasetId))
+                .Returns(dataset);
+
+            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.DownloadDatasetFile(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(412);
+
+            logger
+                .Received(1)
+                .Error($"A blob name could not be found for dataset id: {DatasetId}");
+        }
+
+        [TestMethod]
+        public async Task DownloadDatasetFile_GivenBlobDoesNotExist_ReturnsNotFoundResult()
+        {
+            //Arrange
+            const string blobName = "blob-name.xlsx";
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "datasetId", new StringValues(DatasetId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            Dataset dataset = new Dataset
+            {
+                Current = new DatasetVersion
+                {
+                    BlobName = blobName
+                }
+            };
+
+            ILogger logger = CreateLogger();
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(DatasetId))
+                .Returns(dataset);
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobName))
+                .Returns((ICloudBlob)null);
+
+            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
+
+            //Act
+            IActionResult result = await service.DownloadDatasetFile(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+
+            logger
+                .Received(1)
+                .Error($"Failed to find blob with path: {blobName}");
+        }
+
+        [TestMethod]
+        public async Task DownloadDatasetFile_GivenBlobExists_ReturnsOKResult()
+        {
+            //Arrange
+            const string blobUrl = "http://this-is-a-bloburl?this=is-a-token";
+            const string blobName = "blob-name.xlsx";
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "datasetId", new StringValues(DatasetId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            Dataset dataset = new Dataset
+            {
+                Current = new DatasetVersion
+                {
+                    BlobName = blobName
+                }
+            };
+
+            ILogger logger = CreateLogger();
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(DatasetId))
+                .Returns(dataset);
+
+            ICloudBlob cloudBlob = Substitute.For<ICloudBlob>();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobName))
+                .Returns(cloudBlob);
+
+            blobClient
+                    .GetBlobSasUrl(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>())
+                    .Returns(blobUrl);
+
+            DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
+
+            //Act
+            IActionResult result = await service.DownloadDatasetFile(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
         }
 
         static DatasetService CreateDatasetService(IBlobClient blobClient = null, ILogger logger = null,

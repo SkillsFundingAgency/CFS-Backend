@@ -292,6 +292,52 @@ namespace CalculateFunding.Services.Datasets
             }
         }
 
+        public async Task<IActionResult> DownloadDatasetFile(HttpRequest request)
+        {
+            request.Query.TryGetValue("datasetId", out var datasetId);
+
+            var currentDatasetId = datasetId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(currentDatasetId))
+            {
+                _logger.Error($"No {nameof(currentDatasetId)} was provided to {nameof(DownloadDatasetFile)}");
+
+                return new BadRequestObjectResult($"Null or empty {nameof(currentDatasetId)} provided");
+            }
+
+            Dataset dataset = await _datasetRepository.GetDatasetByDatasetId(currentDatasetId);
+
+            if(dataset == null)
+            {
+                _logger.Error($"A dataset could not be found for dataset id: {currentDatasetId}");
+
+                return new StatusCodeResult(412);
+            }
+
+            string fullBlobName = dataset.Current?.BlobName;
+
+            if (string.IsNullOrWhiteSpace(fullBlobName))
+            {
+                _logger.Error($"A blob name could not be found for dataset id: {currentDatasetId}");
+
+                return new StatusCodeResult(412);
+            }
+
+            ICloudBlob blob = await _blobClient.GetBlobReferenceFromServerAsync(fullBlobName);
+
+            if (blob == null)
+            {
+                _logger.Error($"Failed to find blob with path: {fullBlobName}");
+                return new NotFoundResult();
+            }
+
+            string blobUrl = _blobClient.GetBlobSasUrl(fullBlobName, DateTimeOffset.UtcNow.AddDays(1), SharedAccessBlobPermissions.Read);
+
+            DatasetDownloadModel downloadModel = new DatasetDownloadModel { Url = blobUrl };
+
+            return new OkObjectResult(downloadModel);
+        }
+
         async Task<IEnumerable<string>> GetProviderIdsForIdentifier(DatasetDefinition datasetDefinition, RowLoadResult row)
         {
             IEnumerable<FieldDefinition> identifierFields = datasetDefinition.TableDefinitions?.First().FieldDefinitions.Where(x => x.IdentifierFieldType.HasValue);
