@@ -32,8 +32,10 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             IEnumerable<TestScenarioResult> updateItems = Enumerable.Empty<TestScenarioResult>();
 
+            IEnumerable<ProviderResult> providerResults = Enumerable.Empty<ProviderResult>();
+
             // Act
-            HttpStatusCode result = await service.SaveTestProviderResults(updateItems);
+            HttpStatusCode result = await service.SaveTestProviderResults(updateItems, providerResults);
 
             // Assert
             result.Should().Be(HttpStatusCode.NotModified);
@@ -63,8 +65,10 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 .SaveTestProviderResults(Arg.Any<IEnumerable<TestScenarioResult>>())
                 .Returns(HttpStatusCode.Created);
 
+            IEnumerable<ProviderResult> providerResults = Enumerable.Empty<ProviderResult>();
+
             // Act
-            HttpStatusCode result = await service.SaveTestProviderResults(itemsToUpdate);
+            HttpStatusCode result = await service.SaveTestProviderResults(itemsToUpdate, providerResults);
 
             // Assert
             result.Should().Be(HttpStatusCode.Created);
@@ -87,6 +91,25 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             ITestResultsService service = CreateTestResultsService(testResultsRepository, searchRepository);
 
+            IEnumerable<ProviderResult> providerResults = new[]
+            {
+                new ProviderResult
+                {
+                    Provider = new ProviderSummary
+                    {
+                        UKPRN = "111",
+                        UPIN = "222",
+                        URN = "333",
+                        EstablishmentNumber = "123",
+                        DateOpened = DateTimeOffset.UtcNow,
+                        Authority = "authority",
+                        ProviderSubType = "provider sub type",
+                        ProviderType = "provider type",
+                        Id = "ProviderId"
+                    }
+                }
+            };
+
             List<TestScenarioResult> itemsToUpdate = new List<TestScenarioResult>();
             TestScenarioResult testScenarioResult = CreateTestScenarioResult();
             itemsToUpdate.Add(testScenarioResult);
@@ -96,7 +119,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 .Returns(HttpStatusCode.Created);
 
             // Act
-            HttpStatusCode result = await service.SaveTestProviderResults(itemsToUpdate);
+            HttpStatusCode result = await service.SaveTestProviderResults(itemsToUpdate, providerResults);
 
             // Assert
             result.Should().Be(HttpStatusCode.Created);
@@ -116,7 +139,15 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                     c.First().TestResult == Enum.GetName(typeof(Models.Results.TestResult), testScenarioResult.TestResult) &&
                     c.First().TestScenarioId == testScenarioResult.TestScenario.Id &&
                     c.First().TestScenarioName == testScenarioResult.TestScenario.Name &&
-                    c.First().LastUpdatedDate > DateTime.UtcNow.AddDays(-1)
+                    c.First().LastUpdatedDate > DateTime.UtcNow.AddDays(-1) &&
+                    c.First().EstablishmentNumber == "123" &&
+                    c.First().UKPRN == "111" &&
+                    c.First().UPIN == "222" &&
+                    c.First().URN == "333" &&
+                    c.First().LocalAuthority == "authority" &&
+                    c.First().ProviderType == "provider type" &&
+                    c.First().ProviderSubType == "provider sub type" &&
+                    c.First().OpenDate.HasValue
                 ));
         }
 
@@ -130,6 +161,8 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             ITestResultsService service = CreateTestResultsService(testResultsRepository, searchRepository, telemetry: telemetry);
 
+            IEnumerable<ProviderResult> providerResults = Enumerable.Empty<ProviderResult>();
+
             List<TestScenarioResult> itemsToUpdate = new List<TestScenarioResult>();
             TestScenarioResult testScenarioResult = CreateTestScenarioResult();
             itemsToUpdate.Add(testScenarioResult);
@@ -139,7 +172,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 .Returns(HttpStatusCode.Created);
 
             // Act
-            HttpStatusCode result = await service.SaveTestProviderResults(itemsToUpdate);
+            HttpStatusCode result = await service.SaveTestProviderResults(itemsToUpdate, providerResults);
 
             // Assert
             result.Should().Be(HttpStatusCode.Created);
@@ -173,11 +206,13 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             ITestResultsService service = CreateTestResultsService(testResultsRepository);
 
+            IEnumerable<ProviderResult> providerResults = Enumerable.Empty<ProviderResult>();
+
             List<TestScenarioResult> itemsToUpdate = new List<TestScenarioResult>();
             itemsToUpdate.Add(CreateTestScenarioResult());
 
             // Act
-            HttpStatusCode result = await service.SaveTestProviderResults(itemsToUpdate);
+            HttpStatusCode result = await service.SaveTestProviderResults(itemsToUpdate, providerResults);
 
             // Assert
             result.Should().Be(HttpStatusCode.InternalServerError);

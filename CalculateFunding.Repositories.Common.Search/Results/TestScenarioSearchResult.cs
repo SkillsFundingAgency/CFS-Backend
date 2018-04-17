@@ -6,7 +6,6 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 {
     public class TestScenarioSearchResult
     {
-        
         public string Id { get; set; }
 
         public string TestResult { get; set; }
@@ -24,5 +23,21 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string ProviderName { get; set; }
 
         public DateTimeOffset LastUpdatedDate { get; set; }
+
+        public string ProviderType { get; set; }
+
+        public string ProviderSubType { get; set; }
+
+        public string LocalAuthority { get; set; }
+
+        public string UKPRN { get; set; }
+
+        public string URN { get; set; }
+
+        public string UPIN { get; set; }
+
+        public string EstablishmentNumber { get; set; }
+
+        public string OpenDate { get; set; }
     }
 }

@@ -15,8 +15,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             IServiceProvider serviceProvider, 
             IGherkinParserService gherkinParserService,
             ITestResultsSearchService testResultsSearchService,
-            ITestEngineService testEngineService
-            ) : base(serviceProvider)
+            ITestEngineService testEngineService) : base(serviceProvider)
         {
             _gherkinParserService = gherkinParserService;
             _testResultsSearchService = testResultsSearchService;

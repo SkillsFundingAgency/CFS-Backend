@@ -154,7 +154,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             if (results.Any())
             {
                 saveResultsStopwatch.Start();
-                HttpStatusCode status = await _testResultsService.SaveTestProviderResults(results);
+                HttpStatusCode status = await _testResultsService.SaveTestProviderResults(results, providerResults);
                 saveResultsStopwatch.Stop();
 
                 if (!status.IsSuccess())
@@ -255,7 +255,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             if (results.Any())
             {
                
-                HttpStatusCode status = await _testResultsService.SaveTestProviderResults(results);
+                HttpStatusCode status = await _testResultsService.SaveTestProviderResults(results, providerResults);
                 
                 if (!status.IsSuccess())
                 {

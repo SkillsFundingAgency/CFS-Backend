@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 
 namespace CalculateFunding.Models.Results
 {
@@ -24,5 +25,8 @@ namespace CalculateFunding.Models.Results
 
 		[JsonProperty("providerSubType")]
 		public string ProviderSubType { get; set; }
-	}
+
+        [JsonProperty("dateOpened")]
+        public DateTimeOffset? DateOpened { get; set; }
+    }
 }

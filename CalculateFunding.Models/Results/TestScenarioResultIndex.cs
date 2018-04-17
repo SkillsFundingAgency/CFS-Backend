@@ -58,8 +58,41 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("providerName")]
         public string ProviderName { get; set; }
 
+        [IsSearchable]
+        [IsFacetable]
+        [IsSortable]
+        [JsonProperty("providerType")]
+        public string ProviderType { get; set; }
+
+        [IsSearchable]
+        [IsFacetable]
+        [IsSortable]
+        [JsonProperty("localAuthority")]
+        public string LocalAuthority { get; set; }
+
+        [IsSearchable]
+        [IsFacetable]
+        [IsSortable]
+        [JsonProperty("providerSubType")]
+        public string ProviderSubType { get; set; }
+
         [IsFilterable, IsSortable]
         [JsonProperty("lastUpdatedDate")]
         public DateTimeOffset LastUpdatedDate { get; set; }
+
+        [JsonProperty("ukPrn")]
+        public string UKPRN { get; set; }
+
+        [JsonProperty("urn")]
+        public string URN { get; set; }
+
+        [JsonProperty("upin")]
+        public string UPIN { get; set; }
+
+	    [JsonProperty("establishmentNumber")]
+        public string EstablishmentNumber { get; set; }
+
+        [JsonProperty("openDate")]
+        public DateTimeOffset? OpenDate { get; set; }
     }
 }

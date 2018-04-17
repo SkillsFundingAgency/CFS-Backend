@@ -17,9 +17,18 @@ namespace CalculateFunding.Models.MappingProfiles
                 .ForMember(m => m.TestScenarioId, opt => opt.MapFrom(s => s.TestScenario.Id))
                 .ForMember(m => m.TestScenarioName, opt => opt.MapFrom(s => s.TestScenario.Name))
                 .ForMember(m => m.LastUpdatedDate, opt => opt.Ignore()).
-                AfterMap((source, dest) => {
+                AfterMap((source, dest) =>
+                {
                     dest.LastUpdatedDate = DateTime.UtcNow;
-                });
+                })
+                .ForMember(m => m.ProviderType, opt => opt.Ignore())
+                .ForMember(m => m.LocalAuthority, opt => opt.Ignore())
+                .ForMember(m => m.ProviderSubType, opt => opt.Ignore())
+                .ForMember(m => m.UKPRN, opt => opt.Ignore())
+                .ForMember(m => m.UPIN, opt => opt.Ignore())
+                .ForMember(m => m.URN, opt => opt.Ignore())
+                .ForMember(m => m.EstablishmentNumber, opt => opt.Ignore())
+                .ForMember(m => m.OpenDate, opt => opt.Ignore());
         }
     }
 }

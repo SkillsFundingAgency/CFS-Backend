@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
 {
     public interface ITestResultsService
     {
-        Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> testResults);
+        Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> testResults, IEnumerable<ProviderResult> providerResults);
 
         Task<IActionResult> Reindex(HttpRequest req);
     }

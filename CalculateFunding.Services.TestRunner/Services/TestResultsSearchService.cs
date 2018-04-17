@@ -31,6 +31,9 @@ namespace CalculateFunding.Services.TestRunner.Services
             new FacetFilterType("testScenarioName"),
             new FacetFilterType("providerId"),
             new FacetFilterType("providerName"),
+            new FacetFilterType("providerType"),
+            new FacetFilterType("providerSubType"),
+            new FacetFilterType("localAuthority")
         };
 
         private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
@@ -181,6 +184,13 @@ namespace CalculateFunding.Services.TestRunner.Services
                     TestScenarioId = m.Result.TestScenarioId,
                     TestScenarioName = m.Result.TestScenarioName,
                     LastUpdatedDate = m.Result.LastUpdatedDate,
+                    LocalAuthority = m.Result.LocalAuthority,
+                    ProviderType = m.Result.ProviderType,
+                    ProviderSubType = m.Result.ProviderSubType,
+                    UKPRN = m.Result.UKPRN,
+                    UPIN = m.Result.UPIN,
+                    URN = m.Result.URN,
+                    OpenDate = m.Result.OpenDate.HasValue ? m.Result.OpenDate.Value.ToString("dd/MM/yyyyy") : ""
                 });
             }
         }

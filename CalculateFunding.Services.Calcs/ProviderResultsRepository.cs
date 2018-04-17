@@ -125,7 +125,8 @@ namespace CalculateFunding.Services.Calcs
                 UPIN = x.UPIN,
                 ProviderSubType = x.ProviderSubType,
                 EstablishmentNumber = x.EstablishmentNumber,
-                ProviderType = x.ProviderType
+                ProviderType = x.ProviderType,
+                DateOpened = x.OpenDate
             });
         }
 

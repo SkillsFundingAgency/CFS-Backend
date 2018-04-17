@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             _testResultsSearchPolicy = policies.TestResultsSearchRepository;
         }
 
-        public async Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> testResults)
+        public async Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> testResults, IEnumerable<ProviderResult> providerResults)
         {
             Guard.ArgumentNotNull(testResults, nameof(testResults));
 
@@ -64,6 +64,24 @@ namespace CalculateFunding.Services.TestRunner.Services
             Task<HttpStatusCode> repoUpdateTask = _testResultsPolicy.ExecuteAsync(() => _testResultsRepository.SaveTestProviderResults(testResults));
 
             IEnumerable<TestScenarioResultIndex> searchIndexItems = _mapper.Map<IEnumerable<TestScenarioResultIndex>>(testResults);
+
+            foreach(TestScenarioResultIndex testScenarioResult in searchIndexItems)
+            {
+                ProviderResult providerResult = providerResults.FirstOrDefault(m => m.Provider.Id == testScenarioResult.ProviderId);
+
+                if(providerResult != null)
+                {
+                    testScenarioResult.EstablishmentNumber = providerResult.Provider.EstablishmentNumber;
+                    testScenarioResult.UKPRN = providerResult.Provider.UKPRN;
+                    testScenarioResult.UPIN = providerResult.Provider.UPIN;
+                    testScenarioResult.URN = providerResult.Provider.URN;
+                    testScenarioResult.LocalAuthority = providerResult.Provider.Authority;
+                    testScenarioResult.ProviderType = providerResult.Provider.ProviderType;
+                    testScenarioResult.ProviderSubType = providerResult.Provider.ProviderSubType;
+                    testScenarioResult.OpenDate = providerResult.Provider.DateOpened;
+                }
+            }
+
             Task<IEnumerable<IndexError>> searchUpdateTask = _testResultsSearchPolicy.ExecuteAsync(() => _searchRepository.Index(searchIndexItems));
 
             await TaskHelper.WhenAllAndThrow(searchUpdateTask, repoUpdateTask);

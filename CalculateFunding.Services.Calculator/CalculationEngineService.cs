@@ -82,7 +82,6 @@ namespace CalculateFunding.Services.Calculator
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-
             request.Query.TryGetValue("providerId", out var provId);
 
             var providerId = provId.FirstOrDefault();
