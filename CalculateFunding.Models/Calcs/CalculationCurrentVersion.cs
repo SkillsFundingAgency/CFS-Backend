@@ -19,5 +19,7 @@ namespace CalculateFunding.Models.Calcs
         public Reference Author { get; set; }
 
         public int Version { get; set; }
+
+        public string CalculationType { get; set; }
     }
 }

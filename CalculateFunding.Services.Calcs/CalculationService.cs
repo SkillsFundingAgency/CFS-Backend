@@ -587,7 +587,8 @@ namespace CalculateFunding.Services.Calcs
                 Name = calculation.Name,
                 Status = calculation.Current?.PublishStatus.ToString(),
                 SourceCode = calculation.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode,
-                Version = calculation.Current.Version
+                Version = calculation.Current.Version,
+                CalculationType = calculation.CalculationType.ToString()
             };
 
             return calculationCurrentVersion;

@@ -546,7 +546,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = "any name",
                 Id = "any-id",
                 CalculationSpecification = new Reference("any name", "any-id"),
-                Period = new Reference("18/19", "2018/2019")
+                Period = new Reference("18/19", "2018/2019"),
+                CalculationType = CalculationType.Number
             };
 
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using CalculateFunding.Models.Calcs;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
@@ -18,5 +19,7 @@ namespace CalculateFunding.Models.Results
         public decimal? Value { get; set; }
         [JsonProperty("exception")]
         public Exception Exception { get; set; }
+        [JsonProperty("calculationType")]
+        public CalculationType CalculationType { get; set; }
     }
 }

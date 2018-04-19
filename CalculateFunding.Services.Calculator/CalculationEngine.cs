@@ -93,7 +93,8 @@ namespace CalculateFunding.Services.Calculator
             {
                 var productResult = new CalculationResult
                 {
-                    Calculation = calculation.GetReference()
+                    Calculation = calculation.GetReference(),
+                    CalculationType = calculation.CalculationType
                 };
                 if (providerCalResults.TryGetValue(calculation.Id, out var calculationResult))
                 {
@@ -113,12 +114,14 @@ namespace CalculateFunding.Services.Calculator
                         
             }
             result.CalculationResults = productResults.ToList();
-	        result.AllocationLineResults = productResults.Where(x => x.AllocationLine != null)
+
+	        result.AllocationLineResults = productResults.Where(x => x.CalculationType == CalculationType.Funding && x.AllocationLine != null)
 		        .GroupBy(x => x.AllocationLine).Select(x => new AllocationLineResult
 		        {
 			        AllocationLine = x.Key,
 			        Value = x.Sum(v => v.Value ?? decimal.Zero)
 		        }).ToList();
+
             return result;
         }
     }
