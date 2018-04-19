@@ -74,5 +74,9 @@ namespace CalculateFunding.Models.Calcs
         [IsFilterable, IsSortable]
         [JsonProperty("lastUpdatedDate")]
         public DateTimeOffset? LastUpdatedDate { get; set; }
+
+        [IsFilterable, IsFacetable, IsSearchable]
+        [JsonProperty("calculationType")]
+        public string CalculationType { get; set; }
     }
 }

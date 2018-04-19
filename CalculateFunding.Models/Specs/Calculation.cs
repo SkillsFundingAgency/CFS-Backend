@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using CalculateFunding.Models.Calcs;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs
 {
@@ -9,5 +10,8 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("allocationLine")]
         public Reference AllocationLine { get; set; }
+
+        [JsonProperty("calculationType")]
+        public CalculationType CalculationType { get; set; }
     }
 }

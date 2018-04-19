@@ -137,6 +137,31 @@ namespace CalculateFunding.Services.Specs.Validators
         }
 
         [TestMethod]
+        public void Validate_GivenInvalidCalculationType_ValidIsFalse()
+        {
+            //Arrange
+            CalculationCreateModel model = CreateModel();
+            model.CalculationType = "Whatever";
+
+            CalculationCreateModelValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
         public void Validate_GivenNameAlreadyExists_ValidIsFalse()
         {
             //Arrange
@@ -189,7 +214,8 @@ namespace CalculateFunding.Services.Specs.Validators
                 AllocationLineId = allocationLineid,
                 PolicyId = policyId,
                 Description = description,
-                Name = name
+                Name = name,
+                CalculationType = "Funding"
             };
         }
 

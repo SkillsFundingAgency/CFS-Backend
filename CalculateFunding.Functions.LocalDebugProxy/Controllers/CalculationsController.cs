@@ -120,5 +120,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _buildProjectsService.UpdateBuildProjectRelationships(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/calcs/reindex")]
+        [HttpGet]
+        public Task<IActionResult> RunCalculationReIndex()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _calcsService.ReIndex();
+        }
     }
 }

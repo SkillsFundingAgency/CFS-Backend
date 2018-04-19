@@ -122,13 +122,25 @@ namespace CalculateFunding.Functions.Calcs.Http
 
         [FunctionName("update-buildproject-relationships")]
         public static Task<IActionResult> RunUpdateBuildProjectRealtionships(
-       [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
         {
             using (var scope = IocConfig.Build().CreateHttpScope(req))
             {
                 IBuildProjectsService svc = scope.ServiceProvider.GetService<IBuildProjectsService>();
 
                 return svc.UpdateBuildProjectRelationships(req);
+            }
+        }
+
+        [FunctionName("reindex")]
+        public static Task<IActionResult> RunCalculationReIndex(
+        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ICalculationService svc = scope.ServiceProvider.GetService<ICalculationService>();
+
+                return svc.ReIndex();
             }
         }
     }

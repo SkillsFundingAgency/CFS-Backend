@@ -1,6 +1,8 @@
-﻿using CalculateFunding.Models.Specs;
+﻿using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
+using System;
 
 namespace CalculateFunding.Services.Specs.Validators
 {
@@ -24,13 +26,17 @@ namespace CalculateFunding.Services.Specs.Validators
                .NotEmpty()
                .WithMessage("You must select a policy or a sub policy");
 
+            RuleFor(model => model.CalculationType)
+               .Must(c => Enum.TryParse(c, true, out CalculationType calcType))
+               .WithMessage("An invalid calc type was provided");
+
             RuleFor(model => model.Name)
                .NotEmpty()
                .WithMessage("You must give a unique calculation name")
                .Custom((name, context) => {
                    CalculationCreateModel model = context.ParentContext.InstanceToValidate as CalculationCreateModel;
 
-                   Calculation calculation = _specificationsRepository.GetCalculationBySpecificationIdAndCalculationName(model.SpecificationId, model.Name).Result;
+                   Models.Specs.Calculation calculation = _specificationsRepository.GetCalculationBySpecificationIdAndCalculationName(model.SpecificationId, model.Name).Result;
 
                    if (calculation != null)
                        context.AddFailure($"You must give a unique calculation name");

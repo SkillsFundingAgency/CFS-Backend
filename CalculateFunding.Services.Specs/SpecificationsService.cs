@@ -460,6 +460,7 @@ namespace CalculateFunding.Services.Specs
                     Name = calculation.Name,
                     CalculationSpecification = new Reference(calculation.Id, calculation.Name),
                     AllocationLine = calculation.AllocationLine,
+                    CalculationType = calculation.CalculationType,
                     Policies = new List<Reference>
                     {
                         new Reference( policy.Id, policy.Name )

@@ -28,6 +28,9 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("buildProjectId")]
         public string BuildProjectId { get; set; }
 
+        [JsonProperty("caclulationType")]
+        public CalculationType CalculationType { get; set; }
+
         /// <summary>
         /// Used for putting description in the built assembly, this gets populated only when being called from this scenario.
         /// This value shouldn't be stored in CosmosDB

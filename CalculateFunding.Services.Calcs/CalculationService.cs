@@ -446,31 +446,66 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(result);
         }
 
+        public async Task<IActionResult> ReIndex()
+        {
+            //Not spending too much time her as probably will go to sql server
+            await _searchRepository.DeleteIndex();
+
+            IEnumerable<Calculation> calculations = await _calculationsRepository.GetAllCalculations();
+
+            IList<CalculationIndex> calcIndexItems = new List<CalculationIndex>();
+
+            foreach(Calculation calculation in calculations)
+            {
+                CalculationIndex indexItem = CreateCalculationIndexItem(calculation);
+                indexItem.CalculationType = calculation.AllocationLine == null ? CalculationType.Number.ToString() : CalculationType.Funding.ToString();
+
+                calcIndexItems.Add(indexItem);
+            }
+
+            IEnumerable<IndexError> indexingResults = await _searchRepository.Index(calcIndexItems);
+
+            if (indexingResults.Any())
+            {
+                _logger.Error($"Failed to re-index calculation with the following errors: {string.Join(";", indexingResults.Select(m => m.ErrorMessage).ToArraySafe())}" );
+
+                return new StatusCodeResult(500);
+            }
+
+            return new NoContentResult();
+        }
+
         async Task UpdateSearch(Calculation calculation)
         {
             IEnumerable<IndexError> indexingResults = await _searchRepository.Index(new List<CalculationIndex>
             {
-                new CalculationIndex
-                {
-                    Id = calculation.Id,
-                    Name = calculation.Name,
-                    CalculationSpecificationId = calculation.CalculationSpecification.Id,
-                    CalculationSpecificationName = calculation.CalculationSpecification.Name,
-                    SpecificationName = calculation.Specification.Name,
-                    SpecificationId = calculation.Specification.Id,
-                    PeriodId = calculation.Period.Id,
-                    PeriodName = calculation.Period.Name,
-                    AllocationLineId = calculation.AllocationLine?.Id,
-                    AllocationLineName = calculation.AllocationLine?.Name,
-                    PolicySpecificationIds   = calculation.Policies.Select(m => m.Id).ToArraySafe(),
-                    PolicySpecificationNames = calculation.Policies.Select(m => m.Name).ToArraySafe(),
-                    SourceCode = calculation.Current.SourceCode,
-                    Status = calculation.Current.PublishStatus.ToString(),
-                    FundingStreamId = calculation.FundingStream.Id,
-                    FundingStreamName = calculation.FundingStream.Name,
-                    LastUpdatedDate = DateTimeOffset.Now,
-                }
+                CreateCalculationIndexItem(calculation)
             });
+        }
+
+        CalculationIndex CreateCalculationIndexItem(Calculation calculation)
+        {
+            return new CalculationIndex
+            {
+                Id = calculation.Id,
+                Name = calculation.Name,
+                CalculationSpecificationId = calculation.CalculationSpecification.Id,
+                CalculationSpecificationName = calculation.CalculationSpecification.Name,
+                SpecificationName = calculation.Specification.Name,
+                SpecificationId = calculation.Specification.Id,
+                PeriodId = calculation.Period.Id,
+                PeriodName = calculation.Period.Name,
+                AllocationLineId = calculation.AllocationLine?.Id,
+                AllocationLineName = calculation.AllocationLine?.Name,
+                PolicySpecificationIds = calculation.Policies.Select(m => m.Id).ToArraySafe(),
+                PolicySpecificationNames = calculation.Policies.Select(m => m.Name).ToArraySafe(),
+                SourceCode = calculation.Current.SourceCode,
+                Status = calculation.Current.PublishStatus.ToString(),
+                FundingStreamId = calculation.FundingStream.Id,
+                FundingStreamName = calculation.FundingStream.Name,
+                LastUpdatedDate = DateTimeOffset.Now,
+                CalculationType = calculation.CalculationType.ToString()
+            };
         }
 
         async Task<BuildProject> CreateBuildProject(SpecificationSummary specification, List<Calculation> calculations)
