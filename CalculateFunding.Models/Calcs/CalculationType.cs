@@ -2,7 +2,7 @@
 {
     public enum CalculationType
     {
-        Funding = 10,
-        Number = 20
+        Number = 0,
+        Funding = 10
     }
 }
