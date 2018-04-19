@@ -171,7 +171,8 @@ namespace CalculateFunding.Services.Calcs
                     Name = m.Result.Name,
                     PeriodName = m.Result.PeriodName,
                     SpecificationName = m.Result.SpecificationName,
-                    Status = m.Result.Status
+                    Status = m.Result.Status,
+                    CalculationType = m.Result.CalculationType
                 });
             }
         }
