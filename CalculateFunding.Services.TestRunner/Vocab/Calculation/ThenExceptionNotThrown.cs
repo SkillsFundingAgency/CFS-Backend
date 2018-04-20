@@ -3,7 +3,7 @@ using System.Linq;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Results;
 
-namespace CalculateFunding.Services.TestRunner.Vocab.Product
+namespace CalculateFunding.Services.TestRunner.Vocab.Calculation
 {
     public class ThenExceptionNotThrown : GherkinStepAction
     {

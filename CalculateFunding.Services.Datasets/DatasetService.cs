@@ -257,11 +257,19 @@ namespace CalculateFunding.Services.Datasets
                 throw new ArgumentNullException(nameof(specificationId), "A null or empty specification id was provided to ProcessData");
             }
 
+            string relationshipId = message.UserProperties["relationship-id"].ToString();
+            if (string.IsNullOrWhiteSpace(relationshipId))
+            {
+                _logger.Error("A null or empty relationship id was provided to ProcessData");
+
+                throw new ArgumentNullException(nameof(specificationId), "A null or empty relationship id was provided to ProcessData");
+            }
+
             BuildProject buildProject = null;
 
             try
             {
-                buildProject = await ProcessDataset(dataset, specificationId);
+                buildProject = await ProcessDataset(dataset, specificationId, relationshipId);
             }
             catch(Exception exception)
             {
@@ -520,7 +528,7 @@ namespace CalculateFunding.Services.Datasets
             return new OkResult();
         }
 
-        async Task<BuildProject> ProcessDataset(Dataset dataset, string specificationId)
+        async Task<BuildProject> ProcessDataset(Dataset dataset, string specificationId, string relationshipId)
         {
             string dataDefinitionId = dataset.Definition.Id;
 
@@ -554,15 +562,17 @@ namespace CalculateFunding.Services.Datasets
                 throw new Exception($"Failed to load table result");
             }
 
-            await PersistDataset(loadResult, dataset, datasetDefinition, buildProject, specificationId);
+            await PersistDataset(loadResult, dataset, datasetDefinition, buildProject, specificationId, relationshipId);
 
             return buildProject;
         }
 
-        async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, string specificationId)
+        async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, string specificationId, string relationshipId)
         {
             if (_providerSummaries.IsNullOrEmpty())
                 _providerSummaries = await _providerRepository.GetAllProviderSummaries();
+
+            Guard.IsNullOrWhiteSpace(relationshipId, nameof(relationshipId));
 
             IList<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>();
 
@@ -572,12 +582,12 @@ namespace CalculateFunding.Services.Datasets
                 throw new Exception($"No dataset relationships found for build project with id : {buildProject.Id}");
             }
 
-            DatasetRelationshipSummary relationshipSummary = buildProject.DatasetRelationships.FirstOrDefault(m => m.DatasetDefinition.Id == datasetDefinition.Id);
+            DatasetRelationshipSummary relationshipSummary = buildProject.DatasetRelationships.FirstOrDefault(m => m.Relationship.Id == relationshipId);
 
             if(relationshipSummary == null)
             {
-                _logger.Error($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {datasetDefinition.Id}");
-                throw new Exception($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {datasetDefinition.Id}");
+                _logger.Error($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {datasetDefinition.Id} and relationId '{relationshipId}'");
+                throw new Exception($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {datasetDefinition.Id} and relationId '{relationshipId}'");
             }
 
             var resultsByProviderId = new Dictionary<string, ProviderSourceDataset>();

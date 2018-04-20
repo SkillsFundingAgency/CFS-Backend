@@ -4,9 +4,9 @@ using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 
-namespace CalculateFunding.Services.TestRunner.Vocab.Product
+namespace CalculateFunding.Services.TestRunner.Vocab.Calculation
 {
-    public class ThenProductValue : GherkinStepAction
+    public class ThenCalculationValue : GherkinStepAction
     {
         public string CalculationName { get; set; }
         public ComparisonOperator Operator { get; set; }

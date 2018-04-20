@@ -5,17 +5,19 @@ using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 
-namespace CalculateFunding.Services.TestRunner.Vocab.Product
+namespace CalculateFunding.Services.TestRunner.Vocab.Calculation
 {
-
-    [TestStep("then", @"(the)(\s)+(result)(\s)+(for)(\s)+'(.*)'(\s)+(.*)(\s)+(the)(\s)+(field)(\s)+'(.*)'(\s)+(in)(\s)+(the)(\s)+dataset(\s)+'(.*)'")]
+    [TestStep("then", SyntaxConstants.datasetSourceField)]
     public class ThenSourceField : GherkinStepAction
     {
         [TestStepArgument(StepArgumentType.FieldName)]
         public string FieldName { get; set; }
+
         [TestStepArgument(StepArgumentType.DatasetName)]
         public string DatasetName { get; set; }
+
         public ComparisonOperator Operator { get; set; }
+
         public string CalculationName { get; set; }
 
         public override GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets)

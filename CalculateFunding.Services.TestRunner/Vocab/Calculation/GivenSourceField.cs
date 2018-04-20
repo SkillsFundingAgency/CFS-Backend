@@ -4,20 +4,19 @@ using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 
-namespace CalculateFunding.Services.TestRunner.Vocab.Product
+namespace CalculateFunding.Services.TestRunner.Vocab.Calculation
 {
-
-    //And 'PrimaryNOR' in 'APT Provider Information' is greater than 0
-    //Then 'P004_PriRate' should be greater than 0
-
-    [TestStep("given", @"(the)(\s)+(field)(\s)+'(.*)'(\s)+(in)(\s)+(the)(\s)+(dataset)(\s)+'(.*)'")]
+    [TestStep("given", SyntaxConstants.sourceFieldThen)]
     public class GivenSourceField : GherkinStepAction
     {
         [TestStepArgument(StepArgumentType.FieldName)]
         public string FieldName { get; set; }
+
         [TestStepArgument(StepArgumentType.DatasetName)]
         public string DatasetName { get; set; }
+
         public ComparisonOperator Operator { get; set; }
+
         public string Value { get; set; }
 
         public override GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets)
@@ -26,7 +25,7 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Product
 
             if (actualValue != null)
             {
-               // var expectedValue = Convert.ChangeType(Value, actualValue.GetType());
+                // var expectedValue = Convert.ChangeType(Value, actualValue.GetType());
                 //var logicResult = TestLogic(expectedValue, actualValue, Operator);
                 //if (!logicResult)
                 //{

@@ -278,6 +278,7 @@ namespace CalculateFunding.Services.Datasets
 
             IDictionary<string, string> properties = CreateMessageProperties(request);
             properties.Add("specification-id", relationship.Specification.Id);
+            properties.Add("relationship-id", relationship.Id);
 
             await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.ProcessDataset, dataset, properties);
 

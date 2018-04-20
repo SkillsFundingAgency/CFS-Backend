@@ -3,7 +3,7 @@ using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.TestRunner.Interfaces;
-using CalculateFunding.Services.TestRunner.Vocab.Product;
+using CalculateFunding.Services.TestRunner.Vocab.Calculation;
 using Gherkin.Ast;
 using System;
 using System.Collections.Generic;
@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
                         parseResult.AddError($"'{value}' is not a valid decimal", step.Location.Line, step.Location.Column);
                     }
 
-                    parseResult.StepActions.Add(new ThenProductValue
+                    parseResult.StepActions.Add(new ThenCalculationValue
                     {
                         CalculationName = calcName,
                         Operator = ComparisonOperators.FirstOrDefault(x => x.Value == comparison).Key,

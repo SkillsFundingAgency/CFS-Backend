@@ -17,18 +17,12 @@ namespace CalculateFunding.Services.TestRunner
 {
     public class GherkinParser : IGherkinParser
     {
-        //const string sourceDatasetExpression = @"(the)(\s)+(field)(\s)+'(.*)'(\s)+(in)(\s)+(the)(\s)+(dataset)(\s)+'(.*)'(\s)+(.*)(\s)+(.*)";
-        const string sourceDatasetsetExpression = @"(the)(\s)+(field)(\s)+'(.*)'(\s)+(in)(\s)+(the)(\s)+(dataset)(\s)+'(.*)'";
-        const string providerExpression = @"(the)(\s)+(provider)(\s)+(.*)+(\s)+'(.*)'";
-        const string assertCalcExpression = @"(the)(\s)+(result)(\s)+(for)(\s)+'(.*)'(\s)+(.*)(\s)+(.*)";
-        const string assertCalcDatasetExpression = @"(the)(\s)+(result)(\s)+(for)(\s)+'(.*)'(\s)+(.*)(\s)+(the)(\s)+(field)(\s)+'(.*)'(\s)+(in)(\s)+(the)(\s)+dataset(\s)+'(.*)'";
-
         static IDictionary<StepType, string> stepExpressions = new Dictionary<StepType, string>
             {
-                { StepType.AssertCalcDataset, assertCalcDatasetExpression },
-                { StepType.Datasets, sourceDatasetsetExpression },
-                { StepType.Provider, providerExpression },
-                { StepType.AssertCalc, assertCalcExpression },
+                { StepType.AssertCalcDataset, SyntaxConstants.assertCalcDatasetExpression },
+                { StepType.Datasets, SyntaxConstants.sourceDatasetsetExpression },
+                { StepType.Provider, SyntaxConstants.providerExpression },
+                { StepType.AssertCalc, SyntaxConstants.assertCalcExpression },
             };
 
         private readonly IStepParserFactory _stepParserFactory;

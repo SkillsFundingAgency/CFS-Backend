@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.TestRunner
 
             string cacheKey = $"{cachePrefix}{testScenario.Id}";
 
-            JsonSerializerSettings jsonSerializerSettings = new Newtonsoft.Json.JsonSerializerSettings()
+            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings()
             {
                 TypeNameHandling = TypeNameHandling.All
             };

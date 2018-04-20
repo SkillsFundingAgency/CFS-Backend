@@ -40,28 +40,30 @@ namespace CalculateFunding.Models.Gherkin
             }
         }
 
-        protected static object GetActualValue(IEnumerable<ProviderSourceDataset> datasets, string datasetName, string fieldName)
+        protected static object GetActualValue(IEnumerable<ProviderSourceDataset> datasets, string datasetRelationshipName, string fieldName)
         {
             object actualValue = null;
 
-            var datasetsByType = new Dictionary<string, ProviderSourceDataset>();
+            //var datasetsByType = new Dictionary<string, ProviderSourceDataset>();
 
-            foreach (var dataset in datasets)
-            {
-                var field = dataset.GetType().GetProperty("DataRelationship");
-                var relationship = field.GetValue(dataset) as Reference;
-                datasetsByType.Add(relationship.Name, dataset);
-            }
+            //foreach (var dataset in datasets)
+            //{
+            //    var field = dataset.GetType().GetProperty("DataRelationship");
+            //    var relationship = field.GetValue(dataset) as Reference;
+            //    datasetsByType.Add(relationship.Name, dataset);
+            //}
 
-            if (datasetsByType.TryGetValue(datasetName, out var selectedDataset))
+            ProviderSourceDataset providerSourceDataset = datasets.Where(d => d.DataRelationship.Name == datasetRelationshipName).FirstOrDefault();
+            if (providerSourceDataset != null)
             {
-                var rows = selectedDataset.Current.Rows;
+                var rows = providerSourceDataset.Current.Rows;
 
                 if (rows.Count > 0)
                 {
                     actualValue = rows.First()[fieldName];
                 }
             }
+
             return actualValue;
         }
     }

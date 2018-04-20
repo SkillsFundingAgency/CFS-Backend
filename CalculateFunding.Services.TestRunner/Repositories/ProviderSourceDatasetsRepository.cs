@@ -6,6 +6,7 @@ using CalculateFunding.Services.TestRunner.Interfaces;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
@@ -24,16 +25,18 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             _engineSettings = engineSettings;
         }
 
-        public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdsAndSpecificationId(IEnumerable<string> providerIds, string specificationId)
+        public async Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdsAndSpecificationId(IEnumerable<string> providerIds, string specificationId)
         {
             if (providerIds.IsNullOrEmpty())
             {
-                return Task.FromResult(Enumerable.Empty<ProviderSourceDataset>());
+                return Enumerable.Empty<ProviderSourceDataset>();
             }
 
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             ConcurrentBag<ProviderSourceDataset> results = new ConcurrentBag<ProviderSourceDataset>();
+
+            int completedCount = 0;
 
             ParallelLoopResult result = Parallel.ForEach(providerIds, new ParallelOptions() { MaxDegreeOfParallelism = _engineSettings.GetProviderSourceDatasetsDegreeOfParallelism }, async (providerId) =>
             {
@@ -43,9 +46,15 @@ namespace CalculateFunding.Services.TestRunner.Repositories
                 {
                     results.Add(repoResult);
                 }
+                completedCount++;
             });
 
-            return Task.FromResult(results.AsEnumerable());
+            while (completedCount < providerIds.Count())
+            {
+                await Task.Delay(50);
+            }
+
+            return results.AsEnumerable();
         }
     }
 }

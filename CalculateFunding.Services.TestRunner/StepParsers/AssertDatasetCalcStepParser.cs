@@ -3,7 +3,7 @@ using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.TestRunner.Interfaces;
-using CalculateFunding.Services.TestRunner.Vocab.Product;
+using CalculateFunding.Services.TestRunner.Vocab.Calculation;
 using Gherkin.Ast;
 using System;
 using System.Collections.Generic;
@@ -42,11 +42,11 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
 
                     string calcName = matches[7];
 
-                    string fieldName = matches[15];
+                    string fieldName = matches[19];
 
                     string comparison = matches[9];
 
-                    string datasetName = matches[22];
+                    string datasetName = matches[15];
 
                     IEnumerable<TypeInformation> typeInformation = _codeMetadataGeneratorService.GetTypeInformation(assembly);
 

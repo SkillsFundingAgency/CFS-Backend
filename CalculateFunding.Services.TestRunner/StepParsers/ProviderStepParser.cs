@@ -2,7 +2,7 @@
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.TestRunner.Interfaces;
-using CalculateFunding.Services.TestRunner.Vocab.Product;
+using CalculateFunding.Services.TestRunner.Vocab.Calculation;
 using Gherkin.Ast;
 using Polly;
 using System.Linq;

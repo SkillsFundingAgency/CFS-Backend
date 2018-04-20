@@ -3,7 +3,7 @@ using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.TestRunner.Interfaces;
-using CalculateFunding.Services.TestRunner.Vocab.Product;
+using CalculateFunding.Services.TestRunner.Vocab.Calculation;
 using Gherkin.Ast;
 using System;
 using System.Collections.Generic;
@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
         {
             if (string.IsNullOrWhiteSpace(buildProject.Build.AssemblyBase64))
             {
-                parseResult.AddError("No dvalid assembly to test", step.Location.Line, step.Location.Column);
+                parseResult.AddError("No valid assembly to test", step.Location.Line, step.Location.Column);
             }
             else
             {
@@ -42,9 +42,9 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
 
                     string[] matches = Regex.Split(step.Text, stepExpression, RegexOptions.IgnoreCase);
 
-                    string datasetName = matches[13];
+                    string datasetName = matches[5];
 
-                    string fieldName = matches[5];
+                    string fieldName = matches[9];
 
                     PropertyInformation dataset = typeInformation.FirstOrDefault(m => m.Type == "Datasets")?.Properties.FirstOrDefault(m => m.FriendlyName == datasetName.Replace("'", ""));
 
@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
 
                         if (fieldInfo == null)
                         {
-                            parseResult.AddError($"'{fieldName}' does not exis in the dataset '{datasetName}'", step.Location.Line, step.Location.Column);
+                            parseResult.AddError($"'{fieldName}' does not exist in the dataset '{datasetName}'", step.Location.Line, step.Location.Column);
                         }
                     }
 
