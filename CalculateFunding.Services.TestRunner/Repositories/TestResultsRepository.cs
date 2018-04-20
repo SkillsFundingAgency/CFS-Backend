@@ -30,17 +30,19 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             _engineSettings = engineSettings;
         }
 
-        public Task<IEnumerable<TestScenarioResult>> GetCurrentTestResults(IEnumerable<string> providerIds, string specificationId)
+        public async Task<IEnumerable<TestScenarioResult>> GetCurrentTestResults(IEnumerable<string> providerIds, string specificationId)
         {
             Guard.ArgumentNotNull(providerIds, nameof(providerIds));
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             if (providerIds.IsNullOrEmpty())
             {
-                return Task.FromResult(Enumerable.Empty<TestScenarioResult>());
+                return Enumerable.Empty<TestScenarioResult>();
             }
 
             ConcurrentBag<TestScenarioResult> results = new ConcurrentBag<TestScenarioResult>();
+
+            int completedCount = 0;
 
             ParallelLoopResult result = Parallel.ForEach(providerIds, new ParallelOptions() { MaxDegreeOfParallelism = _engineSettings.GetCurrentProviderTestResultsDegreeOfParallelism },  async (providerId) =>
             {
@@ -50,9 +52,16 @@ namespace CalculateFunding.Services.TestRunner.Repositories
                 {
                     results.Add(testScenarioResult);
                 }
+
+                completedCount++;
             });
 
-            return Task.FromResult(results.AsEnumerable());
+            while (completedCount < providerIds.Count())
+            {
+                await Task.Delay(20);
+            }
+
+            return results.AsEnumerable();
         }
 
         public async Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> providerResult)
