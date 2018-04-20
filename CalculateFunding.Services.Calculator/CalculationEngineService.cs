@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Polly;
+using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -211,7 +212,7 @@ namespace CalculateFunding.Services.Calculator
                         saveCosmosElapsedMs = saveCosmosStopwatch.ElapsedMilliseconds;
                     }
 
-                    string providerResultsCacheKey = Guid.NewGuid().ToString();
+                    string providerResultsCacheKey = $"{CacheKeys.ProviderResultBatch}{Guid.NewGuid().ToString()}";
 
                     Stopwatch saveRedisStopwatch = Stopwatch.StartNew();
                     await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<List<ProviderResult>>(providerResultsCacheKey, providerResults.ToList(), TimeSpan.FromHours(12), false));

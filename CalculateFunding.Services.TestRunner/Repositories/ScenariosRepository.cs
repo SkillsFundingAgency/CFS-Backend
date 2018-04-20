@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Scenarios;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
@@ -15,8 +16,6 @@ namespace CalculateFunding.Services.TestRunner.Repositories
         private readonly IApiClientProxy _apiClient;
         private readonly ICacheProvider _cacheProvider;
 
-        public const string TestScenariosCachePrefix = "test-scenarios";
-
         public ScenariosRepository(IApiClientProxy apiClient, ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
@@ -31,7 +30,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             if (string.IsNullOrWhiteSpace(specificationId))
                 throw new ArgumentNullException(nameof(specificationId));
 
-            IEnumerable<TestScenario> testScenarios = await _cacheProvider.GetAsync<List<TestScenario>>($"{TestScenariosCachePrefix}:{specificationId}");
+            IEnumerable<TestScenario> testScenarios = await _cacheProvider.GetAsync<List<TestScenario>>($"{CacheKeys.TestScenarios}{specificationId}");
 
             if (testScenarios.IsNullOrEmpty())
             {
@@ -41,7 +40,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
                 if (!testScenarios.IsNullOrEmpty())
                 {
-                    await _cacheProvider.SetAsync<List<TestScenario>>($"{TestScenariosCachePrefix}:{specificationId}", testScenarios.ToList(), TimeSpan.FromHours(1), false);
+                    await _cacheProvider.SetAsync<List<TestScenario>>($"{CacheKeys.TestScenarios}{specificationId}", testScenarios.ToList(), TimeSpan.FromHours(1), false);
                 }
             }
 

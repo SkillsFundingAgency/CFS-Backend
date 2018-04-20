@@ -13,6 +13,7 @@ using CalculateFunding.Services.Core.Helpers;
 using Polly;
 using System.Diagnostics;
 using Newtonsoft.Json;
+using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.TestRunner
 {
@@ -21,7 +22,6 @@ namespace CalculateFunding.Services.TestRunner
         private readonly IGherkinParser _parser;
         private readonly ICacheProvider _cacheProvider;
         private readonly Policy _cacheProviderPolicy;
-        private const string cachePrefix = "gherkin-parse-result:";
 
         public GherkinExecutor(IGherkinParser parser,
             ICacheProvider cacheProvider,
@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.TestRunner
         async Task<GherkinParseResult> GetGherkinParseResult(TestScenario testScenario, BuildProject buildProject)
         {
 
-            string cacheKey = $"{cachePrefix}{testScenario.Id}";
+            string cacheKey = $"{CacheKeys.GherkinParseResult}{testScenario.Id}";
 
             JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings()
             {

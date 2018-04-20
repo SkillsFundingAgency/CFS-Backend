@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.TestRunner.Services
 {
@@ -97,7 +98,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             }
 
             Stopwatch providerResultsQueryStopwatch = Stopwatch.StartNew();
-            IEnumerable<ProviderResult> providerResults = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<List<ProviderResult>>(cacheKey));
+            IEnumerable<ProviderResult> providerResults = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<List<ProviderResult>>($"{CacheKeys.ProviderResultBatch}{cacheKey}"));
             providerResultsQueryStopwatch.Stop();
 
             if (providerResults.IsNullOrEmpty())
@@ -106,7 +107,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return;
             }
 
-            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<ProviderResult>>(cacheKey));
+            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<ProviderResult>>($"{CacheKeys.ProviderResultBatch}{cacheKey}"));
 
             Stopwatch testScenariosStopwatch = Stopwatch.StartNew();
             IEnumerable<TestScenario> testScenarios = await _scenariosRepositoryPolicy.ExecuteAsync(() => _scenariosRepository.GetTestScenariosBySpecificationId(specificationId));

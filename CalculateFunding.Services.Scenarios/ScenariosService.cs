@@ -6,6 +6,7 @@ using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -161,9 +162,9 @@ namespace CalculateFunding.Services.Scenarios
 
             await _searchRepository.Index(new List<ScenarioIndex> { scenarioIndex });
 
-            await _cacheProvider.RemoveAsync<List<TestScenario>>(testScenario.Specification.Id);
+            await _cacheProvider.RemoveAsync<List<TestScenario>>($"{CacheKeys.TestScenarios}{testScenario.Specification.Id}");
 
-            await _cacheProvider.RemoveAsync<GherkinParseResult>($"gherkin-parse-result:{testScenario.Id}");
+            await _cacheProvider.RemoveAsync<GherkinParseResult>($"{CacheKeys.GherkinParseResult}{testScenario.Id}");
 
             BuildProject buildProject = await _buildProjectRepository.GetBuildProjectBySpecificationId(testScenario.Specification.Id);
 
