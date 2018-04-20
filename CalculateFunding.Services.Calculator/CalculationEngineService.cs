@@ -215,7 +215,7 @@ namespace CalculateFunding.Services.Calculator
                     string providerResultsCacheKey = $"{CacheKeys.ProviderResultBatch}{Guid.NewGuid().ToString()}";
 
                     Stopwatch saveRedisStopwatch = Stopwatch.StartNew();
-                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<List<ProviderResult>>(providerResultsCacheKey, providerResults.ToList(), TimeSpan.FromHours(12), false));
+                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<List<ProviderResult>>($"{CacheKeys.ProviderResultBatch}{providerResultsCacheKey}", providerResults.ToList(), TimeSpan.FromHours(12), false));
                     saveRedisStopwatch.Stop();
 
                     saveRedisElapsedMs = saveRedisStopwatch.ElapsedMilliseconds;
