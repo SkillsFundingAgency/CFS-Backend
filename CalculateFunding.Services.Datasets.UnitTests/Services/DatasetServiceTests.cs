@@ -1357,10 +1357,16 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
+            string relationshipId = "relId";
+
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-                 .UserProperties
-                 .Add("specification-id", SpecificationId);
+                .UserProperties
+                .Add("specification-id", SpecificationId);
+
+            message
+               .UserProperties
+               .Add("relationship-id", relationshipId);
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
@@ -1398,10 +1404,16 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
+            string relationshipId = "relId";
+
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-                 .UserProperties
-                 .Add("specification-id", SpecificationId);
+                .UserProperties
+                .Add("specification-id", SpecificationId);
+
+            message
+               .UserProperties
+               .Add("relationship-id", relationshipId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -1449,10 +1461,16 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
+            string relationshipId = "relId";
+
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
                 .UserProperties
                 .Add("specification-id", SpecificationId);
+
+            message
+               .UserProperties
+               .Add("relationship-id", relationshipId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -1509,10 +1527,16 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
+            string relationshipId = "relId";
+
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
                 .UserProperties
                 .Add("specification-id", SpecificationId);
+
+            message
+               .UserProperties
+               .Add("relationship-id", relationshipId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -1576,10 +1600,16 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
+            string relationshipId = "relId";
+
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
                 .UserProperties
                 .Add("specification-id", SpecificationId);
+
+            message
+               .UserProperties
+               .Add("relationship-id", relationshipId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -1650,10 +1680,16 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
+            string relationshipId = "relId";
+
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
                 .UserProperties
                 .Add("specification-id", SpecificationId);
+
+            message
+               .UserProperties
+               .Add("relationship-id", relationshipId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -1719,10 +1755,16 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
+            string relationshipId = "relId";
+
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
                 .UserProperties
                 .Add("specification-id", SpecificationId);
+
+            message
+               .UserProperties
+               .Add("relationship-id", relationshipId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -1764,7 +1806,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Assert
             logger
                 .Received(1)
-                .Error(Arg.Is($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {DataDefintionId}"));
+                .Error(Arg.Is($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {DataDefintionId} and relationshipId '{relationshipId}'"));
 
             logger
                 .Received(1)
@@ -1795,10 +1837,16 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
+            string relationshipId = "relId";
+
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
                 .UserProperties
                 .Add("specification-id", SpecificationId);
+
+            message
+               .UserProperties
+               .Add("relationship-id", relationshipId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -1878,10 +1926,16 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
+            string relationshipId = "relId";
+
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
                 .UserProperties
                 .Add("specification-id", SpecificationId);
+
+            message
+               .UserProperties
+               .Add("relationship-id", relationshipId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -1960,10 +2014,16 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
+            string relationshipId = "relId";
+
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
                 .UserProperties
                 .Add("specification-id", SpecificationId);
+
+            message
+               .UserProperties
+               .Add("relationship-id", relationshipId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -2060,10 +2120,17 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
+            string relationshipId = "relId";
+            string relationshipName = "Relationship Name";
+
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
                 .UserProperties
                 .Add("specification-id", SpecificationId);
+
+            message
+               .UserProperties
+               .Add("relationship-id", relationshipId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -2106,7 +2173,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = BuildProjectId,
                 DatasetRelationships = new List<DatasetRelationshipSummary>
                 {
-                    new DatasetRelationshipSummary{ DatasetDefinition = new DatasetDefinition { Id = DataDefintionId } }
+                    new DatasetRelationshipSummary{
+                        DatasetDefinition = new DatasetDefinition { Id = DataDefintionId },
+                        Relationship = new Reference(relationshipId, relationshipName),
+                    }
                 },
                 Specification = new SpecificationSummary { Id = SpecificationId }
             };
@@ -2148,7 +2218,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsWithMultipleProviderIds_DoesNotSavesDataset()
+        async public Task ProcessDataset_GivenPayloadAndTableResultsWithMultipleProviderIds_DoesNotSaveDataset()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -2175,10 +2245,17 @@ namespace CalculateFunding.Services.Datasets.Services
 
             var json = JsonConvert.SerializeObject(dataset);
 
+            string relationshipId = "relId";
+            string relationshipName = "Relationship Name";
+
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
                 .UserProperties
                 .Add("specification-id", SpecificationId);
+
+            message
+               .UserProperties
+               .Add("relationship-id", relationshipId);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -2221,7 +2298,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = BuildProjectId,
                 DatasetRelationships = new List<DatasetRelationshipSummary>
                 {
-                    new DatasetRelationshipSummary{ DatasetDefinition = new DatasetDefinition { Id = DataDefintionId } }
+                    new DatasetRelationshipSummary{
+                        DatasetDefinition = new DatasetDefinition { Id = DataDefintionId },
+                        Relationship = new Reference(relationshipId, relationshipName),
+                    }
                 },
                 Specification = new SpecificationSummary { Id = SpecificationId }
             };

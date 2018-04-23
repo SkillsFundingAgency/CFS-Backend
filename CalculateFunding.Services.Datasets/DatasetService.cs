@@ -240,12 +240,13 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error("A null dataset was provided to ProcessData");
 
-                throw new ArgumentNullException(nameof(dataset), "A null dataset was provided to ProcessData");
+                throw new ArgumentNullException(nameof(dataset), "A null dataset was provided to ProcessDataset");
             }
 
             if (!message.UserProperties.ContainsKey("specification-id"))
             {
-                throw new KeyNotFoundException("Specification Id key is missing");
+                _logger.Error("Specification Id key is missing in ProcessDataset message properties");
+                throw new KeyNotFoundException("Specification Id key is missing in ProcessDataset message properties");
             }
             
             string specificationId = message.UserProperties["specification-id"].ToString();
@@ -257,10 +258,16 @@ namespace CalculateFunding.Services.Datasets
                 throw new ArgumentNullException(nameof(specificationId), "A null or empty specification id was provided to ProcessData");
             }
 
+            if (!message.UserProperties.ContainsKey("relationship-id"))
+            {
+                _logger.Error("Relationship Id key is missing in ProcessDataset message properties");
+                throw new KeyNotFoundException("Relationship Id key is missing in ProcessDataset message properties");
+            }
+
             string relationshipId = message.UserProperties["relationship-id"].ToString();
             if (string.IsNullOrWhiteSpace(relationshipId))
             {
-                _logger.Error("A null or empty relationship id was provided to ProcessData");
+                _logger.Error("A null or empty relationship id was provided to ProcessDataset");
 
                 throw new ArgumentNullException(nameof(specificationId), "A null or empty relationship id was provided to ProcessData");
             }
@@ -586,8 +593,8 @@ namespace CalculateFunding.Services.Datasets
 
             if(relationshipSummary == null)
             {
-                _logger.Error($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {datasetDefinition.Id} and relationId '{relationshipId}'");
-                throw new Exception($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {datasetDefinition.Id} and relationId '{relationshipId}'");
+                _logger.Error($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {datasetDefinition.Id} and relationshipId '{relationshipId}'");
+                throw new Exception($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {datasetDefinition.Id} and relationshipId '{relationshipId}'");
             }
 
             var resultsByProviderId = new Dictionary<string, ProviderSourceDataset>();
