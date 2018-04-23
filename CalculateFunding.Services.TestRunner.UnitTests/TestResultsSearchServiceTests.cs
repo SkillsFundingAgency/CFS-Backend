@@ -206,7 +206,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             await
                 searchRepository
-                    .Received(11)
+                    .Received(10)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
 
         }
@@ -253,7 +253,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             await
                 searchRepository
-                    .Received(11)
+                    .Received(10)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
 
         }
@@ -304,7 +304,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             await
                 searchRepository
-                .Received(10)
+                .Received(9)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -357,7 +357,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             await
                 searchRepository
-                .Received(10)
+                .Received(9)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -378,6 +378,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                     { "providerId", new string []{ "test", "test2" } }
                 },
                 SearchTerm = "testTerm",
+                SearchFields = new[] { "test" }
             };
 
             string json = JsonConvert.SerializeObject(model);
@@ -410,10 +411,10 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             await
                 searchRepository
-                .Received(10)
+                .Received(9)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
-                        model.Filters.Keys.All(f => c.Filter.Contains(f))
-                        && !string.IsNullOrWhiteSpace(c.Filter)
+                       model.Filters.Keys.All(f => c.Filter.Contains(f))
+                       && !string.IsNullOrWhiteSpace(c.Filter)
                     ));
         }
 
@@ -463,7 +464,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             await
                 searchRepository
-                .Received(10)
+                .Received(9)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -516,7 +517,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             await
                 searchRepository
-                .Received(10)
+                .Received(9)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -709,7 +710,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             await
                 searchRepository
-                    .Received(11)
+                    .Received(10)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 

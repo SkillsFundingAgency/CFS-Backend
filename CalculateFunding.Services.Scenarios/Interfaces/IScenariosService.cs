@@ -9,5 +9,7 @@ namespace CalculateFunding.Services.Scenarios.Interfaces
         Task<IActionResult> SaveVersion(HttpRequest request);
 
         Task<IActionResult> GetTestScenariosBySpecificationId(HttpRequest request);
+
+        Task<IActionResult> GetTestScenarioById(HttpRequest request);
     }
 }

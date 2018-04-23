@@ -39,6 +39,7 @@ namespace CalculateFunding.Models.Results
         public string SpecificationName { get; set; }
 
         [IsFilterable]
+        [IsFacetable]
         [JsonProperty("testScenarioId")]
         public string TestScenarioId { get; set; }
 
@@ -49,6 +50,7 @@ namespace CalculateFunding.Models.Results
         public string TestScenarioName { get; set; }
 
         [IsFilterable]
+        [IsFacetable]
         [JsonProperty("providerId")]
         public string ProviderId { get; set; }
 
@@ -60,18 +62,21 @@ namespace CalculateFunding.Models.Results
 
         [IsSearchable]
         [IsFacetable]
+        [IsFilterable]
         [IsSortable]
         [JsonProperty("providerType")]
         public string ProviderType { get; set; }
 
         [IsSearchable]
         [IsFacetable]
+        [IsFilterable]
         [IsSortable]
         [JsonProperty("localAuthority")]
         public string LocalAuthority { get; set; }
 
         [IsSearchable]
         [IsFacetable]
+        [IsFilterable]
         [IsSortable]
         [JsonProperty("providerSubType")]
         public string ProviderSubType { get; set; }

@@ -9,6 +9,7 @@ namespace CalculateFunding.Models
         {
             OrderBy = Enumerable.Empty<string>();
             Filters = new Dictionary<string, string[]>();
+            SearchFields = Enumerable.Empty<string>();
         }
 
         public int PageNumber { get; set; }
@@ -24,5 +25,7 @@ namespace CalculateFunding.Models
         public bool IncludeFacets { get; set; }
 
         public bool CountOnly { get; set; }
+
+        public IEnumerable<string> SearchFields { get; set; }
     }
 }

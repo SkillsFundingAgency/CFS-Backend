@@ -25,14 +25,13 @@ namespace CalculateFunding.Services.TestRunner.Services
 
         private FacetFilterType[] Facets = {
             new FacetFilterType("testResult"),
-            new FacetFilterType("specificationId"),
-            new FacetFilterType("specificationName"),
             new FacetFilterType("testScenarioId"),
+            new FacetFilterType("specificationName"),
             new FacetFilterType("testScenarioName"),
-            new FacetFilterType("providerId"),
             new FacetFilterType("providerName"),
             new FacetFilterType("providerType"),
             new FacetFilterType("providerSubType"),
+            new FacetFilterType("providerId"),
             new FacetFilterType("localAuthority")
         };
 
@@ -127,7 +126,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                             {
                                 Facets = new[]{ filterPair.Key },
                                 SearchMode = SearchMode.Any,
-                                SearchFields = new List<string>{ "testScenarioName" },
+                                SearchFields = searchModel.SearchFields?.ToList(),
                                 IncludeTotalResultCount = true,
                                 Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
                                 QueryType = QueryType.Full
@@ -155,7 +154,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                     Skip = skip,
                     Top = searchModel.Top,
                     SearchMode = SearchMode.Any,
-                    SearchFields = new List<string>() { "testScenarioName" },
+                    SearchFields = searchModel.SearchFields?.ToList(),
                     IncludeTotalResultCount = true,
                     Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
                     OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
@@ -190,7 +189,8 @@ namespace CalculateFunding.Services.TestRunner.Services
                     UKPRN = m.Result.UKPRN,
                     UPIN = m.Result.UPIN,
                     URN = m.Result.URN,
-                    OpenDate = m.Result.OpenDate.HasValue ? m.Result.OpenDate.Value.ToString("dd/MM/yyyyy") : ""
+                    OpenDate = m.Result.OpenDate,
+                    EstablishmentNumber = m.Result.EstablishmentNumber
                 });
             }
         }

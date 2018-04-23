@@ -199,6 +199,29 @@ namespace CalculateFunding.Services.Scenarios
             return new OkObjectResult(testScenarios.IsNullOrEmpty() ? Enumerable.Empty<TestScenario>() : testScenarios);
         }
 
+        async public Task<IActionResult> GetTestScenarioById(HttpRequest request)
+        {
+            request.Query.TryGetValue("scenarioId", out var testId);
+
+            var scenarioId = testId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(scenarioId))
+            {
+                _logger.Error("No scenario Id was provided to GetTestScenariosById");
+
+                return new BadRequestObjectResult("Null or empty scenario Id provided");
+            }
+
+            TestScenario testScenario = await _scenariosRepository.GetTestScenarioById(scenarioId);
+
+            if(testScenario == null)
+            {
+                return new NotFoundResult();
+            }
+
+            return new OkObjectResult(testScenario);
+        }
+
         int GetNextVersionNumberFromCalculationVersions(IEnumerable<TestScenarioVersion> versions)
         {
             if (!versions.Any())

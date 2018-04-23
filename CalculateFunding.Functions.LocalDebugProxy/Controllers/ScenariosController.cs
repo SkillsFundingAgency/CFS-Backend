@@ -47,5 +47,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _scenarioService.GetTestScenariosBySpecificationId(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/scenarios/get-scenario-by-id")]
+        [HttpGet]
+        public Task<IActionResult> RunGetTestScenarioById()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _scenarioService.GetTestScenarioById(ControllerContext.HttpContext.Request);
+        }
     }
 }

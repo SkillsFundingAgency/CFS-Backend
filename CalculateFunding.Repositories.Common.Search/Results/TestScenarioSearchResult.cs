@@ -38,6 +38,6 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 
         public string EstablishmentNumber { get; set; }
 
-        public string OpenDate { get; set; }
+        public DateTimeOffset? OpenDate { get; set; }
     }
 }

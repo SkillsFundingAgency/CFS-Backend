@@ -22,6 +22,8 @@ using System.Linq;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.Extensions.Primitives;
 
 namespace CalculateFunding.Services.Scenarios.Services
 {
@@ -340,6 +342,95 @@ namespace CalculateFunding.Services.Scenarios.Services
                                  m.First().LastUpdatedDate.HasValue &&
                                  m.First().LastUpdatedDate.Value.Date == DateTime.Now.Date));
 
+        }
+
+        [TestMethod]
+        public async Task GetTestScenarioById_GivenNoScenarioId_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            ScenariosService service = CreateScenariosService(logger: logger);
+
+            //Act
+            IActionResult result = await service.GetTestScenarioById(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error("No scenario Id was provided to GetTestScenariosById");
+        }
+
+        [TestMethod]
+        public async Task GetTestScenarioById_GivenScenarioIdButNoScenarioWasFound_ReturnsNotFound()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "scenarioId", new StringValues(scenarioid) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            scenariosRepository
+                .GetTestScenarioById(Arg.Is(scenarioid))
+                .Returns((TestScenario)null);
+
+            ScenariosService service = CreateScenariosService(logger, scenariosRepository);
+
+            //Act
+            IActionResult result = await service.GetTestScenarioById(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task GetTestScenarioById_GivenScenarioIdAndScenarioWasFound_ReturnsOKResult()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "scenarioId", new StringValues(scenarioid) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            scenariosRepository
+                .GetTestScenarioById(Arg.Is(scenarioid))
+                .Returns(new TestScenario());
+
+            ScenariosService service = CreateScenariosService(logger, scenariosRepository);
+
+            //Act
+            IActionResult result = await service.GetTestScenarioById(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
         }
 
         static ScenariosService CreateScenariosService(ILogger logger = null, IScenariosRepository scenariosRepository = null,
