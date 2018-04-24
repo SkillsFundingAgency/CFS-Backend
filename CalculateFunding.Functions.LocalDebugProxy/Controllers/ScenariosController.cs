@@ -56,5 +56,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _scenarioService.GetTestScenarioById(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/scenarios/scenarios-search-reindex")]
+        [HttpPost]
+        public Task<IActionResult> RunScenariosSearchReindex()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _scenariosSearchService.ReIndex(ControllerContext.HttpContext.Request);
+        }
     }
 }

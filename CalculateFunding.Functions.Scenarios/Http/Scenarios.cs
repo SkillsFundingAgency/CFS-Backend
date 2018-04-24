@@ -55,5 +55,16 @@ namespace CalculateFunding.Functions.Scenarios.Http
                 return svc.GetTestScenarioById(req);
             }
         }
+
+        [FunctionName("scenarios-search-reindex")]
+        public static Task<IActionResult> RunScenariosSearchReIndex(
+          [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IScenariosSearchService svc = scope.ServiceProvider.GetService<IScenariosSearchService>();
+                return svc.ReIndex(req);
+            }
+        }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Scenarios;
+using CalculateFunding.Models.Versioning;
+using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -9,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
 using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,14 +23,17 @@ namespace CalculateFunding.Services.Scenarios
         private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
         private readonly ILogger _logger;
         private readonly ISearchRepository<ScenarioIndex> _searchRepository;
+        private readonly IScenariosRepository _scenariosRepository;
 
-        public ScenariosSearchService(ILogger logger, ISearchRepository<ScenarioIndex> searchRepository)
+        public ScenariosSearchService(ISearchRepository<ScenarioIndex> searchRepository, IScenariosRepository scenariosRepository, ILogger logger)
         {
-            Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
+            Guard.ArgumentNotNull(scenariosRepository, nameof(scenariosRepository));
+            Guard.ArgumentNotNull(logger, nameof(logger));
 
-            _logger = logger;
             _searchRepository = searchRepository;
+            _scenariosRepository = scenariosRepository;
+            _logger = logger;
         }
 
         async public Task<IActionResult> SearchScenarios(HttpRequest request)
@@ -70,6 +76,36 @@ namespace CalculateFunding.Services.Scenarios
 
                 return new StatusCodeResult(500);
             }
+        }
+
+        public async Task<IActionResult> ReIndex(HttpRequest request)
+        {
+            IEnumerable<DocumentEntity<TestScenario>> testScenarios = await _scenariosRepository.GetAllTestScenarios();
+            List<ScenarioIndex> testScenarioIndexes = new List<ScenarioIndex>();
+
+            foreach (DocumentEntity<TestScenario> entity in testScenarios)
+            {
+                TestScenario testScenario = entity.Content;
+
+                testScenarioIndexes.Add(new ScenarioIndex()
+                {
+                    Id = testScenario.Id,
+                    Name = testScenario.Name,
+                    Description = testScenario.Description,
+                    LastUpdatedDate = entity.UpdatedAt,
+                    FundingStreamId = testScenario?.FundingStream.Id,
+                    FundingStreamName = testScenario?.FundingStream.Name,
+                    PeriodId = testScenario?.Period.Id,
+                    PeriodName = testScenario?.Period.Name,
+                    SpecificationId = testScenario.Specification.Id,
+                    SpecificationName = testScenario.Specification.Name,
+                    Status = Enum.GetName(typeof(PublishStatus), testScenario.Current.PublishStatus),
+                });
+            }
+
+            await _searchRepository.Index(testScenarioIndexes);
+
+            return new OkObjectResult($"Updated {testScenarioIndexes.Count} records");
         }
 
         Task<SearchResults<ScenarioIndex>> PerformSearch(SearchModel searchModel)

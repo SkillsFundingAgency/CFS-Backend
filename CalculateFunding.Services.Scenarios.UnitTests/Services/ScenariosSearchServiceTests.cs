@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Scenarios.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -134,7 +135,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            ScenariosSearchService service = CreateSearchService(searchRepository, logger);
+            ScenariosSearchService service = CreateSearchService(searchRepository, logger: logger);
 
             //Act
             IActionResult result = await service.SearchScenarios(request);
@@ -178,7 +179,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            ScenariosSearchService service = CreateSearchService(searchRepository, logger);
+            ScenariosSearchService service = CreateSearchService(searchRepository, logger: logger);
 
             //Act
             IActionResult result = await service.SearchScenarios(request);
@@ -225,7 +226,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            ScenariosSearchService service = CreateSearchService(searchRepository, logger);
+            ScenariosSearchService service = CreateSearchService(searchRepository, logger: logger);
 
             //Act
             IActionResult result = await service.SearchScenarios(request);
@@ -240,14 +241,20 @@ namespace CalculateFunding.Services.Scenarios.Services
         }
 
         static ScenariosSearchService CreateSearchService(ISearchRepository<ScenarioIndex> searchRepository = null,
+            IScenariosRepository scenariosRepository = null,
             ILogger logger = null)
         {
-            return new ScenariosSearchService(logger ?? CreateLogger(), searchRepository ?? CreateSearchRepository());
+            return new ScenariosSearchService(searchRepository ?? CreateSearchRepository(), scenariosRepository ?? CreateScenariosRepository(), logger ?? CreateLogger());
         }
 
         static ISearchRepository<ScenarioIndex> CreateSearchRepository()
         {
             return Substitute.For<ISearchRepository<ScenarioIndex>>();
+        }
+
+        static IScenariosRepository CreateScenariosRepository()
+        {
+            return Substitute.For<IScenariosRepository>();
         }
 
         static ILogger CreateLogger()

@@ -412,7 +412,11 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 return new Services.TestRunner.Repositories.ProviderSourceDatasetsRepository(providersCosmosRepostory, engineSettings);
             });
 
-            builder.AddSingleton<ITestResultsSearchService, TestResultsSearchService>();
+            builder
+                .AddSingleton<ITestResultsSearchService, TestResultsSearchService>();
+
+            builder
+                .AddSingleton<ITestResultsCountsService, TestResultsCountsService>();
 
             builder
                 .AddSingleton<Services.TestRunner.Interfaces.ISpecificationRepository, Services.TestRunner.Repositories.SpecificationRepository>();

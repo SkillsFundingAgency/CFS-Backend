@@ -19,9 +19,14 @@ namespace CalculateFunding.Services.Scenarios
             _cosmosRepository = cosmosRepository;
         }
 
+        public Task<IEnumerable<DocumentEntity<TestScenario>>> GetAllTestScenarios()
+        {
+            return Task.FromResult(_cosmosRepository.Read<TestScenario>().AsEnumerable());
+        }
+
         public Task<TestScenario> GetTestScenarioById(string testScenarioId)
         {
-            var scenarios =  _cosmosRepository.Query<TestScenario>().Where(m => m.Id == testScenarioId);
+            var scenarios = _cosmosRepository.Query<TestScenario>().Where(m => m.Id == testScenarioId);
 
             return Task.FromResult(scenarios.AsEnumerable().FirstOrDefault());
         }

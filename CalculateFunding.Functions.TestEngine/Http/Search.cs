@@ -34,5 +34,17 @@ namespace CalculateFunding.Functions.TestEngine.Http
                 return svc.Reindex(req);
             }
         }
+
+        [FunctionName("get-result-counts")]
+        public static Task<IActionResult> RunGetResultCounts(
+       [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ITestResultsCountsService svc = scope.ServiceProvider.GetService<ITestResultsCountsService>();
+
+                return svc.GetResultCounts(req);
+            }
+        }
     }
 }

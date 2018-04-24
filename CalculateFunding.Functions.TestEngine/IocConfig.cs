@@ -110,6 +110,8 @@ namespace CalculateFunding.Functions.TestEngine
 
             builder.AddSingleton<ITestResultsSearchService, TestResultsSearchService>();
 
+            builder.AddSingleton<ITestResultsCountsService, TestResultsCountsService>();
+
             MapperConfiguration resultsMappingConfiguration = new MapperConfiguration(c => c.AddProfile<ResultsMappingProfile>());
             builder
                 .AddSingleton(resultsMappingConfiguration.CreateMapper());

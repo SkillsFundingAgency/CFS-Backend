@@ -48,6 +48,7 @@ namespace CalculateFunding.Services.TestRunner.Services
 
         async public Task<IActionResult> SearchTestScenarioResults(HttpRequest request)
         {
+
             string json = await request.GetRawBodyStringAsync();
 
             SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
@@ -59,16 +60,9 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return new BadRequestObjectResult("An invalid search model was provided");
             }
 
-            IEnumerable<Task<SearchResults<TestScenarioResultIndex>>> searchTasks = BuildSearchTasks(searchModel);
-
             try
             {
-                await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
-
-                TestScenarioSearchResults results = new TestScenarioSearchResults();
-
-                foreach (var searchTask in searchTasks)
-                    ProcessSearchResults(searchTask.Result, results);
+                TestScenarioSearchResults results = await SearchTestScenarioResults(searchModel);
 
                 return new OkObjectResult(results);
             }
@@ -78,6 +72,20 @@ namespace CalculateFunding.Services.TestRunner.Services
 
                 return new StatusCodeResult(500);
             }
+        }
+
+        public async Task<TestScenarioSearchResults> SearchTestScenarioResults(SearchModel searchModel)
+        {
+            IEnumerable<Task<SearchResults<TestScenarioResultIndex>>> searchTasks = BuildSearchTasks(searchModel);
+
+            await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
+
+            TestScenarioSearchResults results = new TestScenarioSearchResults();
+
+            foreach (var searchTask in searchTasks)
+                ProcessSearchResults(searchTask.Result, results);
+
+            return results;
         }
 
         IDictionary<string, string> BuildFacetDictionary(SearchModel searchModel)
