@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.TestRunner.Services
 
             IList<TestScenarioResultCounts> resultCounts = new List<TestScenarioResultCounts>();
 
-            foreach (string testScenarioId in requestModel.TestScenarioIds)
+            Parallel.ForEach(requestModel.TestScenarioIds, testScenarioId =>
             {
                 SearchModel searchModel = new SearchModel
                 {
@@ -55,9 +55,9 @@ namespace CalculateFunding.Services.TestRunner.Services
                     Filters = new Dictionary<string, string[]> { { "testScenarioId", new[] { testScenarioId } } }
                 };
 
-                TestScenarioSearchResults result = await _testResultsService.SearchTestScenarioResults(searchModel);
+                TestScenarioSearchResults result = _testResultsService.SearchTestScenarioResults(searchModel).Result;
 
-                if (result != null)
+                if (result != null && !result.Results.IsNullOrEmpty())
                 {
 
                     Facet facet = result.Facets?.FirstOrDefault(m => m.Name == "testResult");
@@ -68,25 +68,19 @@ namespace CalculateFunding.Services.TestRunner.Services
                         FacetValue failedValue = facet.FacetValues.FirstOrDefault(m => m.Name == "Failed");
                         FacetValue ignoredValue = facet.FacetValues.FirstOrDefault(m => m.Name == "Ignored");
 
-                        if (result.Results.Any())
+                        resultCounts.Add(new TestScenarioResultCounts
                         {
-                            resultCounts.Add(new TestScenarioResultCounts
-                            {
-                                TestScenarioName = result.Results.FirstOrDefault().TestScenarioName,
-                                TestScenarioId = testScenarioId,
-                                Passed = passedValue != null ? passedValue.Count : 0,
-                                Failed = failedValue != null ? failedValue.Count : 0,
-                                Ignored = ignoredValue != null ? ignoredValue.Count : 0,
-                                LastUpdatedDate = result.Results.FirstOrDefault().LastUpdatedDate
-                            });
-                        }
-
-
+                            TestScenarioName = result.Results.First().TestScenarioName,
+                            TestScenarioId = testScenarioId,
+                            Passed = passedValue != null ? passedValue.Count : 0,
+                            Failed = failedValue != null ? failedValue.Count : 0,
+                            Ignored = ignoredValue != null ? ignoredValue.Count : 0,
+                            LastUpdatedDate = result.Results.First().LastUpdatedDate
+                        });
                     }
                 }
-
-            }
-
+            });
+           
             return new OkObjectResult(resultCounts);
         }
     }

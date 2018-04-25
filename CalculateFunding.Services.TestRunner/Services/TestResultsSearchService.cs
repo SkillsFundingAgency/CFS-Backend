@@ -27,6 +27,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             new FacetFilterType("testResult"),
             new FacetFilterType("testScenarioId"),
             new FacetFilterType("specificationName"),
+            new FacetFilterType("specificationId"),
             new FacetFilterType("testScenarioName"),
             new FacetFilterType("providerName"),
             new FacetFilterType("providerType"),

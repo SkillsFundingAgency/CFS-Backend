@@ -18,7 +18,7 @@ namespace CalculateFunding.Repositories.Common.Search
         public static Policy GenerateSearchPolicy(IAsyncPolicy[] chainedPolicies = null)
         {
             Policy cloudExceptionRetry = Policy.Handle<CloudException>()
-                .WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5) });
+                .WaitAndRetryAsync(new[] { TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5) });
 
             Policy indexBatchExceptionRetry = Policy.Handle<IndexBatchException>()
                 .WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) });
