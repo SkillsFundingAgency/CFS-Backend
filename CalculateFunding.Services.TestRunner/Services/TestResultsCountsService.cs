@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.TestRunner.Services
 
             IList<TestScenarioResultCounts> resultCounts = new List<TestScenarioResultCounts>();
 
-            Parallel.ForEach(requestModel.TestScenarioIds, testScenarioId =>
+            Parallel.ForEach(requestModel.TestScenarioIds, new ParallelOptions() { MaxDegreeOfParallelism = 2 }, testScenarioId =>
             {
                 SearchModel searchModel = new SearchModel
                 {
@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                     }
                 }
             });
-           
+
             return new OkObjectResult(resultCounts);
         }
     }
