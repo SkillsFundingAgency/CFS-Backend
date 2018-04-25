@@ -28,7 +28,7 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("testResult")]
         public string TestResult { get; set; }
 
-        [IsFilterable]
+        [IsFilterable, IsFacetable]
         [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }
 
