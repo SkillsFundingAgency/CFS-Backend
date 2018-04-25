@@ -24,7 +24,7 @@ namespace CalculateFunding.Models.Scenarios
         public string Description { get; set; }
 
         [JsonProperty("specificationId")]
-        [IsFilterable]
+        [IsFilterable, IsFacetable]
         public string SpecificationId { get; set; }
 
         [IsFilterable, IsSortable, IsSearchable, IsFacetable]
