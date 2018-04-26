@@ -108,8 +108,17 @@ namespace CalculateFunding.Services.TestRunner.Services
                         filter = $"({facet.Name}/any(x: {string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"x eq '{x}'"))}))";
                     else
                         filter = $"({string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"{facet.Name} eq '{x}'"))})";
+
                 }
-                facetDictionary.Add(facet.Name, filter);
+
+                if(searchModel.OverrideFacetFields.Any() && (searchModel.OverrideFacetFields.Contains(facet.Name) || searchModel.Filters.ContainsKey(facet.Name)))
+                {
+                    facetDictionary.Add(facet.Name, filter);
+                }
+                else if(!searchModel.OverrideFacetFields.Any())
+                {
+                    facetDictionary.Add(facet.Name, filter);
+                }
             }
 
             return facetDictionary;

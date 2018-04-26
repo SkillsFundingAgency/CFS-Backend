@@ -45,16 +45,16 @@ namespace CalculateFunding.Services.TestRunner.Services
 
             IList<TestScenarioResultCounts> resultCounts = new List<TestScenarioResultCounts>();
 
-            SearchModel searchModel = new SearchModel
+            Parallel.ForEach(requestModel.TestScenarioIds, new ParallelOptions() { MaxDegreeOfParallelism = 10 }, testScenarioId =>
             {
-                IncludeFacets = true,
-                Top = 1,
-                PageNumber = 1
-            };
-
-            Parallel.ForEach(requestModel.TestScenarioIds, testScenarioId =>
-            {
-                searchModel.Filters = new Dictionary<string, string[]> { { "testScenarioId", new[] { testScenarioId } } };
+                SearchModel searchModel = new SearchModel
+                {
+                    IncludeFacets = true,
+                    Top = 1,
+                    PageNumber = 1,
+                    OverrideFacetFields = new string[] { "testResult" },
+                    Filters = new Dictionary<string, string[]> { { "testScenarioId", new[] { testScenarioId } } }
+                };
 
                 TestScenarioSearchResults result = _testResultsService.SearchTestScenarioResults(searchModel).Result;
 
@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                     }
                 }
             });
-           
+
             return new OkObjectResult(resultCounts);
         }
     }

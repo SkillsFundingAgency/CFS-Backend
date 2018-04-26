@@ -268,7 +268,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         }
 
         [TestMethod]
-        public async Task GetResultCounts_GivenModelWithScenarioIdss_ReturnsOKWitTwoResults()
+        public async Task GetResultCounts_GivenModelWithScenarioIds_ReturnsOKWithTwoResults()
         {
             //Arrange
             TestScenariosResultsCountsRequestModel model = new TestScenariosResultsCountsRequestModel

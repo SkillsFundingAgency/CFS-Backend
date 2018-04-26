@@ -10,6 +10,7 @@ namespace CalculateFunding.Models
             OrderBy = Enumerable.Empty<string>();
             Filters = new Dictionary<string, string[]>();
             SearchFields = Enumerable.Empty<string>();
+            OverrideFacetFields = Enumerable.Empty<string>();
         }
 
         public int PageNumber { get; set; }
@@ -27,5 +28,7 @@ namespace CalculateFunding.Models
         public bool CountOnly { get; set; }
 
         public IEnumerable<string> SearchFields { get; set; }
+
+        public IEnumerable<string> OverrideFacetFields { get; set; }
     }
 }
