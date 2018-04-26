@@ -177,7 +177,9 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
             List<DocumentEntity<T>> allResults = new List<DocumentEntity<T>>();
 
-            IDocumentQuery<Document> queryable = (IDocumentQuery<Document>)_documentClient.CreateDocumentQuery(_collectionUri, options).AsDocumentQuery();
+            IDocumentQuery<DocumentEntity<T>> queryable = _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, options)
+                .Where(d=>d.DocumentType == GetDocumentType<T>())
+                .AsDocumentQuery();
 
             while (queryable.HasMoreResults)
             {

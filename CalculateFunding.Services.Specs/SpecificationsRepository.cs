@@ -139,7 +139,7 @@ namespace CalculateFunding.Services.Specs
             _repository = cosmosRepository;
         }
 
-        public async Task<IEnumerable<AllocationLine>> GetAllocationLines()
+        public Task<IEnumerable<AllocationLine>> GetAllocationLines()
         {
 	        var lines = new List<AllocationLine>();
 	        using (var reader = new StringReader(AllocationLineData))
@@ -157,7 +157,7 @@ namespace CalculateFunding.Services.Specs
 
 	        }
 
-            return lines;
+            return Task.FromResult(lines.AsEnumerable());
         }
 
         public async Task<AllocationLine> GetAllocationLineById(string lineId)
@@ -167,7 +167,7 @@ namespace CalculateFunding.Services.Specs
             return lines.FirstOrDefault(m => m.Id == lineId);
         }
 
-        public async Task<AcademicYear> GetAcademicYearById(string academicYearId)
+        public Task<AcademicYear> GetAcademicYearById(string academicYearId)
         {
            var years = new[]
            {
@@ -180,14 +180,11 @@ namespace CalculateFunding.Services.Specs
 
             //var academicYear = _repository.Query<AcademicYear>().FirstOrDefault(m => m.Id == academicYearId);
 
-            return academicYear;
+            return Task.FromResult(academicYear);
         }
 
         async public Task<FundingStream> GetFundingStreamById(string fundingStreamId)
         {
-
-
-
 			var fundingStream = (await GetFundingStreams()).FirstOrDefault(m => m.Id == fundingStreamId);
             //var fundingStream = await _repository.SingleOrDefaultAsync<FundingStream>(m => m.Id == fundingStreamId);
 
@@ -212,6 +209,13 @@ namespace CalculateFunding.Services.Specs
         async public Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query)
         {
             return (await GetSpecificationsByQuery(query)).FirstOrDefault();
+        }
+
+        public async Task<IEnumerable<Specification>> GetSpecifications()
+        {
+           IEnumerable<DocumentEntity<Specification>> results = await _repository.GetAllDocumentsAsync<Specification>();
+
+            return results.Select(c => c.Content);
         }
 
         public Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query = null)

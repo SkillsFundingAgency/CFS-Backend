@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.Scenarios
 {
     public class SpecificationsRepository : ISpecificationsRepository
     {
-        const string specsUrl = "specs/specifications?specificationId=";
+        const string specsUrl = "specs/specification-by-id?specificationId=";
 
         private readonly IApiClientProxy _apiClient;
 

@@ -19,13 +19,22 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             _specSearchService = specSearchService;
         }
 
-        [Route("api/specs/specifications")]
+        [Route("api/specs/specification-by-id")]
         [HttpGet]
-        public Task<IActionResult>RunSpecifications()
+        public Task<IActionResult>RunGetSpecificationById()
         {
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
             return _specService.GetSpecificationById(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/specs/specifications")]
+        [HttpGet]
+        public Task<IActionResult> RunGetSpecifications()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specService.GetSpecifications(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications-by-year")]

@@ -14,14 +14,25 @@ namespace CalculateFunding.Functions.Specs.Http
 {
     public static class Specifications
     {
-        [FunctionName("specifications")]
-        public static Task<IActionResult> Run(
+        [FunctionName("specification-by-id")]
+        public static Task<IActionResult> RunGetSpecificationById(
             [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
         {
             using (var scope = IocConfig.Build().CreateScope())
             {
                 ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
                 return svc.GetSpecificationById(req);
+            }
+        }
+
+        [FunctionName("specifications")]
+        public static Task<IActionResult> RunGetSpecifications(
+            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateScope())
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+                return svc.GetSpecifications(req);
             }
         }
 

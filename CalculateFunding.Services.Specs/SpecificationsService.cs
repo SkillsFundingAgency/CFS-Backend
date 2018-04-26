@@ -55,6 +55,20 @@ namespace CalculateFunding.Services.Specs
             _assignDefinitionRelationshipMessageValidator = assignDefinitionRelationshipMessageValidator;
         }
 
+        public async Task<IActionResult> GetSpecifications(HttpRequest request)
+        {
+            IEnumerable<Specification> specifications = await _specificationsRepository.GetSpecifications();
+
+            if (specifications == null)
+            {
+                _logger.Warning($"No specifications were returned from the repository, result came back null");
+
+                return new NotFoundResult();
+            }
+
+            return new OkObjectResult(specifications);
+        }
+
         public async Task<IActionResult> GetSpecificationById(HttpRequest request)
         {
             request.Query.TryGetValue("specificationId", out var specId);

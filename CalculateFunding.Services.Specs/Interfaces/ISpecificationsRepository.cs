@@ -14,6 +14,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<FundingStream> GetFundingStreamById(string fundingStreamId);
         Task<Specification> GetSpecificationById(string specificationId);
         Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query = null);
+        Task<IEnumerable<Specification>> GetSpecifications();
         Task<IEnumerable<AcademicYear>> GetAcademicYears();
         Task<IEnumerable<FundingStream>> GetFundingStreams();
         Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query);

@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 clientProxy
                     .Received(1)
-                    .GetAsync<Specification>(Arg.Is($"specs/specifications?specificationId={specificationId}"));
+                    .GetAsync<Specification>(Arg.Is($"specs/specification-by-id?specificationId={specificationId}"));
         }
 
         static SpecificationsRepository CreateSpecificationsRepository(IApiClientProxy apiClientProxy = null)

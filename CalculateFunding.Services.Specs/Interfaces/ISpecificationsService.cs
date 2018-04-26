@@ -9,6 +9,8 @@ namespace CalculateFunding.Services.Specs.Interfaces
     {
         Task<IActionResult> CreateSpecification(HttpRequest request);
 
+        Task<IActionResult> GetSpecifications(HttpRequest req);
+
         Task<IActionResult> GetSpecificationById(HttpRequest request);
 
         Task<IActionResult> GetSpecificationByAcademicYearId(HttpRequest request);
