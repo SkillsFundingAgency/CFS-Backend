@@ -162,13 +162,31 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             var queryOptions = new FeedOptions
             {
                 MaxItemCount = maxItemCount,
-                EnableCrossPartitionQuery = enableCrossPartitionQuery,
+                EnableCrossPartitionQuery = enableCrossPartitionQuery
             };
 
             return _documentClient.CreateDocumentQuery<T>(_collectionUri,
                 directSql,
                 queryOptions).AsQueryable();
 
+        }
+
+        public async Task<IEnumerable<DocumentEntity<T>>> GetAllDocumentsAsync<T>(int maxItemCount = 1000) where T : IIdentifiable
+        {
+            FeedOptions options = new FeedOptions() { MaxItemCount = maxItemCount };
+
+            List<DocumentEntity<T>> allResults = new List<DocumentEntity<T>>();
+
+            IDocumentQuery<Document> queryable = (IDocumentQuery<Document>)_documentClient.CreateDocumentQuery(_collectionUri, options).AsDocumentQuery();
+
+            while (queryable.HasMoreResults)
+            {
+                FeedResponse<DocumentEntity<T>> queryResponse = await queryable.ExecuteNextAsync<DocumentEntity<T>>();
+
+                allResults.AddRange(queryResponse.AsEnumerable());
+            }
+
+            return allResults;
         }
 
         public IQueryable<DocumentEntity<T>> QueryDocuments<T>(string directSql = null, int maxItemCount = -1) where T : IIdentifiable

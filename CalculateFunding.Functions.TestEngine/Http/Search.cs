@@ -31,7 +31,7 @@ namespace CalculateFunding.Functions.TestEngine.Http
             {
                 ITestResultsService svc = scope.ServiceProvider.GetService<ITestResultsService>();
 
-                return svc.Reindex(req);
+                return svc.ReIndex(req);
             }
         }
 

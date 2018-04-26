@@ -11,18 +11,21 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         private readonly ITestResultsSearchService _testResultsSearchService;
         private readonly ITestEngineService _testEngineService;
         private readonly ITestResultsCountsService _testResultsCountsService;
+        private readonly ITestResultsService _testResultsService;
 
         public TestRunnerController(
             IServiceProvider serviceProvider, 
             IGherkinParserService gherkinParserService,
             ITestResultsSearchService testResultsSearchService,
             ITestEngineService testEngineService,
-            ITestResultsCountsService testResultsCountsService) : base(serviceProvider)
+            ITestResultsCountsService testResultsCountsService,
+            ITestResultsService testResultsService) : base(serviceProvider)
         {
             _gherkinParserService = gherkinParserService;
             _testResultsSearchService = testResultsSearchService;
             _testEngineService = testEngineService;
             _testResultsCountsService = testResultsCountsService;
+            _testResultsService = testResultsService;
         }
 
         [Route("api/tests/validate-test")]
@@ -59,6 +62,15 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
             return _testResultsCountsService.GetResultCounts(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/tests/testscenario-reindex")]
+        [HttpGet]
+        public Task<IActionResult> RunReindex()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _testResultsService.ReIndex(ControllerContext.HttpContext.Request);
         }
     }
 }

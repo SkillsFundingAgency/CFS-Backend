@@ -100,5 +100,10 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
             return HttpStatusCode.Created;
         }
+
+        public Task<IEnumerable<DocumentEntity<TestScenarioResult>>> GetAllTestResults()
+        {
+            return _cosmosRepository.GetAllDocumentsAsync<TestScenarioResult>();
+        }
     }
 }

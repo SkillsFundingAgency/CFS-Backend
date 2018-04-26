@@ -3,6 +3,7 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Services;
@@ -228,7 +229,8 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             IMapper mapper = null,
             ILogger logger = null,
             ITelemetry telemetry = null,
-            ResiliencePolicies policies = null)
+            ResiliencePolicies policies = null,
+            ICacheProvider cacheProvider = null)
         {
             return new TestResultsService(
                 testResultsRepository ?? CreateTestResultsRepository(),
@@ -236,7 +238,8 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 mapper ?? CreateMapper(),
                 logger ?? CreateLogger(),
                 telemetry ?? CreateTelemetry(),
-                policies ?? TestRunnerResilienceTestHelper.GenerateTestPolicies()
+                policies ?? TestRunnerResilienceTestHelper.GenerateTestPolicies(),
+                cacheProvider ?? CreateCacheProvider()
                 );
         }
 
@@ -268,6 +271,11 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         private ITelemetry CreateTelemetry()
         {
             return Substitute.For<ITelemetry>();
+        }
+
+        static ICacheProvider CreateCacheProvider()
+        {
+            return Substitute.For<ICacheProvider>();
         }
 
         private TestScenarioResult CreateTestScenarioResult()

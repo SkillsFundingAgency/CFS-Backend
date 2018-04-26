@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Results;
+using CalculateFunding.Repositories.Common.Cosmos;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -10,5 +11,7 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
         Task<IEnumerable<TestScenarioResult>> GetCurrentTestResults(IEnumerable<string> providerIds, string specificationId);
 
         Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> providerResult);
+
+        Task<IEnumerable<DocumentEntity<TestScenarioResult>>> GetAllTestResults();
     }
 }

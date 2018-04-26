@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -25,13 +27,15 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly ITelemetry _telemetry;
         private readonly Policy _testResultsPolicy;
         private readonly Policy _testResultsSearchPolicy;
+        private readonly ICacheProvider _cacheProvider;
 
         public TestResultsService(ITestResultsRepository testResultsRepository,
             ISearchRepository<TestScenarioResultIndex> searchRepository,
             IMapper mapper,
             ILogger logger,
             ITelemetry telemetry,
-            ITestRunnerResiliencePolicies policies)
+            ITestRunnerResiliencePolicies policies,
+            ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(testResultsRepository, nameof(testResultsRepository));
@@ -39,15 +43,16 @@ namespace CalculateFunding.Services.TestRunner.Services
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(policies, nameof(policies));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
 
             _testResultsRepository = testResultsRepository;
             _searchRepository = searchRepository;
             _mapper = mapper;
             _logger = logger;
             _telemetry = telemetry;
-
             _testResultsPolicy = policies.TestResultsRepository;
             _testResultsSearchPolicy = policies.TestResultsSearchRepository;
+            _cacheProvider = cacheProvider;
         }
 
         public async Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> testResults, IEnumerable<ProviderResult> providerResults)
@@ -125,9 +130,60 @@ namespace CalculateFunding.Services.TestRunner.Services
             return HttpStatusCode.InternalServerError;
         }
 
-        public Task<IActionResult> Reindex(HttpRequest request)
+        public async Task<IActionResult> ReIndex(HttpRequest request)
         {
-            return Task.FromResult<IActionResult>(new OkResult());
+            IEnumerable<DocumentEntity<TestScenarioResult>> testScenarioResults = await _testResultsRepository.GetAllTestResults();
+
+            long summariesCount = await _cacheProvider.ListLengthAsync<ProviderSummary>("all-cached-providers");
+
+            IEnumerable<ProviderSummary> summaries = await _cacheProvider.ListRangeAsync<ProviderSummary>("all-cached-providers", 0, (int)summariesCount - 1);
+
+            IList<TestScenarioResultIndex> searchItems = new List<TestScenarioResultIndex>();
+
+            foreach ( DocumentEntity<TestScenarioResult> documentEnity in testScenarioResults)
+            {
+                TestScenarioResult testScenarioResult = documentEnity.Content;
+
+                TestScenarioResultIndex testScenarioResultIndex = new TestScenarioResultIndex
+                {
+                    TestResult = testScenarioResult.TestResult.ToString(),
+                    SpecificationId = testScenarioResult.Specification.Id,
+                    SpecificationName = testScenarioResult.Specification.Name,
+                    TestScenarioId = testScenarioResult.TestScenario.Id,
+                    TestScenarioName = testScenarioResult.TestScenario.Name,
+                    ProviderName = testScenarioResult.Provider.Name,
+                    ProviderId = testScenarioResult.Provider.Id,
+                    LastUpdatedDate = documentEnity.UpdatedAt
+                };
+
+                ProviderSummary providerSummary = summaries.FirstOrDefault(m => m.Id == testScenarioResult.Provider.Id);
+
+                if (providerSummary != null)
+                {
+                    testScenarioResultIndex.EstablishmentNumber = providerSummary.EstablishmentNumber;
+                    testScenarioResultIndex.UKPRN = providerSummary.UKPRN;
+                    testScenarioResultIndex.UPIN = providerSummary.UPIN;
+                    testScenarioResultIndex.URN = providerSummary.URN;
+                    testScenarioResultIndex.LocalAuthority = providerSummary.Authority;
+                    testScenarioResultIndex.ProviderType = providerSummary.ProviderType;
+                    testScenarioResultIndex.ProviderSubType = providerSummary.ProviderSubType;
+                    testScenarioResultIndex.OpenDate = providerSummary.DateOpened;
+                }
+
+                searchItems.Add(testScenarioResultIndex);
+            }
+
+            for(int i = 0; i < searchItems.Count; i+= 100)
+            {
+                IEnumerable<TestScenarioResultIndex> partitionedResults = searchItems.Skip(i).Take(100);
+
+                IEnumerable<IndexError> errors = await _searchRepository.Index(partitionedResults);
+
+                if (errors.Any())
+                    return new StatusCodeResult(500);
+            }
+
+            return new NoContentResult();
         }
     }
 }

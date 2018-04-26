@@ -24,5 +24,7 @@ namespace CalculateFunding.Services.Core.Interfaces.Caching
         Task<IEnumerable<T>> ListRangeAsync<T>(string key, int start, int stop);
 
         Task KeyDeleteAsync<T>(string key);
+
+        Task<long> ListLengthAsync<T>(string key);
     }
 }

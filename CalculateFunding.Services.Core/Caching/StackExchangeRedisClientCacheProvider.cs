@@ -119,6 +119,15 @@ namespace CalculateFunding.Services.Core.Caching
             }
         }
 
+        public Task<long> ListLengthAsync<T>(string key)
+        {
+            key = GenerateCacheKey<T>(key);
+
+            var database = GetDatabase();
+
+            return database.ListLengthAsync(key);
+        }
+
         public Task<bool> KeyExists<T>(string key)
         {
             key = GenerateCacheKey<T>(key);

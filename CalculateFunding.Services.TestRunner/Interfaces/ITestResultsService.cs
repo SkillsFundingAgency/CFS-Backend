@@ -11,6 +11,6 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
     {
         Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> testResults, IEnumerable<ProviderResult> providerResults);
 
-        Task<IActionResult> Reindex(HttpRequest req);
+        Task<IActionResult> ReIndex(HttpRequest req);
     }
 }

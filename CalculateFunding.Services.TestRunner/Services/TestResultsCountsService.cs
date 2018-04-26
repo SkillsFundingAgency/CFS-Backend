@@ -45,21 +45,21 @@ namespace CalculateFunding.Services.TestRunner.Services
 
             IList<TestScenarioResultCounts> resultCounts = new List<TestScenarioResultCounts>();
 
-            Parallel.ForEach(requestModel.TestScenarioIds, new ParallelOptions() { MaxDegreeOfParallelism = 2 }, testScenarioId =>
+            SearchModel searchModel = new SearchModel
             {
-                SearchModel searchModel = new SearchModel
-                {
-                    IncludeFacets = true,
-                    Top = 1,
-                    PageNumber = 1,
-                    Filters = new Dictionary<string, string[]> { { "testScenarioId", new[] { testScenarioId } } }
-                };
+                IncludeFacets = true,
+                Top = 1,
+                PageNumber = 1
+            };
+
+            Parallel.ForEach(requestModel.TestScenarioIds, testScenarioId =>
+            {
+                searchModel.Filters = new Dictionary<string, string[]> { { "testScenarioId", new[] { testScenarioId } } };
 
                 TestScenarioSearchResults result = _testResultsService.SearchTestScenarioResults(searchModel).Result;
 
                 if (result != null && !result.Results.IsNullOrEmpty())
                 {
-
                     Facet facet = result.Facets?.FirstOrDefault(m => m.Name == "testResult");
 
                     if (facet != null)
@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                     }
                 }
             });
-
+           
             return new OkObjectResult(resultCounts);
         }
     }
