@@ -1,6 +1,8 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.UnitTests;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -695,10 +697,15 @@ namespace CalculateFunding.Services.Results.Services
         }
 
 
-        static ResultsSearchService CreateResultsSearchService(ILogger logger = null,
-            ISearchRepository<ProviderIndex> searchRepository = null)
+        static ResultsSearchService CreateResultsSearchService(
+            ILogger logger = null,
+            ISearchRepository<ProviderIndex> searchRepository = null,
+            IResultsResilliencePolicies resiliencePolicies = null)
         {
-            return new ResultsSearchService(logger ?? CreateLogger(), searchRepository ?? CreateSearchRepository());
+            return new ResultsSearchService(
+                logger ?? CreateLogger(), 
+                searchRepository ?? CreateSearchRepository(),
+                resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies());
         }
 
         static ILogger CreateLogger()

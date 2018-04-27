@@ -1,5 +1,7 @@
 ﻿using System;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
@@ -9,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Bulkhead;
+using Serilog;
 
 namespace CalculateFunding.Functions.CalcEngine
 {
@@ -66,7 +69,11 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 
-                return new ProviderResultsRepository(calcsCosmosRepostory);
+                ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository = ctx.GetService<ISearchRepository<CalculationProviderResultsIndex>>();
+
+                ILogger logger = ctx.GetService<ILogger>();
+
+                return new ProviderResultsRepository(calcsCosmosRepostory, calculationProviderResultsSearchRepository, logger);
             });
 
             builder.AddEngineSettings(config);

@@ -86,6 +86,9 @@ namespace CalculateFunding.Services.Core.Extensions
             builder
               .AddSingleton<ISearchRepository<TestScenarioResultIndex>, SearchRepository<TestScenarioResultIndex>>();
 
+            builder
+              .AddSingleton<ISearchRepository<CalculationProviderResultsIndex>, SearchRepository<CalculationProviderResultsIndex>>();
+
             return builder;
         }
 

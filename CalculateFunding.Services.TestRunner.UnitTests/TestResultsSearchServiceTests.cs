@@ -208,7 +208,6 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 searchRepository
                     .Received(11)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
-
         }
 
         [TestMethod]

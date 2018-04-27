@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.TestRunner.Services
 
             IList<TestScenarioResultIndex> searchItems = new List<TestScenarioResultIndex>();
 
-            foreach ( DocumentEntity<TestScenarioResult> documentEnity in testScenarioResults)
+            foreach (DocumentEntity<TestScenarioResult> documentEnity in testScenarioResults)
             {
                 TestScenarioResult testScenarioResult = documentEnity.Content;
 

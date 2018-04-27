@@ -2,6 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Repositories.Common.Cosmos;
 
 namespace CalculateFunding.Services.Results.Interfaces
 {
@@ -11,5 +12,6 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IEnumerable<ProviderResult>> GetSpecificationResults(string providerId);
         Task<HttpStatusCode> UpdateProviderResults(List<ProviderResult> results);
         Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId);
+        Task<IEnumerable<DocumentEntity<ProviderResult>>> GetAllProviderResults();
     }
 }

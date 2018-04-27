@@ -22,6 +22,10 @@ using System.Net;
 using System.IO;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Models;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Services.Results.UnitTests;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -522,98 +526,6 @@ namespace CalculateFunding.Services.Results.Services
                 .ShouldThrowExactly<ArgumentNullException>();
         }
 
-        //[TestMethod]
-        //async public Task UpdateProviderData_GivenEmptyResults_DoesNotUpdateResults()
-        //{
-        //    //Arramge
-        //    IEnumerable<ProviderResult> results = Enumerable.Empty<ProviderResult>();
-
-        //    var json = JsonConvert.SerializeObject(results);
-
-        //    Message message = new Message(Encoding.UTF8.GetBytes(json));
-
-        //    ILogger logger = CreateLogger();
-
-        //    IResultsRepository resultsRepository = CreateResultsRepository();
-
-        //    ResultsService service = CreateResultsService(logger, resultsRepository);
-
-        //    //Act
-        //    await service.UpdateProviderData(message);
-
-        //    //Assert
-        //    await
-        //        resultsRepository
-        //            .DidNotReceive()
-        //            .UpdateProviderResults(Arg.Any<List<ProviderResult>>());
-
-        //    logger
-        //        .Received(1)
-        //        .Warning("An empty list of results were provided to update");
-        //}
-
-        //[TestMethod]
-        //async public Task UpdateProviderData_GivenResultsButFailsToUpdate_LogsError()
-        //{
-        //    //Arramge
-        //    IEnumerable<ProviderResult> results = new[]
-        //    {
-        //        new ProviderResult()
-        //    };
-
-        //    var json = JsonConvert.SerializeObject(results);
-
-        //    Message message = new Message(Encoding.UTF8.GetBytes(json));
-
-        //    ILogger logger = CreateLogger();
-
-        //    IResultsRepository resultsRepository = CreateResultsRepository();
-        //    resultsRepository
-        //        .UpdateProviderResults(Arg.Any<List<ProviderResult>>())
-        //        .Returns(HttpStatusCode.InternalServerError);
-
-        //    ResultsService service = CreateResultsService(logger, resultsRepository);
-
-        //    //Act
-        //    await service.UpdateProviderData(message);
-
-        //    //Assert
-        //    logger
-        //        .Received(1)
-        //        .Error("Failed to bulk update provider data with status code: InternalServerError");
-        //}
-
-        //[TestMethod]
-        //async public Task UpdateProviderData_GivenResultsAndupdateIsSuccess_DoesNotLogAnError()
-        //{
-        //    //Arramge
-        //    IEnumerable<ProviderResult> results = new[]
-        //    {
-        //        new ProviderResult()
-        //    };
-
-        //    var json = JsonConvert.SerializeObject(results);
-
-        //    Message message = new Message(Encoding.UTF8.GetBytes(json));
-
-        //    ILogger logger = CreateLogger();
-
-        //    IResultsRepository resultsRepository = CreateResultsRepository();
-        //    resultsRepository
-        //        .UpdateProviderResults(Arg.Any<List<ProviderResult>>())
-        //        .Returns(HttpStatusCode.OK);
-
-        //    ResultsService service = CreateResultsService(logger, resultsRepository);
-
-        //    //Act
-        //    await service.UpdateProviderData(message);
-
-        //    //Assert
-        //    logger
-        //        .DidNotReceive()
-        //        .Error(Arg.Any<string>());
-        //}
-
         [TestMethod]
         public void UpdateProviderSourceDataset_GivenNullResults_ThrowsArgumentNullException()
         {
@@ -803,6 +715,117 @@ namespace CalculateFunding.Services.Results.Services
                 .Be(2);
         }
 
+        [TestMethod]
+        public async Task ReIndexCalculationProviderResults_GivenResultReturnedFromDatabaseWithTwoCalcResultsButSearchRetuensErrors_ReturnsStatusCode500()
+        {
+            //Arrange
+            DocumentEntity<ProviderResult> providerResult = CreateDocumentEntity();
+
+            ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
+            calculationResultsRepository
+                .GetAllProviderResults()
+                .Returns(new[] { providerResult });
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
+            searchRepository
+                .Index(Arg.Any<IEnumerable<CalculationProviderResultsIndex>>())
+                .Returns(new[] { new IndexError { ErrorMessage = "an error" } });
+
+            ResultsService resultsService = CreateResultsService(resultsRepository: calculationResultsRepository, calculationProviderResultsSearchRepository: searchRepository, logger: logger);
+
+            //Act
+            IActionResult actionResult = await resultsService.ReIndexCalculationProviderResults();
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = actionResult as StatusCodeResult;
+
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(500);
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("Failed to index calculation provider result documents with errors: an error"));
+        }
+
+        [TestMethod]
+        public async Task ReIndexCalculationProviderResults_GivenResultReturnedFromDatabaseWithTwoCalcResults_UpdatesSearchWithTwoDocumentsReturnsNoContent()
+        {
+            //Arrange
+            DocumentEntity<ProviderResult> providerResult = CreateDocumentEntity();
+
+            ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
+            calculationResultsRepository
+                .GetAllProviderResults()
+                .Returns(new[] { providerResult });
+
+            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
+
+            ResultsService resultsService = CreateResultsService(resultsRepository: calculationResultsRepository, calculationProviderResultsSearchRepository: searchRepository);
+
+            //Act
+            IActionResult actionResult = await resultsService.ReIndexCalculationProviderResults();
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<NoContentResult>();
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(m => m.Count() == 2));
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(
+                        m =>
+                            m.First().SpecificationId == "spec-id" &&
+                            m.First().SpecificationName == "spec name" &&
+                            m.First().CalculationSpecificationId == "calc-spec-id-1" &&
+                            m.First().CalculationSpecificationName == "calc spec name 1" &&
+                            m.First().CaclulationResult == 123 &&
+                            m.First().CalculationType == "Funding" &&
+                            m.First().ProviderId == "prov-id" &&
+                            m.First().ProviderName == "prov name" &&
+                            m.First().ProviderType == "prov type" &&
+                            m.First().ProviderSubType == "prov sub type" &&
+                            m.First().UKPRN == "ukprn" &&
+                            m.First().UPIN == "upin" &&
+                            m.First().URN == "urn" &&
+                            m.First().EstablishmentNumber == "12345"
+                    ));
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(
+                        m =>
+                            m.Last().SpecificationId == "spec-id" &&
+                            m.Last().SpecificationName == "spec name" &&
+                            m.Last().CalculationSpecificationId == "calc-spec-id-2" &&
+                            m.Last().CalculationSpecificationName == "calc spec name 2" &&
+                            m.Last().CaclulationResult == 10 &&
+                            m.Last().CalculationType == "Number" &&
+                            m.Last().ProviderId == "prov-id" &&
+                            m.Last().ProviderName == "prov name" &&
+                            m.Last().ProviderType == "prov type" &&
+                            m.Last().ProviderSubType == "prov sub type" &&
+                            m.Last().UKPRN == "ukprn" &&
+                            m.Last().UPIN == "upin" &&
+                            m.Last().URN == "urn" &&
+                            m.Last().EstablishmentNumber == "12345"
+                    ));
+        }
+
         static ResultsService CreateResultsService(ILogger logger = null,
             ICalculationResultsRepository resultsRepository = null,
             IMapper mapper = null,
@@ -810,7 +833,9 @@ namespace CalculateFunding.Services.Results.Services
             IMessengerService messengerService = null,
             ServiceBusSettings EventHubSettings = null,
             ITelemetry telemetry = null,
-            IProviderSourceDatasetRepository providerSourceDatasetRepository = null)
+            IProviderSourceDatasetRepository providerSourceDatasetRepository = null,
+            ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository = null,
+            IResultsResilliencePolicies resiliencePolicies = null)
         {
             return new ResultsService(
                 logger ?? CreateLogger(),
@@ -820,7 +845,9 @@ namespace CalculateFunding.Services.Results.Services
                 messengerService ?? CreateMessengerService(),
                 EventHubSettings ?? CreateEventHubSettings(),
                 telemetry ?? CreateTelemetry(),
-                providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository());
+                providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository(),
+                calculationProviderResultsSearchRepository ?? CreateCalculationProviderResultsSearchRepository(),
+                resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies());
         }
 
         static ILogger CreateLogger()
@@ -861,6 +888,57 @@ namespace CalculateFunding.Services.Results.Services
         static ServiceBusSettings CreateEventHubSettings()
         {
             return new ServiceBusSettings();
+        }
+
+        static ISearchRepository<CalculationProviderResultsIndex> CreateCalculationProviderResultsSearchRepository()
+        {
+            return Substitute.For<ISearchRepository<CalculationProviderResultsIndex>>();
+        }
+
+        static DocumentEntity<ProviderResult> CreateDocumentEntity()
+        {
+            return new DocumentEntity<ProviderResult>
+            {
+                UpdatedAt = DateTime.Now,
+                Content = new ProviderResult
+                {
+                    Specification = new SpecificationSummary
+                    {
+                        Id = "spec-id",
+                        Name = "spec name"
+                    },
+                    CalculationResults = new List<CalculationResult>
+                    {
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
+                            Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
+                            Value = 123,
+                            CalculationType = CalculationType.Funding
+                        },
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
+                            Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
+                            Value = 10,
+                            CalculationType = CalculationType.Number
+                        }
+                    },
+                    Provider = new ProviderSummary
+                    {
+                        Id = "prov-id",
+                        Name = "prov name",
+                        ProviderType = "prov type",
+                        ProviderSubType = "prov sub type",
+                        Authority = "authority",
+                        UKPRN = "ukprn",
+                        UPIN = "upin",
+                        URN = "urn",
+                        EstablishmentNumber = "12345",
+                        DateOpened = DateTime.Now.AddDays(-7)
+                    }
+                }
+            };
         }
     }
 }

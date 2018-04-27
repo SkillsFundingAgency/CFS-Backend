@@ -2,6 +2,7 @@ using AutoMapper;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
@@ -182,7 +183,11 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 
-                return new Services.Calculator.ProviderResultsRepository(calcsCosmosRepostory);
+                ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository = ctx.GetService<ISearchRepository<CalculationProviderResultsIndex>>();
+
+                ILogger logger = ctx.GetService<ILogger>();
+
+                return new Services.Calculator.ProviderResultsRepository(calcsCosmosRepostory, calculationProviderResultsSearchRepository, logger);
             });
 
             builder
@@ -223,6 +228,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
             builder
                 .AddScoped<IResultsService, ResultsService>();
+
+            builder
+                .AddScoped<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>();
 
             builder.AddScoped<Services.Scenarios.Interfaces.IScenariosRepository, Services.Scenarios.ScenariosRepository>((ctx) =>
             {
@@ -526,7 +534,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
             builder.AddSingleton<ITestRunnerResiliencePolicies>((ctx) =>
             {
-                ResiliencePolicies resiliencePolicies = new ResiliencePolicies()
+                Services.TestRunner.ResiliencePolicies resiliencePolicies = new Services.TestRunner.ResiliencePolicies()
                 {
                     BuildProjectRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     CacheProviderRepository = redisPolicy,
@@ -541,6 +549,21 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 return resiliencePolicies;
             });
 
+            builder.AddSingleton<IResultsResilliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                BulkheadPolicy resultsTotalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                Services.Results.ResiliencePolicies resiliencePolicies = new Services.Results.ResiliencePolicies()
+                {
+                    CalculationProviderResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(resultsTotalNetworkRequestsPolicy),
+                    ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    ResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                };
+
+                return resiliencePolicies;
+            });
         }
     }
 }

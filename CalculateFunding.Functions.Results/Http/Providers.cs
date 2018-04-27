@@ -82,5 +82,29 @@ namespace CalculateFunding.Functions.Results.Http
                 return svc.GetProviderSourceDatasetsByProviderIdAndSpecificationId(req);
             }
         }
+
+        [FunctionName("reindex-calc-provider-results")]
+        public static Task<IActionResult> RunReIndexCalculationProviderResults(
+          [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IResultsService svc = scope.ServiceProvider.GetService<IResultsService>();
+
+                return svc.ReIndexCalculationProviderResults();
+            }
+        }
+
+        [FunctionName("calculation-provider-results-search")]
+        public static Task<IActionResult> RunCalculationProviderResultsSearch(
+           [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ICalculationProviderResultsSearchService svc = scope.ServiceProvider.GetService<ICalculationProviderResultsSearchService>();
+
+                return svc.SearchCalculationProviderResults(req);
+            }
+        }
     }
 }

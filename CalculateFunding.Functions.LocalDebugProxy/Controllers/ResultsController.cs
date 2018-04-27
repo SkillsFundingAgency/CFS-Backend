@@ -10,16 +10,21 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 	{
 		private readonly IResultsService _resultsService;
 		private readonly IResultsSearchService _resultsSearchService;
+        private readonly ICalculationProviderResultsSearchService _calculationProviderResultsSearchService;
 
-		public ResultsController(IServiceProvider serviceProvider,
-			 IResultsService resultsService, IResultsSearchService resultsSearchService)
+        public ResultsController(
+             IServiceProvider serviceProvider,
+			 IResultsService resultsService, 
+             IResultsSearchService resultsSearchService,
+             ICalculationProviderResultsSearchService calculationProviderResultsSearchService)
 			: base(serviceProvider)
 		{
 			Guard.ArgumentNotNull(resultsSearchService, nameof(resultsSearchService));
 
 			_resultsService = resultsService;
 			_resultsSearchService = resultsSearchService;
-		}
+            _calculationProviderResultsSearchService = calculationProviderResultsSearchService;
+        }
 
 		[Route("api/results/providers-search")]
 		[HttpPost]
@@ -58,15 +63,6 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _resultsService.GetProviderById(ControllerContext.HttpContext.Request);
         }
 
-        //[Route("api/results/update-provider-results")]
-        //[HttpPost]
-        //public Task<IActionResult> RunUpdateProviderResults()
-        //{
-        //    SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
-
-        //    return _resultsService.UpdateProviderResults(ControllerContext.HttpContext.Request);
-        //}
-
         [Route("api/results/update-provider-source-dataset")]
         [HttpPost]
         public Task<IActionResult> RunUpdateProviderSourceDataset()
@@ -83,6 +79,24 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
             return _resultsService.GetProviderSourceDatasetsByProviderIdAndSpecificationId(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/results/reindex-calc-provider-results")]
+        [HttpGet]
+        public Task<IActionResult> RunReIndexCalculationProviderResults()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _resultsService.ReIndexCalculationProviderResults();
+        }
+
+        [Route("api/results/calculation-provider-results-search")]
+        [HttpPost]
+        public Task<IActionResult> RunCalculationProviderResultsSearch()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _calculationProviderResultsSearchService.SearchCalculationProviderResults(ControllerContext.HttpContext.Request);
         }
     }
 }

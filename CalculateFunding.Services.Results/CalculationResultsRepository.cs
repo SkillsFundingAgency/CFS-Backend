@@ -25,6 +25,11 @@ namespace CalculateFunding.Services.Results
 		    return Task.FromResult(results.FirstOrDefault());
 		}
 
+        public Task<IEnumerable<DocumentEntity<ProviderResult>>> GetAllProviderResults()
+        {
+            return _cosmosRepository.GetAllDocumentsAsync<ProviderResult>();
+        }
+
         public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId)
         {
             var results = _cosmosRepository.Query<ProviderResult>(enableCrossPartitionQuery: true).Where(x => x.Specification.Id == specificationId).ToList();

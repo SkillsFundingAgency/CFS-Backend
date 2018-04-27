@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
+using CalculateFunding.Repositories.Common.Cosmos;
+using Polly;
 
 namespace CalculateFunding.Services.Results
 {
@@ -30,9 +32,12 @@ namespace CalculateFunding.Services.Results
         private readonly IMessengerService _messengerService;
         private readonly ServiceBusSettings _eventHubSettings;
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
+        private readonly ISearchRepository<CalculationProviderResultsIndex> _calculationProviderResultsSearchRepository;
+        private readonly Policy _resultsRepositoryPolicy;
+        private readonly Policy _resultsSearchRepositoryPolicy;
 
         const string ProcessDatasetSubscription = "dataset-events-datasets";
-
+       
         public ResultsService(ILogger logger,
             ICalculationResultsRepository resultsRepository,
             IMapper mapper,
@@ -40,7 +45,9 @@ namespace CalculateFunding.Services.Results
             IMessengerService messengerService,
             ServiceBusSettings EventHubSettings,
             ITelemetry telemetry,
-            IProviderSourceDatasetRepository providerSourceDatasetRepository)
+            IProviderSourceDatasetRepository providerSourceDatasetRepository,
+            ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository,
+            IResultsResilliencePolicies resiliencePolicies)
         {
             _logger = logger;
             _resultsRepository = resultsRepository;
@@ -50,6 +57,9 @@ namespace CalculateFunding.Services.Results
             _eventHubSettings = EventHubSettings;
             _telemetry = telemetry;
             _providerSourceDatasetRepository = providerSourceDatasetRepository;
+            _calculationProviderResultsSearchRepository = calculationProviderResultsSearchRepository;
+            _resultsRepositoryPolicy = resiliencePolicies.ResultsRepository;
+            _resultsSearchRepositoryPolicy = resiliencePolicies.ResultsSearchRepository;
         }
 
         public async Task UpdateProviderData(Message message)
@@ -69,7 +79,7 @@ namespace CalculateFunding.Services.Results
 
             if (results.Any())
             {
-                HttpStatusCode statusCode = await _resultsRepository.UpdateProviderResults(results.ToList());
+                HttpStatusCode statusCode = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.UpdateProviderResults(results.ToList()));
                 stopwatch.Stop();
 
                 if (!statusCode.IsSuccess())
@@ -107,7 +117,7 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty provider Id provided");
             }
 
-            ProviderIndex provider = await _searchRepository.SearchById(providerId, IdFieldOverride: "ukPrn");
+            ProviderIndex provider = await _resultsRepositoryPolicy.ExecuteAsync(() => _searchRepository.SearchById(providerId, IdFieldOverride: "ukPrn"));
 
             if (provider == null)
                 return new NotFoundResult();
@@ -132,7 +142,7 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            ProviderResult providerResult = await _resultsRepository.GetProviderResult(providerId, specificationId);
+            ProviderResult providerResult = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetProviderResult(providerId, specificationId));
 
             if (providerResult != null)
             {
@@ -156,7 +166,7 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            IEnumerable<ProviderResult> providerResults = await _resultsRepository.GetProviderResultsBySpecificationId(specificationId);
+            IEnumerable<ProviderResult> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetProviderResultsBySpecificationId(specificationId));
 
             return new OkObjectResult(providerResults);
         }
@@ -170,7 +180,7 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty provider Id provided");
             }
 
-            IEnumerable<ProviderResult> providerResults = (await _resultsRepository.GetSpecificationResults(providerId)).ToList();
+            IEnumerable<ProviderResult> providerResults = (await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetSpecificationResults(providerId))).ToList();
 
             if (!providerResults.IsNullOrEmpty())
             {
@@ -208,7 +218,7 @@ namespace CalculateFunding.Services.Results
                 throw new ArgumentNullException(nameof(sourceDatset), "Null results source dataset was provided to UpdateProviderSourceDataset");
             }
 
-            HttpStatusCode statusCode = await _providerSourceDatasetRepository.UpsertProviderSourceDataset(sourceDatset);
+            HttpStatusCode statusCode = await _resultsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetRepository.UpsertProviderSourceDataset(sourceDatset));
 
             if (!statusCode.IsSuccess())
             {
@@ -240,9 +250,66 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty provider Id provided");
             }
 
-            IEnumerable<ProviderSourceDataset> providerResults = await _providerSourceDatasetRepository.GetProviderSourceDatasets(providerId, specificationId);
+            IEnumerable<ProviderSourceDataset> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetRepository.GetProviderSourceDatasets(providerId, specificationId));
 
             return new OkObjectResult(providerResults);
+        }
+
+        public async Task<IActionResult> ReIndexCalculationProviderResults()
+        {
+            IEnumerable<DocumentEntity<ProviderResult>> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetAllProviderResults());
+
+            IList<CalculationProviderResultsIndex> searchItems = new List<CalculationProviderResultsIndex>();
+
+            foreach (DocumentEntity<ProviderResult> documentEnity in providerResults)
+            {
+                ProviderResult providerResult = documentEnity.Content;
+
+                foreach (CalculationResult calculationResult in providerResult.CalculationResults)
+                {
+                    if (calculationResult.Value.HasValue)
+                    {
+                        searchItems.Add(new CalculationProviderResultsIndex
+                        {
+                            SpecificationId = providerResult.Specification.Id,
+                            SpecificationName = providerResult.Specification.Name,
+                            CalculationSpecificationId = calculationResult.CalculationSpecification.Id,
+                            CalculationSpecificationName = calculationResult.CalculationSpecification.Name,
+                            CalculationName = calculationResult.Calculation.Name,
+                            CalculationId = calculationResult.Calculation.Id,
+                            CalculationType = calculationResult.CalculationType.ToString(),
+                            ProviderId = providerResult.Provider.Id,
+                            ProviderName = providerResult.Provider.Name,
+                            ProviderType = providerResult.Provider.ProviderType,
+                            ProviderSubType = providerResult.Provider.ProviderSubType,
+                            LocalAuthority = providerResult.Provider.Authority,
+                            LastUpdatedDate = documentEnity.UpdatedAt,
+                            UKPRN = providerResult.Provider.UKPRN,
+                            URN = providerResult.Provider.URN,
+                            UPIN = providerResult.Provider.UPIN,
+                            EstablishmentNumber = providerResult.Provider.EstablishmentNumber,
+                            OpenDate = providerResult.Provider.DateOpened,
+                            CaclulationResult = calculationResult.Value.HasValue ? Convert.ToDouble(calculationResult.Value) : 0
+                        });
+                    }
+                }
+            }
+
+            for (int i = 0; i < searchItems.Count; i += 500)
+            {
+                IEnumerable<CalculationProviderResultsIndex> partitionedResults = searchItems.Skip(i).Take(500);
+
+                IEnumerable<IndexError> errors = await _resultsSearchRepositoryPolicy.ExecuteAsync(() => _calculationProviderResultsSearchRepository.Index(partitionedResults));
+
+                if (errors.Any())
+                {
+                    _logger.Error($"Failed to index calculation provider result documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }");
+
+                    return new StatusCodeResult(500);
+                }
+            }
+
+            return new NoContentResult();
         }
     }
 }

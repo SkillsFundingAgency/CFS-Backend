@@ -1,12 +1,17 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly.Bulkhead;
 
 namespace CalculateFunding.Functions.Results
 {
@@ -38,7 +43,9 @@ namespace CalculateFunding.Functions.Results
             builder.AddScoped<ICalculationResultsRepository, CalculationResultsRepository>();
             builder.AddScoped<IResultsService, ResultsService>();
 	        builder.AddScoped<IResultsSearchService, ResultsSearchService>();
-			MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
+            builder.AddScoped<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>();
+
+            MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             builder
                 .AddSingleton(resultsConfig.CreateMapper());
 
@@ -79,6 +86,24 @@ namespace CalculateFunding.Functions.Results
             builder.AddApplicationInsightsTelemetryClient(config);
             builder.AddLogging("CalculateFunding.Functions.Results");
             builder.AddTelemetry();
+
+            builder.AddPolicySettings(config);
+
+            builder.AddSingleton<IResultsResilliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                ResiliencePolicies resiliencePolicies = new ResiliencePolicies()
+                {
+                    CalculationProviderResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                    ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    ResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                };
+
+                return resiliencePolicies;
+            });
         }
     }
 }
