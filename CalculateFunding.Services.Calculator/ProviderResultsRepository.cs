@@ -20,6 +20,10 @@ namespace CalculateFunding.Services.Calculator
         public ProviderResultsRepository(CosmosRepository cosmosRepository, 
             ISearchRepository<CalculationProviderResultsIndex> searchRepository, ILogger logger)
         {
+            Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
+            Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+
             _cosmosRepository = cosmosRepository;
             _searchRepository = searchRepository;
             _logger = logger;
@@ -74,7 +78,7 @@ namespace CalculateFunding.Services.Calculator
 
             IEnumerable<IndexError> indexErrors = await _searchRepository.Index(results);
 
-            if (indexErrors.Any())
+            if (!indexErrors.IsNullOrEmpty())
             {
                 _logger.Error($"Failed to index provider results with the following errors: {string.Join(";", indexErrors.Select(m => m.ErrorMessage))}");
             }

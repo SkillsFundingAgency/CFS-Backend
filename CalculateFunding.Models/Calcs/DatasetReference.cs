@@ -16,5 +16,8 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("definesScope")]
         public bool DefinesScope { get; set; }
+
+        [JsonProperty("datasetId")]
+        public string DatasetId { get; set; }
     }
 }

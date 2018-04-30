@@ -88,6 +88,8 @@ namespace CalculateFunding.Functions.CalcEngine
 
             builder.AddTelemetry();
 
+            builder.AddSearch(config);
+
             builder.AddPolicySettings(config);
 
             builder.AddSingleton<ICalculatorResiliencePolicies>((ctx) =>

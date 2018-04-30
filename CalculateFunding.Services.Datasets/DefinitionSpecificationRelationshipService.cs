@@ -120,28 +120,6 @@ namespace CalculateFunding.Services.Datasets
                 },
                 properties);
 
-            //properties = CreateMessageProperties(request);
-
-            //properties.Add("specification-id", specification.Id);
-
-            //try
-            //{
-            //    await _messengerService.SendAsync(updateBuildProjectWithNewRelationship,
-            //       new DatasetRelationshipSummary
-            //       {
-            //           Name = relationship.Name,
-            //           Id = Guid.NewGuid().ToString(),
-            //           Relationship = new Reference(relationship.Id, relationship.Name),
-            //           DatasetDefinition = definition,
-            //           DataGranularity = relationship.UsedInDataAggregations ? DataGranularity.MultipleRowsPerProvider : DataGranularity.SingleRowPerProvider,
-            //           DefinesScope = relationship.IsSetAsProviderData
-            //       },
-            //       properties);
-            //}
-            //catch(Exception ex)
-            //{
-            //    _logger.Error(ex, $"Failed to send message to {updateBuildProjectWithNewRelationship}");
-            //}
 
             DatasetRelationshipSummary relationshipSummary = new DatasetRelationshipSummary
             {
@@ -154,9 +132,6 @@ namespace CalculateFunding.Services.Datasets
             };
 
             BuildProject buildProject = await _calcsRepository.UpdateBuildProjectRelationships(specification.Id, relationshipSummary);
-
-
-            //should put a check here, will do when i get time!
 
             return new OkObjectResult(relationship);
         }
