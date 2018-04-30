@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 
 namespace CalculateFunding.Repositories.Common.Search.Results
 {
@@ -6,7 +7,7 @@ namespace CalculateFunding.Repositories.Common.Search.Results
     {
         public string Id { get; set; }
 
-        public double CaclulationResult { get; set; }
+        public double CalculationResult { get; set; }
 
         public string SpecificationId { get; set; }
 
@@ -26,6 +27,7 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 
         public string ProviderId { get; set; }
 
+        [JsonProperty("name")]
         public string ProviderName { get; set; }
 
         public DateTimeOffset LastUpdatedDate { get; set; }

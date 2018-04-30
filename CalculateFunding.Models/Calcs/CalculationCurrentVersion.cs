@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CalculateFunding.Models.Results;
+using System;
 
 namespace CalculateFunding.Models.Calcs
 {
@@ -21,5 +22,7 @@ namespace CalculateFunding.Models.Calcs
         public int Version { get; set; }
 
         public string CalculationType { get; set; }
+
+        public SpecificationSummary Specification { get; set; }
     }
 }
