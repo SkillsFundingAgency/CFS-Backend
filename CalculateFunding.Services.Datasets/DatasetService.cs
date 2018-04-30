@@ -28,6 +28,7 @@ using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -52,6 +53,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly ITelemetry _telemetry;
 
         const string dataset_cache_key_prefix = "ds-table-rows";
+        
         const string generateAllocationsSubscription = "calc-events-generate-allocations-results";
         const string GenerateAllocationsInstructionSubscription = "calc-events-instruct-generate-allocations";
 
@@ -599,6 +601,8 @@ namespace CalculateFunding.Services.Datasets
 
             var resultsByProviderId = new Dictionary<string, ProviderSourceDataset>();
 
+            List<ProviderSummary> scopedSummariesTocache = new List<ProviderSummary>();
+
             foreach (RowLoadResult row in loadResult.Rows)
             {
                 IEnumerable<string> allProviderIds = (await GetProviderIdsForIdentifier(datasetDefinition, row));
@@ -628,8 +632,17 @@ namespace CalculateFunding.Services.Datasets
                     }
 
                     sourceDataset.Current.Rows.Add(row.Fields);
+
+                    ProviderSummary providerSummary = _providerSummaries.FirstOrDefault(m => m.Id == providerId);
+                    if(providerSummary != null)
+                    {
+                        scopedSummariesTocache.Add(providerSummary);
+                    }
                 }
             }
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{dataset.Id}";
+
+            await _cacheProvider.SetAsync<List<ProviderSummary>>(cacheKey, scopedSummariesTocache, TimeSpan.FromDays(7), true);
 
             await _providersResultsRepository.UpdateSourceDatsets(resultsByProviderId.Values, specificationId);
         }

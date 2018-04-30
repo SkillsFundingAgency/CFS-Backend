@@ -2,6 +2,7 @@
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.Core.Helpers;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -28,9 +29,8 @@ namespace CalculateFunding.Services.Calculator
         {
             IEnumerable<KeyValuePair<string, ProviderResult>> results = providerResults.Select(m => new KeyValuePair<string, ProviderResult>(m.Provider.Id, m));
 
-            await _cosmosRepository.BulkCreateAsync(results, degreeOfParallelism);
-
-            await UpdateSearch(providerResults);
+            await TaskHelper.WhenAllAndThrow(
+                _cosmosRepository.BulkCreateAsync(results, degreeOfParallelism), UpdateSearch(providerResults));
         }
 
         async Task UpdateSearch(IEnumerable<ProviderResult> providerResults)
@@ -39,32 +39,35 @@ namespace CalculateFunding.Services.Calculator
 
             foreach(ProviderResult providerResult in providerResults)
             {
-                foreach(CalculationResult calculationResult in providerResult.CalculationResults)
+                if (!providerResult.CalculationResults.IsNullOrEmpty())
                 {
-                    if (calculationResult.Value.HasValue)
+                    foreach (CalculationResult calculationResult in providerResult.CalculationResults)
                     {
-                        results.Add(new CalculationProviderResultsIndex
+                        if (calculationResult.Value.HasValue)
                         {
-                            SpecificationId = providerResult.Specification.Id,
-                            SpecificationName = providerResult.Specification.Name,
-                            CalculationSpecificationId = calculationResult.CalculationSpecification.Id,
-                            CalculationSpecificationName = calculationResult.CalculationSpecification.Name,
-                            CalculationName = calculationResult.Calculation.Name,
-                            CalculationId = calculationResult.Calculation.Id,
-                            CalculationType = calculationResult.CalculationType.ToString(),
-                            ProviderId = providerResult.Provider.Id,
-                            ProviderName = providerResult.Provider.Name,
-                            ProviderType = providerResult.Provider.ProviderType,
-                            ProviderSubType = providerResult.Provider.ProviderSubType,
-                            LocalAuthority = providerResult.Provider.Authority,
-                            LastUpdatedDate = DateTimeOffset.Now,
-                            UKPRN = providerResult.Provider.UKPRN,
-                            URN = providerResult.Provider.URN,
-                            UPIN = providerResult.Provider.UPIN,
-                            EstablishmentNumber = providerResult.Provider.EstablishmentNumber,
-                            OpenDate = providerResult.Provider.DateOpened,
-                            CaclulationResult = calculationResult.Value.HasValue ? Convert.ToDouble(calculationResult.Value) : 0
-                        });
+                            results.Add(new CalculationProviderResultsIndex
+                            {
+                                SpecificationId = providerResult.Specification?.Id,
+                                SpecificationName = providerResult.Specification?.Name,
+                                CalculationSpecificationId = calculationResult.CalculationSpecification?.Id,
+                                CalculationSpecificationName = calculationResult.CalculationSpecification?.Name,
+                                CalculationName = calculationResult.Calculation?.Name,
+                                CalculationId = calculationResult.Calculation?.Id,
+                                CalculationType = calculationResult.CalculationType.ToString(),
+                                ProviderId = providerResult.Provider?.Id,
+                                ProviderName = providerResult.Provider?.Name,
+                                ProviderType = providerResult.Provider?.ProviderType,
+                                ProviderSubType = providerResult.Provider?.ProviderSubType,
+                                LocalAuthority = providerResult.Provider?.Authority,
+                                LastUpdatedDate = DateTimeOffset.Now,
+                                UKPRN = providerResult.Provider?.UKPRN,
+                                URN = providerResult.Provider?.URN,
+                                UPIN = providerResult.Provider?.UPIN,
+                                EstablishmentNumber = providerResult.Provider?.EstablishmentNumber,
+                                OpenDate = providerResult.Provider?.DateOpened,
+                                CaclulationResult = calculationResult.Value.HasValue ? Convert.ToDouble(calculationResult.Value) : 0
+                            });
+                        }
                     }
                 }
             }

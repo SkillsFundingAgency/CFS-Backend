@@ -11,5 +11,7 @@ namespace CalculateFunding.Services.Core.Caching
         public const string GherkinParseResult = "gherkin-parse-result:";
 
         public const string ProviderResultBatch = "provider-results-batch:";
+
+        public const string ScopedProviderSummariesPrefix = "scoped-provider-summaries:";
     }
 }
