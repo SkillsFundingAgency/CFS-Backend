@@ -285,7 +285,7 @@ namespace CalculateFunding.Services.Datasets
                 _logger.Error(exception, $"Failed to process data with exception: {exception.Message}");
             }
 
-            if (buildProject != null)
+            if (buildProject != null && !buildProject.DatasetRelationships.IsNullOrEmpty() && buildProject.DatasetRelationships.Any(m => m.DefinesScope))
             {
                 IDictionary<string, string> messageProperties = message.BuildMessageProperties();
                 messageProperties.Add("specification-id", specificationId);

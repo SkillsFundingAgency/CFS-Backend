@@ -142,25 +142,22 @@ namespace CalculateFunding.Services.Calcs
                 properties.Add("ignore-save-provider-results", "true");
             }
 
-            int totalCount = 0;
-
             string cacheKey = "all-cached-providers";
 
-            if(message.UserProperties.ContainsKey("provider-cache-key") && message.UserProperties["provider-cache-key"].ToString() != cacheKey)
+            if(message.UserProperties.ContainsKey("provider-cache-key"))
             {
                 cacheKey = message.UserProperties["provider-cache-key"].ToString();
-                totalCount = (int)(await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKey));
             }
-            else
-            {
-                totalCount = await _providerResultsRepository.LoadAllProvidersFromSearch();
-            }
-           
+
+            int totalCount = (int)(await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKey));
+
             const string providerSummariesPartitionIndex = "provider-summaries-partition-index";
 
             const string providerSummariesPartitionSize = "provider-summaries-partition-size";
 
             properties.Add(providerSummariesPartitionSize, MaxPartitionSize.ToString());
+
+            properties.Add("provider-cache-key", cacheKey);
 
             for (int partitionIndex = 0; partitionIndex < totalCount; partitionIndex += MaxPartitionSize)
             {
@@ -176,10 +173,6 @@ namespace CalculateFunding.Services.Calcs
 
                 await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, buildProject, properties);
             }
-            
-            properties.Add("provider-cache-key", cacheKey);
-
-            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, buildProject, properties);
         }
 
         public async Task<IActionResult> UpdateBuildProjectRelationships(HttpRequest request)
