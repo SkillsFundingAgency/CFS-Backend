@@ -172,9 +172,9 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
         }
 
-        public async Task<IEnumerable<DocumentEntity<T>>> GetAllDocumentsAsync<T>(int maxItemCount = 1000, Expression<Func<DocumentEntity<T>, bool>> query = null) where T : IIdentifiable
+        public async Task<IEnumerable<DocumentEntity<T>>> GetAllDocumentsAsync<T>(int maxItemCount = 1000, Expression<Func<DocumentEntity<T>, bool>> query = null, bool enableCrossPartitionQuery = true) where T : IIdentifiable
         {
-            FeedOptions options = new FeedOptions() { MaxItemCount = maxItemCount };
+            FeedOptions options = new FeedOptions() { MaxItemCount = maxItemCount, EnableCrossPartitionQuery = enableCrossPartitionQuery };
 
             List<DocumentEntity<T>> allResults = new List<DocumentEntity<T>>();
 
