@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.Calculator
 
             if (message.UserProperties.ContainsKey("provider-cache-key"))
             {
-                message.UserProperties["provider-cache-key"].ToString();
+                cacheKey = message.UserProperties["provider-cache-key"].ToString();
             }
 
             summaries = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.ListRangeAsync<ProviderSummary>(cacheKey, start, stop));
