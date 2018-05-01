@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Datasets
             _cacheProvider = cacheProvider;
         }
 
-        async public Task UpdateSourceDatsets(IEnumerable<ProviderSourceDataset> providerSourceDatasets, string specificationId)
+        public async Task UpdateSourceDatsets(IEnumerable<ProviderSourceDataset> providerSourceDatasets, string specificationId)
         {
             try
             {
@@ -37,7 +37,13 @@ namespace CalculateFunding.Services.Datasets
                 }
             }
         }
-
         
+        public async Task<IEnumerable<string>> GetAllProviderIdsForSpecificationid(string specificationId)
+        {
+            IEnumerable<DocumentEntity<ProviderSourceDataset>> providerSourceDatasets = await _cosmosRepository.GetAllDocumentsAsync<ProviderSourceDataset>(query: m => m.Deleted && m.Content.Specification.Id == specificationId);
+
+            return providerSourceDatasets.Select(m => m.Content.Provider.Id);
+
+        }
     }
 }

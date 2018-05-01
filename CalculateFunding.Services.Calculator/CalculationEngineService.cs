@@ -123,6 +123,8 @@ namespace CalculateFunding.Services.Calculator
 
             string specificationId = buildProject.Specification.Id;
 
+            IEnumerable<ProviderSummary> summaries = null;
+
             if (buildProject == null)
             {
                 _logger.Error("A null build project was provided to GenrateAllocations");
@@ -147,6 +149,7 @@ namespace CalculateFunding.Services.Calculator
             int partitionIndex = int.Parse(message.UserProperties["provider-summaries-partition-index"].ToString());
 
             int partitionSize = int.Parse(message.UserProperties["provider-summaries-partition-size"].ToString());
+
             if (partitionSize <= 0)
             {
                 _logger.Error("Partition size is zero or less. {partitionSize}", partitionSize);
@@ -158,9 +161,14 @@ namespace CalculateFunding.Services.Calculator
 
             int stop = start + partitionSize - 1;
 
-            IEnumerable<ProviderSummary> summaries = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.ListRangeAsync<ProviderSummary>("all-cached-providers", start, stop));
+            string cacheKey = "all-cached-providers";
 
-            //if summaries = null, shouldnt be!!, but if is then get from search
+            if (message.UserProperties.ContainsKey("provider-cache-key"))
+            {
+                message.UserProperties["provider-cache-key"].ToString();
+            }
+
+            summaries = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.ListRangeAsync<ProviderSummary>(cacheKey, start, stop));
 
             IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(buildProject);
 

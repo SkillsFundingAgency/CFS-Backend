@@ -66,6 +66,8 @@ namespace CalculateFunding.Services.Datasets
             if (providersFromSearch.IsNullOrEmpty())
             {
                 providersFromSearch = (await LoadAllProvidersFromSearch()).ToList();
+
+                await _cacheProvider.SetAsync<List<ProviderSummary>>(cachedProvidersKey, providersFromSearch, TimeSpan.FromDays(7), true);
             }
 
             return providersFromSearch;

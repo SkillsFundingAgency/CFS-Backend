@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
@@ -171,15 +172,25 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
         }
 
-        public async Task<IEnumerable<DocumentEntity<T>>> GetAllDocumentsAsync<T>(int maxItemCount = 1000) where T : IIdentifiable
+        public async Task<IEnumerable<DocumentEntity<T>>> GetAllDocumentsAsync<T>(int maxItemCount = 1000, Expression<Func<DocumentEntity<T>, bool>> query = null) where T : IIdentifiable
         {
             FeedOptions options = new FeedOptions() { MaxItemCount = maxItemCount };
 
             List<DocumentEntity<T>> allResults = new List<DocumentEntity<T>>();
 
-            IDocumentQuery<DocumentEntity<T>> queryable = _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, options)
-                .Where(d=>d.DocumentType == GetDocumentType<T>())
-                .AsDocumentQuery();
+            IDocumentQuery<DocumentEntity<T>> queryable = null;
+
+            if (query == null) {
+                queryable = _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, options)
+                    .Where(d => d.DocumentType == GetDocumentType<T>())
+                    .AsDocumentQuery();
+            }
+            else
+            {
+                queryable = _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, options)
+                    .Where(query)
+                    .AsDocumentQuery();
+            }
 
             while (queryable.HasMoreResults)
             {

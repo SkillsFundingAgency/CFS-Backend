@@ -289,6 +289,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 IDictionary<string, string> messageProperties = message.BuildMessageProperties();
                 messageProperties.Add("specification-id", specificationId);
+                messageProperties.Add("provider-cache-key", $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}");
 
                 await _messengerService.SendToQueue(GenerateAllocationsInstructionSubscription,
                         buildProject, messageProperties);
@@ -601,8 +602,6 @@ namespace CalculateFunding.Services.Datasets
 
             var resultsByProviderId = new Dictionary<string, ProviderSourceDataset>();
 
-            List<ProviderSummary> scopedSummariesTocache = new List<ProviderSummary>();
-
             foreach (RowLoadResult row in loadResult.Rows)
             {
                 IEnumerable<string> allProviderIds = (await GetProviderIdsForIdentifier(datasetDefinition, row));
@@ -632,19 +631,34 @@ namespace CalculateFunding.Services.Datasets
                     }
 
                     sourceDataset.Current.Rows.Add(row.Fields);
-
-                    ProviderSummary providerSummary = _providerSummaries.FirstOrDefault(m => m.Id == providerId);
-                    if(providerSummary != null)
-                    {
-                        scopedSummariesTocache.Add(providerSummary);
-                    }
                 }
             }
-            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{dataset.Id}";
-
-            await _cacheProvider.SetAsync<List<ProviderSummary>>(cacheKey, scopedSummariesTocache, TimeSpan.FromDays(7), true);
-
+  
+           
             await _providersResultsRepository.UpdateSourceDatsets(resultsByProviderId.Values, specificationId);
+
+            await PopulateProviderSummariesForSpecification(specificationId, _providerSummaries);
+        }
+
+        async Task PopulateProviderSummariesForSpecification(string specificationId, IEnumerable<ProviderSummary> allCachedProviders)
+        {
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            IEnumerable<string> providerIds = await _providersResultsRepository.GetAllProviderIdsForSpecificationid(specificationId);
+
+            IList<ProviderSummary> providerSummaries = new List<ProviderSummary>();
+
+            foreach(string providerId in providerIds)
+            {
+                ProviderSummary cachedProvider = allCachedProviders.FirstOrDefault(m => m.Id == providerId);
+
+                if(cachedProvider != null)
+                {
+                    providerSummaries.Add(cachedProvider);
+                }
+            }
+
+            await _cacheProvider.CreateListAsync<ProviderSummary>(providerSummaries, cacheKey);
         }
 
         async Task<TableLoadResult> GetTableResult(string fullBlobName, DatasetDefinition datasetDefinition)

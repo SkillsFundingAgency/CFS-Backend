@@ -22,6 +22,8 @@ using CalculateFunding.Services.Core.Interfaces.Logging;
 using Newtonsoft.Json;
 using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -39,6 +41,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICompilerFactory _compilerFactory;
         private readonly ISourceFileGeneratorProvider _sourceFileGeneratorProvider;
         private readonly ISourceFileGenerator _sourceFileGenerator;
+        private readonly ICacheProvider _cacheProvider;
 
         public BuildProjectsService(
             IBuildProjectsRepository buildProjectsRepository,
@@ -49,7 +52,8 @@ namespace CalculateFunding.Services.Calcs
             IProviderResultsRepository providerResultsRepository,
             ISpecificationRepository specificationsRepository,
             ISourceFileGeneratorProvider sourceFileGeneratorProvider,
-            ICompilerFactory compilerFactory)
+            ICompilerFactory compilerFactory,
+            ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -60,6 +64,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(sourceFileGeneratorProvider, nameof(sourceFileGeneratorProvider));
             Guard.ArgumentNotNull(compilerFactory, nameof(compilerFactory));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
 
             _buildProjectsRepository = buildProjectsRepository;
             _messengerService = messengerService;
@@ -71,6 +76,7 @@ namespace CalculateFunding.Services.Calcs
             _compilerFactory = compilerFactory;
             _sourceFileGeneratorProvider = sourceFileGeneratorProvider;
             _sourceFileGenerator = sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
+            _cacheProvider = cacheProvider;
         }
 
         public async Task UpdateAllocations(Message message)
@@ -131,22 +137,34 @@ namespace CalculateFunding.Services.Calcs
 
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
-            int totalCount = await _providerResultsRepository.LoadAllProvidersFromSearch();
+            if (message.UserProperties.ContainsKey("ignore-save-provider-results"))
+            {
+                properties.Add("ignore-save-provider-results", "true");
+            }
 
+            int totalCount = 0;
+
+            string cacheKey = "all-cached-providers";
+
+            if(message.UserProperties.ContainsKey("provider-cache-key") && message.UserProperties["provider-cache-key"].ToString() != cacheKey)
+            {
+                cacheKey = message.UserProperties["provider-cache-key"].ToString();
+                totalCount = (int)(await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKey));
+            }
+            else
+            {
+                totalCount = await _providerResultsRepository.LoadAllProvidersFromSearch();
+            }
+           
             const string providerSummariesPartitionIndex = "provider-summaries-partition-index";
 
             const string providerSummariesPartitionSize = "provider-summaries-partition-size";
 
             properties.Add(providerSummariesPartitionSize, MaxPartitionSize.ToString());
 
-            if (message.UserProperties.ContainsKey("ignore-save-provider-results"))
-            {
-                properties.Add("ignore-save-provider-results", "true");
-            }
-
             for (int partitionIndex = 0; partitionIndex < totalCount; partitionIndex += MaxPartitionSize)
             {
-                
+
                 if (properties.ContainsKey(providerSummariesPartitionIndex))
                 {
                     properties[providerSummariesPartitionIndex] = partitionIndex.ToString();
@@ -156,9 +174,12 @@ namespace CalculateFunding.Services.Calcs
                     properties.Add(providerSummariesPartitionIndex, partitionIndex.ToString());
                 }
 
-
                 await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, buildProject, properties);
             }
+            
+            properties.Add("provider-cache-key", cacheKey);
+
+            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, buildProject, properties);
         }
 
         public async Task<IActionResult> UpdateBuildProjectRelationships(HttpRequest request)

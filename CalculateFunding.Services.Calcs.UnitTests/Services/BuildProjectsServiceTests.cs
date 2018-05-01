@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -653,12 +654,12 @@ namespace CalculateFunding.Services.Calcs.Services
         static BuildProjectsService CreateBuildProjectsService(IBuildProjectsRepository buildProjectsRepository = null, IMessengerService messengerService = null,
             ServiceBusSettings EventHubSettings = null, ILogger logger = null, ITelemetry telemetry = null,
             Interfaces.IProviderResultsRepository providerResultsRepository = null, ISpecificationRepository specificationsRepository = null, ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
-            ICompilerFactory compilerFactory = null)
+            ICompilerFactory compilerFactory = null, ICacheProvider caheProvider = null)
         {
             return new BuildProjectsService(buildProjectsRepository ?? CreateBuildProjectsRepository(), messengerService ?? CreateMessengerService(),
                 EventHubSettings ?? CreateEventHubSettings(), logger ?? CreateLogger(), telemetry ?? CreateTelemetry(),
                 providerResultsRepository ?? CreateProviderResultsRepository(), specificationsRepository ?? CreateSpecificationRepository(),
-                sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(), compilerFactory ?? CreateCompilerfactory());
+                sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(), compilerFactory ?? CreateCompilerfactory(), caheProvider ?? CreateCacheProvider());
         }
 
         static Message CreateMessage(string specificationId = SpecificationId)
@@ -689,6 +690,11 @@ namespace CalculateFunding.Services.Calcs.Services
         static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
+        }
+
+        static ICacheProvider CreateCacheProvider()
+        {
+            return Substitute.For<ICacheProvider>();
         }
 
         static IMessengerService CreateMessengerService()
