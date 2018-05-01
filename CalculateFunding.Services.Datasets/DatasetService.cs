@@ -230,6 +230,74 @@ namespace CalculateFunding.Services.Datasets
             return actionResult;
         }
 
+        async public Task<IActionResult> ProcessDataset(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            Dataset dataset = JsonConvert.DeserializeObject<Dataset>(json );
+
+            request.Query.TryGetValue("specificationId", out var specId);
+
+            var specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error($"No {nameof(specificationId)}");
+
+                return new BadRequestObjectResult($"Null or empty {nameof(specificationId)} provided");
+            }
+
+            request.Query.TryGetValue("relationshipId", out var relId);
+
+            var relationshipId = relId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(relationshipId))
+            {
+                _logger.Error($"No {nameof(relationshipId)}");
+
+                return new BadRequestObjectResult($"Null or empty {nameof(relationshipId)} provided");
+            }
+
+            BuildProject buildProject = null;
+
+            try
+            {
+                buildProject = await ProcessDataset(dataset, specificationId, relationshipId);
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"Failed to process data with exception: {exception.Message}");
+            }
+
+            if (buildProject != null && !buildProject.DatasetRelationships.IsNullOrEmpty() && buildProject.DatasetRelationships.Any(m => m.DefinesScope))
+            {
+                Message message = new Message();
+
+                IDictionary<string, string> messageProperties = message.BuildMessageProperties();
+                messageProperties.Add("specification-id", specificationId);
+                messageProperties.Add("provider-cache-key", $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}");
+
+                await _messengerService.SendToQueue(GenerateAllocationsInstructionSubscription,
+                        buildProject, messageProperties);
+
+                _telemetry.TrackEvent("InstructCalculationAllocationEventRun",
+                      new Dictionary<string, string>()
+                      {
+                            { "specificationId" , buildProject.Specification.Id },
+                            { "buildProjectId" , buildProject.Id },
+                            { "datasetId", dataset.Id }
+                      },
+                      new Dictionary<string, double>()
+                      {
+                            { "InstructCalculationAllocationEventRunDataset" , 1 },
+                            { "InstructCalculationAllocationEventRun" , 1 }
+                      }
+                );
+            }
+
+            return new OkResult();
+        }
+
 	    async public Task ProcessDataset(Message message)
 	    {
             Guard.ArgumentNotNull(message, nameof(message));

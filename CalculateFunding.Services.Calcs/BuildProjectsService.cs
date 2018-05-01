@@ -142,11 +142,15 @@ namespace CalculateFunding.Services.Calcs
                 properties.Add("ignore-save-provider-results", "true");
             }
 
-            string cacheKey = "all-cached-providers";
+            string cacheKey = "";
 
             if(message.UserProperties.ContainsKey("provider-cache-key"))
             {
                 cacheKey = message.UserProperties["provider-cache-key"].ToString();
+            }
+            else
+            {
+                cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
             }
 
             int totalCount = (int)(await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKey));

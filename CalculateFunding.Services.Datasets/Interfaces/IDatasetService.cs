@@ -18,5 +18,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> GetDatasetsByDefinitionId(HttpRequest request);
 
         Task<IActionResult> DownloadDatasetFile(HttpRequest request);
+
+        Task<IActionResult> ProcessDataset(HttpRequest request);
     }
 }

@@ -162,5 +162,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _datasetService.DownloadDatasetFile(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/datasets/process-dataset")]
+        [HttpPost]
+        public Task<IActionResult> RunProcessDataset()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _datasetService.ProcessDataset(ControllerContext.HttpContext.Request);
+        }
     }
 }
