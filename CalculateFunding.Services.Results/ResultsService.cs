@@ -255,6 +255,21 @@ namespace CalculateFunding.Services.Results
             return new OkObjectResult(providerResults);
         }
 
+        public async Task<IActionResult> GetScopedProviderIdsBySpecificationId(HttpRequest request)
+        {
+            var specificationId = GetParameter(request, "specificationId");
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to GetProviderResultsBySpecificationId");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            IEnumerable<string> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetRepository.GetAllScopedProviderIdsForSpecificationid(specificationId));
+
+            return new OkObjectResult(providerResults);
+        }
+
         public async Task<IActionResult> ReIndexCalculationProviderResults()
         {
             IEnumerable<DocumentEntity<ProviderResult>> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetAllProviderResults());

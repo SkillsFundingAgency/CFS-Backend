@@ -146,6 +146,13 @@ namespace CalculateFunding.Services.Calculator
                 throw new KeyNotFoundException("Provider summaries partition size key not found in message properties");
             }
 
+            if (!message.UserProperties.ContainsKey("provider-cache-key"))
+            {
+                _logger.Error("Provider cache key not found");
+
+                throw new KeyNotFoundException("Provider cache key not found");
+            }
+
             int partitionIndex = int.Parse(message.UserProperties["provider-summaries-partition-index"].ToString());
 
             int partitionSize = int.Parse(message.UserProperties["provider-summaries-partition-size"].ToString());
@@ -161,12 +168,7 @@ namespace CalculateFunding.Services.Calculator
 
             int stop = start + partitionSize - 1;
 
-            string cacheKey = "all-cached-providers";
-
-            if (message.UserProperties.ContainsKey("provider-cache-key"))
-            {
-                cacheKey = message.UserProperties["provider-cache-key"].ToString();
-            }
+            string cacheKey = message.UserProperties["provider-cache-key"].ToString();
 
             summaries = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.ListRangeAsync<ProviderSummary>(cacheKey, start, stop));
 
@@ -185,8 +187,9 @@ namespace CalculateFunding.Services.Calculator
                 IList<string> providerIdList = partitionedSummaries.Select(m => m.Id).ToList();
 
                 Stopwatch providerSourceDatasetsStopwatch = Stopwatch.StartNew();
-                // Convert to list to ensure no deferred execution in cosmos
+
                 List<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>(await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIdList, specificationId)));
+
                 providerSourceDatasetsStopwatch.Stop();
 
                 if (providerSourceDatasets == null)

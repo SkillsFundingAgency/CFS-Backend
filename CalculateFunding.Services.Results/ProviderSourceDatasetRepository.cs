@@ -28,5 +28,12 @@ namespace CalculateFunding.Services.Results
 
             return Task.FromResult(results.AsEnumerable());
         }
+
+        public async Task<IEnumerable<string>> GetAllScopedProviderIdsForSpecificationid(string specificationId)
+        {
+            IEnumerable<DocumentEntity<ProviderSourceDataset>> providerSourceDatasets = await _cosmosRepository.GetAllDocumentsAsync<ProviderSourceDataset>(query: m => !m.Deleted && m.Content.Specification.Id == specificationId && m.DocumentType == nameof(ProviderSourceDataset));
+
+            return providerSourceDatasets.Select(m => m.Content.Provider.Id);
+        }
     }
 }

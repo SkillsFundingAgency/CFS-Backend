@@ -10,5 +10,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<HttpStatusCode> UpsertProviderSourceDataset(ProviderSourceDataset providerSourceDataset);
 
         Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasets(string providerId, string specificationId);
+
+        Task<IEnumerable<string>> GetAllScopedProviderIdsForSpecificationid(string specificationId);
     }
 }

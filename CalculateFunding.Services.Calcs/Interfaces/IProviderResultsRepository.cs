@@ -22,5 +22,9 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         // Task<int> PartitionProviderSummaries(int partitionSize);
 
         Task<int> LoadAllProvidersFromSearch();
+
+        Task<IEnumerable<string>> GetScopedProviderIds(string specificationId);
+
+        Task PopulateProviderSummariesForSpecification(string specificationId);
     }
 }

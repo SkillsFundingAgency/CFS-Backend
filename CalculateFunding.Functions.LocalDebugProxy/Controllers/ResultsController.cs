@@ -98,5 +98,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _calculationProviderResultsSearchService.SearchCalculationProviderResults(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/results/get-scoped-providerids")]
+        [HttpGet]
+        public Task<IActionResult> RunGetScopedProviderIds()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _resultsService.GetScopedProviderIdsBySpecificationId(ControllerContext.HttpContext.Request);
+        }
     }
 }

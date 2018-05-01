@@ -83,6 +83,18 @@ namespace CalculateFunding.Functions.Results.Http
             }
         }
 
+        [FunctionName("get-scoped-providerids")]
+        public static Task<IActionResult> RunGetScopedproviderIds(
+           [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IResultsService svc = scope.ServiceProvider.GetService<IResultsService>();
+
+                return svc.GetScopedProviderIdsBySpecificationId(req);
+            }
+        }
+
         [FunctionName("reindex-calc-provider-results")]
         public static Task<IActionResult> RunReIndexCalculationProviderResults(
           [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)

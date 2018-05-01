@@ -15,5 +15,6 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IActionResult> UpdateProviderSourceDataset(HttpRequest request);
         Task<IActionResult> GetProviderSourceDatasetsByProviderIdAndSpecificationId(HttpRequest request);
         Task<IActionResult> ReIndexCalculationProviderResults();
+        Task<IActionResult> GetScopedProviderIdsBySpecificationId(HttpRequest request);
     }
 }

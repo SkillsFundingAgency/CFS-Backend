@@ -153,6 +153,13 @@ namespace CalculateFunding.Services.Calcs
                 cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
             }
 
+            bool summariesExist = await _cacheProvider.KeyExists<ProviderSummary>(cacheKey);
+
+            if (!summariesExist)
+            {
+                await _providerResultsRepository.PopulateProviderSummariesForSpecification(specificationId);
+            }
+
             int totalCount = (int)(await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKey));
 
             const string providerSummariesPartitionIndex = "provider-summaries-partition-index";
