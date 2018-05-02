@@ -145,7 +145,7 @@
         "sku": {
           "name": "basic"
         },
-        "replicaCount": "1",
+        "replicaCount": "3",
         "partitionCount": "1"
       }
     },
