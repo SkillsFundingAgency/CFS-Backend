@@ -154,7 +154,9 @@ namespace CalculateFunding.Services.Datasets
             Dataset dataset = await _datasetRepository.GetDatasetByDatasetId(model.DatasetId);
             if (dataset == null)
             {
-                return new PreconditionFailedResult("Dataset not found");
+                _logger.Warning("Dataset was not found with ID {datasetId} when trying to add new dataset version", model.DatasetId);
+
+                return new PreconditionFailedResult($"Dataset was not found with ID {model.DatasetId} when trying to add new dataset version");
             }
 
             int nextVersion = dataset.GetNextVersion();
@@ -286,7 +288,7 @@ namespace CalculateFunding.Services.Datasets
                 catch (Exception exception)
                 {
                     _logger.Error(exception, "Failed to save the dataset or dataset version");
-                    return new StatusCodeResult(500);
+                    return new InternalServerErrorResult($"Failed to save the dataset or dataset version. {exception.Message}");
                 }
             }
 
@@ -669,7 +671,7 @@ namespace CalculateFunding.Services.Datasets
 
             if (!statusCode.IsSuccess())
             {
-                _logger.Error($"Failed to save dataset for id: {model.DatasetId} with status code {statusCode.ToString()}");
+                _logger.Warning($"Failed to save dataset for id: {model.DatasetId} with status code {statusCode.ToString()}");
 
                 throw new Exception($"Failed to save dataset for id: {model.DatasetId} with status code {statusCode.ToString()}");
             }
@@ -680,7 +682,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 string errors = string.Join(";", indexErrors.Select(m => m.ErrorMessage).ToArraySafe());
 
-                _logger.Error($"Failed to save dataset for id: {model.DatasetId} in search with errors {errors}");
+                _logger.Warning($"Failed to save dataset for id: {model.DatasetId} in search with errors {errors}");
 
                 throw new Exception($"Failed to save dataset for id: {model.DatasetId} in search with errors {errors}");
             }

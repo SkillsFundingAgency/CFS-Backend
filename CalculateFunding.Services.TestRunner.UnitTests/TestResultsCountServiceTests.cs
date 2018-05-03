@@ -132,7 +132,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             ILogger logger = CreateLogger();
 
-            ITestResultsSearchService searchService = CreatetestResultsSearchService();
+            ITestResultsSearchService searchService = CreateTestResultsSearchService();
             searchService
                 .SearchTestScenarioResults(Arg.Any<SearchModel>())
                 .Returns((TestScenarioSearchResults)null);
@@ -180,7 +180,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             TestScenarioSearchResults testScenarioSearchResults1 = new TestScenarioSearchResults();
             TestScenarioSearchResults testScenarioSearchResults2 = new TestScenarioSearchResults();
 
-            ITestResultsSearchService searchService = CreatetestResultsSearchService();
+            ITestResultsSearchService searchService = CreateTestResultsSearchService();
             searchService
                 .SearchTestScenarioResults(Arg.Any<SearchModel>())
                 .Returns(testScenarioSearchResults1, testScenarioSearchResults2);
@@ -242,7 +242,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 }
             };
 
-            ITestResultsSearchService searchService = CreatetestResultsSearchService();
+            ITestResultsSearchService searchService = CreateTestResultsSearchService();
             searchService
                 .SearchTestScenarioResults(Arg.Any<SearchModel>())
                 .Returns(testScenarioSearchResults1, testScenarioSearchResults2);
@@ -319,7 +319,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 }
             };
 
-            ITestResultsSearchService searchService = CreatetestResultsSearchService();
+            ITestResultsSearchService searchService = CreateTestResultsSearchService();
             searchService
                 .SearchTestScenarioResults(Arg.Any<SearchModel>())
                 .Returns(testScenarioSearchResults1, testScenarioSearchResults2);
@@ -380,7 +380,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 }
             };
 
-            ITestResultsSearchService searchService = CreatetestResultsSearchService();
+            ITestResultsSearchService searchService = CreateTestResultsSearchService();
             searchService
                 .SearchTestScenarioResults(Arg.Any<SearchModel>())
                 .Returns(testScenarioSearchResults1);
@@ -463,7 +463,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 }
             };
 
-            ITestResultsSearchService searchService = CreatetestResultsSearchService();
+            ITestResultsSearchService searchService = CreateTestResultsSearchService();
             searchService
                 .SearchTestScenarioResults(Arg.Any<SearchModel>())
                 .Returns(testScenarioSearchResults1);
@@ -508,10 +508,10 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
         static TestResultsCountsService CreateResultCountsService(ITestResultsSearchService testResultsService = null, ILogger logger = null)
         {
-            return new TestResultsCountsService(testResultsService ?? CreatetestResultsSearchService(), logger ?? CreateLogger());
+            return new TestResultsCountsService(testResultsService ?? CreateTestResultsSearchService(), logger ?? CreateLogger());
         }
 
-        static ITestResultsSearchService CreatetestResultsSearchService()
+        static ITestResultsSearchService CreateTestResultsSearchService()
         {
             return Substitute.For<ITestResultsSearchService>();
         }

@@ -37,6 +37,8 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Repositories.Common.Cosmos;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -829,14 +831,10 @@ namespace CalculateFunding.Services.Datasets.Services
             //Assert
             result
                 .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = result as StatusCodeResult;
-
-            statusCodeResult
-                .StatusCode
-                .Should()
-                .Be(500);
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
+                .Should().Be("Failed to save the dataset or dataset version. Invalid metadata on blob: ");
 
             logger
                 .Received(1)
@@ -935,9 +933,9 @@ namespace CalculateFunding.Services.Datasets.Services
             //Assert
             result
                 .Should()
-                .BeOfType<StatusCodeResult>();
+                .BeOfType<InternalServerErrorResult>();
 
-            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+            InternalServerErrorResult statusCodeResult = result as InternalServerErrorResult;
 
             statusCodeResult
                 .StatusCode
@@ -1056,14 +1054,10 @@ namespace CalculateFunding.Services.Datasets.Services
             //Assert
             result
                 .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = result as StatusCodeResult;
-
-            statusCodeResult
-                .StatusCode
-                .Should()
-                .Be(500);
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
+                .Should().Be("Failed to save the dataset or dataset version. Failed to save dataset for id: dataset-id in search with errors ");
         }
 
         [TestMethod]
@@ -1250,9 +1244,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Body
                 .Returns(stream);
 
-            List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim(ClaimTypes.Sid, authorId));
-            claims.Add(new Claim(ClaimTypes.Name, authorName));
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Sid, authorId),
+                new Claim(ClaimTypes.Name, authorName)
+            };
 
             request
                 .HttpContext.User.Claims
@@ -1387,6 +1383,628 @@ namespace CalculateFunding.Services.Datasets.Services
                     d.First().Version == 2 &&
                     d.First().Description == updatedDescription
                     ));
+        }
+
+        [TestMethod]
+        public async Task ValidateDataset_GivenTableResultsAndMetadataValidatesAndProvidedVersionIsNotDeterminedToBeNext_ThenExceptionIsThrown()
+        {
+            //Arrange
+            const int providedNewDatasetVersion = 2;
+            const string filename = "ds.xlsx";
+
+            const string blobPath = "dataset-id/v2/ds.xlsx";
+
+            const string dataDefinitionId = "definition-id";
+            const string authorId = "author-id";
+            const string authorName = "author-name";
+            const string datasetId = "dataset-id";
+            const string name = "name";
+            const string initialDescription = "test description";
+            const string updatedDescription = "Updated description";
+            const string updateComment = "Update comment";
+
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+                {
+                    { "dataDefinitionId", dataDefinitionId },
+                    { "authorName", authorName },
+                    { "authorId", authorId },
+                    { "datasetId", datasetId },
+                    { "name", name },
+                    { "description", initialDescription },
+                };
+
+            GetDatasetBlobModel model = new GetDatasetBlobModel
+            {
+                DatasetId = datasetId,
+                Version = providedNewDatasetVersion,
+                Filename = "ds.xlsx",
+                Comment = updateComment,
+                Description = updatedDescription,
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Sid, authorId),
+                new Claim(ClaimTypes.Name, authorName)
+            };
+
+            request
+                .HttpContext.User.Claims
+                .Returns(claims.AsEnumerable());
+
+            ILogger logger = CreateLogger();
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            blob
+                .Name
+                .Returns(filename);
+
+            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = dataDefinitionId,
+                Name = "Dataset Definition Name",
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(datasetDefinitions);
+
+            datasetRepository
+                .SaveDataset(Arg.Any<Dataset>())
+                .Returns(HttpStatusCode.OK);
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
+            };
+
+            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
+            datasetReader
+                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
+                .Returns(tableLoadResults.ToList());
+
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
+
+            DatasetService service = CreateDatasetService(logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                excelDatasetReader: datasetReader,
+                 searchRepository: searchRepository);
+
+            DatasetVersion existingDatasetVersion1 = new DatasetVersion()
+            {
+                Version = 2,
+            };
+
+            DatasetVersion existingDatasetVersion2 = new DatasetVersion()
+            {
+                Version = 2,
+            };
+
+            Dataset existingDataset = new Dataset()
+            {
+                Id = datasetId,
+                Current = existingDatasetVersion2,
+                History = new List<DatasetVersion>() {
+                    existingDatasetVersion1,
+                    existingDatasetVersion2,
+                },
+                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Description = initialDescription,
+                Name = name,
+                Published = null,
+            };
+
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId))
+                .Returns(existingDataset);
+
+            //Act
+            IActionResult result = await service.ValidateDataset(request);
+
+            //Assert
+            result
+               .Should()
+               .BeOfType<InternalServerErrorResult>()
+               .Which
+               .Value
+               .Should().Be("Failed to save the dataset or dataset version. Failed to save dataset for id: dataset-id due to version mismatch. Expected next version to be 3 but request provided '2'");
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Failed to save dataset for id: {model.DatasetId} due to version mismatch. Expected next version to be 3 but request provided '2'"));
+        }
+
+        [TestMethod]
+        public async Task ValidateDataset_GivenTableResultsAndMetadataValidatesAndExistingDatasetIsNull_ThenExceptionIsThrown()
+        {
+            //Arrange
+            const int providedNewDatasetVersion = 2;
+            const string filename = "ds.xlsx";
+
+            const string blobPath = "dataset-id/v2/ds.xlsx";
+
+            const string dataDefinitionId = "definition-id";
+            const string authorId = "author-id";
+            const string authorName = "author-name";
+            const string datasetId = "dataset-id";
+            const string name = "name";
+            const string initialDescription = "test description";
+            const string updatedDescription = "Updated description";
+            const string updateComment = "Update comment";
+
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+                {
+                    { "dataDefinitionId", dataDefinitionId },
+                    { "authorName", authorName },
+                    { "authorId", authorId },
+                    { "datasetId", datasetId },
+                    { "name", name },
+                    { "description", initialDescription },
+                };
+
+            GetDatasetBlobModel model = new GetDatasetBlobModel
+            {
+                DatasetId = datasetId,
+                Version = providedNewDatasetVersion,
+                Filename = "ds.xlsx",
+                Comment = updateComment,
+                Description = updatedDescription,
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Sid, authorId),
+                new Claim(ClaimTypes.Name, authorName)
+            };
+
+            request
+                .HttpContext.User.Claims
+                .Returns(claims.AsEnumerable());
+
+            ILogger logger = CreateLogger();
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            blob
+                .Name
+                .Returns(filename);
+
+            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = dataDefinitionId,
+                Name = "Dataset Definition Name",
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(datasetDefinitions);
+
+            datasetRepository
+                .SaveDataset(Arg.Any<Dataset>())
+                .Returns(HttpStatusCode.OK);
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
+            };
+
+            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
+            datasetReader
+                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
+                .Returns(tableLoadResults.ToList());
+
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
+
+            DatasetService service = CreateDatasetService(logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                excelDatasetReader: datasetReader,
+                 searchRepository: searchRepository);
+
+            DatasetVersion existingDatasetVersion1 = new DatasetVersion()
+            {
+                Version = 2,
+            };
+
+            DatasetVersion existingDatasetVersion2 = new DatasetVersion()
+            {
+                Version = 2,
+            };
+
+            Dataset existingDataset = null;
+
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId))
+                .Returns(existingDataset);
+
+            //Act
+            IActionResult result = await service.ValidateDataset(request);
+
+            //Assert
+            result
+               .Should()
+               .BeOfType<InternalServerErrorResult>()
+               .Which
+               .Value
+               .Should().Be("Failed to save the dataset or dataset version. Failed to retrieve dataset for id: dataset-id response was null");
+
+            logger
+                .Received(1)
+                .Warning($"Failed to retrieve dataset for id: {model.DatasetId} response was null");
+        }
+
+        [TestMethod]
+        public async Task ValidateDataset_GivenTableResultsAndMetadataValidatesAndSaveDatasetFails_ThenErrorIsReturned()
+        {
+            //Arrange
+            const int newDatasetVersion = 2;
+            const string filename = "ds.xlsx";
+
+            const string blobPath = "dataset-id/v2/ds.xlsx";
+
+            const string dataDefinitionId = "definition-id";
+            const string authorId = "author-id";
+            const string authorName = "author-name";
+            const string datasetId = "dataset-id";
+            const string name = "name";
+            const string initialDescription = "test description";
+            const string updatedDescription = "Updated description";
+            const string updateComment = "Update comment";
+
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+                {
+                    { "dataDefinitionId", dataDefinitionId },
+                    { "authorName", authorName },
+                    { "authorId", authorId },
+                    { "datasetId", datasetId },
+                    { "name", name },
+                    { "description", initialDescription },
+                };
+
+            GetDatasetBlobModel model = new GetDatasetBlobModel
+            {
+                DatasetId = datasetId,
+                Version = newDatasetVersion,
+                Filename = "ds.xlsx",
+                Comment = updateComment,
+                Description = updatedDescription,
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Sid, authorId),
+                new Claim(ClaimTypes.Name, authorName)
+            };
+
+            request
+                .HttpContext.User.Claims
+                .Returns(claims.AsEnumerable());
+
+            ILogger logger = CreateLogger();
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            blob
+                .Name
+                .Returns(filename);
+
+            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = dataDefinitionId,
+                Name = "Dataset Definition Name",
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(datasetDefinitions);
+
+            datasetRepository
+                .SaveDataset(Arg.Any<Dataset>())
+                .Returns(HttpStatusCode.InternalServerError);
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
+            };
+
+            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
+            datasetReader
+                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
+                .Returns(tableLoadResults.ToList());
+
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
+
+            DatasetService service = CreateDatasetService(logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                excelDatasetReader: datasetReader,
+                 searchRepository: searchRepository);
+
+            DatasetVersion existingDatasetVersion = new DatasetVersion()
+            {
+                Version = 1,
+            };
+
+            Dataset existingDataset = new Dataset()
+            {
+                Id = datasetId,
+                Current = existingDatasetVersion,
+                History = new List<DatasetVersion>() { existingDatasetVersion },
+                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Description = initialDescription,
+                Name = name,
+                Published = null,
+            };
+
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId))
+                .Returns(existingDataset);
+
+            //Act
+            IActionResult result = await service.ValidateDataset(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
+                .Should().Be("Failed to save the dataset or dataset version. Failed to save dataset for id: dataset-id with status code InternalServerError");
+
+            logger
+                .Received(1)
+                .Warning(Arg.Is("Failed to save dataset for id: dataset-id with status code InternalServerError"));
+        }
+
+        [TestMethod]
+        public async Task ValidateDataset_GivenTableResultsAndMetadataValidatesAndSavesWhenUpdatingSearchThenErrorIsThrown()
+        {
+            //Arrange
+            const int newDatasetVersion = 2;
+            const string filename = "ds.xlsx";
+
+            const string blobPath = "dataset-id/v2/ds.xlsx";
+
+            const string dataDefinitionId = "definition-id";
+            const string authorId = "author-id";
+            const string authorName = "author-name";
+            const string datasetId = "dataset-id";
+            const string name = "name";
+            const string initialDescription = "test description";
+            const string updatedDescription = "Updated description";
+            const string updateComment = "Update comment";
+
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+                {
+                    { "dataDefinitionId", dataDefinitionId },
+                    { "authorName", authorName },
+                    { "authorId", authorId },
+                    { "datasetId", datasetId },
+                    { "name", name },
+                    { "description", initialDescription },
+                };
+
+            GetDatasetBlobModel model = new GetDatasetBlobModel
+            {
+                DatasetId = datasetId,
+                Version = newDatasetVersion,
+                Filename = "ds.xlsx",
+                Comment = updateComment,
+                Description = updatedDescription,
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Sid, authorId),
+                new Claim(ClaimTypes.Name, authorName)
+            };
+
+            request
+                .HttpContext.User.Claims
+                .Returns(claims.AsEnumerable());
+
+            ILogger logger = CreateLogger();
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            blob
+                .Name
+                .Returns(filename);
+
+            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = dataDefinitionId,
+                Name = "Dataset Definition Name",
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(datasetDefinitions);
+
+            datasetRepository
+                .SaveDataset(Arg.Any<Dataset>())
+                .Returns(HttpStatusCode.OK);
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
+            };
+
+            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
+            datasetReader
+                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
+                .Returns(tableLoadResults.ToList());
+
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
+
+            DatasetService service = CreateDatasetService(logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                excelDatasetReader: datasetReader,
+                 searchRepository: searchRepository);
+
+            DatasetVersion existingDatasetVersion = new DatasetVersion()
+            {
+                Version = 1,
+            };
+
+            Dataset existingDataset = new Dataset()
+            {
+                Id = datasetId,
+                Current = existingDatasetVersion,
+                History = new List<DatasetVersion>() { existingDatasetVersion },
+                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Description = initialDescription,
+                Name = name,
+                Published = null,
+            };
+
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId))
+                .Returns(existingDataset);
+
+            IEnumerable<IndexError> indexErrors = new List<IndexError>()
+            {
+                new IndexError()
+                {
+                     Key = "datasetId",
+                      ErrorMessage = "Error in dataset ID for search",
+                }
+            };
+
+            searchRepository
+                .Index(Arg.Any<List<DatasetIndex>>())
+                .Returns(indexErrors);
+
+            //Act
+            IActionResult result = await service.ValidateDataset(request);
+
+            //Assert
+            //Assert
+            result
+                .Should()
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
+                .Should().Be("Failed to save the dataset or dataset version. Failed to save dataset for id: dataset-id in search with errors Error in dataset ID for search");
+
+            logger
+                .Received(1)
+                .Warning(Arg.Is("Failed to save dataset for id: dataset-id in search with errors Error in dataset ID for search"));
         }
 
         [TestMethod]
@@ -2789,6 +3407,574 @@ namespace CalculateFunding.Services.Datasets.Services
                 .BeOfType<OkObjectResult>();
         }
 
+        [TestMethod]
+        public async Task DatasetVersionUpdate_WhenValidDatasetVersionUpdateRequested_ThenDatasetVersionAdded()
+        {
+            // Arrange
+            const string authorId = "authId";
+            const string authorName = "Change Author";
+            const string datasetId = "ds1";
+            const string expectedBloblUrl = "https://blob.com/result";
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            IBlobClient blobClient = CreateBlobClient();
+            IMapper mapper = CreateMapperWithDatasetsConfiguration();
+
+            DatasetService datasetService = CreateDatasetService(datasetRepository: datasetRepository,
+                blobClient: blobClient,
+                mapper: mapper);
+
+            DatasetVersionUpdateModel model = new DatasetVersionUpdateModel
+            {
+                DatasetId = datasetId,
+                Filename = "ds.xlsx",
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Sid, authorId),
+                new Claim(ClaimTypes.Name, authorName)
+            };
+
+            request
+                .HttpContext.User.Claims
+                .Returns(claims.AsEnumerable());
+
+            DatasetVersion existingDatasetVersion = new DatasetVersion()
+            {
+                Version = 1,
+            };
+
+            Dataset existingDataset = new Dataset()
+            {
+                Id = datasetId,
+                Current = existingDatasetVersion,
+                Definition = new Reference("defId", "Definition Name"),
+                Description = "Description v1",
+                History = new List<DatasetVersion>()
+                {
+                    existingDatasetVersion
+                },
+                Name = "Dataset Name",
+                Published = null,
+            };
+
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId))
+                .Returns(existingDataset);
+
+            blobClient
+                .GetBlobSasUrl(Arg.Is($"{datasetId}/v2/{model.Filename}"), Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>())
+                .Returns(expectedBloblUrl);
+
+
+            // Act
+            IActionResult result = await datasetService.DatasetVersionUpdate(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which.Value
+                .ShouldBeEquivalentTo(new NewDatasetVersionResponseModel()
+                {
+                    DatasetId = datasetId,
+                    Author = new Reference(authorId, authorName),
+                    BlobUrl = expectedBloblUrl,
+                    DefinitionId = existingDataset.Definition.Id,
+                    Description = existingDataset.Description,
+                    Filename = model.Filename,
+                    Name = existingDataset.Name,
+                    Version = 2,
+                });
+        }
+
+        [TestMethod]
+        public async Task DatasetVersionUpdate_WhenProvidedModelIsInvalid_ThenBadRequestReturned()
+        {
+            // Arrange
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+
+            ValidationResult validationResult = new ValidationResult(
+                new List<ValidationFailure>()
+                    {
+                         new ValidationFailure("datasetId", "error Message")
+                    }
+            );
+
+            IValidator<DatasetVersionUpdateModel> validator = CreateDatasetVersionUpdateModelValidator(validationResult);
+
+            DatasetService datasetService = CreateDatasetService(
+                datasetRepository: datasetRepository,
+                datasetVersionUpdateModelValidator: validator);
+
+            DatasetVersionUpdateModel model = new DatasetVersionUpdateModel
+            {
+                DatasetId = "ds1",
+                Filename = "ds.xlsx",
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            // Act
+            IActionResult result = await datasetService.DatasetVersionUpdate(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task DatasetVersionUpdate_WhenNullDatasetVersionUpdateModel_ThenBadRequestReturned()
+        {
+            // Arrange
+            ILogger logger = CreateLogger();
+
+            DatasetService datasetService = CreateDatasetService(logger: logger);
+
+            DatasetVersionUpdateModel model = null;
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            // Act
+            IActionResult result = await datasetService.DatasetVersionUpdate(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should().Be("Null model name was provided");
+
+            logger
+                .Received(1)
+                .Warning(Arg.Is("Null model was provided to DatasetVersionUpdate"));
+        }
+
+        [TestMethod]
+        public async Task DatasetVersionUpdate_WhenDatasetLookupReturnsNull_ThenPreconditionFailedReturned()
+        {
+            // Arrange
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            ILogger logger = CreateLogger();
+
+            DatasetService datasetService = CreateDatasetService(datasetRepository: datasetRepository, logger: logger);
+
+            DatasetVersionUpdateModel model = new DatasetVersionUpdateModel
+            {
+                DatasetId = "dsnotfound",
+                Filename = "ds.xlsx",
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            datasetRepository
+               .GetDatasetByDatasetId(Arg.Any<string>())
+               .Returns((Dataset)null);
+
+            // Act
+            IActionResult result = await datasetService.DatasetVersionUpdate(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<PreconditionFailedResult>()
+                .Which
+                .Value
+                .Should().Be($"Dataset was not found with ID {model.DatasetId} when trying to add new dataset version");
+
+            logger
+                .Received(1)
+                .Warning(Arg.Is("Dataset was not found with ID {datasetId} when trying to add new dataset version"), Arg.Is(model.DatasetId));
+        }
+
+        [TestMethod]
+        public async Task GetCurrentDatasetVersionByDatasetId_WhenDatasetFoundWithOnlyOneVersionThenCurrentDatasetVersionReturned()
+        {
+            // Arrange
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            IMapper mapper = CreateMapperWithDatasetsConfiguration();
+
+            DatasetService datasetService = CreateDatasetService(
+                datasetRepository: datasetRepository,
+                mapper: mapper
+                );
+
+            const string datasetId = "ds1";
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "datasetId", new StringValues(datasetId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            DatasetVersion datasetVersion = new DatasetVersion()
+            {
+                Version = 1,
+                Author = new Reference("authorId", "Author Name"),
+                BlobName = "file/name.xlsx",
+                Commment = "My update comment",
+                Date = new DateTime(2018, 12, 1, 3, 4, 5),
+                PublishStatus = Models.Versioning.PublishStatus.Draft,
+            };
+
+            Dataset dataset = new Dataset()
+            {
+                Id = datasetId,
+                Current = datasetVersion,
+                History = new List<DatasetVersion>() { datasetVersion },
+                Definition = new Reference("defId", "definitionName"),
+                Description = "Description",
+                Name = "Dataset Name",
+                Published = null,
+            };
+
+            DocumentEntity<Dataset> documentEntity = new DocumentEntity<Dataset>(dataset)
+            {
+                UpdatedAt = new DateTime(2018, 12, 1, 3, 4, 5),
+            };
+
+            datasetRepository
+                .GetDatasetDocumentByDatasetId(Arg.Is(datasetId))
+                .Returns(documentEntity);
+
+            // Act
+            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .ShouldBeEquivalentTo(new DatasetVersionResponseViewModel()
+                {
+                    Id = datasetId,
+                    Name = dataset.Name,
+                    Author = new Reference("authorId", "Author Name"),
+                    BlobName = "file/name.xlsx",
+                    Comment = "My update comment",
+                    LastUpdatedDate = new DateTime(2018, 12, 1, 3, 4, 5),
+                    PublishStatus = Models.Versioning.PublishStatus.Draft,
+                    Definition = new Reference("defId", "definitionName"),
+                    Description = "Description",
+                    Version = 1,
+                });
+        }
+
+        [TestMethod]
+        public async Task GetCurrentDatasetVersionByDatasetId_WhenDatasetFoundWithMultipleVersionsThenCurrentDatasetVersionReturned()
+        {
+            // Arrange
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            IMapper mapper = CreateMapperWithDatasetsConfiguration();
+
+            DatasetService datasetService = CreateDatasetService(
+                datasetRepository: datasetRepository,
+                mapper: mapper
+                );
+
+            const string datasetId = "ds1";
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "datasetId", new StringValues(datasetId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            DatasetVersion datasetVersion1 = new DatasetVersion()
+            {
+                Version = 1,
+                Author = new Reference("authorId", "Author Name"),
+                BlobName = "file/name.xlsx",
+                Commment = "My update comment",
+                Date = new DateTime(2018, 12, 1, 3, 4, 5),
+                PublishStatus = Models.Versioning.PublishStatus.Draft,
+            };
+
+            DatasetVersion datasetVersion2 = new DatasetVersion()
+            {
+                Version = 2,
+                Author = new Reference("authorId2", "Author Name Two"),
+                BlobName = "file/name2.xlsx",
+                Commment = "My update comment for second",
+                Date = new DateTime(2018, 12, 1, 3, 2, 2),
+                PublishStatus = Models.Versioning.PublishStatus.Draft,
+            };
+
+            Dataset dataset = new Dataset()
+            {
+                Id = datasetId,
+                Current = datasetVersion2,
+                History = new List<DatasetVersion>() { datasetVersion1, datasetVersion2 },
+                Definition = new Reference("defId", "definitionName"),
+                Description = "Description",
+                Name = "Dataset Name",
+                Published = null,
+            };
+
+            DocumentEntity<Dataset> documentEntity = new DocumentEntity<Dataset>(dataset)
+            {
+                UpdatedAt = new DateTime(2018, 12, 1, 3, 2, 2),
+            };
+
+            datasetRepository
+                .GetDatasetDocumentByDatasetId(Arg.Is(datasetId))
+                .Returns(documentEntity);
+
+            // Act
+            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .ShouldBeEquivalentTo(new DatasetVersionResponseViewModel()
+                {
+                    Id = datasetId,
+                    Name = dataset.Name,
+                    Author = new Reference("authorId2", "Author Name Two"),
+                    BlobName = "file/name2.xlsx",
+                    Comment = "My update comment for second",
+                    LastUpdatedDate = new DateTime(2018, 12, 1, 3, 2, 2),
+                    PublishStatus = Models.Versioning.PublishStatus.Draft,
+                    Definition = new Reference("defId", "definitionName"),
+                    Description = "Description",
+                    Version = 2,
+                });
+        }
+
+        [TestMethod]
+        public async Task GetCurrentDatasetVersionByDatasetId_WhenNoDatasetIdIsProvided_ThenBadRequestReturned()
+        {
+            // Arrange
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            IMapper mapper = CreateMapperWithDatasetsConfiguration();
+            ILogger logger = CreateLogger();
+
+            DatasetService datasetService = CreateDatasetService(
+                datasetRepository: datasetRepository,
+                mapper: mapper,
+                logger: logger
+                );
+
+            const string datasetId = "";
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "datasetId", new StringValues(datasetId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            // Act
+            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should().Be("Null or empty datasetId provided");
+
+            logger
+                .Received(1)
+                .Warning(Arg.Is("No datasetId was provided to GetCurrentDatasetVersionByDatasetId"));
+        }
+
+        [TestMethod]
+        public async Task GetCurrentDatasetVersionByDatasetId_WhenNoDatasetIdIsNotFound_ThenNotFoundReturned()
+        {
+            // Arrange
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            IMapper mapper = CreateMapperWithDatasetsConfiguration();
+            ILogger logger = CreateLogger();
+
+            DatasetService datasetService = CreateDatasetService(
+                datasetRepository: datasetRepository,
+                mapper: mapper,
+                logger: logger
+                );
+
+            const string datasetId = "notfound";
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "datasetId", new StringValues(datasetId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            datasetRepository
+                .GetDatasetDocumentByDatasetId(Arg.Is(datasetId))
+                .Returns((DocumentEntity<Dataset>)null);
+
+            // Act
+            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<NotFoundObjectResult>()
+                .Which
+                .Value
+                .Should().Be("Unable to find dataset with ID: notfound");
+
+            await datasetRepository
+                .Received(1)
+                .GetDatasetDocumentByDatasetId(Arg.Is(datasetId));
+        }
+
+        [TestMethod]
+        public async Task GetCurrentDatasetVersionByDatasetId_WhenDatasetHasNullContent_ThenNotFoundReturned()
+        {
+            // Arrange
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            IMapper mapper = CreateMapperWithDatasetsConfiguration();
+            ILogger logger = CreateLogger();
+
+            DatasetService datasetService = CreateDatasetService(
+                datasetRepository: datasetRepository,
+                mapper: mapper,
+                logger: logger
+                );
+
+            const string datasetId = "notfound";
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "datasetId", new StringValues(datasetId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            datasetRepository
+                .GetDatasetDocumentByDatasetId(Arg.Is(datasetId))
+                .Returns(new DocumentEntity<Dataset>(null));
+
+            // Act
+            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<NotFoundObjectResult>()
+                .Which
+                .Value
+                .Should().Be("Unable to find dataset with ID: notfound. Content is null");
+
+            await datasetRepository
+                .Received(1)
+                .GetDatasetDocumentByDatasetId(Arg.Is(datasetId));
+        }
+
+        [TestMethod]
+        public async Task GetCurrentDatasetVersionByDatasetId_WhenDatasetHasNullCurrentObject_ThenNotFoundReturned()
+        {
+            // Arrange
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            IMapper mapper = CreateMapperWithDatasetsConfiguration();
+            ILogger logger = CreateLogger();
+
+            DatasetService datasetService = CreateDatasetService(
+                datasetRepository: datasetRepository,
+                mapper: mapper,
+                logger: logger
+                );
+
+            const string datasetId = "notfound";
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "datasetId", new StringValues(datasetId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            datasetRepository
+                .GetDatasetDocumentByDatasetId(Arg.Is(datasetId))
+                .Returns(new DocumentEntity<Dataset>(new Dataset()));
+
+            // Act
+            IActionResult result = await datasetService.GetCurrentDatasetVersionByDatasetId(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<NotFoundObjectResult>()
+                .Which
+                .Value
+                .Should().Be("Unable to find dataset with ID: notfound. Current version is null");
+
+            await datasetRepository
+                .Received(1)
+                .GetDatasetDocumentByDatasetId(Arg.Is(datasetId));
+        }
+
         static DatasetService CreateDatasetService(
             IBlobClient blobClient = null,
             ILogger logger = null,
@@ -2948,6 +4134,16 @@ namespace CalculateFunding.Services.Datasets.Services
         static IMapper CreateMapper()
         {
             return Substitute.For<IMapper>();
+        }
+
+        static IMapper CreateMapperWithDatasetsConfiguration()
+        {
+            MapperConfiguration config = new MapperConfiguration(c =>
+            {
+                c.AddProfile<DatasetsMappingProfile>();
+            });
+
+            return new Mapper(config);
         }
 
         static IDatasetRepository CreateDatasetsRepository()
