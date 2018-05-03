@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Versioning
@@ -13,5 +14,15 @@ namespace CalculateFunding.Models.Versioning
 
         [JsonProperty("history")]
         public List<T> History { get; set; }
+
+        public int GetNextVersion()
+        {
+            if (History == null || !History.Any())
+                return 1;
+
+            int maxVersion = History.Max(m => m.Version);
+
+            return maxVersion + 1;
+        }
     }
 }

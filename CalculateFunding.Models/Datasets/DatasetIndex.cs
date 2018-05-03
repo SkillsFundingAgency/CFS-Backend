@@ -19,6 +19,13 @@ namespace CalculateFunding.Models.Datasets
         [JsonProperty("name")]
         public string Name { get; set; }
 
+        [JsonProperty("description")]
+        public string Description { get; set; }
+
+        [IsFacetable, IsFilterable]
+        [JsonProperty("version")]
+        public int Version { get; set; }
+
         [IsFilterable, IsSearchable, IsFacetable]
         [JsonProperty("periodNames")]
         public string[] PeriodNames { get; set; }

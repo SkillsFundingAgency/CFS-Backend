@@ -9,6 +9,8 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 
         public string Name { get; set; }
 
+        public string Description { get; set; }
+
         public IEnumerable<string> PeriodNames { get; set; }
 
         public string DefinitionName { get; set; }
@@ -18,5 +20,7 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public DateTimeOffset LastUpdatedDate { get; set; }
 
         public IEnumerable<string> SpecificationNames { get; set; }
+
+        public int Version { get; set; }
     }
 }

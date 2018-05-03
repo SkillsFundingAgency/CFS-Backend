@@ -35,6 +35,18 @@ namespace CalculateFunding.Functions.Datasets.Http
             }
         }
 
+        [FunctionName("dataset-version-update")]
+        public static Task<IActionResult> RunDatasetVersionUpdate(
+         [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IDatasetService svc = scope.ServiceProvider.GetService<IDatasetService>();
+
+                return svc.DatasetVersionUpdate(req);
+            }
+        }
+
         [FunctionName("validate-dataset")]
         public static Task<IActionResult> RunValidateDataset(
         [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
@@ -83,37 +95,28 @@ namespace CalculateFunding.Functions.Datasets.Http
             }
         }
 
-        [FunctionName("test-http-client")]
-        public static IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequest req)
+        [FunctionName("dataset-reindex")]
+        public static Task<IActionResult> RunDatasetReindex(
+        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
         {
-            string name = req.Query["name"];
-
-            HttpClient client = new HttpClient();
-            string responseMessage = "Initial";
-
-            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", "61439dce702a495083d90494691e2737");
-
-            string url = "https://esfacfsbdevapi.azure-api.net/api/specs/specifications?specificationId=0cde26fd-defc-4685-b866-0cbabd1ada4f";
-
-            try
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
             {
-                HttpResponseMessage response = client.GetAsync(url).Result;
-                if (response == null)
-                {
-                    responseMessage = "Response was null";
-                }
-                else
-                {
-                    responseMessage = $"Response returned {response.StatusCode} for URL: {url}<pre>{response.Content.ReadAsStringAsync().Result}</pre>";
-                }
+                IDatasetService svc = scope.ServiceProvider.GetService<IDatasetService>();
+
+                return svc.ValidateDataset(req);
             }
-            catch (System.Exception ex)
+        }
+
+        [FunctionName("get-currentdatasetversion-by-datasetid")]
+        public static Task<IActionResult> RunGetCurrentDatasetVersionByDatasetId(
+        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+        {
+            using (IServiceScope scope = IocConfig.Build().CreateHttpScope(req))
             {
+                IDatasetService svc = scope.ServiceProvider.GetService<IDatasetService>();
 
-                responseMessage = $"Exception thrown {ex} with message {ex.Message}";
+                return svc.GetCurrentDatasetVersionByDatasetId(req);
             }
-
-            return new OkObjectResult(responseMessage);
         }
     }
 }

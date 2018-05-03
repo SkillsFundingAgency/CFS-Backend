@@ -131,6 +131,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                .AddScoped<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();
 
             builder
+                .AddScoped<IValidator<DatasetVersionUpdateModel>, DatasetVersionUpdateModelValidator>();
+
+            builder
                 .AddScoped<IBlobClient, BlobClient>((ctx) =>
                 {
                     AzureStorageSettings storageSettings = new AzureStorageSettings();

@@ -53,6 +53,9 @@ namespace CalculateFunding.Functions.Datasets
               .AddScoped<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();
 
             builder
+                .AddScoped<IValidator<DatasetVersionUpdateModel>, DatasetVersionUpdateModelValidator>();
+
+            builder
               .AddScoped<IValidator<DatasetMetadataModel>, DatasetMetadataModelValidator>();
 
             builder

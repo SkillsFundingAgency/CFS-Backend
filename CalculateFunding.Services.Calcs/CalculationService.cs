@@ -298,7 +298,7 @@ namespace CalculateFunding.Services.Calcs
                 calculation.History = new List<CalculationVersion>();
             }
 
-            int nextVersionNumber = GetNextVersionNumberFromCalculationVersions(calculation.History);
+            int nextVersionNumber = calculation.GetNextVersion();
 
             if (calculation.Current == null)
             {
@@ -564,16 +564,6 @@ namespace CalculateFunding.Services.Calcs
             return buildProject;
         }
 
-        int GetNextVersionNumberFromCalculationVersions(IEnumerable<CalculationVersion> versions)
-        {
-            if (!versions.Any())
-                return 1;
-
-            int maxVersion = versions.Max(m => m.Version);
-
-            return maxVersion + 1;
-        }
-
         CalculationCurrentVersion GetCurrentVersionFromCalculation(Calculation calculation)
         {
             CalculationCurrentVersion calculationCurrentVersion = new CalculationCurrentVersion
@@ -610,8 +600,10 @@ namespace CalculateFunding.Services.Calcs
         {
             Reference user = request.GetUser();
 
-            IDictionary<string, string> properties = new Dictionary<string, string>();
-            properties.Add("sfa-correlationId", request.GetCorrelationId());
+            IDictionary<string, string> properties = new Dictionary<string, string>
+            {
+                { "sfa-correlationId", request.GetCorrelationId() }
+            };
 
             if (user != null)
             {

@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             ITestResultsRepository testResultsRepository = CreateTestResultsRepository();
             ISearchRepository<TestScenarioResultIndex> searchRepository = CreateSearchRespository();
 
-            ITestResultsService service = CreateTestResultsService(testResultsRepository, searchRepository);
+            TestResultsService service = CreateTestResultsService(testResultsRepository, searchRepository);
 
             IEnumerable<TestScenarioResult> updateItems = Enumerable.Empty<TestScenarioResult>();
 
@@ -57,10 +57,12 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             ITestResultsRepository testResultsRepository = CreateTestResultsRepository();
             ISearchRepository<TestScenarioResultIndex> searchRepository = CreateSearchRespository();
 
-            ITestResultsService service = CreateTestResultsService(testResultsRepository, searchRepository);
+            TestResultsService service = CreateTestResultsService(testResultsRepository, searchRepository);
 
-            List<TestScenarioResult> itemsToUpdate = new List<TestScenarioResult>();
-            itemsToUpdate.Add(CreateTestScenarioResult());
+            List<TestScenarioResult> itemsToUpdate = new List<TestScenarioResult>
+            {
+                CreateTestScenarioResult()
+            };
 
             testResultsRepository
                 .SaveTestProviderResults(Arg.Any<IEnumerable<TestScenarioResult>>())
@@ -90,7 +92,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             ITestResultsRepository testResultsRepository = CreateTestResultsRepository();
             ISearchRepository<TestScenarioResultIndex> searchRepository = CreateSearchRespository();
 
-            ITestResultsService service = CreateTestResultsService(testResultsRepository, searchRepository);
+            TestResultsService service = CreateTestResultsService(testResultsRepository, searchRepository);
 
             IEnumerable<ProviderResult> providerResults = new[]
             {
@@ -209,8 +211,10 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             IEnumerable<ProviderResult> providerResults = Enumerable.Empty<ProviderResult>();
 
-            List<TestScenarioResult> itemsToUpdate = new List<TestScenarioResult>();
-            itemsToUpdate.Add(CreateTestScenarioResult());
+            List<TestScenarioResult> itemsToUpdate = new List<TestScenarioResult>
+            {
+                CreateTestScenarioResult()
+            };
 
             // Act
             HttpStatusCode result = await service.SaveTestProviderResults(itemsToUpdate, providerResults);

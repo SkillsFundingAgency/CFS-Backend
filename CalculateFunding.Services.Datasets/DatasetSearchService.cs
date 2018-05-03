@@ -173,6 +173,8 @@ namespace CalculateFunding.Services.Datasets
                     LastUpdatedDate = m.Result.LastUpdatedDate,
                     PeriodNames = m.Result.PeriodNames,
                     SpecificationNames = m.Result.SpecificationNames,
+                    Description = m.Result.Description,
+                    Version = m.Result.Version,
                 });
             }
         }

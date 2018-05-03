@@ -73,6 +73,15 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _datasetService.CreateNewDataset(ControllerContext.HttpContext.Request);
         }
 
+        [Route("api/datasets/dataset-version-update")]
+        [HttpPost]
+        public Task<IActionResult> RunDatasetVersionUpdate()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _datasetService.DatasetVersionUpdate(ControllerContext.HttpContext.Request);
+        }
+
         [Route("api/datasets/datasets-search")]
         [HttpPost]
         public Task<IActionResult> RunDatasetsSearch()
@@ -161,6 +170,24 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
             return _datasetService.DownloadDatasetFile(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/datasets/reindex")]
+        [HttpGet]
+        public Task<IActionResult> RunReindexDatasets()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _datasetService.Reindex(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/datasets/get-currentdatasetversion-by-datasetid")]
+        [HttpGet]
+        public Task<IActionResult> RunGetCurrentDatasetVersionByDatasetId()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _datasetService.GetCurrentDatasetVersionByDatasetId(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/datasets/process-dataset")]

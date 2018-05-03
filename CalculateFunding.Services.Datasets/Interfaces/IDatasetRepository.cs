@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Repositories.Common.Cosmos;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -29,6 +30,10 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<DefinitionSpecificationRelationship> GetRelationshipBySpecificationIdAndName(string specificationId, string name);
 
         Task<Dataset> GetDatasetByDatasetId(string datasetId);
+
+        Task<DocumentEntity<Dataset>> GetDatasetDocumentByDatasetId(string datasetId);
+
+        Task<IEnumerable<DocumentEntity<Dataset>>> GetDatasets();
 
         Task<DefinitionSpecificationRelationship> GetDefinitionSpecificationRelationshipById(string relationshipId);
 

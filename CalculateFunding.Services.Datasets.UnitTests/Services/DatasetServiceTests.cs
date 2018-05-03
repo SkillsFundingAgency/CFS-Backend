@@ -36,6 +36,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -227,7 +228,7 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 Filename = "test.xlsx"
             };
-            CreateNewDatasetResponseModel responseModel = new CreateNewDatasetResponseModel
+            NewDatasetVersionResponseModel responseModel = new NewDatasetVersionResponseModel
             {
                 Filename = "test.xlsx"
             };
@@ -263,7 +264,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IMapper mapper = CreateMapper();
             mapper
-                .Map<CreateNewDatasetResponseModel>(Arg.Any<CreateNewDatasetModel>())
+                .Map<NewDatasetVersionResponseModel>(Arg.Any<CreateNewDatasetModel>())
                 .Returns(responseModel);
 
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, mapper: mapper);
@@ -429,8 +430,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            IDictionary<string, string> metaData = new Dictionary<string, string>();
-            metaData.Add("dataDefinitionId", DataDefintionId);
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", DataDefintionId }
+            };
 
             ICloudBlob blob = Substitute.For<ICloudBlob>();
             blob
@@ -510,8 +513,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            IDictionary<string, string> metaData = new Dictionary<string, string>();
-            metaData.Add("dataDefinitionId", DataDefintionId);
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", DataDefintionId }
+            };
 
             ICloudBlob blob = Substitute.For<ICloudBlob>();
             blob
@@ -576,8 +581,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            IDictionary<string, string> metaData = new Dictionary<string, string>();
-            metaData.Add("dataDefinitionId", DataDefintionId);
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", DataDefintionId }
+            };
 
             ICloudBlob blob = Substitute.For<ICloudBlob>();
             blob
@@ -609,8 +616,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
                 .Returns(datasetDefinitions);
 
-            List<DatasetValidationError> errors = new List<DatasetValidationError>();
-            errors.Add(new DatasetValidationError { ErrorMessage = "error" });
+            List<DatasetValidationError> errors = new List<DatasetValidationError>
+            {
+                new DatasetValidationError { ErrorMessage = "error" }
+            };
 
             IEnumerable<TableLoadResult> tableLoadResults = new[]
             {
@@ -666,8 +675,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            IDictionary<string, string> metaData = new Dictionary<string, string>();
-            metaData.Add("dataDefinitionId", DataDefintionId);
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", DataDefintionId }
+            };
 
             ICloudBlob blob = Substitute.For<ICloudBlob>();
             blob
@@ -699,10 +710,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
                 .Returns(datasetDefinitions);
 
-            List<DatasetValidationError> errors = new List<DatasetValidationError>();
-            errors.Add(new DatasetValidationError { ErrorMessage = "error" });
-            errors.Add(new DatasetValidationError { ErrorMessage = "error" });
-            errors.Add(new DatasetValidationError { ErrorMessage = "error" });
+            List<DatasetValidationError> errors = new List<DatasetValidationError>
+            {
+                new DatasetValidationError { ErrorMessage = "error" },
+                new DatasetValidationError { ErrorMessage = "error" },
+                new DatasetValidationError { ErrorMessage = "error" }
+            };
 
             IEnumerable<TableLoadResult> tableLoadResults = new[]
             {
@@ -758,8 +771,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            IDictionary<string, string> metaData = new Dictionary<string, string>();
-            metaData.Add("dataDefinitionId", DataDefintionId);
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", DataDefintionId }
+            };
 
             ICloudBlob blob = Substitute.For<ICloudBlob>();
             blob
@@ -825,20 +840,19 @@ namespace CalculateFunding.Services.Datasets.Services
 
             logger
                 .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is("Failed to save the new dataset"));
+                .Error(Arg.Any<Exception>(), Arg.Is("Failed to save the dataset or dataset version"));
         }
 
         [TestMethod]
         public async Task ValidateDataset_GivenTableResultsAndMetadatValidatesButFailsToSave_ReturnsInternalServerError()
         {
             //Arrange
-            //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
             const string dataDefinitionId = "definition-id";
             const string authorId = "author-id";
             const string authorName = "author-name";
-            const string datasetId = "datatset-id";
+            const string datasetId = "dataset-id";
             const string name = "name";
             const string description = "test description";
 
@@ -936,7 +950,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             logger
                 .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is("Failed to save the new dataset"));
+                .Error(Arg.Any<Exception>(), Arg.Is("Failed to save the dataset or dataset version"));
         }
 
         [TestMethod]
@@ -948,7 +962,7 @@ namespace CalculateFunding.Services.Datasets.Services
             const string dataDefinitionId = "definition-id";
             const string authorId = "author-id";
             const string authorName = "author-name";
-            const string datasetId = "datatset-id";
+            const string datasetId = "dataset-id";
             const string name = "name";
             const string description = "test description";
 
@@ -1023,8 +1037,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
                 .Returns(tableLoadResults.ToList());
 
-            List<IndexError> indexErrors = new List<IndexError>();
-            indexErrors.Add(new IndexError());
+            List<IndexError> indexErrors = new List<IndexError>
+            {
+                new IndexError()
+            };
 
             ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
             searchRepository
@@ -1051,7 +1067,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task ValidateDataset_GivenTableResultsAndMetadatValidatesAndSavesReturnsOKResult()
+        public async Task ValidateDataset_GivenTableResultsAndMetadataValidatesAndSavesWhenFirstDatasetVersionReturnsOKResult()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -1059,9 +1075,9 @@ namespace CalculateFunding.Services.Datasets.Services
             const string dataDefinitionId = "definition-id";
             const string authorId = "author-id";
             const string authorName = "author-name";
-            const string datasetId = "datatset-id";
+            const string datasetId = "dataset-id";
             const string name = "name";
-            const string description = "test description";
+            const string description = "updated description";
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
                 {
@@ -1077,7 +1093,7 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 DatasetId = "dataset-id",
                 Version = 1,
-                Filename = "ds.xlsx"
+                Filename = "ds.xlsx",
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
@@ -1107,7 +1123,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetDefinition datasetDefinition = new DatasetDefinition
             {
-                Id = DataDefintionId
+                Id = dataDefinitionId
             };
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
@@ -1134,8 +1150,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
                 .Returns(tableLoadResults.ToList());
 
-            DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
-                excelDatasetReader: datasetReader);
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
+
+            DatasetService service = CreateDatasetService(logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                excelDatasetReader: datasetReader,
+                 searchRepository: searchRepository);
 
             //Act
             IActionResult result = await service.ValidateDataset(request);
@@ -1144,6 +1165,228 @@ namespace CalculateFunding.Services.Datasets.Services
             result
                 .Should()
                 .BeOfType<OkResult>();
+
+            // Ensure initial version is set
+            await datasetRepository
+                .Received(1)
+                .SaveDataset(Arg.Is<Dataset>(d =>
+                d.Current.Version == 1
+                ));
+
+            // Ensure comment is null
+            await datasetRepository
+                .Received(1)
+                .SaveDataset(Arg.Is<Dataset>(d =>
+                d.Current.Commment == null
+                ));
+
+            // Ensure the rest of the properties are set
+            await datasetRepository
+                .Received(1)
+                .SaveDataset(Arg.Is<Dataset>(d =>
+                d.Definition.Id == dataDefinitionId &&
+                d.Current.Author.Name == authorName &&
+                d.Current.Author.Id == authorId &&
+                d.Name == name &&
+                d.Description == description
+                ));
+
+            await searchRepository
+                .Received(1)
+                .Index(Arg.Is<IEnumerable<DatasetIndex>>(
+                    d => d.First().Id == datasetId &&
+                    d.First().DefinitionId == dataDefinitionId &&
+                    d.First().DefinitionName == datasetDefinition.Name &&
+                    d.First().Name == name &&
+                    d.First().Status == "Draft" &&
+                    d.First().Version == 1 &&
+                    d.First().Description == description
+                    ));
+        }
+
+        [TestMethod]
+        public async Task ValidateDataset_GivenTableResultsAndMetadataValidatesAndSavesWhenUpdatingExistingDatasetReturnsOKResult()
+        {
+            //Arrange
+            const int newDatasetVersion = 2;
+            const string filename = "ds.xlsx";
+
+            const string blobPath = "dataset-id/v2/ds.xlsx";
+
+            const string dataDefinitionId = "definition-id";
+            const string authorId = "author-id";
+            const string authorName = "author-name";
+            const string datasetId = "dataset-id";
+            const string name = "name";
+            const string initialDescription = "test description";
+            const string updatedDescription = "Updated description";
+            const string updateComment = "Update comment";
+
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+                {
+                    { "dataDefinitionId", dataDefinitionId },
+                    { "authorName", authorName },
+                    { "authorId", authorId },
+                    { "datasetId", datasetId },
+                    { "name", name },
+                    { "description", initialDescription },
+                };
+
+            GetDatasetBlobModel model = new GetDatasetBlobModel
+            {
+                DatasetId = datasetId,
+                Version = newDatasetVersion,
+                Filename = "ds.xlsx",
+                Comment = updateComment,
+                Description = updatedDescription,
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            List<Claim> claims = new List<Claim>();
+            claims.Add(new Claim(ClaimTypes.Sid, authorId));
+            claims.Add(new Claim(ClaimTypes.Name, authorName));
+
+            request
+                .HttpContext.User.Claims
+                .Returns(claims.AsEnumerable());
+
+            ILogger logger = CreateLogger();
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            blob
+                .Name
+                .Returns(filename);
+
+            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = dataDefinitionId,
+                Name = "Dataset Definition Name",
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(datasetDefinitions);
+
+            datasetRepository
+                .SaveDataset(Arg.Any<Dataset>())
+                .Returns(HttpStatusCode.OK);
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
+            };
+
+            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
+            datasetReader
+                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
+                .Returns(tableLoadResults.ToList());
+
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
+
+            DatasetService service = CreateDatasetService(logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                excelDatasetReader: datasetReader,
+                 searchRepository: searchRepository);
+
+            DatasetVersion existingDatasetVersion = new DatasetVersion()
+            {
+                Version = 1,
+            };
+
+            Dataset existingDataset = new Dataset()
+            {
+                Id = datasetId,
+                Current = existingDatasetVersion,
+                History = new List<DatasetVersion>() { existingDatasetVersion },
+                Definition = new Reference(datasetDefinition.Id, datasetDefinition.Name),
+                Description = initialDescription,
+                Name = name,
+                Published = null,
+            };
+
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId))
+                .Returns(existingDataset);
+
+            //Act
+            IActionResult result = await service.ValidateDataset(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkResult>();
+
+            // Ensure next version is set
+            await datasetRepository
+                .Received(1)
+                .SaveDataset(Arg.Is<Dataset>(d =>
+                d.Current.Version == 2
+                ));
+
+            // Ensure comment is changed
+            await datasetRepository
+                .Received(1)
+                .SaveDataset(Arg.Is<Dataset>(d =>
+                d.Current.Commment == updateComment
+                ));
+
+            // Ensure description is updated
+            await datasetRepository
+                .Received(1)
+                .SaveDataset(Arg.Is<Dataset>(d =>
+                d.Description == updatedDescription
+                ));
+
+            // Ensure the rest of the properties are the same
+            await datasetRepository
+                .Received(1)
+                .SaveDataset(Arg.Is<Dataset>(d =>
+                    d.Definition.Id == dataDefinitionId &&
+                    d.Current.Author.Name == authorName &&
+                    d.Current.Author.Id == authorId &&
+                    d.Name == name
+                ));
+
+            await searchRepository
+                .Received(1)
+                .Index(Arg.Is<IEnumerable<DatasetIndex>>(
+                    d => d.First().Id == datasetId &&
+                    d.First().DefinitionId == dataDefinitionId &&
+                    d.First().DefinitionName == datasetDefinition.Name &&
+                    d.First().Name == name &&
+                    d.First().Status == "Draft" &&
+                    d.First().Version == 2 &&
+                    d.First().Description == updatedDescription
+                    ));
         }
 
         [TestMethod]
@@ -1665,7 +1908,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
-            string dataset_cache_key = $"ds-table-rows-{blobPath}-{DataDefintionId}";
+            string dataset_cache_key = $"ds-table-rows:{blobPath}:{DataDefintionId}";
 
             IEnumerable<TableLoadResult> tableLoadResults = new[]
             {
@@ -1740,7 +1983,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
-            string dataset_cache_key = $"ds-table-rows-{blobPath}-{DataDefintionId}";
+            string dataset_cache_key = $"ds-table-rows:{blobPath}:{DataDefintionId}";
 
             IEnumerable<TableLoadResult> tableLoadResults = new[]
             {
@@ -2099,7 +2342,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
-            string dataset_cache_key = $"ds-table-rows-{blobPath}-{DataDefintionId}";
+            string dataset_cache_key = $"ds-table-rows:{blobPath}:{DataDefintionId}";
 
             IEnumerable<TableLoadResult> tableLoadResults = new[]
             {
@@ -2223,7 +2466,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
-            string dataset_cache_key = $"ds-table-rows-{blobPath}-{DataDefintionId}";
+            string dataset_cache_key = $"ds-table-rows:{blobPath}:{DataDefintionId}";
 
             IEnumerable<TableLoadResult> tableLoadResults = new[]
             {
@@ -2546,24 +2789,44 @@ namespace CalculateFunding.Services.Datasets.Services
                 .BeOfType<OkObjectResult>();
         }
 
-        static DatasetService CreateDatasetService(IBlobClient blobClient = null, ILogger logger = null,
+        static DatasetService CreateDatasetService(
+            IBlobClient blobClient = null,
+            ILogger logger = null,
             IDatasetRepository datasetRepository = null,
-            IValidator<CreateNewDatasetModel> createNewDatasetModelValidator = null, IMapper mapper = null,
-            IValidator<DatasetMetadataModel> datasetMetadataModelValidator = null, ISearchRepository<DatasetIndex> searchRepository = null,
-            IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator = null, ISpecificationsRepository specificationsRepository = null,
-            IMessengerService messengerService = null, ServiceBusSettings eventHubSettings = null, IExcelDatasetReader excelDatasetReader = null,
-            ICacheProvider cacheProvider = null, ICalcsRepository calcsRepository = null, IProviderRepository providerRepository = null, IProvidersResultsRepository providersResultsRepository = null,
+            IValidator<CreateNewDatasetModel> createNewDatasetModelValidator = null,
+            IValidator<DatasetVersionUpdateModel> datasetVersionUpdateModelValidator = null,
+            IMapper mapper = null,
+            IValidator<DatasetMetadataModel> datasetMetadataModelValidator = null,
+            ISearchRepository<DatasetIndex> searchRepository = null,
+            IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator = null,
+            ISpecificationsRepository specificationsRepository = null,
+            IMessengerService messengerService = null,
+            ServiceBusSettings eventHubSettings = null,
+            IExcelDatasetReader excelDatasetReader = null,
+            ICacheProvider cacheProvider = null,
+            ICalcsRepository calcsRepository = null,
+            IProviderRepository providerRepository = null,
+            IProvidersResultsRepository providersResultsRepository = null,
             ITelemetry telemetry = null)
         {
-            return new DatasetService(blobClient ?? CreateBlobClient(), logger ?? CreateLogger(),
+            return new DatasetService(
+                blobClient ?? CreateBlobClient(),
+                logger ?? CreateLogger(),
                 datasetRepository ?? CreateDatasetsRepository(),
-                createNewDatasetModelValidator ?? CreateNewDatasetModelValidator(), mapper ?? CreateMapper(),
+                createNewDatasetModelValidator ?? CreateNewDatasetModelValidator(),
+                datasetVersionUpdateModelValidator ?? CreateDatasetVersionUpdateModelValidator(),
+                mapper ?? CreateMapper(),
                 datasetMetadataModelValidator ?? CreateDatasetMetadataModelValidator(),
-                searchRepository ?? CreateSearchRepository(), getDatasetBlobModelValidator ?? CreateGetDatasetBlobModelValidator(),
-                specificationsRepository ?? CreateSpecificationsRepository(), messengerService ?? CreateMessengerService(),
-                eventHubSettings ?? CreateEventHubSettings(), excelDatasetReader ?? CreateExcelDatasetReader(),
-                cacheProvider ?? CreateCacheProvider(), calcsRepository ?? CreateCalcsRepository(), providerRepository ?? CreateProviderRepository(),
-                providersResultsRepository ?? CreateProvidesrResultsRepository(), telemetry ?? CreateTelemetry());
+                searchRepository ?? CreateSearchRepository(),
+                getDatasetBlobModelValidator ?? CreateGetDatasetBlobModelValidator(),
+                specificationsRepository ?? CreateSpecificationsRepository(),
+                messengerService ?? CreateMessengerService(),
+                eventHubSettings ?? CreateEventHubSettings(),
+                excelDatasetReader ?? CreateExcelDatasetReader(),
+                cacheProvider ?? CreateCacheProvider(), calcsRepository ?? CreateCalcsRepository(),
+                providerRepository ?? CreateProviderRepository(),
+                providersResultsRepository ?? CreateProvidesrResultsRepository(),
+                telemetry ?? CreateTelemetry());
         }
 
         static ICalcsRepository CreateCalcsRepository()
@@ -2625,6 +2888,20 @@ namespace CalculateFunding.Services.Datasets.Services
 
             validator
                .ValidateAsync(Arg.Any<CreateNewDatasetModel>())
+               .Returns(validationResult);
+
+            return validator;
+        }
+
+        static IValidator<DatasetVersionUpdateModel> CreateDatasetVersionUpdateModelValidator(ValidationResult validationResult = null)
+        {
+            if (validationResult == null)
+                validationResult = new ValidationResult();
+
+            IValidator<DatasetVersionUpdateModel> validator = Substitute.For<IValidator<DatasetVersionUpdateModel>>();
+
+            validator
+               .ValidateAsync(Arg.Any<DatasetVersionUpdateModel>())
                .Returns(validationResult);
 
             return validator;

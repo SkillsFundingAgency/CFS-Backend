@@ -209,7 +209,6 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
             if (!string.IsNullOrEmpty(directSql))
             {
-                // Here we find the Andersen family via its LastName
                 return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri,
                     directSql,
                     queryOptions).AsQueryable();
@@ -250,6 +249,29 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                 UpdatedAt = DateTime.UtcNow
             };
 
+            var response = await _documentClient.UpsertDocumentAsync(_collectionUri, doc);
+            return response.StatusCode;
+        }
+
+        public async Task<HttpStatusCode> UpsertAsync<T>(T entity, string partitionKey = null) where T : IIdentifiable
+        {
+            DocumentEntity<T> doc = _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri).Where(d => d.Id == entity.Id).AsEnumerable().SingleOrDefault();
+
+            if(doc == null)
+            {
+                doc = new DocumentEntity<T>(entity)
+                {
+                    DocumentType = GetDocumentType<T>(),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+            }
+            else
+            {
+                doc.Content = entity;
+                doc.UpdatedAt = DateTime.UtcNow;
+            }
+           
             var response = await _documentClient.UpsertDocumentAsync(_collectionUri, doc);
             return response.StatusCode;
         }

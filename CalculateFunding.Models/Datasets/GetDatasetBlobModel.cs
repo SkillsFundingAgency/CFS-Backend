@@ -10,6 +10,10 @@
 
         public string DefinitionId { get; set; }
 
+        public string Comment { get; set; }
+
+        public string Description { get; set; }
+
         public override string ToString()
         {
             return $"{DatasetId}/v{Version}/{Filename}";
