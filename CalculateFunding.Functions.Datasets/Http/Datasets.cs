@@ -103,7 +103,7 @@ namespace CalculateFunding.Functions.Datasets.Http
             {
                 IDatasetService svc = scope.ServiceProvider.GetService<IDatasetService>();
 
-                return svc.ValidateDataset(req);
+                return svc.Reindex(req);
             }
         }
 
