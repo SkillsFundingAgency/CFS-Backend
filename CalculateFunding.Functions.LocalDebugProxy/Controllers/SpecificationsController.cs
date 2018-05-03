@@ -147,5 +147,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _specSearchService.SearchSpecifications(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/specs/save-fundingstream")]
+        [HttpPost]
+        public Task<IActionResult> RunSaveFundingStreamn()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specService.SaveFundingStream(ControllerContext.HttpContext.Request);
+        }
     }
 }

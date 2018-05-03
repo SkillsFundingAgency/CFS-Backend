@@ -21,6 +21,9 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
+
 
 namespace CalculateFunding.Services.Specs
 {
@@ -615,6 +618,59 @@ namespace CalculateFunding.Services.Specs
             }
         }
 
+        async public Task<IActionResult> SaveFundingStream(HttpRequest request)
+        {
+            string yaml = await request.GetRawBodyStringAsync();
+
+            string yamlFilename = request.GetYamlFileNameFromRequest();
+
+            if (string.IsNullOrEmpty(yaml))
+            {
+                _logger.Error($"Null or empty yaml provided for file: {yamlFilename}");
+                return new BadRequestObjectResult($"Invalid yaml was provided for file: {yamlFilename}");
+            }
+
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(new CamelCaseNamingConvention())
+                .Build();
+
+            FundingStream fundingStream = null;
+
+            try
+            {
+                fundingStream = deserializer.Deserialize<FundingStream>(yaml);
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"Invalid yaml was provided for file: {yamlFilename}");
+                return new BadRequestObjectResult($"Invalid yaml was provided for file: {yamlFilename}");
+            }
+
+            try
+            {
+                HttpStatusCode result = await _specificationsRepository.SaveFundingStream(fundingStream);
+
+                if (!result.IsSuccess())
+                {
+                    int statusCode = (int)result;
+
+                    _logger.Error($"Failed to save yaml file: {yamlFilename} to cosmos db with status {statusCode}");
+
+                    return new StatusCodeResult(statusCode);
+                }
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"Exception occurred writing to yaml file: {yamlFilename} to cosmos db");
+
+                return new StatusCodeResult(500);
+            }
+
+            _logger.Information($"Successfully saved file: {yamlFilename} to cosmos db");
+
+            return new OkResult();
+        }
+
         IDictionary<string, string> CreateMessageProperties(HttpRequest request)
         {
             Reference user = request.GetUser();
@@ -630,6 +686,5 @@ namespace CalculateFunding.Services.Specs
 
             return properties;
         }
-
     }
 }

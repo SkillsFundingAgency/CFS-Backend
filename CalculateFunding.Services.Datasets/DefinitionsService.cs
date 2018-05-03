@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Datasets
         {
             string yaml = await request.GetRawBodyStringAsync();
 
-            string yamlFilename = GetYamlFileNameFromRequest(request);
+            string yamlFilename = request.GetYamlFileNameFromRequest();
 
             if (string.IsNullOrEmpty(yaml))
             {
@@ -123,16 +123,6 @@ namespace CalculateFunding.Services.Datasets
 
             IEnumerable<DatasetDefinition> defintions =  await _dataSetsRepository.GetDatasetDefinitionsByQuery(d => definitionIds.Contains(d.Id));
             return new OkObjectResult(definitionIds);
-        }
-
-        string GetYamlFileNameFromRequest(HttpRequest request)
-        {
-            if (request.Headers.ContainsKey("yaml-file"))
-            {
-                return request.Headers["yaml-file"].FirstOrDefault();
-            }
-
-            return "File name not provided";
         }
     }
 }

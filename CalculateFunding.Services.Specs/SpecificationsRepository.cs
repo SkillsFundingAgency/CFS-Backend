@@ -303,5 +303,10 @@ namespace CalculateFunding.Services.Specs
 
             return specification.GetPolicy(policyId);
         }
+
+        public Task<HttpStatusCode> SaveFundingStream(FundingStream fundingStream)
+        {
+            return _repository.CreateAsync<FundingStream>(fundingStream);
+        }
     }
 }

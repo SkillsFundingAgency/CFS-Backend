@@ -30,6 +30,16 @@ namespace CalculateFunding.Services.Core.Extensions
             return string.Empty;
         }
 
+        public static string GetYamlFileNameFromRequest(this HttpRequest request)
+        {
+            if (request.Headers.ContainsKey("yaml-file"))
+            {
+                return request.Headers["yaml-file"].FirstOrDefault();
+            }
+
+            return "File name not provided";
+        }
+
         public static string GetCorrelationId(this HttpRequest request)
         {
             const string sfaCorellationId = "sfa-correlationId";

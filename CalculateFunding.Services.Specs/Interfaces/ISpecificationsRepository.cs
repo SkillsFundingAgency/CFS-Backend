@@ -27,5 +27,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<Calculation> GetCalculationBySpecificationIdAndCalculationId(string specificationId, string calculationId);
         Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(string sql);
         Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId);
+        Task<HttpStatusCode> SaveFundingStream(FundingStream fundingStream);
     }
 }

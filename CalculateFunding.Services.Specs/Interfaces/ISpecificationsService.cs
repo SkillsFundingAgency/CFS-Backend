@@ -38,5 +38,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task AssignDataDefinitionRelationship(Message message);
 
         Task<IActionResult> ReIndex();
+
+        Task<IActionResult> SaveFundingStream(HttpRequest request);
     }
 }

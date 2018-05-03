@@ -46,6 +46,7 @@ namespace CalculateFunding.Services.Specs.Services
         const string UserId = "33d7a71b-f570-4425-801b-250b9129f3d3";
         const string SfaCorrelationId = "c625c3f9-6ce8-4f1f-a3a3-4611f1dc3881";
         const string RelationshipId = "cca8ccb3-eb8e-4658-8b3f-f1e4c3a8f419";
+        const string yamlFile = "12345.yaml";
 
         [TestMethod]
         public async Task GetSpecificationById_GivenSpecificationIdDoesNotExist_ReturnsBadRequest()
@@ -1905,6 +1906,244 @@ namespace CalculateFunding.Services.Specs.Services
                 .BeOfType<NoContentResult>();
         }
 
+        
+
+        [TestMethod]
+        async public Task SaveFundingStream_GivenNoYamlWasProvidedWithNoFileName_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            //Act
+            IActionResult result = await service.SaveFundingStream(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Null or empty yaml provided for file: File name not provided"));
+        }
+
+        [TestMethod]
+        async public Task SaveFundingStream_GivenNoYamlWasProvidedButFileNameWas_ReturnsBadRequest()
+        {
+            //Arrange
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            //Act
+            IActionResult result = await service.SaveFundingStream(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Null or empty yaml provided for file: {yamlFile}"));
+        }
+
+        [TestMethod]
+        async public Task SaveFundingStream_GivenNoYamlWasProvidedButIsInvalid_ReturnsBadRequest()
+        {
+            //Arrange
+            string yaml = "invalid yaml";
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            //Act
+            IActionResult result = await service.SaveFundingStream(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid yaml was provided for file: {yamlFile}"));
+        }
+
+        [TestMethod]
+        async public Task SaveFundingStream_GivenValidYamlButFailedToSaveToDatabase_ReturnsStatusCode()
+        {
+            //Arrange
+            string yaml = CreateRawFundingStream();
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            HttpStatusCode failedCode = HttpStatusCode.BadGateway;
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .SaveFundingStream(Arg.Any<FundingStream>())
+                .Returns(failedCode);
+
+            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult result = await service.SaveFundingStream(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(502);
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Failed to save yaml file: {yamlFile} to cosmos db with status 502"));
+        }
+
+        [TestMethod]
+        async public Task SaveFundingStream_GivenValidYamlButSavingToDatabaseThrowsException_ReturnsInternalServerError()
+        {
+            //Arrange
+            string yaml = CreateRawFundingStream();
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .When(x => x.SaveFundingStream(Arg.Any<FundingStream>()))
+                .Do(x => { throw new Exception(); });
+
+            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult result = await service.SaveFundingStream(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(500);
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is($"Exception occurred writing to yaml file: {yamlFile} to cosmos db"));
+        }
+
+        [TestMethod]
+        async public Task SaveFundingStream_GivenValidYamlAndSaveWasSuccesful_ReturnsOK()
+        {
+            //Arrange
+            string yaml = CreateRawFundingStream();
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            HttpStatusCode statusCode = HttpStatusCode.Created;
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .SaveFundingStream(Arg.Any<FundingStream>())
+                .Returns(statusCode);
+
+            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult result = await service.SaveFundingStream(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkResult>();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Successfully saved file: {yamlFile} to cosmos db"));
+        }
+
         static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null,
             ILogger logs = null, IValidator<PolicyCreateModel> policyCreateModelValidator = null,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null, IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
@@ -2003,7 +2242,31 @@ namespace CalculateFunding.Services.Specs.Services
 
             return validator;
         }
+
+        static string CreateRawFundingStream()
+        {
+            var yaml = new StringBuilder();
+
+            yaml.AppendLine(@"id: YPLRE");
+            yaml.AppendLine(@"name: School Budget Share");
+            yaml.AppendLine(@"allocationLines:");
+            yaml.AppendLine(@"- id: YPE01");
+            yaml.AppendLine(@"  name: School Budget Share");
+            yaml.AppendLine(@"- id: YPE02");
+            yaml.AppendLine(@"  name: Education Services Grant");
+            yaml.AppendLine(@"- id: YPE03");
+            yaml.AppendLine(@"  name: Insurance");
+            yaml.AppendLine(@"- id: YPE04");
+            yaml.AppendLine(@"  name: Teacher Threshold");
+            yaml.AppendLine(@"- id: YPE05");
+            yaml.AppendLine(@"  name: Mainstreamed Grants");
+            yaml.AppendLine(@"- id: YPE06");
+            yaml.AppendLine(@"  name: Start Up Grant Part a");
+            yaml.AppendLine(@"- id: YPE07");
+            yaml.AppendLine(@"  name: Start Up Grant Part b Formulaic");
+
+
+            return yaml.ToString();
+        }
     }
-
-
 }
