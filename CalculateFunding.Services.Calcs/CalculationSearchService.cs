@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Calcs
                 await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
 
                 foreach(var searchTask in searchTasks)
-                    ProcessSearchResults(searchTask.Result, searchModel);
+                    ProcessSearchResults(searchTask.Result);
 
                 return new OkObjectResult(results);
             }
@@ -156,7 +156,7 @@ namespace CalculateFunding.Services.Calcs
             });
         }
 
-        void ProcessSearchResults(SearchResults<CalculationIndex> searchResult, SearchModel searchModel)
+        void ProcessSearchResults(SearchResults<CalculationIndex> searchResult)
         {
             if (!searchResult.Facets.IsNullOrEmpty())
             {
@@ -172,7 +172,8 @@ namespace CalculateFunding.Services.Calcs
                     PeriodName = m.Result.PeriodName,
                     SpecificationName = m.Result.SpecificationName,
                     Status = m.Result.Status,
-                    CalculationType = m.Result.CalculationType
+                    CalculationType = m.Result.CalculationType,
+                    LastUpdatedDate = m.Result.LastUpdatedDate
                 });
             }
         }

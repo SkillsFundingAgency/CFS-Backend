@@ -496,14 +496,14 @@ namespace CalculateFunding.Services.Calcs
                 PeriodId = calculation.Period.Id,
                 PeriodName = calculation.Period.Name,
                 AllocationLineId = calculation.AllocationLine?.Id,
-                AllocationLineName = calculation.AllocationLine?.Name,
+                AllocationLineName = calculation.AllocationLine != null ? calculation.AllocationLine.Name : "No allocation line set",
                 PolicySpecificationIds = calculation.Policies.Select(m => m.Id).ToArraySafe(),
                 PolicySpecificationNames = calculation.Policies.Select(m => m.Name).ToArraySafe(),
                 SourceCode = calculation.Current.SourceCode,
                 Status = calculation.Current.PublishStatus.ToString(),
                 FundingStreamId = calculation.FundingStream.Id,
                 FundingStreamName = calculation.FundingStream.Name,
-                LastUpdatedDate = DateTimeOffset.Now,
+                LastUpdatedDate = calculation.Current.Date,
                 CalculationType = calculation.CalculationType.ToString()
             };
         }

@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Repositories.Common.Search.Results
+﻿using System;
+
+namespace CalculateFunding.Repositories.Common.Search.Results
 {
 
     public class CalculationSearchResult
@@ -9,5 +11,6 @@
         public string SpecificationName { get; set; }
         public string Status { get; set; }
         public string CalculationType { get; set;  }
+        public DateTimeOffset? LastUpdatedDate { get; set; }
     }
 }
