@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         const string scenarioid = "scenario-id";
 
         [TestMethod]
-        async public Task SaveVersionAsync_GivenNullScenarioVersion_ReturnsBadRequestObject()
+        async public Task SaveVersion_GivenNullScenarioVersion_ReturnsBadRequestObject()
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         }
 
         [TestMethod]
-        async public Task SaveVersionAsync_GivenInvalidModel_ReturnsBadRequestObject()
+        async public Task SaveVersion_GivenInvalidModel_ReturnsBadRequestObject()
         {
             //Arrange
             CreateNewTestScenarioVersion model = new CreateNewTestScenarioVersion();
@@ -95,7 +95,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         }
 
         [TestMethod]
-        async public Task SaveVersionAsync_GivenNoScenarioIdAndSpecificationDoesNotExist_ReturnsPreConditionFailed()
+        async public Task SaveVersion_GivenNoScenarioIdAndSpecificationDoesNotExist_ReturnsPreConditionFailed()
         {
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         }
 
         [TestMethod]
-        async public Task SaveVersionAsync_GivenNoScenarioIdButSavingCausesInternalServerError_ReturnsInternalServerError()
+        async public Task SaveVersion_GivenNoScenarioIdButSavingCausesInternalServerError_ReturnsInternalServerError()
         {
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
@@ -197,7 +197,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         }
 
         [TestMethod]
-        async public Task SaveVersionAsync_GivenNoScenarioIdAndSavesScenario_UpdateSearchReturnsOK()
+        async public Task SaveVersion_GivenNoScenarioIdAndSavesScenario_UpdateSearchReturnsOK()
         {
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
@@ -262,7 +262,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         }
 
         [TestMethod]
-        async public Task SaveVersionAsync_GivenScenarioIdAndSavesScenario_UpdateSearchReturnsOK()
+        async public Task SaveVersion_GivenScenarioIdAndSavesScenario_UpdateSearchReturnsOK()
         {
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
@@ -342,6 +342,87 @@ namespace CalculateFunding.Services.Scenarios.Services
                                  m.First().LastUpdatedDate.HasValue &&
                                  m.First().LastUpdatedDate.Value.Date == DateTime.Now.Date));
 
+        }
+
+        [TestMethod]
+        async public Task SaveVersion_GivenScenarioAndGherkinIsUnchanged_DoesaNotCreateNewVersion()
+        {
+            //Arrange
+            CreateNewTestScenarioVersion model = CreateModel();
+            model.Id = scenarioid;
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            Specification specification = new Specification
+            {
+                Id = specificationId,
+                FundingStream = new Reference("fs-id", "fs-name"),
+                AcademicYear = new Reference("period-id", "period name")
+            };
+
+            TestScenarioVersion testScenarioVersion = new TestScenarioVersion
+            {
+                Gherkin = "scenario"
+            };
+
+            TestScenario testScenario = new TestScenario
+            {
+                Id = scenarioid,
+                Specification = new SpecificationSummary
+                {
+                    FundingStream = specification.FundingStream,
+                    Period = specification.AcademicYear,
+                    Id = specificationId,
+                    Name = "spec name"
+                },
+                Name = name,
+                Description = description,
+                FundingStream = specification.FundingStream,
+                Period = specification.AcademicYear,
+                History = new List<TestScenarioVersion>
+                {
+                    testScenarioVersion
+                },
+                Current = testScenarioVersion
+            };
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            scenariosRepository
+                .GetTestScenarioById(Arg.Is(scenarioid))
+                .Returns(testScenario);
+
+            scenariosRepository
+                .SaveTestScenario(Arg.Any<TestScenario>())
+                .Returns(HttpStatusCode.OK);
+
+            ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
+
+            ScenariosService service = CreateScenariosService(logger: logger,
+                scenariosRepository: scenariosRepository,
+                searchRepository: searchrepository);
+
+            //Act
+            IActionResult result = await service.SaveVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            testScenario
+                .History
+                .Count
+                .Should()
+                .Be(1);
         }
 
         [TestMethod]
@@ -426,6 +507,93 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             //Act
             IActionResult result = await service.GetTestScenarioById(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task GetCurrentTestScenarioById_GivenNoScenarioId_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            ScenariosService service = CreateScenariosService(logger: logger);
+
+            //Act
+            IActionResult result = await service.GetCurrentTestScenarioById(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error("No scenario Id was provided to GetCurrentTestScenarioById");
+        }
+
+        [TestMethod]
+        public async Task GetCurrentTestScenarioById_GivenScenarioIdButNoScenarioWasFound_ReturnsNotFound()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "scenarioId", new StringValues(scenarioid) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            scenariosRepository
+                .GetCurrentTestScenarioById(Arg.Is(scenarioid))
+                .Returns((CurrentTestScenario)null);
+
+            ScenariosService service = CreateScenariosService(logger, scenariosRepository);
+
+            //Act
+            IActionResult result = await service.GetCurrentTestScenarioById(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task GetCurrentTestScenarioById_GivenScenarioIdAndScenarioWasFound_ReturnsOKResult()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "scenarioId", new StringValues(scenarioid) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            scenariosRepository
+                .GetCurrentTestScenarioById(Arg.Is(scenarioid))
+                .Returns(new CurrentTestScenario());
+
+            ScenariosService service = CreateScenariosService(logger, scenariosRepository);
+
+            //Act
+            IActionResult result = await service.GetCurrentTestScenarioById(request);
 
             //Assert
             result

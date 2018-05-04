@@ -89,6 +89,8 @@ namespace CalculateFunding.Services.Scenarios
             if (!string.IsNullOrEmpty(scenarioVersion.Id))
                 testScenario = await _scenariosRepository.GetTestScenarioById(scenarioVersion.Id);
 
+            bool saveAsVersion = true;
+
             if (testScenario == null) {
 
                 Specification specification = await _specificationsRepository.GetSpecificationById(scenarioVersion.SpecificationId);
@@ -118,23 +120,33 @@ namespace CalculateFunding.Services.Scenarios
                     Current = new TestScenarioVersion()
                 };
             }
-
-            Reference user = request.GetUser();
-
-            TestScenarioVersion newVersion = new TestScenarioVersion
+            else
             {
-                Version = GetNextVersionNumberFromCalculationVersions(testScenario.History),
-                Author = user,
-                Date = DateTime.UtcNow,
-                PublishStatus = (testScenario.Current.PublishStatus == PublishStatus.Published
-                                    || testScenario.Current.PublishStatus == PublishStatus.Updated)
-                                    ? PublishStatus.Updated : PublishStatus.Draft,
-                Gherkin = scenarioVersion.Scenario
-            };
+                testScenario.Name = scenarioVersion.Name;
+                testScenario.Description = scenarioVersion.Description;
 
-            testScenario.Current = newVersion;
+                saveAsVersion = string.Equals(scenarioVersion.Scenario, testScenario.Current.Gherkin) == false;
+            }
 
-            testScenario.History.Add(newVersion);
+            if (saveAsVersion == true)
+            {
+                Reference user = request.GetUser();
+
+                TestScenarioVersion newVersion = new TestScenarioVersion
+                {
+                    Version = GetNextVersionNumberFromCalculationVersions(testScenario.History),
+                    Author = user,
+                    Date = DateTime.UtcNow,
+                    PublishStatus = (testScenario.Current.PublishStatus == PublishStatus.Published
+                                        || testScenario.Current.PublishStatus == PublishStatus.Updated)
+                                        ? PublishStatus.Updated : PublishStatus.Draft,
+                    Gherkin = scenarioVersion.Scenario
+                };
+
+                testScenario.Current = newVersion;
+
+                testScenario.History.Add(newVersion);
+            }
 
             HttpStatusCode statusCode = await _scenariosRepository.SaveTestScenario(testScenario);
 
@@ -177,9 +189,8 @@ namespace CalculateFunding.Services.Scenarios
                 await SendGenerateAllocationsMessage(buildProject, request);
             }
 
-            return new OkObjectResult(newVersion);
+            return new OkObjectResult(testScenario.Current);
         }
-
 
         async public Task<IActionResult> GetTestScenariosBySpecificationId(HttpRequest request)
         {
@@ -215,6 +226,29 @@ namespace CalculateFunding.Services.Scenarios
             TestScenario testScenario = await _scenariosRepository.GetTestScenarioById(scenarioId);
 
             if(testScenario == null)
+            {
+                return new NotFoundResult();
+            }
+
+            return new OkObjectResult(testScenario);
+        }
+
+        async public Task<IActionResult> GetCurrentTestScenarioById(HttpRequest request)
+        {
+            request.Query.TryGetValue("scenarioId", out var testId);
+
+            var scenarioId = testId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(scenarioId))
+            {
+                _logger.Error("No scenario Id was provided to GetCurrentTestScenarioById");
+
+                return new BadRequestObjectResult("Null or empty scenario Id provided");
+            }
+
+            CurrentTestScenario testScenario = await _scenariosRepository.GetCurrentTestScenarioById(scenarioId);
+
+            if (testScenario == null)
             {
                 return new NotFoundResult();
             }

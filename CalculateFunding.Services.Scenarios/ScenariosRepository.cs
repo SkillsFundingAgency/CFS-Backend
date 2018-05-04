@@ -31,6 +31,32 @@ namespace CalculateFunding.Services.Scenarios
             return Task.FromResult(scenarios.AsEnumerable().FirstOrDefault());
         }
 
+        public async Task<CurrentTestScenario> GetCurrentTestScenarioById(string testScenarioId)
+        {
+            Guard.IsNullOrWhiteSpace(testScenarioId, nameof(testScenarioId));
+
+            var scenario = await _cosmosRepository.ReadAsync<TestScenario>(testScenarioId);
+
+            if (scenario == null)
+                return null;
+
+            CurrentTestScenario currentTestScenario = new CurrentTestScenario
+            {
+                LastUpdatedDate = scenario.UpdatedAt,
+                Id = scenario.Id,
+                Name = scenario.Content.Name,
+                Description = scenario.Content.Description,
+                Author = scenario.Content.Current.Author,
+                Commment = scenario.Content.Current.Commment,
+                CurrentVersionDate = scenario.Content.Current.Date,
+                PublishStatus = scenario.Content.Current.PublishStatus,
+                Gherkin = scenario.Content.Current.Gherkin,
+                Version = scenario.Content.Current.Version
+            };
+
+            return currentTestScenario;
+        }
+
         public Task<IEnumerable<TestScenario>> GetTestScenariosBySpecificationId(string specificationId)
         {
             var scenarios = _cosmosRepository.Query<TestScenario>().Where(m => m.Specification.Id == specificationId);

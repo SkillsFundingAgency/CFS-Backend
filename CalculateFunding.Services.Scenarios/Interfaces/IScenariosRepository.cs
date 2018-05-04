@@ -15,5 +15,7 @@ namespace CalculateFunding.Services.Scenarios.Interfaces
         Task<IEnumerable<TestScenario>> GetTestScenariosBySpecificationId(string specificationId);
 
         Task<IEnumerable<DocumentEntity<TestScenario>>> GetAllTestScenarios();
+
+        Task<CurrentTestScenario> GetCurrentTestScenarioById(string testScenarioId);
     }
 }

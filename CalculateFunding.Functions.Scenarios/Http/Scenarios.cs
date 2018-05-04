@@ -66,5 +66,17 @@ namespace CalculateFunding.Functions.Scenarios.Http
                 return svc.ReIndex(req);
             }
         }
+
+        [FunctionName("get-current-scenario-by-id")]
+        public static Task<IActionResult> RunGetCurrentTestScenarioById(
+        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IScenariosService svc = scope.ServiceProvider.GetService<IScenariosService>();
+
+                return svc.GetCurrentTestScenarioById(req);
+            }
+        }
     }
 }
