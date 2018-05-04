@@ -16,11 +16,8 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query = null);
         Task<IEnumerable<Specification>> GetSpecifications();
         Task<IEnumerable<AcademicYear>> GetAcademicYears();
-        Task<IEnumerable<FundingStream>> GetFundingStreams();
         Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query);
         Task<HttpStatusCode> UpdateSpecification(Specification specification);
-        Task<AllocationLine> GetAllocationLineById(string lineId);
-        Task<IEnumerable<AllocationLine>> GetAllocationLines();
         Task<Policy> GetPolicyBySpecificationIdAndPolicyName(string specificationId, string policyByName);
         Task<Policy> GetPolicyBySpecificationIdAndPolicyId(string specificationId, string policyId);
         Task<Calculation> GetCalculationBySpecificationIdAndCalculationName(string specificationId, string calculationName);
@@ -28,5 +25,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(string sql);
         Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId);
         Task<HttpStatusCode> SaveFundingStream(FundingStream fundingStream);
+        Task<IEnumerable<FundingStream>> GetFundingStreams(Expression<Func<FundingStream, bool>> query = null);
     }
 }

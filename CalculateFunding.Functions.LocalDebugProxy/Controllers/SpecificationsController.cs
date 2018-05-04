@@ -121,13 +121,22 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _specService.CreateCalculation(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/specs/allocation-lines")]
+        [Route("api/specs/get-fundingstreams")]
         [HttpGet]
-        public Task<IActionResult> RunAllocationLines()
+        public Task<IActionResult> RunGetFundingStreams()
         {
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
-            return _specService.GetAllocationLines(ControllerContext.HttpContext.Request);
+            return _specService.GetFundingStreams(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/specs/get-fundingstream-by-id")]
+        [HttpGet]
+        public Task<IActionResult> RunGetFundingStreamById()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specService.GetFundingStreamById(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/reindex")]

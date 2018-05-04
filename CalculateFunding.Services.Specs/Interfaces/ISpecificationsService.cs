@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetFundingStreams(HttpRequest request);
 
-        Task<IActionResult> GetAllocationLines(HttpRequest request);
+        Task<IActionResult> GetFundingStreamById(HttpRequest request);
 
         Task<IActionResult> GetPolicyByName(HttpRequest request);
 

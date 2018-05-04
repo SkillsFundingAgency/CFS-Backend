@@ -308,7 +308,7 @@ namespace CalculateFunding.Services.Specs
 
             if (fundingStreams.IsNullOrEmpty())
             {
-                _logger.Error($"No academic years were returned");
+                _logger.Error("No funding streams were returned");
 
                 fundingStreams = new FundingStream[0];
             }
@@ -316,10 +316,29 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(fundingStreams);
         }
 
-        public async Task<IActionResult> GetAllocationLines(HttpRequest request)
+        public async Task<IActionResult> GetFundingStreamById(HttpRequest request)
         {
-            IEnumerable<AllocationLine> allocationLines = await _specificationsRepository.GetAllocationLines();
-            return new OkObjectResult(allocationLines);
+            request.Query.TryGetValue("fundingStreamId", out var funStreamId);
+
+            string fundingStreamId = funStreamId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(fundingStreamId))
+            {
+                _logger.Error("No funding stream Id was provided to GetFundingStreamById");
+
+                return new BadRequestObjectResult("Null or empty funding stream Id provided");
+            }
+
+            FundingStream fundingStream = await _specificationsRepository.GetFundingStreamById(fundingStreamId);
+
+            if (fundingStream == null)
+            {
+                _logger.Error($"No funding stream was found for funding stream id : {fundingStreamId}");
+
+                return new NotFoundResult();
+            }
+
+            return new OkObjectResult(fundingStream);
         }
 
         public async Task<IActionResult> CreatePolicy(HttpRequest request)
@@ -439,7 +458,7 @@ namespace CalculateFunding.Services.Specs
             if (specification == null)
             {
                 _logger.Warning($"Specification not found for specification id {createModel.SpecificationId}");
-                return new StatusCodeResult(412);
+                return new PreconditionFailedResult($"Specification not found for specification id {createModel.SpecificationId}");
             }
 
             Calculation calculation = _mapper.Map<Calculation>(createModel);
@@ -449,11 +468,18 @@ namespace CalculateFunding.Services.Specs
             if (policy == null)
             {
                 _logger.Warning($"Policy not found for policy id {createModel.PolicyId}");
-                return new StatusCodeResult(412);
+                return new PreconditionFailedResult($"Policy not found for policy id {createModel.PolicyId}");
             }
 
-            if(!string.IsNullOrWhiteSpace(createModel.AllocationLineId))
-                calculation.AllocationLine = await _specificationsRepository.GetAllocationLineById(createModel.AllocationLineId);
+            FundingStream fundingStream = await _specificationsRepository.GetFundingStreamById(specification.FundingStream.Id);
+
+            if(fundingStream == null || !fundingStream.AllocationLines.Any())
+            {
+                return new PreconditionFailedResult($"A funding stream was not found for specification with id: {specification.Id}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(createModel.AllocationLineId))
+                calculation.AllocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == createModel.AllocationLineId);
 
             policy.Calculations = (policy.Calculations == null
                 ? new[] { calculation }

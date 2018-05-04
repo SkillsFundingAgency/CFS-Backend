@@ -35,19 +35,6 @@ namespace CalculateFunding.Functions.Specs.Http
                 return svc.GetSpecifications(req);
             }
         }
-
-        [FunctionName("save-fundingStream")]
-        public static Task<IActionResult> RunSaveFundingStreamn(
-            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
-
-                return svc.SaveFundingStream(req);
-            }
-        }
-
         [FunctionName("specifications-by-year")]
         public static Task<IActionResult> RunSpecificationsByYear(
             [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)

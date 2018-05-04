@@ -28,12 +28,14 @@ using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Services.Specs.Services
 {
     [TestClass]
     public class SpecificationsServiceTests
     {
+        const string FundingStreamId = "YAPGG";
         const string SpecificationId = "ffa8ccb3-eb8e-4658-8b3f-f1e4c3a8f313";
         const string PolicyId = "dda8ccb3-eb8e-4658-8b3f-f1e4c3a8f322";
         const string AllocationLineId = "02a6eeaf-e1a0-476e-9cf9-8aa5d9129345";
@@ -821,14 +823,7 @@ namespace CalculateFunding.Services.Specs.Services
             //Assert
             result
                 .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
-
-            statusCodeResult
-                .StatusCode
-                .Should()
-                .Be(412);
+                .BeOfType<PreconditionFailedResult>();
 
             logger
                 .Received(1)
@@ -877,14 +872,7 @@ namespace CalculateFunding.Services.Specs.Services
             //Assert
             result
                 .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
-
-            statusCodeResult
-                .StatusCode
-                .Should()
-                .Be(412);
+                .BeOfType<PreconditionFailedResult>();
 
             logger
                 .Received(1)
@@ -901,6 +889,15 @@ namespace CalculateFunding.Services.Specs.Services
                 Name = "test alloctaion"
             };
 
+            FundingStream fundingStream = new FundingStream
+            {
+                AllocationLines = new List<AllocationLine>
+                {
+                    allocationLine
+                },
+                Id = FundingStreamId
+            };
+
             Policy policy = new Policy
             {
                 Id = PolicyId
@@ -911,6 +908,10 @@ namespace CalculateFunding.Services.Specs.Services
                 Policies = new[]
                 {
                     policy
+                },
+                FundingStream = new Reference
+                {
+                    Id = FundingStreamId
                 }
             };
 
@@ -938,8 +939,8 @@ namespace CalculateFunding.Services.Specs.Services
                 .Returns(specification);
 
             specificationsRepository
-                .GetAllocationLineById(Arg.Is(AllocationLineId))
-                .Returns(allocationLine);
+                .GetFundingStreamById(Arg.Is(FundingStreamId))
+                .Returns(fundingStream);
 
             specificationsRepository
                 .UpdateSpecification(Arg.Is(specification))
@@ -987,6 +988,15 @@ namespace CalculateFunding.Services.Specs.Services
                 Name = "test alloctaion"
             };
 
+            FundingStream fundingStream = new FundingStream
+            {
+                AllocationLines = new List<AllocationLine>
+                {
+                    allocationLine
+                },
+                Id = FundingStreamId
+            };
+
             Policy policy = new Policy
             {
                 Id = PolicyId
@@ -997,6 +1007,10 @@ namespace CalculateFunding.Services.Specs.Services
                 Policies = new[]
                 {
                     policy
+                },
+                FundingStream = new Reference
+                {
+                    Id = FundingStreamId
                 }
             };
 
@@ -1046,8 +1060,8 @@ namespace CalculateFunding.Services.Specs.Services
                 .Returns(specification);
 
             specificationsRepository
-                .GetAllocationLineById(Arg.Is(AllocationLineId))
-                .Returns(allocationLine);
+                .GetFundingStreamById(Arg.Is(FundingStreamId))
+                .Returns(fundingStream);
 
             specificationsRepository
                 .UpdateSpecification(Arg.Is(specification))
@@ -1102,6 +1116,15 @@ namespace CalculateFunding.Services.Specs.Services
                 Name = "test alloctaion"
             };
 
+            FundingStream fundingStream = new FundingStream
+            {
+                AllocationLines = new List<AllocationLine>
+                {
+                    allocationLine
+                },
+                Id = FundingStreamId
+            };
+
             Policy policy = new Policy
             {
                 Id = PolicyId
@@ -1111,14 +1134,11 @@ namespace CalculateFunding.Services.Specs.Services
             {
                 Policies = new[]
                 {
-                    policy = new Policy
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        SubPolicies = new[]
-                        {
-                            policy
-                        }
-                    }
+                    policy
+                },
+                FundingStream = new Reference
+                {
+                    Id = FundingStreamId
                 }
             };
 
@@ -1168,8 +1188,8 @@ namespace CalculateFunding.Services.Specs.Services
                 .Returns(specification);
 
             specificationsRepository
-                .GetAllocationLineById(Arg.Is(AllocationLineId))
-                .Returns(allocationLine);
+               .GetFundingStreamById(Arg.Is(FundingStreamId))
+               .Returns(fundingStream);
 
             specificationsRepository
                 .UpdateSpecification(Arg.Is(specification))
@@ -1906,8 +1926,6 @@ namespace CalculateFunding.Services.Specs.Services
                 .BeOfType<NoContentResult>();
         }
 
-        
-
         [TestMethod]
         async public Task SaveFundingStream_GivenNoYamlWasProvidedWithNoFileName_ReturnsBadRequest()
         {
@@ -2142,6 +2160,181 @@ namespace CalculateFunding.Services.Specs.Services
             logger
                 .Received(1)
                 .Information(Arg.Is($"Successfully saved file: {yamlFile} to cosmos db"));
+        }
+
+        [TestMethod]
+        public async Task GetFundingStreamById_GivenFundingStreamIdDoesNotExist_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            //Act
+            IActionResult result = await service.GetFundingStreamById(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No funding stream Id was provided to GetFundingStreamById"));
+        }
+
+        [TestMethod]
+        public async Task GetFundingStreamById_GivenFundingStreamnWasNotFound_ReturnsNotFound()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "fundingStreamId", new StringValues(FundingStreamId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetFundingStreamById(Arg.Is(FundingStreamId))
+                .Returns((FundingStream)null);
+
+            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+
+            //Act
+            IActionResult result = await service.GetFundingStreamById(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"No funding stream was found for funding stream id : {FundingStreamId}"));
+        }
+
+        [TestMethod]
+        public async Task GetFundingStreamById_GivenFundingStreamnWasFound_ReturnsSuccess()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "fundingStreamId", new StringValues(FundingStreamId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            FundingStream fundingStream = new FundingStream
+            {
+                Id = FundingStreamId
+            };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetFundingStreamById(Arg.Is(FundingStreamId))
+                .Returns(fundingStream);
+
+            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+
+            //Act
+            IActionResult result = await service.GetFundingStreamById(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task GetFundingStreams_GivenNullOrEmptyFundingStreamsReturned_LogsAndReturnsOKWithEmptyList()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<FundingStream> fundingStreams = null;
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetFundingStreams()
+                .Returns(fundingStreams);
+
+            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult result = await service.GetFundingStreams(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+            
+            OkObjectResult objectResult = result as OkObjectResult;
+
+            IEnumerable<FundingStream> values = objectResult.Value as IEnumerable<FundingStream>;
+
+            values
+                .Should()
+                .NotBeNull();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No funding streams were returned"));
+        }
+
+        [TestMethod]
+        public async Task GetFundingStreams_GivenFundingStreamsReturned_ReturnsOKWithResults()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<FundingStream> fundingStreams = new[]
+            {
+                new FundingStream(),
+                new FundingStream()
+            };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetFundingStreams()
+                .Returns(fundingStreams);
+
+            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult result = await service.GetFundingStreams(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult objectResult = result as OkObjectResult;
+
+            IEnumerable<FundingStream> values = objectResult.Value as IEnumerable<FundingStream>;
+
+            values
+                .Count()
+                .Should()
+                .Be(2);
         }
 
         static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null,
