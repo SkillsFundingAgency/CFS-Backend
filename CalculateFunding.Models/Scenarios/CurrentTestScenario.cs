@@ -20,6 +20,8 @@ namespace CalculateFunding.Models.Scenarios
         public PublishStatus PublishStatus { get; set; }
 
         public string Gherkin { get; set; }
+
+        public string SpecificationId { get; set; }
     }
 }
 

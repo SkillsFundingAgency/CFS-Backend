@@ -51,7 +51,8 @@ namespace CalculateFunding.Services.Scenarios
                 CurrentVersionDate = scenario.Content.Current.Date,
                 PublishStatus = scenario.Content.Current.PublishStatus,
                 Gherkin = scenario.Content.Current.Gherkin,
-                Version = scenario.Content.Current.Version
+                Version = scenario.Content.Current.Version,
+                SpecificationId = scenario.Content.Specification.Id
             };
 
             return currentTestScenario;
