@@ -980,6 +980,7 @@ namespace CalculateFunding.Services.Datasets.Services
             string definitionId = Guid.NewGuid().ToString();
             string datasetId = Guid.NewGuid().ToString();
             const string relationshipName = "rel name";
+            const string relationshipDescription = "dataset description";
 
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
@@ -1013,6 +1014,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Specification = new Reference { Id = specificationId },
                 Id = relationshipId,
                 Name = relationshipName,
+                Description = relationshipDescription,
                 DatasetDefinition = new Reference { Id = definitionId },
                 DatasetVersion = new DatasetRelationshipVersion
                 {
@@ -1104,6 +1106,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Version
                 .Should()
                 .Be(1);
+
+            content
+               .First()
+               .RelationshipDescription
+               .Should()
+               .Be(relationshipDescription);
         }
 
         [TestMethod]

@@ -349,6 +349,7 @@ namespace CalculateFunding.Services.Datasets
             DatasetSpecificationRelationshipViewModel relationshipViewModel = new DatasetSpecificationRelationshipViewModel();
             relationshipViewModel.Id = relationship.Id;
             relationshipViewModel.Name = relationship.Name;
+            relationshipViewModel.RelationshipDescription = relationship.Description;
 
             if (relationship.DatasetVersion != null)
             {
