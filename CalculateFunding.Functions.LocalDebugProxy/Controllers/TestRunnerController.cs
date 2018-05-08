@@ -14,7 +14,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         private readonly ITestResultsService _testResultsService;
 
         public TestRunnerController(
-            IServiceProvider serviceProvider, 
+            IServiceProvider serviceProvider,
             IGherkinParserService gherkinParserService,
             ITestResultsSearchService testResultsSearchService,
             ITestEngineService testEngineService,
@@ -62,6 +62,16 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
             return _testResultsCountsService.GetResultCounts(ControllerContext.HttpContext.Request);
+        }
+
+
+        [Route("api/tests/get-testscenario-result-counts-for-provider")]
+        [HttpGet]
+        public Task<IActionResult> RunGetProviderStatusCountsForTestScenario()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _testResultsCountsService.GetTestScenarioCountsForProvider(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/tests/testscenario-reindex")]

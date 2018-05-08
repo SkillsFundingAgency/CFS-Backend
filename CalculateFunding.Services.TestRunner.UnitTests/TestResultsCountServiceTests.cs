@@ -137,7 +137,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 .SearchTestScenarioResults(Arg.Any<SearchModel>())
                 .Returns((TestScenarioSearchResults)null);
 
-            TestResultsCountsService service = CreateResultCountsService(searchService, logger);
+            TestResultsCountsService service = CreateResultCountsService(searchService, logger: logger);
 
             //Act
             IActionResult result = await service.GetResultCounts(httpRequest);
@@ -185,7 +185,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 .SearchTestScenarioResults(Arg.Any<SearchModel>())
                 .Returns(testScenarioSearchResults1, testScenarioSearchResults2);
 
-            TestResultsCountsService service = CreateResultCountsService(searchService, logger);
+            TestResultsCountsService service = CreateResultCountsService(searchService, logger: logger);
 
             //Act
             IActionResult result = await service.GetResultCounts(httpRequest);
@@ -247,7 +247,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 .SearchTestScenarioResults(Arg.Any<SearchModel>())
                 .Returns(testScenarioSearchResults1, testScenarioSearchResults2);
 
-            TestResultsCountsService service = CreateResultCountsService(searchService, logger);
+            TestResultsCountsService service = CreateResultCountsService(searchService, logger: logger);
 
             //Act
             IActionResult result = await service.GetResultCounts(httpRequest);
@@ -287,7 +287,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             ILogger logger = CreateLogger();
 
-            TestScenarioSearchResults testScenarioSearchResults1 = new TestScenarioSearchResults
+            TestScenarioSearchResults testScenarioSearchResults = new TestScenarioSearchResults
             {
                 Results = new[]
                 {
@@ -295,6 +295,11 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                     {
                         TestScenarioName = "Test Name 1",
                         LastUpdatedDate = DateTimeOffset.Now
+                    },
+                    new TestScenarioSearchResult
+                    {
+                        TestScenarioName = "Test Name 2",
+                        LastUpdatedDate = DateTimeOffset.Now
                     }
                 },
                 Facets = new[]
@@ -303,45 +308,27 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 }
             };
 
-            TestScenarioSearchResults testScenarioSearchResults2 = new TestScenarioSearchResults
-            {
-                Results = new[]
-               {
-                    new TestScenarioSearchResult
-                    {
-                        TestScenarioName = "Test Name 2",
-                        LastUpdatedDate = DateTimeOffset.Now
-                    }
-                },
-                Facets = new[]
-               {
-                    new Facet{ Name = "testResult" }
-                }
-            };
-
             ITestResultsSearchService searchService = CreateTestResultsSearchService();
             searchService
                 .SearchTestScenarioResults(Arg.Any<SearchModel>())
-                .Returns(testScenarioSearchResults1, testScenarioSearchResults2);
+                .Returns(testScenarioSearchResults);
 
-            TestResultsCountsService service = CreateResultCountsService(searchService, logger);
+            TestResultsCountsService service = CreateResultCountsService(searchService, logger: logger);
 
-            //Act
+            // Act
             IActionResult result = await service.GetResultCounts(httpRequest);
 
-            //Assert
+            // Assert
             result
                 .Should()
-                .BeOfType<OkObjectResult>();
-
-            OkObjectResult okResult = result as OkObjectResult;
-
-            IList<TestScenarioResultCounts> results = okResult.Value as IList<TestScenarioResultCounts>;
-
-            results
-                .Count
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
                 .Should()
-                .Be(2);
+                .BeAssignableTo<IEnumerable<TestScenarioResultCounts>>()
+                .Which
+                .Should()
+                .HaveCount(2);
         }
 
         [TestMethod]
@@ -385,7 +372,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 .SearchTestScenarioResults(Arg.Any<SearchModel>())
                 .Returns(testScenarioSearchResults1);
 
-            TestResultsCountsService service = CreateResultCountsService(searchService, logger);
+            TestResultsCountsService service = CreateResultCountsService(searchService, logger: logger);
 
             //Act
             IActionResult result = await service.GetResultCounts(httpRequest);
@@ -468,7 +455,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 .SearchTestScenarioResults(Arg.Any<SearchModel>())
                 .Returns(testScenarioSearchResults1);
 
-            TestResultsCountsService service = CreateResultCountsService(searchService, logger);
+            TestResultsCountsService service = CreateResultCountsService(searchService, logger: logger);
 
             //Act
             IActionResult result = await service.GetResultCounts(httpRequest);
@@ -506,14 +493,25 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 .Be(6);
         }
 
-        static TestResultsCountsService CreateResultCountsService(ITestResultsSearchService testResultsService = null, ILogger logger = null)
+        static TestResultsCountsService CreateResultCountsService(
+            ITestResultsSearchService testResultsService = null,
+            ITestResultsRepository testResultsRepository = null,
+            ILogger logger = null)
         {
-            return new TestResultsCountsService(testResultsService ?? CreateTestResultsSearchService(), logger ?? CreateLogger());
+            return new TestResultsCountsService(
+                testResultsService ?? CreateTestResultsSearchService(),
+                testResultsRepository ?? CreateTestResultsRepository(),
+                logger ?? CreateLogger());
         }
 
         static ITestResultsSearchService CreateTestResultsSearchService()
         {
             return Substitute.For<ITestResultsSearchService>();
+        }
+
+        static ITestResultsRepository CreateTestResultsRepository()
+        {
+            return Substitute.For<ITestResultsRepository>();
         }
 
         static ILogger CreateLogger()

@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
@@ -20,13 +21,17 @@ namespace CalculateFunding.Services.TestRunner.Services
     public class TestResultsCountsService : ITestResultsCountsService
     {
         private readonly ITestResultsSearchService _testResultsService;
+        private readonly ITestResultsRepository _testResultsRepository;
         private readonly ILogger _logger;
 
-        public TestResultsCountsService(ITestResultsSearchService testResultsService, ILogger logger)
+        public TestResultsCountsService(ITestResultsSearchService testResultsService, ITestResultsRepository testResultsRepository, ILogger logger)
         {
             Guard.ArgumentNotNull(testResultsService, nameof(testResultsService));
+            Guard.ArgumentNotNull(testResultsRepository, nameof(testResultsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
+
             _testResultsService = testResultsService;
+            _testResultsRepository = testResultsRepository;
             _logger = logger;
         }
 
@@ -82,6 +87,24 @@ namespace CalculateFunding.Services.TestRunner.Services
             });
 
             return new OkObjectResult(resultCounts);
+        }
+
+        public async Task<IActionResult> GetTestScenarioCountsForProvider(HttpRequest request)
+        {
+            request.Query.TryGetValue("providerId", out var providerIdParse);
+
+            var providerId = providerIdParse.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(providerId))
+            {
+                _logger.Error($"No providerId was provided to {nameof(GetTestScenarioCountsForProvider)}");
+
+                return new BadRequestObjectResult("Null or empty providerId provided");
+            }
+
+            ProviderTestScenarioResultCounts result = await _testResultsRepository.GetProviderCounts(providerId);
+
+            return new OkObjectResult(result);
         }
     }
 }

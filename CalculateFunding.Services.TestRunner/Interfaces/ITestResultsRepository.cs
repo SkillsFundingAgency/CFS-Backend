@@ -13,5 +13,7 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
         Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> providerResult);
 
         Task<IEnumerable<DocumentEntity<TestScenarioResult>>> GetAllTestResults();
+
+        Task<ProviderTestScenarioResultCounts> GetProviderCounts(string testScenarioId);
     }
 }

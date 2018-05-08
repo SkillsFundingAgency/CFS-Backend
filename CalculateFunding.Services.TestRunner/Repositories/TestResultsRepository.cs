@@ -44,17 +44,17 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
             int completedCount = 0;
 
-            ParallelLoopResult result = Parallel.ForEach(providerIds, new ParallelOptions() { MaxDegreeOfParallelism = _engineSettings.GetCurrentProviderTestResultsDegreeOfParallelism },  async (providerId) =>
-            {
-                string sql = $"SELECT * FROM Root r WHERE r.documentType = \"{nameof(TestScenarioResult)}\" AND r.content.specification.id = \"{specificationId}\" AND r.content.provider.id = '{providerId}' AND r.deleted = false";
-                IEnumerable<TestScenarioResult> testScenarioResults =  await _cosmosRepository.QueryPartitionedEntity<TestScenarioResult>(sql, partitionEntityId: providerId);
-                foreach(TestScenarioResult testScenarioResult in testScenarioResults)
-                {
-                    results.Add(testScenarioResult);
-                }
+            ParallelLoopResult result = Parallel.ForEach(providerIds, new ParallelOptions() { MaxDegreeOfParallelism = _engineSettings.GetCurrentProviderTestResultsDegreeOfParallelism }, async (providerId) =>
+           {
+               string sql = $"SELECT * FROM Root r WHERE r.documentType = \"{nameof(TestScenarioResult)}\" AND r.content.specification.id = \"{specificationId}\" AND r.content.provider.id = '{providerId}' AND r.deleted = false";
+               IEnumerable<TestScenarioResult> testScenarioResults = await _cosmosRepository.QueryPartitionedEntity<TestScenarioResult>(sql, partitionEntityId: providerId);
+               foreach (TestScenarioResult testScenarioResult in testScenarioResults)
+               {
+                   results.Add(testScenarioResult);
+               }
 
-                completedCount++;
-            });
+               completedCount++;
+           });
 
             while (completedCount < providerIds.Count())
             {
@@ -104,6 +104,25 @@ namespace CalculateFunding.Services.TestRunner.Repositories
         public Task<IEnumerable<DocumentEntity<TestScenarioResult>>> GetAllTestResults()
         {
             return _cosmosRepository.GetAllDocumentsAsync<TestScenarioResult>();
+        }
+
+        public async Task<ProviderTestScenarioResultCounts> GetProviderCounts(string providerId)
+        {
+            Task<int> passedTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>().Where(c => c.Provider.Id == providerId && c.TestResult == TestResult.Passed).Count());
+            Task<int> failedTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>().Where(c => c.Provider.Id == providerId && c.TestResult == TestResult.Failed).Count());
+            Task<int> ignoredTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>().Where(c => c.Provider.Id == providerId && c.TestResult == TestResult.Ignored).Count());
+
+            await TaskHelper.WhenAllAndThrow(passedTask, failedTask, ignoredTask);
+
+            ProviderTestScenarioResultCounts result = new ProviderTestScenarioResultCounts()
+            {
+                Passed = passedTask.Result,
+                Failed = failedTask.Result,
+                Ignored = ignoredTask.Result,
+                ProviderId = providerId,
+            };
+
+            return result;
         }
     }
 }
