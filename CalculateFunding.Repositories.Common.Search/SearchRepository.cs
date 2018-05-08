@@ -57,7 +57,7 @@ namespace CalculateFunding.Repositories.Common.Search
 
             try
             {
-                searchTerm = !string.IsNullOrWhiteSpace(searchTerm) ? $"\"*{searchTerm}*\"" : "";
+                searchTerm = !string.IsNullOrWhiteSpace(searchTerm) ? $"/.*{searchTerm}.*/" : "";
 
                 var azureSearchResult = await client.Documents.SearchAsync<T>(searchTerm, searchParameters ?? DefaultParameters);
 
