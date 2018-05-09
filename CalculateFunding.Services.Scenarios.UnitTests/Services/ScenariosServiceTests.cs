@@ -199,7 +199,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         [TestMethod]
         async public Task SaveVersion_GivenNoScenarioIdAndSavesScenario_UpdateSearchReturnsOK()
         {
-            //Arrange
+            // Arrange
             CreateNewTestScenarioVersion model = CreateModel();
 
             string json = JsonConvert.SerializeObject(model);
@@ -236,13 +236,21 @@ namespace CalculateFunding.Services.Scenarios.Services
                 specificationsRepository: specificationsRepository, scenariosRepository: scenariosRepository,
                 searchRepository: searchrepository);
 
-            //Act
+            scenariosRepository
+                .GetCurrentTestScenarioById(Arg.Any<string>())
+                .Returns(new CurrentTestScenario());
+
+            // Act
             IActionResult result = await service.SaveVersion(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
-                .BeOfType<OkObjectResult>();
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeAssignableTo<CurrentTestScenario>();
 
            await
                 searchrepository
@@ -258,7 +266,14 @@ namespace CalculateFunding.Services.Scenarios.Services
                                 m.First().Status == "Draft" &&
                                 m.First().LastUpdatedDate.HasValue && 
                                 m.First().LastUpdatedDate.Value.Date == DateTime.Now.Date));
-                
+
+            await scenariosRepository
+            .Received(1)
+            .GetCurrentTestScenarioById(Arg.Any<string>());
+
+            await scenariosRepository
+                .Received(1)
+                .SaveTestScenario(Arg.Any<TestScenario>());
         }
 
         [TestMethod]

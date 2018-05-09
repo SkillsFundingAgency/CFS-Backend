@@ -189,7 +189,9 @@ namespace CalculateFunding.Services.Scenarios
                 await SendGenerateAllocationsMessage(buildProject, request);
             }
 
-            return new OkObjectResult(testScenario.Current);
+            CurrentTestScenario testScenarioResult = await _scenariosRepository.GetCurrentTestScenarioById(testScenario.Id);
+
+            return new OkObjectResult(testScenarioResult);
         }
 
         async public Task<IActionResult> GetTestScenariosBySpecificationId(HttpRequest request)

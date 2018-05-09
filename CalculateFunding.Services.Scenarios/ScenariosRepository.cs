@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Scenarios
         {
             Guard.IsNullOrWhiteSpace(testScenarioId, nameof(testScenarioId));
 
-            var scenario = await _cosmosRepository.ReadAsync<TestScenario>(testScenarioId);
+            DocumentEntity<TestScenario> scenario = await _cosmosRepository.ReadAsync<TestScenario>(testScenarioId);
 
             if (scenario == null)
                 return null;
