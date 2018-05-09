@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Models.Results;
+using System.Collections.Generic;
+using CalculateFunding.Models.Calcs;
 
 namespace CalculateFunding.Services.Calcs.Interfaces
 {
@@ -24,5 +27,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IActionResult> GetCalculationCodeContext(HttpRequest request);
 
         Task<IActionResult> ReIndex();
+
+        Task<BuildProject> CreateBuildProject(SpecificationSummary specification, IEnumerable<Calculation> calculations);
     }
 }

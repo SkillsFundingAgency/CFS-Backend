@@ -508,11 +508,11 @@ namespace CalculateFunding.Services.Calcs
             };
         }
 
-        async Task<BuildProject> CreateBuildProject(SpecificationSummary specification, List<Calculation> calculations)
+        public async Task<BuildProject> CreateBuildProject(SpecificationSummary specification, IEnumerable<Calculation> calculations)
         {
             BuildProject buildproject = new BuildProject
             {
-                Calculations = calculations,
+                Calculations = calculations?.ToList(),
                 Specification = specification,
                 Id = Guid.NewGuid().ToString(),
                 Name = specification.Name

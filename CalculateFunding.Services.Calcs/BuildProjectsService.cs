@@ -42,6 +42,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ISourceFileGeneratorProvider _sourceFileGeneratorProvider;
         private readonly ISourceFileGenerator _sourceFileGenerator;
         private readonly ICacheProvider _cacheProvider;
+        private readonly ICalculationService _calculationService;
 
         public BuildProjectsService(
             IBuildProjectsRepository buildProjectsRepository,
@@ -53,7 +54,8 @@ namespace CalculateFunding.Services.Calcs
             ISpecificationRepository specificationsRepository,
             ISourceFileGeneratorProvider sourceFileGeneratorProvider,
             ICompilerFactory compilerFactory,
-            ICacheProvider cacheProvider)
+            ICacheProvider cacheProvider,
+            ICalculationService calculationService)
         {
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -65,6 +67,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(sourceFileGeneratorProvider, nameof(sourceFileGeneratorProvider));
             Guard.ArgumentNotNull(compilerFactory, nameof(compilerFactory));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(calculationService, nameof(calculationService));
 
             _buildProjectsRepository = buildProjectsRepository;
             _messengerService = messengerService;
@@ -77,6 +80,7 @@ namespace CalculateFunding.Services.Calcs
             _sourceFileGeneratorProvider = sourceFileGeneratorProvider;
             _sourceFileGenerator = sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
             _cacheProvider = cacheProvider;
+            _calculationService = calculationService;
         }
 
         public async Task UpdateAllocations(Message message)
@@ -263,11 +267,31 @@ namespace CalculateFunding.Services.Calcs
 
             if (buildProject == null)
             {
-                throw new Exception($"Unable to find build project for specification id: {specificationId}");
+                Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+
+                if (specification == null)
+                {
+                    throw new Exception($"Unable to find specification for specification id: {specificationId}");
+                }
+
+                SpecificationSummary specificationSummary = new SpecificationSummary
+                {
+                    Id = specification.Id,
+                    Name = specification.Name,
+                    FundingStream = specification.FundingStream,
+                    Period = specification.AcademicYear
+                };
+
+                buildProject = await _calculationService.CreateBuildProject(specificationSummary, Enumerable.Empty<Models.Calcs.Calculation>());
+
+                if (buildProject == null)
+                {
+                    throw new Exception($"Unable to find create build project for specification id: {specificationId}");
+                }
             }
 
             if (buildProject.DatasetRelationships == null)
-                buildProject.DatasetRelationships = new List<DatasetRelationshipSummary>();
+            buildProject.DatasetRelationships = new List<DatasetRelationshipSummary>();
 
             if (!buildProject.DatasetRelationships.Any(m => m.Name == relationship.Name))
             {
