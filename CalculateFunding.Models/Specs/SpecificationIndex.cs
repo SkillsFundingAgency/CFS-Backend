@@ -20,20 +20,20 @@ namespace CalculateFunding.Models.Specs
         public string Name { get; set; }
 
         [IsFilterable, IsSortable, IsSearchable, IsFacetable]
-        [JsonProperty("periodName")]
-        public string PeriodName { get; set; }
+        [JsonProperty("fundingPeriodName")]
+        public string FundingPeriodName { get; set; }
 
         [IsFilterable]
-        [JsonProperty("periodId")]
-        public string PeriodId { get; set; }
+        [JsonProperty("fundingPeriodId")]
+        public string FundingPeriodId { get; set; }
 
-        [IsFilterable, IsSortable, IsFacetable, IsSearchable]
-        [JsonProperty("fundingStreamName")]
-        public string FundingStreamName { get; set; }
+        [IsFilterable, IsFacetable, IsSearchable]
+        [JsonProperty("fundingStreamNames")]
+        public string[] FundingStreamNames { get; set; }
 
-        [IsFilterable]
-        [JsonProperty("fundingStreamId")]
-        public string FundingStreamId { get; set; }
+        [IsFilterable, IsFacetable]
+        [JsonProperty("fundingStreamIds")]
+        public string[] FundingStreamIds { get; set; }
 
         [IsFilterable, IsSortable]
         [JsonProperty("lastUpdatedDate")]

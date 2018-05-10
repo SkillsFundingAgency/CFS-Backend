@@ -148,7 +148,7 @@ namespace CalculateFunding.Services.Calcs
 
             string cacheKey = "";
 
-            if(message.UserProperties.ContainsKey("provider-cache-key"))
+            if (message.UserProperties.ContainsKey("provider-cache-key"))
             {
                 cacheKey = message.UserProperties["provider-cache-key"].ToString();
             }
@@ -278,7 +278,7 @@ namespace CalculateFunding.Services.Calcs
                 {
                     Id = specification.Id,
                     Name = specification.Name,
-                    FundingStream = specification.FundingStream,
+                    FundingStreams = specification.FundingStreams,
                     Period = specification.AcademicYear
                 };
 
@@ -291,7 +291,7 @@ namespace CalculateFunding.Services.Calcs
             }
 
             if (buildProject.DatasetRelationships == null)
-            buildProject.DatasetRelationships = new List<DatasetRelationshipSummary>();
+                buildProject.DatasetRelationships = new List<DatasetRelationshipSummary>();
 
             if (!buildProject.DatasetRelationships.Any(m => m.Name == relationship.Name))
             {
@@ -349,7 +349,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 Id = specification.Id,
                 Name = specification.Name,
-                FundingStream = specification.FundingStream,
+                FundingStreams = specification.FundingStreams,
                 Period = specification.AcademicYear
             };
 

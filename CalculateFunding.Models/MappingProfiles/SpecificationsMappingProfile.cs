@@ -14,7 +14,7 @@ namespace CalculateFunding.Models.MappingProfiles
                 .ForMember(m => m.Id, opt => opt.Ignore())
                 .ForMember(m => m.AcademicYear, opt => opt.Ignore())
                 .ForMember(m => m.Policies, opt => opt.Ignore())
-                .ForMember(m => m.FundingStream, opt => opt.Ignore())
+                .ForMember(m => m.FundingStreams, opt => opt.Ignore())
                 .ForMember(m => m.DataDefinitionRelationshipIds, opt => opt.Ignore());
 
             CreateMap<PolicyCreateModel, Policy>()

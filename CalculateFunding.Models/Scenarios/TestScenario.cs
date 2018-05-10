@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Models.Scenarios
 {
@@ -12,8 +13,8 @@ namespace CalculateFunding.Models.Scenarios
         [JsonProperty("period")]
         public Reference Period { get; set; }
 
-        [JsonProperty("fundingStream")]
-        public Reference FundingStream { get; set; }
+        [JsonProperty("fundingStreams")]
+        public IEnumerable<Reference> FundingStreams { get; set; }
 
         [JsonProperty("description")]
         public string Description { get; set; }

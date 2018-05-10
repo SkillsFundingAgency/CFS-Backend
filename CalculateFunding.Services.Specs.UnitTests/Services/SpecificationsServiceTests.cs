@@ -909,9 +909,9 @@ namespace CalculateFunding.Services.Specs.Services
                 {
                     policy
                 },
-                FundingStream = new Reference
+                FundingStreams = new List<Reference>()
                 {
-                    Id = FundingStreamId
+                    new Reference { Id = FundingStreamId }
                 }
             };
 
@@ -979,7 +979,7 @@ namespace CalculateFunding.Services.Specs.Services
         }
 
         [TestMethod]
-        public async Task CreateCalculation_GivenValidModelAndPolicyFoundAndUpdated_ReturnsOKt()
+        public async Task CreateCalculation_GivenValidModelAndPolicyFoundAndUpdated_ReturnsOK()
         {
             //Arrange
             AllocationLine allocationLine = new AllocationLine
@@ -1008,9 +1008,9 @@ namespace CalculateFunding.Services.Specs.Services
                 {
                     policy
                 },
-                FundingStream = new Reference
+                FundingStreams = new List<Reference>()
                 {
-                    Id = FundingStreamId
+                    new Reference { Id = FundingStreamId }
                 }
             };
 
@@ -1107,7 +1107,7 @@ namespace CalculateFunding.Services.Specs.Services
         }
 
         [TestMethod]
-        public async Task CreateCalculation_GivenValidModelForSubPolicyAndSubPolicyFoundAndUpdated_ReturnsOKt()
+        public async Task CreateCalculation_GivenValidModelForSubPolicyAndSubPolicyFoundAndUpdated_ReturnsOK()
         {
             //Arrange
             AllocationLine allocationLine = new AllocationLine
@@ -1136,10 +1136,10 @@ namespace CalculateFunding.Services.Specs.Services
                 {
                     policy
                 },
-                FundingStream = new Reference
+                FundingStreams = new List<Reference>()
                 {
-                    Id = FundingStreamId
-                }
+                    new Reference { Id = FundingStreamId }
+                },
             };
 
             CalculationCreateModel model = new CalculationCreateModel
@@ -1639,7 +1639,7 @@ namespace CalculateFunding.Services.Specs.Services
             {
                 Id = SpecificationId,
                 Name = SpecificationName,
-                FundingStream = new Reference("fs-id", "fs-name"),
+                FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
                 AcademicYear = new Reference("18/19", "2018/19")
             };
 
@@ -1683,7 +1683,7 @@ namespace CalculateFunding.Services.Specs.Services
             {
                 Id = SpecificationId,
                 Name = SpecificationName,
-                FundingStream = new Reference("fs-id", "fs-name"),
+                FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
                 AcademicYear = new Reference("18/19", "2018/19")
             };
 
@@ -1722,10 +1722,10 @@ namespace CalculateFunding.Services.Specs.Services
                     .Index(Arg.Is<IList<SpecificationIndex>>(
                         m => m.First().Id == SpecificationId &&
                         m.First().Name == SpecificationName &&
-                        m.First().FundingStreamId == "fs-id" &&
-                        m.First().FundingStreamName == "fs-name" &&
-                        m.First().PeriodId == "18/19" &&
-                        m.First().PeriodName == "2018/19" &&
+                        m.First().FundingStreamIds.First() == "fs-id" &&
+                        m.First().FundingStreamNames.First() == "fs-name" &&
+                        m.First().FundingPeriodId == "18/19" &&
+                        m.First().FundingPeriodName == "2018/19" &&
                         m.First().LastUpdatedDate.Value.Date == DateTimeOffset.Now.Date));
         }
 
@@ -1813,7 +1813,7 @@ namespace CalculateFunding.Services.Specs.Services
                 {
                     Id = SpecificationId,
                     Name = SpecificationName,
-                    FundingStream = new Reference("fs-id", "fs-name"),
+                FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
                     AcademicYear = new Reference("18/19", "2018/19"),
                     UpdatedAt = DateTime.Now
                 }
@@ -1895,7 +1895,7 @@ namespace CalculateFunding.Services.Specs.Services
                 {
                     Id = SpecificationId,
                     Name = SpecificationName,
-                    FundingStream = new Reference("fs-id", "fs-name"),
+                FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
                     AcademicYear = new Reference("18/19", "2018/19"),
                     UpdatedAt = DateTime.Now
                 }
@@ -2284,7 +2284,7 @@ namespace CalculateFunding.Services.Specs.Services
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
-            
+
             OkObjectResult objectResult = result as OkObjectResult;
 
             IEnumerable<FundingStream> values = objectResult.Value as IEnumerable<FundingStream>;

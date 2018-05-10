@@ -159,7 +159,10 @@ namespace CalculateFunding.Services.Scenarios.Services
             Specification specification = new Specification
             {
                 Id = specificationId,
-                FundingStream = new Reference("fs-id", "fs-name"),
+                FundingStreams = new List<Reference>()
+                {
+                    new Reference("fs-id", "fs-name"),
+                },
                 AcademicYear = new Reference("period-id", "period name")
             };
 
@@ -216,7 +219,10 @@ namespace CalculateFunding.Services.Scenarios.Services
             Specification specification = new Specification
             {
                 Id = specificationId,
-                FundingStream = new Reference("fs-id", "fs-name"),
+                FundingStreams = new List<Reference>()
+                {
+                    new Reference("fs-id", "fs-name"),
+                },
                 AcademicYear = new Reference("period-id", "period name")
             };
 
@@ -261,8 +267,8 @@ namespace CalculateFunding.Services.Scenarios.Services
                                 m.First().SpecificationId == specificationId &&
                                 m.First().PeriodId == specification.AcademicYear.Id &&
                                 m.First().PeriodName == specification.AcademicYear.Name &&
-                                m.First().FundingStreamId == specification.FundingStream.Id &&
-                                m.First().FundingStreamName == specification.FundingStream.Name &&
+                                m.First().FundingStreamIds.First() == specification.FundingStreams.First().Id &&
+                                m.First().FundingStreamNames.First() == specification.FundingStreams.First().Name &&
                                 m.First().Status == "Draft" &&
                                 m.First().LastUpdatedDate.HasValue && 
                                 m.First().LastUpdatedDate.Value.Date == DateTime.Now.Date));
@@ -297,7 +303,10 @@ namespace CalculateFunding.Services.Scenarios.Services
             Specification specification = new Specification
             {
                 Id = specificationId,
-                FundingStream = new Reference("fs-id", "fs-name"),
+                FundingStreams = new List<Reference>()
+                {
+                    new Reference("fs-id", "fs-name"),
+                },
                 AcademicYear = new Reference("period-id", "period name")
             };
 
@@ -306,14 +315,14 @@ namespace CalculateFunding.Services.Scenarios.Services
                 Id = scenarioid,
                 Specification = new SpecificationSummary
                 {
-                    FundingStream = specification.FundingStream,
+                    FundingStreams = specification.FundingStreams,
                     Period = specification.AcademicYear,
                     Id = specificationId,
                     Name = "spec name"
                 },
                 Name = name,
                 Description = description,
-                FundingStream = specification.FundingStream,
+                FundingStreams = specification.FundingStreams,
                 Period = specification.AcademicYear,
                 History = new List<TestScenarioVersion>(),
                 Current = new TestScenarioVersion()
@@ -351,8 +360,8 @@ namespace CalculateFunding.Services.Scenarios.Services
                                  m.First().SpecificationId == specificationId &&
                                  m.First().PeriodId == specification.AcademicYear.Id &&
                                  m.First().PeriodName == specification.AcademicYear.Name &&
-                                 m.First().FundingStreamId == specification.FundingStream.Id &&
-                                 m.First().FundingStreamName == specification.FundingStream.Name &&
+                                 m.First().FundingStreamIds.First() == specification.FundingStreams.First().Id &&
+                                 m.First().FundingStreamNames.First() == specification.FundingStreams.First().Name &&
                                  m.First().Status == "Draft" &&
                                  m.First().LastUpdatedDate.HasValue &&
                                  m.First().LastUpdatedDate.Value.Date == DateTime.Now.Date));
@@ -380,7 +389,10 @@ namespace CalculateFunding.Services.Scenarios.Services
             Specification specification = new Specification
             {
                 Id = specificationId,
-                FundingStream = new Reference("fs-id", "fs-name"),
+                FundingStreams = new List<Reference>()
+                {
+                    new Reference("fs-id", "fs-name"),
+                },
                 AcademicYear = new Reference("period-id", "period name")
             };
 
@@ -394,14 +406,14 @@ namespace CalculateFunding.Services.Scenarios.Services
                 Id = scenarioid,
                 Specification = new SpecificationSummary
                 {
-                    FundingStream = specification.FundingStream,
+                    FundingStreams = specification.FundingStreams,
                     Period = specification.AcademicYear,
                     Id = specificationId,
                     Name = "spec name"
                 },
                 Name = name,
                 Description = description,
-                FundingStream = specification.FundingStream,
+                FundingStreams = specification.FundingStreams,
                 Period = specification.AcademicYear,
                 History = new List<TestScenarioVersion>
                 {

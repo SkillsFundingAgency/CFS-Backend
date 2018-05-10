@@ -346,10 +346,12 @@ namespace CalculateFunding.Services.Datasets
 
         async Task<DatasetSpecificationRelationshipViewModel> CreateViewModel(DefinitionSpecificationRelationship relationship)
         {
-            DatasetSpecificationRelationshipViewModel relationshipViewModel = new DatasetSpecificationRelationshipViewModel();
-            relationshipViewModel.Id = relationship.Id;
-            relationshipViewModel.Name = relationship.Name;
-            relationshipViewModel.RelationshipDescription = relationship.Description;
+            DatasetSpecificationRelationshipViewModel relationshipViewModel = new DatasetSpecificationRelationshipViewModel
+            {
+                Id = relationship.Id,
+                Name = relationship.Name,
+                RelationshipDescription = relationship.Description
+            };
 
             if (relationship.DatasetVersion != null)
             {
@@ -391,8 +393,10 @@ namespace CalculateFunding.Services.Datasets
         {
             Reference user = request.GetUser();
 
-            IDictionary<string, string> properties = new Dictionary<string, string>();
-            properties.Add("sfa-correlationId", request.GetCorrelationId());
+            IDictionary<string, string> properties = new Dictionary<string, string>
+            {
+                { "sfa-correlationId", request.GetCorrelationId() }
+            };
 
             if (user != null)
             {

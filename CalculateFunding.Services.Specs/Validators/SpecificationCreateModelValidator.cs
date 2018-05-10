@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Specs.Validators
                .NotEmpty()
                .WithMessage("Null or empty academic year id provided");
 
-            RuleFor(model => model.FundingStreamId)
+            RuleFor(model => model.FundingStreamIds)
               .NotEmpty()
               .WithMessage("You must select at least one funding stream");
 

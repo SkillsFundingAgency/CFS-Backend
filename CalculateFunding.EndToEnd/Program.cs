@@ -145,7 +145,7 @@ Feature:
 		        {
 		            Id = "1234",
 		            Name = "Test",
-		            FundingStream = new Reference("tst", "test"),
+		            FundingStreams = new List<Reference>() { new Reference("tst", "test"), },
 		            Period = new Reference("tst", "test")
 		        },
 		        Calculations = new List<Calculation>()

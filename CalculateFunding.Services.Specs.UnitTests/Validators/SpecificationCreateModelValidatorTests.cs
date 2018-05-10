@@ -5,6 +5,8 @@ using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace CalculateFunding.Services.Specs.Validators
@@ -47,7 +49,7 @@ namespace CalculateFunding.Services.Specs.Validators
         {
             //Arrange
             SpecificationCreateModel model = CreateModel();
-            model.FundingStreamId = string.Empty;
+            model.FundingStreamIds = Enumerable.Empty<string>();
 
             SpecificationCreateModelValidator validator = CreateValidator();
 
@@ -167,7 +169,7 @@ namespace CalculateFunding.Services.Specs.Validators
             return new SpecificationCreateModel
             {
                 AcademicYearId = academicYearId,
-                FundingStreamId = fundingStreamId,
+                FundingStreamIds = new List<string>() { fundingStreamId },
                 Description = description,
                 Name = name
             };

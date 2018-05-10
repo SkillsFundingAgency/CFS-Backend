@@ -40,12 +40,12 @@ namespace CalculateFunding.Models.Scenarios
         public string PeriodId { get; set; }
 
         [IsFilterable, IsSortable, IsFacetable, IsSearchable]
-        [JsonProperty("fundingStreamName")]
-        public string FundingStreamName { get; set; }
+        [JsonProperty("fundingStreamNames")]
+        public string[] FundingStreamNames { get; set; }
 
-        [IsFilterable]
-        [JsonProperty("fundingStreamId")]
-        public string FundingStreamId { get; set; }
+        [IsFilterable, IsFacetable]
+        [JsonProperty("fundingStreamIds")]
+        public string[] FundingStreamIds { get; set; }
 
         [IsFilterable, IsSortable, IsFacetable, IsSearchable]
         [JsonProperty("status")]

@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Models.Specs
 {
     public class SpecificationSearchModel : Reference
     {
-        public Reference FundingStream { get; set; }
+        public IEnumerable<Reference> FundingStreams { get; set; }
 
         public Reference AcademicYear { get; set; }
 

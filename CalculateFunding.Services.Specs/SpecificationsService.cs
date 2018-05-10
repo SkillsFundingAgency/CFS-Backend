@@ -39,8 +39,8 @@ namespace CalculateFunding.Services.Specs
         private readonly ServiceBusSettings _eventHubSettings;
         private readonly ISearchRepository<SpecificationIndex> _searchRepository;
         private readonly IValidator<AssignDefinitionRelationshipMessage> _assignDefinitionRelationshipMessageValidator;
-        
-        public SpecificationsService(IMapper mapper, 
+
+        public SpecificationsService(IMapper mapper,
             ISpecificationsRepository specificationsRepository, ILogger logger, IValidator<PolicyCreateModel> policyCreateModelValidator,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator, IValidator<CalculationCreateModel> calculationCreateModelValidator,
             IMessengerService messengerService, ServiceBusSettings eventHubSettings, ISearchRepository<SpecificationIndex> searchRepository,
@@ -379,8 +379,8 @@ namespace CalculateFunding.Services.Specs
 
             var statusCode = await _specificationsRepository.UpdateSpecification(specification);
 
-            if(statusCode != HttpStatusCode.OK)
-                 return new StatusCodeResult((int)statusCode);
+            if (statusCode != HttpStatusCode.OK)
+                return new StatusCodeResult((int)statusCode);
 
             return new OkObjectResult(policy);
         }
@@ -401,15 +401,23 @@ namespace CalculateFunding.Services.Specs
 
             AcademicYear academicYear = await _specificationsRepository.GetAcademicYearById(createModel.AcademicYearId);
 
-            FundingStream fundingStream = await _specificationsRepository.GetFundingStreamById(createModel.FundingStreamId);
 
             Specification specification = _mapper.Map<Specification>(createModel);
 
             specification.AcademicYear = new Reference(academicYear.Id, academicYear.Name);
 
-            specification.FundingStream = new Reference(fundingStream.Id, fundingStream.Name);
+            List<Reference> fundingStreams = new List<Reference>();
+            foreach (string fundingStreamId in createModel.FundingStreamIds)
+            {
+                FundingStream fundingStream = await _specificationsRepository.GetFundingStreamById(fundingStreamId);
+                // TODO validate not null
 
-            var statusCode = await _specificationsRepository.CreateSpecification(specification);
+                fundingStreams.Add(new Reference(fundingStream.Id, fundingStream.Name));
+            }
+
+            specification.FundingStreams = fundingStreams;
+
+            HttpStatusCode statusCode = await _specificationsRepository.CreateSpecification(specification);
 
             if (!statusCode.IsSuccess())
                 return new StatusCodeResult((int)statusCode);
@@ -420,14 +428,14 @@ namespace CalculateFunding.Services.Specs
                 {
                     Id = specification.Id,
                     Name = specification.Name,
-                    FundingStreamId = specification.FundingStream.Id,
-                    FundingStreamName = specification.FundingStream.Name,
-                    PeriodId = specification.AcademicYear.Id,
-                    PeriodName = specification.AcademicYear.Name,
+                    FundingStreamIds = specification.FundingStreams.Select(s=>s.Id).ToArray(),
+                    FundingStreamNames = specification.FundingStreams.Select(s=>s.Name).ToArray(),
+                    FundingPeriodId = specification.AcademicYear.Id,
+                    FundingPeriodName = specification.AcademicYear.Name,
                     LastUpdatedDate = DateTimeOffset.Now
                 }
-            });  
-            
+            });
+
             return new OkObjectResult(specification);
         }
 
@@ -471,15 +479,40 @@ namespace CalculateFunding.Services.Specs
                 return new PreconditionFailedResult($"Policy not found for policy id {createModel.PolicyId}");
             }
 
-            FundingStream fundingStream = await _specificationsRepository.GetFundingStreamById(specification.FundingStream.Id);
+            List<FundingStream> fundingStreams = new List<FundingStream>();
 
-            if(fundingStream == null || !fundingStream.AllocationLines.Any())
+            foreach (Reference fundingStreamRef in specification.FundingStreams)
             {
-                return new PreconditionFailedResult($"A funding stream was not found for specification with id: {specification.Id}");
+                FundingStream fundingStream = await _specificationsRepository.GetFundingStreamById(fundingStreamRef.Id);
+
+                if (fundingStream == null)
+                {
+                    return new InternalServerErrorResult($"A funding stream result was null for funding stream ID {fundingStream.Id}");
+                }
+
+                fundingStreams.Add(fundingStream);
             }
 
+            FundingStream currentFundingStream = null;
+
             if (!string.IsNullOrWhiteSpace(createModel.AllocationLineId))
-                calculation.AllocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == createModel.AllocationLineId);
+            {
+                foreach (FundingStream fundingStream in fundingStreams)
+                {
+                    AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == createModel.AllocationLineId);
+                    if (allocationLine != null)
+                    {
+                        calculation.AllocationLine = allocationLine;
+                        currentFundingStream = fundingStream;
+                        break;
+                    }
+                }
+            }
+
+            if (currentFundingStream == null)
+            {
+                return new PreconditionFailedResult($"A funding stream was not found for specification with id: {specification.Id} for allocation ID {createModel.AllocationLineId}");
+            }
 
             policy.Calculations = (policy.Calculations == null
                 ? new[] { calculation }
@@ -496,7 +529,7 @@ namespace CalculateFunding.Services.Specs
 
             IDictionary<string, string> properties = CreateMessageProperties(request);
 
-            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CreateDraftCalculation, 
+            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CreateDraftCalculation,
                 new Models.Calcs.Calculation
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -510,14 +543,14 @@ namespace CalculateFunding.Services.Specs
                     },
                     Specification = new SpecificationSummary
                     {
-	                    Id = specification.Id,
-						Name = specification.Name,
-						FundingStream = specification.FundingStream,
-						Period = specification.AcademicYear
+                        Id = specification.Id,
+                        Name = specification.Name,
+                        FundingStreams = specification.FundingStreams,
+                        Period = specification.AcademicYear
                     },
                     Period = specification.AcademicYear,
-                    FundingStream = specification.FundingStream
-                }, 
+                    FundingStream = currentFundingStream,
+                },
                 properties);
 
             return new OkObjectResult(calculation);
@@ -548,20 +581,20 @@ namespace CalculateFunding.Services.Specs
 
                 Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
 
-                if(specification == null)
+                if (specification == null)
                 {
-                    throw new InvalidModelException(relationshipMessage.GetType().ToString(), new[] {  $"Specification could not be found for id {specificationId}" });
+                    throw new InvalidModelException(relationshipMessage.GetType().ToString(), new[] { $"Specification could not be found for id {specificationId}" });
                 }
 
                 if (specification.DataDefinitionRelationshipIds.IsNullOrEmpty())
                     specification.DataDefinitionRelationshipIds = new string[0];
 
-                if(!specification.DataDefinitionRelationshipIds.Contains(relationshipId))
+                if (!specification.DataDefinitionRelationshipIds.Contains(relationshipId))
                     specification.DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.Concat(new[] { relationshipId });
 
                 HttpStatusCode status = await _specificationsRepository.UpdateSpecification(specification);
 
-                if(!status.IsSuccess())
+                if (!status.IsSuccess())
                 {
                     _logger.Error($"Failed to update specification for id: {specificationId} with dataset definition relationship id {relationshipId}");
 
@@ -570,23 +603,23 @@ namespace CalculateFunding.Services.Specs
 
                 SpecificationIndex specIndex = await _searchRepository.SearchById(specificationId);
 
-                if(specIndex == null)
+                if (specIndex == null)
                 {
                     specIndex = new SpecificationIndex
                     {
                         Id = specification.Id,
                         Name = specification.Name,
-                        FundingStreamId = specification.FundingStream.Id,
-                        FundingStreamName = specification.FundingStream.Name,
-                        PeriodId = specification.AcademicYear.Id,
-                        PeriodName = specification.AcademicYear.Name,
+                        FundingStreamIds = specification.FundingStreams.Select(s => s.Id).ToArray(),
+                        FundingStreamNames = specification.FundingStreams.Select(s => s.Name).ToArray(),
+                        FundingPeriodId = specification.AcademicYear.Id,
+                        FundingPeriodName = specification.AcademicYear.Name,
                         LastUpdatedDate = DateTimeOffset.Now
                     };
                 }
 
                 specIndex.DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.ToArraySafe();
 
-                IEnumerable<IndexError> errors = await _searchRepository.Index(new List<SpecificationIndex>{specIndex});
+                IEnumerable<IndexError> errors = await _searchRepository.Index(new List<SpecificationIndex> { specIndex });
 
                 if (errors.Any())
                 {
@@ -617,10 +650,10 @@ namespace CalculateFunding.Services.Specs
                     {
                         Id = specification.Id,
                         Name = specification.Name,
-                        FundingStreamId = specification.FundingStream.Id,
-                        FundingStreamName = specification.FundingStream.Name,
-                        PeriodId = specification.AcademicYear.Id,
-                        PeriodName = specification.AcademicYear.Name,
+                        FundingStreamIds = specification.FundingStreams.Select(s => s.Id).ToArray(),
+                        FundingStreamNames = specification.FundingStreams.Select(s => s.Name).ToArray(),
+                        FundingPeriodId = specification.AcademicYear.Id,
+                        FundingPeriodName = specification.AcademicYear.Name,
                         LastUpdatedDate = specification.UpdatedAt,
                         DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.IsNullOrEmpty() ? new string[0] : specification.DataDefinitionRelationshipIds
                     });
@@ -636,7 +669,7 @@ namespace CalculateFunding.Services.Specs
 
                 return new NoContentResult();
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 _logger.Error(exception, "Failed re-indexing specifications");
 

@@ -106,7 +106,7 @@ namespace CalculateFunding.Services.Scenarios
                 {
                     Specification = new SpecificationSummary
                     {
-                        FundingStream = specification.FundingStream,
+                        FundingStreams = specification.FundingStreams,
                         Id = specification.Id,
                         Name = specification.Name,
                         Period = specification.AcademicYear
@@ -114,7 +114,7 @@ namespace CalculateFunding.Services.Scenarios
                     Id = Guid.NewGuid().ToString(),
                     Name = scenarioVersion.Name,
                     Description = scenarioVersion.Description,
-                    FundingStream = specification.FundingStream,
+                    FundingStreams = specification.FundingStreams,
                     Period = specification.AcademicYear,
                     History = new List<TestScenarioVersion>(),
                     Current = new TestScenarioVersion()
@@ -166,8 +166,8 @@ namespace CalculateFunding.Services.Scenarios
                 SpecificationName = testScenario.Specification.Name,
                 PeriodId = testScenario.Specification.Period.Id,
                 PeriodName = testScenario.Specification.Period.Name,
-                FundingStreamId = testScenario.Specification.FundingStream.Id,
-                FundingStreamName = testScenario.Specification.FundingStream.Name,
+                FundingStreamIds = testScenario.Specification.FundingStreams.Select(s=>s.Id).ToArray(),
+                FundingStreamNames = testScenario.Specification.FundingStreams.Select(s => s.Name).ToArray(),
                 Status = testScenario.Current.PublishStatus.ToString(),
                 LastUpdatedDate = DateTimeOffset.Now
             };
@@ -272,8 +272,10 @@ namespace CalculateFunding.Services.Scenarios
         {
             Reference user = request.GetUser();
 
-            IDictionary<string, string> properties = new Dictionary<string, string>();
-            properties.Add("sfa-correlationId", request.GetCorrelationId());
+            IDictionary<string, string> properties = new Dictionary<string, string>
+            {
+                { "sfa-correlationId", request.GetCorrelationId() }
+            };
 
             if (user != null)
             {

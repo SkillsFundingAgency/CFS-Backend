@@ -14,8 +14,8 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("academicYear")]
         public Reference AcademicYear { get; set; }
 
-        [JsonProperty("fundingStream")]
-        public Reference FundingStream { get; set; }
+        [JsonProperty("fundingStreams")]
+        public IEnumerable<Reference> FundingStreams { get; set; }
 
         [JsonProperty("description")]
         public string Description { get; set; }
