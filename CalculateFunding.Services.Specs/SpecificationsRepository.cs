@@ -22,11 +22,16 @@ namespace CalculateFunding.Services.Specs
             _repository = cosmosRepository;
         }
 
-        public Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId)
+        public async Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId)
         {
-            var fundingPeriod = _repository.Query<FundingPeriod>().FirstOrDefault(m => m.Id == fundingPeriodId);
+            DocumentEntity<FundingPeriod> fundingPeriod = await _repository.ReadAsync<FundingPeriod>(fundingPeriodId);
 
-            return Task.FromResult(fundingPeriod);
+            if(fundingPeriod == null || fundingPeriod.Content == null)
+            {
+                return null;
+            }
+
+            return fundingPeriod.Content;
         }
 
         async public Task<FundingStream> GetFundingStreamById(string fundingStreamId)
