@@ -16,7 +16,7 @@ namespace CalculateFunding.Services.Specs.Validators
                .NotEmpty()
                .WithMessage("You must give a description for the specification");
 
-            RuleFor(model => model.AcademicYearId)
+            RuleFor(model => model.FundingPeriodId)
                .NotEmpty()
                .WithMessage("Null or empty academic year id provided");
 

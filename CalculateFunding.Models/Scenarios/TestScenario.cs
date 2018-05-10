@@ -10,8 +10,8 @@ namespace CalculateFunding.Models.Scenarios
         [JsonProperty("specification")]
         public SpecificationSummary Specification { get; set; }
 
-        [JsonProperty("period")]
-        public Reference Period { get; set; }
+        [JsonProperty("fundingPeriod")]
+        public Reference FundingPeriod { get; set; }
 
         [JsonProperty("fundingStreams")]
         public IEnumerable<Reference> FundingStreams { get; set; }

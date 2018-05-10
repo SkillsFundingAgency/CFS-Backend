@@ -12,7 +12,7 @@ namespace CalculateFunding.Models.MappingProfiles
             CreateMap<SpecificationCreateModel, Specification>()
                 .AfterMap((src, dest) => { dest.Id = Guid.NewGuid().ToString(); })
                 .ForMember(m => m.Id, opt => opt.Ignore())
-                .ForMember(m => m.AcademicYear, opt => opt.Ignore())
+                .ForMember(m => m.FundingPeriod, opt => opt.Ignore())
                 .ForMember(m => m.Policies, opt => opt.Ignore())
                 .ForMember(m => m.FundingStreams, opt => opt.Ignore())
                 .ForMember(m => m.DataDefinitionRelationshipIds, opt => opt.Ignore());

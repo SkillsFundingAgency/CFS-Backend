@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Scenarios
                         Name = m.Result.Name,
                         Description = m.Result.Description,
                         SpecificationName = m.Result.SpecificationName,
-                        PeriodName = m.Result.PeriodName,
+                        FundingPeriodName = m.Result.FundingPeriodName,
                         Status = m.Result.Status,
                         LastUpdatedDate = m.Result.LastUpdatedDate
                     })
@@ -95,8 +95,8 @@ namespace CalculateFunding.Services.Scenarios
                     LastUpdatedDate = entity.UpdatedAt,
                     FundingStreamIds = testScenario?.FundingStreams.Select(s=>s.Id).ToArray(),
                     FundingStreamNames = testScenario?.FundingStreams.Select(s => s.Name).ToArray(),
-                    PeriodId = testScenario?.Period.Id,
-                    PeriodName = testScenario?.Period.Name,
+                    FundingPeriodId = testScenario?.FundingPeriod.Id,
+                    FundingPeriodName = testScenario?.FundingPeriod.Name,
                     SpecificationId = testScenario.Specification.Id,
                     SpecificationName = testScenario.Specification.Name,
                     Status = Enum.GetName(typeof(PublishStatus), testScenario.Current.PublishStatus),

@@ -7,7 +7,7 @@ namespace CalculateFunding.Models.Specs
     {
         public IEnumerable<Reference> FundingStreams { get; set; }
 
-        public Reference AcademicYear { get; set; }
+        public Reference FundingPeriod { get; set; }
 
         public DateTime UpdatedAt { get; set; }
 

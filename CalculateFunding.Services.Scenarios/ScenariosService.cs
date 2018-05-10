@@ -109,13 +109,13 @@ namespace CalculateFunding.Services.Scenarios
                         FundingStreams = specification.FundingStreams,
                         Id = specification.Id,
                         Name = specification.Name,
-                        Period = specification.AcademicYear
+                        FundingPeriod = specification.FundingPeriod
                     },
                     Id = Guid.NewGuid().ToString(),
                     Name = scenarioVersion.Name,
                     Description = scenarioVersion.Description,
                     FundingStreams = specification.FundingStreams,
-                    Period = specification.AcademicYear,
+                    FundingPeriod = specification.FundingPeriod,
                     History = new List<TestScenarioVersion>(),
                     Current = new TestScenarioVersion()
                 };
@@ -164,8 +164,8 @@ namespace CalculateFunding.Services.Scenarios
                 Description = testScenario.Description,
                 SpecificationId = testScenario.Specification.Id,
                 SpecificationName = testScenario.Specification.Name,
-                PeriodId = testScenario.Specification.Period.Id,
-                PeriodName = testScenario.Specification.Period.Name,
+                FundingPeriodId = testScenario.Specification.FundingPeriod.Id,
+                FundingPeriodName = testScenario.Specification.FundingPeriod.Name,
                 FundingStreamIds = testScenario.Specification.FundingStreams.Select(s=>s.Id).ToArray(),
                 FundingStreamNames = testScenario.Specification.FundingStreams.Select(s => s.Name).ToArray(),
                 Status = testScenario.Current.PublishStatus.ToString(),

@@ -23,7 +23,8 @@ using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -39,12 +40,13 @@ namespace CalculateFunding.Services.Specs
         private readonly ServiceBusSettings _eventHubSettings;
         private readonly ISearchRepository<SpecificationIndex> _searchRepository;
         private readonly IValidator<AssignDefinitionRelationshipMessage> _assignDefinitionRelationshipMessageValidator;
+        private readonly ICacheProvider _cacheProvider;
 
-        public SpecificationsService(IMapper mapper,
+        public SpecificationsService(IMapper mapper, 
             ISpecificationsRepository specificationsRepository, ILogger logger, IValidator<PolicyCreateModel> policyCreateModelValidator,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator, IValidator<CalculationCreateModel> calculationCreateModelValidator,
             IMessengerService messengerService, ServiceBusSettings eventHubSettings, ISearchRepository<SpecificationIndex> searchRepository,
-            IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator)
+            IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator, ICacheProvider cacheProvider)
         {
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -56,6 +58,7 @@ namespace CalculateFunding.Services.Specs
             _eventHubSettings = eventHubSettings;
             _searchRepository = searchRepository;
             _assignDefinitionRelationshipMessageValidator = assignDefinitionRelationshipMessageValidator;
+            _cacheProvider = cacheProvider;
         }
 
         public async Task<IActionResult> GetSpecifications(HttpRequest request)
@@ -97,29 +100,29 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specification);
         }
 
-        public async Task<IActionResult> GetSpecificationByAcademicYearId(HttpRequest request)
+        public async Task<IActionResult> GetSpecificationByFundingPeriodId(HttpRequest request)
         {
-            request.Query.TryGetValue("academicYearId", out var yearId);
+            request.Query.TryGetValue("fundingPeriodId", out var yearId);
 
-            var academicYearId = yearId.FirstOrDefault();
+            var fundingPeriodId = yearId.FirstOrDefault();
 
-            if (string.IsNullOrWhiteSpace(academicYearId))
+            if (string.IsNullOrWhiteSpace(fundingPeriodId))
             {
-                _logger.Error("No academic year Id was provided to GetSpecificationByAcademicYearId");
+                _logger.Error("No funding period Id was provided to GetSpecificationByFundingPeriodId");
 
-                return new BadRequestObjectResult("Null or empty academicYearId provided");
+                return new BadRequestObjectResult("Null or empty fundingPeriodId provided");
             }
 
-            IEnumerable<Specification> specifications = await _specificationsRepository.GetSpecificationsByQuery(m => m.AcademicYear.Id == academicYearId);
+            IEnumerable<Specification> specifications = await _specificationsRepository.GetSpecificationsByQuery(m => m.FundingPeriod.Id == fundingPeriodId);
 
             if (specifications.IsNullOrEmpty())
             {
-                _logger.Information($"No specifications found for academic year with id {academicYearId}");
+                _logger.Information($"No specifications found for academic year with id {fundingPeriodId}");
 
                 return new OkObjectResult(new Specification[0]);
             }
 
-            _logger.Information($"Found {specifications.Count()} specifications for academic year with id {academicYearId}");
+            _logger.Information($"Found {specifications.Count()} specifications for academic year with id {fundingPeriodId}");
 
             return new OkObjectResult(specifications);
         }
@@ -288,18 +291,25 @@ namespace CalculateFunding.Services.Specs
             return new NotFoundObjectResult("No calculations could be retrieved");
         }
 
-        public async Task<IActionResult> GetAcademicYears(HttpRequest request)
+        public async Task<IActionResult> GetFundingPeriods(HttpRequest request)
         {
-            IEnumerable<AcademicYear> academicYears = await _specificationsRepository.GetAcademicYears();
+            IEnumerable<FundingPeriod> fundingPeriods = await _cacheProvider.GetAsync<FundingPeriod[]>(CacheKeys.FundingPeriods);
 
-            if (academicYears.IsNullOrEmpty())
+            if (fundingPeriods.IsNullOrEmpty())
             {
-                _logger.Error($"No academic years were returned");
+                fundingPeriods = await _specificationsRepository.GetFundingPeriods();
 
-                academicYears = new AcademicYear[0];
+                if (!fundingPeriods.IsNullOrEmpty())
+                {
+                    await _cacheProvider.SetAsync<FundingPeriod[]>(CacheKeys.FundingPeriods, fundingPeriods.ToArraySafe(), TimeSpan.FromDays(100), true);
+                }
+                else
+                {
+                    return new InternalServerErrorResult("Failed to find any funding periods");
+                }
             }
 
-            return new OkObjectResult(academicYears);
+            return new OkObjectResult(fundingPeriods);
         }
 
         public async Task<IActionResult> GetFundingStreams(HttpRequest request)
@@ -399,12 +409,12 @@ namespace CalculateFunding.Services.Specs
             if (validationResult != null)
                 return validationResult;
 
-            AcademicYear academicYear = await _specificationsRepository.GetAcademicYearById(createModel.AcademicYearId);
+            FundingPeriod fundingPeriod = await _specificationsRepository.GetFundingPeriodById(createModel.FundingPeriodId);
 
 
             Specification specification = _mapper.Map<Specification>(createModel);
 
-            specification.AcademicYear = new Reference(academicYear.Id, academicYear.Name);
+            specification.FundingPeriod = new Reference(fundingPeriod.Id, fundingPeriod.Name);
 
             List<Reference> fundingStreams = new List<Reference>();
             foreach (string fundingStreamId in createModel.FundingStreamIds)
@@ -430,8 +440,8 @@ namespace CalculateFunding.Services.Specs
                     Name = specification.Name,
                     FundingStreamIds = specification.FundingStreams.Select(s=>s.Id).ToArray(),
                     FundingStreamNames = specification.FundingStreams.Select(s=>s.Name).ToArray(),
-                    FundingPeriodId = specification.AcademicYear.Id,
-                    FundingPeriodName = specification.AcademicYear.Name,
+                    FundingPeriodId = specification.FundingPeriod.Id,
+                    FundingPeriodName = specification.FundingPeriod.Name,
                     LastUpdatedDate = DateTimeOffset.Now
                 }
             });
@@ -546,9 +556,9 @@ namespace CalculateFunding.Services.Specs
                         Id = specification.Id,
                         Name = specification.Name,
                         FundingStreams = specification.FundingStreams,
-                        Period = specification.AcademicYear
+                        FundingPeriod = specification.FundingPeriod
                     },
-                    Period = specification.AcademicYear,
+                    FundingPeriod = specification.FundingPeriod,
                     FundingStream = currentFundingStream,
                 },
                 properties);
@@ -611,8 +621,8 @@ namespace CalculateFunding.Services.Specs
                         Name = specification.Name,
                         FundingStreamIds = specification.FundingStreams.Select(s => s.Id).ToArray(),
                         FundingStreamNames = specification.FundingStreams.Select(s => s.Name).ToArray(),
-                        FundingPeriodId = specification.AcademicYear.Id,
-                        FundingPeriodName = specification.AcademicYear.Name,
+                        FundingPeriodId = specification.FundingPeriod.Id,
+                        FundingPeriodName = specification.FundingPeriod.Name,
                         LastUpdatedDate = DateTimeOffset.Now
                     };
                 }
@@ -638,7 +648,7 @@ namespace CalculateFunding.Services.Specs
             {
                 await _searchRepository.DeleteIndex();
 
-                const string sql = "select s.id, s.content.name, s.content.fundingStream, s.content.academicYear, s.content.dataDefinitionRelationshipIds, s.updatedAt from specs s";
+                const string sql = "select s.id, s.content.name, s.content.fundingStream, s.content.fundingPeriod, s.content.dataDefinitionRelationshipIds, s.updatedAt from specs s";
 
                 IEnumerable<SpecificationSearchModel> specifications = (await _specificationsRepository.GetSpecificationsByRawQuery<SpecificationSearchModel>(sql)).ToArraySafe();
 
@@ -652,8 +662,8 @@ namespace CalculateFunding.Services.Specs
                         Name = specification.Name,
                         FundingStreamIds = specification.FundingStreams.Select(s => s.Id).ToArray(),
                         FundingStreamNames = specification.FundingStreams.Select(s => s.Name).ToArray(),
-                        FundingPeriodId = specification.AcademicYear.Id,
-                        FundingPeriodName = specification.AcademicYear.Name,
+                        FundingPeriodId = specification.FundingPeriod.Id,
+                        FundingPeriodName = specification.FundingPeriod.Name,
                         LastUpdatedDate = specification.UpdatedAt,
                         DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.IsNullOrEmpty() ? new string[0] : specification.DataDefinitionRelationshipIds
                     });
@@ -716,6 +726,57 @@ namespace CalculateFunding.Services.Specs
                     _logger.Error($"Failed to save yaml file: {yamlFilename} to cosmos db with status {statusCode}");
 
                     return new StatusCodeResult(statusCode);
+                }
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"Exception occurred writing to yaml file: {yamlFilename} to cosmos db");
+
+                return new StatusCodeResult(500);
+            }
+
+            _logger.Information($"Successfully saved file: {yamlFilename} to cosmos db");
+
+            return new OkResult();
+        }
+
+        async public Task<IActionResult> SaveFundingPeriods(HttpRequest request)
+        {
+            string yaml = await request.GetRawBodyStringAsync();
+
+            string yamlFilename = request.GetYamlFileNameFromRequest();
+
+            if (string.IsNullOrEmpty(yaml))
+            {
+                _logger.Error($"Null or empty yaml provided for file: {yamlFilename}");
+                return new BadRequestObjectResult($"Invalid yaml was provided for file: {yamlFilename}");
+            }
+
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(new CamelCaseNamingConvention())
+                .Build();
+
+            FundingPeriodsYamlModel fundingPeriodsYamlModel = null;
+
+            try
+            {
+                fundingPeriodsYamlModel = deserializer.Deserialize<FundingPeriodsYamlModel>(yaml);
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"Invalid yaml was provided for file: {yamlFilename}");
+                return new BadRequestObjectResult($"Invalid yaml was provided for file: {yamlFilename}");
+            }
+
+            try
+            {
+                if (!fundingPeriodsYamlModel.FundingPeriods.IsNullOrEmpty())
+                {
+                    await _specificationsRepository.SaveFundingPeriods(fundingPeriodsYamlModel.FundingPeriods);
+
+                    await _cacheProvider.SetAsync<FundingPeriod[]>(CacheKeys.FundingPeriods, fundingPeriodsYamlModel.FundingPeriods, TimeSpan.FromDays(100), true);
+
+                    _logger.Information($"Upserted {fundingPeriodsYamlModel.FundingPeriods.Length} funding periods into cosomos");
                 }
             }
             catch (Exception exception)

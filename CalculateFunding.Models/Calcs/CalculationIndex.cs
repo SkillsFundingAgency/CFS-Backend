@@ -34,12 +34,12 @@ namespace CalculateFunding.Models.Calcs
         public string SpecificationId { get; set; }
 
         [IsFilterable, IsSortable, IsSearchable, IsFacetable]
-        [JsonProperty("periodName")]
-        public string PeriodName { get; set; }
+        [JsonProperty("fundingPeriodName")]
+        public string FundingPeriodName { get; set; }
 
         [IsFilterable]
-        [JsonProperty("periodId")]
-        public string PeriodId { get; set; }
+        [JsonProperty("fundingPeriodId")]
+        public string FundingPeriodId { get; set; }
 
         [IsFilterable, IsSortable, IsFacetable, IsSearchable]
         [JsonProperty("allocationLineName")]

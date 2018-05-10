@@ -7,7 +7,7 @@ namespace CalculateFunding.Models.Calcs
     {
         public string SpecificationId { get; set; }
 
-        public string PeriodName { get; set; }
+        public string FundingPeriodName { get; set; }
 
         public Reference CalculationSpecification { get; set; }
 

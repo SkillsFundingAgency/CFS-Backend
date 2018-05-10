@@ -279,7 +279,7 @@ namespace CalculateFunding.Services.Calcs
                     Id = specification.Id,
                     Name = specification.Name,
                     FundingStreams = specification.FundingStreams,
-                    Period = specification.AcademicYear
+                    FundingPeriod = specification.FundingPeriod
                 };
 
                 buildProject = await _calculationService.CreateBuildProject(specificationSummary, Enumerable.Empty<Models.Calcs.Calculation>());
@@ -350,7 +350,7 @@ namespace CalculateFunding.Services.Calcs
                 Id = specification.Id,
                 Name = specification.Name,
                 FundingStreams = specification.FundingStreams,
-                Period = specification.AcademicYear
+                FundingPeriod = specification.FundingPeriod
             };
 
             return _buildProjectsRepository.UpdateBuildProject(buildProject);

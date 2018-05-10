@@ -8,32 +8,25 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Net;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 
 namespace CalculateFunding.Services.Specs
 {
     public class SpecificationsRepository : ISpecificationsRepository
     {
         readonly CosmosRepository _repository;
+        private readonly ICacheProvider _cacheProvider;
 
-		public SpecificationsRepository(CosmosRepository cosmosRepository)
+        public SpecificationsRepository(CosmosRepository cosmosRepository)
         {
             _repository = cosmosRepository;
         }
 
-        public Task<AcademicYear> GetAcademicYearById(string academicYearId)
+        public Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId)
         {
-           var years = new[]
-           {
-                new AcademicYear { Id = "1819", Name = "2018/19" },
-                new AcademicYear { Id = "1718", Name = "2017/18" },
-                new AcademicYear { Id = "1617", Name = "2016/17" },
-            };
+            var fundingPeriod = _repository.Query<FundingPeriod>().FirstOrDefault(m => m.Id == fundingPeriodId);
 
-            var academicYear = years.FirstOrDefault(m => m.Id == academicYearId);
-
-            //var academicYear = _repository.Query<AcademicYear>().FirstOrDefault(m => m.Id == academicYearId);
-
-            return Task.FromResult(academicYear);
+            return Task.FromResult(fundingPeriod);
         }
 
         async public Task<FundingStream> GetFundingStreamById(string fundingStreamId)
@@ -91,11 +84,11 @@ namespace CalculateFunding.Services.Specs
             return Task.FromResult(specifications.AsEnumerable());
         }
 
-        public Task<IEnumerable<AcademicYear>> GetAcademicYears()
+        public Task<IEnumerable<FundingPeriod>> GetFundingPeriods()
         {
-            var academicYears = _repository.Query<AcademicYear>();
+            var fundingPeriods = _repository.Query<FundingPeriod>();
 
-            return Task.FromResult(academicYears.ToList().AsEnumerable());
+            return Task.FromResult(fundingPeriods.ToList().AsEnumerable());
         }
 
         async public Task<Calculation> GetCalculationBySpecificationIdAndCalculationName(string specificationId, string calculationName)
@@ -146,6 +139,11 @@ namespace CalculateFunding.Services.Specs
         public Task<HttpStatusCode> SaveFundingStream(FundingStream fundingStream)
         {
             return _repository.CreateAsync<FundingStream>(fundingStream);
+        }
+
+        public Task SaveFundingPeriods(IEnumerable<FundingPeriod> fundingPeriods)
+        {
+            return _repository.BulkCreateAsync<FundingPeriod>(fundingPeriods.ToList());
         }
     }
 }

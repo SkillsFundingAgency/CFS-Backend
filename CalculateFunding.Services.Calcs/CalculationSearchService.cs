@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Calcs
             new FacetFilterType("policySpecificationNames", true),
             new FacetFilterType("status"),
             new FacetFilterType("specificationName"),
-            new FacetFilterType("periodName"),
+            new FacetFilterType("fundingPeriodName"),
             new FacetFilterType("fundingStreamName")
         };
 
@@ -169,7 +169,7 @@ namespace CalculateFunding.Services.Calcs
                 {
                     Id = m.Result.Id,
                     Name = m.Result.Name,
-                    PeriodName = m.Result.PeriodName,
+                    FundingPeriodName = m.Result.FundingPeriodName,
                     SpecificationName = m.Result.SpecificationName,
                     Status = m.Result.Status,
                     CalculationType = m.Result.CalculationType,

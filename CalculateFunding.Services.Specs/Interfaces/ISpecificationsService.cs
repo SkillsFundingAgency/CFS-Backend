@@ -13,11 +13,11 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetSpecificationById(HttpRequest request);
 
-        Task<IActionResult> GetSpecificationByAcademicYearId(HttpRequest request);
+        Task<IActionResult> GetSpecificationByFundingPeriodId(HttpRequest request);
 
         Task<IActionResult> GetSpecificationByName(HttpRequest request);
 
-        Task<IActionResult> GetAcademicYears(HttpRequest request);
+        Task<IActionResult> GetFundingPeriods(HttpRequest request);
 
         Task<IActionResult> GetFundingStreams(HttpRequest request);
 
@@ -40,5 +40,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> ReIndex();
 
         Task<IActionResult> SaveFundingStream(HttpRequest request);
+
+        Task<IActionResult> SaveFundingPeriods(HttpRequest request);
     }
 }

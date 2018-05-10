@@ -223,8 +223,8 @@ namespace CalculateFunding.Services.Calcs.Services
                         m.First().CalculationSpecificationName == "Test Calc Name" &&
                         m.First().SpecificationId == "any-spec-id" &&
                         m.First().SpecificationName == "Test Spec Name" &&
-                        m.First().PeriodId == "18/19" &&
-                        m.First().PeriodName == "2018/2019" &&
+                        m.First().FundingPeriodId == "18/19" &&
+                        m.First().FundingPeriodName == "2018/2019" &&
                         m.First().AllocationLineId == "test-alloc-id" &&
                         m.First().AllocationLineName == "test-alloc-name" &&
                         m.First().PolicySpecificationIds.First() == "policy-id" &&
@@ -546,7 +546,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = "any name",
                 Id = "any-id",
                 CalculationSpecification = new Reference("any name", "any-id"),
-                Period = new Reference("18/19", "2018/2019"),
+                FundingPeriod = new Reference("18/19", "2018/2019"),
                 CalculationType = CalculationType.Number
             };
 
@@ -1928,7 +1928,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "any-spec-id",
                     Name = "Test Spec Name",
                 },
-                Period = new Reference
+                FundingPeriod = new Reference
                 {
                     Id = "18/19",
                     Name = "2018/2019"

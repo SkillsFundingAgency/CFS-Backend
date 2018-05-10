@@ -37,9 +37,9 @@ namespace CalculateFunding.ApiClient
         }
 
 
-        public async Task<ApiResponse<Specification[]>> GetSpecifications(string academicYearId = null)
+        public async Task<ApiResponse<Specification[]>> GetSpecifications(string fundingPeriodId = null)
         {
-            return await GetAsync<Specification[]>($"{_specsPath}/specifications?academicYearId={academicYearId}");
+            return await GetAsync<Specification[]>($"{_specsPath}/specifications?fundingPeriodId={fundingPeriodId}");
         }
 
         public async Task<ApiResponse<Specification>> GetSpecification(string id)

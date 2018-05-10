@@ -169,7 +169,7 @@ namespace CalculateFunding.Services.Calcs.Validators
         {
             //Arrange
             Calculation calculation = CreateCalculation();
-            calculation.Period = null;
+            calculation.FundingPeriod = null;
 
             CalculationModelValidator validator = new CalculationModelValidator();
 
@@ -188,7 +188,7 @@ namespace CalculateFunding.Services.Calcs.Validators
         {
             //Arrange
             Calculation calculation = CreateCalculation();
-            calculation.Period.Id = string.Empty;
+            calculation.FundingPeriod.Id = string.Empty;
 
             CalculationModelValidator validator = new CalculationModelValidator();
 
@@ -207,7 +207,7 @@ namespace CalculateFunding.Services.Calcs.Validators
         {
             //Arrange
             Calculation calculation = CreateCalculation();
-            calculation.Period.Name = string.Empty;
+            calculation.FundingPeriod.Name = string.Empty;
 
             CalculationModelValidator validator = new CalculationModelValidator();
 
@@ -350,7 +350,7 @@ namespace CalculateFunding.Services.Calcs.Validators
                     Id = Guid.NewGuid().ToString(),
                     Name = "test spec name"
                 },
-                Period = new Reference
+                FundingPeriod = new Reference
                 {
                     Id = "18/19",
                     Name = "2018/2019"

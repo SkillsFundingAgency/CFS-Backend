@@ -13,5 +13,7 @@ namespace CalculateFunding.Services.Core.Caching
         public const string ProviderResultBatch = "provider-results-batch:";
 
         public const string ScopedProviderSummariesPrefix = "scoped-provider-summaries:";
+
+        public const string FundingPeriods = "funding-periods";
     }
 }

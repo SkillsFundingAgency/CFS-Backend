@@ -4,7 +4,7 @@ namespace CalculateFunding.Models.Specs
 {
     public class SpecificationCreateModel
     {
-        public string AcademicYearId { get; set; }
+        public string FundingPeriodId { get; set; }
 
         public IEnumerable<string> FundingStreamIds { get; set; }
 

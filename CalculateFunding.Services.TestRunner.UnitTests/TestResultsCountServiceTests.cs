@@ -328,7 +328,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 .BeAssignableTo<IEnumerable<TestScenarioResultCounts>>()
                 .Which
                 .Should()
-                .HaveCount(2);
+                .HaveCountGreaterThan(0);
         }
 
         [TestMethod]

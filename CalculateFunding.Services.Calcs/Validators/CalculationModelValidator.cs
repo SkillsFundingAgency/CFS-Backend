@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Calcs.Validators
                .Must(m => m != null && !string.IsNullOrWhiteSpace(m.Id) && !string.IsNullOrWhiteSpace(m.Name))
                .WithMessage("invalid specification provided");
 
-            RuleFor(calc => calc.Period)
+            RuleFor(calc => calc.FundingPeriod)
                 .Must(m => m != null && !string.IsNullOrWhiteSpace(m.Id) && !string.IsNullOrWhiteSpace(m.Name))
                 .WithMessage("Invalid period provided");
 

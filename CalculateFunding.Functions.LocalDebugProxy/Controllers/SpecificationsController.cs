@@ -43,7 +43,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         {
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
-            return _specService.GetSpecificationByAcademicYearId(ControllerContext.HttpContext.Request);
+            return _specService.GetSpecificationByFundingPeriodId(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specification-by-name")]
@@ -164,6 +164,24 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
             return _specService.SaveFundingStream(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/specs/get-fundingperiods")]
+        [HttpGet]
+        public Task<IActionResult> RunGetFundingPeriods()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specService.GetFundingPeriods(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/specs/save-fundingperiods")]
+        [HttpPost]
+        public Task<IActionResult> RunSaveFundingPeriods()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specService.SaveFundingPeriods(ControllerContext.HttpContext.Request);
         }
     }
 }

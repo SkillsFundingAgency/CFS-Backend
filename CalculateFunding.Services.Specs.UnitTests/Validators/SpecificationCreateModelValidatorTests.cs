@@ -14,17 +14,17 @@ namespace CalculateFunding.Services.Specs.Validators
     [TestClass]
     public class SpecificationCreateModelValidatorTests
     {
-        static string academicYearId = Guid.NewGuid().ToString();
+        static string fundingPeriodId = Guid.NewGuid().ToString();
         static string fundingStreamId = Guid.NewGuid().ToString();
         static string description = "A test description";
         static string name = "A test name";
 
         [TestMethod]
-        public void Validate_GivenEmptyAcademicYearId_ValidIsFalse()
+        public void Validate_GivenEmptyFundingPeriodId_ValidIsFalse()
         {
             //Arrange
             SpecificationCreateModel model = CreateModel();
-            model.AcademicYearId = string.Empty;
+            model.FundingPeriodId = string.Empty;
 
             SpecificationCreateModelValidator validator = CreateValidator();
 
@@ -168,7 +168,7 @@ namespace CalculateFunding.Services.Specs.Validators
         {
             return new SpecificationCreateModel
             {
-                AcademicYearId = academicYearId,
+                FundingPeriodId = fundingPeriodId,
                 FundingStreamIds = new List<string>() { fundingStreamId },
                 Description = description,
                 Name = name

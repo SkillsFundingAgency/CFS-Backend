@@ -29,6 +29,8 @@ using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -40,7 +42,7 @@ namespace CalculateFunding.Services.Specs.Services
         const string PolicyId = "dda8ccb3-eb8e-4658-8b3f-f1e4c3a8f322";
         const string AllocationLineId = "02a6eeaf-e1a0-476e-9cf9-8aa5d9129345";
         const string CalculationId = "22a6eeaf-e1a0-476e-9cf9-8aa6c51293433";
-        const string AcademicYearId = "18/19";
+        const string FundingPeriodId = "18/19";
         const string SpecificationName = "Test Spec 001";
         const string PolicyName = "Test Policy 001";
         const string CalculationName = "Test Calc 001";
@@ -146,14 +148,14 @@ namespace CalculateFunding.Services.Specs.Services
         }
 
         [TestMethod]
-        public async Task GetSpecificationByAcademicYearId_GivenNoSpecificationsReturned_ReturnsSuccess()
+        public async Task GetSpecificationByFundingPeriodId_GivenNoSpecificationsReturned_ReturnsSuccess()
         {
             //Arrange
             IEnumerable<Specification> specs = Enumerable.Empty<Specification>();
 
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
-                { "academicYearId", new StringValues(AcademicYearId) }
+                { "fundingPeriodId", new StringValues(FundingPeriodId) }
 
             });
 
@@ -172,7 +174,7 @@ namespace CalculateFunding.Services.Specs.Services
             SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
 
             //Act
-            IActionResult result = await service.GetSpecificationByAcademicYearId(request);
+            IActionResult result = await service.GetSpecificationByFundingPeriodId(request);
 
             //Assert
             result
@@ -188,11 +190,11 @@ namespace CalculateFunding.Services.Specs.Services
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"No specifications found for academic year with id {AcademicYearId}"));
+                .Information(Arg.Is($"No specifications found for academic year with id {FundingPeriodId}"));
         }
 
         [TestMethod]
-        public async Task GetSpecificationByAcademicYearId_GivenSpecificationsReturned_ReturnsSuccess()
+        public async Task GetSpecificationByFundingPeriodId_GivenSpecificationsReturned_ReturnsSuccess()
         {
             //Arrange
             IEnumerable<Specification> specs = new[]
@@ -203,7 +205,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
-                { "academicYearId", new StringValues(AcademicYearId) }
+                { "fundingPeriodId", new StringValues(FundingPeriodId) }
 
             });
 
@@ -222,7 +224,7 @@ namespace CalculateFunding.Services.Specs.Services
             SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
 
             //Act
-            IActionResult result = await service.GetSpecificationByAcademicYearId(request);
+            IActionResult result = await service.GetSpecificationByFundingPeriodId(request);
 
             //Assert
             result
@@ -238,11 +240,11 @@ namespace CalculateFunding.Services.Specs.Services
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"Found {specs.Count()} specifications for academic year with id {AcademicYearId}"));
+                .Information(Arg.Is($"Found {specs.Count()} specifications for academic year with id {FundingPeriodId}"));
         }
 
         [TestMethod]
-        public async Task GetSpecificationByAcademicYearId_GivenAcademicYearIdDoesNotExist_ReturnsBadRequest()
+        public async Task GetSpecificationByFundingPeriodId_GivenAcademicYearIdDoesNotExist_ReturnsBadRequest()
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -252,7 +254,7 @@ namespace CalculateFunding.Services.Specs.Services
             SpecificationsService service = CreateService(logs: logger);
 
             //Act
-            IActionResult result = await service.GetSpecificationByAcademicYearId(request);
+            IActionResult result = await service.GetSpecificationByFundingPeriodId(request);
 
             //Assert
             result
@@ -1640,7 +1642,7 @@ namespace CalculateFunding.Services.Specs.Services
                 Id = SpecificationId,
                 Name = SpecificationName,
                 FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
-                AcademicYear = new Reference("18/19", "2018/19")
+                FundingPeriod = new Reference("18/19", "2018/19")
             };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -1684,7 +1686,7 @@ namespace CalculateFunding.Services.Specs.Services
                 Id = SpecificationId,
                 Name = SpecificationName,
                 FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
-                AcademicYear = new Reference("18/19", "2018/19")
+                FundingPeriod = new Reference("18/19", "2018/19")
             };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -1813,8 +1815,8 @@ namespace CalculateFunding.Services.Specs.Services
                 {
                     Id = SpecificationId,
                     Name = SpecificationName,
-                FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
-                    AcademicYear = new Reference("18/19", "2018/19"),
+                    FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
+                    FundingPeriod = new Reference("18/19", "2018/19"),
                     UpdatedAt = DateTime.Now
                 }
             };
@@ -1895,8 +1897,8 @@ namespace CalculateFunding.Services.Specs.Services
                 {
                     Id = SpecificationId,
                     Name = SpecificationName,
-                FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
-                    AcademicYear = new Reference("18/19", "2018/19"),
+                    FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
+                    FundingPeriod = new Reference("18/19", "2018/19"),
                     UpdatedAt = DateTime.Now
                 }
             };
@@ -2337,15 +2339,299 @@ namespace CalculateFunding.Services.Specs.Services
                 .Be(2);
         }
 
+        [TestMethod]
+        async public Task SaveFundingPeriods_GivenNoYamlWasProvidedWithNoFileName_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            //Act
+            IActionResult result = await service.SaveFundingPeriods(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Null or empty yaml provided for file: File name not provided"));
+        }
+
+        [TestMethod]
+        async public Task SaveFundingPeriods_GivenNoYamlWasProvidedButFileNameWas_ReturnsBadRequest()
+        {
+            //Arrange
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            //Act
+            IActionResult result = await service.SaveFundingPeriods(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Null or empty yaml provided for file: {yamlFile}"));
+        }
+
+        [TestMethod]
+        async public Task SaveFundingPeriods_GivenNoYamlWasProvidedButIsInvalid_ReturnsBadRequest()
+        {
+            //Arrange
+            string yaml = "invalid yaml";
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            //Act
+            IActionResult result = await service.SaveFundingPeriods(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid yaml was provided for file: {yamlFile}"));
+        }
+
+        [TestMethod]
+        async public Task SaveFundingPeriods_GivenValidYamlButSavingToDatabaseThrowsException_ReturnsInternalServerError()
+        {
+            //Arrange
+            string yaml = CreateRawFundingPeriods();
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .When(x => x.SaveFundingPeriods(Arg.Any<FundingPeriod[]>()))
+                .Do(x => { throw new Exception(); });
+
+            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult result = await service.SaveFundingPeriods(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<StatusCodeResult>();
+
+            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
+            statusCodeResult
+                .StatusCode
+                .Should()
+                .Be(500);
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is($"Exception occurred writing to yaml file: {yamlFile} to cosmos db"));
+        }
+
+        [TestMethod]
+        async public Task SaveFundingPeriods_GivenValidYamlAndSaveWasSuccesful_ReturnsOK()
+        {
+            //Arrange
+            string yaml = CreateRawFundingPeriods();
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+           
+            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult result = await service.SaveFundingPeriods(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkResult>();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Successfully saved file: {yamlFile} to cosmos db"));
+
+            await
+                cacheProvider
+                .Received(1)
+                .SetAsync<FundingPeriod[]>(Arg.Is(CacheKeys.FundingPeriods), Arg.Any<FundingPeriod[]>(), Arg.Any<TimeSpan>(), Arg.Is(true));
+        }
+
+        [TestMethod]
+        public async Task GetFundingPeriods_GivenFundingPeriodsInCache_ReturnsFromCache()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            FundingPeriod[] fundingPeriods = {
+                new FundingPeriod(),
+                new FundingPeriod()
+            };
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<FundingPeriod[]>(Arg.Is(CacheKeys.FundingPeriods))
+                .Returns(fundingPeriods);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+
+            SpecificationsService specificationsService = CreateService(specifcationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult result = await specificationsService.GetFundingPeriods(request);
+
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            await
+                specificationsRepository
+                .DidNotReceive()
+                .GetFundingPeriods();
+        }
+
+        [TestMethod]
+        public async Task GetFundingPeriods_GivenFundingPeriodsNotInCacheAndFailedToGetFromCosomos_ReturnsInternalServerError()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<FundingPeriod[]>(Arg.Is(CacheKeys.FundingPeriods))
+                .Returns((FundingPeriod[])null);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+
+            SpecificationsService specificationsService = CreateService(specifcationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult result = await specificationsService.GetFundingPeriods(request);
+
+            result
+                .Should()
+                .BeOfType<InternalServerErrorResult>();
+
+            await
+                cacheProvider
+                    .DidNotReceive()
+                    .SetAsync<FundingPeriod[]>(Arg.Any<string>(), Arg.Any<FundingPeriod[]>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
+        }
+
+        [TestMethod]
+        public async Task GetFundingPeriods_GivenFundingPeriodsNotInCacheButGetsFromCosmos_ReturnsFundingPeriods()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            FundingPeriod[] fundingPeriods = {
+                new FundingPeriod(),
+                new FundingPeriod()
+            };
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<FundingPeriod[]>(Arg.Is(CacheKeys.FundingPeriods))
+                .Returns((FundingPeriod[])null);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetFundingPeriods()
+                .Returns(fundingPeriods);
+
+            SpecificationsService specificationsService = CreateService(specifcationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult result = await specificationsService.GetFundingPeriods(request);
+
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            await
+                cacheProvider
+                    .Received(1)
+                    .SetAsync<FundingPeriod[]>(Arg.Any<string>(), Arg.Any<FundingPeriod[]>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
+        }
+
         static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null,
             ILogger logs = null, IValidator<PolicyCreateModel> policyCreateModelValidator = null,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null, IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
             IMessengerService messengerService = null, ServiceBusSettings EventHubSettings = null, ISearchRepository<SpecificationIndex> searchRepository = null,
-            IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator = null)
+            IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator = null, ICacheProvider cacheProvider = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(), specifcationsRepository ?? CreateSpecificationsRepository(), logs ?? CreateLogger(), policyCreateModelValidator ?? CreatePolicyValidator(),
                 specificationCreateModelvalidator ?? CreateSpecificationValidator(), calculationCreateModelValidator ?? CreateCalculationValidator(), messengerService ?? CreateMessengerService(),
-                EventHubSettings ?? CreateEventHubSettings(), searchRepository ?? CreateSearchRepository(), assignDefinitionRelationshipMessageValidator ?? CreateAssignDefinitionRelationshipMessageValidator());
+                EventHubSettings ?? CreateEventHubSettings(), searchRepository ?? CreateSearchRepository(), assignDefinitionRelationshipMessageValidator ?? CreateAssignDefinitionRelationshipMessageValidator(), cacheProvider ?? CreateCacheProvider());
         }
 
         static IMapper CreateMapper()
@@ -2356,6 +2642,11 @@ namespace CalculateFunding.Services.Specs.Services
         static IMessengerService CreateMessengerService()
         {
             return Substitute.For<IMessengerService>();
+        }
+
+        static ICacheProvider CreateCacheProvider()
+        {
+            return Substitute.For<ICacheProvider>();
         }
 
         static ISpecificationsRepository CreateSpecificationsRepository()
@@ -2458,6 +2749,35 @@ namespace CalculateFunding.Services.Specs.Services
             yaml.AppendLine(@"- id: YPE07");
             yaml.AppendLine(@"  name: Start Up Grant Part b Formulaic");
 
+
+            return yaml.ToString();
+        }
+
+        static string CreateRawFundingPeriods()
+        {
+            var yaml = new StringBuilder();
+
+            yaml.AppendLine(@"fundingPeriods:");
+            yaml.AppendLine(@"- type: AY");
+            yaml.AppendLine(@"  id: AY2017181");
+            yaml.AppendLine(@"  name: Academic 2017/18");
+            yaml.AppendLine(@"  startDate: 09/01/2017 00:00:00");
+            yaml.AppendLine(@"  endDate: 08/31/2018 00:00:00");
+            yaml.AppendLine(@"- type: AY");
+            yaml.AppendLine(@"  id: AY2018191");
+            yaml.AppendLine(@"  name: Academic 2018/19");
+            yaml.AppendLine(@"  startDate: 09/01/2018 00:00:00");
+            yaml.AppendLine(@"  endDate: 08/31/2019 00:00:00");
+            yaml.AppendLine(@"- type: FY");
+            yaml.AppendLine(@"  id: FY2017181");
+            yaml.AppendLine(@"  name: Financial 2017/18");
+            yaml.AppendLine(@"  startDate: 04/01/2017 00:00:00");
+            yaml.AppendLine(@"  endDate: 03/31/2018 00:00:00");
+            yaml.AppendLine(@"- type: AY");
+            yaml.AppendLine(@"  id: AY2018191");
+            yaml.AppendLine(@"  name: Financial 2018/19");
+            yaml.AppendLine(@"  startDate: 04/01/2018 00:00:00");
+            yaml.AppendLine(@"  endDate: 03/31/2019 00:00:00");
 
             return yaml.ToString();
         }
