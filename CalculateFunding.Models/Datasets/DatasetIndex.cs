@@ -27,12 +27,12 @@ namespace CalculateFunding.Models.Datasets
         public int Version { get; set; }
 
         [IsFilterable, IsSearchable, IsFacetable]
-        [JsonProperty("periodNames")]
-        public string[] PeriodNames { get; set; }
+        [JsonProperty("fundingPeriodNames")]
+        public string[] FundingPeriodNames { get; set; }
 
         [IsFilterable]
-        [JsonProperty("periodIds")]
-        public string[] PeriodIds { get; set; }
+        [JsonProperty("fundingperiodIds")]
+        public string[] FundingPeriodIds { get; set; }
 
         [IsFilterable, IsSortable, IsFacetable, IsSearchable]
         [JsonProperty("status")]

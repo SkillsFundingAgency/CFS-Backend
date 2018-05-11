@@ -171,7 +171,7 @@ namespace CalculateFunding.Services.Datasets
                     Status = m.Result.Status,
                     DefinitionName = m.Result.DefinitionName,
                     LastUpdatedDate = m.Result.LastUpdatedDate,
-                    PeriodNames = m.Result.PeriodNames,
+                    PeriodNames = m.Result.FundingPeriodNames,
                     SpecificationNames = m.Result.SpecificationNames,
                     Description = m.Result.Description,
                     Version = m.Result.Version,
