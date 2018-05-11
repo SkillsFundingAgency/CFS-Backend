@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly ISearchRepository<DatasetIndex> _searchRepository;
 
         private FacetFilterType[] Facets = {
-            new FacetFilterType("periodNames", true),
+            new FacetFilterType("fundingPeriodNames", true),
             new FacetFilterType("status"),
             new FacetFilterType("definitionName"),
             new FacetFilterType("specificationNames", true),
