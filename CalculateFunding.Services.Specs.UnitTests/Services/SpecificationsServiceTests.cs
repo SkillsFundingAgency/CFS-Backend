@@ -31,6 +31,8 @@ using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Models.MappingProfiles;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -97,7 +99,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns((Specification)null);
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
             IActionResult result = await service.GetSpecificationById(request);
@@ -136,7 +138,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(specification);
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
             IActionResult result = await service.GetSpecificationById(request);
@@ -171,10 +173,10 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetSpecificationsByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
                 .Returns(specs);
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
-            IActionResult result = await service.GetSpecificationByFundingPeriodId(request);
+            IActionResult result = await service.GetSpecificationsByFundingPeriodId(request);
 
             //Assert
             result
@@ -221,10 +223,10 @@ namespace CalculateFunding.Services.Specs.Services
                  .GetSpecificationsByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
                  .Returns(specs);
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
-            IActionResult result = await service.GetSpecificationByFundingPeriodId(request);
+            IActionResult result = await service.GetSpecificationsByFundingPeriodId(request);
 
             //Assert
             result
@@ -254,7 +256,7 @@ namespace CalculateFunding.Services.Specs.Services
             SpecificationsService service = CreateService(logs: logger);
 
             //Act
-            IActionResult result = await service.GetSpecificationByFundingPeriodId(request);
+            IActionResult result = await service.GetSpecificationsByFundingPeriodId(request);
 
             //Assert
             result
@@ -313,7 +315,7 @@ namespace CalculateFunding.Services.Specs.Services
                  .GetSpecificationsByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
                  .Returns(specs);
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
             IActionResult result = await service.GetSpecificationByName(request);
@@ -355,7 +357,7 @@ namespace CalculateFunding.Services.Specs.Services
                  .GetSpecificationsByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
                  .Returns(specs);
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
             IActionResult result = await service.GetSpecificationByName(request);
@@ -468,7 +470,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns((Specification)null);
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
             IActionResult result = await service.GetPolicyByName(request);
@@ -524,7 +526,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(spec);
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
             IActionResult result = await service.GetPolicyByName(request);
@@ -567,7 +569,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(spec);
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
             IActionResult result = await service.GetPolicyByName(request);
@@ -675,7 +677,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetCalculationBySpecificationIdAndCalculationName(Arg.Is(SpecificationId), Arg.Is(CalculationName))
                 .Returns(calc);
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
             IActionResult result = await service.GetCalculationByName(request);
@@ -716,7 +718,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetCalculationBySpecificationIdAndCalculationName(Arg.Is(SpecificationId), Arg.Is(CalculationName))
                 .Returns((Calculation)null);
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
             IActionResult result = await service.GetCalculationByName(request);
@@ -817,7 +819,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns((Specification)null);
 
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.CreateCalculation(request);
@@ -866,7 +868,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .Map<Calculation>(model)
                 .Returns(calculation);
 
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository, mapper: mapper);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, mapper: mapper);
 
             //Act
             IActionResult result = await service.CreateCalculation(request);
@@ -958,7 +960,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .Map<Calculation>(Arg.Any<CalculationCreateModel>())
                 .Returns(calculation);
 
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository, mapper: mapper);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, mapper: mapper);
 
             //Act
             IActionResult result = await service.CreateCalculation(request);
@@ -1081,7 +1083,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository, mapper: mapper, messengerService: messengerService);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, mapper: mapper, messengerService: messengerService);
 
             //Act
             IActionResult result = await service.CreateCalculation(request);
@@ -1209,7 +1211,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository, mapper: mapper, messengerService: messengerService);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, mapper: mapper, messengerService: messengerService);
 
             //Act
             IActionResult result = await service.CreateCalculation(request);
@@ -1282,7 +1284,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations);
 
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             // Act
             IActionResult result = await service.GetCalculationsBySpecificationId(request);
@@ -1326,7 +1328,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations.AsEnumerable());
 
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             // Act
             IActionResult result = await service.GetCalculationsBySpecificationId(request);
@@ -1366,7 +1368,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations);
 
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             // Act
             IActionResult result = await service.GetCalculationsBySpecificationId(request);
@@ -1460,7 +1462,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetCalculationBySpecificationIdAndCalculationId(Arg.Is(SpecificationId), Arg.Is(CalculationId))
                 .Returns((Calculation)null);
 
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.GetCalculationBySpecificationIdAndCalculationId(request);
@@ -1499,7 +1501,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetCalculationBySpecificationIdAndCalculationId(Arg.Is(SpecificationId), Arg.Is(CalculationId))
                 .Returns(calculation);
 
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.GetCalculationBySpecificationIdAndCalculationId(request);
@@ -1580,7 +1582,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns((Specification)null);
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository);
 
             //Act
             Func<Task> test = async () => await service.AssignDataDefinitionRelationship(message);
@@ -1613,7 +1615,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
             Func<Task> test = async () => await service.AssignDataDefinitionRelationship(message);
@@ -1661,7 +1663,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .Index(Arg.Any<List<SpecificationIndex>>())
                 .Returns(errors);
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, searchRepository: searchRepository);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, searchRepository: searchRepository);
 
             //Act
             Func<Task> test = async () => await service.AssignDataDefinitionRelationship(message);
@@ -1707,7 +1709,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository,
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository,
                 searchRepository: searchRepository, logs: logger);
 
             //Act
@@ -1778,7 +1780,7 @@ namespace CalculateFunding.Services.Specs.Services
             ILogger logger = CreateLogger();
 
             ISpecificationsService service = CreateService(searchRepository: searchRepository, logs: logger,
-                specifcationsRepository: specificationsRepository);
+                specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.ReIndex();
@@ -1834,7 +1836,7 @@ namespace CalculateFunding.Services.Specs.Services
             ILogger logger = CreateLogger();
 
             ISpecificationsService service = CreateService(searchRepository: searchRepository, logs: logger,
-                specifcationsRepository: specificationsRepository);
+                specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.ReIndex();
@@ -1872,7 +1874,7 @@ namespace CalculateFunding.Services.Specs.Services
             ILogger logger = CreateLogger();
 
             ISpecificationsService service = CreateService(searchRepository: searchRepository, logs: logger,
-                specifcationsRepository: specificationsRepository);
+                specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.ReIndex();
@@ -1913,7 +1915,7 @@ namespace CalculateFunding.Services.Specs.Services
             ILogger logger = CreateLogger();
 
             ISpecificationsService service = CreateService(searchRepository: searchRepository, logs: logger,
-                specifcationsRepository: specificationsRepository);
+                specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.ReIndex();
@@ -2049,7 +2051,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .SaveFundingStream(Arg.Any<FundingStream>())
                 .Returns(failedCode);
 
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.SaveFundingStream(request);
@@ -2098,7 +2100,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .When(x => x.SaveFundingStream(Arg.Any<FundingStream>()))
                 .Do(x => { throw new Exception(); });
 
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.SaveFundingStream(request);
@@ -2149,7 +2151,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .SaveFundingStream(Arg.Any<FundingStream>())
                 .Returns(statusCode);
 
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.SaveFundingStream(request);
@@ -2209,7 +2211,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetFundingStreamById(Arg.Is(FundingStreamId))
                 .Returns((FundingStream)null);
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
             IActionResult result = await service.GetFundingStreamById(request);
@@ -2251,7 +2253,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetFundingStreamById(Arg.Is(FundingStreamId))
                 .Returns(fundingStream);
 
-            SpecificationsService service = CreateService(specifcationsRepository: specificationsRepository, logs: logger);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
             //Act
             IActionResult result = await service.GetFundingStreamById(request);
@@ -2277,7 +2279,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetFundingStreams()
                 .Returns(fundingStreams);
 
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.GetFundingStreams(request);
@@ -2319,7 +2321,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetFundingStreams()
                 .Returns(fundingStreams);
 
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.GetFundingStreams(request);
@@ -2458,7 +2460,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .When(x => x.SaveFundingPeriods(Arg.Any<FundingPeriod[]>()))
                 .Do(x => { throw new Exception(); });
 
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.SaveFundingPeriods(request);
@@ -2505,8 +2507,8 @@ namespace CalculateFunding.Services.Specs.Services
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-           
-            SpecificationsService service = CreateService(logs: logger, specifcationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
 
             //Act
             IActionResult result = await service.SaveFundingPeriods(request);
@@ -2544,7 +2546,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
 
-            SpecificationsService specificationsService = CreateService(specifcationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
 
             //Act
             IActionResult result = await specificationsService.GetFundingPeriods(request);
@@ -2572,7 +2574,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
 
-            SpecificationsService specificationsService = CreateService(specifcationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
 
             //Act
             IActionResult result = await specificationsService.GetFundingPeriods(request);
@@ -2608,7 +2610,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetFundingPeriods()
                 .Returns(fundingPeriods);
 
-            SpecificationsService specificationsService = CreateService(specifcationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
 
             //Act
             IActionResult result = await specificationsService.GetFundingPeriods(request);
@@ -2623,20 +2625,589 @@ namespace CalculateFunding.Services.Specs.Services
                     .SetAsync<FundingPeriod[]>(Arg.Any<string>(), Arg.Any<FundingPeriod[]>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
         }
 
-        static SpecificationsService CreateService(IMapper mapper = null, ISpecificationsRepository specifcationsRepository = null,
-            ILogger logs = null, IValidator<PolicyCreateModel> policyCreateModelValidator = null,
-            IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null, IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
-            IMessengerService messengerService = null, ServiceBusSettings EventHubSettings = null, ISearchRepository<SpecificationIndex> searchRepository = null,
-            IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator = null, ICacheProvider cacheProvider = null)
+        [TestMethod]
+        public async Task SpecificationsService_CreateSpecification_WhenValidInputProvided_ThenSpecificationIsCreated()
         {
-            return new SpecificationsService(mapper ?? CreateMapper(), specifcationsRepository ?? CreateSpecificationsRepository(), logs ?? CreateLogger(), policyCreateModelValidator ?? CreatePolicyValidator(),
-                specificationCreateModelvalidator ?? CreateSpecificationValidator(), calculationCreateModelValidator ?? CreateCalculationValidator(), messengerService ?? CreateMessengerService(),
-                EventHubSettings ?? CreateEventHubSettings(), searchRepository ?? CreateSearchRepository(), assignDefinitionRelationshipMessageValidator ?? CreateAssignDefinitionRelationshipMessageValidator(), cacheProvider ?? CreateCacheProvider());
+            // Arrange
+            const string fundingStreamId = "fs1";
+            const string fundingPeriodId = "fp1";
+
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+
+            IMapper mapper = CreateImplementedMapper();
+
+            SpecificationsService specificationsService = CreateService(
+                specificationsRepository: specificationsRepository,
+                searchRepository: searchRepository,
+                mapper: mapper);
+
+            SpecificationCreateModel specificationCreateModel = new SpecificationCreateModel()
+            {
+                Name = "Specification Name",
+                Description = "Specification Description",
+                FundingPeriodId = "fp1",
+                FundingStreamIds = new List<string>() { fundingStreamId },
+            };
+
+            string json = JsonConvert.SerializeObject(specificationCreateModel);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
+            {
+                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
+            });
+
+            HttpContext context = Substitute.For<HttpContext>();
+            context
+                .User
+                .Returns(principle);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            request
+                .HttpContext
+                .Returns(context);
+
+            specificationsRepository
+                .GetSpecificationByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
+                .Returns((Specification)null);
+
+            FundingPeriod fundingPeriod = new FundingPeriod()
+            {
+                Id = fundingPeriodId,
+                Name = "Funding Period 1",
+                Type = "Test",
+            };
+
+            specificationsRepository
+                .GetFundingPeriodById(Arg.Is(fundingPeriodId))
+                .Returns(fundingPeriod);
+
+            FundingStream fundingStream = new FundingStream()
+            {
+                Id = fundingStreamId,
+                Name = "Funding Stream 1",
+                AllocationLines = new List<AllocationLine>(),
+            };
+
+            specificationsRepository
+                .GetFundingStreamById(Arg.Is(fundingStreamId))
+                .Returns(fundingStream);
+
+            specificationsRepository
+                .CreateSpecification(Arg.Is<Specification>(
+                    s => s.Name == specificationCreateModel.Name &&
+                    s.Description == specificationCreateModel.Description &&
+                    s.FundingPeriod.Id == fundingPeriodId))
+                .Returns(HttpStatusCode.Created);
+
+            // Act
+            IActionResult result = await specificationsService.CreateSpecification(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeOfType<Specification>()
+                .And
+                .NotBeNull();
+
+            await specificationsRepository
+                .Received(1)
+                .CreateSpecification(Arg.Is<Specification>(
+                   s => s.Name == specificationCreateModel.Name &&
+                   s.Description == specificationCreateModel.Description &&
+                   s.FundingPeriod.Id == fundingPeriodId));
+
+            await searchRepository
+                .Received(1)
+                .Index(Arg.Is<List<SpecificationIndex>>(c =>
+                c.Count() == 1 &&
+                !string.IsNullOrWhiteSpace(c.First().Id) &&
+                c.First().Name == specificationCreateModel.Name
+                ));
+        }
+
+        [TestMethod]
+        public async Task SpecificationsService_CreateSpecification_WhenFundingStreamIDIsProvidedButDoesNotExist_ThenPreConditionFailedReturned()
+        {
+            // Arrange
+            const string fundingStreamId = "fs1";
+            const string fundingStreamNotFoundId = "notfound";
+
+            const string fundingPeriodId = "fp1";
+
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+
+            IMapper mapper = CreateImplementedMapper();
+
+            SpecificationsService specificationsService = CreateService(
+                specificationsRepository: specificationsRepository,
+                searchRepository: searchRepository,
+                mapper: mapper);
+
+            SpecificationCreateModel specificationCreateModel = new SpecificationCreateModel()
+            {
+                Name = "Specification Name",
+                Description = "Specification Description",
+                FundingPeriodId = "fp1",
+                FundingStreamIds = new List<string>() { fundingStreamId, fundingStreamNotFoundId, },
+            };
+
+            string json = JsonConvert.SerializeObject(specificationCreateModel);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
+            {
+                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
+            });
+
+            HttpContext context = Substitute.For<HttpContext>();
+            context
+                .User
+                .Returns(principle);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            request
+                .HttpContext
+                .Returns(context);
+
+            specificationsRepository
+                .GetSpecificationByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
+                .Returns((Specification)null);
+
+            FundingPeriod fundingPeriod = new FundingPeriod()
+            {
+                Id = fundingPeriodId,
+                Name = "Funding Period 1",
+                Type = "Test",
+            };
+
+            specificationsRepository
+                .GetFundingPeriodById(Arg.Is(fundingPeriodId))
+                .Returns(fundingPeriod);
+
+            FundingStream fundingStream = new FundingStream()
+            {
+                Id = fundingStreamId,
+                Name = "Funding Stream 1",
+                AllocationLines = new List<AllocationLine>(),
+            };
+
+            specificationsRepository
+                .GetFundingStreamById(Arg.Is(fundingStreamId))
+                .Returns(fundingStream);
+
+            specificationsRepository
+                .GetFundingStreamById(Arg.Is(fundingStreamNotFoundId))
+                .Returns((FundingStream)null);
+
+            // Act
+            IActionResult result = await specificationsService.CreateSpecification(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<PreconditionFailedResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("Unable to find funding stream with ID 'notfound'.");
+
+            await specificationsRepository
+                .Received(1)
+                .GetFundingStreamById(Arg.Is(fundingStreamNotFoundId));
+
+            await specificationsRepository
+                .Received(1)
+                .GetFundingStreamById(Arg.Is(fundingStreamId));
+        }
+
+        [TestMethod]
+        public async Task SpecificationsService_CreateSpecification_WhenInvalidInputProvided_ThenValidationErrorReturned()
+        {
+            // Arrange
+            ValidationResult validationResult = new ValidationResult();
+            validationResult.Errors.Add(new ValidationFailure("fundingStreamId", "Test"));
+
+            IValidator<SpecificationCreateModel> validator = CreateSpecificationValidator(validationResult);
+
+            SpecificationsService specificationsService = CreateService(specificationCreateModelvalidator: validator);
+
+            SpecificationCreateModel specificationCreateModel = new SpecificationCreateModel()
+            {
+                Name = "Specification Name",
+                Description = "Specification Description",
+                FundingPeriodId = null,
+                FundingStreamIds = new List<string>() { },
+            };
+
+            string json = JsonConvert.SerializeObject(specificationCreateModel);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpContext context = Substitute.For<HttpContext>();
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            request
+                .HttpContext
+                .Returns(context);
+
+            // Act
+            IActionResult result = await specificationsService.CreateSpecification(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeOfType<SerializableError>()
+                .Which
+                .Should()
+                .HaveCount(1);
+
+            await validator
+                .Received(1)
+                .ValidateAsync(Arg.Any<SpecificationCreateModel>());
+        }
+
+        [TestMethod]
+        public async Task SpecificationsService_GetFundingStreamsForSpecificationById_WhenRequestingASpecificationWhenExists_ThenFundingStreamsReturned()
+        {
+            // Arrange
+            const string specificationId = "spec1";
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            Specification specification = new Specification()
+            {
+                Id = specificationId,
+                Name = "Test Specification",
+                FundingStreams = new List<Reference>() {
+                       new Reference("fs1", "Funding Stream 1"),
+                       new Reference("fs2", "Funding Stream Two"),
+                }
+            };
+
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            List<FundingStream> fundingStreams = new List<FundingStream>()
+            {
+                new FundingStream()
+                {
+                    Id = "fs1",
+                    Name = "Funding Stream 1",
+                    AllocationLines = new List<AllocationLine>(),
+                },
+                new FundingStream()
+                {
+                    Id = "fs2",
+                    Name = "Funding Stream Two",
+                    AllocationLines = new List<AllocationLine>(),
+                }
+            };
+
+            specificationsRepository
+                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
+                .Returns(fundingStreams);
+
+            // Act
+            IActionResult actionResult = await specificationsService.GetFundingStreamsForSpecificationById(request);
+
+            // Assert
+
+            List<FundingStream> expectedFundingStreams = new List<FundingStream>()
+            {
+                new FundingStream()
+                {
+                    Id = "fs1",
+                    Name = "Funding Stream 1",
+                    AllocationLines = new List<AllocationLine>(),
+                },
+                new FundingStream()
+                {
+                    Id = "fs2",
+                    Name = "Funding Stream Two",
+                    AllocationLines = new List<AllocationLine>(),
+                }
+            };
+
+            actionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .ShouldBeEquivalentTo(expectedFundingStreams.AsEnumerable());
+
+            await specificationsRepository
+                .Received(1)
+                .GetSpecificationById(Arg.Is(specificationId));
+
+            await specificationsRepository
+                .Received(1)
+                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>());
+        }
+
+        [TestMethod]
+        public async Task SpecificationsService_GetFundingStreamsForSpecificationById_WhenRequestingASpecificationWhenDoesNotExist_ThenErrorReturned()
+        {
+            // Arrange
+            const string specificationId = "spec1";
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            // Act
+            IActionResult actionResult = await specificationsService.GetFundingStreamsForSpecificationById(request);
+
+            // Assert
+
+            List<FundingStream> expectedFundingStreams = new List<FundingStream>();
+
+            actionResult
+                .Should()
+                .BeOfType<PreconditionFailedResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("Specification not found");
+        }
+
+        [TestMethod]
+        public async Task SpecificationsService_GetFundingStreamsForSpecificationById_WhenHasMissingSpecificationId_ThenErrorReturned()
+        {
+            // Arrange
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(string.Empty) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            // Act
+            IActionResult actionResult = await specificationsService.GetFundingStreamsForSpecificationById(request);
+
+            // Assert
+
+            List<FundingStream> expectedFundingStreams = new List<FundingStream>();
+
+            actionResult
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("Null or empty specificationId provided");
+        }
+
+        [TestMethod]
+        public async Task SpecificationsService_GetFundingStreamsForSpecificationById_WhenFundingStreamNotFoundInReferencedSpecification_ThenErrorReturned()
+        {
+            // Arrange
+            const string specificationId = "spec1";
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            Specification specification = new Specification()
+            {
+                Id = specificationId,
+                Name = "Test Specification",
+                FundingStreams = new List<Reference>() {
+                       new Reference("fs1", "Funding Stream 1"),
+                       new Reference("fs2", "Funding Stream Two"),
+                }
+            };
+
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            List<FundingStream> fundingStreams = new List<FundingStream>();
+
+            specificationsRepository
+                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
+                .Returns(fundingStreams);
+
+            // Act
+            IActionResult actionResult = await specificationsService.GetFundingStreamsForSpecificationById(request);
+
+            // Assert
+            actionResult
+                .Should()
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("No funding stream were returned");
+
+            await specificationsRepository
+                .Received(1)
+                .GetSpecificationById(Arg.Is(specificationId));
+
+            await specificationsRepository
+                .Received(1)
+                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>());
+        }
+
+        [TestMethod]
+        public async Task SpecificationsService_GetFundingStreamsForSpecificationById_WhenSpecificationContainsNoFundingStreams_ThenErrorReturned()
+        {
+            // Arrange
+            const string specificationId = "spec1";
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            Specification specification = new Specification()
+            {
+                Id = specificationId,
+                Name = "Test Specification",
+                FundingStreams = new List<Reference>() {}
+            };
+
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            List<FundingStream> fundingStreams = new List<FundingStream>();
+
+            specificationsRepository
+                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
+                .Returns(fundingStreams);
+
+            // Act
+            IActionResult actionResult = await specificationsService.GetFundingStreamsForSpecificationById(request);
+
+            // Assert
+            actionResult
+                .Should()
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("Specification contains no funding streams");
+
+            await specificationsRepository
+                .Received(1)
+                .GetSpecificationById(Arg.Is(specificationId));
+
+            await specificationsRepository
+                .Received(0)
+                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>());
+        }
+
+        static SpecificationsService CreateService(
+            IMapper mapper = null,
+            ISpecificationsRepository specificationsRepository = null,
+            ILogger logs = null,
+            IValidator<PolicyCreateModel> policyCreateModelValidator = null,
+            IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null,
+            IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
+            IMessengerService messengerService = null, ServiceBusSettings EventHubSettings = null,
+            ISearchRepository<SpecificationIndex> searchRepository = null,
+            IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator = null,
+            ICacheProvider cacheProvider = null)
+        {
+            return new SpecificationsService(mapper ?? CreateMapper(),
+                specificationsRepository ?? CreateSpecificationsRepository(),
+                logs ?? CreateLogger(),
+                policyCreateModelValidator ?? CreatePolicyValidator(),
+                specificationCreateModelvalidator ?? CreateSpecificationValidator(),
+                calculationCreateModelValidator ?? CreateCalculationValidator(),
+                messengerService ?? CreateMessengerService(),
+                EventHubSettings ?? CreateEventHubSettings(),
+                searchRepository ?? CreateSearchRepository(),
+                assignDefinitionRelationshipMessageValidator ?? CreateAssignDefinitionRelationshipMessageValidator(),
+                cacheProvider ?? CreateCacheProvider());
         }
 
         static IMapper CreateMapper()
         {
             return Substitute.For<IMapper>();
+        }
+
+        private static IMapper CreateImplementedMapper()
+        {
+            MapperConfiguration mappingConfiguration = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
+            IMapper mapper = mappingConfiguration.CreateMapper();
+            return mapper;
         }
 
         static IMessengerService CreateMessengerService()

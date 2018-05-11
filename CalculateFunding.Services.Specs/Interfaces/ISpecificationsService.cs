@@ -13,13 +13,15 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetSpecificationById(HttpRequest request);
 
-        Task<IActionResult> GetSpecificationByFundingPeriodId(HttpRequest request);
+        Task<IActionResult> GetSpecificationsByFundingPeriodId(HttpRequest request);
 
         Task<IActionResult> GetSpecificationByName(HttpRequest request);
 
         Task<IActionResult> GetFundingPeriods(HttpRequest request);
 
         Task<IActionResult> GetFundingStreams(HttpRequest request);
+
+        Task<IActionResult> GetFundingStreamsForSpecificationById(HttpRequest request);
 
         Task<IActionResult> GetFundingStreamById(HttpRequest request);
 

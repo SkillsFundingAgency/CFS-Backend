@@ -21,8 +21,19 @@ namespace CalculateFunding.Services.Specs.Validators
                .WithMessage("Null or empty academic year id provided");
 
             RuleFor(model => model.FundingStreamIds)
+              .NotNull()
               .NotEmpty()
-              .WithMessage("You must select at least one funding stream");
+              .WithMessage("You must select at least one funding stream")
+              .Custom((name, context) => {
+                  SpecificationCreateModel specModel = context.ParentContext.InstanceToValidate as SpecificationCreateModel;
+                  foreach(string fundingStreamId in specModel.FundingStreamIds)
+                  {
+                      if (string.IsNullOrWhiteSpace(fundingStreamId))
+                      {
+                          context.AddFailure($"A null or empty string funding stream ID was provided");
+                      }
+                  }
+              });
 
             RuleFor(model => model.Name)
                .NotEmpty()

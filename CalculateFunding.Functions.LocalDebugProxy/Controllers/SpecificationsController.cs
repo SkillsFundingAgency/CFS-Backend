@@ -43,7 +43,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         {
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
-            return _specService.GetSpecificationByFundingPeriodId(ControllerContext.HttpContext.Request);
+            return _specService.GetSpecificationsByFundingPeriodId(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specification-by-name")]
@@ -137,6 +137,15 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
             return _specService.GetFundingStreamById(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/specs/get-fundingstreams-for-specification")]
+        [HttpGet]
+        public Task<IActionResult> RunGetFundingStreamsForSpecificationById()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specService.GetFundingStreamsForSpecificationById(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/reindex")]

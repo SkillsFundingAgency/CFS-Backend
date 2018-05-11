@@ -44,7 +44,7 @@ namespace CalculateFunding.Functions.Specs.Http
                 return DoAsync(() =>
                 {
                     ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
-                    return svc.GetSpecificationByFundingPeriodId(req);
+                    return svc.GetSpecificationsByFundingPeriodId(req);
                 });
             }
         }

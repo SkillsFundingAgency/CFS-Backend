@@ -49,6 +49,18 @@ namespace CalculateFunding.Functions.Specs.Http
                 return svc.SaveFundingStream(req);
             }
         }
+
+        [FunctionName("get-fundingstreams-for-specification")]
+        public static Task<IActionResult> RunGetFundingStreamsForSpecificationById(
+           [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+
+                return svc.GetFundingStreamsForSpecificationById(req);
+            }
+        }
     }
 
 }

@@ -537,7 +537,7 @@ namespace CalculateFunding.Services.Calcs
             BuildProject buildProject = buildProjectRequest.Result;
             IEnumerable<Models.Specs.Calculation> calculationSpecifications = calculationSpecificationsRequest.Result;
 
-            // Adds the Calculation Description retreived from the Calculation Specification.
+            // Adds the Calculation Description retrieved from the Calculation Specification.
             // Other descriptions are included as part of the denormalised data storage in CosmosDB
             foreach(Models.Specs.Calculation specCalculation in calculationSpecifications)
             {

@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IValidator<AssignDefinitionRelationshipMessage> _assignDefinitionRelationshipMessageValidator;
         private readonly ICacheProvider _cacheProvider;
 
-        public SpecificationsService(IMapper mapper, 
+        public SpecificationsService(IMapper mapper,
             ISpecificationsRepository specificationsRepository, ILogger logger, IValidator<PolicyCreateModel> policyCreateModelValidator,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator, IValidator<CalculationCreateModel> calculationCreateModelValidator,
             IMessengerService messengerService, ServiceBusSettings eventHubSettings, ISearchRepository<SpecificationIndex> searchRepository,
@@ -100,7 +100,7 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specification);
         }
 
-        public async Task<IActionResult> GetSpecificationByFundingPeriodId(HttpRequest request)
+        public async Task<IActionResult> GetSpecificationsByFundingPeriodId(HttpRequest request)
         {
             request.Query.TryGetValue("fundingPeriodId", out var yearId);
 
@@ -326,6 +326,44 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(fundingStreams);
         }
 
+        public async Task<IActionResult> GetFundingStreamsForSpecificationById(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out var specificationIdParse);
+
+            string specificationId = specificationIdParse.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specificationId was provided to GetFundingStreamsForSpecificationById");
+
+                return new BadRequestObjectResult("Null or empty specificationId provided");
+            }
+
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+            if (specification == null)
+            {
+                return new PreconditionFailedResult("Specification not found");
+            }
+
+            if (!specification.FundingStreams.Any())
+            {
+                return new InternalServerErrorResult("Specification contains no funding streams");
+            }
+
+            string[] fundingSteamIds = specification.FundingStreams.Select(s => s.Id).ToArray();
+
+            IEnumerable<FundingStream> fundingStreams = await _specificationsRepository.GetFundingStreams(f => fundingSteamIds.Contains(f.Id));
+
+            if (fundingStreams.IsNullOrEmpty())
+            {
+                _logger.Error("No funding streams were returned");
+
+                return new InternalServerErrorResult("No funding stream were returned");
+            }
+
+            return new OkObjectResult(fundingStreams);
+        }
+
         public async Task<IActionResult> GetFundingStreamById(HttpRequest request)
         {
             request.Query.TryGetValue("fundingStreamId", out var funStreamId);
@@ -420,9 +458,17 @@ namespace CalculateFunding.Services.Specs
             foreach (string fundingStreamId in createModel.FundingStreamIds)
             {
                 FundingStream fundingStream = await _specificationsRepository.GetFundingStreamById(fundingStreamId);
-                // TODO validate not null
+                if (fundingStream == null)
+                {
+                    return new PreconditionFailedResult($"Unable to find funding stream with ID '{fundingStreamId}'.");
+                }
 
                 fundingStreams.Add(new Reference(fundingStream.Id, fundingStream.Name));
+            }
+
+            if (!fundingStreams.Any())
+            {
+                return new InternalServerErrorResult("No funding streams were retrieved to add to the Specification");
             }
 
             specification.FundingStreams = fundingStreams;
