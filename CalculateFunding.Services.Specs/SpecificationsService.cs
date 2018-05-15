@@ -48,14 +48,14 @@ namespace CalculateFunding.Services.Specs
 
         public SpecificationsService(
             IMapper mapper,
-            ISpecificationsRepository specificationsRepository, 
-            ILogger logger, 
+            ISpecificationsRepository specificationsRepository,
+            ILogger logger,
             IValidator<PolicyCreateModel> policyCreateModelValidator,
-            IValidator<SpecificationCreateModel> specificationCreateModelvalidator, 
+            IValidator<SpecificationCreateModel> specificationCreateModelvalidator,
             IValidator<CalculationCreateModel> calculationCreateModelValidator,
-            IMessengerService messengerService, ServiceBusSettings eventHubSettings, 
+            IMessengerService messengerService, ServiceBusSettings eventHubSettings,
             ISearchRepository<SpecificationIndex> searchRepository,
-            IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator, 
+            IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator,
             ICacheProvider cacheProvider,
             IValidator<SpecificationEditModel> specificationEditModelValidator)
         {
@@ -739,16 +739,31 @@ namespace CalculateFunding.Services.Specs
             bool fundingStreamsChanged = !existingFundingStreamIds.EqualTo(editModel.FundingStreamIds);
             if (fundingStreamsChanged)
             {
-                IEnumerable<Reference> fundingStreams = await GetFundingStreams(editModel.FundingStreamIds);
+                string[] fundingStreamIds = editModel.FundingStreamIds.ToArray();
+
+                IEnumerable<FundingStream> fundingStreams = await _specificationsRepository.GetFundingStreams(f => fundingStreamIds.Contains(f.Id));
+
                 if (!fundingStreams.Any())
                 {
                     return new InternalServerErrorResult("No funding streams were retrieved to add to the Specification");
                 }
-                if (string.IsNullOrWhiteSpace(fundingStreams.First().Name))
+
+                List<Reference> fundingStreamReferences = new List<Reference>();
+
+                Dictionary<string, bool> allocationLines = new Dictionary<string, bool>();
+
+                foreach (FundingStream fundingStream in fundingStreams)
                 {
-                    return new PreconditionFailedResult($"Unable to find funding stream with ID '{fundingStreams.First().Id}'.");
+                    fundingStreamReferences.Add(new Reference(fundingStream.Id, fundingStream.Name));
+                    foreach (AllocationLine allocationLine in fundingStream.AllocationLines)
+                    {
+                        allocationLines.Add(allocationLine.Id, true);
+                    }
                 }
-                specificationVersion.FundingStreams = fundingStreams;
+
+                specificationVersion.FundingStreams = fundingStreamReferences;
+
+                RemoveMissingAllocationLineAssociations(allocationLines, specificationVersion.Policies);
             }
 
             HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion);
@@ -771,18 +786,51 @@ namespace CalculateFunding.Services.Specs
 
             await TaskHelper.WhenAllAndThrow(
                 ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id),
-                _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}"),
                 _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}")
                 );
 
             if (previousFundingPeriod != specificationVersion.FundingPeriod.Id)
             {
                 await _cacheProvider.RemoveAsync<List<SpecificationSummary>>($"{CacheKeys.SpecificationSummariesByFundingPeriodId}{previousFundingPeriod}");
-                
+
             }
 
             //Put message on service bus to update whatever
             return new OkObjectResult(specification);
+        }
+
+        /// <summary>
+        /// Remove Missing Allocation Line Associations
+        /// </summary>
+        /// <param name="allocationLines">Valid allocation lines</param>
+        /// <param name="policies">Policies</param>
+        private static void RemoveMissingAllocationLineAssociations(Dictionary<string, bool> allocationLines, IEnumerable<Policy> policies)
+        {
+            if (policies == null)
+            {
+                return;
+            }
+
+            if (allocationLines.IsNullOrEmpty())
+            {
+                return;
+            }
+
+            foreach (Policy policy in policies)
+            {
+                if (policy.Calculations != null)
+                {
+                    foreach (Calculation calculation in policy.Calculations)
+                    {
+                        if (calculation.AllocationLine != null && !allocationLines.ContainsKey(calculation.AllocationLine.Id))
+                        {
+                            calculation.AllocationLine = null;
+                        }
+                    }
+                }
+
+                RemoveMissingAllocationLineAssociations(allocationLines, policy.SubPolicies);
+            }
         }
 
         public async Task<IActionResult> CreateCalculation(HttpRequest request)
@@ -1116,7 +1164,13 @@ namespace CalculateFunding.Services.Specs
         private async Task<HttpStatusCode> UpdateSpecification(Specification specification, SpecificationVersion specificationVersion)
         {
             specification.Save(specificationVersion);
-            return await _specificationsRepository.UpdateSpecification(specification);
+            HttpStatusCode result = await _specificationsRepository.UpdateSpecification(specification);
+            if (result == HttpStatusCode.OK)
+            {
+                await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
+            }
+
+            return result;
         }
 
         private async Task ClearSpecificationCacheItems(string fundingPeriodId)
@@ -1143,27 +1197,6 @@ namespace CalculateFunding.Services.Specs
             }
 
             return properties;
-        }
-
-        async Task<IEnumerable<Reference>> GetFundingStreams(IEnumerable<string> fundingStreamIds)
-        {
-            IList<Reference> fundingStreams = new List<Reference>();
-
-            foreach (string fundingStreamId in fundingStreamIds)
-            {
-                FundingStream fundingStream = await _specificationsRepository.GetFundingStreamById(fundingStreamId);
-
-                if (fundingStream != null)
-                {
-                    fundingStreams.Add(new Reference(fundingStream.Id, fundingStream.Name));
-                }
-                else
-                {
-                    return new[] { new Reference { Id = fundingStreamId } };
-                }
-            }
-
-            return fundingStreams;
         }
     }
 }
