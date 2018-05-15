@@ -683,6 +683,14 @@
             {
               "name": "SearchServiceKey",
               "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
+            },
+            {
+              "name": "ApiOptions:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "ApiOptions:ApiEndpoint",
+              "value": "[parameters('ApiEndpoint')]"
             }
           ]
         }

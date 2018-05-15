@@ -428,9 +428,20 @@ namespace CalculateFunding.Services.Calcs
             BuildProject project = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId);
             if (project == null)
             {
-                _logger.Error($"Build Project was null for Specification {specificationId}");
+                Models.Specs.SpecificationSummary specificationSummary = await _specsRepository.GetSpecificationSummaryById(specificationId);
+                if(specificationSummary == null)
+                {
+                    return new PreconditionFailedResult("Specification not found");
+                }
 
-                return new StatusCodeResult(500);
+                project = await CreateBuildProject(specificationId, Enumerable.Empty<Calculation>());
+
+                if (project == null)
+                {
+                    _logger.Error($"Build Project was unable to be created and returned null for Specification ID of '{specificationId}'");
+
+                    return new StatusCodeResult(500);
+                }
             }
 
             if (project.Build == null)
