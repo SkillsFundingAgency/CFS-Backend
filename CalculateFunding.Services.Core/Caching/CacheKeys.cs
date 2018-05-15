@@ -15,5 +15,13 @@ namespace CalculateFunding.Services.Core.Caching
         public const string ScopedProviderSummariesPrefix = "scoped-provider-summaries:";
 
         public const string FundingPeriods = "funding-periods";
+
+        public static string SpecificationSummaryById { get; set; } = "specification-summary:";
+
+        public static string SpecificationCurrentVersionById { get; set; } = "specification-current-version:";
+
+        public static string SpecificationSummariesByFundingPeriodId { get; set; } = "specification-summaries-funding-period:";
+
+        public static string SpecificationSummaries { get; set; } = "specification-summaries";
     }
 }

@@ -332,6 +332,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 .AddScoped<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
 
             builder
+                .AddScoped<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
+
+            builder
                .AddScoped<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();
 
             builder

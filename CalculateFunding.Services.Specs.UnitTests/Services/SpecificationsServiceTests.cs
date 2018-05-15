@@ -150,7 +150,84 @@ namespace CalculateFunding.Services.Specs.Services
         }
 
         [TestMethod]
-        public async Task GetSpecificationSummaryById_GivenSpecificationSummaryWasFound_ReturnsObject()
+        public async Task GetSpecificationSummaryById_GivenSpecificationSummaryWasFoundAndIsInCache_ReturnsObject()
+        {
+            //Arrange
+            SpecificationSummary specification = new SpecificationSummary()
+            {
+                Id = "spec-id",
+                Name = "Spec Name",
+
+                FundingStreams = new List<Reference>()
+                    {
+                         new Reference("fs1", "Funding Stream 1"),
+                         new Reference("fs2", "Funding Stream 2"),
+                    },
+            
+                Description = "Specification Description",
+                FundingPeriod = new Reference("FP1", "Funding Period"),
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+
+            IMapper mapper = CreateImplementedMapper();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{SpecificationId}"))
+                .Returns(specification);
+
+            SpecificationsService service = CreateService(
+                specificationsRepository: specificationsRepository,
+                cacheProvider: cacheProvider,
+                logs: logger,
+                mapper: mapper);
+
+            //Act
+            IActionResult result = await service.GetSpecificationSummaryById(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .ShouldBeEquivalentTo(new SpecificationSummary()
+                {
+                    Id = specification.Id,
+                    Name = "Spec Name",
+                    FundingStreams = new List<Reference>()
+                    {
+                         new Reference("fs1", "Funding Stream 1"),
+                         new Reference("fs2", "Funding Stream 2"),
+                    },
+                    Description = "Specification Description",
+                    FundingPeriod = new Reference("FP1", "Funding Period"),
+                });
+
+            await specificationsRepository
+                .Received(0)
+                .GetSpecificationById(Arg.Is(SpecificationId));
+
+            await cacheProvider
+                .Received(1)
+                .GetAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{SpecificationId}"));
+        }
+
+        [TestMethod]
+        public async Task GetSpecificationSummaryById_GivenSpecificationSummaryWasFoundAndIsNotInCache_ReturnsObject()
         {
             //Arrange
             Specification specification = new Specification()
@@ -197,8 +274,14 @@ namespace CalculateFunding.Services.Specs.Services
 
             IMapper mapper = CreateImplementedMapper();
 
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{SpecificationId}"))
+                .Returns((SpecificationSummary)null);
+
             SpecificationsService service = CreateService(
                 specificationsRepository: specificationsRepository,
+                cacheProvider: cacheProvider,
                 logs: logger,
                 mapper: mapper);
 
@@ -223,6 +306,67 @@ namespace CalculateFunding.Services.Specs.Services
                     Description = "Specification Description",
                     FundingPeriod = new Reference("FP1", "Funding Period"),
                 });
+
+            await specificationsRepository
+                .Received(1)
+                .GetSpecificationById(Arg.Is(SpecificationId));
+
+            await cacheProvider
+                .Received(1)
+                .GetAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{SpecificationId}"));
+        }
+
+        [TestMethod]
+        public async Task GetSpecificationSummaryById_GivenSpecificationSummaryWasNotFound_ReturnsNotFoundResult()
+        {
+            //Arrange
+            Specification specification = null;
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            IMapper mapper = CreateImplementedMapper();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{SpecificationId}"))
+                .Returns((SpecificationSummary)null);
+
+            SpecificationsService service = CreateService(
+                specificationsRepository: specificationsRepository,
+                cacheProvider: cacheProvider,
+                logs: logger,
+                mapper: mapper);
+
+            //Act
+            IActionResult result = await service.GetSpecificationSummaryById(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+
+            await specificationsRepository
+                .Received(1)
+                .GetSpecificationById(Arg.Is(SpecificationId));
+
+            await cacheProvider
+                .Received(1)
+                .GetAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{SpecificationId}"));
         }
 
         [TestMethod]
@@ -3302,6 +3446,119 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>());
         }
 
+        [TestMethod]
+        public async Task EditSpecification_GivenNoSpecificationIdWasProvided_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            //Act
+            IActionResult result = await service.EditSpecification(request);
+
+            //Arrange
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No specification Id was provided to EditSpecification"));
+        }
+
+        [TestMethod]
+        public async Task EditSpecification_GivenNullEditModeldWasProvided_ReturnsBadRequest()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) },
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            //Act
+            IActionResult result = await service.EditSpecification(request);
+
+            //Arrange
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No edit modeld was provided to EditSpecification"));
+        }
+
+        [TestMethod]
+        public async Task EditSpecification_WhenInvalidModelProvided_ThenValidationErrorReturned()
+        {
+            // Arrange
+            ValidationResult validationResult = new ValidationResult();
+            validationResult.Errors.Add(new ValidationFailure("error", "error"));
+
+            IValidator<SpecificationEditModel> validator = CreateEditSpecificationValidator(validationResult);
+
+            SpecificationsService specificationsService = CreateService(specificationEditModelValidator: validator);
+
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel();
+           
+            string json = JsonConvert.SerializeObject(specificationEditModel);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpContext context = Substitute.For<HttpContext>();
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) },
+            });
+
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
+
+            request
+                .HttpContext
+                .Returns(context);
+
+            // Act
+            IActionResult result = await specificationsService.EditSpecification(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeOfType<SerializableError>()
+                .Which
+                .Should()
+                .HaveCount(1);
+
+            await validator
+                .Received(1)
+                .ValidateAsync(Arg.Any<SpecificationEditModel>());
+        }
+
+
+
         static SpecificationsService CreateService(
             IMapper mapper = null,
             ISpecificationsRepository specificationsRepository = null,
@@ -3312,7 +3569,8 @@ namespace CalculateFunding.Services.Specs.Services
             IMessengerService messengerService = null, ServiceBusSettings EventHubSettings = null,
             ISearchRepository<SpecificationIndex> searchRepository = null,
             IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator = null,
-            ICacheProvider cacheProvider = null)
+            ICacheProvider cacheProvider = null,
+            IValidator<SpecificationEditModel> specificationEditModelValidator = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(),
                 specificationsRepository ?? CreateSpecificationsRepository(),
@@ -3324,7 +3582,8 @@ namespace CalculateFunding.Services.Specs.Services
                 EventHubSettings ?? CreateEventHubSettings(),
                 searchRepository ?? CreateSearchRepository(),
                 assignDefinitionRelationshipMessageValidator ?? CreateAssignDefinitionRelationshipMessageValidator(),
-                cacheProvider ?? CreateCacheProvider());
+                cacheProvider ?? CreateCacheProvider(),
+                specificationEditModelValidator ?? CreateEditSpecificationValidator());
         }
 
         static IMapper CreateMapper()
@@ -3394,6 +3653,20 @@ namespace CalculateFunding.Services.Specs.Services
 
             validator
                .ValidateAsync(Arg.Any<SpecificationCreateModel>())
+               .Returns(validationResult);
+
+            return validator;
+        }
+
+        static IValidator<SpecificationEditModel> CreateEditSpecificationValidator(ValidationResult validationResult = null)
+        {
+            if (validationResult == null)
+                validationResult = new ValidationResult();
+
+            IValidator<SpecificationEditModel> validator = Substitute.For<IValidator<SpecificationEditModel>>();
+
+            validator
+               .ValidateAsync(Arg.Any<SpecificationEditModel>())
                .Returns(validationResult);
 
             return validator;

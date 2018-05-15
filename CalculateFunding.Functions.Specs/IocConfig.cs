@@ -44,6 +44,7 @@ namespace CalculateFunding.Functions.Specs
             builder.AddScoped<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
             builder.AddScoped<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
             builder.AddScoped<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
+            builder.AddScoped<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
             builder.AddScoped<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
             builder.AddScoped<ISpecificationsSearchService, SpecificationsSearchService>();
 

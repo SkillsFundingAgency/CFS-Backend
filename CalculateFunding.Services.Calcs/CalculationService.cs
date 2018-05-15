@@ -604,6 +604,7 @@ namespace CalculateFunding.Services.Calcs
                 Date = calculation.Current?.Date,
                 CalculationSpecification = calculation.CalculationSpecification,
                 FundingPeriodName = calculation.FundingPeriod.Name,
+                FundingPeriodId = calculation.FundingPeriod.Id,
                 Id = calculation.Id,
                 Name = calculation.Name,
                 Status = calculation.Current?.PublishStatus.ToString(),
