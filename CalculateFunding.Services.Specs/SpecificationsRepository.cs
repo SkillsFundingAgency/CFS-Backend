@@ -15,7 +15,6 @@ namespace CalculateFunding.Services.Specs
     public class SpecificationsRepository : ISpecificationsRepository
     {
         readonly CosmosRepository _repository;
-        private readonly ICacheProvider _cacheProvider;
 
         public SpecificationsRepository(CosmosRepository cosmosRepository)
         {
@@ -102,7 +101,7 @@ namespace CalculateFunding.Services.Specs
             if (specification == null)
                 return null;
 
-            return specification.GetCalculations().FirstOrDefault(m => m.Name == calculationName);
+            return specification.Current.GetCalculations().FirstOrDefault(m => m.Name == calculationName);
         }
 
         async public Task<Calculation> GetCalculationBySpecificationIdAndCalculationId(string specificationId, string calculationId)
@@ -111,7 +110,7 @@ namespace CalculateFunding.Services.Specs
             if (specification == null)
                 return null;
 
-            return specification.GetCalculations().FirstOrDefault(m => m.Id == calculationId);
+            return specification.Current.GetCalculations().FirstOrDefault(m => m.Id == calculationId);
         }
 
         public async Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId)
@@ -120,7 +119,7 @@ namespace CalculateFunding.Services.Specs
             if (specification == null)
                 return null;
 
-            return specification.GetCalculations();
+            return specification.Current.GetCalculations();
         }
 
         async public Task<Policy> GetPolicyBySpecificationIdAndPolicyName(string specificationId, string policyByName)
@@ -129,7 +128,7 @@ namespace CalculateFunding.Services.Specs
             if (specification == null)
                 return null;
 
-            return specification.GetPolicyByName(policyByName);
+            return specification.Current.GetPolicyByName(policyByName);
         }
 
         async public Task<Policy> GetPolicyBySpecificationIdAndPolicyId(string specificationId, string policyId)
@@ -138,7 +137,7 @@ namespace CalculateFunding.Services.Specs
             if (specification == null)
                 return null;
 
-            return specification.GetPolicy(policyId);
+            return specification.Current.GetPolicy(policyId);
         }
 
         public Task<HttpStatusCode> SaveFundingStream(FundingStream fundingStream)
@@ -149,6 +148,11 @@ namespace CalculateFunding.Services.Specs
         public Task SaveFundingPeriods(IEnumerable<FundingPeriod> fundingPeriods)
         {
             return _repository.BulkCreateAsync<FundingPeriod>(fundingPeriods.ToList());
+        }
+
+        public Task<DocumentEntity<Specification>> GetSpecificationDocumentEntityById(string specificationId)
+        {
+            return Task.FromResult(_repository.QueryDocuments<Specification>().Where(c => c.Id == specificationId).AsEnumerable().FirstOrDefault());
         }
     }
 }

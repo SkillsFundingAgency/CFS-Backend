@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly ILogger _logger;
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
-        private readonly IValidator<Calculation> _calculationValidator;
+        private readonly IValidator<Models.Calcs.Calculation> _calculationValidator;
         private readonly IBuildProjectsRepository _buildProjectsRepository;
         private readonly ICompilerFactory _compilerFactory;
         private readonly ISourceFileGenerator _sourceFileGenerator;
@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.Calcs
             ILogger logger,
             ITelemetry telemetry,
             ISearchRepository<CalculationIndex> searchRepository,
-            IValidator<Calculation> calculationValidator,
+            IValidator<Models.Calcs.Calculation> calculationValidator,
             IBuildProjectsRepository buildProjectsRepository,
             ISourceFileGeneratorProvider sourceFileGeneratorProvider,
             ICompilerFactory compilerFactory,
@@ -149,7 +149,7 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("Null or empty calculation Id provided");
             }
 
-            Calculation calculation = await _calculationsRepository.GetCalculationById(calculationId);
+            Models.Calcs.Calculation calculation = await _calculationsRepository.GetCalculationById(calculationId);
 
             if (calculation == null)
             {
@@ -183,7 +183,7 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("Null or empty calculation Id provided");
             }
 
-            Calculation calculation = await _calculationsRepository.GetCalculationById(calculationId);
+            Models.Calcs.Calculation calculation = await _calculationsRepository.GetCalculationById(calculationId);
 
             if (calculation != null)
             {
@@ -216,6 +216,12 @@ namespace CalculateFunding.Services.Calcs
                     throw new InvalidModelException(GetType().ToString(), validationResult.Errors.Select(m => m.ErrorMessage).ToArraySafe());
                 }
 
+                Models.Specs.SpecificationSummary specificationSummary = await _specsRepository.GetSpecificationSummaryById(calculation.SpecificationId);
+                if(specificationSummary == null)
+                {
+                    throw new InvalidModelException(typeof(CalculationService).ToString(), new[] { $"Specification with ID '{calculation.SpecificationId}' not found" });
+                }
+
                 calculation.Current = new CalculationVersion
                 {
                     PublishStatus = PublishStatus.Draft,
@@ -246,9 +252,9 @@ namespace CalculateFunding.Services.Calcs
                 {
                     _logger.Information($"Calculation with id: {calculation.Id} was succesfully saved to Cosmos Db");
 
-                    await UpdateSearch(calculation);
+                    await UpdateSearch(calculation, specificationSummary.Name);
 
-                    await UpdateBuildProject(calculation.Specification);
+                    await UpdateBuildProject(calculation.SpecificationId);
                 }
                 else
                 {
@@ -325,9 +331,11 @@ namespace CalculateFunding.Services.Calcs
 
             HttpStatusCode statusCode = await _calculationsRepository.UpdateCalculation(calculation);
 
-            BuildProject buildProject = await UpdateBuildProject(calculation.Specification);
+            BuildProject buildProject = await UpdateBuildProject(calculation.SpecificationId);
 
-            await UpdateSearch(calculation);
+            Models.Specs.SpecificationSummary specificationSummary = await _specsRepository.GetSpecificationSummaryById(calculation.SpecificationId);
+
+            await UpdateSearch(calculation, specificationSummary.Name);
 
             CalculationCurrentVersion currentVersion = GetCurrentVersionFromCalculation(calculation);
 
@@ -336,7 +344,7 @@ namespace CalculateFunding.Services.Calcs
             _telemetry.TrackEvent("InstructCalculationAllocationEventRun",
                new Dictionary<string, string>()
                {
-                        { "specificationId" , buildProject.Specification.Id },
+                        { "specificationId" , buildProject.SpecificationId },
                         { "buildProjectId" , buildProject.Id },
                         { "calculationId" , calculationId }
                },
@@ -381,15 +389,22 @@ namespace CalculateFunding.Services.Calcs
 
             if (calculation.Current.PublishStatus != PublishStatus.Published)
             {
+                Models.Specs.SpecificationSummary specificationSummary = await _specsRepository.GetSpecificationSummaryById(calculation.SpecificationId);
+                if(specificationSummary == null)
+                {
+                    return new PreconditionFailedResult("Specification not found");
+                }
+
                 calculation.Current.PublishStatus = PublishStatus.Published;
 
                 calculation.Published = calculation.Current;
 
                 await _calculationsRepository.UpdateCalculation(calculation);
 
-                await UpdateBuildProject(calculation.Specification);
+                await UpdateBuildProject(calculation.SpecificationId);
 
-                await UpdateSearch(calculation);
+
+                await UpdateSearch(calculation, specificationSummary.Name);
             }
 
             return new OkObjectResult(calculation.Current);
@@ -455,9 +470,25 @@ namespace CalculateFunding.Services.Calcs
 
             IList<CalculationIndex> calcIndexItems = new List<CalculationIndex>();
 
+            Dictionary<string, Models.Specs.SpecificationSummary> specifications = new Dictionary<string, Models.Specs.SpecificationSummary>();
+
             foreach(Calculation calculation in calculations)
             {
-                CalculationIndex indexItem = CreateCalculationIndexItem(calculation);
+                Models.Specs.SpecificationSummary specification = null;
+                if (specifications.ContainsKey(calculation.SpecificationId))
+                {
+                    specification = specifications[calculation.SpecificationId];
+                }
+                else
+                {
+                    specification = await _specsRepository.GetSpecificationSummaryById(calculation.SpecificationId);
+                    if (specification!= null)
+                    {
+                        specifications.Add(calculation.SpecificationId, specification);
+                    }
+                }
+
+                CalculationIndex indexItem = CreateCalculationIndexItem(calculation, specification?.Name);
                 indexItem.CalculationType = calculation.AllocationLine == null ? CalculationType.Number.ToString() : CalculationType.Funding.ToString();
 
                 calcIndexItems.Add(indexItem);
@@ -475,15 +506,15 @@ namespace CalculateFunding.Services.Calcs
             return new NoContentResult();
         }
 
-        async Task UpdateSearch(Calculation calculation)
+        async Task UpdateSearch(Calculation calculation, string specificationName)
         {
             IEnumerable<IndexError> indexingResults = await _searchRepository.Index(new List<CalculationIndex>
             {
-                CreateCalculationIndexItem(calculation)
+                CreateCalculationIndexItem(calculation, specificationName)
             });
         }
 
-        CalculationIndex CreateCalculationIndexItem(Calculation calculation)
+        CalculationIndex CreateCalculationIndexItem(Calculation calculation, string specificationName)
         {
             return new CalculationIndex
             {
@@ -491,8 +522,8 @@ namespace CalculateFunding.Services.Calcs
                 Name = calculation.Name,
                 CalculationSpecificationId = calculation.CalculationSpecification.Id,
                 CalculationSpecificationName = calculation.CalculationSpecification.Name,
-                SpecificationName = calculation.Specification.Name,
-                SpecificationId = calculation.Specification.Id,
+                SpecificationName = specificationName,
+                SpecificationId = calculation.SpecificationId,
                 FundingPeriodId = calculation.FundingPeriod.Id,
                 FundingPeriodName = calculation.FundingPeriod.Name,
                 AllocationLineId = calculation.AllocationLine?.Id,
@@ -508,14 +539,14 @@ namespace CalculateFunding.Services.Calcs
             };
         }
 
-        public async Task<BuildProject> CreateBuildProject(SpecificationSummary specification, IEnumerable<Calculation> calculations)
+        public async Task<BuildProject> CreateBuildProject(string specificationId, IEnumerable<Calculation> calculations)
         {
             BuildProject buildproject = new BuildProject
             {
                 Calculations = calculations?.ToList(),
-                Specification = specification,
+                SpecificationId = specificationId,
                 Id = Guid.NewGuid().ToString(),
-                Name = specification.Name
+                Name = specificationId
             };
 
             buildproject.Build = Compile(buildproject);
@@ -525,11 +556,11 @@ namespace CalculateFunding.Services.Calcs
             return buildproject;
         }
 
-        async Task<BuildProject> UpdateBuildProject(SpecificationSummary specification)
+        async Task<BuildProject> UpdateBuildProject(string specificationId)
         {
-            Task<IEnumerable<Calculation>> calculationsRequest = _calculationsRepository.GetCalculationsBySpecificationId(specification.Id);
-            Task<BuildProject> buildProjectRequest = _buildProjectsRepository.GetBuildProjectBySpecificationId(specification.Id);
-            Task<IEnumerable<Models.Specs.Calculation>> calculationSpecificationsRequest = _specsRepository.GetCalculationSpecificationsForSpecification(specification.Id);
+            Task<IEnumerable<Calculation>> calculationsRequest = _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
+            Task<BuildProject> buildProjectRequest = _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId);
+            Task<IEnumerable<Models.Specs.Calculation>> calculationSpecificationsRequest = _specsRepository.GetCalculationSpecificationsForSpecification(specificationId);
 
             await TaskHelper.WhenAllAndThrow(calculationsRequest);
 
@@ -550,9 +581,9 @@ namespace CalculateFunding.Services.Calcs
 
             if (buildProject == null)
             {
-                _logger.Warning($"Build project for specification {specification.Id} could not be found, creating a new one");
+                _logger.Warning($"Build project for specification {specificationId} could not be found, creating a new one");
 
-                buildProject = await CreateBuildProject(specification, calculations);
+                buildProject = await CreateBuildProject(specificationId, calculations);
             }
             else
             {
@@ -568,7 +599,7 @@ namespace CalculateFunding.Services.Calcs
         {
             CalculationCurrentVersion calculationCurrentVersion = new CalculationCurrentVersion
             {
-                SpecificationId = calculation.Specification?.Id,
+                SpecificationId = calculation.SpecificationId,
                 Author = calculation.Current?.Author,
                 Date = calculation.Current?.Date,
                 CalculationSpecification = calculation.CalculationSpecification,
@@ -579,7 +610,6 @@ namespace CalculateFunding.Services.Calcs
                 SourceCode = calculation.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode,
                 Version = calculation.Current.Version,
                 CalculationType = calculation.CalculationType.ToString(),
-                Specification = calculation.Specification
             };
 
             return calculationCurrentVersion;
@@ -589,7 +619,7 @@ namespace CalculateFunding.Services.Calcs
         {
             IDictionary<string, string> properties = CreateMessageProperties(request);
 
-            properties.Add("specification-id", buildProject.Specification.Id);
+            properties.Add("specification-id", buildProject.SpecificationId);
 
             return _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
                 buildProject,

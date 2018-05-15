@@ -1,7 +1,7 @@
 ﻿using CalculateFunding.Models.Specs;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Datasets.Interfaces
+namespace CalculateFunding.Services.Calculator.Interfaces
 {
     public interface ISpecificationsRepository
     {

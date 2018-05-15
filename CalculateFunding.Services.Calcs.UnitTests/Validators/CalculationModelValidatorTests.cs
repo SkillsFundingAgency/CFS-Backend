@@ -112,7 +112,7 @@ namespace CalculateFunding.Services.Calcs.Validators
         {
             //Arrange
             Calculation calculation = CreateCalculation();
-            calculation.Specification = null;
+            calculation.SpecificationId = null;
 
             CalculationModelValidator validator = new CalculationModelValidator();
 
@@ -131,26 +131,7 @@ namespace CalculateFunding.Services.Calcs.Validators
         {
             //Arrange
             Calculation calculation = CreateCalculation();
-            calculation.Specification.Id = string.Empty;
-
-            CalculationModelValidator validator = new CalculationModelValidator();
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(calculation);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
-
-        [TestMethod]
-        async public Task ValidateAsync_WhenSpecificationNameIsEmpty_ValidIsFalse()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.Specification.Name = string.Empty;
+            calculation.SpecificationId = string.Empty;
 
             CalculationModelValidator validator = new CalculationModelValidator();
 
@@ -345,11 +326,7 @@ namespace CalculateFunding.Services.Calcs.Validators
                     Id = Guid.NewGuid().ToString(),
                     Name = "test name"
                 },
-                Specification = new Models.Results.SpecificationSummary
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = "test spec name"
-                },
+                SpecificationId = "test spec name",
                 FundingPeriod = new Reference
                 {
                     Id = "18/19",

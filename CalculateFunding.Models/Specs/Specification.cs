@@ -1,29 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs
 {
-    public class Specification : Reference
+    public class Specification : VersionContainer<SpecificationVersion>
     {
-        public Specification()
-        {
-            Policies = Enumerable.Empty<Policy>();
-        }
-
-        [JsonProperty("fundingPeriod")]
-        public Reference FundingPeriod { get; set; }
-
-        [JsonProperty("fundingStreams")]
-        public IEnumerable<Reference> FundingStreams { get; set; }
-
-        [JsonProperty("description")]
-        public string Description { get; set; }
-
-        [JsonProperty("policies")]
-        public IEnumerable<Policy> Policies { get; set; }
-
-        [JsonProperty("dataDefinitionRelationshipIds")]
-        public IEnumerable<string> DataDefinitionRelationshipIds { get; set; }
     }
 }

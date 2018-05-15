@@ -5,6 +5,6 @@ namespace CalculateFunding.Services.Scenarios.Interfaces
 {
     public interface ISpecificationsRepository
     {
-        Task<Specification> GetSpecificationById(string specificationId);
+        Task<SpecificationSummary> GetSpecificationSummaryById(string specificationId);
     }
 }

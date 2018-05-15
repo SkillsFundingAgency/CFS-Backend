@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Results
 
 	    public Task<ProviderResult> GetProviderResult(string providerId, string specificationId)
 	    {
-		    var results = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId && x.Specification.Id == specificationId).ToList().Take(1);
+		    var results = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId && x.SpecificationId == specificationId).ToList().Take(1);
 
 		    return Task.FromResult(results.FirstOrDefault());
 		}
@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Results
 
         public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId)
         {
-            var results = _cosmosRepository.Query<ProviderResult>(enableCrossPartitionQuery: true).Where(x => x.Specification.Id == specificationId).ToList();
+            var results = _cosmosRepository.Query<ProviderResult>(enableCrossPartitionQuery: true).Where(x => x.SpecificationId == specificationId).ToList();
 
             return Task.FromResult(results.AsEnumerable());
         }

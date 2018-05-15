@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Calculator
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                IEnumerable<ProviderSourceDataset> providerSourceDatasets = getProviderSourceDatasets(provider.Id, buildProject.Specification.Id).Result;
+                IEnumerable<ProviderSourceDataset> providerSourceDatasets = getProviderSourceDatasets(provider.Id, buildProject.SpecificationId).Result;
 
                 if (providerSourceDatasets == null)
                 {
@@ -82,9 +82,10 @@ namespace CalculateFunding.Services.Calculator
             var result = new ProviderResult
             {
                 Provider = provider,
-                Specification = buildProject.Specification
+                SpecificationId = buildProject.SpecificationId
             };
-	        var plainTextBytes = System.Text.Encoding.UTF8.GetBytes($"{result.Provider.Id}-{result.Specification.Id}");
+
+	        byte[] plainTextBytes = System.Text.Encoding.UTF8.GetBytes($"{result.Provider.Id}-{result.SpecificationId}");
 			result.Id = System.Convert.ToBase64String(plainTextBytes);
 			
             var productResults = new List<CalculationResult>();

@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Models.Scenarios
 {
@@ -8,17 +9,19 @@ namespace CalculateFunding.Models.Scenarios
         [JsonProperty("gherkin")]
         public string Gherkin { get; set; }
 
+        [JsonProperty("fundingPeriodId")]
+        public string FundingPeriodId { get; set; }
+
+        [JsonProperty("fundingStreamIds")]
+        public IEnumerable<string> FundingStreamIds { get; set; }
+
+        [JsonProperty("description")]
+        public string Description { get; set; }
+
         public override VersionedItem Clone()
         {
-            return new TestScenarioVersion
-            {
-                PublishStatus = PublishStatus,
-                Version = Version,
-                Gherkin = Gherkin,
-                Date = Date,
-                Author = Author,
-                Commment = Commment
-            };
+            string json = JsonConvert.SerializeObject(this);
+            return JsonConvert.DeserializeObject<TestScenarioVersion>(json);
         }
     }
 }

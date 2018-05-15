@@ -307,23 +307,18 @@ namespace CalculateFunding.Services.Results.Services
             //Assert
             result
                 .Should()
-                .BeOfType<OkObjectResult>();
-
-            OkObjectResult okResults = result as OkObjectResult;
-            okResults
+                .BeOfType<OkObjectResult>()
+                .Which
                 .Value
                 .Should()
-                .NotBeNull();
-
-            IEnumerable<SpecificationSummary> summaries = okResults.Value as IEnumerable<SpecificationSummary>;
-            summaries
-                .Count()
+                .BeAssignableTo<IEnumerable<string>>()
+                .Which
                 .Should()
-                .Be(0);
+                .HaveCount(0);
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"Results were not found for provider id {providerId}"));
+                .Information(Arg.Is($"Results were not found for provider id '{providerId}'"));
         }
 
         [TestMethod]
@@ -346,10 +341,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
-                    Specification = new SpecificationSummary
-                    {
-                        Id = specificationId
-                    }
+                    SpecificationId = specificationId,
                 }
             };
 
@@ -366,16 +358,14 @@ namespace CalculateFunding.Services.Results.Services
             //Assert
             result
                 .Should()
-                .BeOfType<OkObjectResult>();
-
-            OkObjectResult okResults = result as OkObjectResult;
-
-            IEnumerable<SpecificationSummary> summaries = okResults.Value as IEnumerable<SpecificationSummary>;
-
-            summaries
-                .Count()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
                 .Should()
-                .Be(1);
+                .BeAssignableTo<IEnumerable<string>>()
+                .Which
+                .Should()
+                .HaveCount(1);
         }
 
         [TestMethod]
@@ -398,24 +388,15 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
-                    Specification = new SpecificationSummary
-                    {
-                        Id = specificationId
-                    }
+                    SpecificationId = specificationId,
                 },
                 new ProviderResult
                 {
-                    Specification = new SpecificationSummary
-                    {
-                        Id = specificationId
-                    }
+                    SpecificationId = specificationId,
                 },
                 new ProviderResult
                 {
-                    Specification = new SpecificationSummary
-                    {
-                        Id = "another-spec-id"
-                    }
+                    SpecificationId = "another-spec-id",
                 }
             };
 
@@ -432,16 +413,14 @@ namespace CalculateFunding.Services.Results.Services
             //Assert
             result
                 .Should()
-                .BeOfType<OkObjectResult>();
-
-            OkObjectResult okResults = result as OkObjectResult;
-
-            IEnumerable<SpecificationSummary> summaries = okResults.Value as IEnumerable<SpecificationSummary>;
-
-            summaries
-                .Count()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
                 .Should()
-                .Be(2);
+                .BeAssignableTo<IEnumerable<string>>()
+                .Which
+                .Should()
+                .HaveCount(2);
         }
 
         [TestMethod]
@@ -733,7 +712,22 @@ namespace CalculateFunding.Services.Results.Services
                 .Index(Arg.Any<IEnumerable<CalculationProviderResultsIndex>>())
                 .Returns(new[] { new IndexError { ErrorMessage = "an error" } });
 
-            ResultsService resultsService = CreateResultsService(resultsRepository: calculationResultsRepository, calculationProviderResultsSearchRepository: searchRepository, logger: logger);
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = providerResult.Content.SpecificationId,
+                Name = "spec name",
+            };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationSummary.Id))
+                .Returns(specificationSummary);
+
+            ResultsService resultsService = CreateResultsService(
+                resultsRepository: calculationResultsRepository, 
+                calculationProviderResultsSearchRepository: searchRepository, 
+                specificationsRepository : specificationsRepository,
+                logger: logger);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexCalculationProviderResults();
@@ -768,7 +762,21 @@ namespace CalculateFunding.Services.Results.Services
 
             ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
 
-            ResultsService resultsService = CreateResultsService(resultsRepository: calculationResultsRepository, calculationProviderResultsSearchRepository: searchRepository);
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = providerResult.Content.SpecificationId,
+                Name = "spec name",
+            };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationSummary.Id))
+                .Returns(specificationSummary);
+
+            ResultsService resultsService = CreateResultsService(
+                resultsRepository: calculationResultsRepository, 
+                calculationProviderResultsSearchRepository: searchRepository,
+                specificationsRepository :  specificationsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexCalculationProviderResults();
@@ -835,6 +843,7 @@ namespace CalculateFunding.Services.Results.Services
             ITelemetry telemetry = null,
             IProviderSourceDatasetRepository providerSourceDatasetRepository = null,
             ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository = null,
+            ISpecificationsRepository specificationsRepository = null,
             IResultsResilliencePolicies resiliencePolicies = null)
         {
             return new ResultsService(
@@ -847,6 +856,7 @@ namespace CalculateFunding.Services.Results.Services
                 telemetry ?? CreateTelemetry(),
                 providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository(),
                 calculationProviderResultsSearchRepository ?? CreateCalculationProviderResultsSearchRepository(),
+                specificationsRepository ?? CreateSpecificationsRepository(),
                 resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies());
         }
 
@@ -895,6 +905,11 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<ISearchRepository<CalculationProviderResultsIndex>>();
         }
 
+        static ISpecificationsRepository CreateSpecificationsRepository()
+        {
+            return Substitute.For<ISpecificationsRepository>();
+        }
+
         static DocumentEntity<ProviderResult> CreateDocumentEntity()
         {
             return new DocumentEntity<ProviderResult>
@@ -902,11 +917,7 @@ namespace CalculateFunding.Services.Results.Services
                 UpdatedAt = DateTime.Now,
                 Content = new ProviderResult
                 {
-                    Specification = new SpecificationSummary
-                    {
-                        Id = "spec-id",
-                        Name = "spec name"
-                    },
+                    SpecificationId = "spec-id",
                     CalculationResults = new List<CalculationResult>
                     {
                         new CalculationResult

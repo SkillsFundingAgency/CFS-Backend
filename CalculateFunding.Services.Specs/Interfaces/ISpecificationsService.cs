@@ -9,13 +9,22 @@ namespace CalculateFunding.Services.Specs.Interfaces
     {
         Task<IActionResult> CreateSpecification(HttpRequest request);
 
-        Task<IActionResult> GetSpecifications(HttpRequest req);
+        Task<IActionResult> GetSpecifications(HttpRequest request);
+
+        Task<IActionResult> GetSpecificationSummaries(HttpRequest request);
+
 
         Task<IActionResult> GetSpecificationById(HttpRequest request);
 
         Task<IActionResult> GetSpecificationsByFundingPeriodId(HttpRequest request);
 
         Task<IActionResult> GetSpecificationByName(HttpRequest request);
+
+        Task<IActionResult> GetSpecificationSummaryById(HttpRequest request);
+
+        Task<IActionResult> GetSpecificationSummariesByIds(HttpRequest request);
+
+        Task<IActionResult> GetCurrentSpecificationById(HttpRequest request);
 
         Task<IActionResult> GetFundingPeriods(HttpRequest request);
 

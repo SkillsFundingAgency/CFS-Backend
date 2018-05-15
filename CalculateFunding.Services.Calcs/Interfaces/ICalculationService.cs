@@ -28,6 +28,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IActionResult> ReIndex();
 
-        Task<BuildProject> CreateBuildProject(SpecificationSummary specification, IEnumerable<Calculation> calculations);
+        Task<BuildProject> CreateBuildProject(string specificationId, IEnumerable<Calculation> calculations);
     }
 }

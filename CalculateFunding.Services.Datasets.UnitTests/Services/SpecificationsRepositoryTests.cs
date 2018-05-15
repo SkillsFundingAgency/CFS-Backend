@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Datasets.Services
             SpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
 
             //Act
-            Func<Task> test = async () => await specificationsRepository.GetSpecificationById("");
+            Func<Task> test = async () => await specificationsRepository.GetSpecificationSummaryById("");
 
             //Assert
             test
@@ -37,13 +37,13 @@ namespace CalculateFunding.Services.Datasets.Services
             SpecificationsRepository specificationsRepository = CreateSpecificationsRepository(clientProxy);
 
             //Act
-            await specificationsRepository.GetSpecificationById(specificationId);
+            await specificationsRepository.GetSpecificationSummaryById(specificationId);
 
             //Assert
             await
                 clientProxy
                     .Received(1)
-                    .GetAsync<Specification>(Arg.Is($"specs/specification-by-id?specificationId={specificationId}"));
+                    .GetAsync<SpecificationSummary>(Arg.Is($"specs/specification-summary-by-id?specificationId={specificationId}"));
         }
 
         static SpecificationsRepository CreateSpecificationsRepository(IApiClientProxy apiClientProxy = null)

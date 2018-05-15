@@ -163,6 +163,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder
               .AddScoped<IDatasetService, DatasetService>();
 
+            builder
+                .AddSingleton<Services.Results.Interfaces.ISpecificationsRepository, Services.Results.SpecificationsRepository>();
+
             builder.AddScoped<IDatasetRepository, DataSetsRepository>((ctx) =>
             {
                 CosmosDbSettings datasetsDbSettings = new CosmosDbSettings();
@@ -188,9 +191,11 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository = ctx.GetService<ISearchRepository<CalculationProviderResultsIndex>>();
 
+                Services.Calculator.Interfaces.ISpecificationsRepository specificationRepository = ctx.GetService<Services.Calculator.Interfaces.ISpecificationsRepository>();
+
                 ILogger logger = ctx.GetService<ILogger>();
 
-                return new Services.Calculator.ProviderResultsRepository(calcsCosmosRepostory, calculationProviderResultsSearchRepository, logger);
+                return new Services.Calculator.ProviderResultsRepository(calcsCosmosRepostory, calculationProviderResultsSearchRepository, specificationRepository, logger);
             });
 
             builder
@@ -442,6 +447,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 .AddScoped<ITestEngine, TestEngine>();
 
             builder
+                .AddScoped<Services.Calculator.Interfaces.ISpecificationsRepository, Services.Calculator.SpecificationsRepository>();
+
+            builder
               .AddScoped<IGherkinExecutor, GherkinExecutor>();
 
             builder
@@ -523,7 +531,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(new PolicySettings() { MaximumSimultaneousNetworkRequests = 250 });
             Polly.Policy redisPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy);
 
-            builder.AddSingleton<ICalculatorResiliencePolicies>((ctx) => {
+            builder.AddSingleton<ICalculatorResiliencePolicies>((ctx) =>
+            {
                 CalculatorResiliencePolicies resiliencePolicies = new CalculatorResiliencePolicies()
                 {
                     ProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
@@ -563,6 +572,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                     CalculationProviderResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(resultsTotalNetworkRequestsPolicy),
                     ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                    SpecificationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
 
                 return resiliencePolicies;

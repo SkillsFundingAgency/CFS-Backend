@@ -67,27 +67,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void UpdateAllocations_GivenSpecificationIdKeyyNotFoundOnMessage_ThrowsKeyNotFoundExceptionn()
-        {
-            //Arrange
-            BuildProject payload = new BuildProject();
-
-            var json = JsonConvert.SerializeObject(payload);
-
-            Message message = new Message(Encoding.UTF8.GetBytes(json));
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService();
-
-            //Act
-            Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
-
-            //Assert
-            test
-                .ShouldThrowExactly<KeyNotFoundException>();
-        }
-
-        [TestMethod]
-        public void UpdateAllocations_GivenNullOrEmptySpecificationId_ThrowsArgumentNullException()
+        public void UpdateAllocations_GivenSpecificationIdIsNullOrEmptyString_ThrowsArgumentException()
         {
             //Arrange
             BuildProject payload = new BuildProject();
@@ -96,7 +76,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
-               .UserProperties.Add("specification-id", "");
+                .UserProperties.Add("specification-id", null);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
@@ -105,67 +85,11 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-                .ShouldThrowExactly<ArgumentNullException>();
-        }
-
-        [TestMethod]
-        public void UpdateAllocations_GivenSpecificationCouldNotBeFound_ThrowsArgumentException()
-        {
-            //Arrange
-            BuildProject payload = new BuildProject();
-           
-            var json = JsonConvert.SerializeObject(payload);
-
-            Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties.Add("specification-id", SpecificationId);
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService();
-
-            //Act
-            Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
-
-            //Assert
-            test
-                .ShouldThrowExactly<ArgumentException>();
-        }
-
-        [TestMethod]
-        public void UpdateAllocations_GivenBuildProjectWithNoSpecFoundButFailedToUpdateBuildProject_ThrowsException()
-        {
-            //Arrange
-            Specification specification = new Specification();
-
-            BuildProject buildProject = new BuildProject
-            {
-                Id = BuildProjectId
-            };
-
-            var json = JsonConvert.SerializeObject(buildProject);
-
-            Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-               .UserProperties.Add("specification-id", SpecificationId);
-
-            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .UpdateBuildProject(Arg.Is(buildProject))
-                .Returns(HttpStatusCode.InternalServerError);
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                specificationsRepository: specificationsRepository, buildProjectsRepository: buildProjectsRepository);
-
-            //Act
-            Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
-
-            //Assert
-            test
-                .ShouldThrowExactly<Exception>();
+                .ShouldThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be("Specification was null or empty string");
         }
 
         [TestMethod]
@@ -319,7 +243,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = BuildProjectId,
                 Build = new Build(),
-                Specification = new SpecificationSummary { Id = SpecificationId },
+                SpecificationId = SpecificationId,
                 DatasetRelationships = new List<DatasetRelationshipSummary>
                 {
                     new DatasetRelationshipSummary{ Name = relationshipName }
@@ -370,7 +294,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = BuildProjectId,
                 Build = new Build(),
-                Specification = new SpecificationSummary { Id = SpecificationId }
+                SpecificationId = SpecificationId,
             };
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
@@ -421,7 +345,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = BuildProjectId,
                 Build = new Build(),
-                Specification = new SpecificationSummary { Id = SpecificationId }
+                SpecificationId = SpecificationId,
             };
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
@@ -469,8 +393,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
             specificationRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns((Specification)null);
+                .GetSpecificationSummaryById(Arg.Is(SpecificationId))
+                .Returns((SpecificationSummary)null);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, specificationsRepository: specificationRepository);
 
@@ -483,7 +407,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void UpdateBuildProjectRelationships_GivenBuildProjectNotFoundAnfdCreateFails_ThrowsException()
+        public void UpdateBuildProjectRelationships_GivenBuildProjectNotFoundAndCreateFails_ThrowsException()
         {
             //Arrange
             const string relationshipName = "test--name";
@@ -499,11 +423,7 @@ namespace CalculateFunding.Services.Calcs.Services
             message
                .UserProperties.Add("specification-id", SpecificationId);
 
-            Specification specification = new Specification
-            {
-                Id = SpecificationId,
-                Name = "spec-name"
-            };
+            SpecificationSummary specification = null;
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
@@ -512,7 +432,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
             specificationRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
+                .GetSpecificationSummaryById(Arg.Is(SpecificationId))
                 .Returns(specification);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, specificationsRepository: specificationRepository);
@@ -523,6 +443,72 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             test
                 .ShouldThrowExactly<Exception>();
+        }
+
+        [TestMethod]
+        public async Task UpdateBuildProjectRelationships_GivenBuildProjectNotFound_ThenItIsCreated()
+        {
+            //Arrange
+            const string relationshipName = "test--name";
+
+            DatasetRelationshipSummary payload = new DatasetRelationshipSummary
+            {
+                Name = relationshipName
+            };
+
+            var json = JsonConvert.SerializeObject(payload);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message
+               .UserProperties.Add("specification-id", SpecificationId);
+
+            SpecificationSummary specification = new SpecificationSummary
+            {
+                Id = SpecificationId,
+                Name = "spec-name"
+            };
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
+                .Returns((BuildProject)null);
+
+            buildProjectsRepository
+                .UpdateBuildProject(Arg.Any<BuildProject>())
+                .Returns(HttpStatusCode.OK);
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            BuildProject createdBuildProject = new BuildProject()
+            {
+                Build = new Build()
+                {
+
+                }
+            };
+
+            ICalculationService calculationService = CreateCalculationService();
+
+            calculationService
+                .CreateBuildProject(Arg.Is(SpecificationId), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Returns(createdBuildProject);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, specificationsRepository: specificationRepository, calculationService: calculationService);
+
+            // Act
+            await buildProjectsService.UpdateBuildProjectRelationships(message);
+
+            // Assert
+            await buildProjectsRepository
+                .Received(1)
+                .UpdateBuildProject(Arg.Any<BuildProject>());
+
+            await calculationService
+                 .Received(1)
+                 .CreateBuildProject(Arg.Is(SpecificationId), Arg.Any<IEnumerable<Models.Calcs.Calculation>>());
         }
 
         [TestMethod]
@@ -542,7 +528,7 @@ namespace CalculateFunding.Services.Calcs.Services
             message
                .UserProperties.Add("specification-id", SpecificationId);
 
-            Specification specification = new Specification
+            SpecificationSummary specification = new SpecificationSummary
             {
                 Id = SpecificationId
             };
@@ -551,7 +537,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = BuildProjectId,
                 Build = new Build(),
-                Specification = new SpecificationSummary { Id = SpecificationId }
+                SpecificationId = SpecificationId,
             };
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
@@ -561,21 +547,21 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
             specificationRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
+                .GetSpecificationSummaryById(Arg.Is(SpecificationId))
                 .Returns(specification);
 
             ICompilerFactory compilerFactory = CreateCompilerfactory();
 
             ICalculationService calculationService = CreateCalculationService();
             calculationService
-                .CreateBuildProject(Arg.Any<SpecificationSummary>(), Arg.Is(Enumerable.Empty<Models.Calcs.Calculation>()))
+                .CreateBuildProject(Arg.Any<string>(), Arg.Is(Enumerable.Empty<Models.Calcs.Calculation>()))
                 .Returns(buildProject);
 
             buildProjectsRepository
                .UpdateBuildProject(Arg.Is(buildProject))
                .Returns(HttpStatusCode.OK);
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, 
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 specificationsRepository: specificationRepository, compilerFactory: compilerFactory, calculationService: calculationService);
 
             //Act
@@ -597,7 +583,7 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
-           
+
             ILogger logger = CreateLogger();
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger);

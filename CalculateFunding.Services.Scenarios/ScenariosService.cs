@@ -38,9 +38,9 @@ namespace CalculateFunding.Services.Scenarios
         private readonly IBuildProjectRepository _buildProjectRepository;
 
         public ScenariosService(
-            ILogger logger, 
-            IScenariosRepository scenariosRepository, 
-            ISpecificationsRepository specificationsRepository, 
+            ILogger logger,
+            IScenariosRepository scenariosRepository,
+            ISpecificationsRepository specificationsRepository,
             IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator,
             ISearchRepository<ScenarioIndex> searchRepository,
             ICacheProvider cacheProvider,
@@ -72,7 +72,7 @@ namespace CalculateFunding.Services.Scenarios
 
             CreateNewTestScenarioVersion scenarioVersion = JsonConvert.DeserializeObject<CreateNewTestScenarioVersion>(json);
 
-            if(scenarioVersion == null)
+            if (scenarioVersion == null)
             {
                 _logger.Error("A null scenario version was provided");
 
@@ -91,40 +91,33 @@ namespace CalculateFunding.Services.Scenarios
 
             bool saveAsVersion = true;
 
-            if (testScenario == null) {
+            SpecificationSummary specification = await _specificationsRepository.GetSpecificationSummaryById(scenarioVersion.SpecificationId);
 
-                Specification specification = await _specificationsRepository.GetSpecificationById(scenarioVersion.SpecificationId);
+            if (specification == null)
+            {
+                _logger.Error($"Unable to find a specification for specification id : {scenarioVersion.SpecificationId}");
 
-                if(specification == null)
-                {
-                    _logger.Error($"Unable to find a specification for specification id : {scenarioVersion.SpecificationId}");
+                return new StatusCodeResult(412);
+            }
 
-                    return new StatusCodeResult(412);
-                }
-
+            if (testScenario == null)
+            {
                 testScenario = new TestScenario
                 {
-                    Specification = new SpecificationSummary
-                    {
-                        FundingStreams = specification.FundingStreams,
-                        Id = specification.Id,
-                        Name = specification.Name,
-                        FundingPeriod = specification.FundingPeriod
-                    },
+                    SpecificationId = specification.Id,
                     Id = Guid.NewGuid().ToString(),
                     Name = scenarioVersion.Name,
-                    Description = scenarioVersion.Description,
-                    FundingStreams = specification.FundingStreams,
-                    FundingPeriod = specification.FundingPeriod,
+
                     History = new List<TestScenarioVersion>(),
                     Current = new TestScenarioVersion()
                 };
+                testScenario.Init();
             }
             else
             {
                 testScenario.Name = scenarioVersion.Name;
-                testScenario.Description = scenarioVersion.Description;
 
+                // TODO - update change detection to include fields moved to version
                 saveAsVersion = string.Equals(scenarioVersion.Scenario, testScenario.Current.Gherkin) == false;
             }
 
@@ -136,16 +129,13 @@ namespace CalculateFunding.Services.Scenarios
                 {
                     Version = GetNextVersionNumberFromCalculationVersions(testScenario.History),
                     Author = user,
-                    Date = DateTime.UtcNow,
-                    PublishStatus = (testScenario.Current.PublishStatus == PublishStatus.Published
-                                        || testScenario.Current.PublishStatus == PublishStatus.Updated)
-                                        ? PublishStatus.Updated : PublishStatus.Draft,
-                    Gherkin = scenarioVersion.Scenario
+                    Gherkin = scenarioVersion.Scenario,
+                    Description = scenarioVersion.Description,
+                    FundingStreamIds = specification.FundingStreams.Select(s => s.Id),
+                    FundingPeriodId = specification.FundingPeriod.Id,
                 };
 
-                testScenario.Current = newVersion;
-
-                testScenario.History.Add(newVersion);
+                testScenario.Save(newVersion);
             }
 
             HttpStatusCode statusCode = await _scenariosRepository.SaveTestScenario(testScenario);
@@ -161,28 +151,28 @@ namespace CalculateFunding.Services.Scenarios
             {
                 Id = testScenario.Id,
                 Name = testScenario.Name,
-                Description = testScenario.Description,
-                SpecificationId = testScenario.Specification.Id,
-                SpecificationName = testScenario.Specification.Name,
-                FundingPeriodId = testScenario.Specification.FundingPeriod.Id,
-                FundingPeriodName = testScenario.Specification.FundingPeriod.Name,
-                FundingStreamIds = testScenario.Specification.FundingStreams.Select(s=>s.Id).ToArray(),
-                FundingStreamNames = testScenario.Specification.FundingStreams.Select(s => s.Name).ToArray(),
+                Description = testScenario.Current.Description,
+                SpecificationId = testScenario.SpecificationId,
+                SpecificationName = specification.Name,
+                FundingPeriodId = specification.FundingPeriod.Id,
+                FundingPeriodName = specification.FundingPeriod.Name,
+                FundingStreamIds = specification.FundingStreams.Select(s => s.Id).ToArray(),
+                FundingStreamNames = specification.FundingStreams.Select(s => s.Name).ToArray(),
                 Status = testScenario.Current.PublishStatus.ToString(),
                 LastUpdatedDate = DateTimeOffset.Now
             };
 
             await _searchRepository.Index(new List<ScenarioIndex> { scenarioIndex });
 
-            await _cacheProvider.RemoveAsync<List<TestScenario>>($"{CacheKeys.TestScenarios}{testScenario.Specification.Id}");
+            await _cacheProvider.RemoveAsync<List<TestScenario>>($"{CacheKeys.TestScenarios}{testScenario.SpecificationId}");
 
             await _cacheProvider.RemoveAsync<GherkinParseResult>($"{CacheKeys.GherkinParseResult}{testScenario.Id}");
 
-            BuildProject buildProject = await _buildProjectRepository.GetBuildProjectBySpecificationId(testScenario.Specification.Id);
+            BuildProject buildProject = await _buildProjectRepository.GetBuildProjectBySpecificationId(testScenario.SpecificationId);
 
-            if(buildProject == null)
+            if (buildProject == null)
             {
-                _logger.Error($"Failed to find a build project for specification id {testScenario.Specification.Id}");
+                _logger.Error($"Failed to find a build project for specification id {testScenario.SpecificationId}");
             }
             else
             {
@@ -227,7 +217,7 @@ namespace CalculateFunding.Services.Scenarios
 
             TestScenario testScenario = await _scenariosRepository.GetTestScenarioById(scenarioId);
 
-            if(testScenario == null)
+            if (testScenario == null)
             {
                 return new NotFoundResult();
             }
@@ -290,7 +280,7 @@ namespace CalculateFunding.Services.Scenarios
         {
             IDictionary<string, string> properties = CreateMessageProperties(request);
 
-            properties.Add("specification-id", buildProject.Specification.Id);
+            properties.Add("specification-id", buildProject.SpecificationId);
 
             properties.Add("ignore-save-provider-results", "true");
 

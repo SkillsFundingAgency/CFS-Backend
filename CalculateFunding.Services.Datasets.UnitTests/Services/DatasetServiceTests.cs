@@ -2735,7 +2735,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 {
                     new DatasetRelationshipSummary{ DatasetDefinition = new DatasetDefinition { Id = DataDefintionId } }
                 },
-                Specification = new SpecificationSummary { Id = SpecificationId }
+                SpecificationId = SpecificationId,
             };
 
             ICalcsRepository calcsRepository = CreateCalcsRepository();
@@ -2929,7 +2929,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 {
                     new DatasetRelationshipSummary{ DatasetDefinition = new DatasetDefinition { Id = DataDefintionId } }
                 },
-                Specification = new SpecificationSummary { Id = SpecificationId }
+                SpecificationId = SpecificationId,
             };
 
             ICalcsRepository calcsRepository = CreateCalcsRepository();
@@ -3039,7 +3039,7 @@ namespace CalculateFunding.Services.Datasets.Services
                         Relationship = new Reference(relationshipId, relationshipName),
                     }
                 },
-                Specification = new SpecificationSummary { Id = SpecificationId }
+                SpecificationId = SpecificationId,
             };
 
             ICalcsRepository calcsRepository = CreateCalcsRepository();
@@ -3164,7 +3164,7 @@ namespace CalculateFunding.Services.Datasets.Services
                         Relationship = new Reference(relationshipId, relationshipName),
                     }
                 },
-                Specification = new SpecificationSummary { Id = SpecificationId }
+                SpecificationId = SpecificationId,
             };
 
             ICalcsRepository calcsRepository = CreateCalcsRepository();

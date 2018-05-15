@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 string errors = string.Join(";", validationResult.Errors.Select(m => m.ErrorMessage).ToArraySafe());
 
-                _logger.Error($"The preview request failed to validate with errors: {errors}");
+                _logger.Warning($"The preview request failed to validate with errors: {errors}");
 
                 return new BadRequestObjectResult("The preview request failed to validate");
             }
@@ -69,16 +69,10 @@ namespace CalculateFunding.Services.Calcs
                 return new StatusCodeResult(412);
             }
 
-            if (calculation.Specification == null || string.IsNullOrWhiteSpace(calculation.Specification.Id))
-            {
-                _logger.Error($"Calculation with id {calculation.Id} does not contain a Specification property or Specification.ID");
-                return new StatusCodeResult(412);
-            }
-
-            BuildProject buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(calculation.Specification.Id);
+            BuildProject buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(calculation.SpecificationId);
             if (buildProject == null)
             {
-                _logger.Error($"Build project for specification {calculation.Specification.Id} could not be found");
+                _logger.Error($"Build project for specification {calculation.SpecificationId} could not be found");
 
                 return new StatusCodeResult(412);
             }

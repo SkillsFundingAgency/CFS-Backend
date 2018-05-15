@@ -168,8 +168,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationById(Arg.Any<string>())
-                .Returns((Specification)null);
+                .GetSpecificationSummaryById(Arg.Any<string>())
+                .Returns((SpecificationSummary)null);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, 
                 datasetRepository: datasetRepository, specificationsRepository: specificationsRepository);
@@ -203,7 +203,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             Models.Datasets.Schema.DatasetDefinition definition = new Models.Datasets.Schema.DatasetDefinition();
 
-            Specification specification = new Specification();
+            SpecificationSummary specification = new SpecificationSummary();
 
             CreateDefinitionSpecificationRelationshipModel model = new CreateDefinitionSpecificationRelationshipModel
             {
@@ -229,7 +229,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationById(Arg.Any<string>())
+                .GetSpecificationSummaryById(Arg.Any<string>())
                 .Returns(specification);
 
             datasetRepository
@@ -271,7 +271,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = datasetDefinitionId
             };
 
-            Specification specification = new Specification
+            SpecificationSummary specification = new SpecificationSummary
             {
                 Id = specificationId
             };
@@ -302,7 +302,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationById(Arg.Any<string>())
+                .GetSpecificationSummaryById(Arg.Any<string>())
                 .Returns(specification);
 
             datasetRepository
@@ -608,8 +608,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationById(Arg.Is(specificationId))
-                .Returns((Specification)null);
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns((SpecificationSummary)null);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger, specificationsRepository: specificationsRepository);
 
@@ -649,11 +649,11 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            Specification specification = new Specification();
+            SpecificationSummary specification = new SpecificationSummary();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationById(Arg.Is(specificationId))
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(specification);
 
             IEnumerable<DefinitionSpecificationRelationship> relationships = new List<DefinitionSpecificationRelationship>();
@@ -707,11 +707,11 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            Specification specification = new Specification();
+            SpecificationSummary specification = new SpecificationSummary();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationById(Arg.Is(specificationId))
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(specification);
 
             IList<DefinitionSpecificationRelationship> relationships = new List<DefinitionSpecificationRelationship>();
@@ -778,11 +778,11 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            Specification specification = new Specification();
+            SpecificationSummary specification = new SpecificationSummary();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationById(Arg.Is(specificationId))
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(specification);
 
             Models.Datasets.Schema.DatasetDefinition datasetDefinition = new Models.Datasets.Schema.DatasetDefinition
@@ -881,11 +881,11 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            Specification specification = new Specification();
+            SpecificationSummary specification = new SpecificationSummary();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationById(Arg.Is(specificationId))
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(specification);
 
             Models.Datasets.Schema.DatasetDefinition datasetDefinition = new Models.Datasets.Schema.DatasetDefinition
@@ -994,11 +994,11 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            Specification specification = new Specification();
+            SpecificationSummary specification = new SpecificationSummary();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationById(Arg.Is(specificationId))
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(specification);
 
             Models.Datasets.Schema.DatasetDefinition datasetDefinition = new Models.Datasets.Schema.DatasetDefinition

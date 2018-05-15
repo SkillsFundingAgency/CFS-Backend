@@ -45,14 +45,14 @@ namespace CalculateFunding.Services.Scenarios
                 LastUpdatedDate = scenario.UpdatedAt,
                 Id = scenario.Id,
                 Name = scenario.Content.Name,
-                Description = scenario.Content.Description,
+                Description = scenario.Content.Current.Description,
                 Author = scenario.Content.Current.Author,
                 Commment = scenario.Content.Current.Commment,
                 CurrentVersionDate = scenario.Content.Current.Date,
                 PublishStatus = scenario.Content.Current.PublishStatus,
                 Gherkin = scenario.Content.Current.Gherkin,
                 Version = scenario.Content.Current.Version,
-                SpecificationId = scenario.Content.Specification.Id
+                SpecificationId = scenario.Content.SpecificationId,
             };
 
             return currentTestScenario;
@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Scenarios
 
         public Task<IEnumerable<TestScenario>> GetTestScenariosBySpecificationId(string specificationId)
         {
-            var scenarios = _cosmosRepository.Query<TestScenario>().Where(m => m.Specification.Id == specificationId);
+            var scenarios = _cosmosRepository.Query<TestScenario>().Where(m => m.SpecificationId == specificationId);
 
             return Task.FromResult(scenarios.AsEnumerable());
         }

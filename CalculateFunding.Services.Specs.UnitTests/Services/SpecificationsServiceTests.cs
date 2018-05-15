@@ -150,6 +150,82 @@ namespace CalculateFunding.Services.Specs.Services
         }
 
         [TestMethod]
+        public async Task GetSpecificationSummaryById_GivenSpecificationSummaryWasFound_ReturnsObject()
+        {
+            //Arrange
+            Specification specification = new Specification()
+            {
+                Id = "spec-id",
+                Name = "Spec Name",
+                Current = new SpecificationVersion()
+                {
+                    Name = "Spec name",
+                    FundingStreams = new List<Reference>()
+                    {
+                         new Reference("fs1", "Funding Stream 1"),
+                         new Reference("fs2", "Funding Stream 2"),
+                    },
+                    Author = new Reference("author@dfe.gov.uk", "Author Name"),
+                    DataDefinitionRelationshipIds = new List<string>()
+                       {
+                           "dr1",
+                           "dr2"
+                       },
+                    Description = "Specification Description",
+                    FundingPeriod = new Reference("FP1", "Funding Period"),
+                    PublishStatus = Models.Versioning.PublishStatus.Draft,
+                    Version = 1,
+                }
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            IMapper mapper = CreateImplementedMapper();
+
+            SpecificationsService service = CreateService(
+                specificationsRepository: specificationsRepository,
+                logs: logger,
+                mapper: mapper);
+
+            //Act
+            IActionResult result = await service.GetSpecificationSummaryById(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .ShouldBeEquivalentTo(new SpecificationSummary()
+                {
+                    Id = specification.Id,
+                    Name = "Spec Name",
+                    FundingStreams = new List<Reference>()
+                    {
+                         new Reference("fs1", "Funding Stream 1"),
+                         new Reference("fs2", "Funding Stream 2"),
+                    },
+                    Description = "Specification Description",
+                    FundingPeriod = new Reference("FP1", "Funding Period"),
+                });
+        }
+
+        [TestMethod]
         public async Task GetSpecificationByFundingPeriodId_GivenNoSpecificationsReturned_ReturnsSuccess()
         {
             //Arrange
@@ -183,16 +259,12 @@ namespace CalculateFunding.Services.Specs.Services
                 .Should()
                 .BeOfType<OkObjectResult>();
 
-            IEnumerable<Specification> objContent = (IEnumerable<Specification>)((OkObjectResult)result).Value;
+            IEnumerable<SpecificationSummary> objContent = (IEnumerable<SpecificationSummary>)((OkObjectResult)result).Value;
 
             objContent
                 .Count()
                 .Should()
                 .Be(0);
-
-            logger
-                .Received(1)
-                .Information(Arg.Is($"No specifications found for academic year with id {FundingPeriodId}"));
         }
 
         [TestMethod]
@@ -233,7 +305,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .Should()
                 .BeOfType<OkObjectResult>();
 
-            IEnumerable<Specification> objContent = (IEnumerable<Specification>)((OkObjectResult)result).Value;
+            IEnumerable<SpecificationSummary> objContent = (IEnumerable<SpecificationSummary>)((OkObjectResult)result).Value;
 
             objContent
                 .Count()
@@ -498,10 +570,13 @@ namespace CalculateFunding.Services.Specs.Services
             //Arrange
             Specification spec = new Specification
             {
-                Policies = new[]
+                Current = new SpecificationVersion()
                 {
-                    new Policy{ Name = PolicyName}
-                }
+                    Policies = new[]
+                    {
+                        new Policy{ Name = PolicyName}
+                    },
+                },
             };
 
             PolicyGetModel model = new PolicyGetModel
@@ -545,7 +620,10 @@ namespace CalculateFunding.Services.Specs.Services
         public async Task GetPolicyByName_GivenSpecificationExistsAndPolicyDoesNotExist_ReturnsNotFound()
         {
             //Arrange
-            Specification spec = new Specification();
+            Specification spec = new Specification()
+            {
+                Current = new SpecificationVersion(),
+            };
 
             PolicyGetModel model = new PolicyGetModel
             {
@@ -838,7 +916,10 @@ namespace CalculateFunding.Services.Specs.Services
         public async Task CreateCalculation_GivenValidModelButNoPolicyFound_ReturnsPreconditionFailed()
         {
             //Arrange
-            Specification specification = new Specification();
+            Specification specification = new Specification()
+            {
+                Current = new SpecificationVersion(),
+            };
 
             CalculationCreateModel model = new CalculationCreateModel
             {
@@ -876,15 +957,19 @@ namespace CalculateFunding.Services.Specs.Services
             //Assert
             result
                 .Should()
-                .BeOfType<PreconditionFailedResult>();
+                .BeOfType<PreconditionFailedResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("Policy not found for policy id 'dda8ccb3-eb8e-4658-8b3f-f1e4c3a8f322'");
 
             logger
                 .Received(1)
-                .Warning($"Policy not found for policy id {PolicyId}");
+                .Warning($"Policy not found for policy id '{PolicyId}'");
         }
 
         [TestMethod]
-        public async Task CreateCalculation_GivenValidModelAndPolicyFoundButAddingCalcCausesBadRequest_AReturnsbadrequest()
+        public async Task CreateCalculation_GivenValidModelAndPolicyFoundButAddingCalcCausesBadRequest_AReturnsBadRequest()
         {
             //Arrange
             AllocationLine allocationLine = new AllocationLine
@@ -892,6 +977,8 @@ namespace CalculateFunding.Services.Specs.Services
                 Id = "02a6eeaf-e1a0-476e-9cf9-8aa5d9129345",
                 Name = "test alloctaion"
             };
+
+            List<FundingStream> fundingStreams = new List<FundingStream>();
 
             FundingStream fundingStream = new FundingStream
             {
@@ -902,21 +989,27 @@ namespace CalculateFunding.Services.Specs.Services
                 Id = FundingStreamId
             };
 
+            fundingStreams.Add(fundingStream);
+
             Policy policy = new Policy
             {
-                Id = PolicyId
+                Id = PolicyId,
+                Name = PolicyName,
             };
 
             Specification specification = new Specification
             {
-                Policies = new[]
+                Current = new SpecificationVersion()
                 {
-                    policy
+                    Policies = new[]
+                    {
+                        policy,
+                    },
+                    FundingStreams = new List<Reference>()
+                    {
+                        new Reference { Id = FundingStreamId }
+                    },
                 },
-                FundingStreams = new List<Reference>()
-                {
-                    new Reference { Id = FundingStreamId }
-                }
             };
 
             CalculationCreateModel model = new CalculationCreateModel
@@ -943,8 +1036,8 @@ namespace CalculateFunding.Services.Specs.Services
                 .Returns(specification);
 
             specificationsRepository
-                .GetFundingStreamById(Arg.Is(FundingStreamId))
-                .Returns(fundingStream);
+               .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
+               .Returns(fundingStreams);
 
             specificationsRepository
                 .UpdateSpecification(Arg.Is(specification))
@@ -992,6 +1085,8 @@ namespace CalculateFunding.Services.Specs.Services
                 Name = "test alloctaion"
             };
 
+            List<FundingStream> fundingStreams = new List<FundingStream>();
+
             FundingStream fundingStream = new FundingStream
             {
                 AllocationLines = new List<AllocationLine>
@@ -1001,21 +1096,27 @@ namespace CalculateFunding.Services.Specs.Services
                 Id = FundingStreamId
             };
 
+            fundingStreams.Add(fundingStream);
+
             Policy policy = new Policy
             {
-                Id = PolicyId
+                Id = PolicyId,
+                Name = PolicyName,
             };
 
             Specification specification = new Specification
             {
-                Policies = new[]
+                Current = new SpecificationVersion()
                 {
-                    policy
+                    Policies = new[]
+                    {
+                        policy,
+                    },
+                    FundingStreams = new List<Reference>()
+                    {
+                        new Reference { Id = FundingStreamId }
+                    },
                 },
-                FundingStreams = new List<Reference>()
-                {
-                    new Reference { Id = FundingStreamId }
-                }
             };
 
             CalculationCreateModel model = new CalculationCreateModel
@@ -1064,8 +1165,8 @@ namespace CalculateFunding.Services.Specs.Services
                 .Returns(specification);
 
             specificationsRepository
-                .GetFundingStreamById(Arg.Is(FundingStreamId))
-                .Returns(fundingStream);
+                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
+                .Returns(fundingStreams);
 
             specificationsRepository
                 .UpdateSpecification(Arg.Is(specification))
@@ -1120,6 +1221,8 @@ namespace CalculateFunding.Services.Specs.Services
                 Name = "test alloctaion"
             };
 
+            List<FundingStream> fundingStreams = new List<FundingStream>();
+
             FundingStream fundingStream = new FundingStream
             {
                 AllocationLines = new List<AllocationLine>
@@ -1129,20 +1232,26 @@ namespace CalculateFunding.Services.Specs.Services
                 Id = FundingStreamId
             };
 
+            fundingStreams.Add(fundingStream);
+
             Policy policy = new Policy
             {
-                Id = PolicyId
+                Id = PolicyId,
+                Name = PolicyName,
             };
 
             Specification specification = new Specification
             {
-                Policies = new[]
+                Current = new SpecificationVersion()
                 {
-                    policy
-                },
-                FundingStreams = new List<Reference>()
-                {
-                    new Reference { Id = FundingStreamId }
+                    Policies = new[]
+                    {
+                        policy,
+                    },
+                    FundingStreams = new List<Reference>()
+                    {
+                        new Reference { Id = FundingStreamId }
+                    },
                 },
             };
 
@@ -1192,8 +1301,8 @@ namespace CalculateFunding.Services.Specs.Services
                 .Returns(specification);
 
             specificationsRepository
-               .GetFundingStreamById(Arg.Is(FundingStreamId))
-               .Returns(fundingStream);
+               .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
+               .Returns(fundingStreams);
 
             specificationsRepository
                 .UpdateSpecification(Arg.Is(specification))
@@ -1602,7 +1711,10 @@ namespace CalculateFunding.Services.Specs.Services
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
-            Specification specification = new Specification();
+            Specification specification = new Specification()
+            {
+                Current = new SpecificationVersion(),
+            };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
@@ -1643,8 +1755,11 @@ namespace CalculateFunding.Services.Specs.Services
             {
                 Id = SpecificationId,
                 Name = SpecificationName,
-                FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
-                FundingPeriod = new Reference("18/19", "2018/19")
+                Current = new SpecificationVersion()
+                {
+                    FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
+                    FundingPeriod = new Reference("18/19", "2018/19"),
+                },
             };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -1687,8 +1802,11 @@ namespace CalculateFunding.Services.Specs.Services
             {
                 Id = SpecificationId,
                 Name = SpecificationName,
-                FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
-                FundingPeriod = new Reference("18/19", "2018/19")
+                Current = new SpecificationVersion()
+                {
+                    FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
+                    FundingPeriod = new Reference("18/19", "2018/19"),
+                },
             };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -2703,8 +2821,8 @@ namespace CalculateFunding.Services.Specs.Services
             specificationsRepository
                 .CreateSpecification(Arg.Is<Specification>(
                     s => s.Name == specificationCreateModel.Name &&
-                    s.Description == specificationCreateModel.Description &&
-                    s.FundingPeriod.Id == fundingPeriodId))
+                    s.Current.Description == specificationCreateModel.Description &&
+                    s.Current.FundingPeriod.Id == fundingPeriodId))
                 .Returns(HttpStatusCode.Created);
 
             // Act
@@ -2725,8 +2843,8 @@ namespace CalculateFunding.Services.Specs.Services
                 .Received(1)
                 .CreateSpecification(Arg.Is<Specification>(
                    s => s.Name == specificationCreateModel.Name &&
-                   s.Description == specificationCreateModel.Description &&
-                   s.FundingPeriod.Id == fundingPeriodId));
+                   s.Current.Description == specificationCreateModel.Description &&
+                   s.Current.FundingPeriod.Id == fundingPeriodId));
 
             await searchRepository
                 .Received(1)
@@ -2917,10 +3035,14 @@ namespace CalculateFunding.Services.Specs.Services
             {
                 Id = specificationId,
                 Name = "Test Specification",
-                FundingStreams = new List<Reference>() {
+                Current = new SpecificationVersion()
+                {
+                    FundingStreams = new List<Reference>()
+                    {
                        new Reference("fs1", "Funding Stream 1"),
                        new Reference("fs2", "Funding Stream Two"),
-                }
+                    },
+                },
             };
 
             specificationsRepository
@@ -3078,10 +3200,14 @@ namespace CalculateFunding.Services.Specs.Services
             {
                 Id = specificationId,
                 Name = "Test Specification",
-                FundingStreams = new List<Reference>() {
+                Current = new SpecificationVersion()
+                {
+                    FundingStreams = new List<Reference>()
+                    {
                        new Reference("fs1", "Funding Stream 1"),
                        new Reference("fs2", "Funding Stream Two"),
-                }
+                    },
+                },
             };
 
             specificationsRepository
@@ -3139,7 +3265,10 @@ namespace CalculateFunding.Services.Specs.Services
             {
                 Id = specificationId,
                 Name = "Test Specification",
-                FundingStreams = new List<Reference>() {}
+                Current = new SpecificationVersion()
+                {
+                    FundingStreams = new List<Reference>() { },
+                },
             };
 
             specificationsRepository

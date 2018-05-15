@@ -121,7 +121,7 @@ namespace CalculateFunding.Services.Calculator
 
             BuildProject buildProject = message.GetPayloadAsInstanceOf<BuildProject>();
 
-            string specificationId = buildProject.Specification.Id;
+            string specificationId = buildProject.SpecificationId;
 
             IEnumerable<ProviderSummary> summaries = null;
 

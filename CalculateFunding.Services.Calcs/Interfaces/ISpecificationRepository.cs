@@ -6,7 +6,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 {
     public interface ISpecificationRepository
     {
-        Task<Specification> GetSpecificationById(string specificationId);
+        Task<SpecificationSummary> GetSpecificationSummaryById(string specificationId);
 
         Task<IEnumerable<Calculation>> GetCalculationSpecificationsForSpecification(string specificationId);
     }

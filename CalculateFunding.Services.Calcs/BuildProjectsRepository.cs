@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Calcs
 
 	    public Task<BuildProject> GetBuildProjectBySpecificationId(string specificiationId)
 	    {
-		    IEnumerable<BuildProject> buildProjects = _cosmosRepository.Query<BuildProject>().Where(x => x.Specification.Id == specificiationId).ToList();
+		    IEnumerable<BuildProject> buildProjects = _cosmosRepository.Query<BuildProject>().Where(x => x.SpecificationId == specificiationId).ToList();
 
             return Task.FromResult(buildProjects.FirstOrDefault());
 	    }

@@ -5,6 +5,6 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
 {
     public interface ISpecificationRepository
     {
-        Task<Specification> GetSpecificationById(string specificationId);
+        Task<SpecificationSummary> GetSpecificationSummaryById(string specificationId);
     }
 }

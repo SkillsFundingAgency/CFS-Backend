@@ -77,6 +77,9 @@ namespace CalculateFunding.Functions.Results
                 return new ProviderSourceDatasetRepository(calcsCosmosRepostory);
             });
 
+            builder
+                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
+
             builder.AddSearch(config);
 
             builder.AddServiceBus(config);
@@ -86,6 +89,8 @@ namespace CalculateFunding.Functions.Results
             builder.AddApplicationInsightsTelemetryClient(config);
             builder.AddLogging("CalculateFunding.Functions.Results");
             builder.AddTelemetry();
+
+            builder.AddInterServiceClient(config);
 
             builder.AddPolicySettings(config);
 
@@ -100,6 +105,7 @@ namespace CalculateFunding.Functions.Results
                     CalculationProviderResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                    SpecificationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
 
                 return resiliencePolicies;

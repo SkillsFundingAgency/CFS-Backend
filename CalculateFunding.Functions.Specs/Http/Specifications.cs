@@ -25,6 +25,50 @@ namespace CalculateFunding.Functions.Specs.Http
             }
         }
 
+        [FunctionName("specification-summary-by-id")]
+        public static Task<IActionResult> RunGetSpecificationSummaryById(
+            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateScope())
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+                return svc.GetSpecificationSummaryById(req);
+            }
+        }
+
+        [FunctionName("specification-summaries-by-ids")]
+        public static Task<IActionResult> RunGetSpecificationSummariesByIds(
+            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateScope())
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+                return svc.GetSpecificationSummariesByIds(req);
+            }
+        }
+
+        [FunctionName("specification-summaries")]
+        public static Task<IActionResult> RunGetSpecificationSummaries(
+            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateScope())
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+                return svc.GetSpecificationSummaries(req);
+            }
+        }
+
+        [FunctionName("specification-current-version-by-id")]
+        public static Task<IActionResult> RunGetCurrentSpecificationById(
+            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateScope())
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+                return svc.GetCurrentSpecificationById(req);
+            }
+        }
+
         [FunctionName("specifications")]
         public static Task<IActionResult> RunGetSpecifications(
             [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)

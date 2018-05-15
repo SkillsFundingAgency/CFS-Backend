@@ -71,10 +71,17 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository = ctx.GetService<ISearchRepository<CalculationProviderResultsIndex>>();
 
+                ISpecificationsRepository specificationsRepository = ctx.GetService<ISpecificationsRepository>();
+
                 ILogger logger = ctx.GetService<ILogger>();
 
-                return new ProviderResultsRepository(calcsCosmosRepostory, calculationProviderResultsSearchRepository, logger);
+                return new ProviderResultsRepository(calcsCosmosRepostory, calculationProviderResultsSearchRepository, specificationsRepository, logger);
             });
+
+            builder
+                .AddScoped<ISpecificationsRepository, SpecificationsRepository>();
+
+            builder.AddInterServiceClient(config);
 
             builder.AddEngineSettings(config);
 

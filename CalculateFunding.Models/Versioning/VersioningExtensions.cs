@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace CalculateFunding.Models.Versioning
 {
     public static class VersioningExtensions
-    { 
+    {
 
         // Publish status defaults to draft, version 1 for new entities
         public static void Init<T>(this VersionContainer<T> container) where T : VersionedItem, new()
@@ -43,7 +44,7 @@ namespace CalculateFunding.Models.Versioning
         {
             if (container.Current.PublishStatus == PublishStatus.Updated)
             {
-                container. Current = container.Published?.Clone() as T;
+                container.Current = container.Published?.Clone() as T;
             }
 
         }
@@ -61,7 +62,7 @@ namespace CalculateFunding.Models.Versioning
         public static T Save<T>(this VersionContainer<T> container, T item) where T : VersionedItem
         {
             container.History = container.History ?? new List<T>();
-            var maxVersion = container.History.Max(x => x.Version); // If publish previous version current version may not be highest
+            int maxVersion = container.History.Count == 0 ? 0 : container.History.Max(x => x.Version); // If publish previous version current version may not be highest
             switch (container.Current.PublishStatus)
             {
                 case PublishStatus.Draft:
@@ -74,6 +75,7 @@ namespace CalculateFunding.Models.Versioning
             item.Version = maxVersion + 1;
             container.Current = item;
             container.History.Add(container.Current);
+            item.Date = DateTime.UtcNow;
 
             return container.Current;
         }

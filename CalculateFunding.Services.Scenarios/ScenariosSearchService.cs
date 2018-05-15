@@ -24,15 +24,22 @@ namespace CalculateFunding.Services.Scenarios
         private readonly ILogger _logger;
         private readonly ISearchRepository<ScenarioIndex> _searchRepository;
         private readonly IScenariosRepository _scenariosRepository;
+        private readonly ISpecificationsRepository _specificationsRepository;
 
-        public ScenariosSearchService(ISearchRepository<ScenarioIndex> searchRepository, IScenariosRepository scenariosRepository, ILogger logger)
+        public ScenariosSearchService(
+            ISearchRepository<ScenarioIndex> searchRepository, 
+            IScenariosRepository scenariosRepository, 
+            ISpecificationsRepository specificationsRepository,
+            ILogger logger)
         {
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(scenariosRepository, nameof(scenariosRepository));
+            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _searchRepository = searchRepository;
             _scenariosRepository = scenariosRepository;
+            _specificationsRepository = specificationsRepository;
             _logger = logger;
         }
 
@@ -83,22 +90,35 @@ namespace CalculateFunding.Services.Scenarios
             IEnumerable<DocumentEntity<TestScenario>> testScenarios = await _scenariosRepository.GetAllTestScenarios();
             List<ScenarioIndex> testScenarioIndexes = new List<ScenarioIndex>();
 
+            Dictionary<string, Models.Specs.SpecificationSummary> specifications = new Dictionary<string, Models.Specs.SpecificationSummary>();
+
             foreach (DocumentEntity<TestScenario> entity in testScenarios)
             {
                 TestScenario testScenario = entity.Content;
+
+                Models.Specs.SpecificationSummary specificationSummary = null;
+                if (!specifications.ContainsKey(testScenario.SpecificationId))
+                {
+                    specificationSummary = await  _specificationsRepository.GetSpecificationSummaryById(testScenario.SpecificationId);
+                    specifications.Add(testScenario.SpecificationId, specificationSummary);
+                }
+                else
+                {
+                    specificationSummary = specifications[testScenario.SpecificationId];
+                }
 
                 testScenarioIndexes.Add(new ScenarioIndex()
                 {
                     Id = testScenario.Id,
                     Name = testScenario.Name,
-                    Description = testScenario.Description,
+                    Description = testScenario.Current.Description,
                     LastUpdatedDate = entity.UpdatedAt,
-                    FundingStreamIds = testScenario?.FundingStreams.Select(s=>s.Id).ToArray(),
-                    FundingStreamNames = testScenario?.FundingStreams.Select(s => s.Name).ToArray(),
-                    FundingPeriodId = testScenario?.FundingPeriod.Id,
-                    FundingPeriodName = testScenario?.FundingPeriod.Name,
-                    SpecificationId = testScenario.Specification.Id,
-                    SpecificationName = testScenario.Specification.Name,
+                    FundingStreamIds = testScenario.Current?.FundingStreamIds.ToArray(),
+                    FundingStreamNames = specificationSummary.FundingStreams.Select(s => s.Name).ToArray(),
+                    FundingPeriodId = testScenario.Current?.FundingPeriodId,
+                    FundingPeriodName = specificationSummary.FundingPeriod.Name,
+                    SpecificationId = testScenario.SpecificationId,
+                    SpecificationName = specificationSummary.Name,
                     Status = Enum.GetName(typeof(PublishStatus), testScenario.Current.PublishStatus),
                 });
             }

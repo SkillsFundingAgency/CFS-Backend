@@ -141,13 +141,7 @@ Feature:
 		        Id = "1234",
 		        Name = "Test",
 		        TargetLanguage = TargetLanguage.VisualBasic,
-		        Specification = new SpecificationSummary
-		        {
-		            Id = "1234",
-		            Name = "Test",
-		            FundingStreams = new List<Reference>() { new Reference("tst", "test"), },
-		            FundingPeriod = new Reference("tst", "test")
-		        },
+		        SpecificationId = "1234",
 		        Calculations = new List<Calculation>()
 		        {
 		            new Calculation{ Id="1234", Name = "Get Me A Dataset!", Current = new CalculationVersion{ SourceCode = "Return Datasets.ThisYear.NORPrimary + Datasets.LastYear.NORPrimary"}},

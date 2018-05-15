@@ -124,7 +124,18 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            CalculationService service = CreateCalculationService(calculationsRepository: repository, logger: logger, searchRepository: searchRepository);
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            CalculationService service = CreateCalculationService(calculationsRepository: repository, logger: logger, searchRepository: searchRepository, specificationRepository: specificationRepository);
 
             //Act
             await service.CreateCalculation(message);
@@ -176,15 +187,27 @@ namespace CalculateFunding.Services.Calcs.Services
             repository
                 .CreateDraftCalculation(Arg.Any<Calculation>())
                 .Returns(HttpStatusCode.Created);
+
             repository
                 .GetCalculationsBySpecificationId(Arg.Is("any-spec-id"))
                 .Returns(calculations);
+
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
 
             ILogger logger = CreateLogger();
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            CalculationService service = CreateCalculationService(calculationsRepository: repository, logger: logger, searchRepository: searchRepository);
+            CalculationService service = CreateCalculationService(calculationsRepository: repository, logger: logger, searchRepository: searchRepository, specificationRepository: specificationRepository);
 
             //Act
             await service.CreateCalculation(message);
@@ -531,10 +554,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             Calculation calculation = new Calculation
             {
-                Specification = new Models.Results.SpecificationSummary
-                {
-                    Id = "spec-id"
-                },
+                SpecificationId =  "spec-id",
                 Current = new CalculationVersion
                 {
                     Author = new Reference(UserId, Username),
@@ -719,8 +739,23 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
-            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
+                calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, 
+                searchRepository: searchRepository,
+                specificationRepository: specificationRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -830,9 +865,23 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
-            CalculationService service = CreateCalculationService(logger: logger,
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
                 calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
+                buildProjectsRepository: buildProjectsRepository, 
+                searchRepository: searchRepository,
+                specificationRepository: specificationRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -892,9 +941,23 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
-            CalculationService service = CreateCalculationService(logger: logger,
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
                 calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
+                buildProjectsRepository: buildProjectsRepository, 
+                searchRepository: searchRepository,
+                specificationRepository: specificationRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -906,7 +969,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Warning(Arg.Is($"Build project for specification {calculation.Specification.Id} could not be found, creating a new one"));
+                .Warning(Arg.Is($"Build project for specification {calculation.SpecificationId} could not be found, creating a new one"));
 
             await
                 buildProjectsRepository
@@ -962,9 +1025,23 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
-            CalculationService service = CreateCalculationService(logger: logger,
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
                 calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
+                buildProjectsRepository: buildProjectsRepository, 
+                searchRepository: searchRepository,
+                specificationRepository: specificationRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -976,7 +1053,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Warning(Arg.Is($"Build project for specification {calculation.Specification.Id} could not be found, creating a new one"));
+                .Warning(Arg.Is($"Build project for specification {calculation.SpecificationId} could not be found, creating a new one"));
 
             await
                 buildProjectsRepository
@@ -1040,9 +1117,23 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
             CalculationService service = CreateCalculationService(
-                logger: logger, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
+                logger: logger, 
+                calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, 
+                searchRepository: searchRepository,
+                specificationRepository: specificationRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1054,7 +1145,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Warning(Arg.Is($"Build project for specification {calculation.Specification.Id} could not be found, creating a new one"));
+                .Warning(Arg.Is($"Build project for specification {calculation.SpecificationId} could not be found, creating a new one"));
         }
 
         [TestMethod]
@@ -1085,7 +1176,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Calculation calculation = CreateCalculation();
             calculation.BuildProjectId = buildProjectId;
-            calculation.Specification.Id = specificationId;
+            calculation.SpecificationId = specificationId;
             calculation.CalculationSpecification.Id = specCalculation.Id;
             calculation.CalculationSpecification.Name = specCalculation.Name;
 
@@ -1135,6 +1226,16 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationSpecificationsForSpecification(specificationId)
                 .Returns(specCalculations.AsEnumerable());
 
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
             CalculationIndex calcIndex = new CalculationIndex();
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
@@ -1166,7 +1267,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Warning(Arg.Is($"Build project for specification {calculation.Specification.Id} could not be found, creating a new one"));
+                .Warning(Arg.Is($"Build project for specification {calculation.SpecificationId} could not be found, creating a new one"));
 
             sourceFileGenerator
                 .Received()
@@ -1210,7 +1311,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Calculation calculation = CreateCalculation();
             calculation.BuildProjectId = buildProjectId;
-            calculation.Specification.Id = specificationId;
+            calculation.SpecificationId = specificationId;
             calculation.CalculationSpecification.Id = specCalculation1.Id;
             calculation.CalculationSpecification.Name = specCalculation1.Name;
 
@@ -1219,7 +1320,7 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation2 = CreateCalculation();
             calculation2.Id = "12555";
             calculation2.BuildProjectId = buildProjectId;
-            calculation2.Specification.Id = specificationId;
+            calculation2.SpecificationId = specificationId;
             calculation2.CalculationSpecification.Id = specCalculation2.Id;
             calculation2.CalculationSpecification.Name = specCalculation2.Name;
 
@@ -1269,6 +1370,16 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationSpecificationsForSpecification(specificationId)
                 .Returns(specCalculations.AsEnumerable());
 
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
             CalculationIndex calcIndex = new CalculationIndex();
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
@@ -1300,7 +1411,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Warning(Arg.Is($"Build project for specification {calculation.Specification.Id} could not be found, creating a new one"));
+                .Warning(Arg.Is($"Build project for specification {calculation.SpecificationId} could not be found, creating a new one"));
 
             sourceFileGenerator
                 .Received()
@@ -1366,9 +1477,23 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
-            CalculationService service = CreateCalculationService(logger: logger,
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
                 calculationsRepository: calculationsRepository,
-               buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
+               buildProjectsRepository: buildProjectsRepository, 
+               searchRepository: searchRepository,
+               specificationRepository: specificationRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1380,7 +1505,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Warning(Arg.Is($"Build project for specification {calculation.Specification.Id} could not be found, creating a new one"));
+                .Warning(Arg.Is($"Build project for specification {calculation.SpecificationId} could not be found, creating a new one"));
         }
 
         [TestMethod]
@@ -1437,9 +1562,22 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns((CalculationIndex)null);
 
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
             CalculationService service = CreateCalculationService(logger: logger,
                 calculationsRepository: calculationsRepository,
-               buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
+               buildProjectsRepository: buildProjectsRepository, 
+               searchRepository: searchRepository,
+               specificationRepository: specificationRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1512,9 +1650,23 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
-            CalculationService service = CreateCalculationService(logger: logger,
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
                 calculationsRepository: calculationsRepository,
-               buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
+               buildProjectsRepository: buildProjectsRepository, 
+               searchRepository: searchRepository,
+               specificationRepository: specificationRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1552,10 +1704,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Calculation calculation = CreateCalculation();
             calculation.BuildProjectId = buildProjectId;
-            calculation.Specification = new SpecificationSummary
-            {
-                Id = specificationId
-            };
+            calculation.SpecificationId = specificationId;
+
             calculation.Current.PublishStatus = PublishStatus.Updated;
 
             SaveSourceCodeVersion model = new SaveSourceCodeVersion
@@ -1602,9 +1752,24 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            CalculationService service = CreateCalculationService(logger: logger,
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
                 calculationsRepository: calculationsRepository,
-               buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository, messengerService: messengerService);
+               buildProjectsRepository: buildProjectsRepository, 
+               searchRepository: searchRepository, 
+               messengerService: messengerService,
+               specificationRepository: specificationRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1774,7 +1939,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task PublishCalculationVersion_GivenCalculationIsDraftButNoBuildProjectIdFound_PublishesAndCreratesBuildProjectIdReturnsOKResulkt()
+        async public Task PublishCalculationVersion_GivenCalculationIsDraftButNoBuildProjectIdFound_PublishesAndCreratesBuildProjectIdReturnsOKResult()
         {
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();
@@ -1799,7 +1964,18 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns(calculation);
 
-            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository);
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, specificationRepository: specificationRepository);
 
             //Act
             IActionResult result = await service.PublishCalculationVersion(request);
@@ -1811,7 +1987,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Warning(Arg.Is($"Build project for specification {calculation.Specification.Id} could not be found, creating a new one"));
+                .Warning(Arg.Is($"Build project for specification {calculation.SpecificationId} could not be found, creating a new one"));
         }
 
         static CalculationService CreateCalculationService(
@@ -1923,11 +2099,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "any-calc-id",
                     Name = "Test Calc Name",
                 },
-                Specification = new Models.Results.SpecificationSummary
-                {
-                    Id = "any-spec-id",
-                    Name = "Test Spec Name",
-                },
+                SpecificationId = "any-spec-id",
                 FundingPeriod = new Reference
                 {
                     Id = "18/19",

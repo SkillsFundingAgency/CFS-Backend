@@ -120,7 +120,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             }
 
             Stopwatch specificationLookupStopwatch = Stopwatch.StartNew();
-            Specification specification = await _specificationRepositoryPolicy.ExecuteAsync(() => _specificationRepository.GetSpecificationById(specificationId));
+            SpecificationSummary specification = await _specificationRepositoryPolicy.ExecuteAsync(() => _specificationRepository.GetSpecificationSummaryById(specificationId));
             specificationLookupStopwatch.Stop();
 
             if (specification == null)
@@ -211,7 +211,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return new BadRequestObjectResult("Null build project provided");
             }
 
-            string specificationId = buildProject.Specification.Id;
+            string specificationId = buildProject.SpecificationId;
 
             IEnumerable<ProviderResult> providerResults = testExecutionModel.ProviderResults;
            
@@ -229,7 +229,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return new StatusCodeResult(412);
             }
 
-            Specification specification = await _specificationRepository.GetSpecificationById(specificationId);
+            SpecificationSummary specification = await _specificationRepository.GetSpecificationSummaryById(specificationId);
 
             if (specification == null)
             {

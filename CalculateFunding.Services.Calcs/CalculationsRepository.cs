@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Calcs
 
 	    public Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId)
 	    {
-		    var calculations = _cosmosRepository.Query<Calculation>().Where(x => x.Specification.Id == specificationId);
+		    var calculations = _cosmosRepository.Query<Calculation>().Where(x => x.SpecificationId == specificationId);
 
 		    return Task.FromResult(calculations.AsEnumerable());
 	    }

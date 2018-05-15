@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calculator.Interfaces;
@@ -15,33 +16,55 @@ namespace CalculateFunding.Services.Calculator
     {
         private readonly CosmosRepository _cosmosRepository;
         private readonly ISearchRepository<CalculationProviderResultsIndex> _searchRepository;
+        private readonly ISpecificationsRepository _specificationsRepository;
         private readonly ILogger _logger;
 
-        public ProviderResultsRepository(CosmosRepository cosmosRepository, 
-            ISearchRepository<CalculationProviderResultsIndex> searchRepository, ILogger logger)
+        public ProviderResultsRepository(
+            CosmosRepository cosmosRepository,
+            ISearchRepository<CalculationProviderResultsIndex> searchRepository, 
+            ISpecificationsRepository specificationsRepository,
+            ILogger logger)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
+            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _cosmosRepository = cosmosRepository;
             _searchRepository = searchRepository;
+            _specificationsRepository = specificationsRepository;
             _logger = logger;
         }
+
 
         public async Task SaveProviderResults(IEnumerable<ProviderResult> providerResults, int degreeOfParallelism = 5)
         {
             IEnumerable<KeyValuePair<string, ProviderResult>> results = providerResults.Select(m => new KeyValuePair<string, ProviderResult>(m.Provider.Id, m));
 
+            IEnumerable<string> specificationIds = providerResults.Select(s => s.SpecificationId).Distinct();
+
+            Dictionary<string, SpecificationSummary> specifications = new Dictionary<string, SpecificationSummary>();
+
+            foreach(string specificationId in specificationIds)
+            {
+                SpecificationSummary specification = await _specificationsRepository.GetSpecificationSummaryById(specificationId);
+                if(specification == null)
+                {
+                    throw new InvalidOperationException($"Result for Specification Summary lookup was null with ID '{specificationId}'");
+                }
+
+                specifications.Add(specificationId, specification);
+            }
+
             await TaskHelper.WhenAllAndThrow(
-                _cosmosRepository.BulkCreateAsync(results, degreeOfParallelism), UpdateSearch(providerResults));
+                _cosmosRepository.BulkCreateAsync(results, degreeOfParallelism), UpdateSearch(providerResults, specifications));
         }
 
-        async Task UpdateSearch(IEnumerable<ProviderResult> providerResults)
+        async Task UpdateSearch(IEnumerable<ProviderResult> providerResults, IDictionary<string, SpecificationSummary> specifications)
         {
             IList<CalculationProviderResultsIndex> results = new List<CalculationProviderResultsIndex>();
 
-            foreach(ProviderResult providerResult in providerResults)
+            foreach (ProviderResult providerResult in providerResults)
             {
                 if (!providerResult.CalculationResults.IsNullOrEmpty())
                 {
@@ -49,10 +72,12 @@ namespace CalculateFunding.Services.Calculator
                     {
                         if (calculationResult.Value.HasValue)
                         {
+                            SpecificationSummary specification = specifications[providerResult.SpecificationId];
+
                             results.Add(new CalculationProviderResultsIndex
                             {
-                                SpecificationId = providerResult.Specification?.Id,
-                                SpecificationName = providerResult.Specification?.Name,
+                                SpecificationId = providerResult.SpecificationId,
+                                SpecificationName = specification?.Name,
                                 CalculationSpecificationId = calculationResult.CalculationSpecification?.Id,
                                 CalculationSpecificationName = calculationResult.CalculationSpecification?.Name,
                                 CalculationName = calculationResult.Calculation?.Name,

@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.Scenarios
 {
     public class SpecificationsRepository : ISpecificationsRepository
     {
-        const string specsUrl = "specs/specification-by-id?specificationId=";
+        const string specsUrl = "specs/specification-summary-by-id?specificationId=";
 
         private readonly IApiClientProxy _apiClient;
 
@@ -20,14 +20,14 @@ namespace CalculateFunding.Services.Scenarios
             _apiClient = apiClient;
         }
 
-        public Task<Specification> GetSpecificationById(string specificationId)
+        public Task<SpecificationSummary> GetSpecificationSummaryById(string specificationId)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
                 throw new ArgumentNullException(nameof(specificationId));
 
             string url = $"{specsUrl}{specificationId}";
 
-            return _apiClient.GetAsync<Specification>(url);
+            return _apiClient.GetAsync<SpecificationSummary>(url);
         }
     }
 }

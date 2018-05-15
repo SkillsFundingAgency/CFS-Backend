@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.TestRunner
             StepsAction = stepsActions.Select(x => x.GetType()).Where(x => x.GetCustomAttribute<TestStepAttribute>() != null).ToList();
         }
 
-        public IEnumerable<GherkinError> Validate(Step step, Specification specification,
+        public IEnumerable<GherkinError> Validate(Step step, SpecificationCurrentVersion specification,
             List<DefinitionSpecificationRelationship> dataRelationships,
             List<DatasetDefinition> dataDefinitions)
         {
@@ -73,7 +73,6 @@ namespace CalculateFunding.Services.TestRunner
                         }
                     }
                 }
-
             }
         }
 
@@ -91,7 +90,7 @@ namespace CalculateFunding.Services.TestRunner
             return datasets.Any();
         }
 
-        private bool ValidateCalculation(string argument, Specification specification)
+        private bool ValidateCalculation(string argument, SpecificationCurrentVersion specification)
         {
             return specification.GetCalculations().SingleOrDefault(x => x.Name == argument) != null;
         }

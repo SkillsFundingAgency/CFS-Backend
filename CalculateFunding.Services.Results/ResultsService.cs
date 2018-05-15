@@ -19,6 +19,7 @@ using Newtonsoft.Json;
 using Serilog;
 using CalculateFunding.Repositories.Common.Cosmos;
 using Polly;
+using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Services.Results
 {
@@ -33,11 +34,13 @@ namespace CalculateFunding.Services.Results
         private readonly ServiceBusSettings _eventHubSettings;
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
         private readonly ISearchRepository<CalculationProviderResultsIndex> _calculationProviderResultsSearchRepository;
-        private readonly Policy _resultsRepositoryPolicy;
-        private readonly Policy _resultsSearchRepositoryPolicy;
+        private readonly Polly.Policy _resultsRepositoryPolicy;
+        private readonly ISpecificationsRepository _specificationsRepository;
+        private readonly Polly.Policy _resultsSearchRepositoryPolicy;
+        private readonly Polly.Policy _specificationsRepositoryPolicy;
 
         const string ProcessDatasetSubscription = "dataset-events-datasets";
-       
+
         public ResultsService(ILogger logger,
             ICalculationResultsRepository resultsRepository,
             IMapper mapper,
@@ -47,6 +50,7 @@ namespace CalculateFunding.Services.Results
             ITelemetry telemetry,
             IProviderSourceDatasetRepository providerSourceDatasetRepository,
             ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository,
+            ISpecificationsRepository specificationsRepository,
             IResultsResilliencePolicies resiliencePolicies)
         {
             _logger = logger;
@@ -59,7 +63,9 @@ namespace CalculateFunding.Services.Results
             _providerSourceDatasetRepository = providerSourceDatasetRepository;
             _calculationProviderResultsSearchRepository = calculationProviderResultsSearchRepository;
             _resultsRepositoryPolicy = resiliencePolicies.ResultsRepository;
+            _specificationsRepository = specificationsRepository;
             _resultsSearchRepositoryPolicy = resiliencePolicies.ResultsSearchRepository;
+            _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsRepository;
         }
 
         public async Task UpdateProviderData(Message message)
@@ -180,20 +186,23 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty provider Id provided");
             }
 
+            // Returns distinct specificationIds where there are results for this provider
+            List<string> result = new List<string>();
+
             IEnumerable<ProviderResult> providerResults = (await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetSpecificationResults(providerId))).ToList();
 
             if (!providerResults.IsNullOrEmpty())
             {
-                _logger.Information($"A results was found for provider id {providerId}");
+                _logger.Information($"Results was found for provider id {providerId}");
 
-                var specs = providerResults.Where(m => m.Specification != null).Select(m => m.Specification).DistinctBy(m => m.Id).ToList();
-
-                return new OkObjectResult(specs);
+                result.AddRange(providerResults.Where(m => !string.IsNullOrWhiteSpace(m.SpecificationId)).Select(s => s.SpecificationId).Distinct());
+            }
+            else
+            {
+                _logger.Information($"Results were not found for provider id '{providerId}'");
             }
 
-            _logger.Information($"Results were not found for provider id {providerId}");
-
-            return new OkObjectResult(Enumerable.Empty<SpecificationSummary>());
+            return new OkObjectResult(result);
 
         }
 
@@ -276,6 +285,8 @@ namespace CalculateFunding.Services.Results
 
             IList<CalculationProviderResultsIndex> searchItems = new List<CalculationProviderResultsIndex>();
 
+            Dictionary<string, SpecificationSummary> specifications = new Dictionary<string, SpecificationSummary>();
+
             foreach (DocumentEntity<ProviderResult> documentEnity in providerResults)
             {
                 ProviderResult providerResult = documentEnity.Content;
@@ -284,10 +295,26 @@ namespace CalculateFunding.Services.Results
                 {
                     if (calculationResult.Value.HasValue)
                     {
+                        SpecificationSummary specificationSummary = null;
+                        if (!specifications.ContainsKey(providerResult.SpecificationId))
+                        {
+                            specificationSummary = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetSpecificationSummaryById(providerResult.SpecificationId));
+                            if(specificationSummary == null)
+                            {
+                                throw new InvalidOperationException($"Specification Summary returned null for specification ID '{providerResult.SpecificationId}'");
+                            }
+
+                            specifications.Add(providerResult.SpecificationId, specificationSummary);
+                        }
+                        else
+                        {
+                            specificationSummary = specifications[providerResult.SpecificationId];
+                        }
+
                         searchItems.Add(new CalculationProviderResultsIndex
                         {
-                            SpecificationId = providerResult.Specification.Id,
-                            SpecificationName = providerResult.Specification.Name,
+                            SpecificationId = providerResult.SpecificationId,
+                            SpecificationName = specificationSummary?.Name,
                             CalculationSpecificationId = calculationResult.CalculationSpecification.Id,
                             CalculationSpecificationName = calculationResult.CalculationSpecification.Name,
                             CalculationName = calculationResult.Calculation.Name,

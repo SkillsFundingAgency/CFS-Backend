@@ -113,8 +113,8 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationById(Arg.Is(specificationId))
-                .Returns((Specification)null);
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns((SpecificationSummary)null);
 
             ScenariosService service = CreateScenariosService(logger: logger, specificationsRepository: specificationsRepository);
 
@@ -156,7 +156,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            Specification specification = new Specification
+            SpecificationSummary specification = new SpecificationSummary
             {
                 Id = specificationId,
                 FundingStreams = new List<Reference>()
@@ -168,7 +168,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationById(Arg.Is(specificationId))
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(specification);
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
@@ -176,8 +176,10 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .SaveTestScenario(Arg.Any<TestScenario>())
                 .Returns(HttpStatusCode.InternalServerError);
 
-            ScenariosService service = CreateScenariosService(logger: logger, 
-                specificationsRepository: specificationsRepository, scenariosRepository: scenariosRepository);
+            ScenariosService service = CreateScenariosService(
+                logger: logger, 
+                specificationsRepository: specificationsRepository, 
+                scenariosRepository: scenariosRepository);
 
             //Act
             IActionResult result = await service.SaveVersion(request);
@@ -216,7 +218,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            Specification specification = new Specification
+            SpecificationSummary specification = new SpecificationSummary
             {
                 Id = specificationId,
                 FundingStreams = new List<Reference>()
@@ -228,7 +230,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationById(Arg.Is(specificationId))
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(specification);
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
@@ -300,7 +302,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            Specification specification = new Specification
+            SpecificationSummary specification = new SpecificationSummary
             {
                 Id = specificationId,
                 FundingStreams = new List<Reference>()
@@ -313,19 +315,15 @@ namespace CalculateFunding.Services.Scenarios.Services
             TestScenario testScenario = new TestScenario
             {
                 Id = scenarioid,
-                Specification = new SpecificationSummary
-                {
-                    FundingStreams = specification.FundingStreams,
-                    FundingPeriod = specification.FundingPeriod,
-                    Id = specificationId,
-                    Name = "spec name"
-                },
+                SpecificationId =  specificationId,
                 Name = name,
-                Description = description,
-                FundingStreams = specification.FundingStreams,
-                FundingPeriod = specification.FundingPeriod,
                 History = new List<TestScenarioVersion>(),
                 Current = new TestScenarioVersion()
+                {
+                    Description = description,
+                    FundingStreamIds = specification.FundingStreams.Select(s=>s.Id),
+                    FundingPeriodId = specification.FundingPeriod.Id,
+                }
             };
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
@@ -339,9 +337,15 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
 
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns(specification);
+
             ScenariosService service = CreateScenariosService(logger: logger,
                 scenariosRepository: scenariosRepository,
-                searchRepository: searchrepository);
+                searchRepository: searchrepository,
+                specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.SaveVersion(request);
@@ -369,7 +373,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         }
 
         [TestMethod]
-        async public Task SaveVersion_GivenScenarioAndGherkinIsUnchanged_DoesaNotCreateNewVersion()
+        async public Task SaveVersion_GivenScenarioAndGherkinIsUnchanged_DoesNotCreateNewVersion()
         {
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
@@ -386,7 +390,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            Specification specification = new Specification
+            SpecificationSummary specification = new SpecificationSummary
             {
                 Id = specificationId,
                 FundingStreams = new List<Reference>()
@@ -398,23 +402,17 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             TestScenarioVersion testScenarioVersion = new TestScenarioVersion
             {
-                Gherkin = "scenario"
+                Gherkin = "scenario",
+                Description = description,
+                FundingStreamIds = specification.FundingStreams.Select(s=>s.Id),
+                FundingPeriodId = specification.FundingPeriod.Id,
             };
 
             TestScenario testScenario = new TestScenario
             {
                 Id = scenarioid,
-                Specification = new SpecificationSummary
-                {
-                    FundingStreams = specification.FundingStreams,
-                    FundingPeriod = specification.FundingPeriod,
-                    Id = specificationId,
-                    Name = "spec name"
-                },
+                SpecificationId = specificationId,
                 Name = name,
-                Description = description,
-                FundingStreams = specification.FundingStreams,
-                FundingPeriod = specification.FundingPeriod,
                 History = new List<TestScenarioVersion>
                 {
                     testScenarioVersion
@@ -433,9 +431,15 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
 
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationSummaryById(Arg.Is(specification.Id))
+                .Returns(specification);
+
             ScenariosService service = CreateScenariosService(logger: logger,
                 scenariosRepository: scenariosRepository,
-                searchRepository: searchrepository);
+                searchRepository: searchrepository,
+                specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.SaveVersion(request);

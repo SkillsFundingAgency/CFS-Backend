@@ -81,7 +81,7 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(412);
             }
 
-            Specification specification = await _specificationsRepository.GetSpecificationById(model.SpecificationId);
+            SpecificationSummary specification = await _specificationsRepository.GetSpecificationSummaryById(model.SpecificationId);
 
             if(specification == null)
             {
@@ -305,7 +305,7 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult($"Null or empty {nameof(specificationId)} provided");
             }
 
-            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+            SpecificationSummary specification = await _specificationsRepository.GetSpecificationSummaryById(specificationId);
 
             if (specification == null)
             {

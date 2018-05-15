@@ -4,6 +4,7 @@ using System;
 using System.Linq.Expressions;
 using System.Collections.Generic;
 using System.Net;
+using CalculateFunding.Repositories.Common.Cosmos;
 
 namespace CalculateFunding.Services.Specs.Interfaces
 {
@@ -13,6 +14,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId);
         Task<FundingStream> GetFundingStreamById(string fundingStreamId);
         Task<Specification> GetSpecificationById(string specificationId);
+        Task<DocumentEntity<Specification>> GetSpecificationDocumentEntityById(string specificationId);
         Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query = null);
         Task<IEnumerable<Specification>> GetSpecifications();
         Task<IEnumerable<FundingPeriod>> GetFundingPeriods();

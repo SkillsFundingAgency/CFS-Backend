@@ -240,11 +240,17 @@ namespace CalculateFunding.Services.Scenarios.Services
 
         }
 
-        static ScenariosSearchService CreateSearchService(ISearchRepository<ScenarioIndex> searchRepository = null,
+        static ScenariosSearchService CreateSearchService(
+            ISearchRepository<ScenarioIndex> searchRepository = null,
             IScenariosRepository scenariosRepository = null,
+            ISpecificationsRepository specificationsRepository = null,
             ILogger logger = null)
         {
-            return new ScenariosSearchService(searchRepository ?? CreateSearchRepository(), scenariosRepository ?? CreateScenariosRepository(), logger ?? CreateLogger());
+            return new ScenariosSearchService(
+                searchRepository ?? CreateSearchRepository(), 
+                scenariosRepository ?? CreateScenariosRepository(), 
+                 specificationsRepository ?? CreateSpecificationsRepository(),
+                logger ?? CreateLogger());
         }
 
         static ISearchRepository<ScenarioIndex> CreateSearchRepository()
@@ -255,6 +261,11 @@ namespace CalculateFunding.Services.Scenarios.Services
         static IScenariosRepository CreateScenariosRepository()
         {
             return Substitute.For<IScenariosRepository>();
+        }
+
+        static ISpecificationsRepository CreateSpecificationsRepository()
+        {
+            return Substitute.For<ISpecificationsRepository>();
         }
 
         static ILogger CreateLogger()

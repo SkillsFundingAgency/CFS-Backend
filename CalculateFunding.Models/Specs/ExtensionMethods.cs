@@ -11,7 +11,7 @@ namespace CalculateFunding.Models.Specs
             return policy.SubPolicies?.FirstOrDefault(x => x.GetPolicy(id) != null);
         }
 
-        public static Policy GetPolicy(this Specification specification, string id)
+        public static Policy GetPolicy(this SpecificationVersion specification, string id)
         {
             foreach (Policy policy in specification.Policies)
             {
@@ -36,12 +36,27 @@ namespace CalculateFunding.Models.Specs
             return policy.SubPolicies?.FirstOrDefault(x => x.GetPolicyByName(name) != null);
         }
 
-        public static Policy GetPolicyByName(this Specification specification, string name)
+        public static Policy GetPolicyByName(this SpecificationVersion specification, string name)
         {
             return specification.Policies?.FirstOrDefault(x => x.GetPolicyByName(name) != null);
         }
 
-        public static IEnumerable<Calculation> GetCalculations(this Specification specification)
+        public static IEnumerable<Calculation> GetCalculations(this SpecificationVersion specification)
+        {
+            if (specification.Policies != null)
+            {
+                foreach (var policy in specification.Policies)
+                {
+                    foreach (var calculationSpecification in policy.GetCalculations())
+                    {
+                        yield return calculationSpecification;
+                    }
+
+                }
+            }
+        }
+
+        public static IEnumerable<Calculation> GetCalculations(this SpecificationCurrentVersion specification)
         {
             if (specification.Policies != null)
             {
@@ -87,7 +102,7 @@ namespace CalculateFunding.Models.Specs
             return policy.Calculations?.FirstOrDefault(x => x.Name == name);
         }
 
-        public static IEnumerable<Calcs.Calculation> GenerateCalculations(this Specification specification)
+        public static IEnumerable<Calcs.Calculation> GenerateCalculations(this SpecificationVersion specification)
         {
             foreach (var subPolicy in specification.Policies)
             {
@@ -98,7 +113,7 @@ namespace CalculateFunding.Models.Specs
             }
         }
 
-        public static IEnumerable<Calcs.Calculation> GenerateCalculations(this Policy policy, Specification specification, List<Reference> parentPolicySpecifications = null)
+        public static IEnumerable<Calcs.Calculation> GenerateCalculations(this Policy policy, SpecificationVersion specification, List<Reference> parentPolicySpecifications = null)
         {
             var policies = (parentPolicySpecifications ?? new List<Reference>()).Concat(new[] { policy.GetReference() }).ToList();
             if (policy.Calculations != null)

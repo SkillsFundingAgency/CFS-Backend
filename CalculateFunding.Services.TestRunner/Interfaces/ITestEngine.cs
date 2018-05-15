@@ -10,6 +10,6 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
     public interface ITestEngine
     {
         Task<IEnumerable<TestScenarioResult>> RunTests(IEnumerable<TestScenario> testScenarios, IEnumerable<ProviderResult> providerResults,
-             IEnumerable<ProviderSourceDataset> sourceDatasets, IEnumerable<TestScenarioResult> currentResults, Specification specification, BuildProject buildProject);
+             IEnumerable<ProviderSourceDataset> sourceDatasets, IEnumerable<TestScenarioResult> currentResults, SpecificationSummary specification, BuildProject buildProject);
     }
 }

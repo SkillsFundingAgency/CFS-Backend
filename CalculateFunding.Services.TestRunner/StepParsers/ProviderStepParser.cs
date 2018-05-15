@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
 
             string providerId = matches[7];
 
-            ProviderResult providerResult = await _providerResultsRepositoryPolicy.ExecuteAsync(() => _providerResultsRepository.GetProviderResultByProviderIdAndSpecificationId(providerId, buildProject.Specification.Id));
+            ProviderResult providerResult = await _providerResultsRepositoryPolicy.ExecuteAsync(() => _providerResultsRepository.GetProviderResultByProviderIdAndSpecificationId(providerId, buildProject.SpecificationId));
             if (providerResult == null)
             {
                 parseResult.AddError($"Provider results for provider id : '{providerId}' could not be found", step.Location.Line, step.Location.Column);

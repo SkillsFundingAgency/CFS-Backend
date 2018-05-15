@@ -347,7 +347,7 @@ namespace CalculateFunding.Services.Datasets
                 _telemetry.TrackEvent("InstructCalculationAllocationEventRun",
                       new Dictionary<string, string>()
                       {
-                            { "specificationId" , buildProject.Specification.Id },
+                            { "specificationId" , buildProject.SpecificationId },
                             { "buildProjectId" , buildProject.Id },
                             { "datasetId", dataset.Id }
                       },
@@ -429,7 +429,7 @@ namespace CalculateFunding.Services.Datasets
                 _telemetry.TrackEvent("InstructCalculationAllocationEventRun",
                       new Dictionary<string, string>()
                       {
-                            { "specificationId" , buildProject.Specification.Id },
+                            { "specificationId" , buildProject.SpecificationId },
                             { "buildProjectId" , buildProject.Id },
                             { "datasetId", dataset.Id }
                       },

@@ -28,6 +28,42 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _specService.GetSpecificationById(ControllerContext.HttpContext.Request);
         }
 
+        [Route("api/specs/specification-summary-by-id")]
+        [HttpGet]
+        public Task<IActionResult> RunGetSpecificationSummaryById()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specService.GetSpecificationSummaryById(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/specs/specification-summaries-by-ids")]
+        [HttpPost]
+        public Task<IActionResult> RunGetSpecificationSummariesByIds()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specService.GetSpecificationSummariesByIds(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/specs/specification-summaries")]
+        [HttpGet]
+        public Task<IActionResult> RunGetSpecificationSummaries()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specService.GetSpecificationSummaries(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/specs/specification-current-version-by-id")]
+        [HttpGet]
+        public Task<IActionResult> RunGetCurrentSpecificationById()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specService.GetCurrentSpecificationById(ControllerContext.HttpContext.Request);
+        }
+
         [Route("api/specs/specifications")]
         [HttpGet]
         public Task<IActionResult> RunGetSpecifications()

@@ -96,47 +96,10 @@ namespace CalculateFunding.Services.Calcs
                 throw new ArgumentNullException(nameof(buildProject));
             }
 
-            string specificationId = null;
-
-            if (buildProject.Specification == null)
+            string specificationId = buildProject.SpecificationId;
+            if (string.IsNullOrWhiteSpace(specificationId))
             {
-                if (!message.UserProperties.ContainsKey("specification-id"))
-                {
-                    _logger.Error("Specification id key not found in message properties");
-
-                    throw new KeyNotFoundException("Specification id key not found in message properties");
-                }
-
-                specificationId = message.UserProperties["specification-id"].ToString();
-
-                if (string.IsNullOrWhiteSpace(specificationId))
-                {
-                    _logger.Error($"Message does not contain a specification id");
-
-                    throw new ArgumentNullException(nameof(specificationId));
-                }
-
-                Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
-
-                if (specification == null)
-                {
-                    _logger.Error($"Failed to find specification for specification id: {specificationId}");
-
-                    throw new ArgumentException(nameof(specification));
-                }
-
-                HttpStatusCode statusCode = await UpdateBuildProject(buildProject, specification);
-
-                if (!statusCode.IsSuccess())
-                {
-                    _logger.Error($"Failed to update build project with build project id: {buildProject.Id} with status code: {statusCode.ToString()}");
-
-                    throw new Exception($"Failed to update build project with build project id: {buildProject.Id} with status code: {statusCode.ToString()}");
-                }
-            }
-            else
-            {
-                specificationId = buildProject.Specification.Id;
+                throw new Exception("Specification was null or empty string");
             }
 
             IDictionary<string, string> properties = message.BuildMessageProperties();
@@ -267,22 +230,14 @@ namespace CalculateFunding.Services.Calcs
 
             if (buildProject == null)
             {
-                Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+                SpecificationSummary specification = await _specificationsRepository.GetSpecificationSummaryById(specificationId);
 
                 if (specification == null)
                 {
                     throw new Exception($"Unable to find specification for specification id: {specificationId}");
                 }
 
-                SpecificationSummary specificationSummary = new SpecificationSummary
-                {
-                    Id = specification.Id,
-                    Name = specification.Name,
-                    FundingStreams = specification.FundingStreams,
-                    FundingPeriod = specification.FundingPeriod
-                };
-
-                buildProject = await _calculationService.CreateBuildProject(specificationSummary, Enumerable.Empty<Models.Calcs.Calculation>());
+                buildProject = await _calculationService.CreateBuildProject(specificationId, Enumerable.Empty<Models.Calcs.Calculation>());
 
                 if (buildProject == null)
                 {
@@ -328,9 +283,17 @@ namespace CalculateFunding.Services.Calcs
 
             if (buildProject == null)
             {
-                _logger.Error($"Failed to find build project for specification id: {specificationId}");
+                SpecificationSummary specificationSummary = await _specificationsRepository.GetSpecificationSummaryById(specificationId);
+                if (specificationSummary == null)
+                {
+                    _logger.Error($"Failed to find build project for specification id: {specificationId}");
 
-                return null;
+                    return null;
+                }
+                else
+                {
+                    buildProject = await _calculationService.CreateBuildProject(specificationSummary.Id, Enumerable.Empty<Models.Calcs.Calculation>());
+                }
             }
 
             if (buildProject.Build == null)
@@ -343,16 +306,8 @@ namespace CalculateFunding.Services.Calcs
             return buildProject;
         }
 
-        Task<HttpStatusCode> UpdateBuildProject(BuildProject buildProject, Specification specification)
+        Task<HttpStatusCode> UpdateBuildProject(BuildProject buildProject)
         {
-            buildProject.Specification = new SpecificationSummary
-            {
-                Id = specification.Id,
-                Name = specification.Name,
-                FundingStreams = specification.FundingStreams,
-                FundingPeriod = specification.FundingPeriod
-            };
-
             return _buildProjectsRepository.UpdateBuildProject(buildProject);
         }
 
