@@ -14,13 +14,12 @@ namespace CalculateFunding.Services.Core.Extensions
             string userId = "8bcd2782-e8cb-4643-8803-951d715fc201";
             string userName = "system";
 
-
-            if (message.UserProperties.ContainsKey("user-id"))
+            if (message.UserProperties.ContainsKey("user-id") && !string.IsNullOrWhiteSpace(message.UserProperties["user-id"].ToString()))
             {
                 userId = message.UserProperties["user-id"].ToString();
             }
 
-            if (message.UserProperties.ContainsKey("user-name"))
+            if (message.UserProperties.ContainsKey("user-name") && !string.IsNullOrWhiteSpace(message.UserProperties["user-name"].ToString()))
             {
                 userName = message.UserProperties["user-name"].ToString();
             }
