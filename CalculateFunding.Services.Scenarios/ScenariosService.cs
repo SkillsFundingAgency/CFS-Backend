@@ -117,8 +117,8 @@ namespace CalculateFunding.Services.Scenarios
             {
                 testScenario.Name = scenarioVersion.Name;
 
-                // TODO - update change detection to include fields moved to version
-                saveAsVersion = string.Equals(scenarioVersion.Scenario, testScenario.Current.Gherkin) == false;
+                saveAsVersion = !string.Equals(scenarioVersion.Scenario, testScenario.Current.Gherkin) ||
+                    scenarioVersion.Description != testScenario.Current.Description;
             }
 
             if (saveAsVersion == true)
@@ -127,7 +127,6 @@ namespace CalculateFunding.Services.Scenarios
 
                 TestScenarioVersion newVersion = new TestScenarioVersion
                 {
-                    Version = GetNextVersionNumberFromCalculationVersions(testScenario.History),
                     Author = user,
                     Gherkin = scenarioVersion.Scenario,
                     Description = scenarioVersion.Description,
@@ -246,16 +245,6 @@ namespace CalculateFunding.Services.Scenarios
             }
 
             return new OkObjectResult(testScenario);
-        }
-
-        int GetNextVersionNumberFromCalculationVersions(IEnumerable<TestScenarioVersion> versions)
-        {
-            if (!versions.Any())
-                return 1;
-
-            int maxVersion = versions.Max(m => m.Version);
-
-            return maxVersion + 1;
         }
 
         IDictionary<string, string> CreateMessageProperties(HttpRequest request)

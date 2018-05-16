@@ -457,6 +457,184 @@ namespace CalculateFunding.Services.Scenarios.Services
         }
 
         [TestMethod]
+        async public Task SaveVersion_GivenScenarioAndGherkinIsChanged_ThenCreatesNewVersion()
+        {
+            //Arrange
+            CreateNewTestScenarioVersion model = CreateModel();
+            model.Id = scenarioid;
+            model.Scenario = "updated gherkin";
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationSummary specification = new SpecificationSummary
+            {
+                Id = specificationId,
+                FundingStreams = new List<Reference>()
+                {
+                    new Reference("fs-id", "fs-name"),
+                },
+                FundingPeriod = new Reference("period-id", "period name")
+            };
+
+            TestScenarioVersion testScenarioVersion = new TestScenarioVersion
+            {
+                Gherkin = "scenario",
+                Description = description,
+                FundingStreamIds = specification.FundingStreams.Select(s => s.Id),
+                FundingPeriodId = specification.FundingPeriod.Id,
+            };
+
+            TestScenario testScenario = new TestScenario
+            {
+                Id = scenarioid,
+                SpecificationId = specificationId,
+                Name = name,
+                History = new List<TestScenarioVersion>
+                {
+                    testScenarioVersion
+                },
+                Current = testScenarioVersion
+            };
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            scenariosRepository
+                .GetTestScenarioById(Arg.Is(scenarioid))
+                .Returns(testScenario);
+
+            scenariosRepository
+                .SaveTestScenario(Arg.Any<TestScenario>())
+                .Returns(HttpStatusCode.OK);
+
+            ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationSummaryById(Arg.Is(specification.Id))
+                .Returns(specification);
+
+            ScenariosService service = CreateScenariosService(logger: logger,
+                scenariosRepository: scenariosRepository,
+                searchRepository: searchrepository,
+                specificationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult result = await service.SaveVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            testScenario
+                .History
+                .Count
+                .Should()
+                .Be(2);
+
+            await scenariosRepository
+                .Received(1)
+                .GetCurrentTestScenarioById(Arg.Is(scenarioid));
+        }
+
+        [TestMethod]
+        async public Task SaveVersion_GivenScenarioAndDescriptionIsChanged_ThenCreatesNewVersion()
+        {
+            //Arrange
+            CreateNewTestScenarioVersion model = CreateModel();
+            model.Id = scenarioid;
+            model.Description = "updated description";
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationSummary specification = new SpecificationSummary
+            {
+                Id = specificationId,
+                FundingStreams = new List<Reference>()
+                {
+                    new Reference("fs-id", "fs-name"),
+                },
+                FundingPeriod = new Reference("period-id", "period name")
+            };
+
+            TestScenarioVersion testScenarioVersion = new TestScenarioVersion
+            {
+                Gherkin = "scenario",
+                Description = description,
+                FundingStreamIds = specification.FundingStreams.Select(s => s.Id),
+                FundingPeriodId = specification.FundingPeriod.Id,
+            };
+
+            TestScenario testScenario = new TestScenario
+            {
+                Id = scenarioid,
+                SpecificationId = specificationId,
+                Name = name,
+                History = new List<TestScenarioVersion>
+                {
+                    testScenarioVersion
+                },
+                Current = testScenarioVersion
+            };
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            scenariosRepository
+                .GetTestScenarioById(Arg.Is(scenarioid))
+                .Returns(testScenario);
+
+            scenariosRepository
+                .SaveTestScenario(Arg.Any<TestScenario>())
+                .Returns(HttpStatusCode.OK);
+
+            ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationSummaryById(Arg.Is(specification.Id))
+                .Returns(specification);
+
+            ScenariosService service = CreateScenariosService(logger: logger,
+                scenariosRepository: scenariosRepository,
+                searchRepository: searchrepository,
+                specificationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult result = await service.SaveVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            testScenario
+                .History
+                .Count
+                .Should()
+                .Be(2);
+
+            await scenariosRepository
+                .Received(1)
+                .GetCurrentTestScenarioById(Arg.Is(scenarioid));
+        }
+
+        [TestMethod]
         public async Task GetTestScenarioById_GivenNoScenarioId_ReturnsBadRequest()
         {
             //Arrange

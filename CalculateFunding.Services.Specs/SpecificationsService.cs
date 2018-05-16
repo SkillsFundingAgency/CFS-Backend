@@ -622,7 +622,7 @@ namespace CalculateFunding.Services.Specs
 
             FundingPeriod fundingPeriod = await _specificationsRepository.GetFundingPeriodById(createModel.FundingPeriodId);
 
-
+            Reference user = request.GetUser();
 
             Specification specification = new Specification()
             {
@@ -637,7 +637,8 @@ namespace CalculateFunding.Services.Specs
                 FundingPeriod = new Reference(fundingPeriod.Id, fundingPeriod.Name),
                 Description = createModel.Description,
                 Policies = new List<Policy>(),
-                DataDefinitionRelationshipIds = new List<string>()
+                DataDefinitionRelationshipIds = new List<string>(),
+                Author = user,
             };
 
             List<Reference> fundingStreams = new List<Reference>();
@@ -715,10 +716,13 @@ namespace CalculateFunding.Services.Specs
                 return new NotFoundObjectResult("Specification not found");
             }
 
+            Reference user = request.GetUser();
+
             SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
 
             specificationVersion.Name = editModel.Name;
             specificationVersion.Description = editModel.Description;
+            specificationVersion.Author = user;
 
             specification.Name = editModel.Name;
 
