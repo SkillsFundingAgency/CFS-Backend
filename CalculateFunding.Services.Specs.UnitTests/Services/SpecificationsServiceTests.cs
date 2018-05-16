@@ -3613,8 +3613,62 @@ namespace CalculateFunding.Services.Specs.Services
                 .Warning(Arg.Is($"Failed to find specification for id: {SpecificationId}"));
         }
 
+        [TestMethod]
+        public async Task EditSpecification_GivenSpecificationWasfoundAndFundingPeriodChangedButFailedToGetFundingPeriodsFromCosmos_ReturnsPreConditionFailedresult()
+        {
+            //Arrange
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel
+            {
+                FundingPeriodId = "fp10"
+            };
 
+            string json = JsonConvert.SerializeObject(specificationEditModel);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
 
+            HttpContext context = Substitute.For<HttpContext>();
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) },
+            });
+
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
+
+            request
+                .HttpContext
+                .Returns(context);
+
+            ILogger logger = CreateLogger();
+
+            Specification specification = CreateSpecification();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult result = await service.EditSpecification(request);
+
+            //Arrange
+            result
+                .Should()
+                .BeOfType<PreconditionFailedResult>()
+                .Which
+                .Value
+                .Should()
+                .Be($"Unable to find funding period with ID '{specificationEditModel.FundingPeriodId}'.");
+        }
 
         static SpecificationsService CreateService(
             IMapper mapper = null,
@@ -3810,6 +3864,34 @@ namespace CalculateFunding.Services.Specs.Services
             yaml.AppendLine(@"  endDate: 03/31/2019 00:00:00");
 
             return yaml.ToString();
+        }
+
+        static Specification CreateSpecification()
+        {
+            return new Specification()
+            {
+                Id = "spec-id",
+                Name = "Spec Name",
+                Current = new SpecificationVersion()
+                {
+                    Name = "Spec name",
+                    FundingStreams = new List<Reference>()
+                    {
+                         new Reference("fs1", "Funding Stream 1"),
+                         new Reference("fs2", "Funding Stream 2"),
+                    },
+                    Author = new Reference("author@dfe.gov.uk", "Author Name"),
+                    DataDefinitionRelationshipIds = new List<string>()
+                       {
+                           "dr1",
+                           "dr2"
+                       },
+                    Description = "Specification Description",
+                    FundingPeriod = new Reference("FP1", "Funding Period"),
+                    PublishStatus = Models.Versioning.PublishStatus.Draft,
+                    Version = 1,
+                }
+            };
         }
     }
 }

@@ -322,7 +322,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                             m => m.Skip == 0 &&
                             m.Top == 1000 &&
                             m.SearchMode == SearchMode.Any &&
-                            m.Filter == $"specificationId -eq {specificationVersionComparison.Id} and specificationName -ne {specificationVersionComparison.Current.Name}"
+                            m.Filter == $"specificationId eq '{specificationVersionComparison.Id}' and specificationName ne '{specificationVersionComparison.Current.Name}'"
                         ));
 
             await
@@ -396,7 +396,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                             m => m.Skip == 0 &&
                             m.Top == 1000 &&
                             m.SearchMode == SearchMode.Any &&
-                            m.Filter == $"specificationId -eq {specificationVersionComparison.Id} and specificationName -ne {specificationVersionComparison.Current.Name}"
+                            m.Filter == $"specificationId eq '{specificationVersionComparison.Id}' and specificationName ne '{specificationVersionComparison.Current.Name}'"
                         ));
 
             await

@@ -219,7 +219,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                     Skip = 0,
                     Top = 1000,
                     SearchMode = SearchMode.Any,
-                    Filter = $"specificationId -eq {specificationVersionComparison.Id} and specificationName -ne {specificationVersionComparison.Current.Name}",
+                    Filter = $"specificationId eq '{specificationVersionComparison.Id}' and specificationName ne '{specificationVersionComparison.Current.Name}'",
                     QueryType = QueryType.Full
                 });
 

@@ -222,7 +222,39 @@
             "supportOrdering": true,
             "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
             "enablePartitioning": false,
-            "enableExpress": false
+            "enableExpress": false,
+            "resources": [
+              {
+                "apiVersion": "2017-04-01",
+                "name": "calculation-update",
+                "type": "Subscriptions",
+                "dependsOn": [
+                  "edit-specification"
+                ],
+                "properties": {},
+                "resources": []
+              },
+              {
+                "apiVersion": "2017-04-01",
+                "name": "test-scenario-update",
+                "type": "Subscriptions",
+                "dependsOn": [
+                  "edit-specification"
+                ],
+                "properties": {},
+                "resources": []
+              },
+              {
+                "apiVersion": "2017-04-01",
+                "name": "test-scenario-result-update",
+                "type": "Subscriptions",
+                "dependsOn": [
+                  "edit-specification"
+                ],
+                "properties": {},
+                "resources": []
+              }
+            ]
           },
           "dependsOn": [
             "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
