@@ -245,7 +245,6 @@ namespace CalculateFunding.Services.Calcs
                     }
                 };
 
-
                 HttpStatusCode result = await _calculationsRepository.CreateDraftCalculation(calculation);
 
                 if (result.IsSuccess())
@@ -325,6 +324,14 @@ namespace CalculateFunding.Services.Calcs
                 _searchRepository.Index(calcIndexes),
                 _buildProjectsRepository.UpdateBuildProject(buildProject)
             );
+
+            IDictionary<string, string> properties = message.BuildMessageProperties();
+
+            properties.Add("specification-id", specificationId);
+
+            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
+                buildProject,
+                properties);
         }
 
         async public Task<IActionResult> SaveCalculationVersion(HttpRequest request)

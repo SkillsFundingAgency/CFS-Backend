@@ -32,6 +32,7 @@ using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.CodeGeneration;
 using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Services.Core.Constants;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -2293,7 +2294,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
-            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository);
+            IMessengerService messengerService = CreateMessengerService();
+
+            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository, messengerService: messengerService);
 
             //Act
             await service.UpdateCalculationsForSpecification(message);
@@ -2309,7 +2312,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .First()
                 .FundingPeriod.Id
                 .Should()
-                .Be("fp2"); 
+                .Be("fp2");
+
+            await
+                messengerService
+                    .Received(1)
+                    .SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.CalculationJobInitialiser), Arg.Is(buildProject), Arg.Any<IDictionary<string, string>>());
         }
 
         [TestMethod]
@@ -2375,7 +2383,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
-            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository);
+            IMessengerService messengerService = CreateMessengerService();
+
+            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository, messengerService: messengerService);
 
             //Act
             await service.UpdateCalculationsForSpecification(message);
@@ -2398,6 +2408,11 @@ namespace CalculateFunding.Services.Calcs.Services
                .AllocationLine
                .Should()
                .BeNull();
+
+            await
+                messengerService
+                    .Received(1)
+                    .SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.CalculationJobInitialiser), Arg.Is(buildProject), Arg.Any<IDictionary<string, string>>());
         }
 
         static CalculationService CreateCalculationService(

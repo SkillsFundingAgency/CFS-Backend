@@ -3557,6 +3557,63 @@ namespace CalculateFunding.Services.Specs.Services
                 .ValidateAsync(Arg.Any<SpecificationEditModel>());
         }
 
+        [TestMethod]
+        public async Task EditSpecification_GivenSpecificationWasNotFound_ReturnsNotFoundResult()
+        {
+            //Arrange
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel();
+
+            string json = JsonConvert.SerializeObject(specificationEditModel);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpContext context = Substitute.For<HttpContext>();
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) },
+            });
+
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
+
+            request
+                .HttpContext
+                .Returns(context);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns((Specification)null);
+
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult result = await service.EditSpecification(request);
+
+            //Arrange
+            result
+                .Should()
+                .BeOfType<NotFoundObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("Specification not found");
+
+            logger
+                .Received(1)
+                .Warning(Arg.Is($"Failed to find specification for id: {SpecificationId}"));
+        }
+
+
 
 
         static SpecificationsService CreateService(
