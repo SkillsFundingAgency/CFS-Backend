@@ -13,6 +13,15 @@ namespace CalculateFunding.Models.Specs
         public SpecificationVersion Previous { get; set; }
 
         [JsonIgnore]
+        public bool HasNameChange
+        {
+            get
+            {
+                return !string.Equals(Current.Name, Previous.Name);
+            }
+        }
+
+        [JsonIgnore]
         public bool HasNoChanges
         {
             get

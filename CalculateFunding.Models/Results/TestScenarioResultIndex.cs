@@ -35,6 +35,7 @@ namespace CalculateFunding.Models.Results
         [IsSearchable]
         [IsFacetable]
         [IsSortable]
+        [IsFilterable]
         [JsonProperty("specificationName")]
         public string SpecificationName { get; set; }
 

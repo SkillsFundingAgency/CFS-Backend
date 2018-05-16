@@ -273,7 +273,7 @@ namespace CalculateFunding.Services.Calcs
                 throw new InvalidModelException(nameof(Models.Specs.SpecificationVersionComparisonModel), new[] { "Null or invalid model provided" });
             }
 
-            if (specificationVersionComparison.HasNoChanges)
+            if (specificationVersionComparison.HasNoChanges && !specificationVersionComparison.HasNameChange)
             {
                 _logger.Information("No changes detected");
                 return;
