@@ -203,7 +203,45 @@ namespace CalculateFunding.Services.Calcs.Validators
         }
 
         [TestMethod]
-        async public Task ValidateAsync_WhenFuncfingStreamIsEmpty_ValidIsFalse()
+        async public Task ValidateAsync_WhenFundingStreamIsNull_ValidIsTrue()
+        {
+            //Arrange
+            Calculation calculation = CreateCalculation();
+            calculation.FundingStream = null;
+
+            CalculationModelValidator validator = new CalculationModelValidator();
+
+            //Act
+            ValidationResult result = await validator.ValidateAsync(calculation);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeTrue();
+        }
+
+        [TestMethod]
+        async public Task ValidateAsync_WhenFundingStreamIsHasValue_ValidIsTrue()
+        {
+            //Arrange
+            Calculation calculation = CreateCalculation();
+            calculation.FundingStream = new Reference("fsid", "Funding Stream Name");
+
+            CalculationModelValidator validator = new CalculationModelValidator();
+
+            //Act
+            ValidationResult result = await validator.ValidateAsync(calculation);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeTrue();
+        }
+
+        [TestMethod]
+        async public Task ValidateAsync_WhenFundingStreamIsEmpty_ValidIsFalse()
         {
             //Arrange
             Calculation calculation = CreateCalculation();
