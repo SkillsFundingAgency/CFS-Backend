@@ -77,5 +77,10 @@ namespace CalculateFunding.Services.Calcs
 
             return Task.FromResult(calculations.AsEnumerable());
         }
+
+        public Task UpdateCalculations(IEnumerable<Calculation> calculations)
+        {
+            return _cosmosRepository.BulkCreateAsync(calculations.ToList());
+        }
     }
 }

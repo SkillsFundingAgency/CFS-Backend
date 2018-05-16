@@ -72,7 +72,6 @@ namespace CalculateFunding.Services.Calcs.Services
         public void CreateCalculation_GivenInvalidCalculation_LogsDoesNotSave()
         {
             //Arrange
-
             dynamic anyObject = new { something = 1 };
 
             string json = JsonConvert.SerializeObject(anyObject);
@@ -1988,6 +1987,322 @@ namespace CalculateFunding.Services.Calcs.Services
             logger
                 .Received(1)
                 .Warning(Arg.Is($"Build project for specification {calculation.SpecificationId} could not be found, creating a new one"));
+        }
+
+        [TestMethod]
+        public void UpdateCalulationsForSpecification_GivenInvalidModel_LogsDoesNotSave()
+        {
+            //Arrange
+            dynamic anyObject = new { something = 1 };
+
+            string json = JsonConvert.SerializeObject(anyObject);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            CalculationService service = CreateCalculationService();
+
+            //Act
+            Func<Task> test = async () => await service.UpdateCalculationsForSpecification(message);
+
+            //Assert
+            test
+              .ShouldThrowExactly<InvalidModelException>();
+        }
+
+        [TestMethod]
+        public async Task UpdateCalulationsForSpecification_GivenModelHasNoChanges_LogsAndReturns()
+        {
+            //Arrange
+            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            {
+                Current = new Models.Specs.SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } },
+                Previous = new Models.Specs.SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
+            };
+
+            string json = JsonConvert.SerializeObject(specificationVersionComparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            CalculationService service = CreateCalculationService(logger: logger);
+
+            //Act
+            await service.UpdateCalculationsForSpecification(message);
+
+            //Assert
+            logger
+                .Received(1)
+                .Information(Arg.Is("No changes detected"));
+        }
+
+        [TestMethod]
+        public async Task UpdateCalulationsForSpecification_GivenModelHasChangedFundingPeriodsButCalcculationsCouldNotBeFound_LogsAndReturns()
+        {
+            //Arrange
+            const string specificationId = "spec-id";
+
+            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            {
+                Id = specificationId,
+                Current = new Models.Specs.SpecificationVersion { FundingPeriod = new Reference { Id = "fp2" } },
+                Previous = new Models.Specs.SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
+            };
+
+            string json = JsonConvert.SerializeObject(specificationVersionComparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns((IEnumerable<Calculation>)null);
+
+            CalculationService service = CreateCalculationService(calculationsRepository, logger);
+
+            //Act
+            await service.UpdateCalculationsForSpecification(message);
+
+            //Assert
+            logger
+                .Received(1)
+                .Information(Arg.Is($"No calculations found for specification id: {specificationId}"));
+        }
+
+        [TestMethod]
+        public async Task UpdateCalulationsForSpecification_GivenModelHasChangedFundingPeriodsButBuildProjectNotFound_EnsuresCreatesBuildProject()
+        {
+            //Arrange
+            const string specificationId = "spec-id";
+
+            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            {
+                Id = specificationId,
+                Current = new Models.Specs.SpecificationVersion
+                {
+                    FundingPeriod = new Reference { Id = "fp2" },
+                    Name = "any-name"
+                },
+                Previous = new Models.Specs.SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
+            };
+
+            string json = JsonConvert.SerializeObject(specificationVersionComparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<Calculation> calcs = new[]
+            {
+                new Calculation
+                {
+                    SpecificationId =  "spec-id",
+                    Name = "any name",
+                    Id = "any-id",
+                    CalculationSpecification = new Reference("any name", "any-id"),
+                    FundingPeriod = new Reference("18/19", "2018/2019"),
+                    CalculationType = CalculationType.Number,
+                    FundingStream = new Reference("fs1","fs1-111"),
+                    Current = new CalculationVersion
+                    {
+                        Author = new Reference(UserId, Username),
+                        Date = DateTime.UtcNow,
+                        PublishStatus = PublishStatus.Draft,
+                        SourceCode = "source code",
+                        Version = 1
+                    },
+                    Policies = new List<Reference>()
+                }
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(calcs);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+
+            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository);
+
+            //Act
+            await service.UpdateCalculationsForSpecification(message);
+
+            //Assert
+            await
+                buildProjectsRepository
+                    .Received(1)
+                    .CreateBuildProject(Arg.Any<BuildProject>());
+
+            logger
+                .Received(1)
+                .Warning(Arg.Is($"A build project could not be found for specification id: {specificationId}"));
+        }
+
+        [TestMethod]
+        public async Task UpdateCalulationsForSpecification_GivenModelHasChangedFundingPeriodsButBuildProjectNotFound_AssignsCalculationsToBuildProjectAndSaves()
+        {
+            //Arrange
+            const string specificationId = "spec-id";
+
+            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            {
+                Id = specificationId,
+                Current = new Models.Specs.SpecificationVersion
+                {
+                    FundingPeriod = new Reference { Id = "fp2" },
+                    Name = "any-name"
+                },
+                Previous = new Models.Specs.SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
+            };
+
+            string json = JsonConvert.SerializeObject(specificationVersionComparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<Calculation> calcs = new[]
+            {
+                new Calculation
+                {
+                    SpecificationId =  "spec-id",
+                    Name = "any name",
+                    Id = "any-id",
+                    CalculationSpecification = new Reference("any name", "any-id"),
+                    FundingPeriod = new Reference("18/19", "2018/2019"),
+                    CalculationType = CalculationType.Number,
+                    FundingStream = new Reference("fs1","fs1-111"),
+                    Current = new CalculationVersion
+                    {
+                        Author = new Reference(UserId, Username),
+                        Date = DateTime.UtcNow,
+                        PublishStatus = PublishStatus.Draft,
+                        SourceCode = "source code",
+                        Version = 1
+                    },
+                    Policies = new List<Reference>()
+                }
+            };
+
+            BuildProject buildProject = new BuildProject();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(calcs);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository);
+
+            //Act
+            await service.UpdateCalculationsForSpecification(message);
+
+            //Assert
+            buildProject
+                .Calculations
+                .Count()
+                .Should()
+                .Be(1);
+
+            calcs
+                .First()
+                .FundingPeriod.Id
+                .Should()
+                .Be("fp2"); 
+        }
+
+        [TestMethod]
+        public async Task UpdateCalulationsForSpecification_GivenModelHasChangedFundingStreams_SetsTheAllocationLineAndfundingStreamToNull()
+        {
+            //Arrange
+            const string specificationId = "spec-id";
+
+            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            {
+                Id = specificationId,
+                Current = new Models.Specs.SpecificationVersion
+                {
+                    FundingPeriod = new Reference { Id = "fp1" },
+                    Name = "any-name",
+                    FundingStreams = new List<Reference> { new Reference {  Id = "fs2"} }
+                },
+                Previous = new Models.Specs.SpecificationVersion
+                {
+                    FundingPeriod = new Reference { Id = "fp1" },
+                    FundingStreams = new List<Reference> { new Reference { Id = "fs1" } }
+                }
+            };
+
+            string json = JsonConvert.SerializeObject(specificationVersionComparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<Calculation> calcs = new[]
+            {
+                new Calculation
+                {
+                    SpecificationId =  "spec-id",
+                    Name = "any name",
+                    Id = "any-id",
+                    CalculationSpecification = new Reference("any name", "any-id"),
+                    FundingPeriod = new Reference("18/19", "2018/2019"),
+                    CalculationType = CalculationType.Number,
+                    FundingStream = new Reference("fs1","fs1-111"),
+                    Current = new CalculationVersion
+                    {
+                        Author = new Reference(UserId, Username),
+                        Date = DateTime.UtcNow,
+                        PublishStatus = PublishStatus.Draft,
+                        SourceCode = "source code",
+                        Version = 1
+                    },
+                    Policies = new List<Reference>()
+                }
+            };
+
+            BuildProject buildProject = new BuildProject();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(calcs);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository);
+
+            //Act
+            await service.UpdateCalculationsForSpecification(message);
+
+            //Assert
+            buildProject
+                .Calculations
+                .Count()
+                .Should()
+                .Be(1);
+
+            calcs
+                .First()
+                .FundingStream
+                .Should()
+                .BeNull();
+
+            calcs
+               .First()
+               .AllocationLine
+               .Should()
+               .BeNull();
         }
 
         static CalculationService CreateCalculationService(

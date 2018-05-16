@@ -1,5 +1,6 @@
 using AutoMapper;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
@@ -8,13 +9,17 @@ using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Services;
 using FluentAssertions;
+using Microsoft.Azure.Search.Models;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.UnitTests
@@ -207,7 +212,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 .SaveTestProviderResults(Arg.Any<IEnumerable<TestScenarioResult>>())
                 .Returns(HttpStatusCode.BadRequest);
 
-            ITestResultsService service = CreateTestResultsService(testResultsRepository);
+            TestResultsService service = CreateTestResultsService(testResultsRepository);
 
             IEnumerable<ProviderResult> providerResults = Enumerable.Empty<ProviderResult>();
 
@@ -225,6 +230,183 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             await testResultsRepository
                 .Received(1)
                 .SaveTestProviderResults(itemsToUpdate);
+        }
+
+        [TestMethod]
+        public void UpdateTestResultsForSpecification_GivenInvalidModel_LogsDoesNotSave()
+        {
+            //Arrange
+            dynamic anyObject = new { something = 1 };
+
+            string json = JsonConvert.SerializeObject(anyObject);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            TestResultsService service = CreateTestResultsService();
+
+            //Act
+            Func<Task> test = async () => await service.UpdateTestResultsForSpecification(message);
+
+            //Assert
+            test
+              .Should()
+              .ThrowExactly<InvalidModelException>();
+        }
+
+        [TestMethod]
+        public async Task UpdateTestResultsForSpecification_GivenNoChangesDetected_LogsAndReturns()
+        {
+            //Arrange
+            const string specificationId = "spec-id";
+
+            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            {
+                Id = specificationId,
+                Current = new Models.Specs.SpecificationVersion { Name = "any name" },
+                Previous = new Models.Specs.SpecificationVersion { Name = "any name" }
+            };
+
+            string json = JsonConvert.SerializeObject(specificationVersionComparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            TestResultsService service = CreateTestResultsService(logger: logger);
+
+            //Act
+            await service.UpdateTestResultsForSpecification(message);
+
+            //Assert
+            logger
+                .Received(1)
+                .Information(Arg.Is($"No changes detected"));
+        }
+
+        [TestMethod]
+        public async Task UpdateTestResultsForSpecification_GivenNoResultsFoundInSearch_DoesNotUpdateSearch()
+        {
+            //Arrange
+            const string specificationId = "spec-id";
+
+            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            {
+                Id = specificationId,
+                Current = new Models.Specs.SpecificationVersion { Name = "new name" },
+                Previous = new Models.Specs.SpecificationVersion { Name = "any name" }
+            };
+
+            string json = JsonConvert.SerializeObject(specificationVersionComparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            SearchResults<TestScenarioResultIndex> searchResult = new SearchResults<TestScenarioResultIndex>();
+
+            ISearchRepository<TestScenarioResultIndex> searchRepository = CreateSearchRespository();
+            searchRepository
+                .Search(Arg.Is(""), Arg.Any<SearchParameters>())
+                .Returns(searchResult);
+
+            TestResultsService service = CreateTestResultsService(logger: logger, searchRepository: searchRepository);
+
+            //Act
+            await service.UpdateTestResultsForSpecification(message);
+
+            //Assert
+            await
+                searchRepository
+                    .Received(1)
+                    .Search(Arg.Is(""), Arg.Is<SearchParameters>(
+                            m => m.Skip == 0 &&
+                            m.Top == 1000 &&
+                            m.SearchMode == SearchMode.Any &&
+                            m.Filter == $"specificationId -eq {specificationVersionComparison.Id} and specificationName -ne {specificationVersionComparison.Current.Name}"
+                        ));
+
+            await
+                searchRepository
+                    .DidNotReceive()
+                    .Index(Arg.Any<IEnumerable<TestScenarioResultIndex>>());
+        }
+
+        [TestMethod]
+        public async Task UpdateTestResultsForSpecification_GivenResultsReturnedButIndexeingCausesErrors_LogsErrors()
+        {
+            //Arrange
+            const string specificationId = "spec-id";
+
+            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            {
+                Id = specificationId,
+                Current = new Models.Specs.SpecificationVersion { Name = "new name" },
+                Previous = new Models.Specs.SpecificationVersion { Name = "any name" }
+            };
+
+            string json = JsonConvert.SerializeObject(specificationVersionComparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            SearchResults<TestScenarioResultIndex> searchResult = new SearchResults<TestScenarioResultIndex>
+            {
+                Results = new List<CalculateFunding.Repositories.Common.Search.SearchResult<TestScenarioResultIndex>>
+                {
+                    new CalculateFunding.Repositories.Common.Search.SearchResult<TestScenarioResultIndex>
+                    {
+                        Result = new TestScenarioResultIndex()
+                    },
+                    new CalculateFunding.Repositories.Common.Search.SearchResult<TestScenarioResultIndex>
+                    {
+                        Result = new TestScenarioResultIndex()
+                    },
+                    new CalculateFunding.Repositories.Common.Search.SearchResult<TestScenarioResultIndex>
+                    {
+                        Result = new TestScenarioResultIndex()
+                    }
+                }
+            };
+
+            IEnumerable<IndexError> indexErrors = new[]
+            {
+                new IndexError { ErrorMessage = "an error" }
+            };
+
+            ISearchRepository<TestScenarioResultIndex> searchRepository = CreateSearchRespository();
+            searchRepository
+                .Search(Arg.Is(""), Arg.Any<SearchParameters>())
+                .Returns(searchResult);
+
+            searchRepository
+                .Index(Arg.Any<IEnumerable<TestScenarioResultIndex>>())
+                .Returns(indexErrors);
+
+            TestResultsService service = CreateTestResultsService(logger: logger, searchRepository: searchRepository);
+
+            //Act
+            await service.UpdateTestResultsForSpecification(message);
+
+            //Assert
+            await
+                searchRepository
+                    .Received(1)
+                    .Search(Arg.Is(""), Arg.Is<SearchParameters>(
+                            m => m.Skip == 0 &&
+                            m.Top == 1000 &&
+                            m.SearchMode == SearchMode.Any &&
+                            m.Filter == $"specificationId -eq {specificationVersionComparison.Id} and specificationName -ne {specificationVersionComparison.Current.Name}"
+                        ));
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IEnumerable<TestScenarioResultIndex>>(m => m.Count() == 3));
+
+            logger
+                .Received(1)
+                .Error($"The following errors occcurred while updating test results for specification id: {specificationId}, an error") ;
         }
 
         private TestResultsService CreateTestResultsService(

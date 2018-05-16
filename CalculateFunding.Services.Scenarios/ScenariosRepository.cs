@@ -69,5 +69,10 @@ namespace CalculateFunding.Services.Scenarios
         {
             return _cosmosRepository.CreateAsync(testScenario);
         }
+
+        public Task SaveTestScenarios(IEnumerable<TestScenario> testScenarios)
+        {
+            return _cosmosRepository.BulkCreateAsync<TestScenario>(testScenarios.ToList());
+        }
     }
 }

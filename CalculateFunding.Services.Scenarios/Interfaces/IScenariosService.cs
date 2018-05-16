@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Scenarios.Interfaces
@@ -13,5 +14,7 @@ namespace CalculateFunding.Services.Scenarios.Interfaces
         Task<IActionResult> GetTestScenarioById(HttpRequest request);
 
         Task<IActionResult> GetCurrentTestScenarioById(HttpRequest request);
+
+        Task UpdateScenarioForSpecification(Message message);
     }
 }

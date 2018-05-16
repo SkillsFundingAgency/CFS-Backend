@@ -22,5 +22,19 @@
 
             public const string UpdateBuildProjectRelationships = "calc-events-add-relationship-to-buildproject";
         }
+
+        public static class TopicNames
+        {
+            public const string EditSpecification = "edit-specification";
+        }
+
+        public static class TopicSubscribers
+        {
+            public const string UpdateCaclulationsForEditSpecification = "calculation-update";
+
+            public const string UpdateScenariosForEditSpecification = "test-scenario-update";
+
+            public const string UpdateScenarioResultsForEditSpecification = "test-scenario-result-update";
+        }
     }
 }

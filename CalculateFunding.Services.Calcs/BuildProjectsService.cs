@@ -311,7 +311,6 @@ namespace CalculateFunding.Services.Calcs
             return _buildProjectsRepository.UpdateBuildProject(buildProject);
         }
 
-
         async public Task CompileBuildProject(BuildProject buildProject)
         {
             buildProject.Build = Compile(buildProject);

@@ -208,22 +208,43 @@
       "properties": {},
       "resources": [
         {
+          "type": "topics",
+          "name": "edit-specification",
+          "apiVersion": "2017-04-01",
+          "location": "North Europe",
+          "properties": {
+            "defaultMessageTimeToLive": "P14D",
+            "maxSizeInMegabytes": 1024,
+            "requiresDuplicateDetection": false,
+            "duplicateDetectionHistoryTimeWindow": "PT10M",
+            "enableBatchedOperations": true,
+            "status": "Active",
+            "supportOrdering": true,
+            "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+            "enablePartitioning": false,
+            "enableExpress": false
+          },
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ]
+        },
+        {
           "type": "queues",
           "name": "calc-events-instruct-generate-allocations",
           "apiVersion": "2017-04-01",
           "location": "[resourceGroup().location]",
           "properties": {
-              "lockDuration": "PT5M",
-              "maxSizeInMegabytes": 1024,
-              "requiresDuplicateDetection": false,
-              "requiresSession": false,
-              "defaultMessageTimeToLive": "P1D",
-              "deadLetteringOnMessageExpiration": false,
-              "enableBatchedOperations": true,
-              "duplicateDetectionHistoryTimeWindow": "PT10M",
-              "maxDeliveryCount": 5,
-              "enablePartitioning": true,
-              "enableExpress": false
+            "lockDuration": "PT5M",
+            "maxSizeInMegabytes": 1024,
+            "requiresDuplicateDetection": false,
+            "requiresSession": false,
+            "defaultMessageTimeToLive": "P1D",
+            "deadLetteringOnMessageExpiration": false,
+            "enableBatchedOperations": true,
+            "duplicateDetectionHistoryTimeWindow": "PT10M",
+            "maxDeliveryCount": 5,
+            "enablePartitioning": true,
+            "enableExpress": false
           },
           "dependsOn": [
             "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
@@ -235,17 +256,17 @@
           "apiVersion": "2017-04-01",
           "location": "[resourceGroup().location]",
           "properties": {
-              "lockDuration": "PT5M",
-              "maxSizeInMegabytes": 2048,
-              "requiresDuplicateDetection": false,
-              "requiresSession": false,
-              "defaultMessageTimeToLive": "P1D",
-              "deadLetteringOnMessageExpiration": false,
-              "enableBatchedOperations": true,
-              "duplicateDetectionHistoryTimeWindow": "PT10M",
-              "maxDeliveryCount": 5,
-              "enablePartitioning": true,
-              "enableExpress": false
+            "lockDuration": "PT5M",
+            "maxSizeInMegabytes": 2048,
+            "requiresDuplicateDetection": false,
+            "requiresSession": false,
+            "defaultMessageTimeToLive": "P1D",
+            "deadLetteringOnMessageExpiration": false,
+            "enableBatchedOperations": true,
+            "duplicateDetectionHistoryTimeWindow": "PT10M",
+            "maxDeliveryCount": 5,
+            "enablePartitioning": true,
+            "enableExpress": false
           },
           "dependsOn": [
             "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
@@ -257,17 +278,17 @@
           "apiVersion": "2017-04-01",
           "location": "[resourceGroup().location]",
           "properties": {
-              "lockDuration": "PT5M",
-              "maxSizeInMegabytes": 5120,
-              "requiresDuplicateDetection": false,
-              "requiresSession": false,
-              "defaultMessageTimeToLive": "P1D",
-              "deadLetteringOnMessageExpiration": false,
-              "enableBatchedOperations": true,
-              "duplicateDetectionHistoryTimeWindow": "PT10M",
-              "maxDeliveryCount": 5,
-              "enablePartitioning": true,
-              "enableExpress": false
+            "lockDuration": "PT5M",
+            "maxSizeInMegabytes": 5120,
+            "requiresDuplicateDetection": false,
+            "requiresSession": false,
+            "defaultMessageTimeToLive": "P1D",
+            "deadLetteringOnMessageExpiration": false,
+            "enableBatchedOperations": true,
+            "duplicateDetectionHistoryTimeWindow": "PT10M",
+            "maxDeliveryCount": 5,
+            "enablePartitioning": true,
+            "enableExpress": false
           },
           "dependsOn": [
             "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
@@ -279,17 +300,17 @@
           "apiVersion": "2017-04-01",
           "location": "[resourceGroup().location]",
           "properties": {
-              "lockDuration": "PT5M",
-              "maxSizeInMegabytes": 1024,
-              "requiresDuplicateDetection": false,
-              "requiresSession": false,
-              "defaultMessageTimeToLive": "P1D",
-              "deadLetteringOnMessageExpiration": false,
-              "enableBatchedOperations": true,
-              "duplicateDetectionHistoryTimeWindow": "PT10M",
-              "maxDeliveryCount": 5,
-              "enablePartitioning": true,
-              "enableExpress": false
+            "lockDuration": "PT5M",
+            "maxSizeInMegabytes": 1024,
+            "requiresDuplicateDetection": false,
+            "requiresSession": false,
+            "defaultMessageTimeToLive": "P1D",
+            "deadLetteringOnMessageExpiration": false,
+            "enableBatchedOperations": true,
+            "duplicateDetectionHistoryTimeWindow": "PT10M",
+            "maxDeliveryCount": 5,
+            "enablePartitioning": true,
+            "enableExpress": false
           },
           "dependsOn": [
             "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
@@ -301,17 +322,17 @@
           "apiVersion": "2017-04-01",
           "location": "[resourceGroup().location]",
           "properties": {
-              "lockDuration": "PT5M",
-              "maxSizeInMegabytes": 2048,
-              "requiresDuplicateDetection": false,
-              "requiresSession": false,
-              "defaultMessageTimeToLive": "P1D",
-              "deadLetteringOnMessageExpiration": false,
-              "enableBatchedOperations": true,
-              "duplicateDetectionHistoryTimeWindow": "PT10M",
-              "maxDeliveryCount": 5,
-              "enablePartitioning": true,
-              "enableExpress": false
+            "lockDuration": "PT5M",
+            "maxSizeInMegabytes": 2048,
+            "requiresDuplicateDetection": false,
+            "requiresSession": false,
+            "defaultMessageTimeToLive": "P1D",
+            "deadLetteringOnMessageExpiration": false,
+            "enableBatchedOperations": true,
+            "duplicateDetectionHistoryTimeWindow": "PT10M",
+            "maxDeliveryCount": 5,
+            "enablePartitioning": true,
+            "enableExpress": false
           },
           "dependsOn": [
             "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
@@ -323,17 +344,17 @@
           "apiVersion": "2017-04-01",
           "location": "[resourceGroup().location]",
           "properties": {
-              "lockDuration": "PT5M",
-              "maxSizeInMegabytes": 1024,
-              "requiresDuplicateDetection": false,
-              "requiresSession": false,
-              "defaultMessageTimeToLive": "P1D",
-              "deadLetteringOnMessageExpiration": false,
-              "enableBatchedOperations": true,
-              "duplicateDetectionHistoryTimeWindow": "PT10M",
-              "maxDeliveryCount": 10,
-              "enablePartitioning": true,
-              "enableExpress": false
+            "lockDuration": "PT5M",
+            "maxSizeInMegabytes": 1024,
+            "requiresDuplicateDetection": false,
+            "requiresSession": false,
+            "defaultMessageTimeToLive": "P1D",
+            "deadLetteringOnMessageExpiration": false,
+            "enableBatchedOperations": true,
+            "duplicateDetectionHistoryTimeWindow": "PT10M",
+            "maxDeliveryCount": 10,
+            "enablePartitioning": true,
+            "enableExpress": false
           },
           "dependsOn": [
             "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
@@ -345,17 +366,17 @@
           "apiVersion": "2017-04-01",
           "location": "[resourceGroup().location]",
           "properties": {
-              "lockDuration": "PT5M",
-              "maxSizeInMegabytes": 2048,
-              "requiresDuplicateDetection": false,
-              "requiresSession": false,
-              "defaultMessageTimeToLive": "P1D",
-              "deadLetteringOnMessageExpiration": false,
-              "enableBatchedOperations": true,
-              "duplicateDetectionHistoryTimeWindow": "PT10M",
-              "maxDeliveryCount": 10,
-              "enablePartitioning": true,
-              "enableExpress": false
+            "lockDuration": "PT5M",
+            "maxSizeInMegabytes": 2048,
+            "requiresDuplicateDetection": false,
+            "requiresSession": false,
+            "defaultMessageTimeToLive": "P1D",
+            "deadLetteringOnMessageExpiration": false,
+            "enableBatchedOperations": true,
+            "duplicateDetectionHistoryTimeWindow": "PT10M",
+            "maxDeliveryCount": 10,
+            "enablePartitioning": true,
+            "enableExpress": false
           },
           "dependsOn": [
             "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"

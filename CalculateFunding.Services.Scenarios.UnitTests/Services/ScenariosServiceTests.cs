@@ -24,6 +24,9 @@ using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Models.Exceptions;
+using CalculateFunding.Models.Versioning;
 
 namespace CalculateFunding.Services.Scenarios.Services
 {
@@ -817,6 +820,171 @@ namespace CalculateFunding.Services.Scenarios.Services
             return new ScenariosService(logger ?? CreateLogger(), scenariosRepository ?? CreateScenariosRepository(), specificationsRepository ?? CreateSpecificationsRepository(),
                 createNewTestScenarioVersionValidator ?? CreateValidator(), searchRepository ?? CreateSearchRepository(), 
                 cacheProvider ?? CreateCacheProvider(), messengerService ?? CreateMessengerService(), buildProjectRepository ?? CreateBuildProjectRepository());
+        }
+
+        [TestMethod]
+        public void UpdateScenarioForSpecification_GivenInvalidModel_LogsDoesNotSave()
+        {
+            //Arrange
+            dynamic anyObject = new { something = 1 };
+
+            string json = JsonConvert.SerializeObject(anyObject);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ScenariosService service = CreateScenariosService();
+
+            //Act
+            Func<Task> test = async () => await service.UpdateScenarioForSpecification(message);
+
+            //Assert
+            test
+              .ShouldThrowExactly<InvalidModelException>();
+        }
+
+        [TestMethod]
+        public async Task UpdateScenarioForSpecification_GivenModelHasNoChanges_LogsAndReturns()
+        {
+            //Arrange
+            SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel
+            {
+                Current = new SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } },
+                Previous = new SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
+            };
+
+            string json = JsonConvert.SerializeObject(specificationVersionComparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            ScenariosService service = CreateScenariosService(logger: logger);
+
+            //Act
+            await service.UpdateScenarioForSpecification(message);
+
+            //Assert
+            logger
+                .Received(1)
+                .Information(Arg.Is("No changes detected"));
+        }
+
+        [TestMethod]
+        public async Task UpdateScenarioForSpecification_GivenModelHasChangedFundingPeriodsButCalcculationsCouldNotBeFound_LogsAndReturns()
+        {
+            //Arrange
+            SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel
+            {
+                Id = specificationId,
+                Current = new SpecificationVersion { FundingPeriod = new Reference { Id = "fp2" } },
+                Previous = new SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
+            };
+
+            string json = JsonConvert.SerializeObject(specificationVersionComparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            IScenariosRepository scenarioRepository = CreateScenariosRepository();
+            scenarioRepository
+                .GetTestScenariosBySpecificationId(Arg.Is(specificationId))
+                .Returns((IEnumerable<TestScenario>)null);
+
+            ScenariosService service = CreateScenariosService(logger, scenarioRepository);
+
+            //Act
+            await service.UpdateScenarioForSpecification(message);
+
+            //Assert
+            logger
+                .Received(1)
+                .Information(Arg.Is($"No scenarios found for specification id: {specificationId}"));
+        }
+
+        [TestMethod]
+        public async Task UpdateScenarioForSpecification_GivenModelHasChangedFundingPeriodsButBuildProjectNotFound_SavesToCosmosAndSearch()
+        {
+            //Arrange
+            SpecificationVersionComparisonModel specificationVersionComparison = new SpecificationVersionComparisonModel()
+            {
+                Id = specificationId,
+                Current = new SpecificationVersion
+                {
+                    FundingPeriod = new Reference { Id = "fp2" },
+                    Name = "any-name",
+                    FundingStreams = new[] { new Reference { Id = "fs1" } }
+                },
+                Previous = new SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
+            };
+
+            string json = JsonConvert.SerializeObject(specificationVersionComparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<TestScenario> scenarios = new[]
+            {
+                new TestScenario
+                {
+                    Id = "scenario-id",
+                    Name = "scenario",
+                    History = new List<TestScenarioVersion>(),
+                    SpecificationId = specificationId,
+                    Current = new TestScenarioVersion
+                    {
+                        Author = new Reference("user-id", "username"),
+                        Date = DateTime.UtcNow,
+                        PublishStatus = PublishStatus.Draft,
+                        Gherkin = "source code",
+                        Version = 1
+                    }
+                }
+            };
+
+            IScenariosRepository scenarioRepository = CreateScenariosRepository();
+            scenarioRepository
+                .GetTestScenariosBySpecificationId(Arg.Is(specificationId))
+                .Returns(scenarios);
+
+            ISearchRepository<ScenarioIndex> searchRepository = CreateSearchRepository();
+
+            ScenariosService service = CreateScenariosService(logger, scenarioRepository, searchRepository: searchRepository);
+
+            //Act
+            await service.UpdateScenarioForSpecification(message);
+
+            //Assert
+            scenarios
+                .First()
+                .Current
+                .Version
+                .Should()
+                .Be(2);
+
+            scenarios
+               .First()
+               .History
+               .Count
+               .Should()
+               .Be(1);
+
+            await
+                scenarioRepository
+                .Received(1)
+                .SaveTestScenarios(Arg.Is(scenarios));
+
+            await
+               searchRepository
+               .Received(1)
+               .Index(Arg.Is<List<ScenarioIndex>>(
+                   m => m.Count() == 1 &&
+                        m.First().Id == scenarios.First().Id &&
+                        m.First().Name == scenarios.First().Name &&
+                        m.First().Description == scenarios.First().Current.Description &&
+                        m.First().SpecificationId == scenarios.First().SpecificationId
+                   ));
         }
 
         static ILogger CreateLogger()

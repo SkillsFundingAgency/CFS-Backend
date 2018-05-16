@@ -15,9 +15,8 @@ namespace CalculateFunding.Services.Core.ServiceBus
     public class MessengerService : IMessengerService
     {
         private static readonly ConcurrentDictionary<string, QueueClient> _queueClients = new ConcurrentDictionary<string, QueueClient>();
+        private static readonly ConcurrentDictionary<string, TopicClient> _topicClients = new ConcurrentDictionary<string, TopicClient>();
         private readonly string _connectionString;
-
-        private object queueClientLock = new object();
 
         public MessengerService(ServiceBusSettings settings)
         {
@@ -44,6 +43,28 @@ namespace CalculateFunding.Services.Core.ServiceBus
                 message.UserProperties.Add(property.Key, property.Value);
 
             await queueClient.SendAsync(message);
+        }
+
+        TopicClient GetTopicClient(string topicName)
+        {
+            return _topicClients.GetOrAdd(topicName, (key) => {
+                return new TopicClient(_connectionString, key, RetryPolicy.Default);
+            });
+        }
+
+        public async Task SendToTopic<T>(string topicName, T data, IDictionary<string, string> properties)
+        {
+            var topicClient = GetTopicClient(topicName);
+
+            var json = JsonConvert.SerializeObject(data);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.PartitionKey = Guid.NewGuid().ToString();
+
+            foreach (var property in properties)
+                message.UserProperties.Add(property.Key, property.Value);
+
+            await topicClient.SendAsync(message);
         }
     }
 }

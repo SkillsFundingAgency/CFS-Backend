@@ -1,13 +1,19 @@
 ﻿using AutoMapper;
+using CalculateFunding.Models;
+using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Search.Models;
+using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
 using System.Collections.Generic;
@@ -25,8 +31,8 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly IMapper _mapper;
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
-        private readonly Policy _testResultsPolicy;
-        private readonly Policy _testResultsSearchPolicy;
+        private readonly Polly.Policy _testResultsPolicy;
+        private readonly Polly.Policy _testResultsSearchPolicy;
         private readonly ICacheProvider _cacheProvider;
 
         public TestResultsService(ITestResultsRepository testResultsRepository,
@@ -184,6 +190,65 @@ namespace CalculateFunding.Services.TestRunner.Services
             }
 
             return new NoContentResult();
+        }
+
+        public async Task UpdateTestResultsForSpecification(Message message)
+        {
+            SpecificationVersionComparisonModel specificationVersionComparison = message.GetPayloadAsInstanceOf<SpecificationVersionComparisonModel>();
+
+            if (specificationVersionComparison == null || specificationVersionComparison.Current == null)
+            {
+                _logger.Error("A null specificationVersionComparison was provided to UpdateTestResultsForSpecification");
+
+                throw new InvalidModelException(nameof(SpecificationVersionComparisonModel), new[] { "Null or invalid model provided" });
+            }
+
+            if(specificationVersionComparison.Current.Name == specificationVersionComparison.Previous.Name)
+            {
+                _logger.Information("No changes detected");
+                return;
+            }
+
+            bool keepSearching = true;
+
+
+            while (keepSearching)
+            {
+                SearchResults<TestScenarioResultIndex> results = await _searchRepository.Search("", new SearchParameters
+                {
+                    Skip = 0,
+                    Top = 1000,
+                    SearchMode = SearchMode.Any,
+                    Filter = $"specificationId -eq {specificationVersionComparison.Id} and specificationName -ne {specificationVersionComparison.Current.Name}",
+                    QueryType = QueryType.Full
+                });
+
+                if (results.Results.IsNullOrEmpty())
+                {
+                    keepSearching = false;
+                }
+                else
+                {
+                    IEnumerable<TestScenarioResultIndex> indexResults = results.Results.Select(m => m.Result);
+
+                    if (results.Results.Count < 1000)
+                    {
+                        keepSearching = false;
+                    }
+
+                    foreach (TestScenarioResultIndex scenarioResultIndex in indexResults)
+                    {
+                        scenarioResultIndex.SpecificationName = specificationVersionComparison.Current.Name;
+                    }
+
+                    IEnumerable<IndexError> indexErrors = await _searchRepository.Index(indexResults);
+
+                    if (indexErrors.Any())
+                    {
+                        _logger.Error($"The following errors occcurred while updating test results for specification id: {specificationVersionComparison.Id}, {string.Join(";", indexErrors.Select(m => m.ErrorMessage))}");
+                    }
+                }
+            }
         }
     }
 }

@@ -20,5 +20,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<HttpStatusCode> UpdateCalculation(Calculation calculation);
 
         Task<IEnumerable<Calculation>> GetAllCalculations();
+
+        Task UpdateCalculations(IEnumerable<Calculation> calculations);
     }
 }

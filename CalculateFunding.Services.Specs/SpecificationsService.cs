@@ -718,6 +718,8 @@ namespace CalculateFunding.Services.Specs
 
             Reference user = request.GetUser();
 
+            SpecificationVersion previousSpecificationVersion = specification.Current;
+
             SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
 
             specificationVersion.Name = editModel.Name;
@@ -799,8 +801,28 @@ namespace CalculateFunding.Services.Specs
 
             }
 
-            //Put message on service bus to update whatever
+            await SendMessageToTopic(specificationId, specification.Current, previousSpecificationVersion, request);
+
             return new OkObjectResult(specification);
+        }
+
+        Task SendMessageToTopic(string specificationId, SpecificationVersion current, SpecificationVersion previous, HttpRequest request)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.ArgumentNotNull(current, nameof(current));
+            Guard.ArgumentNotNull(previous, nameof(previous));
+            Guard.ArgumentNotNull(request, nameof(request));
+
+            IDictionary<string, string> properties = CreateMessageProperties(request);
+
+            SpecificationVersionComparisonModel comparisonModel = new SpecificationVersionComparisonModel
+            {
+                Id = specificationId,
+                Current = current,
+                Previous = previous
+            };
+
+            return _messengerService.SendToTopic(ServiceBusConstants.TopicNames.EditSpecification, comparisonModel, properties);
         }
 
         /// <summary>
@@ -840,53 +862,37 @@ namespace CalculateFunding.Services.Specs
         public async Task<IActionResult> CreateCalculation(HttpRequest request)
         {
             string json = await request.GetRawBodyStringAsync();
-
             CalculationCreateModel createModel = JsonConvert.DeserializeObject<CalculationCreateModel>(json);
-
             if (createModel == null)
             {
                 _logger.Error("Null calculation create model provided to CreateCalculation");
-
                 return new BadRequestObjectResult("Null calculation create model provided");
             }
-
             var validationResult = (await _calculationCreateModelValidator.ValidateAsync(createModel)).PopulateModelState();
-
             if (validationResult != null)
             {
                 _logger.Error("Invalid data was provided for CreateCalculation");
-
                 return validationResult;
             }
-
             Specification specification = await _specificationsRepository.GetSpecificationById(createModel.SpecificationId);
-
             if (specification == null)
             {
                 _logger.Warning($"Specification not found for specification id {createModel.SpecificationId}");
                 return new PreconditionFailedResult($"Specification not found for specification id {createModel.SpecificationId}");
             }
-
             SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
-
             Policy policy = specificationVersion.GetPolicy(createModel.PolicyId);
-
             if (policy == null)
             {
                 _logger.Warning($"Policy not found for policy id '{createModel.PolicyId}'");
                 return new PreconditionFailedResult($"Policy not found for policy id '{createModel.PolicyId}'");
             }
-
             Calculation calculation = _mapper.Map<Calculation>(createModel);
-
             FundingStream currentFundingStream = null;
-
             if (!string.IsNullOrWhiteSpace(createModel.AllocationLineId))
             {
                 string[] fundingSteamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray();
-
                 IEnumerable<FundingStream> fundingStreams = await _specificationsRepository.GetFundingStreams(f => fundingSteamIds.Contains(f.Id));
-
                 foreach (FundingStream fundingStream in fundingStreams)
                 {
                     AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == createModel.AllocationLineId);
@@ -897,27 +903,21 @@ namespace CalculateFunding.Services.Specs
                         break;
                     }
                 }
-
                 if (currentFundingStream == null)
                 {
                     return new PreconditionFailedResult($"A funding stream was not found for specification with id: {specification.Id} for allocation ID {createModel.AllocationLineId}");
                 }
             }
-
             policy.Calculations = (policy.Calculations == null
                 ? new[] { calculation }
                 : policy.Calculations.Concat(new[] { calculation }));
-
             HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion);
             if (statusCode != HttpStatusCode.OK)
             {
                 _logger.Error($"Failed to update specification when creating a calc with status {statusCode}");
-
                 return new StatusCodeResult((int)statusCode);
             }
-
             IDictionary<string, string> properties = CreateMessageProperties(request);
-
             await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CreateDraftCalculation,
                 new Models.Calcs.Calculation
                 {
@@ -935,7 +935,6 @@ namespace CalculateFunding.Services.Specs
                     FundingStream = currentFundingStream,
                 },
                 properties);
-
             return new OkObjectResult(calculation);
         }
 

@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
@@ -16,6 +17,7 @@ using CalculateFunding.Services.Scenarios.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
 using System;
@@ -146,20 +148,7 @@ namespace CalculateFunding.Services.Scenarios
                 return new StatusCodeResult((int)statusCode);
             }
 
-            ScenarioIndex scenarioIndex = new ScenarioIndex
-            {
-                Id = testScenario.Id,
-                Name = testScenario.Name,
-                Description = testScenario.Current.Description,
-                SpecificationId = testScenario.SpecificationId,
-                SpecificationName = specification.Name,
-                FundingPeriodId = specification.FundingPeriod.Id,
-                FundingPeriodName = specification.FundingPeriod.Name,
-                FundingStreamIds = specification.FundingStreams.Select(s => s.Id).ToArray(),
-                FundingStreamNames = specification.FundingStreams.Select(s => s.Name).ToArray(),
-                Status = testScenario.Current.PublishStatus.ToString(),
-                LastUpdatedDate = DateTimeOffset.Now
-            };
+            ScenarioIndex scenarioIndex = CreateScenarioIndexFromScenario(testScenario, specification);
 
             await _searchRepository.Index(new List<ScenarioIndex> { scenarioIndex });
 
@@ -247,6 +236,70 @@ namespace CalculateFunding.Services.Scenarios
             return new OkObjectResult(testScenario);
         }
 
+        public async Task UpdateScenarioForSpecification(Message message)
+        {
+            SpecificationVersionComparisonModel specificationVersionComparison = message.GetPayloadAsInstanceOf<SpecificationVersionComparisonModel>();
+
+            if (specificationVersionComparison == null || specificationVersionComparison.Current == null)
+            {
+                _logger.Error("A null specificationVersionComparison was provided to UpdateScenarioForSpecification");
+
+                throw new InvalidModelException(nameof(Models.Specs.SpecificationVersionComparisonModel), new[] { "Null or invalid model provided" });
+            }
+
+            if (specificationVersionComparison.HasNoChanges)
+            {
+                _logger.Information("No changes detected");
+                return;
+            }
+
+            string specificationId = specificationVersionComparison.Id;
+
+            IEnumerable<TestScenario> scenarios = await _scenariosRepository.GetTestScenariosBySpecificationId(specificationId);
+
+            if (scenarios.IsNullOrEmpty())
+            {
+                _logger.Information($"No scenarios found for specification id: {specificationId}");
+                return;
+            }
+
+            IEnumerable<string> fundingStreamIds = specificationVersionComparison.Current.FundingStreams?.Select(m => m.Id);
+
+            IList<ScenarioIndex> scenarioIndexes = new List<ScenarioIndex>();
+
+            foreach (TestScenario scenario in scenarios)
+            {
+                scenario.History.Add(scenario.Current);
+
+                scenario.Current = new TestScenarioVersion
+                {
+                    FundingPeriodId = specificationVersionComparison.Current.FundingPeriod.Id,
+                    FundingStreamIds = specificationVersionComparison.Current.FundingStreams.Select(m => m.Id),
+                    Author = scenario.Current.Author,
+                    Date = DateTime.Now,
+                    Gherkin = scenario.Current.Gherkin,
+                    Description = scenario.Current.Description,
+                    PublishStatus = scenario.Current.PublishStatus,
+                    Version = scenario.GetNextVersion()
+                };
+
+                ScenarioIndex scenarioIndex = CreateScenarioIndexFromScenario(scenario, new SpecificationSummary
+                {
+                    Id = specificationVersionComparison.Id,
+                    Name = specificationVersionComparison.Current.Name,
+                    FundingPeriod = specificationVersionComparison.Current.FundingPeriod,
+                    FundingStreams = specificationVersionComparison.Current.FundingStreams
+                });
+
+                scenarioIndexes.Add(scenarioIndex);
+            }
+
+            await TaskHelper.WhenAllAndThrow(
+                _scenariosRepository.SaveTestScenarios(scenarios),
+                _searchRepository.Index(scenarioIndexes)
+                );
+        }
+
         IDictionary<string, string> CreateMessageProperties(HttpRequest request)
         {
             Reference user = request.GetUser();
@@ -276,6 +329,24 @@ namespace CalculateFunding.Services.Scenarios
             return _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
                 buildProject,
                 properties);
+        }
+
+        ScenarioIndex CreateScenarioIndexFromScenario(TestScenario testScenario, SpecificationSummary specification)
+        {
+            return new ScenarioIndex
+            {
+                Id = testScenario.Id,
+                Name = testScenario.Name,
+                Description = testScenario.Current.Description,
+                SpecificationId = testScenario.SpecificationId,
+                SpecificationName = specification.Name,
+                FundingPeriodId = specification.FundingPeriod.Id,
+                FundingPeriodName = specification.FundingPeriod.Name,
+                FundingStreamIds = specification.FundingStreams?.Select(s => s.Id).ToArray(),
+                FundingStreamNames = specification.FundingStreams?.Select(s => s.Name).ToArray(),
+                Status = testScenario.Current.PublishStatus.ToString(),
+                LastUpdatedDate = DateTimeOffset.Now
+            };
         }
     }
 }

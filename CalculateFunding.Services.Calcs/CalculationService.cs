@@ -263,6 +263,70 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
+        public async Task UpdateCalculationsForSpecification(Message message)
+        {
+            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = message.GetPayloadAsInstanceOf<Models.Specs.SpecificationVersionComparisonModel>();
+
+            if (specificationVersionComparison == null || specificationVersionComparison.Current == null)
+            {
+                _logger.Error("A null specificationVersionComparison was provided to UpdateCalulationsForSpecification");
+
+                throw new InvalidModelException(nameof(Models.Specs.SpecificationVersionComparisonModel), new[] { "Null or invalid model provided" });
+            }
+
+            if (specificationVersionComparison.HasNoChanges)
+            {
+                _logger.Information("No changes detected");
+                return;
+            }
+
+            string specificationId = specificationVersionComparison.Id;
+
+            IEnumerable<Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
+
+            if (calculations.IsNullOrEmpty())
+            {
+                _logger.Information($"No calculations found for specification id: {specificationId}");
+                return;
+            }
+
+            IEnumerable<string> fundingStreamIds = specificationVersionComparison.Current.FundingStreams?.Select(m => m.Id);
+
+            IList<CalculationIndex> calcIndexes = new List<CalculationIndex>();
+
+            foreach (Calculation calculation in calculations)
+            {
+                calculation.FundingPeriod = specificationVersionComparison.Current.FundingPeriod;
+
+                if (!fundingStreamIds.IsNullOrEmpty() && !fundingStreamIds.Contains(calculation.FundingStream.Id))
+                {
+                    calculation.FundingStream = null;
+                    calculation.AllocationLine = null;
+                }
+
+                calcIndexes.Add(CreateCalculationIndexItem(calculation, specificationVersionComparison.Current.Name));
+            }
+
+            BuildProject buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId);
+
+            if (buildProject == null)
+            {
+                _logger.Warning($"A build project could not be found for specification id: {specificationId}");
+
+                buildProject = await CreateBuildProject(specificationId, calculations);
+            }
+            else
+            {
+                buildProject.Calculations = calculations.ToList();
+            }
+           
+            await TaskHelper.WhenAllAndThrow(
+                _calculationsRepository.UpdateCalculations(calculations),
+                _searchRepository.Index(calcIndexes),
+                _buildProjectsRepository.UpdateBuildProject(buildProject)
+            );
+        }
+
         async public Task<IActionResult> SaveCalculationVersion(HttpRequest request)
         {
             request.Query.TryGetValue("calculationId", out var calcId);
@@ -543,8 +607,8 @@ namespace CalculateFunding.Services.Calcs
                 PolicySpecificationNames = calculation.Policies.Select(m => m.Name).ToArraySafe(),
                 SourceCode = calculation.Current.SourceCode,
                 Status = calculation.Current.PublishStatus.ToString(),
-                FundingStreamId = calculation.FundingStream.Id,
-                FundingStreamName = calculation.FundingStream.Name,
+                FundingStreamId = calculation.FundingStream?.Id,
+                FundingStreamName = calculation.FundingStream?.Name,
                 LastUpdatedDate = calculation.Current.Date,
                 CalculationType = calculation.CalculationType.ToString()
             };
