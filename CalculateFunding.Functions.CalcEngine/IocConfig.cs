@@ -81,6 +81,9 @@ namespace CalculateFunding.Functions.CalcEngine
             builder
                 .AddScoped<ISpecificationsRepository, SpecificationsRepository>();
 
+            builder
+                .AddScoped<ICalculationsRepository, CalculationsRepository>();
+
             builder.AddInterServiceClient(config);
 
             builder.AddEngineSettings(config);
@@ -111,6 +114,7 @@ namespace CalculateFunding.Functions.CalcEngine
                     ProviderSourceDatasetsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
                     Messenger = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
+                    CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
 
                 return resiliencePolicies;

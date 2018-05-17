@@ -12,6 +12,6 @@ namespace CalculateFunding.Services.Calculator.Interfaces
 
         Task<IEnumerable<ProviderResult>> GenerateAllocations(BuildProject buildProject, IEnumerable<ProviderSummary> providers, Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> getProviderSourceDatasets);
 
-        ProviderResult CalculateProviderResults(IAllocationModel model, BuildProject buildProject, ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets);
+        ProviderResult CalculateProviderResults(IAllocationModel model, BuildProject buildProject, IEnumerable<CalculationSummaryModel> calculations, ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets);
     }
 }

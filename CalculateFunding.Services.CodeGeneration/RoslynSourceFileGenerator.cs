@@ -16,7 +16,7 @@ namespace CalculateFunding.Services.CodeGeneration
             _logger = logger;
         }
 
-        public List<SourceFile> GenerateCode(BuildProject buildProject)
+        public List<SourceFile> GenerateCode(BuildProject buildProject, IEnumerable<Calculation> calculations)
         {
             var stopwatch = new Stopwatch();
 
@@ -27,13 +27,13 @@ namespace CalculateFunding.Services.CodeGeneration
 
             sourceFiles.AddRange(GenerateDatasetSourceFiles(buildProject));
 
-            sourceFiles.AddRange(GenerateCalculationSourceFiles(buildProject));
+            sourceFiles.AddRange(GenerateCalculationSourceFiles(buildProject, calculations));
             stopwatch.Stop();
             _logger.Information($"${buildProject.Id} created syntax tree ({stopwatch.ElapsedMilliseconds}ms)");
             return sourceFiles;
         }
 
-        protected abstract IEnumerable<SourceFile> GenerateCalculationSourceFiles(BuildProject buildProject);
+        protected abstract IEnumerable<SourceFile> GenerateCalculationSourceFiles(BuildProject buildProject, IEnumerable<Calculation> calculations);
 
         protected abstract IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject buildProject);
 

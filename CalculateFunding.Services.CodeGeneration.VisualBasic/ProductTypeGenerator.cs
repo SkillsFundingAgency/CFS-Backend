@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
     public class ProductTypeGenerator : VisualBasicTypeGenerator
     {
 
-        public IEnumerable<SourceFile> GenerateCalcs(BuildProject buildProject)
+        public IEnumerable<SourceFile> GenerateCalcs(BuildProject buildProject, IEnumerable<Calculation> calculations)
         {
             var syntaxTree = SyntaxFactory.CompilationUnit()
                 .WithImports(StandardImports())
@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                             SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
                 SyntaxFactory.SingletonList(SyntaxFactory.InheritsStatement(SyntaxFactory.ParseTypeName("BaseCalculation"))),
                 new SyntaxList<ImplementsStatementSyntax>(),
-                SyntaxFactory.List(Methods(buildProject)),
+                SyntaxFactory.List(Methods(buildProject, calculations)),
                 SyntaxFactory.EndClassStatement()
             )
   
@@ -38,13 +38,17 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             yield return new SourceFile {FileName = "Calculations.vb", SourceCode = syntaxTree.ToFullString()};
         }
 
-        private static IEnumerable<StatementSyntax> Methods(BuildProject buildProject)
+        private static IEnumerable<StatementSyntax> Methods(BuildProject buildProject, IEnumerable<Calculation> calculations)
         {
             yield return GetStandardProperties();
-            foreach (var calc in buildProject.Calculations)
+            if (calculations != null)
             {
-                yield return GetMethod(calc);
+                foreach (var calc in calculations)
+                {
+                    yield return GetMethod(calc);
+                }
             }
+           
         }
 
         private static StatementSyntax GetMethod(Calculation calc)

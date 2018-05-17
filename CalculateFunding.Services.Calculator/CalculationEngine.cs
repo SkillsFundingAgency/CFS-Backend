@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.Core.Helpers;
 using Serilog;
 using CalculationResult = CalculateFunding.Models.Results.CalculationResult;
 
@@ -15,11 +16,17 @@ namespace CalculateFunding.Services.Calculator
     public class CalculationEngine : ICalculationEngine
     {
         private readonly IAllocationFactory _allocationFactory;
+        private readonly ICalculationsRepository _calculationsRepository;
         private readonly ILogger _logger;
 
-        public CalculationEngine(IAllocationFactory allocationFactory, ILogger logger)
+        public CalculationEngine(IAllocationFactory allocationFactory, ICalculationsRepository calculationsRepository, ILogger logger)
         {
+            Guard.ArgumentNotNull(allocationFactory, nameof(allocationFactory));
+            Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+
             _allocationFactory = allocationFactory;
+            _calculationsRepository = calculationsRepository;
             _logger = logger;
         }
 
@@ -38,6 +45,8 @@ namespace CalculateFunding.Services.Calculator
 
             IList<ProviderResult> providerResults = new List<ProviderResult>();
 
+            IEnumerable<CalculationSummaryModel> calculations = await _calculationsRepository.GetCalculationSummariesForSpecification(buildProject.SpecificationId);
+
             Parallel.ForEach(providers, new ParallelOptions { MaxDegreeOfParallelism = 5 }, provider =>
             {
                 var stopwatch = new Stopwatch();
@@ -50,7 +59,7 @@ namespace CalculateFunding.Services.Calculator
                     providerSourceDatasets = Enumerable.Empty<ProviderSourceDataset>();
                 }
 
-                var result = CalculateProviderResults(allocationModel, buildProject, provider, providerSourceDatasets.ToList());
+                var result = CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerSourceDatasets.ToList());
 
                 providerResults.Add(result);
 
@@ -61,7 +70,7 @@ namespace CalculateFunding.Services.Calculator
             return providerResults;
         }
 
-        public ProviderResult CalculateProviderResults(IAllocationModel model, BuildProject buildProject, ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets)
+        public ProviderResult CalculateProviderResults(IAllocationModel model, BuildProject buildProject, IEnumerable<CalculationSummaryModel> calculations, ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -70,7 +79,7 @@ namespace CalculateFunding.Services.Calculator
             {
                 calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>()).ToArray();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception(ex.ToString());
             }
@@ -79,51 +88,55 @@ namespace CalculateFunding.Services.Calculator
             stopwatch.Stop();
             _logger.Debug($"{providerCalResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalResults.Count: 0.0000}ms)");
 
-            var result = new ProviderResult
+            ProviderResult providerResult = new ProviderResult
             {
                 Provider = provider,
                 SpecificationId = buildProject.SpecificationId
             };
 
-	        byte[] plainTextBytes = System.Text.Encoding.UTF8.GetBytes($"{result.Provider.Id}-{result.SpecificationId}");
-			result.Id = System.Convert.ToBase64String(plainTextBytes);
-			
-            var productResults = new List<CalculationResult>();
+            byte[] plainTextBytes = System.Text.Encoding.UTF8.GetBytes($"{providerResult.Provider.Id}-{providerResult.SpecificationId}");
+            providerResult.Id = Convert.ToBase64String(plainTextBytes);
 
-            foreach (var calculation in buildProject.Calculations)
+            List<CalculationResult> results = new List<CalculationResult>();
+
+            if (calculations != null)
             {
-                var productResult = new CalculationResult
+                foreach (CalculationSummaryModel calculation in calculations)
                 {
-                    Calculation = calculation.GetReference(),
-                    CalculationType = calculation.CalculationType
-                };
-                if (providerCalResults.TryGetValue(calculation.Id, out var calculationResult))
-                {
-                    productResult.CalculationSpecification = calculationResult.CalculationSpecification;
-                    if(calculationResult.AllocationLine != null)
-                        productResult.AllocationLine = calculationResult.AllocationLine;
+                    CalculationResult result = new CalculationResult
+                    {
+                        Calculation = calculation.GetReference(),
+                        CalculationType = calculation.CalculationType
+                    };
 
-                    productResult.PolicySpecifications = calculationResult.PolicySpecifications;
-	                if (calculationResult.Value != decimal.MinValue)
-	                {
-		                productResult.Value = calculationResult.Value;
-					}		
-                    productResult.Exception = calculationResult.Exception;
+                    if (providerCalResults.TryGetValue(calculation.Id, out CalculationResult calculationResult))
+                    {
+                        result.CalculationSpecification = calculationResult.CalculationSpecification;
+                        if (calculationResult.AllocationLine != null)
+                            result.AllocationLine = calculationResult.AllocationLine;
+
+                        result.PolicySpecifications = calculationResult.PolicySpecifications;
+                        if (calculationResult.Value != decimal.MinValue)
+                        {
+                            result.Value = calculationResult.Value;
+                        }
+                        result.Exception = calculationResult.Exception;
+                    }
+
+                    results.Add(result);
                 }
-
-                productResults.Add(productResult);
-                        
             }
-            result.CalculationResults = productResults.ToList();
 
-	        result.AllocationLineResults = productResults.Where(x => x.CalculationType == CalculationType.Funding && x.AllocationLine != null)
-		        .GroupBy(x => x.AllocationLine).Select(x => new AllocationLineResult
-		        {
-			        AllocationLine = x.Key,
-			        Value = x.Sum(v => v.Value ?? decimal.Zero)
-		        }).ToList();
+            providerResult.CalculationResults = results.ToList();
 
-            return result;
+            providerResult.AllocationLineResults = results.Where(x => x.CalculationType == CalculationType.Funding && x.AllocationLine != null)
+                .GroupBy(x => x.AllocationLine).Select(x => new AllocationLineResult
+                {
+                    AllocationLine = x.Key,
+                    Value = x.Sum(v => v.Value ?? decimal.Zero)
+                }).ToList();
+
+            return providerResult;
         }
     }
 }

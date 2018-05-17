@@ -17,6 +17,7 @@ using System.Text;
 using System.IO;
 using System.Collections.Generic;
 using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -94,8 +95,10 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             PreviewRequest model = new PreviewRequest
             {
-                CalculationId = CalculationId
+                CalculationId = CalculationId,
+                SpecificationId = SpecificationId,
             };
+
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
@@ -114,7 +117,15 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns((Calculation)null);
 
-            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository);
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+
+            BuildProject buildProject = new BuildProject();
+
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(buildProject);
+
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -122,18 +133,15 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             result
                 .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
-
-            statusCodeResult
-                .StatusCode
+                .BeOfType<PreconditionFailedResult>()
+                .Which
+                .Value
                 .Should()
-                .Be(412);
+                .Be($"Calculation ('{CalculationId}') could not be found for specification Id '{SpecificationId}'");
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Calculation could not be found for calculation id {CalculationId}"));
+                .Warning(Arg.Is($"Calculation ('{CalculationId}') could not be found for specification Id '{SpecificationId}'"));
         }
 
         [TestMethod]
@@ -149,7 +157,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             PreviewRequest model = new PreviewRequest
             {
-                CalculationId = CalculationId
+                CalculationId = CalculationId,
+                SpecificationId = SpecificationId,
             };
 
             string json = JsonConvert.SerializeObject(model);
@@ -185,21 +194,19 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             result
                 .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
-
-            statusCodeResult
-                .StatusCode
+                .BeOfType<PreconditionFailedResult>()
+                .Which
+                .Value
                 .Should()
-                .Be(412);
+                .Be($"Build project for specification '{SpecificationId}' could not be found");
+
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Build project for specification {calculation.SpecificationId} could not be found"));
+                .Warning(Arg.Is($"Build project for specification '{SpecificationId}' could not be found"));
         }
 
-       
+
 
         [TestMethod]
         public async Task Compile_GivenPreviewRequestButCalculationHasAnEmptyStringOrNullForSpecificationId_ReturnsPreConditionFailed()
@@ -263,14 +270,16 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             PreviewRequest model = new PreviewRequest
             {
-                CalculationId = CalculationId
+                CalculationId = CalculationId,
+                SpecificationId = SpecificationId,
             };
+
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
-                SpecificationId = "123",
+                SpecificationId = SpecificationId,
             };
 
             string json = JsonConvert.SerializeObject(model);
@@ -304,18 +313,15 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             result
                 .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
-
-            statusCodeResult
-                .StatusCode
+                .BeOfType<PreconditionFailedResult>()
+                .Which
+                .Value
                 .Should()
-                .Be(412);
+                .Be($"Build project for specification '{SpecificationId}' could not be found");
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Build project for specification {calculation.SpecificationId} could not be found"));
+                .Warning(Arg.Is($"Build project for specification '{SpecificationId}' could not be found"));
         }
 
         [TestMethod]
@@ -324,14 +330,16 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             PreviewRequest model = new PreviewRequest
             {
-                CalculationId = CalculationId
+                CalculationId = CalculationId,
+                SpecificationId = SpecificationId,
             };
+
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
-                SpecificationId = "123",
+                SpecificationId = SpecificationId,
             };
             BuildProject buildProject = new BuildProject();
 
@@ -360,47 +368,45 @@ namespace CalculateFunding.Services.Calcs.Services
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
 
-            //Act
+            // Act
             IActionResult result = await service.Compile(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
-
-            statusCodeResult
-                .StatusCode
+                .BeOfType<PreconditionFailedResult>()
+                .Which
+                .Value
                 .Should()
-                .Be(412);
+                .Be("Calculation ('2d30bb44-0862-4524-a2f6-381c5534027a') could not be found for specification Id 'b13cd3ba-bdf8-40a8-9ec4-af48eb8a4386'");
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Calculation could not be found for on build project id {buildProject.Id}"));
+                .Warning(Arg.Is($"Calculation ('2d30bb44-0862-4524-a2f6-381c5534027a') could not be found for specification Id 'b13cd3ba-bdf8-40a8-9ec4-af48eb8a4386'"));
         }
 
         [TestMethod]
         public async Task Compile_GivenSourceFileGeneratorWasNotFound_ReturnsInternalServerError()
         {
-            //Arrange
+            // Arrange
             PreviewRequest model = new PreviewRequest
             {
-                CalculationId = CalculationId
+                CalculationId = CalculationId,
+                SpecificationId = SpecificationId,
             };
+
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
-                SpecificationId = "123",
+                SpecificationId = SpecificationId,
             };
+
+            List<Calculation> calculations = new List<Calculation>() { calculation };
+
             BuildProject buildProject = new BuildProject
             {
-                Calculations = new List<Calculation>
-                {
-                    calculation
-                }
             };
 
             string json = JsonConvert.SerializeObject(model);
@@ -421,9 +427,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns(calculation);
 
+            calculationsRepository
+               .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+               .Returns(calculations);
+
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
@@ -433,24 +443,21 @@ namespace CalculateFunding.Services.Calcs.Services
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
 
-            //Act
+            // Act
             IActionResult result = await service.Compile(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
-
-            statusCodeResult
-                .StatusCode
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
                 .Should()
-                .Be(500);
+                .Be("Source file generator was not created");
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Source file generator was not created"));
+                .Warning(Arg.Is($"Source file generator was not created"));
         }
 
         [TestMethod]
@@ -459,21 +466,22 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             PreviewRequest model = new PreviewRequest
             {
-                CalculationId = CalculationId
+                CalculationId = CalculationId,
+                SpecificationId = SpecificationId,
             };
+
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
-                SpecificationId = "123",
+                SpecificationId = SpecificationId,
             };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
             BuildProject buildProject = new BuildProject
             {
-                Calculations = new List<Calculation>
-                {
-                    calculation
-                }
             };
 
             string json = JsonConvert.SerializeObject(model);
@@ -494,9 +502,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns(calculation);
 
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
             ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
@@ -504,7 +516,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IEnumerable<SourceFile> sourceFiles = new List<SourceFile>();
 
             sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject))
+                .GenerateCode(Arg.Is(buildProject), Arg.Is(calculations))
                 .Returns(sourceFiles);
 
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
@@ -518,18 +530,15 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             result
                 .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
-
-            statusCodeResult
-                .StatusCode
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
                 .Should()
-                .Be(500);
+                .Be("Source file generator did not generate any source file");
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Source file generator did not generate any source file"));
+                .Warning(Arg.Is($"Source file generator did not generate any source file"));
         }
 
         [TestMethod]
@@ -539,21 +548,22 @@ namespace CalculateFunding.Services.Calcs.Services
             PreviewRequest model = new PreviewRequest
             {
                 CalculationId = CalculationId,
-                SourceCode = SourceCode
+                SourceCode = SourceCode,
+                SpecificationId = SpecificationId,
             };
+
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
-                SpecificationId = "123",
+                SpecificationId = SpecificationId,
             };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
             BuildProject buildProject = new BuildProject
             {
-                Calculations = new List<Calculation>
-                {
-                    calculation
-                }
             };
 
             string json = JsonConvert.SerializeObject(model);
@@ -574,9 +584,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns(calculation);
 
+            calculationsRepository
+                           .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                           .Returns(calculations);
+
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
             ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
@@ -587,7 +601,7 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject))
+                .GenerateCode(Arg.Is(buildProject), Arg.Is(calculations))
                 .Returns(sourceFiles);
 
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
@@ -606,6 +620,8 @@ namespace CalculateFunding.Services.Calcs.Services
             compilerFactory
                 .GetCompiler(Arg.Is(sourceFiles))
                 .Returns(compiler);
+
+
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory);
@@ -650,21 +666,22 @@ namespace CalculateFunding.Services.Calcs.Services
             PreviewRequest model = new PreviewRequest
             {
                 CalculationId = CalculationId,
-                SourceCode = SourceCode
+                SourceCode = SourceCode,
+                SpecificationId = SpecificationId,
             };
+
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
-                SpecificationId = "123",
+                SpecificationId = SpecificationId,
             };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
             BuildProject buildProject = new BuildProject
             {
-                Calculations = new List<Calculation>
-                {
-                    calculation
-                }
             };
 
             string json = JsonConvert.SerializeObject(model);
@@ -685,6 +702,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns(calculation);
 
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
                 .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
@@ -698,7 +719,7 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject))
+                .GenerateCode(Arg.Is(buildProject), Arg.Is(calculations))
                 .Returns(sourceFiles);
 
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);

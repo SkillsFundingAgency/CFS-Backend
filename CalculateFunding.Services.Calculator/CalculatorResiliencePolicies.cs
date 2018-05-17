@@ -12,5 +12,7 @@ namespace CalculateFunding.Services.Calculator
         public Policy ProviderSourceDatasetsRepository { get; set; }
 
         public Policy ProviderResultsRepository { get; set; }
+
+        public Policy CalculationsRepository { get; set; }
     }
 }

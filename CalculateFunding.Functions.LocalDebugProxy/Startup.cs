@@ -97,6 +97,8 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             builder.AddScoped<ICalculationEngineService, CalculationEngineService>();
             builder.AddScoped<ICalculationEngine, CalculationEngine>();
             builder.AddScoped<IAllocationFactory, AllocationFactory>();
+            builder.AddScoped<Services.Calculator.Interfaces.ICalculationsRepository, Services.Calculator.CalculationsRepository>();
+
 
             builder.AddSingleton<Services.Calculator.Interfaces.IProviderSourceDatasetsRepository, Services.Calculator.ProviderSourceDatasetsRepository>((ctx) =>
             {
@@ -114,7 +116,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             });
 
 
-            builder.AddScoped<ICalculationsRepository, CalculationsRepository>((ctx) =>
+            builder.AddScoped<Services.Calcs.Interfaces.ICalculationsRepository, Services.Calcs.CalculationsRepository>((ctx) =>
             {
                 CosmosDbSettings calssDbSettings = new CosmosDbSettings();
 
@@ -124,7 +126,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 
-                return new CalculationsRepository(calcsCosmosRepostory);
+                return new Services.Calcs.CalculationsRepository(calcsCosmosRepostory);
             });
 
             builder
@@ -518,7 +520,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
             // Logging for Application Insights
             //builder.AddApplicationInsightsTelemetryClient(config);
             //builder.AddTelemetry();
-            //builder.AddLogging("LocalDebugProxy");
+            //builder.AddLogging("LocalDebugProxy");R
 
             // Logging for Application Insights
             //builder.AddLogging(config, "LocalDebugProxy");
@@ -542,6 +544,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                     ProviderSourceDatasetsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
                     Messenger = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
+                    CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
 
                 return resiliencePolicies;

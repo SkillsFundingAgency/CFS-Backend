@@ -5,6 +5,7 @@ using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -61,53 +62,51 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("The preview request failed to validate");
             }
 
-            Calculation calculation = await _calculationsRepository.GetCalculationById(previewRequest.CalculationId);
+            Task<IEnumerable<Calculation>> calculationsTask = _calculationsRepository.GetCalculationsBySpecificationId(previewRequest.SpecificationId);
+            Task<BuildProject> buildProjectTask = _buildProjectsRepository.GetBuildProjectBySpecificationId(previewRequest.SpecificationId);
 
-            if (calculation == null)
-            {
-                _logger.Error($"Calculation could not be found for calculation id {previewRequest.CalculationId}");
-                return new StatusCodeResult(412);
-            }
+            await TaskHelper.WhenAllAndThrow(calculationsTask, buildProjectTask);
 
-            BuildProject buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(calculation.SpecificationId);
+            BuildProject buildProject = buildProjectTask.Result;
             if (buildProject == null)
             {
-                _logger.Error($"Build project for specification {calculation.SpecificationId} could not be found");
+                _logger.Warning($"Build project for specification '{previewRequest.SpecificationId}' could not be found");
 
-                return new StatusCodeResult(412);
+                return new PreconditionFailedResult($"Build project for specification '{previewRequest.SpecificationId}' could not be found");
             }
 
-            calculation = buildProject.Calculations?.FirstOrDefault(m => m.Id == previewRequest.CalculationId);
+            IEnumerable<Calculation> calculations = calculationsTask.Result;
 
+            Calculation calculation = calculations.FirstOrDefault(m => m.Id == previewRequest.CalculationId);
             if (calculation == null)
             {
-                _logger.Error($"Calculation could not be found for on build project id {buildProject.Id}");
-                return new StatusCodeResult(412);
+                _logger.Warning($"Calculation ('{previewRequest.CalculationId}') could not be found for specification Id '{previewRequest.SpecificationId}'");
+                return new PreconditionFailedResult($"Calculation ('{previewRequest.CalculationId}') could not be found for specification Id '{previewRequest.SpecificationId}'");
             }
 
             calculation.Current.SourceCode = previewRequest.SourceCode;
 
-            return GenerateAndCompile(buildProject, calculation);
+            return GenerateAndCompile(buildProject, calculation, calculations);
         }
 
-        IActionResult GenerateAndCompile(BuildProject buildProject, Calculation calculation)
+        IActionResult GenerateAndCompile(BuildProject buildProject, Calculation calculationToPreview, IEnumerable<Calculation> calculations)
         {
             ISourceFileGenerator sourceFileGenerator = _sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
 
             if (sourceFileGenerator == null)
             {
-                _logger.Error("Source file generator was not created");
+                _logger.Warning("Source file generator was not created");
 
-                return new StatusCodeResult(500);
+                return new InternalServerErrorResult("Source file generator was not created");
             }
 
-            IEnumerable<SourceFile> sourceFiles = sourceFileGenerator.GenerateCode(buildProject);
+            IEnumerable<SourceFile> sourceFiles = sourceFileGenerator.GenerateCode(buildProject, calculations);
 
             if (sourceFiles.IsNullOrEmpty())
             {
-                _logger.Error("Source file generator did not generate any source file");
+                _logger.Warning("Source file generator did not generate any source file");
 
-                return new StatusCodeResult(500);
+                return new InternalServerErrorResult("Source file generator did not generate any source file");
             }
 
             ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
@@ -115,16 +114,16 @@ namespace CalculateFunding.Services.Calcs
             Build compilerOutput = compiler.GenerateCode(sourceFiles.ToList());
 
             if (compilerOutput.Success)
-                _logger.Information($"Build compiled succesfully for calculation id {calculation.Id}");
+                _logger.Information($"Build compiled succesfully for calculation id {calculationToPreview.Id}");
             else
             {
-                _logger.Information($"Build did not compile succesfully for calculation id {calculation.Id}");
+                _logger.Information($"Build did not compile succesfully for calculation id {calculationToPreview.Id}");
             }
 
 
             PreviewResponse response = new PreviewResponse()
             {
-                Calculation = calculation,
+                Calculation = calculationToPreview,
                 CompilerOutput = compilerOutput
             };
 

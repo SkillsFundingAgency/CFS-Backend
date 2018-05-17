@@ -12,9 +12,6 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("targetLanguage")]
         public TargetLanguage TargetLanguage { get; set; } = TargetLanguage.VisualBasic;
 
-        [JsonProperty("calculations")]
-        public List<Calculation> Calculations { get; set; }
-
         [JsonProperty("datasetRelationships")]
         public List<DatasetRelationshipSummary> DatasetRelationships { get; set; }
 

@@ -142,12 +142,6 @@ Feature:
 		        Name = "Test",
 		        TargetLanguage = TargetLanguage.VisualBasic,
 		        SpecificationId = "1234",
-		        Calculations = new List<Calculation>()
-		        {
-		            new Calculation{ Id="1234", Name = "Get Me A Dataset!", Current = new CalculationVersion{ SourceCode = "Return Datasets.ThisYear.NORPrimary + Datasets.LastYear.NORPrimary"}},
-		            new Calculation{ Id="12345", Name = "Aggregate This!", Current = new CalculationVersion{ SourceCode =
-                        @"  Return Datasets.AllAuthorityProviders.Count"}}
-		        }
             };
 
             if (buildProject != null)
@@ -163,7 +157,16 @@ Feature:
                 };
 
 		        var generator = provider.CreateSourceFileGenerator(buildProject.TargetLanguage);
-		        var sourceFiles = generator.GenerateCode(buildProject);
+
+                List<Calculation> calculations = new List<Calculation>()
+                {
+                    new Calculation{ Id="1234", Name = "Get Me A Dataset!", Current = new CalculationVersion{ SourceCode = "Return Datasets.ThisYear.NORPrimary + Datasets.LastYear.NORPrimary"}},
+                    new Calculation{ Id="12345", Name = "Aggregate This!", Current = new CalculationVersion{ SourceCode =
+                        @"  Return Datasets.AllAuthorityProviders.Count"}}
+                };
+
+
+                var sourceFiles = generator.GenerateCode(buildProject, calculations);
 
 		        ICompiler compiler = compilerFactory.GetCompiler(sourceFiles);
 
@@ -247,19 +250,19 @@ Feature:
 			IConfigurationRoot config = ConfigHelper.AddConfig();
 
 			builder
-				.AddScoped<ICalculationsRepository, CalculationsRepository>();
+				.AddScoped<Services.Calcs.Interfaces.ICalculationsRepository, Services.Calcs.CalculationsRepository>();
 
-			builder.AddScoped<ICalculationsRepository, CalculationsRepository>((ctx) =>
+			builder.AddScoped<Services.Calcs.Interfaces.ICalculationsRepository, Services.Calcs.CalculationsRepository>((ctx) =>
 			{
-				CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
 
 				config.Bind("CosmosDbSettings", calssDbSettings);
 
 				calssDbSettings.CollectionName = "calcs";
 
-				CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 
-				return new CalculationsRepository(calcsCosmosRepostory);
+				return new Services.Calcs.CalculationsRepository(calcsCosmosRepostory);
 			});
 
 			builder

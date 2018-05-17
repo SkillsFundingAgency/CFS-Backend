@@ -15,5 +15,6 @@ namespace CalculateFunding.Services.Calculator.Interfaces
 
         Policy ProviderResultsRepository { get; set; }
 
+        Policy CalculationsRepository { get; set; }
     }
 }

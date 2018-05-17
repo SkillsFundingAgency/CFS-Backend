@@ -40,6 +40,24 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _calcsService.GetCalculationById(ControllerContext.HttpContext.Request);
         }
 
+        [Route("api/calcs/calculation-summaries-for-specification")]
+        [HttpGet]
+        public Task<IActionResult> RunGetCalculationSummariesForSpecification()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _calcsService.GetCalculationSummariesForSpecification(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/calcs/current-calculations-for-specification")]
+        [HttpGet]
+        public Task<IActionResult> RunGetCurrentCalculationsForSpecification()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _calcsService.GetCurrentCalculationsForSpecification(ControllerContext.HttpContext.Request);
+        }
+
         [Route("api/calcs/calculation-current-version")]
         [HttpGet]
         public Task<IActionResult> RunCalculationCurrentVersion()

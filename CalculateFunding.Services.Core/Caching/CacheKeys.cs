@@ -23,5 +23,11 @@ namespace CalculateFunding.Services.Core.Caching
         public static string SpecificationSummariesByFundingPeriodId { get; set; } = "specification-summaries-funding-period:";
 
         public static string SpecificationSummaries { get; set; } = "specification-summaries";
+
+        public static string CurrentCalculationsForSpecification { get; set; } = "calculations-current-for-specification:";
+
+        public static string CalculationsSummariesForSpecification { get; set; } = "calculation-summaries-for-specification:";
+
+        public static string CurrentCalcluation { get; set; } = "calculation-current:";
     }
 }

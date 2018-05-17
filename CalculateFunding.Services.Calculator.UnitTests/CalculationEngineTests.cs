@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Calculator
 
             ILogger logger = CreateLogger();
 
-            CalculationEngine calculationEngine = new CalculationEngine(allocationFactory, logger);
+            CalculationEngine calculationEngine = CreateCalculationEngine(allocationFactory, logger: logger);
 
             //Act
             Func<Task> test = () => calculationEngine.GenerateAllocations(buildProject, providers, func);
@@ -98,7 +98,7 @@ namespace CalculateFunding.Services.Calculator
             {
                 new CalculationResult
                 {
-                    Calculation = new Reference { Id = CalculationId }
+                    Calculation = new Reference { Id = CalculationId },
                 }
             };
 
@@ -113,8 +113,29 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(allocationModel);
 
             ILogger logger = CreateLogger();
-           
-            CalculationEngine calculationEngine = new CalculationEngine(allocationFactory, logger);
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            List<CalculationSummaryModel> calculations = new List<CalculationSummaryModel>()
+            {
+                new CalculationSummaryModel()
+                {
+                    Id = CalculationId,
+                },
+                new CalculationSummaryModel()
+                {
+                    Id = "calc2",
+                },
+                new CalculationSummaryModel()
+                {
+                    Id = "calc3",
+                }
+            };
+
+            calculationsRepository
+                .GetCalculationSummariesForSpecification(Arg.Any<string>())
+                .Returns(calculations);
+
+            CalculationEngine calculationEngine = CreateCalculationEngine(allocationFactory, calculationsRepository, logger: logger);
 
             //Act
             IEnumerable<ProviderResult> results = await calculationEngine.GenerateAllocations(buildProject, providers, func);
@@ -130,16 +151,36 @@ namespace CalculateFunding.Services.Calculator
                 .CalculationResults
                 .Count
                 .Should()
-                .Be(14);
+                .Be(3);
+        }
+
+        private static CalculationEngine CreateCalculationEngine(
+            IAllocationFactory allocationFactory = null,
+            ICalculationsRepository calculationsRepository = null,
+            ILogger logger = null
+            )
+        {
+            return new CalculationEngine(
+                allocationFactory ?? CreateAllocationFactory(),
+                calculationsRepository ?? CreateCalculationsRepository(),
+                logger ?? CreateLogger()
+                );
         }
 
 
         static IAllocationFactory CreateAllocationFactory(IAllocationModel allocationModel)
         {
-            IAllocationFactory allocationFactory =  Substitute.For<IAllocationFactory>();
+            IAllocationFactory allocationFactory = Substitute.For<IAllocationFactory>();
             allocationFactory
                 .CreateAllocationModel(Arg.Any<Assembly>())
                 .Returns(allocationModel);
+
+            return allocationFactory;
+        }
+
+        static IAllocationFactory CreateAllocationFactory()
+        {
+            IAllocationFactory allocationFactory = Substitute.For<IAllocationFactory>();
 
             return allocationFactory;
         }
@@ -151,11 +192,14 @@ namespace CalculateFunding.Services.Calculator
             return buildProject;
         }
 
+        private static ICalculationsRepository CreateCalculationsRepository()
+        {
+            return Substitute.For<ICalculationsRepository>();
+        }
+
         private static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
         }
-
-        
     }
 }

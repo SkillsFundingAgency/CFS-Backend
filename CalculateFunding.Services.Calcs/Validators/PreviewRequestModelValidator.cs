@@ -14,6 +14,10 @@ namespace CalculateFunding.Services.Calcs.Validators
             RuleFor(preview => preview.SourceCode)
               .NotEmpty()
               .WithMessage("Null or empty calculation id provided");
+
+            RuleFor(preview => preview.SpecificationId)
+              .NotEmpty()
+              .WithMessage("Null or empty specification id provided");
         }
     }
 }

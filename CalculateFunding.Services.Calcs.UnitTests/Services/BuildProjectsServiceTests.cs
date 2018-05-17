@@ -1,8 +1,5 @@
 ﻿using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Options;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -25,6 +22,7 @@ using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using System.Linq;
+using CalculateFunding.Services.Calcs.Interfaces;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -666,16 +664,34 @@ namespace CalculateFunding.Services.Calcs.Services
                 .BeAssignableTo<OkObjectResult>();
         }
 
-        static BuildProjectsService CreateBuildProjectsService(IBuildProjectsRepository buildProjectsRepository = null, IMessengerService messengerService = null,
-            ServiceBusSettings EventHubSettings = null, ILogger logger = null, ITelemetry telemetry = null,
-            Interfaces.IProviderResultsRepository providerResultsRepository = null, ISpecificationRepository specificationsRepository = null, ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
-            ICompilerFactory compilerFactory = null, ICacheProvider caheProvider = null, ICalculationService calculationService = null)
+        static BuildProjectsService CreateBuildProjectsService(
+            IBuildProjectsRepository buildProjectsRepository = null, 
+            IMessengerService messengerService = null,
+            ServiceBusSettings EventHubSettings = null, 
+            ILogger logger = null, 
+            ITelemetry telemetry = null,
+            IProviderResultsRepository providerResultsRepository = null, 
+            ISpecificationRepository specificationsRepository = null, 
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
+            ICompilerFactory compilerFactory = null,
+            ICacheProvider caheProvider = null, 
+            ICalculationService calculationService = null,
+            ICalculationsRepository calculationsRepository = null)
         {
-            return new BuildProjectsService(buildProjectsRepository ?? CreateBuildProjectsRepository(), messengerService ?? CreateMessengerService(),
-                EventHubSettings ?? CreateEventHubSettings(), logger ?? CreateLogger(), telemetry ?? CreateTelemetry(),
-                providerResultsRepository ?? CreateProviderResultsRepository(), specificationsRepository ?? CreateSpecificationRepository(),
-                sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(), compilerFactory ?? CreateCompilerfactory(), caheProvider ?? CreateCacheProvider(),
-                calculationService ?? CreateCalculationService());
+            return new BuildProjectsService(
+                buildProjectsRepository ?? CreateBuildProjectsRepository(),
+                messengerService ?? CreateMessengerService(),
+                EventHubSettings ?? CreateEventHubSettings(), 
+                logger ?? CreateLogger(), 
+                telemetry ?? CreateTelemetry(),
+                providerResultsRepository ?? CreateProviderResultsRepository(), 
+                specificationsRepository ?? CreateSpecificationRepository(),
+                sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(), 
+                compilerFactory ?? CreateCompilerfactory(),
+                caheProvider ?? CreateCacheProvider(),
+                calculationService ?? CreateCalculationService(),
+                calculationsRepository ?? CreateCalculationsRepository()
+                );
         }
 
         static Message CreateMessage(string specificationId = SpecificationId)
@@ -735,11 +751,6 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<IBuildProjectsRepository>();
         }
 
-        static ICalculationEngine CreateCalculationEngine()
-        {
-            return Substitute.For<ICalculationEngine>();
-        }
-
         static Interfaces.IProviderResultsRepository CreateProviderResultsRepository()
         {
             return Substitute.For<Interfaces.IProviderResultsRepository>();
@@ -748,6 +759,11 @@ namespace CalculateFunding.Services.Calcs.Services
         static ISpecificationRepository CreateSpecificationRepository()
         {
             return Substitute.For<ISpecificationRepository>();
+        }
+
+        static ICalculationsRepository CreateCalculationsRepository()
+        {
+            return Substitute.For<ICalculationsRepository>();
         }
     }
 }

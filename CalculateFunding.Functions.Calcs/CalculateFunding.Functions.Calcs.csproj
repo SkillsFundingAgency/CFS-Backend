@@ -20,7 +20,6 @@
     <ProjectReference Include="..\CalculateFunding.Functions.Common\CalculateFunding.Functions.Common.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Calcs\CalculateFunding.Services.Calcs.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Services.Calculator\CalculateFunding.Services.Calculator.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Compiler\CalculateFunding.Services.Compiler.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
   </ItemGroup>

@@ -36,6 +36,30 @@ namespace CalculateFunding.Functions.Calcs.Http
             }
         }
 
+        [FunctionName("calculation-summaries-for-specification")]
+        public static Task<IActionResult> RunGetCalculationSummariesForSpecification(
+         [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ICalculationService svc = scope.ServiceProvider.GetService<ICalculationService>();
+
+                return svc.GetCalculationSummariesForSpecification(req);
+            }
+        }
+
+        [FunctionName("current-calculations-for-specification")]
+        public static Task<IActionResult> RunGetCurrentCalculationsForSpecification(
+         [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ICalculationService svc = scope.ServiceProvider.GetService<ICalculationService>();
+
+                return svc.GetCurrentCalculationsForSpecification(req);
+            }
+        }
+
         [FunctionName("calculation-publish")]
         public static Task<IActionResult> RunCalculationPublish(
          [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)

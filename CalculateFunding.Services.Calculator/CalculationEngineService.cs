@@ -35,11 +35,14 @@ namespace CalculateFunding.Services.Calculator
         private readonly IProviderSourceDatasetsRepository _providerSourceDatasetsRepository;
         private readonly ITelemetry _telemetry;
         private readonly IProviderResultsRepository _providerResultsRepository;
+        private readonly ICalculationsRepository _calculationsRepository;
         private readonly EngineSettings _engineSettings;
         private readonly Policy _cacheProviderPolicy;
         private readonly Policy _messengerServicePolicy;
         private readonly Policy _providerSourceDatasetsRepositoryPolicy;
         private readonly Policy _providerResultsRepositoryPolicy;
+        private readonly Policy _calculationsRepositoryPolicy;
+
 
         public CalculationEngineService(
             ILogger logger,
@@ -49,11 +52,13 @@ namespace CalculateFunding.Services.Calculator
             IProviderSourceDatasetsRepository providerSourceDatasetsRepository,
             ITelemetry telemetry,
             IProviderResultsRepository providerResultsRepository,
+            ICalculationsRepository calculationsRepository,
             EngineSettings engineSettings,
             ICalculatorResiliencePolicies resiliencePolicies)
         {
             Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
 
             _logger = logger;
             _calculationEngine = calculationEngine;
@@ -62,6 +67,7 @@ namespace CalculateFunding.Services.Calculator
             _providerSourceDatasetsRepository = providerSourceDatasetsRepository;
             _telemetry = telemetry;
             _providerResultsRepository = providerResultsRepository;
+            _calculationsRepository = calculationsRepository;
             _engineSettings = engineSettings;
 
             _cacheProviderPolicy = resiliencePolicies.CacheProvider;
@@ -78,7 +84,7 @@ namespace CalculateFunding.Services.Calculator
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
-                _logger.Error("No specification Id was provided to GetTestScenariusBySpecificationId");
+                _logger.Error("No specification Id was provided to GenerateAllocations");
 
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
@@ -98,19 +104,29 @@ namespace CalculateFunding.Services.Calculator
 
             BuildProject buildProject = JsonConvert.DeserializeObject<BuildProject>(json);
 
+            Task<IEnumerable<CalculationSummaryModel>> calculationsTask =
+                    _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationSummariesForSpecification(buildProject.SpecificationId));
 
-            List<ProviderSourceDataset> providerSourceDatasets =
-                new List<ProviderSourceDataset>(await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(new[] { providerId }, specificationId)));
+            Task<IEnumerable<ProviderSourceDataset>> providerSourceDatasetsTask =
+                 _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(new[] { providerId }, specificationId));
 
-            if (providerSourceDatasets == null)
+            await TaskHelper.WhenAllAndThrow(calculationsTask, providerSourceDatasetsTask);
+
+            List<ProviderSourceDataset> providerSourceDatasets;
+            if (providerSourceDatasetsTask.Result == null)
             {
                 providerSourceDatasets = new List<ProviderSourceDataset>();
+            }
+            else
+            {
+                providerSourceDatasets = new List<ProviderSourceDataset>(providerSourceDatasetsTask.Result);
             }
 
             IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(buildProject);
 
+            IEnumerable<CalculationSummaryModel> calculations = calculationsTask.Result;
 
-            var result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, new ProviderSummary { Id = providerId }, providerSourceDatasets);
+            ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, new ProviderSummary { Id = providerId }, providerSourceDatasets);
 
             return new OkObjectResult(result);
         }
@@ -176,6 +192,10 @@ namespace CalculateFunding.Services.Calculator
 
             int providerBatchSize = _engineSettings.ProviderBatchSize;
 
+            Stopwatch calculationsLookupStopwatch = Stopwatch.StartNew();
+            IEnumerable<CalculationSummaryModel> calculations = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationSummariesForSpecification(buildProject.SpecificationId));
+            calculationsLookupStopwatch.Stop();
+
             for (int i = 0; i < summaries.Count(); i += providerBatchSize)
             {
                 var calcTiming = Stopwatch.StartNew();
@@ -202,7 +222,7 @@ namespace CalculateFunding.Services.Calculator
                 {
                     IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.Provider?.Id == provider.Id);
 
-                    var result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, provider, providerDatasets);
+                    var result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets);
 
                     if (result != null)
                         providerResults.Add(result);
@@ -249,7 +269,7 @@ namespace CalculateFunding.Services.Calculator
                 IDictionary<string, double> metrics = new Dictionary<string, double>()
                     {
                         { "calculation-run-providersProcessed", partitionedSummaries.Count() },
-
+                        { "calculation-run-lookupCalculationDefinitionsMs", calculationsLookupStopwatch.ElapsedMilliseconds },
                         { "calculation-run-providersResultsFromCache", summaries.Count() },
                         { "calculation-run-partitionSize", partitionSize },
                         { "calculation-run-providerSourceDatasetQueryMs", providerSourceDatasetsStopwatch.ElapsedMilliseconds },

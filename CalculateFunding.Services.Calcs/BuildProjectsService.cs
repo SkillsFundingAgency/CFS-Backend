@@ -43,6 +43,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ISourceFileGenerator _sourceFileGenerator;
         private readonly ICacheProvider _cacheProvider;
         private readonly ICalculationService _calculationService;
+        private readonly ICalculationsRepository _calculationsRepository;
 
         public BuildProjectsService(
             IBuildProjectsRepository buildProjectsRepository,
@@ -55,7 +56,8 @@ namespace CalculateFunding.Services.Calcs
             ISourceFileGeneratorProvider sourceFileGeneratorProvider,
             ICompilerFactory compilerFactory,
             ICacheProvider cacheProvider,
-            ICalculationService calculationService)
+            ICalculationService calculationService,
+            ICalculationsRepository calculationsRepository)
         {
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -68,6 +70,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(compilerFactory, nameof(compilerFactory));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(calculationService, nameof(calculationService));
+            Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
 
             _buildProjectsRepository = buildProjectsRepository;
             _messengerService = messengerService;
@@ -81,6 +84,7 @@ namespace CalculateFunding.Services.Calcs
             _sourceFileGenerator = sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
             _cacheProvider = cacheProvider;
             _calculationService = calculationService;
+            _calculationsRepository = calculationsRepository;
         }
 
         public async Task UpdateAllocations(Message message)
@@ -306,14 +310,11 @@ namespace CalculateFunding.Services.Calcs
             return buildProject;
         }
 
-        Task<HttpStatusCode> UpdateBuildProject(BuildProject buildProject)
+        public async Task CompileBuildProject(BuildProject buildProject)
         {
-            return _buildProjectsRepository.UpdateBuildProject(buildProject);
-        }
+            IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(buildProject.SpecificationId);
 
-        async public Task CompileBuildProject(BuildProject buildProject)
-        {
-            buildProject.Build = Compile(buildProject);
+            buildProject.Build = Compile(buildProject, calculations);
 
             HttpStatusCode statusCode = await _buildProjectsRepository.UpdateBuildProject(buildProject);
 
@@ -323,9 +324,14 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
-        Build Compile(BuildProject buildProject)
+        Task<HttpStatusCode> UpdateBuildProject(BuildProject buildProject)
         {
-            IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject);
+            return _buildProjectsRepository.UpdateBuildProject(buildProject);
+        }
+
+        Build Compile(BuildProject buildProject, IEnumerable<Models.Calcs.Calculation> calculations)    
+        {
+            IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations);
 
             ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
 

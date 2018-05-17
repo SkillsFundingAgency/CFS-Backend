@@ -11,10 +11,10 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
         }
 
-        protected override IEnumerable<SourceFile> GenerateCalculationSourceFiles(BuildProject buildProject)
+        protected override IEnumerable<SourceFile> GenerateCalculationSourceFiles(BuildProject buildProject, IEnumerable<Calculation> calulations)
         {
             ProductTypeGenerator productTypeGenerator = new ProductTypeGenerator();
-            return productTypeGenerator.GenerateCalcs(buildProject);
+            return productTypeGenerator.GenerateCalcs(buildProject, calulations);
         }
 
         protected override IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject buildProject)
