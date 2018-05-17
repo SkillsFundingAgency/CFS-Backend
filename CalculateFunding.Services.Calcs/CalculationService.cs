@@ -306,6 +306,8 @@ namespace CalculateFunding.Services.Calcs
                 calcIndexes.Add(CreateCalculationIndexItem(calculation, specificationVersionComparison.Current.Name));
             }
 
+            //need to check whats left and replace the allocation line and fundinf strea,
+
             BuildProject buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId);
 
             if (buildProject == null)
@@ -314,11 +316,9 @@ namespace CalculateFunding.Services.Calcs
 
                 buildProject = await CreateBuildProject(specificationId, calculations);
             }
-            else
-            {
-                buildProject.Calculations = calculations.ToList();
-            }
-           
+            
+            buildProject.Calculations = calculations.ToList();
+            
             await TaskHelper.WhenAllAndThrow(
                 _calculationsRepository.UpdateCalculations(calculations),
                 _searchRepository.Index(calcIndexes),
@@ -608,14 +608,14 @@ namespace CalculateFunding.Services.Calcs
                 SpecificationId = calculation.SpecificationId,
                 FundingPeriodId = calculation.FundingPeriod.Id,
                 FundingPeriodName = calculation.FundingPeriod.Name,
-                AllocationLineId = calculation.AllocationLine?.Id,
+                AllocationLineId = calculation.AllocationLine == null ? string.Empty : calculation.AllocationLine.Id,
                 AllocationLineName = calculation.AllocationLine != null ? calculation.AllocationLine.Name : "No allocation line set",
                 PolicySpecificationIds = calculation.Policies.Select(m => m.Id).ToArraySafe(),
                 PolicySpecificationNames = calculation.Policies.Select(m => m.Name).ToArraySafe(),
                 SourceCode = calculation.Current.SourceCode,
                 Status = calculation.Current.PublishStatus.ToString(),
-                FundingStreamId = calculation.FundingStream?.Id,
-                FundingStreamName = calculation.FundingStream?.Name,
+                FundingStreamId = calculation.FundingStream == null ? string.Empty : calculation.FundingStream.Id,
+                FundingStreamName = calculation.FundingStream == null ? "No funding stream set" : calculation.FundingStream.Name,
                 LastUpdatedDate = calculation.Current.Date,
                 CalculationType = calculation.CalculationType.ToString()
             };

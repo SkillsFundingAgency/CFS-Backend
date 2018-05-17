@@ -728,7 +728,7 @@ namespace CalculateFunding.Services.Specs
 
             specification.Name = editModel.Name;
 
-            string previousFundingPeriod = specificationVersion.FundingPeriod.Id;
+            string previousFundingPeriodId = specificationVersion.FundingPeriod.Id;
 
             if (editModel.FundingPeriodId != specificationVersion.FundingPeriod.Id)
             {
@@ -740,9 +740,10 @@ namespace CalculateFunding.Services.Specs
                 specificationVersion.FundingPeriod = new Reference { Id = fundingPeriod.Id, Name = fundingPeriod.Name };
             }
 
-            IEnumerable<string> existingFundingStreamIds = specificationVersion.FundingStreams.Select(m => m.Id);
+            IEnumerable<string> existingFundingStreamIds = specificationVersion.FundingStreams?.Select(m => m.Id);
 
             bool fundingStreamsChanged = !existingFundingStreamIds.EqualTo(editModel.FundingStreamIds);
+
             if (fundingStreamsChanged)
             {
                 string[] fundingStreamIds = editModel.FundingStreamIds.ToArray();
@@ -776,7 +777,7 @@ namespace CalculateFunding.Services.Specs
             if (!statusCode.IsSuccess())
                 return new StatusCodeResult((int)statusCode);
 
-            await _searchRepository.Index(new List<SpecificationIndex>
+            await _searchRepository.Index(new []
             {
                 new SpecificationIndex
                 {
@@ -791,13 +792,13 @@ namespace CalculateFunding.Services.Specs
             });
 
             await TaskHelper.WhenAllAndThrow(
-                ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id),
+                 ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id),
                 _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}")
                 );
 
-            if (previousFundingPeriod != specificationVersion.FundingPeriod.Id)
+            if (previousFundingPeriodId != specificationVersion.FundingPeriod.Id)
             {
-                await _cacheProvider.RemoveAsync<List<SpecificationSummary>>($"{CacheKeys.SpecificationSummariesByFundingPeriodId}{previousFundingPeriod}");
+                await _cacheProvider.RemoveAsync<List<SpecificationSummary>>($"{CacheKeys.SpecificationSummariesByFundingPeriodId}{previousFundingPeriodId}");
 
             }
 
@@ -832,19 +833,14 @@ namespace CalculateFunding.Services.Specs
         /// <param name="policies">Policies</param>
         private static void RemoveMissingAllocationLineAssociations(Dictionary<string, bool> allocationLines, IEnumerable<Policy> policies)
         {
-            if (policies == null)
-            {
-                return;
-            }
-
-            if (allocationLines.IsNullOrEmpty())
+            if (policies == null || allocationLines.IsNullOrEmpty())
             {
                 return;
             }
 
             foreach (Policy policy in policies)
             {
-                if (policy.Calculations != null)
+                if (!policy.Calculations.IsNullOrEmpty())
                 {
                     foreach (Calculation calculation in policy.Calculations)
                     {
@@ -1179,8 +1175,8 @@ namespace CalculateFunding.Services.Specs
         private async Task ClearSpecificationCacheItems(string fundingPeriodId)
         {
             await TaskHelper.WhenAllAndThrow(
-                _cacheProvider.KeyDeleteAsync<List<SpecificationSummary>>(CacheKeys.SpecificationSummaries),
-                _cacheProvider.KeyDeleteAsync<List<SpecificationSummary>>($"{CacheKeys.SpecificationSummariesByFundingPeriodId}{fundingPeriodId}")
+                _cacheProvider.RemoveAsync<List<SpecificationSummary>>(CacheKeys.SpecificationSummaries),
+                _cacheProvider.RemoveAsync<List<SpecificationSummary>>($"{CacheKeys.SpecificationSummariesByFundingPeriodId}{fundingPeriodId}")
                 );
         }
 

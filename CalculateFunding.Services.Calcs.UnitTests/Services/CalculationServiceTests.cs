@@ -341,8 +341,8 @@ namespace CalculateFunding.Services.Calcs.Services
                         m.First().SpecificationName == "Test Spec Name" &&
                         m.First().FundingPeriodId == "18/19" &&
                         m.First().FundingPeriodName == "2018/2019" &&
-                        m.First().FundingStreamId == null &&
-                        m.First().FundingStreamName == null &&
+                        m.First().FundingStreamId == string.Empty &&
+                        m.First().FundingStreamName == "No funding stream set" &&
                         m.First().AllocationLineId == "test-alloc-id" &&
                         m.First().AllocationLineName == "test-alloc-name" &&
                         m.First().PolicySpecificationIds.First() == "policy-id" &&
