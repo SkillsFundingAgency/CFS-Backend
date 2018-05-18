@@ -86,7 +86,15 @@ namespace CalculateFunding.Services.Calculator
 
             var providerCalResults = calculationResults.ToDictionary(x => x.Calculation?.Id);
             stopwatch.Stop();
-            _logger.Debug($"{providerCalResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalResults.Count: 0.0000}ms)");
+
+            if(providerCalResults.Count > 0)
+            {
+                _logger.Debug($"{providerCalResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalResults.Count: 0.0000}ms)");
+            }
+            else
+            {
+                _logger.Information("There are no calculations to executed for specification ID {specificationId}", buildProject.SpecificationId);
+            }
 
             ProviderResult providerResult = new ProviderResult
             {
