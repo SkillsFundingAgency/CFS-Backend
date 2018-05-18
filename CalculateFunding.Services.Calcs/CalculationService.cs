@@ -391,6 +391,15 @@ namespace CalculateFunding.Services.Calcs
                     calculation.AllocationLine = null;
                 }
 
+                if (!calculation.Policies.IsNullOrEmpty())
+                {
+                    Models.Specs.Policy policy = Models.Specs.ExtensionMethods.GetPolicy(specificationVersionComparison.Current, calculation.Policies.First().Id);
+
+                    if (policy != null)
+                    {
+                        calculation.Policies.First().Name = policy.Name;
+                    }
+                }
                 calcIndexes.Add(CreateCalculationIndexItem(calculation, specificationVersionComparison.Current.Name));
             }
 

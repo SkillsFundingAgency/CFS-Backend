@@ -3065,6 +3065,93 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
+        public async Task UpdateCalculationsForSpecification_GivenModelHasChangedPolicyName_SavesChanges()
+        {
+            // Arrange
+            const string specificationId = "spec-id";
+
+            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            {
+                Id = specificationId,
+                Current = new Models.Specs.SpecificationVersion
+                {
+                    FundingPeriod = new Reference { Id = "fp1" },
+                    Name = "any-name",
+                    Policies = new[] { new Models.Specs.Policy { Id = "pol-id", Name = "policy2"} }
+                },
+                Previous = new Models.Specs.SpecificationVersion
+                {
+                    FundingPeriod = new Reference { Id = "fp1" },
+                    Policies = new[] { new Models.Specs.Policy { Id = "pol-id", Name = "policy1" } }
+                }
+            };
+
+            string json = JsonConvert.SerializeObject(specificationVersionComparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<Calculation> calcs = new[]
+            {
+                new Calculation
+                {
+                    SpecificationId =  "spec-id",
+                    Name = "any name",
+                    Id = "any-id",
+                    CalculationSpecification = new Reference("any name", "any-id"),
+                    FundingPeriod = new Reference("18/19", "2018/2019"),
+                    CalculationType = CalculationType.Number,
+                    FundingStream = new Reference("fp1","fs1-111"),
+                    Current = new CalculationVersion
+                    {
+                        Author = new Reference(UserId, Username),
+                        Date = DateTime.UtcNow,
+                        PublishStatus = PublishStatus.Draft,
+                        SourceCode = "source code",
+                        Version = 1
+                    },
+                    Policies = new List<Reference>{ new Reference { Id = "pol-id", Name = "policy1"} }
+                }
+            };
+
+            BuildProject buildProject = null;
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(calcs);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
+
+            // Act
+            await service.UpdateCalculationsForSpecification(message);
+
+            // Assert
+            calcs
+                .First()
+                .Policies
+                .First()
+                .Name
+                .Should()
+                .Be("policy2");
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IEnumerable<CalculationIndex>>(m => m.First().PolicySpecificationNames.Contains("policy2")));
+        }
+
+        [TestMethod]
         public async Task UpdateCalculationsForSpecification_GivenModelHasChangedFundingStreams_SetsTheAllocationLineAndFundingStreamToNull()
         {
             //Arrange
