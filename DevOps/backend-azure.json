@@ -211,7 +211,7 @@
           "type": "topics",
           "name": "edit-specification",
           "apiVersion": "2017-04-01",
-          "location": "North Europe",
+          "location": "[resourceGroup().location]",
           "properties": {
             "defaultMessageTimeToLive": "P14D",
             "maxSizeInMegabytes": 1024,
@@ -223,6 +223,8 @@
             "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
             "enablePartitioning": false,
             "enableExpress": false,
+            "path" : "edit-specification"
+            },
             "resources": [
               {
                 "apiVersion": "2017-04-01",
@@ -255,7 +257,7 @@
                 "resources": []
               }
             ]
-          },
+          ,
           "dependsOn": [
             "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
           ]
