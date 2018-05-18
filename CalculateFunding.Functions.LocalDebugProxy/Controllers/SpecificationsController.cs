@@ -134,6 +134,13 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _specService.CreatePolicy(ControllerContext.HttpContext.Request);
         }
 
+        [Route("api/specs/policies")]
+        [HttpPut]
+        public Task<IActionResult> RunEditPolicy()
+        {
+            return _specService.EditPolicy(ControllerContext.HttpContext.Request);
+        }
+
         [Route("api/specs/calculation-by-name")]
         [HttpPost]
         public Task<IActionResult> RunCalculationByName()

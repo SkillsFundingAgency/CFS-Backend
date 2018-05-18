@@ -42,6 +42,7 @@ namespace CalculateFunding.Functions.Specs
             builder.AddScoped<ISpecificationsRepository, SpecificationsRepository>();
             builder.AddScoped<ISpecificationsService, SpecificationsService>();
             builder.AddScoped<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
+            builder.AddScoped<IValidator<PolicyEditModel>, PolicyEditModelValidator>();
             builder.AddScoped<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
             builder.AddScoped<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
             builder.AddScoped<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();

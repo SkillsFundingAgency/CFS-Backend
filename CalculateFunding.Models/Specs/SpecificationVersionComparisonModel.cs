@@ -51,6 +51,17 @@ namespace CalculateFunding.Models.Specs
             }
         }
 
-        
+        [JsonIgnore]
+        public bool HasPolicyChanges
+        {
+            get
+            {
+                string currentPolicies = JsonConvert.SerializeObject(Current.Policies);
+
+                string previousPolicies = JsonConvert.SerializeObject(Previous.Policies);
+
+                return !string.Equals(currentPolicies, previousPolicies);
+            }
+        }
     }
 }

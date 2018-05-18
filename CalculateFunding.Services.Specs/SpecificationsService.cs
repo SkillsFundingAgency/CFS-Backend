@@ -45,6 +45,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IValidator<AssignDefinitionRelationshipMessage> _assignDefinitionRelationshipMessageValidator;
         private readonly IValidator<SpecificationEditModel> _specificationEditModelValidator;
         private readonly ICacheProvider _cacheProvider;
+        private readonly IValidator<PolicyEditModel> _policyEditModelValidator;
 
         public SpecificationsService(
             IMapper mapper,
@@ -57,7 +58,8 @@ namespace CalculateFunding.Services.Specs
             ISearchRepository<SpecificationIndex> searchRepository,
             IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator,
             ICacheProvider cacheProvider,
-            IValidator<SpecificationEditModel> specificationEditModelValidator)
+            IValidator<SpecificationEditModel> specificationEditModelValidator,
+            IValidator<PolicyEditModel> policyEditModelValidator)
         {
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -71,6 +73,7 @@ namespace CalculateFunding.Services.Specs
             _assignDefinitionRelationshipMessageValidator = assignDefinitionRelationshipMessageValidator;
             _cacheProvider = cacheProvider;
             _specificationEditModelValidator = specificationEditModelValidator;
+            _policyEditModelValidator = policyEditModelValidator;
         }
 
         public async Task<IActionResult> GetSpecifications(HttpRequest request)
@@ -602,6 +605,94 @@ namespace CalculateFunding.Services.Specs
 
             if (statusCode != HttpStatusCode.OK)
                 return new StatusCodeResult((int)statusCode);
+
+            return new OkObjectResult(policy);
+        }
+
+        public async Task<IActionResult> EditPolicy(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out var specId);
+
+            string specificationId = specId.FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to EditPolicy");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            request.Query.TryGetValue("policyId", out var polId);
+
+            string policyId = polId.FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(policyId))
+            {
+                _logger.Error("No policy Id was provided to EditPolicy");
+                return new BadRequestObjectResult("Null or empty policy Id provided");
+            }
+
+            string json = await request.GetRawBodyStringAsync();
+
+            PolicyEditModel editModel = JsonConvert.DeserializeObject<PolicyEditModel>(json);
+
+            if (editModel == null)
+            {
+                _logger.Error("Null edit modeld was provided to EditPolicy");
+                return new BadRequestObjectResult("Null policy edit model provided");
+            }
+
+            editModel.PolicyId = policyId;
+            editModel.SpecificationId = specificationId;
+
+            var validationResult = (await _policyEditModelValidator.ValidateAsync(editModel)).PopulateModelState();
+
+            if (validationResult != null)
+                return validationResult;
+
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+
+            if (specification == null)
+            {
+                return new PreconditionFailedResult($"Failed to find specification for id: {specificationId}");
+            }
+
+            SpecificationVersion previousSpecificationVersion = specification.Current;
+
+            SpecificationVersion specificationVersion = previousSpecificationVersion.Clone() as SpecificationVersion;
+
+            Policy policy = specificationVersion.GetPolicy(policyId);
+
+            if(policy == null)
+            {
+                return new NotFoundObjectResult($"Failed to find policy for policy id: {policyId}");
+            }
+
+            policy.Name = editModel.Name;
+            policy.Description = editModel.Description;
+
+            Policy parentPolicy = specificationVersion.GetParentPolicy(policyId);
+
+            if (parentPolicy != null && string.IsNullOrWhiteSpace(editModel.ParentPolicyId))
+            {
+                parentPolicy.SubPolicies = parentPolicy.SubPolicies.Where(m => m.Id != policyId);
+
+                specificationVersion.Policies = specificationVersion.Policies.Concat(new[] { policy });
+            }
+            else if (parentPolicy != null && editModel.ParentPolicyId != parentPolicy.Id )
+            {
+                parentPolicy.SubPolicies = parentPolicy.SubPolicies.Where(m => m.Id != policyId);
+
+                Policy newParentPolicy = specificationVersion.GetPolicy(editModel.ParentPolicyId);
+
+                newParentPolicy.SubPolicies = newParentPolicy.SubPolicies.Concat(new[] { policy });
+            }
+
+            HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion);
+
+            if (statusCode != HttpStatusCode.OK)
+                return new StatusCodeResult((int)statusCode);
+
+            await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+
+            await SendMessageToTopic(specification.Id, specification.Current, previousSpecificationVersion, request);
 
             return new OkObjectResult(policy);
         }

@@ -30,6 +30,22 @@ namespace CalculateFunding.Models.Specs
             return null;
         }
 
+        public static Policy GetParentPolicy(this SpecificationVersion specification, string id)
+        {
+            foreach (Policy policy in specification.Policies)
+            {
+                if (policy.SubPolicies != null)
+                {
+                    foreach (Policy subPolicy in policy.SubPolicies)
+                    {
+                        if (subPolicy.Id == id)
+                            return policy;
+                    }
+                }
+            }
+            return null;
+        }
+
         public static Policy GetPolicyByName(this Policy policy, string name)
         {
             if (policy.Name == name) return policy;

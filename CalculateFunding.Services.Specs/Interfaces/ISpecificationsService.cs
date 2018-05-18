@@ -55,5 +55,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> SaveFundingPeriods(HttpRequest request);
 
         Task<IActionResult> EditSpecification(HttpRequest request);
+
+        Task<IActionResult> EditPolicy(HttpRequest request);
     }
 }

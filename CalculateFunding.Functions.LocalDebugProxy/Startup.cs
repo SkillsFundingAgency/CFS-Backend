@@ -328,6 +328,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 .AddScoped<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
 
             builder
+                .AddScoped<IValidator<PolicyEditModel>, PolicyEditModelValidator>();
+
+            builder
                 .AddScoped<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
 
             builder

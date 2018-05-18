@@ -34,6 +34,17 @@ namespace CalculateFunding.Functions.Specs.Http
 
             return svc.GetPolicyByName(req);
         }
+
+        [FunctionName("policy-edit")]
+        public static Task<IActionResult> RunEditPolicy(
+          [HttpTrigger(AuthorizationLevel.Function, "put")] HttpRequest req, ILogger log)
+        {
+            IServiceProvider provider = IocConfig.Build();
+
+            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
+
+            return svc.EditPolicy(req);
+        }
     }
 
 }
