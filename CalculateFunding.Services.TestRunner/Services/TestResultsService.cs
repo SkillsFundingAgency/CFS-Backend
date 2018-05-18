@@ -5,6 +5,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
@@ -140,9 +141,9 @@ namespace CalculateFunding.Services.TestRunner.Services
         {
             IEnumerable<DocumentEntity<TestScenarioResult>> testScenarioResults = await _testResultsRepository.GetAllTestResults();
 
-            long summariesCount = await _cacheProvider.ListLengthAsync<ProviderSummary>("all-cached-providers");
+            long summariesCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(CacheKeys.AllProviderSummaryCount);
 
-            IEnumerable<ProviderSummary> summaries = await _cacheProvider.ListRangeAsync<ProviderSummary>("all-cached-providers", 0, (int)summariesCount - 1);
+            IEnumerable<ProviderSummary> summaries = await _cacheProvider.ListRangeAsync<ProviderSummary>(CacheKeys.AllProviderSummaries, 0, (int)summariesCount - 1);
 
             IList<TestScenarioResultIndex> searchItems = new List<TestScenarioResultIndex>();
 

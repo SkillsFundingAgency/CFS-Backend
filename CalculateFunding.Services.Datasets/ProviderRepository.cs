@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search.Results;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
@@ -16,7 +17,6 @@ namespace CalculateFunding.Services.Datasets
     {
         const int MaxResultsCount = 1000;
 
-        const string cachedProvidersKey = "cached-providers-key";
         const string GetProviderSourceDatasets = "results/get-provider-source-datasets?providerId={0}specificationId={1}";
         const string UpdateProviderSourceDatset = "results/update-provider-source-dataset";
         const string GetProvidersFromSearch = "results/providers-search";
@@ -61,13 +61,13 @@ namespace CalculateFunding.Services.Datasets
 
         async public Task<IEnumerable<ProviderSummary>> GetAllProviderSummaries()
         {
-            List<ProviderSummary> providersFromSearch = await _cacheProvider.GetAsync<List<ProviderSummary>>(cachedProvidersKey);
+            List<ProviderSummary> providersFromSearch = await _cacheProvider.GetAsync<List<ProviderSummary>>(CacheKeys.AllProviderSummaries);
 
             if (providersFromSearch.IsNullOrEmpty())
             {
                 providersFromSearch = (await LoadAllProvidersFromSearch()).ToList();
 
-                await _cacheProvider.SetAsync<List<ProviderSummary>>(cachedProvidersKey, providersFromSearch, TimeSpan.FromDays(7), true);
+                await _cacheProvider.SetAsync<List<ProviderSummary>>(CacheKeys.AllProviderSummaries, providersFromSearch, TimeSpan.FromDays(7), true);
             }
 
             return providersFromSearch;
@@ -113,7 +113,7 @@ namespace CalculateFunding.Services.Datasets
                 providersFromSearch.AddRange(summaries);
             }
 
-            await _cacheProvider.SetAsync(cachedProvidersKey, providersFromSearch, TimeSpan.FromDays(7), true);
+            await _cacheProvider.SetAsync(CacheKeys.AllProviderSummaries, providersFromSearch, TimeSpan.FromDays(7), true);
 
             return providersFromSearch;
         }

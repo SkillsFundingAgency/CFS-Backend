@@ -60,6 +60,13 @@ namespace CalculateFunding.Services.Calculator
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
 
+            Guard.ArgumentNotNull(resiliencePolicies.CacheProvider, nameof(resiliencePolicies.CacheProvider));
+            Guard.ArgumentNotNull(resiliencePolicies.Messenger, nameof(resiliencePolicies.Messenger));
+            Guard.ArgumentNotNull(resiliencePolicies.ProviderSourceDatasetsRepository, nameof(resiliencePolicies.ProviderSourceDatasetsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies.ProviderResultsRepository, nameof(resiliencePolicies.ProviderResultsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
+
+
             _logger = logger;
             _calculationEngine = calculationEngine;
             _cacheProvider = cacheProvider;
@@ -74,6 +81,7 @@ namespace CalculateFunding.Services.Calculator
             _messengerServicePolicy = resiliencePolicies.Messenger;
             _providerSourceDatasetsRepositoryPolicy = resiliencePolicies.ProviderSourceDatasetsRepository;
             _providerResultsRepositoryPolicy = resiliencePolicies.ProviderResultsRepository;
+            _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
         }
 
         async public Task<IActionResult> GenerateAllocations(HttpRequest request)
@@ -193,7 +201,11 @@ namespace CalculateFunding.Services.Calculator
             int providerBatchSize = _engineSettings.ProviderBatchSize;
 
             Stopwatch calculationsLookupStopwatch = Stopwatch.StartNew();
-            IEnumerable<CalculationSummaryModel> calculations = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationSummariesForSpecification(buildProject.SpecificationId));
+            IEnumerable<CalculationSummaryModel> calculations = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationSummariesForSpecification(specificationId));
+            if (calculations == null)
+            {
+                throw new InvalidOperationException("Calculations lookup API returned null");
+            }
             calculationsLookupStopwatch.Stop();
 
             for (int i = 0; i < summaries.Count(); i += providerBatchSize)
