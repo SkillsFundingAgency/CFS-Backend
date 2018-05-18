@@ -692,7 +692,7 @@ namespace CalculateFunding.Services.Specs
 
             await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
 
-            await SendMessageToTopic(specification.Id, specification.Current, previousSpecificationVersion, request);
+            await SendMessageToTopic(specification.Id, specificationVersion, previousSpecificationVersion, request);
 
             return new OkObjectResult(policy);
         }
