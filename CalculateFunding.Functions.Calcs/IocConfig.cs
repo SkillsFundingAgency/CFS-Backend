@@ -13,7 +13,6 @@ using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
-using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.CodeMetadataGenerator;
 
@@ -43,7 +42,7 @@ namespace CalculateFunding.Functions.Calcs
         static public void RegisterComponents(IServiceCollection builder)
         {
             builder
-                .AddScoped<Services.Calcs.Interfaces.ICalculationsRepository, CalculationsRepository>();
+                .AddScoped<Services.Calcs.Interfaces.ICalculationsRepository, Services.Calcs.CalculationsRepository>();
 
             builder
                .AddScoped<ICalculationService, CalculationService>();
@@ -82,9 +81,6 @@ namespace CalculateFunding.Functions.Calcs
 
             builder
                 .AddScoped<IBuildProjectsService, BuildProjectsService>();
-
-            builder
-               .AddSingleton<IExcelDatasetReader, ExcelDatasetReader>();
 
             builder
                 .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();

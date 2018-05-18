@@ -13,7 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Functions.Common\CalculateFunding.Functions.Common.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
     <ProjectReference Include="..\CalculateFunding.Repositories.Common.Search\CalculateFunding.Repositories.Common.Search.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />

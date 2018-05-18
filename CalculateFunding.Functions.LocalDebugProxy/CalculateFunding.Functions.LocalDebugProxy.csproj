@@ -20,13 +20,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Functions.CalcEngine\CalculateFunding.Functions.CalcEngine.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Functions.Calcs\CalculateFunding.Functions.Calcs.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Functions.Specs\CalculateFunding.Functions.Specs.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Calcs\CalculateFunding.Services.Calcs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Calculator\CalculateFunding.Services.Calculator.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Datasets\CalculateFunding.Services.Datasets.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Results\CalculateFunding.Services.Results.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Scenarios\CalculateFunding.Services.Scenarios.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Specs\CalculateFunding.Services.Specs.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.TestRunner\CalculateFunding.Services.TestRunner.csproj" />
   </ItemGroup>
 
 </Project>

@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Repositories.Common.Cosmos\CalculateFunding.Repositories.Common.Cosmos.csproj" />
   </ItemGroup>
 
 </Project>

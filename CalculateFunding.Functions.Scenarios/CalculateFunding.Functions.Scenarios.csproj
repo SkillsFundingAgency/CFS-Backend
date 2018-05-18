@@ -15,10 +15,7 @@
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.13" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Functions.Common\CalculateFunding.Functions.Common.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Repositories.Providers\CalculateFunding.Repositories.Providers.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Services.DataImporter\CalculateFunding.Services.DataImporter.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Scenarios\CalculateFunding.Services.Scenarios.csproj" />
   </ItemGroup>
   <ItemGroup>
