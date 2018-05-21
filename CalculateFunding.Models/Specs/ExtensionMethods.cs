@@ -48,13 +48,25 @@ namespace CalculateFunding.Models.Specs
 
         public static Policy GetPolicyByName(this Policy policy, string name)
         {
-            if (policy.Name == name) return policy;
+            if (policy.Name == name)
+            {
+                return policy;
+            }
+           
             return policy.SubPolicies?.FirstOrDefault(x => x.GetPolicyByName(name) != null);
         }
 
         public static Policy GetPolicyByName(this SpecificationVersion specification, string name)
         {
-            return specification.Policies?.FirstOrDefault(x => x.GetPolicyByName(name) != null);
+            foreach (Policy policy in specification.Policies)
+            {
+                Policy specPolicy = policy.GetPolicyByName(name);
+
+                if (specPolicy != null)
+                    return specPolicy;
+            }
+
+            return null;
         }
 
         public static IEnumerable<Calculation> GetCalculations(this SpecificationVersion specification)
