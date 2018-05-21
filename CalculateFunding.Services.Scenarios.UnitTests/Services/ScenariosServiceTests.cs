@@ -27,6 +27,8 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Versioning;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Models.Gherkin;
 
 namespace CalculateFunding.Services.Scenarios.Services
 {
@@ -180,8 +182,8 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .Returns(HttpStatusCode.InternalServerError);
 
             ScenariosService service = CreateScenariosService(
-                logger: logger, 
-                specificationsRepository: specificationsRepository, 
+                logger: logger,
+                specificationsRepository: specificationsRepository,
                 scenariosRepository: scenariosRepository);
 
             //Act
@@ -263,20 +265,20 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .Should()
                 .BeAssignableTo<CurrentTestScenario>();
 
-           await
-                searchrepository
-                .Received(1)
-                .Index(Arg.Is<IList<ScenarioIndex>>(m => !string.IsNullOrWhiteSpace(m.First().Id) &&
-                                m.First().Description == description &&
-                                m.First().Name == name &&
-                                m.First().SpecificationId == specificationId &&
-                                m.First().FundingPeriodId == specification.FundingPeriod.Id &&
-                                m.First().FundingPeriodName == specification.FundingPeriod.Name &&
-                                m.First().FundingStreamIds.First() == specification.FundingStreams.First().Id &&
-                                m.First().FundingStreamNames.First() == specification.FundingStreams.First().Name &&
-                                m.First().Status == "Draft" &&
-                                m.First().LastUpdatedDate.HasValue && 
-                                m.First().LastUpdatedDate.Value.Date == DateTime.Now.Date));
+            await
+                 searchrepository
+                 .Received(1)
+                 .Index(Arg.Is<IList<ScenarioIndex>>(m => !string.IsNullOrWhiteSpace(m.First().Id) &&
+                                 m.First().Description == description &&
+                                 m.First().Name == name &&
+                                 m.First().SpecificationId == specificationId &&
+                                 m.First().FundingPeriodId == specification.FundingPeriod.Id &&
+                                 m.First().FundingPeriodName == specification.FundingPeriod.Name &&
+                                 m.First().FundingStreamIds.First() == specification.FundingStreams.First().Id &&
+                                 m.First().FundingStreamNames.First() == specification.FundingStreams.First().Name &&
+                                 m.First().Status == "Draft" &&
+                                 m.First().LastUpdatedDate.HasValue &&
+                                 m.First().LastUpdatedDate.Value.Date == DateTime.Now.Date));
 
             await scenariosRepository
             .Received(1)
@@ -318,13 +320,13 @@ namespace CalculateFunding.Services.Scenarios.Services
             TestScenario testScenario = new TestScenario
             {
                 Id = scenarioid,
-                SpecificationId =  specificationId,
+                SpecificationId = specificationId,
                 Name = name,
                 History = new List<TestScenarioVersion>(),
                 Current = new TestScenarioVersion()
                 {
                     Description = description,
-                    FundingStreamIds = specification.FundingStreams.Select(s=>s.Id),
+                    FundingStreamIds = specification.FundingStreams.Select(s => s.Id),
                     FundingPeriodId = specification.FundingPeriod.Id,
                 }
             };
@@ -407,7 +409,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             {
                 Gherkin = "scenario",
                 Description = description,
-                FundingStreamIds = specification.FundingStreams.Select(s=>s.Id),
+                FundingStreamIds = specification.FundingStreams.Select(s => s.Id),
                 FundingPeriodId = specification.FundingPeriod.Id,
             };
 
@@ -813,15 +815,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .BeOfType<OkObjectResult>();
         }
 
-        static ScenariosService CreateScenariosService(ILogger logger = null, IScenariosRepository scenariosRepository = null,
-            ISpecificationsRepository specificationsRepository = null, IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator = null,
-            ISearchRepository<ScenarioIndex> searchRepository = null, ICacheProvider cacheProvider = null, IMessengerService messengerService = null, IBuildProjectRepository buildProjectRepository = null)
-        {
-            return new ScenariosService(logger ?? CreateLogger(), scenariosRepository ?? CreateScenariosRepository(), specificationsRepository ?? CreateSpecificationsRepository(),
-                createNewTestScenarioVersionValidator ?? CreateValidator(), searchRepository ?? CreateSearchRepository(), 
-                cacheProvider ?? CreateCacheProvider(), messengerService ?? CreateMessengerService(), buildProjectRepository ?? CreateBuildProjectRepository());
-        }
-
         [TestMethod]
         public void UpdateScenarioForSpecification_GivenInvalidModel_LogsDoesNotSave()
         {
@@ -985,6 +978,594 @@ namespace CalculateFunding.Services.Scenarios.Services
                         m.First().Description == scenarios.First().Current.Description &&
                         m.First().SpecificationId == scenarios.First().SpecificationId
                    ));
+        }
+
+        [TestMethod]
+        public async Task ScenariosService_UpdateTestScenarioCalculationGherkin_WhenCalculationNameChanges_ThenTestScenariosUpdated()
+        {
+            // Arrange
+            const string initialGherkin = "Given the dataset 'Test DS' field 'Field Name' is greater than '0'\r\nThen the result for 'Calc Name' is greater than '1'";
+            const string initialGherkin2 = "Given the dataset 'Test DS' field 'Field Name' is greater than '0'\r\nThen the result for 'Calc Name Other' is greater than '1'";
+
+            const string expectedChangedGherkin = "Given the dataset 'Test DS' field 'Field Name' is greater than '0'\r\nThen the result for 'Calc Name Updated' is greater than '1'";
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, cacheProvider: cacheProvider);
+
+            CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
+            {
+                CalculationId = "calcId",
+                SpecificationId = "specId",
+                Previous = new Calculation()
+                {
+                    Id = "calc1",
+                    Name = "Calc Name",
+                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    Description = "Test",
+                },
+                Current = new Calculation()
+                {
+                    Id = "calc1",
+                    Name = "Calc Name Updated",
+                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    Description = "Test",
+                },
+            };
+
+            List<TestScenario> testScenarios = new List<TestScenario>()
+            {
+                 new TestScenario()
+                 {
+                    Current = new TestScenarioVersion()
+                    {
+                        Gherkin = initialGherkin,
+                    },
+                    Id = "ts1",
+                    SpecificationId = comparison.SpecificationId,
+                 },
+                 new TestScenario()
+                 {
+                      Current = new TestScenarioVersion()
+                      {
+                           Gherkin = initialGherkin2,
+
+                      },
+                       Id = "ts2",
+                        SpecificationId = comparison.SpecificationId,
+                 }
+            };
+
+            scenariosRepository
+                .GetTestScenariosBySpecificationId(Arg.Is(comparison.SpecificationId))
+                .Returns(testScenarios);
+
+            // Act
+            int updateCount = await service.UpdateTestScenarioCalculationGherkin(comparison);
+
+            // Assert
+            updateCount
+                .Should()
+                .Be(1);
+
+            await scenariosRepository
+                .Received(1)
+                .SaveTestScenario(Arg.Is<TestScenario>(s => s.Current.Gherkin == expectedChangedGherkin));
+
+            await scenariosRepository
+                .Received(1)
+                .GetTestScenariosBySpecificationId(Arg.Is(comparison.SpecificationId));
+
+            await
+                cacheProvider
+                .Received(1)
+                .RemoveAsync<List<TestScenario>>(Arg.Is($"{CacheKeys.TestScenarios}{comparison.SpecificationId}"));
+
+            await
+                cacheProvider
+                .Received(1)
+                .RemoveAsync<GherkinParseResult>(Arg.Is($"{CacheKeys.GherkinParseResult}{testScenarios[0].Id}"));
+        }
+
+        [TestMethod]
+        public async Task ScenariosService_UpdateTestScenarioCalculationGherkin_WhenCalculationNameChanges_ThenMultipleTestScenariosUpdated()
+        {
+            // Arrange
+            const string initialGherkin = "Given the dataset 'Test DS' field 'Field Name' is greater than '0'\r\nThen the result for 'Calc Name' is greater than '1'";
+            const string initialGherkin2 = "Given the dataset 'Test DS' field 'Field Name' is greater than '0'\r\nThen the result for 'Calc Name Other' is greater than '1'";
+            const string initialGherkin3 = "Given the dataset 'Test DS' field 'Field Name Two' is greater than '0'\r\nThen the result for 'Calc Name' is greater than '1'";
+
+            const string expectedChangedGherkin = "Given the dataset 'Test DS' field 'Field Name' is greater than '0'\r\nThen the result for 'Calc Name Updated' is greater than '1'";
+            const string expectedChangedGherkin2 = "Given the dataset 'Test DS' field 'Field Name Two' is greater than '0'\r\nThen the result for 'Calc Name Updated' is greater than '1'";
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, cacheProvider: cacheProvider);
+
+            CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
+            {
+                CalculationId = "calcId",
+                SpecificationId = "specId",
+                Previous = new Calculation()
+                {
+                    Id = "calc1",
+                    Name = "Calc Name",
+                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    Description = "Test",
+                },
+                Current = new Calculation()
+                {
+                    Id = "calc1",
+                    Name = "Calc Name Updated",
+                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    Description = "Test",
+                },
+            };
+
+            List<TestScenario> testScenarios = new List<TestScenario>()
+            {
+                 new TestScenario()
+                 {
+                    Current = new TestScenarioVersion()
+                    {
+                        Gherkin = initialGherkin,
+                    },
+                    Id = "ts1",
+                    SpecificationId = comparison.SpecificationId,
+                 },
+                 new TestScenario()
+                 {
+                      Current = new TestScenarioVersion()
+                      {
+                           Gherkin = initialGherkin2,
+
+                      },
+                       Id = "ts2",
+                        SpecificationId = comparison.SpecificationId,
+                 },
+                 new TestScenario()
+                 {
+                      Current = new TestScenarioVersion()
+                      {
+                           Gherkin = initialGherkin3,
+
+                      },
+                      Id = "ts3",
+                      SpecificationId = comparison.SpecificationId,
+                 },
+            };
+
+            scenariosRepository
+                .GetTestScenariosBySpecificationId(Arg.Is(comparison.SpecificationId))
+                .Returns(testScenarios);
+
+            // Act
+            int updateCount = await service.UpdateTestScenarioCalculationGherkin(comparison);
+
+            // Assert
+            updateCount
+                .Should()
+                .Be(2);
+
+            await scenariosRepository
+                .Received(1)
+                .SaveTestScenario(Arg.Is<TestScenario>(s => s.Current.Gherkin == expectedChangedGherkin));
+
+            await scenariosRepository
+                .Received(1)
+                .SaveTestScenario(Arg.Is<TestScenario>(s => s.Current.Gherkin == expectedChangedGherkin2));
+
+            await scenariosRepository
+                .Received(1)
+                .GetTestScenariosBySpecificationId(Arg.Is(comparison.SpecificationId));
+
+            await
+                cacheProvider
+                .Received(1)
+                .RemoveAsync<List<TestScenario>>(Arg.Is($"{CacheKeys.TestScenarios}{comparison.SpecificationId}"));
+
+            await
+                cacheProvider
+                .Received(1)
+                .RemoveAsync<GherkinParseResult>(Arg.Is($"{CacheKeys.GherkinParseResult}{testScenarios[0].Id}"));
+
+            await
+                cacheProvider
+                .Received(1)
+                .RemoveAsync<GherkinParseResult>(Arg.Is($"{CacheKeys.GherkinParseResult}{testScenarios[2].Id}"));
+        }
+
+        [TestMethod]
+        public async Task ScenariosService_UpdateTestScenarioCalculationGherkin_WhenCalculationNameChangesWithDifferentCase_ThenTestScenariosUpdated()
+        {
+            // Arrange
+            const string initialGherkin = "Given the dataset 'Test DS' field 'Field Name' is greater than '0'\r\nThen the result for 'calc name' is greater than '1'";
+            const string initialGherkin2 = "Given the dataset 'Test DS' field 'Field Name' is greater than '0'\r\nThen the result for 'Calc Name Other' is greater than '1'";
+
+            const string expectedChangedGherkin = "Given the dataset 'Test DS' field 'Field Name' is greater than '0'\r\nThen the result for 'Calc Name Updated' is greater than '1'";
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, cacheProvider : cacheProvider);
+
+            CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
+            {
+                CalculationId = "calcId",
+                SpecificationId = "specId",
+                Previous = new Calculation()
+                {
+                    Id = "calc1",
+                    Name = "Calc Name",
+                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    Description = "Test",
+                },
+                Current = new Calculation()
+                {
+                    Id = "calc1",
+                    Name = "Calc Name Updated",
+                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    Description = "Test",
+                },
+            };
+
+            List<TestScenario> testScenarios = new List<TestScenario>()
+            {
+                 new TestScenario()
+                 {
+                      Current = new TestScenarioVersion()
+                      {
+                           Gherkin = initialGherkin,
+
+                      },
+                       Id = "ts1",
+                        SpecificationId = comparison.SpecificationId,
+                 },
+                 new TestScenario()
+                 {
+                      Current = new TestScenarioVersion()
+                      {
+                           Gherkin = initialGherkin2,
+
+                      },
+                       Id = "ts2",
+                        SpecificationId = comparison.SpecificationId,
+                 }
+            };
+
+            scenariosRepository
+                .GetTestScenariosBySpecificationId(Arg.Is(comparison.SpecificationId))
+                .Returns(testScenarios);
+
+            // Act
+            int updateCount = await service.UpdateTestScenarioCalculationGherkin(comparison);
+
+            // Assert
+            updateCount
+                .Should()
+                .Be(1);
+
+            await scenariosRepository
+                .Received(1)
+                .SaveTestScenario(Arg.Is<TestScenario>(s => s.Current.Gherkin == expectedChangedGherkin));
+
+            await scenariosRepository
+                .Received(1)
+                .GetTestScenariosBySpecificationId(Arg.Is(comparison.SpecificationId));
+
+            await
+                cacheProvider
+                .Received(1)
+                .RemoveAsync<List<TestScenario>>(Arg.Is($"{CacheKeys.TestScenarios}{comparison.SpecificationId}"));
+
+            await
+                cacheProvider
+                .Received(1)
+                .RemoveAsync<GherkinParseResult>(Arg.Is($"{CacheKeys.GherkinParseResult}{testScenarios[0].Id}"));
+        }
+
+        [TestMethod]
+        public async Task ScenariosService_UpdateTestScenarioCalculationGherkin_WhenTestScenariosDoesNotContainChangedCalculationGherkin_ThenNoTestScenariosUpdated()
+        {
+            // Arrange
+            const string initialGherkin = "Given the dataset 'Test DS' field 'Field Name' is greater than '0'\r\nThen the result for 'C1' is greater than '1'";
+            const string initialGherkin2 = "Given the dataset 'Test DS' field 'Field Name' is greater than '0'\r\nThen the result for 'C2' is greater than '1'";
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, cacheProvider: cacheProvider);
+
+            CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
+            {
+                CalculationId = "calcId",
+                SpecificationId = "specId",
+                Previous = new Calculation()
+                {
+                    Id = "calc1",
+                    Name = "Calc Name",
+                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    Description = "Test",
+                },
+                Current = new Calculation()
+                {
+                    Id = "calc1",
+                    Name = "Calc Name Updated",
+                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    Description = "Test",
+                },
+            };
+
+            List<TestScenario> testScenarios = new List<TestScenario>()
+            {
+                 new TestScenario()
+                 {
+                      Current = new TestScenarioVersion()
+                      {
+                           Gherkin = initialGherkin,
+
+                      },
+                       Id = "ts1",
+                        SpecificationId = comparison.SpecificationId,
+                 },
+                 new TestScenario()
+                 {
+                      Current = new TestScenarioVersion()
+                      {
+                           Gherkin = initialGherkin2,
+
+                      },
+                       Id = "ts2",
+                        SpecificationId = comparison.SpecificationId,
+                 }
+            };
+
+            scenariosRepository
+                .GetTestScenariosBySpecificationId(Arg.Is(comparison.SpecificationId))
+                .Returns(testScenarios);
+
+            // Act
+            int updateCount = await service.UpdateTestScenarioCalculationGherkin(comparison);
+
+            // Assert
+            updateCount
+                .Should()
+                .Be(0);
+
+            await scenariosRepository
+                .Received(0)
+                .SaveTestScenario(Arg.Any<TestScenario>());
+
+            await scenariosRepository
+                .Received(1)
+                .GetTestScenariosBySpecificationId(Arg.Is(comparison.SpecificationId));
+
+            await
+                cacheProvider
+                .Received(0)
+                .RemoveAsync<List<TestScenario>>($"{CacheKeys.TestScenarios}{comparison.SpecificationId}");
+
+            await
+                cacheProvider
+                .Received(0)
+                .RemoveAsync<GherkinParseResult>($"{CacheKeys.GherkinParseResult}{testScenarios[0].Id}");
+        }
+
+        [TestMethod]
+        public async Task ScenariosService_UpdateTestScenarioCalculationGherkin_WhenCalculationNameNotChanged_ThenNoTestScenariosUpdated()
+        {
+            // Arrange
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, cacheProvider: cacheProvider);
+
+            CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
+            {
+                CalculationId = "calcId",
+                SpecificationId = "specId",
+                Previous = new Calculation()
+                {
+                    Id = "calc1",
+                    Name = "Calc Name",
+                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    Description = "Test",
+                },
+                Current = new Calculation()
+                {
+                    Id = "calc1",
+                    Name = "Calc Name",
+                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    Description = "Test",
+                },
+            };
+
+            // Act
+            int updateCount = await service.UpdateTestScenarioCalculationGherkin(comparison);
+
+            // Assert
+            updateCount
+                .Should()
+                .Be(0);
+
+            await scenariosRepository
+                .Received(0)
+                .SaveTestScenario(Arg.Any<TestScenario>());
+
+            await scenariosRepository
+                .Received(0)
+                .GetTestScenariosBySpecificationId(Arg.Any<string>());
+
+            await
+                cacheProvider
+                .Received(0)
+                .RemoveAsync<List<TestScenario>>(Arg.Is($"{CacheKeys.TestScenarios}{comparison.SpecificationId}"));
+
+            await
+                cacheProvider
+                .Received(0)
+                .RemoveAsync<GherkinParseResult>(Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public async Task ScenariosService_UpdateScenarioForCalculation_WhenCalculationNameNotChanged_ThenNoTestScenariosUpdated()
+        {
+            // Arrange
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            ILogger logger = CreateLogger();
+
+            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, logger: logger);
+
+            CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
+            {
+                CalculationId = "calcId",
+                SpecificationId = "specId",
+                Previous = new Calculation()
+                {
+                    Id = "calc1",
+                    Name = "Calc Name",
+                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    Description = "Test",
+                },
+                Current = new Calculation()
+                {
+                    Id = "calc1",
+                    Name = "Calc Name",
+                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    Description = "Test",
+                },
+            };
+
+            string json = JsonConvert.SerializeObject(comparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            // Act
+            await service.UpdateScenarioForCalculation(message);
+
+            // Assert
+            await scenariosRepository
+                .Received(0)
+                .SaveTestScenario(Arg.Any<TestScenario>());
+
+            await scenariosRepository
+                .Received(0)
+                .GetTestScenariosBySpecificationId(Arg.Any<string>());
+
+            logger
+                .Received(1)
+                .Information("A total of {updateCount} Test Scenarios updated for calculation ID '{calculationId}'", Arg.Is(0), Arg.Is(comparison.CalculationId));
+        }
+
+        [TestMethod]
+        public void ScenariosService_UpdateScenarioForCalculation_WhenModelIsNull_ThenErrorThrown()
+        {
+            // Arrange
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            ILogger logger = CreateLogger();
+
+            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, logger: logger);
+
+            CalculationVersionComparisonModel comparison = null;
+
+            string json = JsonConvert.SerializeObject(comparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            // Act
+            Func<Task> action = async () => await service.UpdateScenarioForCalculation(message);
+
+            // Assert
+            action
+               .ShouldThrowExactly<InvalidModelException>()
+               .Which
+               .Message
+               .Should()
+               .Be("The model for type: SpecificationVersionComparisonModel is invalid with the following errors Null or invalid model provided");
+
+            logger
+                .Received(1)
+                .Error("A null CalculationVersionComparisonModel was provided to UpdateScenarioForCalculation");
+        }
+
+        [TestMethod]
+        public void ScenariosService_UpdateScenarioForCalculation_WhenCalculationIdIsNull_ThenErrorThrown()
+        {
+            // Arrange
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            ILogger logger = CreateLogger();
+
+            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, logger: logger);
+
+            CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
+            {
+                Current = new Calculation(),
+                SpecificationId = "specId",
+                CalculationId = null,
+                Previous = new Calculation(),
+            };
+
+            string json = JsonConvert.SerializeObject(comparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            // Act
+            Func<Task> action = async () => await service.UpdateScenarioForCalculation(message);
+
+            // Assert
+            action
+               .ShouldThrowExactly<InvalidModelException>()
+               .Which
+               .Message
+               .Should()
+               .Be("The model for type: CalculationVersionComparisonModel is invalid with the following errors Null or invalid calculationId provided");
+
+            logger
+                .Received(1)
+                .Warning("Null or invalid calculationId provided to UpdateScenarioForCalculation");
+        }
+
+        [TestMethod]
+        public void ScenariosService_UpdateScenarioForCalculation_WhenSpecificationIdIsNull_ThenErrorThrown()
+        {
+            // Arrange
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            ILogger logger = CreateLogger();
+
+            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, logger: logger);
+
+            CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
+            {
+                Current = new Calculation(),
+                SpecificationId = null,
+                CalculationId = "calcId",
+                Previous = new Calculation(),
+            };
+
+            string json = JsonConvert.SerializeObject(comparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            // Act
+            Func<Task> action = async () => await service.UpdateScenarioForCalculation(message);
+
+            // Assert
+            action
+               .ShouldThrowExactly<InvalidModelException>()
+               .Which
+               .Message
+               .Should()
+               .Be("The model for type: CalculationVersionComparisonModel is invalid with the following errors Null or invalid SpecificationId provided");
+
+            logger
+                .Received(1)
+                .Warning("Null or invalid SpecificationId provided to UpdateScenarioForCalculation");
+        }
+
+        static ScenariosService CreateScenariosService(ILogger logger = null, IScenariosRepository scenariosRepository = null,
+           ISpecificationsRepository specificationsRepository = null, IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator = null,
+           ISearchRepository<ScenarioIndex> searchRepository = null, ICacheProvider cacheProvider = null, IMessengerService messengerService = null, IBuildProjectRepository buildProjectRepository = null)
+        {
+            return new ScenariosService(logger ?? CreateLogger(), scenariosRepository ?? CreateScenariosRepository(), specificationsRepository ?? CreateSpecificationsRepository(),
+                createNewTestScenarioVersionValidator ?? CreateValidator(), searchRepository ?? CreateSearchRepository(),
+                cacheProvider ?? CreateCacheProvider(), messengerService ?? CreateMessengerService(), buildProjectRepository ?? CreateBuildProjectRepository());
         }
 
         static ILogger CreateLogger()

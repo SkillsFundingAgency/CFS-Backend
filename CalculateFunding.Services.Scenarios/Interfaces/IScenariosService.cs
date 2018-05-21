@@ -16,5 +16,7 @@ namespace CalculateFunding.Services.Scenarios.Interfaces
         Task<IActionResult> GetCurrentTestScenarioById(HttpRequest request);
 
         Task UpdateScenarioForSpecification(Message message);
+
+        Task UpdateScenarioForCalculation(Message message);
     }
 }

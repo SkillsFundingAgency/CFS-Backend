@@ -2,7 +2,6 @@
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
-using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
@@ -22,8 +21,10 @@ using Newtonsoft.Json;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Scenarios
@@ -298,6 +299,74 @@ namespace CalculateFunding.Services.Scenarios
                 _scenariosRepository.SaveTestScenarios(scenarios),
                 _searchRepository.Index(scenarioIndexes)
                 );
+        }
+
+        public async Task UpdateScenarioForCalculation(Message message)
+        {
+            CalculationVersionComparisonModel comparison = message.GetPayloadAsInstanceOf<CalculationVersionComparisonModel>();
+
+            if (comparison == null || comparison.Current == null || comparison.Previous == null)
+            {
+                _logger.Error("A null CalculationVersionComparisonModel was provided to UpdateScenarioForCalculation");
+
+                throw new InvalidModelException(nameof(SpecificationVersionComparisonModel), new[] { "Null or invalid model provided" });
+            }
+
+            if (string.IsNullOrWhiteSpace(comparison.CalculationId))
+            {
+                _logger.Warning("Null or invalid calculationId provided to UpdateScenarioForCalculation");
+                throw new InvalidModelException(nameof(CalculationVersionComparisonModel), new[] { "Null or invalid calculationId provided" });
+            }
+
+            if (string.IsNullOrWhiteSpace(comparison.SpecificationId))
+            {
+                _logger.Warning("Null or invalid SpecificationId provided to UpdateScenarioForCalculation");
+                throw new InvalidModelException(nameof(CalculationVersionComparisonModel), new[] { "Null or invalid SpecificationId provided" });
+            }
+
+            int updateCount = await UpdateTestScenarioCalculationGherkin(comparison);
+            string calculationId = comparison.CalculationId;
+
+            _logger.Information("A total of {updateCount} Test Scenarios updated for calculation ID '{calculationId}'", updateCount, calculationId);
+        }
+
+        public async Task<int> UpdateTestScenarioCalculationGherkin(CalculationVersionComparisonModel comparison)
+        {
+            Guard.ArgumentNotNull(comparison, nameof(comparison));
+
+            if (comparison.Current.Name == comparison.Previous.Name)
+            {
+                return 0;
+            }
+
+            int updateCount = 0;
+
+            IEnumerable<TestScenario> testScenarios = await _scenariosRepository.GetTestScenariosBySpecificationId(comparison.SpecificationId);
+            foreach (TestScenario testScenario in testScenarios)
+            {
+                string sourceString = $" the result for '{comparison.Previous.Name}'";
+                string replacementString = $" the result for '{comparison.Current.Name}'";
+
+                string result = Regex.Replace(testScenario.Current.Gherkin, sourceString, replacementString, RegexOptions.IgnoreCase);
+                if (result != testScenario.Current.Gherkin)
+                {
+                    TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
+                    testScenarioVersion.Gherkin = result;
+                    testScenario.Save(testScenarioVersion);
+
+                    await _scenariosRepository.SaveTestScenario(testScenario);
+                    await _cacheProvider.RemoveAsync<GherkinParseResult>($"{CacheKeys.GherkinParseResult}{testScenario.Id}");
+
+                    updateCount++;
+                }
+            }
+
+            if(updateCount > 0)
+            {
+                await _cacheProvider.RemoveAsync<List<TestScenario>>($"{CacheKeys.TestScenarios}{comparison.SpecificationId}");
+            }
+
+            return updateCount;
         }
 
         IDictionary<string, string> CreateMessageProperties(HttpRequest request)

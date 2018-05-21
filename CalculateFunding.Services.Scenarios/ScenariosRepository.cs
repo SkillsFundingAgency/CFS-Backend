@@ -67,7 +67,7 @@ namespace CalculateFunding.Services.Scenarios
 
         public Task<HttpStatusCode> SaveTestScenario(TestScenario testScenario)
         {
-            return _cosmosRepository.CreateAsync(testScenario);
+            return _cosmosRepository.UpsertAsync(testScenario);
         }
 
         public Task SaveTestScenarios(IEnumerable<TestScenario> testScenarios)

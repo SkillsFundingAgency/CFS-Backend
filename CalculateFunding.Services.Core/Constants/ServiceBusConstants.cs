@@ -26,6 +26,8 @@
         public static class TopicNames
         {
             public const string EditSpecification = "edit-specification";
+
+            public const string EditCalculation = "edit-calculation";
         }
 
         public static class TopicSubscribers
@@ -35,6 +37,8 @@
             public const string UpdateScenariosForEditSpecification = "test-scenario-update";
 
             public const string UpdateScenarioResultsForEditSpecification = "test-scenario-result-update";
+
+            public const string UpdateScenariosForEditCalculation = "test-scenario-update";
         }
     }
 }

@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.Scenarios.ServiceBus
 {
-    public static class OnEditSpecificationEvent
+    public static class OnEditCaluclationEvent
     {
-        [FunctionName("on-edit-specification")]
+        [FunctionName("on-edit-calculation-for-scenarios")]
         public static async Task Run([ServiceBusTrigger(
-            ServiceBusConstants.TopicNames.EditSpecification,
-            ServiceBusConstants.TopicSubscribers.UpdateScenariosForEditSpecification,
+            ServiceBusConstants.TopicNames.EditCalculation,
+            ServiceBusConstants.TopicSubscribers.UpdateScenariosForEditCalculation,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
             using (var scope = IocConfig.Build().CreateScope())
@@ -27,11 +27,11 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
                 try
                 {
                     correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await scenariosService.UpdateScenarioForSpecification(message);
+                    await scenariosService.UpdateScenarioForCalculation(message);
                 }
                 catch (Exception exception)
                 {
-                    logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.EditSpecification}");
+                    logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.EditCalculation}");
                     throw;
                 }
 
