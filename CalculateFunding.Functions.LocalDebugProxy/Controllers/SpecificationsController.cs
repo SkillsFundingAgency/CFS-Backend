@@ -173,6 +173,15 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _specService.CreateCalculation(ControllerContext.HttpContext.Request);
         }
 
+        [Route("api/specs/calculations")]
+        [HttpPut]
+        public Task<IActionResult> RunEditCalculation()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specService.EditCalculation(ControllerContext.HttpContext.Request);
+        }
+
         [Route("api/specs/get-fundingstreams")]
         [HttpGet]
         public Task<IActionResult> RunGetFundingStreams()

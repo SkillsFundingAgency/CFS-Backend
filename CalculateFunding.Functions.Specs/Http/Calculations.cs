@@ -25,6 +25,18 @@ namespace CalculateFunding.Functions.Specs.Http
             }
         }
 
+        [FunctionName("calculation-edit")]
+        public static Task<IActionResult> RunEditCalculation(
+         [HttpTrigger(AuthorizationLevel.Function, "put")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+
+                return svc.EditCalculation(req);
+            }
+        }
+
         [FunctionName("calculation-by-name")]
         public static Task<IActionResult> RunCalculationByName(
           [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)

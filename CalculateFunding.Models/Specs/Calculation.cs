@@ -13,5 +13,12 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("calculationType")]
         public CalculationType CalculationType { get; set; }
+
+        public Calculation Clone()
+        {
+            // Serialise to perform a deep copy
+            string json = JsonConvert.SerializeObject(this);
+            return JsonConvert.DeserializeObject<Calculation>(json);
+        }
     }
 }

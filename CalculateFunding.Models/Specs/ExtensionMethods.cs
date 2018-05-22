@@ -46,6 +46,34 @@ namespace CalculateFunding.Models.Specs
             return null;
         }
 
+        public static Policy GetCalculationParentPolicy(this SpecificationVersion specification, string id)
+        {
+            foreach (Policy policy in specification.Policies)
+            {
+                Calculation calculation = policy.Calculations.FirstOrDefault(m => m.Id == id);
+                if (calculation != null)
+                {
+                    return policy;
+                }
+                else
+                {
+                    if (policy.SubPolicies != null)
+                    {
+                        foreach (Policy subPolicy in policy.SubPolicies)
+                        {
+                            calculation = subPolicy.Calculations.FirstOrDefault(m => m.Id == id);
+
+                            if (calculation != null)
+                            {
+                                return subPolicy;
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
         public static Policy GetPolicyByName(this Policy policy, string name)
         {
             if (policy.Name == name)

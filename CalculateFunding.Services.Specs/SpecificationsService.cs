@@ -46,6 +46,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IValidator<SpecificationEditModel> _specificationEditModelValidator;
         private readonly ICacheProvider _cacheProvider;
         private readonly IValidator<PolicyEditModel> _policyEditModelValidator;
+        private readonly IValidator<CalculationEditModel> _calculationEditModelValidator;
 
         public SpecificationsService(
             IMapper mapper,
@@ -59,7 +60,8 @@ namespace CalculateFunding.Services.Specs
             IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator,
             ICacheProvider cacheProvider,
             IValidator<SpecificationEditModel> specificationEditModelValidator,
-            IValidator<PolicyEditModel> policyEditModelValidator)
+            IValidator<PolicyEditModel> policyEditModelValidator,
+            IValidator<CalculationEditModel> calculationEditModelValidator)
         {
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -74,6 +76,7 @@ namespace CalculateFunding.Services.Specs
             _cacheProvider = cacheProvider;
             _specificationEditModelValidator = specificationEditModelValidator;
             _policyEditModelValidator = policyEditModelValidator;
+            _calculationEditModelValidator = calculationEditModelValidator;
         }
 
         public async Task<IActionResult> GetSpecifications(HttpRequest request)
@@ -692,7 +695,7 @@ namespace CalculateFunding.Services.Specs
 
             await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
 
-            await SendMessageToTopic(specification.Id, specificationVersion, previousSpecificationVersion, request);
+            await SendSpecificationComparisonModelMessageToTopic(specification.Id, ServiceBusConstants.TopicNames.EditSpecification, specificationVersion, previousSpecificationVersion, request);
 
             return new OkObjectResult(policy);
         }
@@ -893,12 +896,12 @@ namespace CalculateFunding.Services.Specs
 
             }
 
-            await SendMessageToTopic(specificationId, specification.Current, previousSpecificationVersion, request);
+            await SendSpecificationComparisonModelMessageToTopic(specificationId, ServiceBusConstants.TopicNames.EditSpecification, specification.Current, previousSpecificationVersion, request);
 
             return new OkObjectResult(specification);
         }
 
-        Task SendMessageToTopic(string specificationId, SpecificationVersion current, SpecificationVersion previous, HttpRequest request)
+        Task SendSpecificationComparisonModelMessageToTopic(string specificationId, string topicName, SpecificationVersion current, SpecificationVersion previous, HttpRequest request)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.ArgumentNotNull(current, nameof(current));
@@ -914,7 +917,27 @@ namespace CalculateFunding.Services.Specs
                 Previous = previous
             };
 
-            return _messengerService.SendToTopic(ServiceBusConstants.TopicNames.EditSpecification, comparisonModel, properties);
+            return _messengerService.SendToTopic(topicName, comparisonModel, properties);
+        }
+
+        Task SendCalculationComparisonModelMessageToTopic(string specificationId, string calculationId, string topicName, Calculation current, Calculation previous, HttpRequest request)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.ArgumentNotNull(current, nameof(current));
+            Guard.ArgumentNotNull(previous, nameof(previous));
+            Guard.ArgumentNotNull(request, nameof(request));
+
+            IDictionary<string, string> properties = CreateMessageProperties(request);
+
+            CalculationVersionComparisonModel comparisonModel = new CalculationVersionComparisonModel
+            {
+                SpecificationId = specificationId,
+                CalculationId = calculationId,
+                Current = current,
+                Previous = previous,
+            };
+
+            return _messengerService.SendToTopic(topicName, comparisonModel, properties);
         }
 
         /// <summary>
@@ -1022,6 +1045,113 @@ namespace CalculateFunding.Services.Specs
                     FundingStream = currentFundingStream,
                 },
                 properties);
+            return new OkObjectResult(calculation);
+        }
+
+        public async Task<IActionResult> EditCalculation(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out var specId);
+
+            string specificationId = specId.FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to EditCalculation");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            request.Query.TryGetValue("calculationId", out var calcId);
+
+            string calculationId = calcId.FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(calculationId))
+            {
+                _logger.Error("No calculation Id was provided to EditCalculation");
+                return new BadRequestObjectResult("Null or empty calculation Id provided");
+            }
+
+            string json = await request.GetRawBodyStringAsync();
+            CalculationEditModel editModel = JsonConvert.DeserializeObject<CalculationEditModel>(json);
+
+            if (editModel == null)
+            {
+                _logger.Error("Null calculation edit model provided to EditCalculation");
+                return new BadRequestObjectResult("Null calculation edit model provided");
+            }
+
+            editModel.CalculationId = calculationId;
+            editModel.SpecificationId = specificationId;
+
+            var validationResult = (await _calculationEditModelValidator.ValidateAsync(editModel)).PopulateModelState();
+            if (validationResult != null)
+            {
+                _logger.Error("Invalid data was provided for EdditCalculation");
+                return validationResult;
+            }
+
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+            if (specification == null)
+            {
+                _logger.Warning($"Specification not found for specification id {specificationId}");
+                return new PreconditionFailedResult($"Specification not found for specification id {specificationId}");
+            }
+
+            SpecificationVersion previousSpecificationVersion = specification.Current;
+
+            SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
+
+            Calculation calculation = specificationVersion.GetCalculations().FirstOrDefault(m => m.Id == calculationId);
+
+            if (calculation == null)
+            {
+                _logger.Warning($"Calculation not found for calculation id '{calculationId}'");
+                return new NotFoundObjectResult($"Calculation not found for calculation id '{calculationId}'");
+            }
+
+            Calculation previousCalculation = calculation.Clone();
+
+            calculation.Name = editModel.Name;
+            calculation.Description = editModel.Description;
+            
+            if(calculation.CalculationType.ToString() != editModel.CalculationType)
+            {
+                calculation.CalculationType = (Models.Calcs.CalculationType)Enum.Parse(typeof(Models.Calcs.CalculationType), editModel.CalculationType);
+
+                if(calculation.CalculationType == Models.Calcs.CalculationType.Number)
+                {
+                    calculation.AllocationLine = null;
+                }
+            }
+
+            Policy parentPolicy = specificationVersion.GetCalculationParentPolicy(calculationId);
+
+            if(parentPolicy != null)
+            {
+                if(editModel.PolicyId != parentPolicy.Id)
+                {
+                    parentPolicy.Calculations = parentPolicy.Calculations.Where(m => m.Id != calculationId);
+
+                    Policy newParentPolicy = specificationVersion.GetPolicy(editModel.PolicyId);
+                    
+                    if(parentPolicy == null)
+                    {
+                        _logger.Warning($"Policy not found for policy id '{editModel.PolicyId}'");
+                        return new PreconditionFailedResult($"Policy not found for policy id '{editModel.PolicyId}'");
+                    }
+                    else
+                    {
+                        newParentPolicy.Calculations = parentPolicy.Calculations.Concat(new[] { calculation });
+                    }
+                }
+            }
+
+            HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion);
+            if (statusCode != HttpStatusCode.OK)
+            {
+                _logger.Error($"Failed to update specification when creating a calc with status {statusCode}");
+                return new StatusCodeResult((int)statusCode);
+            }
+
+            await SendCalculationComparisonModelMessageToTopic(specificationId, calculationId, ServiceBusConstants.TopicNames.EditCalculation, calculation, previousCalculation, request);
+
             return new OkObjectResult(calculation);
         }
 
