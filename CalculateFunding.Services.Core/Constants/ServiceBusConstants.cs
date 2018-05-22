@@ -39,6 +39,8 @@
             public const string UpdateScenarioResultsForEditSpecification = "test-scenario-result-update";
 
             public const string UpdateScenariosForEditCalculation = "test-scenario-update";
+
+            public const string UpdateCalculationsForEditCalculation = "calcs-calculation-update";
         }
     }
 }

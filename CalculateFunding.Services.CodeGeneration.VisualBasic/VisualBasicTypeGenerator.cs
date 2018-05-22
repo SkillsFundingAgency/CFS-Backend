@@ -1,5 +1,6 @@
 ﻿using System;
 using System.CodeDom.Compiler;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using CalculateFunding.Models.Datasets.Schema;
 using Microsoft.CodeAnalysis;
@@ -14,6 +15,22 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
             string className = value;
             bool isValid = CodeDomProvider.CreateProvider("VisualBasic").IsValidIdentifier(className);
+
+            List<string> chars = new List<string>();
+            for (int i = 0; i < className.Length; i++)
+            {
+                chars.Add(className.Substring(i, 1));
+            }
+
+            // Convert "my function name" to "My Function Name"
+            Regex convertToSentenceCase = new Regex("\\b[a-z]");
+            MatchCollection matches = convertToSentenceCase.Matches(className);
+            for (int i = 0; i < matches.Count; i++)
+            {
+                chars[matches[i].Index] = chars[matches[i].Index].ToString().ToUpperInvariant();
+            }
+
+            className = string.Join("", chars);
 
             if (!isValid)
             {
@@ -69,7 +86,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         protected static SyntaxList<ImportsStatementSyntax> StandardImports()
         {
-            var imports = SyntaxFactory.List( new[] {
+            var imports = SyntaxFactory.List(new[] {
                 SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System")))),
                     SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System.Collections.Generic")))),
 

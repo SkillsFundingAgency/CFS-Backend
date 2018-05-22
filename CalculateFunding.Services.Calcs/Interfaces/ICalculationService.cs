@@ -36,5 +36,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<BuildProject> CreateBuildProject(string specificationId, IEnumerable<Calculation> calculations);
 
         Task UpdateCalculationsForSpecification(Message message);
+
+        Task UpdateCalculationsForCalculationSpecificationChange(Message message);
     }
 }

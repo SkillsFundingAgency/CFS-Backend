@@ -6,7 +6,9 @@ using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
+using CalculateFunding.Services.Calcs.ResultModels;
 using CalculateFunding.Services.CodeGeneration;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
@@ -27,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
@@ -429,6 +432,71 @@ namespace CalculateFunding.Services.Calcs
                 properties);
         }
 
+
+        public async Task UpdateCalculationsForCalculationSpecificationChange(Message message)
+        {
+            Models.Specs.CalculationVersionComparisonModel calculationVersionComparison = message.GetPayloadAsInstanceOf<Models.Specs.CalculationVersionComparisonModel>();
+
+            if (calculationVersionComparison == null || calculationVersionComparison.Current == null || calculationVersionComparison.Previous == null)
+            {
+                _logger.Error("A null calculationVersionComparison was provided to UpdateCalculationsForCalculationSpecificationChange");
+
+                throw new InvalidModelException(nameof(Models.Specs.CalculationVersionComparisonModel), new[] { "Null or invalid model provided" });
+            }
+
+            // Check for changes in calculation which have been edited - return if not
+
+            List<Calculation> calculationsToUpdate = new List<Calculation>();
+
+            // Check for changes in provided calculation - add to list if so
+
+            if (calculationVersionComparison.Current.Name != calculationVersionComparison.Previous.Name)
+            {
+                IEnumerable<Calculation> updatedCalculations = await UpdateCalculationCodeOnCalculationSpecificationChange(calculationVersionComparison, message.GetUserDetails());
+                calculationsToUpdate.AddRange(updatedCalculations);
+            }
+
+            foreach (Calculation calculation in calculationsToUpdate)
+            {
+                // Update cosmos
+
+                // Update search
+            }
+        }
+
+        public async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationSpecificationChange(Models.Specs.CalculationVersionComparisonModel comparison, Reference user)
+        {
+            Guard.ArgumentNotNull(comparison, nameof(comparison));
+            Guard.ArgumentNotNull(user, nameof(user));
+
+            List<Calculation> updatedCalculations = new List<Calculation>();
+
+            if (comparison.Current.Name != comparison.Previous.Name)
+            {
+                IEnumerable<Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(comparison.SpecificationId);
+
+                string existingFunctionName = VisualBasicTypeGenerator.Identifier(comparison.Previous.Name);
+                string sourceFieldRegex = $"\\b({existingFunctionName})\\((\\s)*\\)";
+                string newFunctionReplacement = $"{VisualBasicTypeGenerator.Identifier(comparison.Current.Name)}()";
+
+                foreach (Calculation calculation in calculations)
+                {
+                    string result = Regex.Replace(calculation.Current.SourceCode, sourceFieldRegex, newFunctionReplacement);
+                    if (result != calculation.Current.SourceCode)
+                    {
+                        CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
+                        calculationVersion.SourceCode = result;
+
+                        UpdateCalculationResult updateCalculationResult = await UpdateCalculation(calculation, calculationVersion, user);
+
+                        updatedCalculations.Add(calculation);
+                    }
+                }
+            }
+
+            return updatedCalculations;
+        }
+
         async public Task<IActionResult> SaveCalculationVersion(HttpRequest request)
         {
             request.Query.TryGetValue("calculationId", out var calcId);
@@ -453,10 +521,7 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("Null or empty calculation Id provided");
             }
 
-            Reference user = request.GetUser();
-
             Calculation calculation = await _calculationsRepository.GetCalculationById(calculationId);
-
             if (calculation == null)
             {
                 _logger.Error($"A calculation was not found for calculation id {calculationId}");
@@ -464,9 +529,50 @@ namespace CalculateFunding.Services.Calcs
                 return new NotFoundResult();
             }
 
+            Reference user = request.GetUser();
+            CalculationVersion calculationVersion;
+            if (calculation.Current == null)
+            {
+                calculationVersion = new CalculationVersion();
+            }
+            else
+            {
+                calculationVersion = calculation.Current.Clone() as CalculationVersion;
+            }
+
+            calculationVersion.DecimalPlaces = 6;
+            calculationVersion.SourceCode = sourceCodeVersion.SourceCode;
+
+            UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, user);
+
+            await SendGenerateAllocationsMessage(result.BuildProject, request);
+
+            _telemetry.TrackEvent("InstructCalculationAllocationEventRun",
+                 new Dictionary<string, string>()
+                 {
+                            { "specificationId" , result.BuildProject.SpecificationId },
+                            { "buildProjectId" , result.BuildProject.Id },
+                            { "calculationId" , calculationId }
+                 },
+                 new Dictionary<string, double>()
+                 {
+                        { "InstructCalculationAllocationEventRunCalc" , 1 },
+                        { "InstructCalculationAllocationEventRun" , 1 }
+                 }
+             );
+
+            return new OkObjectResult(result.CurrentVersion);
+        }
+
+        private async Task<UpdateCalculationResult> UpdateCalculation(Calculation calculation, CalculationVersion calculationVersion, Reference user)
+        {
+            Guard.ArgumentNotNull(calculation, nameof(calculation));
+            Guard.ArgumentNotNull(calculationVersion, nameof(calculationVersion));
+            Guard.ArgumentNotNull(user, nameof(user));
+
             if (calculation.History.IsNullOrEmpty())
             {
-                _logger.Information($"History for {calculationId} was null or empty and needed recreating.");
+                _logger.Information($"History for {calculation.Id} was null or empty and needed recreating.");
                 calculation.History = new List<CalculationVersion>();
             }
 
@@ -474,28 +580,19 @@ namespace CalculateFunding.Services.Calcs
 
             if (calculation.Current == null)
             {
-                _logger.Warning($"Current for {calculationId} was null and needed recreating.");
+                _logger.Warning($"Current for {calculation.Id} was null and needed recreating.");
                 calculation.Current = new CalculationVersion();
             }
-            calculation.Current.SourceCode = sourceCodeVersion.SourceCode;
 
-            CalculationVersion newVersion = new CalculationVersion
-            {
-                Version = nextVersionNumber,
-                Author = user,
-                Date = DateTime.UtcNow,
-                DecimalPlaces = 6,
-                PublishStatus = (calculation.Current.PublishStatus == PublishStatus.Published
-                                    || calculation.Current.PublishStatus == PublishStatus.Updated)
-                                    ? PublishStatus.Updated : PublishStatus.Draft,
-                SourceCode = sourceCodeVersion.SourceCode
-            };
+            calculationVersion.Author = user;
 
-            calculation.Current = newVersion;
-
-            calculation.History.Add(newVersion);
+            calculation.Save(calculationVersion);
 
             HttpStatusCode statusCode = await _calculationsRepository.UpdateCalculation(calculation);
+            if (statusCode != HttpStatusCode.OK)
+            {
+                throw new InvalidOperationException($"Update calculation returned status code '{statusCode}' instead of OK");
+            }
 
             BuildProject buildProject = await UpdateBuildProject(calculation.SpecificationId);
 
@@ -512,23 +609,12 @@ namespace CalculateFunding.Services.Calcs
             // Set current version in cache
             await _cacheProvider.SetAsync<CalculationCurrentVersion>($"{CacheKeys.CurrentCalcluation}{calculation.Id}", currentVersion, TimeSpan.FromDays(7), true);
 
-            await SendGenerateAllocationsMessage(buildProject, request);
-
-            _telemetry.TrackEvent("InstructCalculationAllocationEventRun",
-               new Dictionary<string, string>()
-               {
-                        { "specificationId" , buildProject.SpecificationId },
-                        { "buildProjectId" , buildProject.Id },
-                        { "calculationId" , calculationId }
-               },
-               new Dictionary<string, double>()
-               {
-                    { "InstructCalculationAllocationEventRunCalc" , 1 },
-                    { "InstructCalculationAllocationEventRun" , 1 }
-               }
-           );
-
-            return new OkObjectResult(currentVersion);
+            return new UpdateCalculationResult()
+            {
+                BuildProject = buildProject,
+                Calculation = calculation,
+                CurrentVersion = currentVersion,
+            };
         }
 
         async public Task<IActionResult> PublishCalculationVersion(HttpRequest request)

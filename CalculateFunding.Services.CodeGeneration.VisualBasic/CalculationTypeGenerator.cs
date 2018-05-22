@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CalculateFunding.Models.Calcs;
+﻿using CalculateFunding.Models.Calcs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 
 namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
-    public class ProductTypeGenerator : VisualBasicTypeGenerator
+    public class CalculationTypeGenerator : VisualBasicTypeGenerator
     {
 
         public IEnumerable<SourceFile> GenerateCalcs(BuildProject buildProject, IEnumerable<Calculation> calculations)

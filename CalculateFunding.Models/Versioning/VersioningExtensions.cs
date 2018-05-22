@@ -63,15 +63,24 @@ namespace CalculateFunding.Models.Versioning
         {
             container.History = container.History ?? new List<T>();
             int maxVersion = container.History.Count == 0 ? 0 : container.History.Max(x => x.Version); // If publish previous version current version may not be highest
-            switch (container.Current.PublishStatus)
+
+            if (container.Current != null)
             {
-                case PublishStatus.Draft:
-                    item.PublishStatus = PublishStatus.Draft;
-                    break;
-                default:
-                    item.PublishStatus = PublishStatus.Updated;
-                    break;
+                switch (container.Current.PublishStatus)
+                {
+                    case PublishStatus.Draft:
+                        item.PublishStatus = PublishStatus.Draft;
+                        break;
+                    default:
+                        item.PublishStatus = PublishStatus.Updated;
+                        break;
+                }
             }
+            else
+            {
+                item.PublishStatus = PublishStatus.Draft;
+            }
+
             item.Version = maxVersion + 1;
             container.Current = item;
             container.History.Add(container.Current);

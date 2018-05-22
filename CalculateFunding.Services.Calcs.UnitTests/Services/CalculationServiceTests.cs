@@ -1569,6 +1569,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns(calculation);
 
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
 
             CalculationIndex calcIndex = new CalculationIndex();
@@ -1695,6 +1699,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns(calculation);
 
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
 
             CalculationIndex calcIndex = new CalculationIndex();
@@ -1771,6 +1779,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns(calculation);
 
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
 
             CalculationIndex calcIndex = new CalculationIndex();
@@ -1819,7 +1831,7 @@ namespace CalculateFunding.Services.Calcs.Services
         [TestMethod]
         async public Task SaveCalculationVersion_GivenCalculationExistsWithButBuildProjectDoesNotExist_CreatesNewBuildProject()
         {
-            //Arrange
+            // Arrange
             string buildProjectId = Guid.NewGuid().ToString();
 
             Calculation calculation = CreateCalculation();
@@ -1855,6 +1867,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns(calculation);
 
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
 
             CalculationIndex calcIndex = new CalculationIndex();
@@ -1882,10 +1898,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository: searchRepository,
                 specificationRepository: specificationRepository);
 
-            //Act
+            // Act
             IActionResult result = await service.SaveCalculationVersion(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
@@ -1943,6 +1959,10 @@ namespace CalculateFunding.Services.Calcs.Services
             calculationsRepository
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns(calculation);
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
@@ -2054,6 +2074,10 @@ namespace CalculateFunding.Services.Calcs.Services
             calculationsRepository
                 .GetCalculationsBySpecificationId(specificationId)
                 .Returns(calcCalculations.AsEnumerable());
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
@@ -2196,6 +2220,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(calculation);
 
             calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
+            calculationsRepository
                 .GetCalculationsBySpecificationId(specificationId)
                 .Returns(calcCalculations.AsEnumerable());
 
@@ -2309,6 +2337,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns(calculation);
 
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
                 .GetBuildProjectById(Arg.Is(buildProjectId))
@@ -2395,6 +2427,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns(calculation);
 
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
                 .GetBuildProjectById(Arg.Is(buildProjectId))
@@ -2479,6 +2515,10 @@ namespace CalculateFunding.Services.Calcs.Services
             calculationsRepository
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns(calculation);
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
@@ -2579,6 +2619,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns(calculation);
 
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
                 .GetBuildProjectById(Arg.Is(buildProjectId))
@@ -2637,6 +2681,104 @@ namespace CalculateFunding.Services.Calcs.Services
                     .SendToQueue(Arg.Is("calc-events-instruct-generate-allocations"),
                         Arg.Any<BuildProject>(),
                         Arg.Any<IDictionary<string, string>>());
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenCalculationUpdateFails_ThenExceptionIsThrown()
+        {
+            //Arrange
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            string specificationId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId,
+            };
+
+            Calculation calculation = CreateCalculation();
+            calculation.BuildProjectId = buildProjectId;
+            calculation.SpecificationId = specificationId;
+
+            calculation.Current.PublishStatus = PublishStatus.Updated;
+
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.InternalServerError);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .Returns(buildProject);
+
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
+                calculationsRepository: calculationsRepository,
+               buildProjectsRepository: buildProjectsRepository,
+               searchRepository: searchRepository,
+               messengerService: messengerService,
+               specificationRepository: specificationRepository);
+
+            //Act
+            Func<Task<IActionResult>> resultFunc = async () => await service.SaveCalculationVersion(request);
+
+            //Assert
+            resultFunc
+                .ShouldThrow<InvalidOperationException>()
+                .Which
+                .Message
+                .Should()
+                .Be("Update calculation returned status code 'InternalServerError' instead of OK");
         }
 
         [TestMethod]
@@ -3077,7 +3219,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     FundingPeriod = new Reference { Id = "fp1" },
                     Name = "any-name",
-                    Policies = new[] { new Models.Specs.Policy { Id = "pol-id", Name = "policy2"} }
+                    Policies = new[] { new Models.Specs.Policy { Id = "pol-id", Name = "policy2" } }
                 },
                 Previous = new Models.Specs.SpecificationVersion
                 {
@@ -3246,6 +3388,362 @@ namespace CalculateFunding.Services.Calcs.Services
                 messengerService
                     .Received(1)
                     .SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.CalculationJobInitialiser), Arg.Is(buildProject), Arg.Any<IDictionary<string, string>>());
+        }
+
+        [TestMethod]
+        public async Task UpdateCalculationCodeOnCalculationSpecificationChange_WhenCalculationsFoundReferencingCalculationToBeUpdated_ThenSourceCodeUpdated()
+        {
+            // Arrange
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+
+            CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository, specificationRepository: specificationRepository);
+
+            const string specificationId = "specId";
+            const string calculationId = "updatedCalc";
+
+            Models.Specs.CalculationVersionComparisonModel comparison = new Models.Specs.CalculationVersionComparisonModel()
+            {
+                CalculationId = calculationId,
+                Current = new Models.Specs.Calculation()
+                {
+                    Id = "calcSpec1",
+                    Name = "Calculation To Update",
+                    CalculationType = CalculationType.Funding,
+                },
+                Previous = new Models.Specs.Calculation()
+                {
+                    Id = "calcSpec1",
+                    Name = "Original Name",
+                    CalculationType = CalculationType.Funding,
+                },
+                SpecificationId = specificationId,
+            };
+
+            Reference user = new Reference("userId", "User Name");
+
+            List<Calculation> calculations = new List<Calculation>();
+            Calculation calc1 = new Calculation()
+            {
+                Id = calculationId,
+                Name = "Calculation to Update",
+                SpecificationId = specificationId,
+                FundingPeriod = new Reference("fp1", "Funding Period"),
+                History = new List<CalculationVersion>(),
+                CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
+                CalculationType = CalculationType.Funding,
+                Description = "Calculation Description",
+                BuildProjectId = "bpC1",
+                Policies = new List<Reference>(),
+            };
+            calc1.Save(new CalculationVersion()
+            {
+                SourceCode = "Return 10",
+                DecimalPlaces = 6,
+            });
+
+            calculations.Add(calc1);
+
+            Calculation calc2 = new Calculation()
+            {
+                Id = "referenceCalc",
+                Name = "Calling Calculation To Update",
+                SpecificationId = specificationId,
+                FundingPeriod = new Reference("fp1", "Funding Period"),
+                History = new List<CalculationVersion>(),
+                CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
+                CalculationType = CalculationType.Funding,
+                Description = "Calculation Description",
+                BuildProjectId = "bpC1",
+                Policies = new List<Reference>(),
+            };
+            calc2.Save(new CalculationVersion()
+            {
+                SourceCode = "Return OriginalName()",
+                DecimalPlaces = 6,
+            });
+
+
+            calculations.Add(calc2);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(calculations);
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
+            calculationsRepository
+                .GetCalculationById(Arg.Is(calculations[0].Id))
+                .Returns(calculations[0]);
+
+            Models.Specs.SpecificationSummary specification = new Models.Specs.SpecificationSummary()
+            {
+                Id = specificationId,
+                Name = "Specification Name",
+            };
+
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            // Act
+            IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationSpecificationChange(comparison, user);
+
+            // Assert
+            updatedCalculations
+                .Should()
+                .HaveCount(1);
+
+            updatedCalculations
+                .First()
+                .Current.SourceCode
+                .Should()
+                .Be("Return CalculationToUpdate()");
+
+            updatedCalculations
+                .First()
+                .Current.Version
+                .Should()
+                .Be(2);
+
+            updatedCalculations
+                .First()
+                .Id
+                .Should()
+                .Be("referenceCalc");
+        }
+
+        [TestMethod]
+        public async Task UpdateCalculationCodeOnCalculationSpecificationChange_WhenCalculationsFoundReferencingCalculationToBeUpdatedHasDifferentNameCasing_ThenSourceCodeUpdated()
+        {
+            // Arrange
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+
+            CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository, specificationRepository: specificationRepository);
+
+            const string specificationId = "specId";
+            const string calculationId = "updatedCalc";
+
+            Models.Specs.CalculationVersionComparisonModel comparison = new Models.Specs.CalculationVersionComparisonModel()
+            {
+                CalculationId = calculationId,
+                Current = new Models.Specs.Calculation()
+                {
+                    Id = "calcSpec1",
+                    Name = "Calculation to update",
+                    CalculationType = CalculationType.Funding,
+                },
+                Previous = new Models.Specs.Calculation()
+                {
+                    Id = "calcSpec1",
+                    Name = "Original Name",
+                    CalculationType = CalculationType.Funding,
+                },
+                SpecificationId = specificationId,
+            };
+
+            Reference user = new Reference("userId", "User Name");
+
+            List<Calculation> calculations = new List<Calculation>();
+            Calculation calc1 = new Calculation()
+            {
+                Id = calculationId,
+                Name = "Calculation to Update",
+                SpecificationId = specificationId,
+                FundingPeriod = new Reference("fp1", "Funding Period"),
+                History = new List<CalculationVersion>(),
+                CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
+                CalculationType = CalculationType.Funding,
+                Description = "Calculation Description",
+                BuildProjectId = "bpC1",
+                Policies = new List<Reference>(),
+            };
+            calc1.Save(new CalculationVersion()
+            {
+                SourceCode = "Return 10",
+                DecimalPlaces = 6,
+            });
+
+            calculations.Add(calc1);
+
+            Calculation calc2 = new Calculation()
+            {
+                Id = "referenceCalc",
+                Name = "Calling Calculation To Update",
+                SpecificationId = specificationId,
+                FundingPeriod = new Reference("fp1", "Funding Period"),
+                History = new List<CalculationVersion>(),
+                CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
+                CalculationType = CalculationType.Funding,
+                Description = "Calculation Description",
+                BuildProjectId = "bpC1",
+                Policies = new List<Reference>(),
+            };
+            calc2.Save(new CalculationVersion()
+            {
+                SourceCode = "Return OriginalName()",
+                DecimalPlaces = 6,
+            });
+
+            calculations.Add(calc2);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(calculations);
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
+            calculationsRepository
+                .GetCalculationById(Arg.Is(calculations[0].Id))
+                .Returns(calculations[0]);
+
+            Models.Specs.SpecificationSummary specification = new Models.Specs.SpecificationSummary()
+            {
+                Id = specificationId,
+                Name = "Specification Name",
+            };
+
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            // Act
+            IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationSpecificationChange(comparison, user);
+
+            // Assert
+            updatedCalculations
+                .Should()
+                .HaveCount(1);
+
+            updatedCalculations
+                .First()
+                .Current.SourceCode
+                .Should()
+                .Be("Return CalculationToUpdate()");
+
+            updatedCalculations
+                .First()
+                .Current.Version
+                .Should()
+                .Be(2);
+
+            updatedCalculations
+                .First()
+                .Id
+                .Should()
+                .Be("referenceCalc");
+        }
+
+        [TestMethod]
+        public async Task UpdateCalculationCodeOnCalculationSpecificationChange_WhenNoCalculationsFoundReferencingCalculationToBeUpdated_ThenNoCalculationsUpdated()
+        {
+            // Arrange
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+
+            CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository, specificationRepository: specificationRepository);
+
+            const string specificationId = "specId";
+            const string calculationId = "updatedCalc";
+
+            Models.Specs.CalculationVersionComparisonModel comparison = new Models.Specs.CalculationVersionComparisonModel()
+            {
+                CalculationId = calculationId,
+                Current = new Models.Specs.Calculation()
+                {
+                    Id = "calcSpec1",
+                    Name = "Calculation to update",
+                    CalculationType = CalculationType.Funding,
+                },
+                Previous = new Models.Specs.Calculation()
+                {
+                    Id = "calcSpec1",
+                    Name = "Original Name",
+                    CalculationType = CalculationType.Funding,
+                },
+                SpecificationId = specificationId,
+            };
+
+            Reference user = new Reference("userId", "User Name");
+
+            List<Calculation> calculations = new List<Calculation>();
+            Calculation calc1 = new Calculation()
+            {
+                Id = calculationId,
+                Name = "Calculation to Update",
+                SpecificationId = specificationId,
+                FundingPeriod = new Reference("fp1", "Funding Period"),
+                History = new List<CalculationVersion>(),
+                CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
+                CalculationType = CalculationType.Funding,
+                Description = "Calculation Description",
+                BuildProjectId = "bpC1",
+                Policies = new List<Reference>(),
+            };
+            calc1.Save(new CalculationVersion()
+            {
+                SourceCode = "Return 10",
+                DecimalPlaces = 6,
+            });
+
+            calculations.Add(calc1);
+
+            Calculation calc2 = new Calculation()
+            {
+                Id = "referenceCalc",
+                Name = "Calling Calculation To Update",
+                SpecificationId = specificationId,
+                FundingPeriod = new Reference("fp1", "Funding Period"),
+                History = new List<CalculationVersion>(),
+                CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
+                CalculationType = CalculationType.Funding,
+                Description = "Calculation Description",
+                BuildProjectId = "bpC1",
+                Policies = new List<Reference>(),
+            };
+            calc2.Save(new CalculationVersion()
+            {
+                SourceCode = "Return 50",
+                DecimalPlaces = 6,
+            });
+
+
+            calculations.Add(calc2);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(calculations);
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
+            calculationsRepository
+                .GetCalculationById(Arg.Is(calculations[0].Id))
+                .Returns(calculations[0]);
+
+            Models.Specs.SpecificationSummary specification = new Models.Specs.SpecificationSummary()
+            {
+                Id = specificationId,
+                Name = "Specification Name",
+            };
+
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            // Act
+            IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationSpecificationChange(comparison, user);
+
+            // Assert
+            updatedCalculations
+                .Should()
+                .HaveCount(0);
         }
 
         static CalculationService CreateCalculationService(
