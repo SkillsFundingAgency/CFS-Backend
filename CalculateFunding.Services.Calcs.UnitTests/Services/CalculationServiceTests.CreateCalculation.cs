@@ -1,0 +1,333 @@
+﻿using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Exceptions;
+using CalculateFunding.Models.Versioning;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Calcs.Interfaces;
+using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using NSubstitute;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Azure.ServiceBus;
+
+namespace CalculateFunding.Services.Calcs.Services
+{
+    public partial class CalculationServiceTests
+    {
+        [TestMethod]
+        public async Task CreateCalculation_GivenNullCalculation_LogsDoesNotSave()
+        {
+            //Arrange
+            Message message = new Message(new byte[0]);
+
+            ICalculationsRepository repository = CreateCalculationsRepository();
+
+            ILogger logger = CreateLogger();
+
+            CalculationService service = CreateCalculationService(repository, logger);
+
+            //Act
+            await service.CreateCalculation(message);
+
+            //Assert
+            logger
+                .Received(1)
+                .Error("A null calculation was provided to CalculateFunding.Services.Calcs.CreateCalculation");
+
+            await
+                repository
+                    .DidNotReceive()
+                    .CreateDraftCalculation(Arg.Any<Calculation>());
+        }
+
+        [TestMethod]
+        public void CreateCalculation_GivenInvalidCalculation_LogsDoesNotSave()
+        {
+            //Arrange
+            dynamic anyObject = new { something = 1 };
+
+            string json = JsonConvert.SerializeObject(anyObject);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ICalculationsRepository repository = CreateCalculationsRepository();
+
+            ILogger logger = CreateLogger();
+
+            ValidationResult validationResult = new ValidationResult(new[]{
+                    new ValidationFailure("prop1", "any error")
+                });
+
+            IValidator<Calculation> validator = CreateCalculationValidator(validationResult);
+
+            CalculationService service = CreateCalculationService(repository, logger, calcValidator: validator);
+
+            //Act
+            Func<Task> test = async () => await service.CreateCalculation(message);
+
+            //Assert
+            test
+              .ShouldThrowExactly<InvalidModelException>();
+        }
+
+        [TestMethod]
+        public async Task CreateCalculation_GivenValidCalculation_ButFailedToSave_DoesNotUpdateSearch()
+        {
+            //Arrange
+
+            Calculation calculation = new Calculation { Id = CalculationId };
+
+            string json = JsonConvert.SerializeObject(calculation);
+
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            message.UserProperties.Add("user-id", UserId);
+            message.UserProperties.Add("user-name", Username);
+
+
+            ICalculationsRepository repository = CreateCalculationsRepository();
+            repository
+                .CreateDraftCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.BadRequest);
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            CalculationService service = CreateCalculationService(calculationsRepository: repository, logger: logger, searchRepository: searchRepository, specificationRepository: specificationRepository);
+
+            //Act
+            await service.CreateCalculation(message);
+
+            //Assert
+            logger
+                .Received(1)
+                .Error($"There was problem creating a new calculation with id {calculation.Id} in Cosmos Db with status code 400");
+
+            await
+               repository
+                   .Received(1)
+                   .CreateDraftCalculation(Arg.Is<Calculation>(m =>
+                       m.Id == CalculationId &&
+                       m.Current.PublishStatus == PublishStatus.Draft &&
+                       m.Current.Author.Id == UserId &&
+                       m.Current.Author.Name == Username &&
+                       m.Current.Date.Date == DateTime.UtcNow.Date &&
+                       m.Current.Version == 1 &&
+                       m.Current.DecimalPlaces == 6
+                   ));
+
+            await
+                searchRepository
+                    .DidNotReceive()
+                    .Index(Arg.Any<List<CalculationIndex>>());
+        }
+
+        [TestMethod]
+        public async Task CreateCalculation_GivenValidCalculation_AndSavesLogs()
+        {
+            //Arrange
+
+            Calculation calculation = CreateCalculation();
+
+            IEnumerable<Calculation> calculations = new[]
+            {
+                calculation
+            };
+
+            string json = JsonConvert.SerializeObject(calculation);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            message.UserProperties.Add("user-id", UserId);
+            message.UserProperties.Add("user-name", Username);
+
+            ICalculationsRepository repository = CreateCalculationsRepository();
+            repository
+                .CreateDraftCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.Created);
+
+            repository
+                .GetCalculationsBySpecificationId(Arg.Is("any-spec-id"))
+                .Returns(calculations);
+
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            CalculationService service = CreateCalculationService(calculationsRepository: repository, logger: logger, searchRepository: searchRepository, specificationRepository: specificationRepository);
+
+            //Act
+            await service.CreateCalculation(message);
+
+            //Assert
+            logger
+                .Received(1)
+                .Information($"Calculation with id: {calculation.Id} was succesfully saved to Cosmos Db");
+
+            await
+               repository
+                   .Received(1)
+                   .CreateDraftCalculation(Arg.Is<Calculation>(m =>
+                       m.Id == CalculationId &&
+                       m.Current.PublishStatus == PublishStatus.Draft &&
+                       m.Current.Author.Id == UserId &&
+                       m.Current.Author.Name == Username &&
+                       m.Current.Date.Date == DateTime.UtcNow.Date &&
+                       m.Current.Version == 1 &&
+                       m.Current.DecimalPlaces == 6 &&
+                       m.History.First().PublishStatus == PublishStatus.Draft &&
+                       m.History.First().Author.Id == UserId &&
+                       m.History.First().Author.Name == Username &&
+                       m.History.First().Date.Date == DateTime.UtcNow.Date &&
+                       m.History.First().Version == 1 &&
+                       m.History.First().DecimalPlaces == 6
+                   ));
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<List<CalculationIndex>>(
+                        m => m.First().Id == CalculationId &&
+                        m.First().Name == "Test Calc Name" &&
+                        m.First().CalculationSpecificationId == "any-calc-id" &&
+                        m.First().CalculationSpecificationName == "Test Calc Name" &&
+                        m.First().SpecificationId == "any-spec-id" &&
+                        m.First().SpecificationName == "Test Spec Name" &&
+                        m.First().FundingPeriodId == "18/19" &&
+                        m.First().FundingPeriodName == "2018/2019" &&
+                        m.First().AllocationLineId == "test-alloc-id" &&
+                        m.First().AllocationLineName == "test-alloc-name" &&
+                        m.First().PolicySpecificationIds.First() == "policy-id" &&
+                        m.First().PolicySpecificationNames.First() == "policy-name" &&
+                        m.First().FundingStreamId == "funding stream-id" &&
+                        m.First().FundingStreamName == "funding-stream-name"
+                  ));
+        }
+
+        [TestMethod]
+        public async Task CreateCalculation_GivenValidCalculationWithNullFundingStream_AndSavesLogs()
+        {
+            //Arrange
+            Calculation calculation = CreateCalculation();
+            calculation.FundingStream = null;
+
+            IEnumerable<Calculation> calculations = new[]
+            {
+                calculation
+            };
+
+            string json = JsonConvert.SerializeObject(calculation);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            message.UserProperties.Add("user-id", UserId);
+            message.UserProperties.Add("user-name", Username);
+
+            ICalculationsRepository repository = CreateCalculationsRepository();
+            repository
+                .CreateDraftCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.Created);
+
+            repository
+                .GetCalculationsBySpecificationId(Arg.Is("any-spec-id"))
+                .Returns(calculations);
+
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            CalculationService service = CreateCalculationService(calculationsRepository: repository, logger: logger, searchRepository: searchRepository, specificationRepository: specificationRepository);
+
+            //Act
+            await service.CreateCalculation(message);
+
+            //Assert
+            logger
+                .Received(1)
+                .Information($"Calculation with id: {calculation.Id} was succesfully saved to Cosmos Db");
+
+            await
+               repository
+                   .Received(1)
+                   .CreateDraftCalculation(Arg.Is<Calculation>(m =>
+                       m.Id == CalculationId &&
+                       m.Current.PublishStatus == PublishStatus.Draft &&
+                       m.Current.Author.Id == UserId &&
+                       m.Current.Author.Name == Username &&
+                       m.Current.Date.Date == DateTime.UtcNow.Date &&
+                       m.Current.Version == 1 &&
+                       m.Current.DecimalPlaces == 6 &&
+                       m.History.First().PublishStatus == PublishStatus.Draft &&
+                       m.History.First().Author.Id == UserId &&
+                       m.History.First().Author.Name == Username &&
+                       m.History.First().Date.Date == DateTime.UtcNow.Date &&
+                       m.History.First().Version == 1 &&
+                       m.History.First().DecimalPlaces == 6
+                   ));
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<List<CalculationIndex>>(
+                        m => m.First().Id == CalculationId &&
+                        m.First().Name == "Test Calc Name" &&
+                        m.First().CalculationSpecificationId == "any-calc-id" &&
+                        m.First().CalculationSpecificationName == "Test Calc Name" &&
+                        m.First().SpecificationId == "any-spec-id" &&
+                        m.First().SpecificationName == "Test Spec Name" &&
+                        m.First().FundingPeriodId == "18/19" &&
+                        m.First().FundingPeriodName == "2018/2019" &&
+                        m.First().FundingStreamId == string.Empty &&
+                        m.First().FundingStreamName == "No funding stream set" &&
+                        m.First().AllocationLineId == "test-alloc-id" &&
+                        m.First().AllocationLineName == "test-alloc-name" &&
+                        m.First().PolicySpecificationIds.First() == "policy-id" &&
+                        m.First().PolicySpecificationNames.First() == "policy-name"
+                  ));
+        }
+
+    }
+}

@@ -406,8 +406,6 @@ namespace CalculateFunding.Services.Calcs
                 calcIndexes.Add(CreateCalculationIndexItem(calculation, specificationVersionComparison.Current.Name));
             }
 
-            //need to check whats left and replace the allocation line and funding streams,
-
             BuildProject buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId);
 
             if (buildProject == null)
@@ -432,7 +430,6 @@ namespace CalculateFunding.Services.Calcs
                 properties);
         }
 
-
         public async Task UpdateCalculationsForCalculationSpecificationChange(Message message)
         {
             Models.Specs.CalculationVersionComparisonModel calculationVersionComparison = message.GetPayloadAsInstanceOf<Models.Specs.CalculationVersionComparisonModel>();
@@ -444,11 +441,25 @@ namespace CalculateFunding.Services.Calcs
                 throw new InvalidModelException(nameof(Models.Specs.CalculationVersionComparisonModel), new[] { "Null or invalid model provided" });
             }
 
-            // Check for changes in calculation which have been edited - return if not
+            string calculationId = calculationVersionComparison.CalculationId;
+
+            string specificationId = calculationVersionComparison.SpecificationId;
+
+            if (!calculationVersionComparison.HasChanges)
+            {
+                _logger.Information("No changes detected for calculation with id: '{calculationId}' on specification '{specificationId}'", calculationId, specificationId);
+
+                return;
+            }
+
+            Models.Specs.SpecificationSummary specification = await _specsRepository.GetSpecificationSummaryById(specificationId);
+
+            if (specification == null)
+            {
+                throw new Exception($"Specification could not be found for specification id : {specificationId}");
+            }
 
             List<Calculation> calculationsToUpdate = new List<Calculation>();
-
-            // Check for changes in provided calculation - add to list if so
 
             if (calculationVersionComparison.Current.Name != calculationVersionComparison.Previous.Name)
             {
@@ -456,19 +467,45 @@ namespace CalculateFunding.Services.Calcs
                 calculationsToUpdate.AddRange(updatedCalculations);
             }
 
-            foreach (Calculation calculation in calculationsToUpdate)
-            {
-                // Update cosmos
+            Calculation calculation = calculationsToUpdate.FirstOrDefault(m => m.Id == calculationId);
 
-                // Update search
+            if(calculation == null)
+            {
+                calculation = await _calculationsRepository.GetCalculationById(calculationId);
+                
+                if(calculation == null)
+                {
+                    throw new Exception($"Calculation could not be found for calculation id : {calculationId}");
+                }
+
+                calculationsToUpdate.Add(calculation);
             }
+
+            calculation.Description = calculationVersionComparison.Current.Description;
+
+            calculation.IsPublic = calculationVersionComparison.Current.IsPublic;
+
+            calculation.AllocationLine = calculationVersionComparison.Current.AllocationLine;
+
+            if (calculation.CalculationType != calculationVersionComparison.Current.CalculationType)
+            {
+                if (calculationVersionComparison.Current.CalculationType == CalculationType.Number)
+                {
+                    calculation.AllocationLine = null;
+                }
+
+                calculation.CalculationType = calculationVersionComparison.Current.CalculationType;
+            }
+
+            await _calculationsRepository.UpdateCalculations(calculationsToUpdate);
+
+            IEnumerable<CalculationIndex> indexes = calculationsToUpdate.Select(m => CreateCalculationIndexItem(m, specification.Name)).ToArraySafe();
+
+            IEnumerable<IndexError> indexingResults = await _searchRepository.Index(indexes);
         }
 
         public async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationSpecificationChange(Models.Specs.CalculationVersionComparisonModel comparison, Reference user)
         {
-            Guard.ArgumentNotNull(comparison, nameof(comparison));
-            Guard.ArgumentNotNull(user, nameof(user));
-
             List<Calculation> updatedCalculations = new List<Calculation>();
 
             if (comparison.Current.Name != comparison.Previous.Name)
@@ -489,7 +526,7 @@ namespace CalculateFunding.Services.Calcs
 
                         UpdateCalculationResult updateCalculationResult = await UpdateCalculation(calculation, calculationVersion, user);
 
-                        updatedCalculations.Add(calculation);
+                        updatedCalculations.Add(updateCalculationResult.Calculation);
                     }
                 }
             }

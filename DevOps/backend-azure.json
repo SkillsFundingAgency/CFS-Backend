@@ -223,17 +223,105 @@
             "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
             "enablePartitioning": false,
             "enableExpress": false,
-            "path" : "edit-specification"
+            "path": "edit-specification"
+          },
+          "resources": [
+            {
+              "apiVersion": "2017-04-01",
+              "name": "calculation-update",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "edit-specification"
+              ],
+              "properties": {
+                "lockDuration": "PT5M",
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P14D",
+                "deadLetteringOnMessageExpiration": false,
+                "deadLetteringOnFilterEvaluationExceptions": true,
+                "maxDeliveryCount": 10,
+                "status": "Active",
+                "enableBatchedOperations": true
+              },
+              "resources": []
             },
-            "resources": [
-              {
-                "apiVersion": "2017-04-01",
-                "name": "calculation-update",
-                "type": "Subscriptions",
-                "dependsOn": [
-                  "edit-specification"
-                ],
-                "properties": {
+            {
+              "apiVersion": "2017-04-01",
+              "name": "test-scenario-update",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "edit-specification"
+              ],
+              "properties": {
+                "lockDuration": "PT5M",
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P14D",
+                "deadLetteringOnMessageExpiration": false,
+                "deadLetteringOnFilterEvaluationExceptions": true,
+                "maxDeliveryCount": 10,
+                "status": "Active",
+                "enableBatchedOperations": true
+              },
+              "resources": []
+            },
+            {
+              "apiVersion": "2017-04-01",
+              "name": "test-scenario-result-update",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "edit-specification"
+              ],
+              "properties": {
+                "lockDuration": "PT5M",
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P14D",
+                "deadLetteringOnMessageExpiration": false,
+                "deadLetteringOnFilterEvaluationExceptions": true,
+                "maxDeliveryCount": 10,
+                "status": "Active",
+                "enableBatchedOperations": true
+              },
+              "resources": []
+            }
+          ],
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ]
+        },
+        {
+          "apiVersion": "2017-04-01",
+          "name": "[variables('serviceBusNamespaceName')]",
+          "type": "Microsoft.ServiceBus/namespaces",
+          "location": "[resourceGroup().location]",
+          "properties": {},
+          "resources": [
+            {
+              "type": "topics",
+              "name": "edit-calculation",
+              "apiVersion": "2017-04-01",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "defaultMessageTimeToLive": "P14D",
+                "maxSizeInMegabytes": 1024,
+                "requiresDuplicateDetection": false,
+                "duplicateDetectionHistoryTimeWindow": "PT10M",
+                "enableBatchedOperations": true,
+                "status": "Active",
+                "supportOrdering": true,
+                "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+                "enablePartitioning": false,
+                "enableExpress": false,
+                "path": "edit-calculation"
+              },
+              "resources": [
+                {
+                  "apiVersion": "2017-04-01",
+                  "name": "calcs-calculation-update",
+                  "type": "Subscriptions",
+                  "dependsOn": [
+                    "edit-calculation"
+                  ],
+                  "properties": {
                     "lockDuration": "PT5M",
                     "requiresSession": false,
                     "defaultMessageTimeToLive": "P14D",
@@ -242,37 +330,18 @@
                     "maxDeliveryCount": 10,
                     "status": "Active",
                     "enableBatchedOperations": true
+                  },
+                  "resources": []
                 },
-                "resources": []
-              },
-              {
-                "apiVersion": "2017-04-01",
-                "name": "test-scenario-update",
-                "type": "Subscriptions",
-                "dependsOn": [
-                  "edit-specification"
-                ],
-                "properties": {
-                  "lockDuration": "PT5M",
-                  "requiresSession": false,
-                  "defaultMessageTimeToLive": "P14D",
-                  "deadLetteringOnMessageExpiration": false,
-                  "deadLetteringOnFilterEvaluationExceptions": true,
-                  "maxDeliveryCount": 10,
-                  "status": "Active",
-                  "enableBatchedOperations": true
-                },
-                "resources": []
-              },
-              {
-                "apiVersion": "2017-04-01",
-                "name": "test-scenario-result-update",
-                "type": "Subscriptions",
-                "dependsOn": [
-                  "edit-specification"
-                ],
-                "properties": {
-                  "lockDuration": "PT5M",
+                {
+                  "apiVersion": "2017-04-01",
+                  "name": "test-scenario-update",
+                  "type": "Subscriptions",
+                  "dependsOn": [
+                    "edit-calculation"
+                  ],
+                  "properties": {
+                    "lockDuration": "PT5M",
                     "requiresSession": false,
                     "defaultMessageTimeToLive": "P14D",
                     "deadLetteringOnMessageExpiration": false,
@@ -280,957 +349,956 @@
                     "maxDeliveryCount": 10,
                     "status": "Active",
                     "enableBatchedOperations": true
+                  },
+                  "resources": []
+                }
+              ],
+              "dependsOn": [
+                "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+              ]
+            },
+            {
+              "type": "queues",
+              "name": "calc-events-instruct-generate-allocations",
+              "apiVersion": "2017-04-01",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "lockDuration": "PT5M",
+                "maxSizeInMegabytes": 1024,
+                "requiresDuplicateDetection": false,
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P1D",
+                "deadLetteringOnMessageExpiration": false,
+                "enableBatchedOperations": true,
+                "duplicateDetectionHistoryTimeWindow": "PT10M",
+                "maxDeliveryCount": 5,
+                "enablePartitioning": true,
+                "enableExpress": false
+              },
+              "dependsOn": [
+                "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+              ]
+            },
+            {
+              "type": "queues",
+              "name": "calc-events-generate-allocations-results",
+              "apiVersion": "2017-04-01",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "lockDuration": "PT5M",
+                "maxSizeInMegabytes": 2048,
+                "requiresDuplicateDetection": false,
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P1D",
+                "deadLetteringOnMessageExpiration": false,
+                "enableBatchedOperations": true,
+                "duplicateDetectionHistoryTimeWindow": "PT10M",
+                "maxDeliveryCount": 5,
+                "enablePartitioning": true,
+                "enableExpress": false
+              },
+              "dependsOn": [
+                "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+              ]
+            },
+            {
+              "type": "queues",
+              "name": "test-events-execute-tests",
+              "apiVersion": "2017-04-01",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "lockDuration": "PT5M",
+                "maxSizeInMegabytes": 5120,
+                "requiresDuplicateDetection": false,
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P1D",
+                "deadLetteringOnMessageExpiration": false,
+                "enableBatchedOperations": true,
+                "duplicateDetectionHistoryTimeWindow": "PT10M",
+                "maxDeliveryCount": 5,
+                "enablePartitioning": true,
+                "enableExpress": false
+              },
+              "dependsOn": [
+                "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+              ]
+            },
+            {
+              "type": "queues",
+              "name": "spec-events-add-definition-relationship",
+              "apiVersion": "2017-04-01",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "lockDuration": "PT5M",
+                "maxSizeInMegabytes": 1024,
+                "requiresDuplicateDetection": false,
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P1D",
+                "deadLetteringOnMessageExpiration": false,
+                "enableBatchedOperations": true,
+                "duplicateDetectionHistoryTimeWindow": "PT10M",
+                "maxDeliveryCount": 5,
+                "enablePartitioning": true,
+                "enableExpress": false
+              },
+              "dependsOn": [
+                "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+              ]
+            },
+            {
+              "type": "queues",
+              "name": "dataset-events-datasets",
+              "apiVersion": "2017-04-01",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "lockDuration": "PT5M",
+                "maxSizeInMegabytes": 2048,
+                "requiresDuplicateDetection": false,
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P1D",
+                "deadLetteringOnMessageExpiration": false,
+                "enableBatchedOperations": true,
+                "duplicateDetectionHistoryTimeWindow": "PT10M",
+                "maxDeliveryCount": 5,
+                "enablePartitioning": true,
+                "enableExpress": false
+              },
+              "dependsOn": [
+                "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+              ]
+            },
+            {
+              "type": "queues",
+              "name": "calc-events-create-draft",
+              "apiVersion": "2017-04-01",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "lockDuration": "PT5M",
+                "maxSizeInMegabytes": 1024,
+                "requiresDuplicateDetection": false,
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P1D",
+                "deadLetteringOnMessageExpiration": false,
+                "enableBatchedOperations": true,
+                "duplicateDetectionHistoryTimeWindow": "PT10M",
+                "maxDeliveryCount": 10,
+                "enablePartitioning": true,
+                "enableExpress": false
+              },
+              "dependsOn": [
+                "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+              ]
+            },
+            {
+              "type": "queues",
+              "name": "calc-events-add-relationship-to-buildproject",
+              "apiVersion": "2017-04-01",
+              "location": "[resourceGroup().location]",
+              "properties": {
+                "lockDuration": "PT5M",
+                "maxSizeInMegabytes": 2048,
+                "requiresDuplicateDetection": false,
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P1D",
+                "deadLetteringOnMessageExpiration": false,
+                "enableBatchedOperations": true,
+                "duplicateDetectionHistoryTimeWindow": "PT10M",
+                "maxDeliveryCount": 10,
+                "enablePartitioning": true,
+                "enableExpress": false
+              },
+              "dependsOn": [
+                "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+              ]
+            }
+          ]
+
+        },
+
+
+        {
+          "apiVersion": "2016-03-01",
+          "name": "[variables('hostingPlanName')]",
+          "type": "Microsoft.Web/serverfarms",
+          "location": "[resourceGroup().location]",
+          "tags": {
+            "displayName": "HostingPlan"
+          },
+          "sku": {
+            "name": "[parameters('skuName')]",
+            "capacity": "[parameters('skuCapacity')]"
+          },
+          "properties": {
+            "name": "[variables('hostingPlanName')]"
+          }
+        },
+        {
+          "apiVersion": "2016-03-01",
+          "name": "[variables('engineHostingPlanName')]",
+          "type": "Microsoft.Web/serverfarms",
+          "location": "[resourceGroup().location]",
+          "tags": {
+            "displayName": "EngineHostingHostingPlan"
+          },
+          "sku": {
+            "name": "[parameters('skuName')]",
+            "capacity": "[parameters('skuCapacity')]"
+          },
+          "properties": {
+            "name": "[variables('engineHostingPlanName')]"
+          }
+        },
+        {
+          "apiVersion": "2016-08-01",
+          "type": "Microsoft.Web/sites",
+          "name": "[variables('datasetsFunctionAppName')]",
+          "location": "[resourceGroup().location]",
+          "kind": "functionapp",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+            "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+            "[variables('applicationInsightsName')]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
+            "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
+          ],
+          "properties": {
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+            "siteConfig": {
+              "alwaysOn": true,
+              "appSettings": [
+                {
+                  "name": "AzureWebJobsDashboard",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
                 },
-                "resources": []
-              }
-            ]
-          ,
+                {
+                  "name": "AzureWebJobsStorage",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "WEBSITE_CONTENTSHARE",
+                  "value": "[toLower(variables('datasetsFunctionAppName'))]"
+                },
+                {
+                  "name": "FUNCTIONS_EXTENSION_VERSION",
+                  "value": "beta"
+                },
+                {
+                  "name": "ROUTING_EXTENSION_VERSION",
+                  "value": "~.2"
+                },
+                {
+                  "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                  "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+                },
+                {
+                  "name": "ApplicationInsightsOptions:InstrumentationKey",
+                  "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+                },
+                {
+                  "name": "RedisSettings:CacheConnection",
+                  "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+                },
+                {
+                  "name": "CosmosDbSettings:ConnectionString",
+                  "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+                },
+                {
+                  "name": "CosmosDbSettings:DatabaseName",
+                  "value": "calculate-funding"
+                },
+                {
+                  "name": "CosmosDbSettings:CollectionName",
+                  "value": "datasets"
+                },
+                {
+                  "name": "ApiOptions:ApiKey",
+                  "value": "[parameters('ApiKey')]"
+                },
+                {
+                  "name": "ApiOptions:ApiEndpoint",
+                  "value": "[parameters('ApiEndpoint')]"
+                },
+                {
+                  "name": "ServiceBusSettings:ConnectionString",
+                  "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+                },
+                {
+                  "name": "SearchServiceName",
+                  "value": "[variables('azureSearchName')]"
+                },
+                {
+                  "name": "SearchServiceKey",
+                  "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
+                },
+                {
+                  "name": "DatasetStorage",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "AzureStorageSettings:ConnectionString",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+                }
+              ]
+            }
+          }
+        },
+
+        {
+          "apiVersion": "2016-08-01",
+          "type": "Microsoft.Web/sites",
+          "name": "[variables('calcsFunctionAppName')]",
+          "location": "[resourceGroup().location]",
+          "kind": "functionapp",
           "dependsOn": [
-            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
-          ]
+            "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+            "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+            "[variables('applicationInsightsName')]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
+            "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
+
+          ],
+          "properties": {
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+            "siteConfig": {
+              "alwaysOn": true,
+              "appSettings": [
+                {
+                  "name": "AzureWebJobsDashboard",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "AzureWebJobsStorage",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "WEBSITE_CONTENTSHARE",
+                  "value": "[toLower(variables('calcsFunctionAppName'))]"
+                },
+                {
+                  "name": "FUNCTIONS_EXTENSION_VERSION",
+                  "value": "2.0.11651-alpha"
+                },
+                {
+                  "name": "ROUTING_EXTENSION_VERSION",
+                  "value": "~.2"
+                },
+                {
+                  "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                  "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+                },
+                {
+                  "name": "ApplicationInsightsOptions:InstrumentationKey",
+                  "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+                },
+                {
+                  "name": "RedisSettings:CacheConnection",
+                  "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+                },
+                {
+                  "name": "CosmosDbSettings:ConnectionString",
+                  "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+                },
+                {
+                  "name": "CosmosDbSettings:DatabaseName",
+                  "value": "calculate-funding"
+                },
+                {
+                  "name": "CosmosDbSettings:CollectionName",
+                  "value": "calcs"
+                },
+                {
+                  "name": "ApiOptions:ApiKey",
+                  "value": "[parameters('ApiKey')]"
+                },
+                {
+                  "name": "ApiOptions:ApiEndpoint",
+                  "value": "[parameters('ApiEndpoint')]"
+                },
+                {
+                  "name": "ServiceBusSettings:ConnectionString",
+                  "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+                },
+                {
+                  "name": "ServiceBusConnectionString",
+                  "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
+                },
+                {
+                  "name": "SearchServiceName",
+                  "value": "[variables('azureSearchName')]"
+                },
+                {
+                  "name": "SearchServiceKey",
+                  "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
+                },
+                {
+                  "name": "ProvidersStorage",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('calcsStorageAccountName'), ';AccountKey=', listKeys(variables('calcsStorageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "AzureStorageSettings:ConnectionString",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+                }
+              ]
+            }
+          }
+        },
+
+        {
+          "apiVersion": "2016-08-01",
+          "type": "Microsoft.Web/sites",
+          "name": "[variables('calcEngineFunctionAppName')]",
+          "location": "[resourceGroup().location]",
+          "kind": "functionapp",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+            "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+            "[variables('applicationInsightsName')]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
+            "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
+
+          ],
+          "properties": {
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
+            "siteConfig": {
+              "alwaysOn": true,
+              "use32BitWorkerProcess": false,
+              "appSettings": [
+                {
+                  "name": "AzureWebJobsDashboard",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "AzureWebJobsStorage",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "WEBSITE_CONTENTSHARE",
+                  "value": "[toLower(variables('calcEngineFunctionAppName'))]"
+                },
+                {
+                  "name": "FUNCTIONS_EXTENSION_VERSION",
+                  "value": "beta"
+                },
+                {
+                  "name": "ROUTING_EXTENSION_VERSION",
+                  "value": "~.2"
+                },
+                {
+                  "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                  "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+                },
+                {
+                  "name": "ApplicationInsightsOptions:InstrumentationKey",
+                  "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+                },
+                {
+                  "name": "RedisSettings:CacheConnection",
+                  "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+                },
+                {
+                  "name": "ServiceBusSettings:ConnectionString",
+                  "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+                },
+                {
+                  "name": "CosmosDbSettings:ConnectionString",
+                  "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+                },
+                {
+                  "name": "CosmosDbSettings:DatabaseName",
+                  "value": "calculate-funding"
+                },
+                {
+                  "name": "CosmosDbSettings:CollectionName",
+                  "value": "providersources"
+                },
+                {
+                  "name": "SearchServiceName",
+                  "value": "[variables('azureSearchName')]"
+                },
+                {
+                  "name": "SearchServiceKey",
+                  "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
+                },
+                {
+                  "name": "ApiOptions:ApiKey",
+                  "value": "[parameters('ApiKey')]"
+                },
+                {
+                  "name": "ApiOptions:ApiEndpoint",
+                  "value": "[parameters('ApiEndpoint')]"
+                }
+              ]
+            }
+          }
+        },
+
+        {
+          "apiVersion": "2016-08-01",
+          "type": "Microsoft.Web/sites",
+          "name": "[variables('testEngineFunctionAppName')]",
+          "location": "[resourceGroup().location]",
+          "kind": "functionapp",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+            "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+            "[variables('applicationInsightsName')]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
+            "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
+
+          ],
+          "properties": {
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
+            "siteConfig": {
+              "alwaysOn": true,
+              "use32BitWorkerProcess": false,
+              "appSettings": [
+                {
+                  "name": "AzureWebJobsDashboard",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "AzureWebJobsStorage",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "WEBSITE_CONTENTSHARE",
+                  "value": "[toLower(variables('testEngineFunctionAppName'))]"
+                },
+                {
+                  "name": "FUNCTIONS_EXTENSION_VERSION",
+                  "value": "beta"
+                },
+                {
+                  "name": "ROUTING_EXTENSION_VERSION",
+                  "value": "~.2"
+                },
+                {
+                  "name": "ApiOptions:ApiKey",
+                  "value": "[parameters('ApiKey')]"
+                },
+                {
+                  "name": "ApiOptions:ApiEndpoint",
+                  "value": "[parameters('ApiEndpoint')]"
+                },
+                {
+                  "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                  "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+                },
+                {
+                  "name": "ApplicationInsightsOptions:InstrumentationKey",
+                  "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+                },
+                {
+                  "name": "RedisSettings:CacheConnection",
+                  "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+                },
+                {
+                  "name": "ServiceBusSettings:ConnectionString",
+                  "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+                },
+                {
+                  "name": "CosmosDbSettings:ConnectionString",
+                  "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+                },
+                {
+                  "name": "CosmosDbSettings:DatabaseName",
+                  "value": "calculate-funding"
+                },
+                {
+                  "name": "CosmosDbSettings:CollectionName",
+                  "value": "testresults"
+                },
+                {
+                  "name": "SearchServiceName",
+                  "value": "[variables('azureSearchName')]"
+                },
+                {
+                  "name": "SearchServiceKey",
+                  "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
+                }
+              ]
+            }
+          }
         },
         {
-          "type": "queues",
-          "name": "calc-events-instruct-generate-allocations",
-          "apiVersion": "2017-04-01",
+          "apiVersion": "2016-08-01",
+          "type": "Microsoft.Web/sites",
+          "name": "[variables('resultsFunctionAppName')]",
           "location": "[resourceGroup().location]",
-          "properties": {
-            "lockDuration": "PT5M",
-            "maxSizeInMegabytes": 1024,
-            "requiresDuplicateDetection": false,
-            "requiresSession": false,
-            "defaultMessageTimeToLive": "P1D",
-            "deadLetteringOnMessageExpiration": false,
-            "enableBatchedOperations": true,
-            "duplicateDetectionHistoryTimeWindow": "PT10M",
-            "maxDeliveryCount": 5,
-            "enablePartitioning": true,
-            "enableExpress": false
-          },
+          "kind": "functionapp",
           "dependsOn": [
-            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
-          ]
+            "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+            "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+            "[variables('applicationInsightsName')]",
+            "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
+          ],
+          "properties": {
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+            "siteConfig": {
+              "alwaysOn": true,
+              "appSettings": [
+                {
+                  "name": "AzureWebJobsDashboard",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "AzureWebJobsStorage",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "WEBSITE_CONTENTSHARE",
+                  "value": "[toLower(variables('resultsFunctionAppName'))]"
+                },
+                {
+                  "name": "FUNCTIONS_EXTENSION_VERSION",
+                  "value": "beta"
+                },
+                {
+                  "name": "ROUTING_EXTENSION_VERSION",
+                  "value": "~.2"
+                },
+                {
+                  "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                  "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+                },
+                {
+                  "name": "ApplicationInsightsOptions:InstrumentationKey",
+                  "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+                },
+                {
+                  "name": "RedisSettings:CacheConnection",
+                  "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+                },
+                {
+                  "name": "ServiceBusSettings:ConnectionString",
+                  "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+                },
+                {
+                  "name": "CosmosDbSettings:ConnectionString",
+                  "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+                },
+                {
+                  "name": "CosmosDbSettings:DatabaseName",
+                  "value": "calculate-funding"
+                },
+                {
+                  "name": "CosmosDbSettings:CollectionName",
+                  "value": "providersources"
+                },
+                {
+                  "name": "ApiOptions:ApiKey",
+                  "value": "[parameters('ApiKey')]"
+                },
+                {
+                  "name": "ApiOptions:ApiEndpoint",
+                  "value": "[parameters('ApiEndpoint')]"
+                },
+                {
+                  "name": "SearchServiceName",
+                  "value": "[variables('azureSearchName')]"
+                },
+                {
+                  "name": "SearchServiceKey",
+                  "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
+                },
+                {
+                  "name": "AzureStorageSettings:ConnectionString",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+                }
+              ]
+            }
+          }
         },
+
+
         {
-          "type": "queues",
-          "name": "calc-events-generate-allocations-results",
-          "apiVersion": "2017-04-01",
+          "apiVersion": "2016-08-01",
+          "type": "Microsoft.Web/sites",
+          "name": "[variables('specsFunctionAppName')]",
           "location": "[resourceGroup().location]",
-          "properties": {
-            "lockDuration": "PT5M",
-            "maxSizeInMegabytes": 2048,
-            "requiresDuplicateDetection": false,
-            "requiresSession": false,
-            "defaultMessageTimeToLive": "P1D",
-            "deadLetteringOnMessageExpiration": false,
-            "enableBatchedOperations": true,
-            "duplicateDetectionHistoryTimeWindow": "PT10M",
-            "maxDeliveryCount": 5,
-            "enablePartitioning": true,
-            "enableExpress": false
-          },
+          "kind": "functionapp",
           "dependsOn": [
-            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
-          ]
+            "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+            "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+            "[variables('applicationInsightsName')]",
+            "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
+          ],
+          "properties": {
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+            "siteConfig": {
+              "alwaysOn": true,
+              "appSettings": [
+                {
+                  "name": "AzureWebJobsDashboard",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "AzureWebJobsStorage",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "WEBSITE_CONTENTSHARE",
+                  "value": "[toLower(variables('specsFunctionAppName'))]"
+                },
+                {
+                  "name": "FUNCTIONS_EXTENSION_VERSION",
+                  "value": "beta"
+                },
+                {
+                  "name": "ROUTING_EXTENSION_VERSION",
+                  "value": "~.2"
+                },
+                {
+                  "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                  "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+                },
+                {
+                  "name": "ApplicationInsightsOptions:InstrumentationKey",
+                  "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+                },
+                {
+                  "name": "RedisSettings:CacheConnection",
+                  "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+                },
+                {
+                  "name": "ServiceBusSettings:ConnectionString",
+                  "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+                },
+                {
+                  "name": "CosmosDbSettings:ConnectionString",
+                  "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+                },
+                {
+                  "name": "CosmosDbSettings:DatabaseName",
+                  "value": "calculate-funding"
+                },
+                {
+                  "name": "CosmosDbSettings:CollectionName",
+                  "value": "specs"
+                },
+                {
+                  "name": "ApiOptions:ApiKey",
+                  "value": "[parameters('ApiKey')]"
+                },
+                {
+                  "name": "ApiOptions:ApiEndpoint",
+                  "value": "[parameters('ApiEndpoint')]"
+                },
+                {
+                  "name": "SearchServiceName",
+                  "value": "[variables('azureSearchName')]"
+                },
+                {
+                  "name": "SearchServiceKey",
+                  "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
+                },
+                {
+                  "name": "AzureStorageSettings:ConnectionString",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+                }
+
+              ]
+            }
+          }
         },
+
+
         {
-          "type": "queues",
-          "name": "test-events-execute-tests",
-          "apiVersion": "2017-04-01",
+          "apiVersion": "2016-08-01",
+          "type": "Microsoft.Web/sites",
+          "name": "[variables('environmentFunctionAppName')]",
           "location": "[resourceGroup().location]",
-          "properties": {
-            "lockDuration": "PT5M",
-            "maxSizeInMegabytes": 5120,
-            "requiresDuplicateDetection": false,
-            "requiresSession": false,
-            "defaultMessageTimeToLive": "P1D",
-            "deadLetteringOnMessageExpiration": false,
-            "enableBatchedOperations": true,
-            "duplicateDetectionHistoryTimeWindow": "PT10M",
-            "maxDeliveryCount": 5,
-            "enablePartitioning": true,
-            "enableExpress": false
-          },
+          "kind": "functionapp",
           "dependsOn": [
-            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
-          ]
+            "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+            "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+            "[variables('applicationInsightsName')]",
+            "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
+          ],
+          "properties": {
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+            "siteConfig": {
+              "alwaysOn": true,
+              "appSettings": [
+                {
+                  "name": "AzureWebJobsDashboard",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "AzureWebJobsStorage",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "WEBSITE_CONTENTSHARE",
+                  "value": "[toLower(variables('environmentFunctionAppName'))]"
+                },
+                {
+                  "name": "FUNCTIONS_EXTENSION_VERSION",
+                  "value": "beta"
+                },
+                {
+                  "name": "ROUTING_EXTENSION_VERSION",
+                  "value": "~.2"
+                },
+                {
+                  "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                  "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+                },
+                {
+                  "name": "ApplicationInsightsOptions:InstrumentationKey",
+                  "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+                },
+                {
+                  "name": "CosmosDbSettings:ConnectionString",
+                  "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+                },
+                {
+                  "name": "AzureStorageSettings:ConnectionString",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "RedisSettings:CacheConnection",
+                  "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+                },
+                {
+                  "name": "ServiceBusSettings:ConnectionString",
+                  "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+                }
+              ]
+            }
+          }
         },
+
         {
-          "type": "queues",
-          "name": "spec-events-add-definition-relationship",
-          "apiVersion": "2017-04-01",
+          "apiVersion": "2016-08-01",
+          "type": "Microsoft.Web/sites",
+          "name": "[variables('scenariosFunctionAppName')]",
           "location": "[resourceGroup().location]",
-          "properties": {
-            "lockDuration": "PT5M",
-            "maxSizeInMegabytes": 1024,
-            "requiresDuplicateDetection": false,
-            "requiresSession": false,
-            "defaultMessageTimeToLive": "P1D",
-            "deadLetteringOnMessageExpiration": false,
-            "enableBatchedOperations": true,
-            "duplicateDetectionHistoryTimeWindow": "PT10M",
-            "maxDeliveryCount": 5,
-            "enablePartitioning": true,
-            "enableExpress": false
-          },
+          "kind": "functionapp",
           "dependsOn": [
-            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
-          ]
-        },
-        {
-          "type": "queues",
-          "name": "dataset-events-datasets",
-          "apiVersion": "2017-04-01",
-          "location": "[resourceGroup().location]",
+            "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+            "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+            "[variables('applicationInsightsName')]",
+            "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
+          ],
           "properties": {
-            "lockDuration": "PT5M",
-            "maxSizeInMegabytes": 2048,
-            "requiresDuplicateDetection": false,
-            "requiresSession": false,
-            "defaultMessageTimeToLive": "P1D",
-            "deadLetteringOnMessageExpiration": false,
-            "enableBatchedOperations": true,
-            "duplicateDetectionHistoryTimeWindow": "PT10M",
-            "maxDeliveryCount": 5,
-            "enablePartitioning": true,
-            "enableExpress": false
-          },
-          "dependsOn": [
-            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
-          ]
-        },
-        {
-          "type": "queues",
-          "name": "calc-events-create-draft",
-          "apiVersion": "2017-04-01",
-          "location": "[resourceGroup().location]",
-          "properties": {
-            "lockDuration": "PT5M",
-            "maxSizeInMegabytes": 1024,
-            "requiresDuplicateDetection": false,
-            "requiresSession": false,
-            "defaultMessageTimeToLive": "P1D",
-            "deadLetteringOnMessageExpiration": false,
-            "enableBatchedOperations": true,
-            "duplicateDetectionHistoryTimeWindow": "PT10M",
-            "maxDeliveryCount": 10,
-            "enablePartitioning": true,
-            "enableExpress": false
-          },
-          "dependsOn": [
-            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
-          ]
-        },
-        {
-          "type": "queues",
-          "name": "calc-events-add-relationship-to-buildproject",
-          "apiVersion": "2017-04-01",
-          "location": "[resourceGroup().location]",
-          "properties": {
-            "lockDuration": "PT5M",
-            "maxSizeInMegabytes": 2048,
-            "requiresDuplicateDetection": false,
-            "requiresSession": false,
-            "defaultMessageTimeToLive": "P1D",
-            "deadLetteringOnMessageExpiration": false,
-            "enableBatchedOperations": true,
-            "duplicateDetectionHistoryTimeWindow": "PT10M",
-            "maxDeliveryCount": 10,
-            "enablePartitioning": true,
-            "enableExpress": false
-          },
-          "dependsOn": [
-            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
-          ]
-        }
-      ]
-
-    },
-
-
-    {
-      "apiVersion": "2016-03-01",
-      "name": "[variables('hostingPlanName')]",
-      "type": "Microsoft.Web/serverfarms",
-      "location": "[resourceGroup().location]",
-      "tags": {
-        "displayName": "HostingPlan"
-      },
-      "sku": {
-        "name": "[parameters('skuName')]",
-        "capacity": "[parameters('skuCapacity')]"
-      },
-      "properties": {
-        "name": "[variables('hostingPlanName')]"
-      }
-    },
-    {
-      "apiVersion": "2016-03-01",
-      "name": "[variables('engineHostingPlanName')]",
-      "type": "Microsoft.Web/serverfarms",
-      "location": "[resourceGroup().location]",
-      "tags": {
-        "displayName": "EngineHostingHostingPlan"
-      },
-      "sku": {
-        "name": "[parameters('skuName')]",
-        "capacity": "[parameters('skuCapacity')]"
-      },
-      "properties": {
-        "name": "[variables('engineHostingPlanName')]"
-      }
-    },
-    {
-      "apiVersion": "2016-08-01",
-      "type": "Microsoft.Web/sites",
-      "name": "[variables('datasetsFunctionAppName')]",
-      "location": "[resourceGroup().location]",
-      "kind": "functionapp",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
-        "[variables('applicationInsightsName')]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
-        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
-      ],
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-        "siteConfig": {
-          "alwaysOn": true,
-          "appSettings": [
-            {
-              "name": "AzureWebJobsDashboard",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "AzureWebJobsStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTSHARE",
-              "value": "[toLower(variables('datasetsFunctionAppName'))]"
-            },
-            {
-              "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "beta"
-            },
-            {
-              "name": "ROUTING_EXTENSION_VERSION",
-              "value": "~.2"
-            },
-            {
-              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "ApplicationInsightsOptions:InstrumentationKey",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "RedisSettings:CacheConnection",
-              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
-            },
-            {
-              "name": "CosmosDbSettings:ConnectionString",
-              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
-            },
-            {
-              "name": "CosmosDbSettings:DatabaseName",
-              "value": "calculate-funding"
-            },
-            {
-              "name": "CosmosDbSettings:CollectionName",
-              "value": "datasets"
-            },
-            {
-              "name": "ApiOptions:ApiKey",
-              "value": "[parameters('ApiKey')]"
-            },
-            {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
-            },
-            {
-              "name": "ServiceBusSettings:ConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
-            },
-            {
-              "name": "SearchServiceName",
-              "value": "[variables('azureSearchName')]"
-            },
-            {
-              "name": "SearchServiceKey",
-              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
-            },
-            {
-              "name": "DatasetStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "AzureStorageSettings:ConnectionString",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+            "siteConfig": {
+              "alwaysOn": true,
+              "appSettings": [
+                {
+                  "name": "AzureWebJobsDashboard",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "AzureWebJobsStorage",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+                },
+                {
+                  "name": "WEBSITE_CONTENTSHARE",
+                  "value": "[toLower(variables('scenariosFunctionAppName'))]"
+                },
+                {
+                  "name": "FUNCTIONS_EXTENSION_VERSION",
+                  "value": "beta"
+                },
+                {
+                  "name": "ROUTING_EXTENSION_VERSION",
+                  "value": "~.2"
+                },
+                {
+                  "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                  "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+                },
+                {
+                  "name": "ApplicationInsightsOptions:InstrumentationKey",
+                  "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+                },
+                {
+                  "name": "RedisSettings:CacheConnection",
+                  "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+                },
+                {
+                  "name": "ServiceBusSettings:ConnectionString",
+                  "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+                },
+                {
+                  "name": "CosmosDbSettings:ConnectionString",
+                  "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+                },
+                {
+                  "name": "ApiOptions:ApiKey",
+                  "value": "[parameters('ApiKey')]"
+                },
+                {
+                  "name": "ApiOptions:ApiEndpoint",
+                  "value": "[parameters('ApiEndpoint')]"
+                },
+                {
+                  "name": "CosmosDbSettings:DatabaseName",
+                  "value": "calculate-funding"
+                },
+                {
+                  "name": "CosmosDbSettings:CollectionName",
+                  "value": "tests"
+                },
+                {
+                  "name": "SearchServiceName",
+                  "value": "[variables('azureSearchName')]"
+                },
+                {
+                  "name": "SearchServiceKey",
+                  "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
+                },
+                {
+                  "name": "AzureStorageSettings:ConnectionString",
+                  "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+                }
+              ]
             }
-          ]
+          }
         }
-      }
-    },
-
-    {
-      "apiVersion": "2016-08-01",
-      "type": "Microsoft.Web/sites",
-      "name": "[variables('calcsFunctionAppName')]",
-      "location": "[resourceGroup().location]",
-      "kind": "functionapp",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
-        "[variables('applicationInsightsName')]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
-        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
-
       ],
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-        "siteConfig": {
-          "alwaysOn": true,
-          "appSettings": [
-            {
-              "name": "AzureWebJobsDashboard",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "AzureWebJobsStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTSHARE",
-              "value": "[toLower(variables('calcsFunctionAppName'))]"
-            },
-            {
-              "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "2.0.11651-alpha"
-            },
-            {
-              "name": "ROUTING_EXTENSION_VERSION",
-              "value": "~.2"
-            },
-            {
-              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "ApplicationInsightsOptions:InstrumentationKey",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "RedisSettings:CacheConnection",
-              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
-            },
-            {
-              "name": "CosmosDbSettings:ConnectionString",
-              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
-            },
-            {
-              "name": "CosmosDbSettings:DatabaseName",
-              "value": "calculate-funding"
-            },
-            {
-              "name": "CosmosDbSettings:CollectionName",
-              "value": "calcs"
-            },
-            {
-              "name": "ApiOptions:ApiKey",
-              "value": "[parameters('ApiKey')]"
-            },
-            {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
-            },
-            {
-              "name": "ServiceBusSettings:ConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
-            },
-            {
-              "name": "ServiceBusConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
-            },
-            {
-              "name": "SearchServiceName",
-              "value": "[variables('azureSearchName')]"
-            },
-            {
-              "name": "SearchServiceKey",
-              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
-            },
-            {
-              "name": "ProvidersStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('calcsStorageAccountName'), ';AccountKey=', listKeys(variables('calcsStorageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "AzureStorageSettings:ConnectionString",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
-            }
-          ]
-        }
-      }
-    },
-
-    {
-      "apiVersion": "2016-08-01",
-      "type": "Microsoft.Web/sites",
-      "name": "[variables('calcEngineFunctionAppName')]",
-      "location": "[resourceGroup().location]",
-      "kind": "functionapp",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
-        "[variables('applicationInsightsName')]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
-        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
-
-      ],
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
-        "siteConfig": {
-          "alwaysOn": true,
-          "use32BitWorkerProcess" : false,
-          "appSettings": [
-            {
-              "name": "AzureWebJobsDashboard",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "AzureWebJobsStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTSHARE",
-              "value": "[toLower(variables('calcEngineFunctionAppName'))]"
-            },
-            {
-              "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "beta"
-            },
-            {
-              "name": "ROUTING_EXTENSION_VERSION",
-              "value": "~.2"
-            },
-            {
-              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "ApplicationInsightsOptions:InstrumentationKey",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "RedisSettings:CacheConnection",
-              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
-            },
-            {
-              "name": "ServiceBusSettings:ConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
-            },
-            {
-              "name": "CosmosDbSettings:ConnectionString",
-              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
-            },
-            {
-              "name": "CosmosDbSettings:DatabaseName",
-              "value": "calculate-funding"
-            },
-            {
-              "name": "CosmosDbSettings:CollectionName",
-              "value": "providersources"
-            },
-            {
-              "name": "SearchServiceName",
-              "value": "[variables('azureSearchName')]"
-            },
-            {
-              "name": "SearchServiceKey",
-              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
-            },
-            {
-              "name": "ApiOptions:ApiKey",
-              "value": "[parameters('ApiKey')]"
-            },
-            {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
-            }
-          ]
-        }
-      }
-    },
-
-    {
-      "apiVersion": "2016-08-01",
-      "type": "Microsoft.Web/sites",
-      "name": "[variables('testEngineFunctionAppName')]",
-      "location": "[resourceGroup().location]",
-      "kind": "functionapp",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
-        "[variables('applicationInsightsName')]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
-        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
-
-      ],
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
-        "siteConfig": {
-          "alwaysOn": true,
-          "use32BitWorkerProcess" : false,
-          "appSettings": [
-            {
-              "name": "AzureWebJobsDashboard",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "AzureWebJobsStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTSHARE",
-              "value": "[toLower(variables('testEngineFunctionAppName'))]"
-            },
-            {
-              "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "beta"
-            },
-            {
-              "name": "ROUTING_EXTENSION_VERSION",
-              "value": "~.2"
-            },
-            {
-              "name": "ApiOptions:ApiKey",
-              "value": "[parameters('ApiKey')]"
-            },
-            {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
-            },
-            {
-              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "ApplicationInsightsOptions:InstrumentationKey",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "RedisSettings:CacheConnection",
-              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
-            },
-            {
-              "name": "ServiceBusSettings:ConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
-            },
-            {
-              "name": "CosmosDbSettings:ConnectionString",
-              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
-            },
-            {
-              "name": "CosmosDbSettings:DatabaseName",
-              "value": "calculate-funding"
-            },
-            {
-              "name": "CosmosDbSettings:CollectionName",
-              "value": "testresults"
-            },
-            {
-              "name": "SearchServiceName",
-              "value": "[variables('azureSearchName')]"
-            },
-            {
-              "name": "SearchServiceKey",
-              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
-            }
-          ]
-        }
-      }
-    },
-    {
-      "apiVersion": "2016-08-01",
-      "type": "Microsoft.Web/sites",
-      "name": "[variables('resultsFunctionAppName')]",
-      "location": "[resourceGroup().location]",
-      "kind": "functionapp",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
-        "[variables('applicationInsightsName')]",
-        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
-      ],
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-        "siteConfig": {
-          "alwaysOn": true,
-          "appSettings": [
-            {
-              "name": "AzureWebJobsDashboard",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "AzureWebJobsStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTSHARE",
-              "value": "[toLower(variables('resultsFunctionAppName'))]"
-            },
-            {
-              "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "beta"
-            },
-            {
-              "name": "ROUTING_EXTENSION_VERSION",
-              "value": "~.2"
-            },
-            {
-              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "ApplicationInsightsOptions:InstrumentationKey",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "RedisSettings:CacheConnection",
-              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
-            },
-            {
-              "name": "ServiceBusSettings:ConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
-            },
-            {
-              "name": "CosmosDbSettings:ConnectionString",
-              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
-            },
-            {
-              "name": "CosmosDbSettings:DatabaseName",
-              "value": "calculate-funding"
-            },
-            {
-              "name": "CosmosDbSettings:CollectionName",
-              "value": "providersources"
-            },
-            {
-              "name": "ApiOptions:ApiKey",
-              "value": "[parameters('ApiKey')]"
-            },
-            {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
-            },
-            {
-              "name": "SearchServiceName",
-              "value": "[variables('azureSearchName')]"
-            },
-            {
-              "name": "SearchServiceKey",
-              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
-            },
-            {
-              "name": "AzureStorageSettings:ConnectionString",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
-            }
-          ]
-        }
-      }
-    },
-
-
-    {
-      "apiVersion": "2016-08-01",
-      "type": "Microsoft.Web/sites",
-      "name": "[variables('specsFunctionAppName')]",
-      "location": "[resourceGroup().location]",
-      "kind": "functionapp",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
-        "[variables('applicationInsightsName')]",
-        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
-      ],
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-        "siteConfig": {
-          "alwaysOn": true,
-          "appSettings": [
-            {
-              "name": "AzureWebJobsDashboard",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "AzureWebJobsStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTSHARE",
-              "value": "[toLower(variables('specsFunctionAppName'))]"
-            },
-            {
-              "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "beta"
-            },
-            {
-              "name": "ROUTING_EXTENSION_VERSION",
-              "value": "~.2"
-            },
-            {
-              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "ApplicationInsightsOptions:InstrumentationKey",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "RedisSettings:CacheConnection",
-              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
-            },
-            {
-              "name": "ServiceBusSettings:ConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
-            },
-            {
-              "name": "CosmosDbSettings:ConnectionString",
-              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
-            },
-            {
-              "name": "CosmosDbSettings:DatabaseName",
-              "value": "calculate-funding"
-            },
-            {
-              "name": "CosmosDbSettings:CollectionName",
-              "value": "specs"
-            },
-            {
-              "name": "ApiOptions:ApiKey",
-              "value": "[parameters('ApiKey')]"
-            },
-            {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
-            },
-            {
-              "name": "SearchServiceName",
-              "value": "[variables('azureSearchName')]"
-            },
-            {
-              "name": "SearchServiceKey",
-              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
-            },
-            {
-              "name": "AzureStorageSettings:ConnectionString",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
-            }
-
-          ]
-        }
-      }
-    },
-
-
-    {
-      "apiVersion": "2016-08-01",
-      "type": "Microsoft.Web/sites",
-      "name": "[variables('environmentFunctionAppName')]",
-      "location": "[resourceGroup().location]",
-      "kind": "functionapp",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
-        "[variables('applicationInsightsName')]",
-        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
-      ],
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-        "siteConfig": {
-          "alwaysOn": true,
-          "appSettings": [
-            {
-              "name": "AzureWebJobsDashboard",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "AzureWebJobsStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTSHARE",
-              "value": "[toLower(variables('environmentFunctionAppName'))]"
-            },
-            {
-              "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "beta"
-            },
-            {
-              "name": "ROUTING_EXTENSION_VERSION",
-              "value": "~.2"
-            },
-            {
-              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "ApplicationInsightsOptions:InstrumentationKey",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "CosmosDbSettings:ConnectionString",
-              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
-            },
-            {
-              "name": "AzureStorageSettings:ConnectionString",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "RedisSettings:CacheConnection",
-              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
-            },
-            {
-              "name": "ServiceBusSettings:ConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
-            }
-          ]
-        }
-      }
-    },
-
-    {
-      "apiVersion": "2016-08-01",
-      "type": "Microsoft.Web/sites",
-      "name": "[variables('scenariosFunctionAppName')]",
-      "location": "[resourceGroup().location]",
-      "kind": "functionapp",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
-        "[variables('applicationInsightsName')]",
-        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
-      ],
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-        "siteConfig": {
-          "alwaysOn": true,
-          "appSettings": [
-            {
-              "name": "AzureWebJobsDashboard",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "AzureWebJobsStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "WEBSITE_CONTENTSHARE",
-              "value": "[toLower(variables('scenariosFunctionAppName'))]"
-            },
-            {
-              "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "beta"
-            },
-            {
-              "name": "ROUTING_EXTENSION_VERSION",
-              "value": "~.2"
-            },
-            {
-              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "ApplicationInsightsOptions:InstrumentationKey",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "RedisSettings:CacheConnection",
-              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
-            },
-            {
-              "name": "ServiceBusSettings:ConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
-            },
-            {
-              "name": "CosmosDbSettings:ConnectionString",
-              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
-            },
-            {
-              "name": "ApiOptions:ApiKey",
-              "value": "[parameters('ApiKey')]"
-            },
-            {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
-            },
-            {
-              "name": "CosmosDbSettings:DatabaseName",
-              "value": "calculate-funding"
-            },
-            {
-              "name": "CosmosDbSettings:CollectionName",
-              "value": "tests"
-            },
-            {
-              "name": "SearchServiceName",
-              "value": "[variables('azureSearchName')]"
-            },
-            {
-              "name": "SearchServiceKey",
-              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
-            },
-            {
-              "name": "AzureStorageSettings:ConnectionString",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
-            }
-          ]
-        }
-      }
-    }
-  ],
   "outputs": {
     "CosmosDbConnectionString": {
       "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]",

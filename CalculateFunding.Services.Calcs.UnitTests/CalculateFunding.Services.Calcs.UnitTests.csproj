@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Services\CalculationServiceTests.GetCaclculationSummariesForSpecification.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Services\CalculationServiceTests.GetCaclculationSummariesForSpecification.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="4.19.4" />
     <PackageReference Include="FluentValidation" Version="7.3.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.6.1" />

@@ -14,6 +14,9 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("calculationType")]
         public CalculationType CalculationType { get; set; }
 
+        [JsonProperty("isPublic")]
+        public bool IsPublic { get; set; }
+
         public Calculation Clone()
         {
             // Serialise to perform a deep copy

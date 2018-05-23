@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Models.Specs
+﻿using Newtonsoft.Json;
+
+namespace CalculateFunding.Models.Specs
 {
     public class CalculationVersionComparisonModel
     {
@@ -9,5 +11,18 @@
         public Calculation Current { get; set; }
 
         public Calculation Previous { get; set; }
+
+        [JsonIgnore]
+        public bool HasChanges
+        {
+            get
+            {
+                return (Current.Name != Previous.Name) 
+                    || (Current.Description != Previous.Description) 
+                    || (Current.CalculationType != Previous.CalculationType)
+                    || (Current.IsPublic != Previous.IsPublic)
+                    || (Current.AllocationLine?.Id != Previous.AllocationLine?.Id);
+            }
+        }
     }
 }

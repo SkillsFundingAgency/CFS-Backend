@@ -45,6 +45,10 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 }
             }
 
+
+
+           
+
             return className.Replace(" ", String.Empty);
         }
 
