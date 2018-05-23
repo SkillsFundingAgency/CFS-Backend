@@ -1001,14 +1001,14 @@ namespace CalculateFunding.Services.Scenarios.Services
                 {
                     Id = "calc1",
                     Name = "Calc Name",
-                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    CalculationType = CalculationType.Funding,
                     Description = "Test",
                 },
                 Current = new Calculation()
                 {
                     Id = "calc1",
                     Name = "Calc Name Updated",
-                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    CalculationType = CalculationType.Funding,
                     Description = "Test",
                 },
             };
@@ -1090,14 +1090,14 @@ namespace CalculateFunding.Services.Scenarios.Services
                 {
                     Id = "calc1",
                     Name = "Calc Name",
-                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    CalculationType = CalculationType.Funding,
                     Description = "Test",
                 },
                 Current = new Calculation()
                 {
                     Id = "calc1",
                     Name = "Calc Name Updated",
-                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    CalculationType = CalculationType.Funding,
                     Description = "Test",
                 },
             };
@@ -1196,14 +1196,14 @@ namespace CalculateFunding.Services.Scenarios.Services
                 {
                     Id = "calc1",
                     Name = "Calc Name",
-                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    CalculationType = CalculationType.Funding,
                     Description = "Test",
                 },
                 Current = new Calculation()
                 {
                     Id = "calc1",
                     Name = "Calc Name Updated",
-                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    CalculationType = CalculationType.Funding,
                     Description = "Test",
                 },
             };
@@ -1282,14 +1282,14 @@ namespace CalculateFunding.Services.Scenarios.Services
                 {
                     Id = "calc1",
                     Name = "Calc Name",
-                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    CalculationType = CalculationType.Funding,
                     Description = "Test",
                 },
                 Current = new Calculation()
                 {
                     Id = "calc1",
                     Name = "Calc Name Updated",
-                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    CalculationType = CalculationType.Funding,
                     Description = "Test",
                 },
             };
@@ -1365,14 +1365,14 @@ namespace CalculateFunding.Services.Scenarios.Services
                 {
                     Id = "calc1",
                     Name = "Calc Name",
-                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    CalculationType = CalculationType.Funding,
                     Description = "Test",
                 },
                 Current = new Calculation()
                 {
                     Id = "calc1",
                     Name = "Calc Name",
-                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    CalculationType = CalculationType.Funding,
                     Description = "Test",
                 },
             };
@@ -1421,14 +1421,14 @@ namespace CalculateFunding.Services.Scenarios.Services
                 {
                     Id = "calc1",
                     Name = "Calc Name",
-                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    CalculationType = CalculationType.Funding,
                     Description = "Test",
                 },
                 Current = new Calculation()
                 {
                     Id = "calc1",
                     Name = "Calc Name",
-                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    CalculationType = CalculationType.Funding,
                     Description = "Test",
                 },
             };

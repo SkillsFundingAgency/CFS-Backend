@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Specs;
+﻿using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
 using System;

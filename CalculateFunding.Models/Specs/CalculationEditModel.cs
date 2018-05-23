@@ -1,4 +1,5 @@
-﻿namespace CalculateFunding.Models.Specs
+﻿
+namespace CalculateFunding.Models.Specs
 {
     public class CalculationEditModel
     {
@@ -14,7 +15,7 @@
 
         public string Name { get; set; }
 
-        public string CalculationType { get; set; }
+        public CalculationType CalculationType { get; set; }
 
         public bool IsPublic { get; set; }
     }

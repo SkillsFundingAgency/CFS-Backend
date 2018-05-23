@@ -296,7 +296,7 @@ namespace CalculateFunding.Services.Specs.Services
             CalculationEditModel policyEditModel = new CalculationEditModel
             {
                 Name = "new calc name",
-                CalculationType = "Funding",
+                CalculationType = CalculationType.Funding,
                 Description = "test description",
                 PolicyId = "policy-id-2"
             };
@@ -365,7 +365,7 @@ namespace CalculateFunding.Services.Specs.Services
             CalculationEditModel policyEditModel = new CalculationEditModel
             {
                 Name = "new calc name",
-                CalculationType = "Funding",
+                CalculationType = CalculationType.Funding,
                 Description = "test description",
                 PolicyId = "policy-id-2"
             };

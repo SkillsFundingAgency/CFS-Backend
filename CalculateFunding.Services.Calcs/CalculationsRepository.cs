@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Calcs
         {
             var calculations = _cosmosRepository.Query<Calculation>().Where(x => x.CalculationSpecification.Id == calculationSpecificationId);
 
-            return Task.FromResult(calculations.FirstOrDefault());
+            return Task.FromResult(calculations.AsEnumerable().FirstOrDefault());
         }
 
         async public Task<IEnumerable<CalculationVersion>> GetVersionHistory(string calculationId)

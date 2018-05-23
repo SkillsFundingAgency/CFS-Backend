@@ -487,14 +487,14 @@ namespace CalculateFunding.Services.Calcs
 
             calculation.AllocationLine = calculationVersionComparison.Current.AllocationLine;
 
-            if (calculation.CalculationType != calculationVersionComparison.Current.CalculationType)
+            if ((int)calculation.CalculationType != (int) calculationVersionComparison.Current.CalculationType)
             {
-                if (calculationVersionComparison.Current.CalculationType == CalculationType.Number)
+                if (calculationVersionComparison.Current.CalculationType == Models.Specs.CalculationType.Number)
                 {
                     calculation.AllocationLine = null;
                 }
 
-                calculation.CalculationType = calculationVersionComparison.Current.CalculationType;
+                calculation.CalculationType = (CalculationType) calculationVersionComparison.Current.CalculationType;
             }
 
             await _calculationsRepository.UpdateCalculations(calculationsToUpdate);

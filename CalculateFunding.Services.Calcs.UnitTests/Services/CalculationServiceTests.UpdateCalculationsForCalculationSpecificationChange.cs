@@ -161,13 +161,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     Name = "name",
                     AllocationLine = new Reference { Id = "1" },
-                    CalculationType = CalculationType.Number
+                    CalculationType = Models.Specs.CalculationType.Number
                 },
                 Previous = new Models.Specs.Calculation
                 {
                     Name = "name",
                     AllocationLine = new Reference { Id = "1" },
-                    CalculationType = CalculationType.Funding
+                    CalculationType = Models.Specs.CalculationType.Funding
                 },
                 CalculationId = CalculationId,
                 SpecificationId = specificationId
@@ -177,7 +177,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Name = "name",
                 AllocationLine = new Reference { Id = "1" },
-                CalculationType = CalculationType.Funding,
+                CalculationType = Models.Calcs.CalculationType.Funding,
                 Id = CalculationId
             };
 
@@ -229,13 +229,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     Name = "name",
                     AllocationLine = new Reference { Id = "1" },
-                    CalculationType = CalculationType.Number
+                    CalculationType = Models.Specs.CalculationType.Number
                 },
                 Previous = new Models.Specs.Calculation
                 {
                     Name = "name",
                     AllocationLine = new Reference { Id = "1" },
-                    CalculationType = CalculationType.Funding
+                    CalculationType = Models.Specs.CalculationType.Funding
                 },
                 CalculationId = CalculationId,
                 SpecificationId = specificationId
@@ -245,7 +245,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Name = "name",
                 AllocationLine = new Reference { Id = "1" },
-                CalculationType = CalculationType.Funding,
+                CalculationType = Models.Calcs.CalculationType.Funding,
                 Id = CalculationId,
                 CalculationSpecification = new Reference
                 {
@@ -293,7 +293,7 @@ namespace CalculateFunding.Services.Calcs.Services
             specCalculation
                 .CalculationType
                 .Should()
-                .Be(CalculationType.Number);
+                .Be(Models.Calcs.CalculationType.Number);
 
             specCalculation
                .AllocationLine
@@ -313,13 +313,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     Name = "name",
                     AllocationLine = new Reference { Id = "1" },
-                    CalculationType = CalculationType.Number
+                    CalculationType = Models.Specs.CalculationType.Number
                 },
                 Previous = new Models.Specs.Calculation
                 {
                     Name = "name",
                     AllocationLine = new Reference { Id = "1" },
-                    CalculationType = CalculationType.Funding
+                    CalculationType = Models.Specs.CalculationType.Funding
                 },
                 CalculationId = CalculationId,
                 SpecificationId = specificationId,
@@ -329,7 +329,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Name = "name",
                 AllocationLine = new Reference { Id = "1" },
-                CalculationType = CalculationType.Funding,
+                CalculationType = Models.Calcs.CalculationType.Funding,
                 Id = CalculationId,
                 FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
                 Policies = new List<Reference> { new Reference {  Id = "pol1", Name = "pol2" } },

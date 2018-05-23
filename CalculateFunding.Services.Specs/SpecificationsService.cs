@@ -427,18 +427,61 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            Calculation calculation = await _specificationsRepository.GetCalculationBySpecificationIdAndCalculationId(specificationId, calculationId);
-
-            if (calculation != null)
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+            if (specification == null)
             {
-                _logger.Information($"A calculation was found for specification id {specificationId} and calculation id {calculationId}");
+                return new PreconditionFailedResult("Specification not found");
+            }
 
-                return new OkObjectResult(calculation);
+            if (specification.Current != null && specification.Current.Policies != null)
+            {
+                foreach (Policy policy in specification.Current.Policies)
+                {
+                    if (policy.Calculations != null)
+                    {
+                        foreach (Calculation calculation in policy.Calculations)
+                        {
+                            if (calculation.Id == calculationId)
+                            {
+                                return GenerateCalculationCurrentVersion(specificationId, calculationId, policy, calculation);
+                            }
+                        }
+                    }
+
+                    if(policy.SubPolicies != null)
+                    {
+                        foreach (Policy subPolicy in policy.SubPolicies)
+                        {
+                            if (subPolicy.Calculations != null)
+                            {
+                                foreach (Calculation calculation in subPolicy.Calculations)
+                                {
+                                    if (calculation.Id == calculationId)
+                                    {
+                                        return GenerateCalculationCurrentVersion(specificationId, calculationId, subPolicy, calculation);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                }
             }
 
             _logger.Information($"A calculation was not found for specification id {specificationId} and calculation id {calculationId}");
 
-            return new NotFoundResult();
+            return new NotFoundObjectResult("Calculation not found");
+        }
+
+        private IActionResult GenerateCalculationCurrentVersion(string specificationId, string calculationId, Policy policy, Calculation calculation)
+        {
+            CalculationCurrentVersion calculationCurrentVersion = _mapper.Map<CalculationCurrentVersion>(calculation);
+            calculationCurrentVersion.PolicyId = policy.Id;
+            calculationCurrentVersion.PolicyName = policy.Name;
+
+            _logger.Information($"A calculation was found for specification id {specificationId} and calculation id {calculationId}");
+
+            return new OkObjectResult(calculationCurrentVersion);
         }
 
         public async Task<IActionResult> GetCalculationsBySpecificationId(HttpRequest request)
@@ -663,7 +706,7 @@ namespace CalculateFunding.Services.Specs
 
             Policy policy = specificationVersion.GetPolicy(policyId);
 
-            if(policy == null)
+            if (policy == null)
             {
                 return new NotFoundObjectResult($"Failed to find policy for policy id: {policyId}");
             }
@@ -679,7 +722,7 @@ namespace CalculateFunding.Services.Specs
 
                 specificationVersion.Policies = specificationVersion.Policies.Concat(new[] { policy });
             }
-            else if (parentPolicy != null && editModel.ParentPolicyId != parentPolicy.Id )
+            else if (parentPolicy != null && editModel.ParentPolicyId != parentPolicy.Id)
             {
                 parentPolicy.SubPolicies = parentPolicy.SubPolicies.Where(m => m.Id != policyId);
 
@@ -871,7 +914,7 @@ namespace CalculateFunding.Services.Specs
             if (!statusCode.IsSuccess())
                 return new StatusCodeResult((int)statusCode);
 
-            await _searchRepository.Index(new []
+            await _searchRepository.Index(new[]
             {
                 new SpecificationIndex
                 {
@@ -1018,6 +1061,7 @@ namespace CalculateFunding.Services.Specs
                     return new PreconditionFailedResult($"A funding stream was not found for specification with id: {specification.Id} for allocation ID {createModel.AllocationLineId}");
                 }
             }
+
             policy.Calculations = (policy.Calculations == null
                 ? new[] { calculation }
                 : policy.Calculations.Concat(new[] { calculation }));
@@ -1035,7 +1079,7 @@ namespace CalculateFunding.Services.Specs
                     Name = calculation.Name,
                     CalculationSpecification = new Reference(calculation.Id, calculation.Name),
                     AllocationLine = calculation.AllocationLine,
-                    CalculationType = calculation.CalculationType,
+                    CalculationType = (Models.Calcs.CalculationType) calculation.CalculationType,
                     Policies = new List<Reference>
                     {
                         new Reference( policy.Id, policy.Name )
@@ -1110,12 +1154,43 @@ namespace CalculateFunding.Services.Specs
 
             calculation.Name = editModel.Name;
             calculation.Description = editModel.Description;
-            
-            if(calculation.CalculationType.ToString() != editModel.CalculationType)
-            {
-                calculation.CalculationType = (Models.Calcs.CalculationType)Enum.Parse(typeof(Models.Calcs.CalculationType), editModel.CalculationType);
 
-                if(calculation.CalculationType == Models.Calcs.CalculationType.Number)
+            if(calculation.CalculationType == CalculationType.Number)
+            {
+                calculation.IsPublic = editModel.IsPublic;
+            }
+            else
+            {
+                calculation.IsPublic = false;
+            }
+
+            if (editModel.CalculationType == CalculationType.Funding)
+            {
+                FundingStream currentFundingStream = null;
+                if (!string.IsNullOrWhiteSpace(editModel.AllocationLineId))
+                {
+                    string[] fundingSteamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray();
+                    IEnumerable<FundingStream> fundingStreams = await _specificationsRepository.GetFundingStreams(f => fundingSteamIds.Contains(f.Id));
+                    foreach (FundingStream fundingStream in fundingStreams)
+                    {
+                        AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == editModel.AllocationLineId);
+                        if (allocationLine != null)
+                        {
+                            calculation.AllocationLine = allocationLine;
+                            currentFundingStream = fundingStream;
+                            break;
+                        }
+                    }
+                    if (currentFundingStream == null)
+                    {
+                        return new PreconditionFailedResult($"A funding stream was not found for specification with id: {specification.Id} for allocation ID {editModel.AllocationLineId}");
+                    }
+                }
+            }
+
+            if (calculation.CalculationType != editModel.CalculationType)
+            {
+                if (calculation.CalculationType == CalculationType.Number)
                 {
                     calculation.AllocationLine = null;
                 }
@@ -1123,22 +1198,27 @@ namespace CalculateFunding.Services.Specs
 
             Policy parentPolicy = specificationVersion.GetCalculationParentPolicy(calculationId);
 
-            if(parentPolicy != null)
+            if (parentPolicy != null)
             {
-                if(editModel.PolicyId != parentPolicy.Id)
+                if (editModel.PolicyId != parentPolicy.Id)
                 {
                     parentPolicy.Calculations = parentPolicy.Calculations.Where(m => m.Id != calculationId);
 
                     Policy newParentPolicy = specificationVersion.GetPolicy(editModel.PolicyId);
-                    
-                    if(parentPolicy == null)
+
+                    if (newParentPolicy == null)
                     {
                         _logger.Warning($"Policy not found for policy id '{editModel.PolicyId}'");
                         return new PreconditionFailedResult($"Policy not found for policy id '{editModel.PolicyId}'");
                     }
                     else
                     {
-                        newParentPolicy.Calculations = parentPolicy.Calculations.Concat(new[] { calculation });
+                        if(newParentPolicy.Calculations == null)
+                        {
+                            newParentPolicy.Calculations = new List<Calculation>();
+                        }
+
+                        newParentPolicy.Calculations = newParentPolicy.Calculations.Concat(new[] { calculation });
                     }
                 }
             }

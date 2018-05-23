@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Models.Calcs;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs
 {

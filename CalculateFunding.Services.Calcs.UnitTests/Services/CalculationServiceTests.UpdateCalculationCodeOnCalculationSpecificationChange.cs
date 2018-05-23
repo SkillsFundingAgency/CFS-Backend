@@ -34,13 +34,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     Id = "calcSpec1",
                     Name = "Calculation To Update",
-                    CalculationType = CalculationType.Funding,
+                    CalculationType = Models.Specs.CalculationType.Funding,
                 },
                 Previous = new Models.Specs.Calculation()
                 {
                     Id = "calcSpec1",
                     Name = "Original Name",
-                    CalculationType = CalculationType.Funding,
+                    CalculationType = Models.Specs.CalculationType.Funding,
                 },
                 SpecificationId = specificationId,
             };
@@ -159,13 +159,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     Id = "calcSpec1",
                     Name = "Calculation to update",
-                    CalculationType = CalculationType.Funding,
+                    CalculationType = Models.Specs.CalculationType.Funding,
                 },
                 Previous = new Models.Specs.Calculation()
                 {
                     Id = "calcSpec1",
                     Name = "Original Name",
-                    CalculationType = CalculationType.Funding,
+                    CalculationType = Models.Specs.CalculationType.Funding,
                 },
                 SpecificationId = specificationId,
             };
@@ -283,13 +283,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     Id = "calcSpec1",
                     Name = "Calculation to update",
-                    CalculationType = CalculationType.Funding,
+                    CalculationType = Models.Specs.CalculationType.Funding,
                 },
                 Previous = new Models.Specs.Calculation()
                 {
                     Id = "calcSpec1",
                     Name = "Original Name",
-                    CalculationType = CalculationType.Funding,
+                    CalculationType = Models.Specs.CalculationType.Funding,
                 },
                 SpecificationId = specificationId,
             };

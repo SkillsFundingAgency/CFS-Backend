@@ -6,7 +6,7 @@ namespace CalculateFunding.Models.Specs
     public static class ExtensionMethods
     {
         public static Policy GetPolicy(this Policy policy, string id)
-        {         
+        {
             if (policy.Id == id) return policy;
             return policy.SubPolicies?.FirstOrDefault(x => x.GetPolicy(id) != null);
         }
@@ -61,11 +61,14 @@ namespace CalculateFunding.Models.Specs
                     {
                         foreach (Policy subPolicy in policy.SubPolicies)
                         {
-                            calculation = subPolicy.Calculations.FirstOrDefault(m => m.Id == id);
-
-                            if (calculation != null)
+                            if (subPolicy.Calculations != null)
                             {
-                                return subPolicy;
+                                calculation = subPolicy.Calculations.FirstOrDefault(m => m.Id == id);
+
+                                if (calculation != null)
+                                {
+                                    return subPolicy;
+                                }
                             }
                         }
                     }
@@ -80,7 +83,7 @@ namespace CalculateFunding.Models.Specs
             {
                 return policy;
             }
-           
+
             return policy.SubPolicies?.FirstOrDefault(x => x.GetPolicyByName(name) != null);
         }
 

@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Specs;
+﻿using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
 using System;
@@ -27,8 +26,8 @@ namespace CalculateFunding.Services.Specs.Validators
                .WithMessage("You must select a policy or a sub policy");
 
             RuleFor(model => model.CalculationType)
-               .Must(c => Enum.TryParse(c, true, out CalculationType calcType))
-               .WithMessage("An invalid calc type was provided");
+                .NotEmpty()
+                .WithMessage("An invalid calc type was provided");
 
             RuleFor(model => model.Name)
                .NotEmpty()
