@@ -25,10 +25,6 @@ namespace CalculateFunding.Services.Specs.Validators
                .NotEmpty()
                .WithMessage("You must select a policy or a sub policy");
 
-            RuleFor(model => model.CalculationType)
-                .NotEmpty()
-                .WithMessage("An invalid calc type was provided");
-
             RuleFor(model => model.Name)
                .NotEmpty()
                .WithMessage("You must give a unique calculation name")

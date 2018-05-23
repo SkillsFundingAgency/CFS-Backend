@@ -481,6 +481,8 @@ namespace CalculateFunding.Services.Calcs
                 calculationsToUpdate.Add(calculation);
             }
 
+            calculation.Name = calculationVersionComparison.Current.Name;
+
             calculation.Description = calculationVersionComparison.Current.Description;
 
             calculation.IsPublic = calculationVersionComparison.Current.IsPublic;
