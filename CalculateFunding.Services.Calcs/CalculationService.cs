@@ -467,11 +467,11 @@ namespace CalculateFunding.Services.Calcs
                 calculationsToUpdate.AddRange(updatedCalculations);
             }
 
-            Calculation calculation = calculationsToUpdate.FirstOrDefault(m => m.Id == calculationId);
+            Calculation calculation = calculationsToUpdate.FirstOrDefault(m => m.CalculationSpecification.Id == calculationId);
 
             if(calculation == null)
             {
-                calculation = await _calculationsRepository.GetCalculationById(calculationId);
+                calculation = await _calculationsRepository.GetCalculationByCalculationSpecificationId(calculationId);
                 
                 if(calculation == null)
                 {

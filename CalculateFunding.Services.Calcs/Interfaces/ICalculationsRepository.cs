@@ -22,5 +22,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IEnumerable<Calculation>> GetAllCalculations();
 
         Task UpdateCalculations(IEnumerable<Calculation> calculations);
+
+        Task<Calculation> GetCalculationByCalculationSpecificationId(string calculationSpecificationId);
     }
 }

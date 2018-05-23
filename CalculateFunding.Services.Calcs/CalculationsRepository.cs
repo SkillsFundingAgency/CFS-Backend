@@ -39,7 +39,14 @@ namespace CalculateFunding.Services.Calcs
 		    return Task.FromResult(calculations.AsEnumerable());
 	    }
 
-		async public Task<IEnumerable<CalculationVersion>> GetVersionHistory(string calculationId)
+        public Task<Calculation> GetCalculationByCalculationSpecificationId(string calculationSpecificationId)
+        {
+            var calculations = _cosmosRepository.Query<Calculation>().Where(x => x.CalculationSpecification.Id == calculationSpecificationId);
+
+            return Task.FromResult(calculations.FirstOrDefault());
+        }
+
+        async public Task<IEnumerable<CalculationVersion>> GetVersionHistory(string calculationId)
         {
             Calculation calculation = await GetCalculationById(calculationId);
 
