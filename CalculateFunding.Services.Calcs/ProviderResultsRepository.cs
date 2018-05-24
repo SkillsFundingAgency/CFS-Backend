@@ -83,10 +83,22 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task PopulateProviderSummariesForSpecification(string specificationId)
         {
+            IEnumerable<ProviderSummary> allCachedProviders = Enumerable.Empty<ProviderSummary>();
+
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
-            int allSummariesCount = (int)await _cacheProvider.ListLengthAsync<ProviderSummary>(CacheKeys.AllProviderSummaryCount);
-            IEnumerable<ProviderSummary> allCachedProviders = await _cacheProvider.ListRangeAsync<ProviderSummary>(CacheKeys.AllProviderSummaries, 0, allSummariesCount);
+            string providerCount = await _cacheProvider.GetAsync<string>(CacheKeys.AllProviderSummaryCount);
+            int allSummariesCount = 0;
+
+            if (!string.IsNullOrWhiteSpace(providerCount) && !int.TryParse(providerCount, out allSummariesCount))
+            {
+                throw new Exception("Invalid provider count in cache");
+            }
+
+            if(allSummariesCount > 0)
+            {
+                allCachedProviders = await _cacheProvider.ListRangeAsync<ProviderSummary>(CacheKeys.AllProviderSummaries, 0, allSummariesCount);
+            }
 
 
             if (allSummariesCount < 1 || allCachedProviders.IsNullOrEmpty())
