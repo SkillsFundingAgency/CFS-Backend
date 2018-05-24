@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Calcs
                 return new PreconditionFailedResult($"Build project for specification '{previewRequest.SpecificationId}' could not be found");
             }
 
-            IEnumerable<Calculation> calculations = calculationsTask.Result;
+            List<Calculation> calculations = new List<Calculation>(calculationsTask.Result);
 
             Calculation calculation = calculations.FirstOrDefault(m => m.Id == previewRequest.CalculationId);
             if (calculation == null)

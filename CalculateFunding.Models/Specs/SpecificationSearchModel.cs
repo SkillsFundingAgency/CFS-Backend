@@ -11,6 +11,10 @@ namespace CalculateFunding.Models.Specs
 
         public DateTime UpdatedAt { get; set; }
 
+        public string PublishStatus { get; set; }
+
+        public string Description { get; set; }
+
         public string[] DataDefinitionRelationshipIds { get; set; }
     }
 }

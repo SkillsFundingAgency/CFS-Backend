@@ -3,17 +3,17 @@ using System.Linq;
 
 namespace CalculateFunding.Repositories.Common.Search.Results
 {
-    public class CalculationSearchResults
+    public class SpecificationSearchResults
     {
-        public CalculationSearchResults()
+        public SpecificationSearchResults()
         {
-            Results = Enumerable.Empty<CalculationSearchResult>();
+            Results = Enumerable.Empty<SpecificationSearchResult>();
             Facets = Enumerable.Empty<Facet>();
         }
 
         public int TotalCount { get; set; }
 
-        public IEnumerable<CalculationSearchResult> Results { get; set; }
+        public IEnumerable<SpecificationSearchResult> Results { get; set; }
 
         public IEnumerable<Facet> Facets { get; set; }
     }

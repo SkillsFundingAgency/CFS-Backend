@@ -6,6 +6,8 @@ namespace CalculateFunding.Services.Specs.Interfaces
 {
     public interface ISpecificationsSearchService
     {
+        Task<IActionResult> SearchSpecificationDatasetRelationships(HttpRequest request);
+
         Task<IActionResult> SearchSpecifications(HttpRequest request);
     }
 }

@@ -42,5 +42,12 @@ namespace CalculateFunding.Models.Specs
         [IsFilterable]
         [JsonProperty("dataDefinitionRelationshipIds")]
         public string[] DataDefinitionRelationshipIds { get; set; }
+
+        [IsFilterable, IsFacetable, IsSearchable]
+        [JsonProperty("status")]
+        public string Status { get; set; }
+
+        [JsonProperty("description")]
+        public string Description { get; set; }
     }
 }

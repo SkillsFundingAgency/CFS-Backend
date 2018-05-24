@@ -601,8 +601,8 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Is(calculations))
-                .Returns(sourceFiles);
+               .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
+               .Returns(sourceFiles);
 
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
 
@@ -667,7 +667,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 CalculationId = CalculationId,
                 SourceCode = SourceCode,
-                SpecificationId = SpecificationId,
+                SpecificationId = SpecificationId
             };
 
             Calculation calculation = new Calculation
@@ -675,7 +675,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = CalculationId,
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
-                SpecificationId = SpecificationId,
+                SpecificationId = SpecificationId
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -719,7 +719,7 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Is(calculations))
+                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(sourceFiles);
 
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);

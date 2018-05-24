@@ -1,6 +1,6 @@
 ﻿namespace CalculateFunding.Models.Specs
 {
-    public class SpecificationSearchResult
+    public class SpecificationDatasetRelationshipsSearchResult
     {
         public string SpecificationId { get; set; }
 

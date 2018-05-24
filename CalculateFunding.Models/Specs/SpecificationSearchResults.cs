@@ -3,14 +3,14 @@ using System.Linq;
 
 namespace CalculateFunding.Models.Specs
 {
-    public class SpecificationSearchResults
+    public class SpecificationDatasetRelationshipsSearchResults
     {
-        public SpecificationSearchResults()
+        public SpecificationDatasetRelationshipsSearchResults()
         {
-            Results = Enumerable.Empty<SpecificationSearchResult>();
+            Results = Enumerable.Empty<SpecificationDatasetRelationshipsSearchResult>();
         }
 
-        public IEnumerable<SpecificationSearchResult> Results { get; set; }
+        public IEnumerable<SpecificationDatasetRelationshipsSearchResult> Results { get; set; }
 
         public int TotalCount { get; set; }
     }

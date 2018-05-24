@@ -1318,7 +1318,7 @@ namespace CalculateFunding.Services.Specs
             {
                 await _searchRepository.DeleteIndex();
 
-                const string sql = "select s.id, s.content.name, s.content.current.fundingStream, s.content.current.fundingPeriod, s.content.current.dataDefinitionRelationshipIds, s.updatedAt from specs s";
+                const string sql = "select s.id, s.content.current.name, s.content.current.fundingStreams, s.content.current.fundingPeriod, s.content.current.publishStatus, s.content.current.description, s.content.current.dataDefinitionRelationshipIds, s.updatedAt from specs s where s.documentType = 'Specification'";
 
                 IEnumerable<SpecificationSearchModel> specifications = (await _specificationsRepository.GetSpecificationsByRawQuery<SpecificationSearchModel>(sql)).ToArraySafe();
 
@@ -1330,11 +1330,13 @@ namespace CalculateFunding.Services.Specs
                     {
                         Id = specification.Id,
                         Name = specification.Name,
-                        FundingStreamIds = specification.FundingStreams.Select(s => s.Id).ToArray(),
-                        FundingStreamNames = specification.FundingStreams.Select(s => s.Name).ToArray(),
+                        FundingStreamIds = specification.FundingStreams?.Select(s => s.Id).ToArray(),
+                        FundingStreamNames = specification.FundingStreams?.Select(s => s.Name).ToArray(),
                         FundingPeriodId = specification.FundingPeriod.Id,
                         FundingPeriodName = specification.FundingPeriod.Name,
                         LastUpdatedDate = specification.UpdatedAt,
+                        Status = specification.PublishStatus,
+                        Description = specification.Description,
                         DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.IsNullOrEmpty() ? new string[0] : specification.DataDefinitionRelationshipIds
                     });
                 }

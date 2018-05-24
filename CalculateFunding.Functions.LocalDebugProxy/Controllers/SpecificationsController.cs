@@ -218,6 +218,15 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _specService.ReIndex();
         }
 
+        [Route("api/specs/specifications-dataset-relationships-search")]
+        [HttpPost]
+        public Task<IActionResult> RunSearchSpecificationsDatasetRelationships()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specSearchService.SearchSpecificationDatasetRelationships(ControllerContext.HttpContext.Request);
+        }
+
         [Route("api/specs/specifications-search")]
         [HttpPost]
         public Task<IActionResult> RunSearchSpecifications()

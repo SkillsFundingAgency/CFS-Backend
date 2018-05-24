@@ -142,6 +142,18 @@ namespace CalculateFunding.Functions.Specs.Http
             }
         }
 
+        [FunctionName("specifications-dataset-relationships-search")]
+        public static async Task<IActionResult> RunSearchSpecificationsDatasetRelationships(
+            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateScope())
+            {
+                ISpecificationsSearchService svc = scope.ServiceProvider.GetService<ISpecificationsSearchService>();
+
+                return await svc.SearchSpecificationDatasetRelationships(req);
+            }
+        }
+
         [FunctionName("reindex")]
         public static Task<IActionResult> RunReindex(
           [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
