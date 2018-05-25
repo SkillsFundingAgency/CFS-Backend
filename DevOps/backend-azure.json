@@ -679,7 +679,7 @@
             },
             {
               "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "2.0.11651-alpha"
+              "value": "beta"
             },
             {
               "name": "ROUTING_EXTENSION_VERSION",

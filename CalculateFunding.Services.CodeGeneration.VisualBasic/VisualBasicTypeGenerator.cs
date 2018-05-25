@@ -14,7 +14,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         public static string Identifier(string value)
         {
             string className = value;
-            bool isValid = CodeDomProvider.CreateProvider("VisualBasic").IsValidIdentifier(className);
+          
+            bool isValid = SyntaxFacts.IsValidIdentifier(className);
 
             List<string> chars = new List<string>();
             for (int i = 0; i < className.Length; i++)
