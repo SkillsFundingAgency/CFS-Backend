@@ -16,5 +16,7 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("lastUpdatedDate")]
         public DateTime LastUpdatedDate { get; set; }
+
+        public new IEnumerable<FundingStream> FundingStreams { get; set; }
     }
 }

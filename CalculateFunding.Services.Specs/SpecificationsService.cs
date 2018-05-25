@@ -247,16 +247,24 @@ namespace CalculateFunding.Services.Specs
                     return new InternalServerErrorResult("Specification current is null");
                 }
 
+                List<FundingStream> fundingStreams = new List<FundingStream>();
+                if (!specification.Content.Current.FundingStreams.IsNullOrEmpty())
+                {
+                    string[] fundingStreamIds = specification.Content.Current.FundingStreams.Select(p => p.Id).ToArray();
+                    IEnumerable<FundingStream> fundingStreamsResult = await _specificationsRepository.GetFundingStreams(f => fundingStreamIds.Contains(f.Id));
+                    fundingStreams.AddRange(fundingStreamsResult);
+                }
+
                 result = new SpecificationCurrentVersion()
                 {
                     DataDefinitionRelationshipIds = specification.Content.Current.DataDefinitionRelationshipIds,
                     Description = specification.Content.Current.Description,
                     FundingPeriod = specification.Content.Current.FundingPeriod,
-                    FundingStreams = specification.Content.Current.FundingStreams,
                     Id = specification.Content.Id,
                     LastUpdatedDate = specification.UpdatedAt,
                     Name = specification.Content.Name,
                     Policies = specification.Content.Current.Policies,
+                    FundingStreams = fundingStreams,
                 };
 
                 await _cacheProvider.SetAsync(cacheKey, result, TimeSpan.FromDays(1), true);
@@ -448,7 +456,7 @@ namespace CalculateFunding.Services.Specs
                         }
                     }
 
-                    if(policy.SubPolicies != null)
+                    if (policy.SubPolicies != null)
                     {
                         foreach (Policy subPolicy in policy.SubPolicies)
                         {
@@ -464,7 +472,7 @@ namespace CalculateFunding.Services.Specs
                             }
                         }
                     }
-                    
+
                 }
             }
 
@@ -1079,7 +1087,7 @@ namespace CalculateFunding.Services.Specs
                     Name = calculation.Name,
                     CalculationSpecification = new Reference(calculation.Id, calculation.Name),
                     AllocationLine = calculation.AllocationLine,
-                    CalculationType = (Models.Calcs.CalculationType) calculation.CalculationType,
+                    CalculationType = (Models.Calcs.CalculationType)calculation.CalculationType,
                     Policies = new List<Reference>
                     {
                         new Reference( policy.Id, policy.Name )
@@ -1155,7 +1163,7 @@ namespace CalculateFunding.Services.Specs
             calculation.Name = editModel.Name;
             calculation.Description = editModel.Description;
 
-            if(calculation.CalculationType == CalculationType.Number)
+            if (calculation.CalculationType == CalculationType.Number)
             {
                 calculation.IsPublic = editModel.IsPublic;
             }
@@ -1213,7 +1221,7 @@ namespace CalculateFunding.Services.Specs
                     }
                     else
                     {
-                        if(newParentPolicy.Calculations == null)
+                        if (newParentPolicy.Calculations == null)
                         {
                             newParentPolicy.Calculations = new List<Calculation>();
                         }
