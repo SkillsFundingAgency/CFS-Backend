@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 
@@ -19,5 +20,7 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("subPolicies")]
         public IEnumerable<Policy> SubPolicies { get; set; }
+
+        public DateTime LastUpdated { get; set; }
     }
 }

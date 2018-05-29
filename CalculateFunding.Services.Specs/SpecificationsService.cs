@@ -638,6 +638,8 @@ namespace CalculateFunding.Services.Specs
 
             Policy policy = _mapper.Map<Policy>(createModel);
 
+            policy.LastUpdated = DateTime.UtcNow;
+
             SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
 
             if (!string.IsNullOrWhiteSpace(createModel.ParentPolicyId))
@@ -721,6 +723,7 @@ namespace CalculateFunding.Services.Specs
 
             policy.Name = editModel.Name;
             policy.Description = editModel.Description;
+            policy.LastUpdated = DateTime.UtcNow;
 
             Policy parentPolicy = specificationVersion.GetParentPolicy(policyId);
 
@@ -1041,15 +1044,22 @@ namespace CalculateFunding.Services.Specs
                 _logger.Warning($"Specification not found for specification id {createModel.SpecificationId}");
                 return new PreconditionFailedResult($"Specification not found for specification id {createModel.SpecificationId}");
             }
+
             SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
+
             Policy policy = specificationVersion.GetPolicy(createModel.PolicyId);
+
             if (policy == null)
             {
                 _logger.Warning($"Policy not found for policy id '{createModel.PolicyId}'");
                 return new PreconditionFailedResult($"Policy not found for policy id '{createModel.PolicyId}'");
             }
+
             Calculation calculation = _mapper.Map<Calculation>(createModel);
+            calculation.LastUpdated = DateTime.UtcNow;
+
             FundingStream currentFundingStream = null;
+
             if (!string.IsNullOrWhiteSpace(createModel.AllocationLineId))
             {
                 string[] fundingSteamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray();
@@ -1073,13 +1083,16 @@ namespace CalculateFunding.Services.Specs
             policy.Calculations = (policy.Calculations == null
                 ? new[] { calculation }
                 : policy.Calculations.Concat(new[] { calculation }));
+
             HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion);
             if (statusCode != HttpStatusCode.OK)
             {
                 _logger.Error($"Failed to update specification when creating a calc with status {statusCode}");
                 return new StatusCodeResult((int)statusCode);
             }
+
             IDictionary<string, string> properties = CreateMessageProperties(request);
+
             await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CreateDraftCalculation,
                 new Models.Calcs.Calculation
                 {
@@ -1097,6 +1110,7 @@ namespace CalculateFunding.Services.Specs
                     FundingStream = currentFundingStream,
                 },
                 properties);
+
             return new OkObjectResult(calculation);
         }
 
@@ -1162,6 +1176,7 @@ namespace CalculateFunding.Services.Specs
 
             calculation.Name = editModel.Name;
             calculation.Description = editModel.Description;
+            calculation.LastUpdated = DateTime.UtcNow;
 
             if (calculation.CalculationType == CalculationType.Number)
             {

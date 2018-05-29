@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs
 {
@@ -15,6 +16,9 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("isPublic")]
         public bool IsPublic { get; set; }
+
+        [JsonProperty("lastUpdated")]
+        public DateTime LastUpdated { get; set; }
 
         public Calculation Clone()
         {

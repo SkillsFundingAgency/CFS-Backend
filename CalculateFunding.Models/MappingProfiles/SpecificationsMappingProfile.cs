@@ -12,12 +12,14 @@ namespace CalculateFunding.Models.MappingProfiles
                 .AfterMap((src, dest) => { dest.Id = Guid.NewGuid().ToString(); })
                 .ForMember(m => m.Id, opt => opt.Ignore())
                 .ForMember(m => m.Calculations, opt => opt.Ignore())
-                .ForMember(m => m.SubPolicies, opt => opt.Ignore());
+                .ForMember(m => m.SubPolicies, opt => opt.Ignore())
+                .ForMember(m => m.LastUpdated, opt => opt.Ignore());
 
             CreateMap<CalculationCreateModel, Calculation>()
                 .AfterMap((src, dest) => { dest.Id = Guid.NewGuid().ToString(); })
                 .ForMember(m => m.Id, opt => opt.Ignore())
                 .ForMember(m => m.AllocationLine, opt => opt.Ignore())
+                .ForMember(m => m.LastUpdated, opt => opt.Ignore())
                 .ForMember(d => d.CalculationType, opt => opt.ResolveUsing(o => Enum.Parse(typeof(Calcs.CalculationType), o.CalculationType, true)));
 
             CreateMap<Specification, SpecificationSummary>()
