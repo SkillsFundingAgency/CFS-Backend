@@ -935,7 +935,9 @@ namespace CalculateFunding.Services.Specs
                     FundingStreamNames = specificationVersion.FundingStreams.Select(s=>s.Name).ToArray(),
                     FundingPeriodId = specificationVersion.FundingPeriod.Id,
                     FundingPeriodName = specificationVersion.FundingPeriod.Name,
-                    LastUpdatedDate = DateTimeOffset.Now
+                    LastUpdatedDate = DateTimeOffset.Now,
+                    Status = Enum.GetName(typeof(PublishStatus), specificationVersion.PublishStatus),
+                    Description = specificationVersion.Description,
                 }
             });
 
