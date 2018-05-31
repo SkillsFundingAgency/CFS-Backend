@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Specs
         private FacetFilterType[] Facets = {
             new FacetFilterType("status"),
             new FacetFilterType("fundingPeriodName"),
-            new FacetFilterType("fundingStreamNames")
+            new FacetFilterType("fundingStreamNames", true)
         };
 
         public SpecificationsSearchService(ISearchRepository<SpecificationIndex> searchRepository, ILogger logger)
