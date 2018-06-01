@@ -255,23 +255,14 @@ namespace CalculateFunding.Services.Specs
                     fundingStreams.AddRange(fundingStreamsResult);
                 }
 
-                result = new SpecificationCurrentVersion()
-                {
-                    DataDefinitionRelationshipIds = specification.Content.Current.DataDefinitionRelationshipIds,
-                    Description = specification.Content.Current.Description,
-                    FundingPeriod = specification.Content.Current.FundingPeriod,
-                    Id = specification.Content.Id,
-                    LastUpdatedDate = specification.UpdatedAt,
-                    Name = specification.Content.Name,
-                    Policies = specification.Content.Current.Policies,
-                    FundingStreams = fundingStreams,
-                };
+                result = ConvertSpecificationToCurrentVersion(specification, fundingStreams);
 
                 await _cacheProvider.SetAsync(cacheKey, result, TimeSpan.FromDays(1), true);
             }
 
             return new OkObjectResult(result);
         }
+
 
         public async Task<IActionResult> GetSpecificationsByFundingPeriodId(HttpRequest request)
         {
@@ -790,6 +781,7 @@ namespace CalculateFunding.Services.Specs
             };
 
             List<Reference> fundingStreams = new List<Reference>();
+            List<FundingStream> fundingStreamObjects = new List<FundingStream>();
             foreach (string fundingStreamId in createModel.FundingStreamIds)
             {
                 FundingStream fundingStream = await _specificationsRepository.GetFundingStreamById(fundingStreamId);
@@ -799,6 +791,7 @@ namespace CalculateFunding.Services.Specs
                 }
 
                 fundingStreams.Add(new Reference(fundingStream.Id, fundingStream.Name));
+                fundingStreamObjects.Add(fundingStream);
             }
 
             if (!fundingStreams.Any())
@@ -810,10 +803,12 @@ namespace CalculateFunding.Services.Specs
 
             specification.Save(specificationVersion);
 
-            HttpStatusCode statusCode = await _specificationsRepository.CreateSpecification(specification);
+            DocumentEntity<Specification> repositoryCreateResult = await _specificationsRepository.CreateSpecification(specification);
 
-            if (!statusCode.IsSuccess())
-                return new StatusCodeResult((int)statusCode);
+            if (repositoryCreateResult == null)
+            {
+                return new InternalServerErrorResult("Error creating specification in repository");
+            }
 
             await _searchRepository.Index(new List<SpecificationIndex>
             {
@@ -825,13 +820,18 @@ namespace CalculateFunding.Services.Specs
                     FundingStreamNames = specificationVersion.FundingStreams.Select(s=>s.Name).ToArray(),
                     FundingPeriodId = specificationVersion.FundingPeriod.Id,
                     FundingPeriodName = specificationVersion.FundingPeriod.Name,
-                    LastUpdatedDate = DateTimeOffset.Now
+                    LastUpdatedDate = repositoryCreateResult.CreatedAt,
+                    Description= specificationVersion.Description,
+                    Status = Enum.GetName(typeof(PublishStatus), specificationVersion.PublishStatus),
                 }
             });
 
             await ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id);
 
-            return new OkObjectResult(specification);
+            SpecificationCurrentVersion result = ConvertSpecificationToCurrentVersion(repositoryCreateResult, fundingStreamObjects);
+
+
+            return new OkObjectResult(result);
         }
 
         public async Task<IActionResult> EditSpecification(HttpRequest request)
@@ -1524,6 +1524,21 @@ namespace CalculateFunding.Services.Specs
             }
 
             return properties;
+        }
+
+        private static SpecificationCurrentVersion ConvertSpecificationToCurrentVersion(DocumentEntity<Specification> specification, IEnumerable<FundingStream> fundingStreams)
+        {
+            return new SpecificationCurrentVersion()
+            {
+                DataDefinitionRelationshipIds = specification.Content.Current.DataDefinitionRelationshipIds,
+                Description = specification.Content.Current.Description,
+                FundingPeriod = specification.Content.Current.FundingPeriod,
+                Id = specification.Content.Id,
+                LastUpdatedDate = specification.UpdatedAt,
+                Name = specification.Content.Name,
+                Policies = specification.Content.Current.Policies,
+                FundingStreams = fundingStreams,
+            };
         }
     }
 }

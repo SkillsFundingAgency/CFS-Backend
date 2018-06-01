@@ -47,9 +47,9 @@ namespace CalculateFunding.Services.Specs
             return Task.FromResult(fundingStreams.AsEnumerable());
         }
 
-        public Task<HttpStatusCode> CreateSpecification(Specification specification)
+        public Task<DocumentEntity<Specification>> CreateSpecification(Specification specification)
         {
-            return _repository.CreateAsync(specification);
+            return _repository.CreateDocumentAsync(specification);
         }
 
         public Task<HttpStatusCode> UpdateSpecification(Specification specification)

@@ -20,6 +20,8 @@ using System.Net;
 using System.Security.Claims;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Models;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -100,12 +102,39 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetFundingStreamById(Arg.Is(fundingStreamId))
                 .Returns(fundingStream);
 
+            DateTime createdDate = new DateTime(2018, 1, 2, 5, 6, 2);
+
+            SpecificationVersion specificationVersion = new SpecificationVersion()
+            {
+                Description = "Specification Description",
+                FundingPeriod = new Reference("fp1", "Funding Period 1"),
+                Date = createdDate,
+                PublishStatus = Models.Versioning.PublishStatus.Draft,
+                FundingStreams = new List<Reference>() { new Reference(FundingStreamId, "Funding Stream 1") },
+                Name = "Specification Name",
+                Version = 1,
+            };
+
+            DocumentEntity<Specification> createdSpecification = new DocumentEntity<Specification>()
+            {
+                Content = new Specification()
+                {
+                    Name = "Specification Name",
+                    Id = "createdSpec",
+                    Current = specificationVersion,
+                    History = new List<SpecificationVersion>()
+                     {
+                          specificationVersion,
+                     },
+                },
+            };
+
             specificationsRepository
                 .CreateSpecification(Arg.Is<Specification>(
                     s => s.Name == specificationCreateModel.Name &&
                     s.Current.Description == specificationCreateModel.Description &&
                     s.Current.FundingPeriod.Id == fundingPeriodId))
-                .Returns(HttpStatusCode.Created);
+                .Returns(createdSpecification);
 
             // Act
             IActionResult result = await specificationsService.CreateSpecification(request);
@@ -117,7 +146,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .Which
                 .Value
                 .Should()
-                .BeOfType<Specification>()
+                .BeOfType<SpecificationCurrentVersion>()
                 .And
                 .NotBeNull();
 

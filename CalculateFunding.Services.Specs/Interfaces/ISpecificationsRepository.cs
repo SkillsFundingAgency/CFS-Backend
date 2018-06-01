@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
 {
     public interface ISpecificationsRepository
     {
-        Task<HttpStatusCode> CreateSpecification(Specification specification);
+        Task<DocumentEntity<Specification>> CreateSpecification(Specification specification);
         Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId);
         Task<FundingStream> GetFundingStreamById(string fundingStreamId);
         Task<Specification> GetSpecificationById(string specificationId);

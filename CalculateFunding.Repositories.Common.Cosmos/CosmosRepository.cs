@@ -253,6 +253,20 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return response.StatusCode;
         }
 
+        public async Task<DocumentEntity<T>> CreateDocumentAsync<T>(T entity, string partitionKey = null) where T : IIdentifiable
+        {
+            var doc = new DocumentEntity<T>(entity)
+            {
+                DocumentType = GetDocumentType<T>(),
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            var response = await _documentClient.UpsertDocumentAsync(_collectionUri, doc);
+
+            return doc;
+        }
+
         public async Task<HttpStatusCode> UpsertAsync<T>(T entity, string partitionKey = null) where T : IIdentifiable
         {
             DocumentEntity<T> doc = _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri).Where(d => d.Id == entity.Id).AsEnumerable().SingleOrDefault();
