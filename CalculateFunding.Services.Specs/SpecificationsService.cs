@@ -1639,6 +1639,7 @@ namespace CalculateFunding.Services.Specs
                 Name = specification.Content.Name,
                 Policies = specification.Content.Current.Policies,
                 FundingStreams = fundingStreams,
+                PublishStatus = specification.Content.Current.PublishStatus,
             };
         }
     }

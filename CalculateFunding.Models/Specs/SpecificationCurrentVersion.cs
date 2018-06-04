@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs
@@ -24,5 +25,8 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("fundingStreams")]
         public IEnumerable<FundingStream> FundingStreams { get; set; }
+
+        [JsonProperty("publishStatus")]
+        public PublishStatus PublishStatus { get; set; }
     }
 }
