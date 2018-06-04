@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -45,7 +46,7 @@ namespace CalculateFunding.Services.Results
 
             var resultsString = JsonConvert.SerializeObject(resultsArray);
 
-            resultsString = resultsString.Replace("-7.9228162514264338E+28", "0");
+            resultsString = resultsString.ConvertExpotentialNumber();
 
             DocumentEntity<ProviderResult>[] documentEntities = JsonConvert.DeserializeObject<DocumentEntity<ProviderResult>[]>(resultsString);
 
