@@ -656,7 +656,7 @@ namespace CalculateFunding.Services.Calcs
             };
         }
 
-        async public Task<IActionResult> PublishCalculationVersion(HttpRequest request)
+        async public Task<IActionResult> EditCalculationStatus(HttpRequest request)
         {
             request.Query.TryGetValue("calculationId", out var calcId);
 
@@ -664,46 +664,81 @@ namespace CalculateFunding.Services.Calcs
 
             if (string.IsNullOrWhiteSpace(calculationId))
             {
-                _logger.Error("No calculation Id was provided to PublishCalculationVersion");
+                _logger.Error("No calculation Id was provided to EditCalculationStatus");
 
                 return new BadRequestObjectResult("Null or empty calculation Id provided");
+            }
+
+            string json = await request.GetRawBodyStringAsync();
+
+            EditStatusModel editStatusModel = null;
+
+            try
+            {
+                editStatusModel = JsonConvert.DeserializeObject<EditStatusModel>(json);
+
+                if (editStatusModel == null)
+                {
+                    _logger.Error("A null status model was provided");
+                    return new BadRequestObjectResult("Null status model provided");
+                }
+            }
+            catch (JsonSerializationException jse)
+            {
+                _logger.Error(jse, $"An invalid status was provided for calculation: {calculationId}");
+
+                return new BadRequestObjectResult("An invalid status was provided");
             }
 
             Calculation calculation = await _calculationsRepository.GetCalculationById(calculationId);
 
             if (calculation == null)
             {
-                _logger.Information($"A calculation was not found for calculation id {calculationId}");
+                _logger.Warning($"A calculation was not found for calculation id {calculationId}");
 
-                return new NotFoundResult();
+                return new NotFoundObjectResult("Calculation not found");
             }
 
             if (calculation.Current == null)
             {
-                _logger.Information($"A current calculation was not found for calculation id {calculationId}");
+                _logger.Warning($"A current calculation was not found for calculation id {calculationId}");
 
                 return new NotFoundResult();
             }
 
-            if (calculation.Current.PublishStatus != PublishStatus.Published)
+            if (calculation.Current.PublishStatus == editStatusModel.PublishStatus)
             {
-                Models.Specs.SpecificationSummary specificationSummary = await _specsRepository.GetSpecificationSummaryById(calculation.SpecificationId);
-                if (specificationSummary == null)
-                {
-                    return new PreconditionFailedResult("Specification not found");
-                }
-
-                calculation.Current.PublishStatus = PublishStatus.Published;
-
-                calculation.Published = calculation.Current;
-
-                await _calculationsRepository.UpdateCalculation(calculation);
-
-                await UpdateBuildProject(calculation.SpecificationId);
-
-
-                await UpdateSearch(calculation, specificationSummary.Name);
+                return new OkObjectResult(calculation.Current);
             }
+
+            Models.Specs.SpecificationSummary specificationSummary = await _specsRepository.GetSpecificationSummaryById(calculation.SpecificationId);
+            if (specificationSummary == null)
+            {
+                return new PreconditionFailedResult("Specification not found");
+            }
+
+            Reference user = request.GetUser();
+
+            CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
+
+            if (editStatusModel.PublishStatus == PublishStatus.Approved)
+            {
+                calculation.Publish();
+            }
+            else
+            {
+                calculationVersion.PublishStatus = editStatusModel.PublishStatus;
+                calculation.Save(calculationVersion);
+            }
+
+            HttpStatusCode statusCode = await _calculationsRepository.UpdateCalculation(calculation);
+
+            if (!statusCode.IsSuccess())
+                return new StatusCodeResult((int)statusCode);
+
+            await UpdateBuildProject(calculation.SpecificationId);
+
+            await UpdateSearch(calculation, specificationSummary.Name);
 
             return new OkObjectResult(calculation.Current);
         }

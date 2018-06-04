@@ -257,7 +257,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
-                    PublishStatus = PublishStatus.Published
+                    PublishStatus = PublishStatus.Approved
                 },
                 SpecificationId = specificationId
             };
@@ -336,7 +336,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
-                    PublishStatus = PublishStatus.Published
+                    PublishStatus = PublishStatus.Approved
                 },
                 CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
                 SpecificationId = specificationId

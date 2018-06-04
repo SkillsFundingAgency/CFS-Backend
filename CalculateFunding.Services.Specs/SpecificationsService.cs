@@ -957,6 +957,95 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specification);
         }
 
+        public async Task<IActionResult> EditSpecificationStatus(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out var specId);
+            string specificationId = specId.FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to EditSpecification");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+            string json = await request.GetRawBodyStringAsync();
+
+            EditStatusModel editStatusModel = null;
+
+            try
+            {
+                editStatusModel = JsonConvert.DeserializeObject<EditStatusModel>(json);
+
+                if(editStatusModel == null)
+                {
+                    _logger.Error("A null status model was provided");
+                    return new BadRequestObjectResult("Null status model provided");
+                }
+            }
+            catch (JsonSerializationException jse)
+            {
+                _logger.Error(jse, $"An invalid status was provided for specification: {specificationId}");
+
+                return new BadRequestObjectResult("An invalid status was provided");
+            }
+
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+            if (specification == null)
+            {
+                _logger.Warning($"Failed to find specification for id: {specificationId}");
+                return new NotFoundObjectResult("Specification not found");
+            }
+
+            if(specification.Current.PublishStatus == editStatusModel.PublishStatus)
+            {
+                return new OkObjectResult(specification);
+            }
+
+            Reference user = request.GetUser();
+
+            SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
+
+            HttpStatusCode statusCode;
+
+            if(editStatusModel.PublishStatus == PublishStatus.Approved)
+            {
+                statusCode = await PublishSpecification(specification);
+            }
+            else
+            {
+
+                specificationVersion.PublishStatus = editStatusModel.PublishStatus;
+
+                statusCode = await UpdateSpecification(specification, specificationVersion);
+            }
+
+            if (!statusCode.IsSuccess())
+                return new StatusCodeResult((int)statusCode);
+
+            await _searchRepository.Index(new[]
+            {
+                new SpecificationIndex
+                {
+                    Id = specification.Id,
+                    Name = specificationVersion.Name,
+                    FundingStreamIds = specificationVersion.FundingStreams.Select(s=>s.Id).ToArray(),
+                    FundingStreamNames = specificationVersion.FundingStreams.Select(s=>s.Name).ToArray(),
+                    FundingPeriodId = specificationVersion.FundingPeriod.Id,
+                    FundingPeriodName = specificationVersion.FundingPeriod.Name,
+                    LastUpdatedDate = DateTimeOffset.Now,
+                    Status = editStatusModel.PublishStatus.ToString(),
+                    Description = specificationVersion.Description,
+                }
+            });
+
+            await TaskHelper.WhenAllAndThrow(
+                 ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id),
+                _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}")
+                );
+
+            //await SendSpecificationComparisonModelMessageToTopic(specificationId, ServiceBusConstants.TopicNames.EditSpecification, specification.Current, previousSpecificationVersion, request);
+
+            return new OkObjectResult(specification);
+        }
+
         Task SendSpecificationComparisonModelMessageToTopic(string specificationId, string topicName, SpecificationVersion current, SpecificationVersion previous, HttpRequest request)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
@@ -1491,6 +1580,18 @@ namespace CalculateFunding.Services.Specs
         private async Task<HttpStatusCode> UpdateSpecification(Specification specification, SpecificationVersion specificationVersion)
         {
             specification.Save(specificationVersion);
+            HttpStatusCode result = await _specificationsRepository.UpdateSpecification(specification);
+            if (result == HttpStatusCode.OK)
+            {
+                await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
+            }
+
+            return result;
+        }
+
+        private async Task<HttpStatusCode> PublishSpecification(Specification specification)
+        {
+            specification.Publish();
             HttpStatusCode result = await _specificationsRepository.UpdateSpecification(specification);
             if (result == HttpStatusCode.OK)
             {

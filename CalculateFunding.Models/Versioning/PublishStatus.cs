@@ -7,7 +7,7 @@ namespace CalculateFunding.Models.Versioning
     public enum PublishStatus
     {
         Draft,
-        Published,
+        Approved,
         Updated,
         Archived
     }

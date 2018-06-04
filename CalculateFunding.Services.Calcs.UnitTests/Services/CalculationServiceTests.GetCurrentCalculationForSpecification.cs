@@ -183,7 +183,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     Current = new CalculationVersion()
                     {
                         SourceCode = "Return 50",
-                        PublishStatus = PublishStatus.Published,
+                        PublishStatus = PublishStatus.Approved,
                         Author = new Reference("userId", "User Name"),
                         Version = 5,
                         Date= calc2DateTime,
@@ -255,7 +255,7 @@ namespace CalculateFunding.Services.Calcs.Services
                         Id ="two",
                         Name ="Calculation Name Two",
                         SourceCode = "Return 50",
-                        Status = "Published",
+                        Status = "Approved",
                         Author = new Reference("userId", "User Name"),
                         CalculationSpecification = new Reference("specId", "Calculation Specification ID"),
                         CalculationType = "Number",

@@ -130,6 +130,18 @@ namespace CalculateFunding.Functions.Specs.Http
             }
         }
 
+        [FunctionName("specification-edit-status")]
+        public static async Task<IActionResult> RunEditSpecificationStatus(
+           [HttpTrigger(AuthorizationLevel.Function, "put")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateScope())
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+
+                return await svc.EditSpecificationStatus(req);
+            }
+        }
+
         [FunctionName("specifications-search")]
         public static async Task<IActionResult> RunSearchSpecifications(
             [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)

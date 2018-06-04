@@ -1073,7 +1073,7 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             Calculation calculation = CreateCalculation();
-            calculation.Current.PublishStatus = PublishStatus.Published;
+            calculation.Current.PublishStatus = PublishStatus.Approved;
 
             SaveSourceCodeVersion model = new SaveSourceCodeVersion
             {

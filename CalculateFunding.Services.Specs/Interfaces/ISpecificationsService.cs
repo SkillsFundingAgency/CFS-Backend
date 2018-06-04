@@ -58,5 +58,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> EditSpecification(HttpRequest request);
 
         Task<IActionResult> EditPolicy(HttpRequest request);
+
+        Task<IActionResult> EditSpecificationStatus(HttpRequest request);
     }
 }

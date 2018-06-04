@@ -21,7 +21,7 @@ namespace CalculateFunding.Models.Versioning
         {
             container.History = container.History ?? new List<T>();
 
-            container.Current.PublishStatus = PublishStatus.Published;
+            container.Current.PublishStatus = PublishStatus.Approved;
             container.Published = container.Current.Clone() as T;
             container.History.Add(container.Published);
         }
@@ -71,6 +71,14 @@ namespace CalculateFunding.Models.Versioning
                     case PublishStatus.Draft:
                         item.PublishStatus = PublishStatus.Draft;
                         break;
+
+                    case PublishStatus.Approved:
+                        if (item.PublishStatus == PublishStatus.Draft)
+                            break;
+                        else
+                            item.PublishStatus = PublishStatus.Updated;
+                        break;
+
                     default:
                         item.PublishStatus = PublishStatus.Updated;
                         break;

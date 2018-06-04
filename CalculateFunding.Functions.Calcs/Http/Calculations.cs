@@ -60,15 +60,15 @@ namespace CalculateFunding.Functions.Calcs.Http
             }
         }
 
-        [FunctionName("calculation-publish")]
-        public static Task<IActionResult> RunCalculationPublish(
-         [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        [FunctionName("calculation-edit-status")]
+        public static Task<IActionResult> RunCalculationEditStatus(
+         [HttpTrigger(AuthorizationLevel.Function, "put")] HttpRequest req, ILogger log)
         {
             using (var scope = IocConfig.Build().CreateHttpScope(req))
             {
                 ICalculationService svc = scope.ServiceProvider.GetService<ICalculationService>();
 
-                return svc.PublishCalculationVersion(req);
+                return svc.EditCalculationStatus(req);
             }
         }
 
