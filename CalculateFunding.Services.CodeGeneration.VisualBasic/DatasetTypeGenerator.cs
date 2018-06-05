@@ -94,7 +94,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             var propertyType = GetType(fieldDefinition.Type);
             var builder = new StringBuilder();
             builder.AppendLine($"<Field(Id := \"{fieldDefinition.Id}\", Name := \"{fieldDefinition.Name}\")>");
-            builder.AppendLine($"<Description(Description := \"{fieldDefinition.Description}\")>");
+            builder.AppendLine($"<Description(Description := \"{fieldDefinition.Description?.Replace("\"", "\"\"")}\")>");
             builder.AppendLine($"Public Property {Identifier(fieldDefinition.Name)}() As {Identifier($"{propertyType}")}");
             var tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
             return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
@@ -108,7 +108,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             if (!string.IsNullOrWhiteSpace(datasetRelationship?.DatasetDefinition?.Description))
             {
-                builder.AppendLine($"<Description(Description := \"{datasetRelationship.DatasetDefinition.Description}\")>");
+                builder.AppendLine($"<Description(Description := \"{datasetRelationship.DatasetDefinition.Description?.Replace("\"", "\"\"")}\")>");
             }
 
             builder.AppendLine(datasetRelationship.DataGranularity == DataGranularity.SingleRowPerProvider

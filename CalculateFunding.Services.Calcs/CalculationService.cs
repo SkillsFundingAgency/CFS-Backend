@@ -85,6 +85,19 @@ namespace CalculateFunding.Services.Calcs
         {
             IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations);
 
+            //string sourceDirectory = @"c:\dev\vbout";
+            //foreach (SourceFile sourceFile in sourceFiles)
+            //{
+            //    string filename = sourceDirectory + "\\" + sourceFile.FileName;
+            //    string directory = System.IO.Path.GetDirectoryName(filename);
+            //    if (!System.IO.Directory.Exists(directory))
+            //    {
+            //        System.IO.Directory.CreateDirectory(directory);
+            //    }
+
+            //    System.IO.File.WriteAllText(filename, sourceFile.SourceCode);
+            //}
+
             ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
 
             return compiler.GenerateCode(sourceFiles?.ToList());

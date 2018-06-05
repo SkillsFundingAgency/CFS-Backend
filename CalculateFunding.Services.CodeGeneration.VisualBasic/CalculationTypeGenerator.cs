@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             if (!string.IsNullOrWhiteSpace(calc.Description))
             {
-                builder.AppendLine($"<Description(Description := \"{calc.Description}\")>");
+                builder.AppendLine($"<Description(Description := \"{calc.Description?.Replace("\"","\"\"")}\")>");
             }
 
             builder.AppendLine($"Public Function {Identifier(calc.Name)} As Decimal");
