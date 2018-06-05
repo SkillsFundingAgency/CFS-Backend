@@ -329,7 +329,7 @@ namespace CalculateFunding.Services.Calcs
             return _buildProjectsRepository.UpdateBuildProject(buildProject);
         }
 
-        Build Compile(BuildProject buildProject, IEnumerable<Models.Calcs.Calculation> calculations)    
+        Build Compile(BuildProject buildProject, IEnumerable<Models.Calcs.Calculation> calculations)
         {
             IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations);
 

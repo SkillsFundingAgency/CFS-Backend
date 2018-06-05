@@ -482,11 +482,11 @@ namespace CalculateFunding.Services.Calcs
 
             Calculation calculation = calculationsToUpdate.FirstOrDefault(m => m.CalculationSpecification.Id == calculationId);
 
-            if(calculation == null)
+            if (calculation == null)
             {
                 calculation = await _calculationsRepository.GetCalculationByCalculationSpecificationId(calculationId);
-                
-                if(calculation == null)
+
+                if (calculation == null)
                 {
                     throw new Exception($"Calculation could not be found for calculation id : {calculationId}");
                 }
@@ -502,14 +502,14 @@ namespace CalculateFunding.Services.Calcs
 
             calculation.AllocationLine = calculationVersionComparison.Current.AllocationLine;
 
-            if ((int)calculation.CalculationType != (int) calculationVersionComparison.Current.CalculationType)
+            if ((int)calculation.CalculationType != (int)calculationVersionComparison.Current.CalculationType)
             {
                 if (calculationVersionComparison.Current.CalculationType == Models.Specs.CalculationType.Number)
                 {
                     calculation.AllocationLine = null;
                 }
 
-                calculation.CalculationType = (CalculationType) calculationVersionComparison.Current.CalculationType;
+                calculation.CalculationType = (CalculationType)calculationVersionComparison.Current.CalculationType;
             }
 
             await _calculationsRepository.UpdateCalculations(calculationsToUpdate);
@@ -724,6 +724,11 @@ namespace CalculateFunding.Services.Calcs
                 return new OkObjectResult(calculation.Current);
             }
 
+            if ((calculation.Current.PublishStatus == PublishStatus.Approved || calculation.Current.PublishStatus == PublishStatus.Updated) && editStatusModel.PublishStatus == PublishStatus.Draft)
+            {
+                return new BadRequestObjectResult("Publish status can't be changed to Draft from Updated or Approved");
+            }
+
             Models.Specs.SpecificationSummary specificationSummary = await _specsRepository.GetSpecificationSummaryById(calculation.SpecificationId);
             if (specificationSummary == null)
             {
@@ -753,7 +758,12 @@ namespace CalculateFunding.Services.Calcs
 
             await UpdateSearch(calculation, specificationSummary.Name);
 
-            return new OkObjectResult(calculation.Current);
+            PublishStatusResultModel result = new PublishStatusResultModel()
+            {
+                PublishStatus = calculation.Current.PublishStatus,
+            };
+
+            return new OkObjectResult(result);
         }
 
         public async Task<IActionResult> GetCalculationCodeContext(HttpRequest request)
@@ -960,9 +970,9 @@ namespace CalculateFunding.Services.Calcs
                 CalculationSpecification = calculation.CalculationSpecification,
                 FundingPeriodName = calculation.FundingPeriod.Name,
                 FundingPeriodId = calculation.FundingPeriod.Id,
+                PublishStatus = calculation.Current.PublishStatus,
                 Id = calculation.Id,
                 Name = calculation.Name,
-                Status = calculation.Current?.PublishStatus.ToString(),
                 SourceCode = calculation.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode,
                 Version = calculation.Current.Version,
                 CalculationType = calculation.CalculationType.ToString(),

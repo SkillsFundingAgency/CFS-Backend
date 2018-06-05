@@ -389,7 +389,11 @@ namespace CalculateFunding.Services.Specs.Services
                 .Which
                 .Value
                 .Should()
-                .Be(specification);
+                .BeOfType<PublishStatusResultModel>()
+                .Which
+                .PublishStatus
+                .Should()
+                .Be(PublishStatus.Approved);
 
             specification
                 .Current
@@ -404,7 +408,7 @@ namespace CalculateFunding.Services.Specs.Services
         }
 
         [TestMethod]
-        public async Task EditSpecificationStatus_GivenSpecificationISApprovedButNewStatusIsDraft_UpdatesSearchReturnsOK()
+        public async Task EditSpecificationStatus_GivenSpecificationISApprovedButNewStatusIsDraft_ThenBadRequestReturned()
         {
             //Arrange
             EditStatusModel specificationEditStatusModel = new EditStatusModel
@@ -456,28 +460,28 @@ namespace CalculateFunding.Services.Specs.Services
             SpecificationsService service = CreateService(
                 logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository);
 
-            //Act
+            // Act
             IActionResult result = await service.EditSpecificationStatus(request);
 
-            //Arrange
+            // Arrange
             result
                 .Should()
-                .BeOfType<OkObjectResult>()
+                .BeOfType<BadRequestObjectResult>()
                 .Which
                 .Value
                 .Should()
-                .Be(specification);
+                .Be("Publish status can't be changed to Draft from Updated or Approved");
 
             specification
                 .Current
                 .PublishStatus
                 .Should()
-                .Be(PublishStatus.Draft);
+                .Be(PublishStatus.Approved);
 
             await
                 searchRepository
-                .Received(1)
-                .Index(Arg.Is<IEnumerable<SpecificationIndex>>(m => m.First().Status == "Draft"));
+                .Received(0)
+                .Index(Arg.Any<IEnumerable<SpecificationIndex>>());
         }
 
         [TestMethod]
@@ -543,7 +547,11 @@ namespace CalculateFunding.Services.Specs.Services
                 .Which
                 .Value
                 .Should()
-                .Be(specification);
+                .BeOfType<PublishStatusResultModel>()
+                .Which
+                .PublishStatus
+                .Should()
+                .Be(PublishStatus.Updated);
 
             specification
                 .Current

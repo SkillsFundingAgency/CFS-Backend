@@ -129,7 +129,5 @@ namespace CalculateFunding.Services.Calcs
 
             return new OkObjectResult(response);
         }
-
     }
-
 }

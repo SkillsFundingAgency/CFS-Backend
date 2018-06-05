@@ -265,7 +265,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     FundingPeriodId = "18/19",
                     CalculationType = "Number",
                     SpecificationId = specificationId,
-                    Status = "Draft",
+                    PublishStatus =  PublishStatus.Draft,
                 });
 
             await calculationsRepository

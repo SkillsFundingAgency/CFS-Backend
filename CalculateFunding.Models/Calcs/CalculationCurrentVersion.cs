@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Versioning;
 using System;
 
 namespace CalculateFunding.Models.Calcs
@@ -13,8 +14,6 @@ namespace CalculateFunding.Models.Calcs
 
         public Reference CalculationSpecification { get; set; }
 
-        public string Status { get; set; }
-
         public string SourceCode { get; set; }
 
         public DateTime? Date { get; set; }
@@ -24,5 +23,7 @@ namespace CalculateFunding.Models.Calcs
         public int Version { get; set; }
 
         public string CalculationType { get; set; }
+
+        public PublishStatus PublishStatus { get; set; }
     }
 }

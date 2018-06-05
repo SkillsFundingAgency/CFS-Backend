@@ -974,7 +974,7 @@ namespace CalculateFunding.Services.Specs
             {
                 editStatusModel = JsonConvert.DeserializeObject<EditStatusModel>(json);
 
-                if(editStatusModel == null)
+                if (editStatusModel == null)
                 {
                     _logger.Error("A null status model was provided");
                     return new BadRequestObjectResult("Null status model provided");
@@ -994,9 +994,14 @@ namespace CalculateFunding.Services.Specs
                 return new NotFoundObjectResult("Specification not found");
             }
 
-            if(specification.Current.PublishStatus == editStatusModel.PublishStatus)
+            if (specification.Current.PublishStatus == editStatusModel.PublishStatus)
             {
                 return new OkObjectResult(specification);
+            }
+
+            if ((specification.Current.PublishStatus == PublishStatus.Approved || specification.Current.PublishStatus == PublishStatus.Updated) && editStatusModel.PublishStatus == PublishStatus.Draft)
+            {
+                return new BadRequestObjectResult("Publish status can't be changed to Draft from Updated or Approved");
             }
 
             Reference user = request.GetUser();
@@ -1005,7 +1010,7 @@ namespace CalculateFunding.Services.Specs
 
             HttpStatusCode statusCode;
 
-            if(editStatusModel.PublishStatus == PublishStatus.Approved)
+            if (editStatusModel.PublishStatus == PublishStatus.Approved)
             {
                 statusCode = await PublishSpecification(specification);
             }
@@ -1041,9 +1046,12 @@ namespace CalculateFunding.Services.Specs
                 _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}")
                 );
 
-            //await SendSpecificationComparisonModelMessageToTopic(specificationId, ServiceBusConstants.TopicNames.EditSpecification, specification.Current, previousSpecificationVersion, request);
+            PublishStatusResultModel result = new PublishStatusResultModel()
+            {
+                PublishStatus = specification.Current.PublishStatus,
+            };
 
-            return new OkObjectResult(specification);
+            return new OkObjectResult(result);
         }
 
         Task SendSpecificationComparisonModelMessageToTopic(string specificationId, string topicName, SpecificationVersion current, SpecificationVersion previous, HttpRequest request)
@@ -1268,6 +1276,7 @@ namespace CalculateFunding.Services.Specs
             calculation.Name = editModel.Name;
             calculation.Description = editModel.Description;
             calculation.LastUpdated = DateTime.UtcNow;
+            calculation.CalculationType = editModel.CalculationType;
 
             if (calculation.CalculationType == CalculationType.Number)
             {

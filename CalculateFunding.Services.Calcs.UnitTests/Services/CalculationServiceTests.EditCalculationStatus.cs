@@ -519,7 +519,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Which
                 .Value
                 .Should()
-                .Be(calculation.Current);
+                .BeOfType<PublishStatusResultModel>()
+                .Which
+                .PublishStatus
+                .Should()
+                .Be(PublishStatus.Approved);
 
             calculation
                 .Current
@@ -600,22 +604,22 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             result
                 .Should()
-                .BeOfType<OkObjectResult>()
+                .BeOfType<BadRequestObjectResult>()
                 .Which
                 .Value
                 .Should()
-                .Be(calculation.Current);
+                .Be("Publish status can't be changed to Draft from Updated or Approved");
 
             calculation
                 .Current
                 .PublishStatus
                 .Should()
-                .Be(PublishStatus.Draft);
+                .Be(PublishStatus.Approved);
 
             await
                 searchRepository
-                .Received(1)
-                .Index(Arg.Is<IEnumerable<CalculationIndex>>(m => m.First().Status == "Draft"));
+                .Received(0)
+                .Index(Arg.Any<IEnumerable<CalculationIndex>>());
         }
 
         [TestMethod]
@@ -688,7 +692,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Which
                 .Value
                 .Should()
-                .Be(calculation.Current);
+                .BeOfType<PublishStatusResultModel>()
+                .Which
+                .PublishStatus
+                .Should()
+                .Be(PublishStatus.Updated);
 
             calculation
                 .Current
