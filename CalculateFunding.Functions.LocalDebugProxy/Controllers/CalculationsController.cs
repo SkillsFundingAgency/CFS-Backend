@@ -100,7 +100,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
         {
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
-            return _calcsService.EditCalculationStatus(ControllerContext.HttpContext.Request);
+            return _calcsService.UpdateCalculationStatus(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/calcs/compile-preview")]

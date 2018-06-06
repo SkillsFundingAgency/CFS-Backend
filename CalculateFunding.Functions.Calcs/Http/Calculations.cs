@@ -68,7 +68,7 @@ namespace CalculateFunding.Functions.Calcs.Http
             {
                 ICalculationService svc = scope.ServiceProvider.GetService<ICalculationService>();
 
-                return svc.EditCalculationStatus(req);
+                return svc.UpdateCalculationStatus(req);
             }
         }
 

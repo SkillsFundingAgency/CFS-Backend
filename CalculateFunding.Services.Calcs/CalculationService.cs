@@ -657,13 +657,7 @@ namespace CalculateFunding.Services.Calcs
             await UpdateSearch(calculation, specificationSummary.Name);
 
             CalculationCurrentVersion currentVersion = GetCurrentVersionFromCalculation(calculation);
-
-            // Invalidate cached calculations for this specification
-            await _cacheProvider.KeyDeleteAsync<List<CalculationSummaryModel>>($"{CacheKeys.CalculationsSummariesForSpecification}{calculation.SpecificationId}");
-            await _cacheProvider.KeyDeleteAsync<List<CalculationCurrentVersion>>($"{CacheKeys.CurrentCalculationsForSpecification}{calculation.SpecificationId}");
-
-            // Set current version in cache
-            await _cacheProvider.SetAsync<CalculationCurrentVersion>($"{CacheKeys.CurrentCalcluation}{calculation.Id}", currentVersion, TimeSpan.FromDays(7), true);
+            await UpdateCalculationInCache(calculation, currentVersion);
 
             return new UpdateCalculationResult()
             {
@@ -673,7 +667,7 @@ namespace CalculateFunding.Services.Calcs
             };
         }
 
-        async public Task<IActionResult> EditCalculationStatus(HttpRequest request)
+        async public Task<IActionResult> UpdateCalculationStatus(HttpRequest request)
         {
             request.Query.TryGetValue("calculationId", out var calcId);
 
@@ -766,6 +760,9 @@ namespace CalculateFunding.Services.Calcs
             {
                 PublishStatus = calculation.Current.PublishStatus,
             };
+
+            CalculationCurrentVersion currentVersion = GetCurrentVersionFromCalculation(calculation);
+            await UpdateCalculationInCache(calculation, currentVersion);
 
             return new OkObjectResult(result);
         }
@@ -1077,6 +1074,16 @@ namespace CalculateFunding.Services.Calcs
             }
 
             return properties;
+        }
+
+        private async Task UpdateCalculationInCache(Calculation calculation, CalculationCurrentVersion currentVersion)
+        {
+            // Invalidate cached calculations for this specification
+            await _cacheProvider.KeyDeleteAsync<List<CalculationSummaryModel>>($"{CacheKeys.CalculationsSummariesForSpecification}{calculation.SpecificationId}");
+            await _cacheProvider.KeyDeleteAsync<List<CalculationCurrentVersion>>($"{CacheKeys.CurrentCalculationsForSpecification}{calculation.SpecificationId}");
+
+            // Set current version in cache
+            await _cacheProvider.SetAsync<CalculationCurrentVersion>($"{CacheKeys.CurrentCalcluation}{calculation.Id}", currentVersion, TimeSpan.FromDays(7), true);
         }
     }
 }

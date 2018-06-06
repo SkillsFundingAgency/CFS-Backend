@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger);
 
             //Act
-            IActionResult result = await service.EditCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(request);
 
             //Arrange
             result
@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger);
 
             //Act
-            IActionResult result = await service.EditCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(request);
 
             //Arrange
             result
@@ -119,7 +119,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger);
 
             //Act
-            IActionResult result = await service.EditCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(request);
 
             //Arrange
             result
@@ -178,7 +178,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: CalculationsRepository);
 
             //Act
-            IActionResult result = await service.EditCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(request);
 
             //Arrange
             result
@@ -240,7 +240,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: CalculationsRepository);
 
             //Act
-            IActionResult result = await service.EditCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(request);
 
             //Arrange
             result
@@ -298,7 +298,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: CalculationsRepository);
 
             //Act
-            IActionResult result = await service.EditCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(request);
 
             //Arrange
             result
@@ -367,7 +367,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger: logger, calculationsRepository: CalculationsRepository, specificationRepository: specificationRepository);
 
             //Act
-            IActionResult result = await service.EditCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(request);
 
             //Arrange
             result
@@ -437,7 +437,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger: logger, calculationsRepository: CalculationsRepository, specificationRepository: specificationRepository);
 
             //Act
-            IActionResult result = await service.EditCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(request);
 
             //Arrange
             result
@@ -510,7 +510,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository, specificationRepository: specificationRepository);
 
             //Act
-            IActionResult result = await service.EditCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(request);
 
             //Arrange
             result
@@ -599,7 +599,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository, specificationRepository: specificationRepository);
 
             //Act
-            IActionResult result = await service.EditCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(request);
 
             //Arrange
             result
@@ -683,7 +683,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository, specificationRepository: specificationRepository);
 
             //Act
-            IActionResult result = await service.EditCalculationStatus(request);
+            IActionResult result = await service.UpdateCalculationStatus(request);
 
             //Arrange
             result
