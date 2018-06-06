@@ -13,5 +13,6 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<HttpStatusCode> UpdateProviderResults(List<ProviderResult> results);
         Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId);
         Task<IEnumerable<DocumentEntity<ProviderResult>>> GetAllProviderResults();
+        Task<decimal> GetCalculationResultTotalForSpecificationId(string specificationId);
     }
 }

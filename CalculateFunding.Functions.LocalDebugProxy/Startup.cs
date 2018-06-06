@@ -589,6 +589,19 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 return resiliencePolicies;
             });
+
+            builder.AddSingleton<ICalcsResilliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                BulkheadPolicy calcsTotalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new Services.Calcs.ResiliencePolicies
+                {
+                    CalculationsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(calcsTotalNetworkRequestsPolicy)
+
+                };
+            });
         }
     }
 }

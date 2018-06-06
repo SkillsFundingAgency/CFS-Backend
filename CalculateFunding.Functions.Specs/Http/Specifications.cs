@@ -79,6 +79,7 @@ namespace CalculateFunding.Functions.Specs.Http
                 return svc.GetSpecifications(req);
             }
         }
+
         [FunctionName("specifications-by-year")]
         public static Task<IActionResult> RunSpecificationsByYear(
             [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
@@ -90,6 +91,17 @@ namespace CalculateFunding.Functions.Specs.Http
                     ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
                     return svc.GetSpecificationsByFundingPeriodId(req);
                 });
+            }
+        }
+
+        [FunctionName("specifications-by-fundingperiod-and-fundingstream")]
+        public static Task<IActionResult> RunGetSpecificationsByFundingPeriodIdAndFundingStreamId(
+            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+                return svc.GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(req);
             }
         }
 

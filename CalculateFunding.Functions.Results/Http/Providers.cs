@@ -118,5 +118,17 @@ namespace CalculateFunding.Functions.Results.Http
                 return svc.SearchCalculationProviderResults(req);
             }
         }
+
+        [FunctionName("get-calculation-result-totals-for-specifications")]
+        public static Task<IActionResult> RunGetFundingCalculationResultsForSpecifications(
+          [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IResultsService svc = scope.ServiceProvider.GetService<IResultsService>();
+
+                return svc.GetFundingCalculationResultsForSpecifications(req);
+            }
+        }
     }
 }

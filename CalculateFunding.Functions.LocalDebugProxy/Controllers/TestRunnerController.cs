@@ -64,7 +64,6 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _testResultsCountsService.GetResultCounts(ControllerContext.HttpContext.Request);
         }
 
-
         [Route("api/tests/get-testscenario-result-counts-for-provider")]
         [HttpGet]
         public Task<IActionResult> RunGetProviderStatusCountsForTestScenario()
@@ -81,6 +80,15 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
 
             return _testResultsService.ReIndex(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/tests/get-testscenario-result-counts-for-specifications")]
+        [HttpPost]
+        public Task<IActionResult> RunGetGetTestScenarioCountsForSpecifications()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _testResultsCountsService.GetTestScenarioCountsForSpecifications(ControllerContext.HttpContext.Request);
         }
     }
 }

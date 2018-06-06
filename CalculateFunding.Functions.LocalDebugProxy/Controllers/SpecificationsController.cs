@@ -271,5 +271,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _specService.SaveFundingPeriods(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/specs/specifications-by-fundingperiod-and-fundingstream")]
+        [HttpGet]
+        public Task<IActionResult> RunGetSpecificationsByFundingPeriodIdAndFundingStreamId()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specService.GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(ControllerContext.HttpContext.Request);
+        }
     }
 }

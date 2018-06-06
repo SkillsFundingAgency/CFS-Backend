@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Calcs;
+﻿using CalculateFunding.Models.Aggregations;
+using CalculateFunding.Models.Calcs;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -24,5 +25,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task UpdateCalculations(IEnumerable<Calculation> calculations);
 
         Task<Calculation> GetCalculationByCalculationSpecificationId(string calculationSpecificationId);
+
+        Task<StatusCounts> GetStatusCounts(string specificationId);
     }
 }

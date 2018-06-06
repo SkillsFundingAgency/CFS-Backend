@@ -15,6 +15,10 @@ using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.CodeMetadataGenerator;
+using CalculateFunding.Services.Core.Options;
+using Polly.Bulkhead;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Repositories.Common.Cosmos;
 
 namespace CalculateFunding.Functions.Calcs
 {
@@ -100,6 +104,19 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddApplicationInsightsTelemetryClient(config);
             builder.AddLogging("CalculateFunding.Functions.Calcs");
             builder.AddTelemetry();
+
+            builder.AddSingleton<ICalcsResilliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new ResiliencePolicies
+                {
+                    CalculationsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
+                    
+                };
+            });
         }
     }
 }

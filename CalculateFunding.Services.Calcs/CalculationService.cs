@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models;
+using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Exceptions;
@@ -48,6 +49,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ISpecificationRepository _specsRepository;
         private readonly ICacheProvider _cacheProvider;
         private readonly ITelemetry _telemetry;
+        private readonly Polly.Policy _calculationRepositoryPolicy;
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
@@ -61,7 +63,8 @@ namespace CalculateFunding.Services.Calcs
             IMessengerService messengerService,
             ICodeMetadataGeneratorService codeMetadataGenerator,
             ISpecificationRepository specificationRepository,
-            ICacheProvider cacheProvider)
+            ICacheProvider cacheProvider,
+            ICalcsResilliencePolicies resilliencePolicies)
         {
             Guard.ArgumentNotNull(codeMetadataGenerator, nameof(codeMetadataGenerator));
             Guard.ArgumentNotNull(specificationRepository, nameof(specificationRepository));
@@ -79,6 +82,7 @@ namespace CalculateFunding.Services.Calcs
             _codeMetadataGenerator = codeMetadataGenerator;
             _specsRepository = specificationRepository;
             _cacheProvider = cacheProvider;
+            _calculationRepositoryPolicy = resilliencePolicies.CalculationsRepository;
         }
 
         Build Compile(BuildProject buildProject, IEnumerable<Calculation> calculations)
@@ -871,6 +875,59 @@ namespace CalculateFunding.Services.Calcs
             }
 
             return new NoContentResult();
+        }
+
+        async public Task<IActionResult> GetCalculationStatusCounts(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            SpecificationListModel specifications = JsonConvert.DeserializeObject<SpecificationListModel>(json);
+
+            if (specifications == null)
+            {
+                _logger.Error("Null specification model provided");
+
+                return new BadRequestObjectResult("Null specifications model provided");
+            }
+
+            if (specifications.SpecificationIds.IsNullOrEmpty())
+            {
+                _logger.Error("Null or empty specification ids provided");
+
+                return new BadRequestObjectResult("Null or empty specification ids provided");
+            }
+
+            IList<CalculationStatusCountsModel> statusCountModels = new List<CalculationStatusCountsModel>();
+
+            IList<Task> statusCountsTasks = new List<Task>();
+          
+            foreach (string specificationId in specifications.SpecificationIds)
+            {
+                statusCountsTasks.Add(Task.Run(async() =>
+                {
+                    StatusCounts statusCounts = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetStatusCounts(specificationId));
+
+                    statusCountModels.Add(new CalculationStatusCountsModel
+                    {
+                        SpecificationId = specificationId,
+                        Approved = statusCounts.Approved,
+                        Updated = statusCounts.Updated,
+                        Draft = statusCounts.Draft
+                    });
+
+                }));
+            }
+
+            try
+            {
+                await TaskHelper.WhenAllAndThrow(statusCountsTasks.ToArray());
+            }
+            catch(Exception ex)
+            {
+                return new InternalServerErrorResult($"An error occurred when obtaining calculation steps with the follwing message: \n {ex.Message}");
+            }
+
+            return new OkObjectResult(statusCountModels);
         }
 
         async Task UpdateSearch(Calculation calculation, string specificationName)

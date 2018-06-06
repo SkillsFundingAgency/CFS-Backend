@@ -29,5 +29,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<HttpStatusCode> SaveFundingStream(FundingStream fundingStream);
         Task<IEnumerable<FundingStream>> GetFundingStreams(Expression<Func<FundingStream, bool>> query = null);
         Task SaveFundingPeriods(IEnumerable<FundingPeriod> fundingPeriods);
+        Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(string fundingPeriodId, string fundingStreamId);
     }
 }

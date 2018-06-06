@@ -9,5 +9,7 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
         Task<IActionResult> GetResultCounts(HttpRequest request);
 
         Task<IActionResult> GetTestScenarioCountsForProvider(HttpRequest request);
+
+        Task<IActionResult> GetTestScenarioCountsForSpecifications(HttpRequest request);
     }
 }

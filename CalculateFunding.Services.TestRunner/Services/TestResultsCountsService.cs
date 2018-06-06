@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models;
+using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
@@ -105,6 +106,53 @@ namespace CalculateFunding.Services.TestRunner.Services
             ProviderTestScenarioResultCounts result = await _testResultsRepository.GetProviderCounts(providerId);
 
             return new OkObjectResult(result);
+        }
+
+        public async Task<IActionResult> GetTestScenarioCountsForSpecifications(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            SpecificationListModel specifications = JsonConvert.DeserializeObject<SpecificationListModel>(json);
+
+            if (specifications == null)
+            {
+                _logger.Error("Null specification model provided");
+
+                return new BadRequestObjectResult("Null specifications model provided");
+            }
+
+            if (specifications.SpecificationIds.IsNullOrEmpty())
+            {
+                _logger.Error("Null or empty specification ids provided");
+
+                return new BadRequestObjectResult("Null or empty specification ids provided");
+            }
+
+            IList<SpecificationTestScenarioResultCounts> scenarioCountModels = new List<SpecificationTestScenarioResultCounts>();
+
+            IList<Task> scenarioCountsTasks = new List<Task>();
+
+            foreach (string specificationId in specifications.SpecificationIds)
+            {
+                scenarioCountsTasks.Add(Task.Run(async () =>
+                {
+                    SpecificationTestScenarioResultCounts scenarioResultCounts = await _testResultsRepository.GetSpecificationCounts(specificationId);
+
+                    scenarioCountModels.Add(scenarioResultCounts);
+
+                }));
+            }
+
+            try
+            {
+                await TaskHelper.WhenAllAndThrow(scenarioCountsTasks.ToArray());
+            }
+            catch (Exception ex)
+            {
+                return new InternalServerErrorResult($"An error occurred when obtaining scenario counts with the follwing message: \n {ex.Message}");
+            }
+
+            return new OkObjectResult(scenarioCountModels);
         }
     }
 }

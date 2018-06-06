@@ -107,5 +107,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _resultsService.GetScopedProviderIdsBySpecificationId(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/results/get-calculation-result-totals-for-specifications")]
+        [HttpPost]
+        public Task<IActionResult> RunGetFundingCalculationResultsForSpecifications()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _resultsService.GetFundingCalculationResultsForSpecifications(ControllerContext.HttpContext.Request);
+        }
     }
 }

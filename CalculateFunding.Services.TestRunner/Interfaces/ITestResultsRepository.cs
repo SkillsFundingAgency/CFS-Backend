@@ -14,6 +14,8 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
 
         Task<IEnumerable<DocumentEntity<TestScenarioResult>>> GetAllTestResults();
 
-        Task<ProviderTestScenarioResultCounts> GetProviderCounts(string testScenarioId);
+        Task<ProviderTestScenarioResultCounts> GetProviderCounts(string providerId);
+
+        Task<SpecificationTestScenarioResultCounts> GetSpecificationCounts(string specificationId);
     }
 }

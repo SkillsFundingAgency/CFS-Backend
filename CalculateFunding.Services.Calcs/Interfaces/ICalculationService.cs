@@ -38,5 +38,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task UpdateCalculationsForSpecification(Message message);
 
         Task UpdateCalculationsForCalculationSpecificationChange(Message message);
+
+        Task<IActionResult> GetCalculationStatusCounts(HttpRequest request);
     }
 }

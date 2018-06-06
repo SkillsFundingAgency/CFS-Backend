@@ -38,7 +38,8 @@ namespace CalculateFunding.Services.Calcs.Services
             IMessengerService messengerService = null,
             ICodeMetadataGeneratorService codeMetadataGenerator = null,
             ISpecificationRepository specificationRepository = null,
-            ICacheProvider cacheProvider = null)
+            ICacheProvider cacheProvider = null,
+            ICalcsResilliencePolicies resilliencePolicies = null)
         {
             return new CalculationService
                 (calculationsRepository ?? CreateCalculationsRepository(),
@@ -52,7 +53,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 messengerService ?? CreateMessengerService(),
                 codeMetadataGenerator ?? CreateCodeMetadataGenerator(),
                 specificationRepository ?? CreateSpecificationRepository(),
-                cacheProvider ?? CreateCacheProvider());
+                cacheProvider ?? CreateCacheProvider(),
+                resilliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies());
         }
 
         static ICalculationsRepository CreateCalculationsRepository()

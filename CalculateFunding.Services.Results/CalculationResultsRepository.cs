@@ -59,5 +59,14 @@ namespace CalculateFunding.Services.Results
 	    {
             return _cosmosRepository.BulkUpdateAsync(results, "usp_update_provider_results");
 	    }
+
+        public Task<decimal> GetCalculationResultTotalForSpecificationId(string specificationId)
+        {
+            string sql = $"SELECT value sum(c[\"value\"]) from results f join c in f.content.calcResults where c.calculationType = 10 and c[\"value\"] != null and f.content.specificationId = \"{ specificationId }\"";
+
+            IQueryable<decimal> result = _cosmosRepository.RawQuery<decimal>(sql, 1, true);
+
+            return Task.FromResult<decimal>(result.AsEnumerable().First());
+        }
     }
 }

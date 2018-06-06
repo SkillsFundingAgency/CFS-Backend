@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Net;
 using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Models.Versioning;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -79,6 +80,21 @@ namespace CalculateFunding.Services.Specs
             var specifications = query == null ? _repository.Query<Specification>() : _repository.Query<Specification>().Where(query);
 
             return Task.FromResult(specifications.AsEnumerable());
+        }
+
+        public Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(string fundingPeriodId, string fundingStreamId)
+        {
+            IQueryable<Specification> specificationsQuery =
+                _repository.Query<Specification>()
+                    .Where(m => m.Current.FundingPeriod.Id == fundingPeriodId && (m.Current.PublishStatus == PublishStatus.Approved || m.Current.PublishStatus == PublishStatus.Updated));
+
+            //This needs fixing either after doc db client uypgrade or add some sql  as cant use Any() to check funding stream ids    
+
+            IEnumerable<Specification> specifications = specificationsQuery.AsEnumerable().Where(m => m.Current.FundingStreams.Any(fs => fs.Id == fundingStreamId));
+
+            //specifications = specifications.Where(m => m.Current.FundingStreams.Any(fs => fs.Id == fundingStreamId));
+
+            return Task.FromResult(specifications);   
         }
 
         public Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(string sql)

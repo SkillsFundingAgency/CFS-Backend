@@ -20,6 +20,8 @@ using Serilog;
 using CalculateFunding.Repositories.Common.Cosmos;
 using Polly;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Models.Aggregations;
+using CalculateFunding.Services.Core.Helpers;
 
 namespace CalculateFunding.Services.Results
 {
@@ -204,6 +206,57 @@ namespace CalculateFunding.Services.Results
 
             return new OkObjectResult(result);
 
+        }
+
+        async public Task<IActionResult> GetFundingCalculationResultsForSpecifications(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            SpecificationListModel specifications = JsonConvert.DeserializeObject<SpecificationListModel>(json);
+
+            if (specifications == null)
+            {
+                _logger.Error("Null specification model provided");
+
+                return new BadRequestObjectResult("Null specifications model provided");
+            }
+
+            if (specifications.SpecificationIds.IsNullOrEmpty())
+            {
+                _logger.Error("Null or empty specification ids provided");
+
+                return new BadRequestObjectResult("Null or empty specification ids provided");
+            }
+
+            IList<FundingCalculationResultsTotals> totalsModels = new List<FundingCalculationResultsTotals>();
+
+            IList<Task> totalsTasks = new List<Task>();
+
+            foreach (string specificationId in specifications.SpecificationIds)
+            {
+                totalsTasks.Add(Task.Run(async () =>
+                {
+                    decimal totalResult = await _resultsRepository.GetCalculationResultTotalForSpecificationId(specificationId);
+
+                    totalsModels.Add(new FundingCalculationResultsTotals
+                    {
+                        SpecificationId = specificationId,
+                        TotalResult = totalResult
+                    });
+
+                }));
+            }
+
+            try
+            {
+                await TaskHelper.WhenAllAndThrow(totalsTasks.ToArray());
+            }
+            catch (Exception ex)
+            {
+                return new InternalServerErrorResult($"An error occurred when obtaining calculation totals with the follwing message: \n {ex.Message}");
+            }
+
+            return new OkObjectResult(totalsModels);
         }
 
         private static string GetParameter(HttpRequest request, string name)

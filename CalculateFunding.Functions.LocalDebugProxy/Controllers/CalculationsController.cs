@@ -147,5 +147,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _calcsService.ReIndex();
         }
+
+        [Route("api/calcs/status-counts")]
+        [HttpPost]
+        public Task<IActionResult> RunGetCalculationStatusCounts()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _calcsService.GetCalculationStatusCounts(ControllerContext.HttpContext.Request);
+        }
     }
 }

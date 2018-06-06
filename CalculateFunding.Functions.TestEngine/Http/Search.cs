@@ -37,13 +37,25 @@ namespace CalculateFunding.Functions.TestEngine.Http
 
         [FunctionName("get-result-counts")]
         public static Task<IActionResult> RunGetResultCounts(
-       [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
         {
             using (var scope = IocConfig.Build().CreateHttpScope(req))
             {
                 ITestResultsCountsService svc = scope.ServiceProvider.GetService<ITestResultsCountsService>();
 
                 return svc.GetResultCounts(req);
+            }
+        }
+
+        [FunctionName("get-testscenario-result-counts-for-specifications")]
+        public static Task<IActionResult> RunGetTestScenarioCountsForSpecifications(
+        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                ITestResultsCountsService svc = scope.ServiceProvider.GetService<ITestResultsCountsService>();
+
+                return svc.GetTestScenarioCountsForSpecifications(req);
             }
         }
     }

@@ -263,7 +263,6 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(result);
         }
 
-
         public async Task<IActionResult> GetSpecificationsByFundingPeriodId(HttpRequest request)
         {
             request.Query.TryGetValue("fundingPeriodId", out var yearId);
@@ -301,6 +300,37 @@ namespace CalculateFunding.Services.Specs
 
 
             return new OkObjectResult(result);
+        }
+
+        public async Task<IActionResult> GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(HttpRequest request)
+        {
+            request.Query.TryGetValue("fundingPeriodId", out var yearId);
+
+            string fundingPeriodId = yearId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(fundingPeriodId))
+            {
+                _logger.Error("No funding period Id was provided to GetSpecificationsByFundingPeriodIdAndFundingPeriodId");
+
+                return new BadRequestObjectResult("Null or empty fundingPeriodId provided");
+            }
+
+            request.Query.TryGetValue("fundingStreamId", out var fundingStream);
+
+            string fundingStreamId = fundingStream.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(fundingStreamId))
+            {
+                _logger.Error("No funding stream Id was provided to GetSpecificationsByFundingPeriodIdAndFundingPeriodId");
+
+                return new BadRequestObjectResult("Null or empty fundingPeriodId provided");
+            }
+
+            IEnumerable<SpecificationSummary> specifications = (
+                await _specificationsRepository.GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(fundingPeriodId, fundingStreamId)
+                    ).Select(s => _mapper.Map<SpecificationSummary>(s));
+
+            return new OkObjectResult(specifications);
         }
 
         public async Task<IActionResult> GetSpecificationByName(HttpRequest request)
