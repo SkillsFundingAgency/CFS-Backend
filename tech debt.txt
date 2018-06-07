@@ -1,0 +1,23 @@
+#############################################################################
+TECHNICAL DEBT
+
+Add any technical debt incurred...
+#############################################################################
+
+Test Coverage
+
+	- Spec Service
+		- GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId
+		- SelectSpecificationForFunding
+
+	- Calc Service
+		- GetCalculationStatusCounts
+
+	- Results Service
+		- GetFundingCalculationResultsForSpecifications
+
+	- Test Results Counts Service
+		- GetTestScenarioCountsForSpecifications
+		- GetTestScenarioCountsForProvider
+
+Retry policies (particulary round the interservice calls)

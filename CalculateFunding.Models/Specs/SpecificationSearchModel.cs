@@ -16,5 +16,7 @@ namespace CalculateFunding.Models.Specs
         public string Description { get; set; }
 
         public string[] DataDefinitionRelationshipIds { get; set; }
+
+        public bool IsSelectedForFunding { get; set; }
     }
 }

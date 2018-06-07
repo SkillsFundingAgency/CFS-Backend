@@ -280,5 +280,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _specService.GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/specs/select-for-funding")]
+        [HttpPost]
+        public Task<IActionResult> RunSelectSpecificationForFunding()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specService.SelectSpecificationForFunding(ControllerContext.HttpContext.Request);
+        }
     }
 }

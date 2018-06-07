@@ -7,5 +7,6 @@ namespace CalculateFunding.Models.Specs
 {
     public class Specification : VersionContainer<SpecificationVersion>
     {
+        public bool IsSelectedForFunding { get; set; }
     }
 }

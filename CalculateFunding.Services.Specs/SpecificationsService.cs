@@ -957,18 +957,7 @@ namespace CalculateFunding.Services.Specs
 
             await _searchRepository.Index(new[]
             {
-                new SpecificationIndex
-                {
-                    Id = specification.Id,
-                    Name = specificationVersion.Name,
-                    FundingStreamIds = specificationVersion.FundingStreams.Select(s=>s.Id).ToArray(),
-                    FundingStreamNames = specificationVersion.FundingStreams.Select(s=>s.Name).ToArray(),
-                    FundingPeriodId = specificationVersion.FundingPeriod.Id,
-                    FundingPeriodName = specificationVersion.FundingPeriod.Name,
-                    LastUpdatedDate = DateTimeOffset.Now,
-                    Status = Enum.GetName(typeof(PublishStatus), specificationVersion.PublishStatus),
-                    Description = specificationVersion.Description,
-                }
+                CreateSpecificationIndex(specification)
             });
 
             await TaskHelper.WhenAllAndThrow(
@@ -1057,18 +1046,7 @@ namespace CalculateFunding.Services.Specs
 
             await _searchRepository.Index(new[]
             {
-                new SpecificationIndex
-                {
-                    Id = specification.Id,
-                    Name = specificationVersion.Name,
-                    FundingStreamIds = specificationVersion.FundingStreams.Select(s=>s.Id).ToArray(),
-                    FundingStreamNames = specificationVersion.FundingStreams.Select(s=>s.Name).ToArray(),
-                    FundingPeriodId = specificationVersion.FundingPeriod.Id,
-                    FundingPeriodName = specificationVersion.FundingPeriod.Name,
-                    LastUpdatedDate = DateTimeOffset.Now,
-                    Status = editStatusModel.PublishStatus.ToString(),
-                    Description = specificationVersion.Description,
-                }
+                CreateSpecificationIndex(specification)
             });
 
             await TaskHelper.WhenAllAndThrow(
@@ -1434,23 +1412,7 @@ namespace CalculateFunding.Services.Specs
                     throw new Exception($"Failed to update specification for id: {specificationId} with dataset definition relationship id {relationshipId}");
                 }
 
-                SpecificationIndex specIndex = await _searchRepository.SearchById(specificationId);
-
-                if (specIndex == null)
-                {
-                    specIndex = new SpecificationIndex
-                    {
-                        Id = specification.Id,
-                        Name = specification.Name,
-                        FundingStreamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray(),
-                        FundingStreamNames = specificationVersion.FundingStreams.Select(s => s.Name).ToArray(),
-                        FundingPeriodId = specificationVersion.FundingPeriod.Id,
-                        FundingPeriodName = specificationVersion.FundingPeriod.Name,
-                        LastUpdatedDate = DateTimeOffset.Now
-                    };
-                }
-
-                specIndex.DataDefinitionRelationshipIds = specificationVersion.DataDefinitionRelationshipIds.ToArraySafe();
+                SpecificationIndex specIndex = CreateSpecificationIndex(specification);
 
                 IEnumerable<IndexError> errors = await _searchRepository.Index(new List<SpecificationIndex> { specIndex });
 
@@ -1490,6 +1452,7 @@ namespace CalculateFunding.Services.Specs
                         LastUpdatedDate = specification.UpdatedAt,
                         Status = specification.PublishStatus,
                         Description = specification.Description,
+                        IsSelectedForFunding = specification.IsSelectedForFunding,
                         DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.IsNullOrEmpty() ? new string[0] : specification.DataDefinitionRelationshipIds
                     });
                 }
@@ -1616,6 +1579,57 @@ namespace CalculateFunding.Services.Specs
             return new OkResult();
         }
 
+        public async Task<IActionResult> SelectSpecificationForFunding(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out var specId);
+
+            string specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to EditSpecification");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+
+            if (specification == null)
+            {
+                return new NotFoundObjectResult($"Specification not found for id: {specificationId}");
+            }
+
+            if (specification.IsSelectedForFunding)
+            {
+                _logger.Warning($"Attempt to mark specification with id: {specificationId} selected when alreday selected");
+
+                return new NoContentResult();
+            }
+
+            specification.IsSelectedForFunding = true;
+
+            HttpStatusCode statusCode = await _specificationsRepository.UpdateSpecification(specification);
+
+            if (!statusCode.IsSuccess())
+            {
+                _logger.Error($"Failed to set IsSelectedForFunding on specification for id: {specificationId} with status code: {statusCode.ToString()}");
+
+                return new StatusCodeResult((int)statusCode);
+            }
+
+            SpecificationIndex specificationIndex = CreateSpecificationIndex(specification);
+
+            IEnumerable<IndexError> errors = await _searchRepository.Index(new List<SpecificationIndex> { specificationIndex });
+
+            if (errors.Any())
+            {
+                _logger.Error($"Failed to index search with the following errors: {string.Join(";", errors.Select(m => m.ErrorMessage))}");
+
+                return new InternalServerErrorResult($"Failed to index search when updating specification with id: {specificationId}");
+            }
+
+            return new NoContentResult();
+        }
+
         private async Task<HttpStatusCode> UpdateSpecification(Specification specification, SpecificationVersion specificationVersion)
         {
             specification.Save(specificationVersion);
@@ -1679,6 +1693,26 @@ namespace CalculateFunding.Services.Specs
                 Policies = specification.Content.Current.Policies,
                 FundingStreams = fundingStreams,
                 PublishStatus = specification.Content.Current.PublishStatus,
+            };
+        }
+
+        SpecificationIndex CreateSpecificationIndex(Specification specification)
+        {
+            SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
+
+            return new SpecificationIndex
+            {
+                Id = specification.Id,
+                Name = specification.Name,
+                IsSelectedForFunding = specification.IsSelectedForFunding,
+                Status = Enum.GetName(typeof(PublishStatus), specificationVersion.PublishStatus),
+                Description = specificationVersion.Description,
+                FundingStreamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray(),
+                FundingStreamNames = specificationVersion.FundingStreams.Select(s => s.Name).ToArray(),
+                FundingPeriodId = specificationVersion.FundingPeriod.Id,
+                FundingPeriodName = specificationVersion.FundingPeriod.Name,
+                LastUpdatedDate = DateTimeOffset.Now,
+                DataDefinitionRelationshipIds = specificationVersion.DataDefinitionRelationshipIds.ToArraySafe()
             };
         }
     }

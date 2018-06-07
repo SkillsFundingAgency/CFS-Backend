@@ -190,6 +190,18 @@ namespace CalculateFunding.Functions.Specs.Http
             }
         }
 
+        [FunctionName("select-for-funding")]
+        public static async Task<IActionResult> RunSelectSpecificationForFunding(
+            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateScope())
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+
+                return await svc.SelectSpecificationForFunding(req);
+            }
+        }
+
         async static public Task<T> DoAsync<T>(Func<Task<T>> func,  Func<T, Task> test = null)
         {
             try

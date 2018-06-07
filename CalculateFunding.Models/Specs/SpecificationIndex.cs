@@ -49,5 +49,9 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("description")]
         public string Description { get; set; }
+
+        [IsFilterable, IsFacetable]
+        [JsonProperty("isSelectedForFunding")]
+        public bool IsSelectedForFunding { get; set; }
     }
 }
