@@ -105,6 +105,8 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddLogging("CalculateFunding.Functions.Calcs");
             builder.AddTelemetry();
 
+            builder.AddPolicySettings(config);
+
             builder.AddSingleton<ICalcsResilliencePolicies>((ctx) =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
