@@ -115,8 +115,7 @@ namespace CalculateFunding.Functions.Calcs
 
                 return new ResiliencePolicies
                 {
-                    CalculationsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
-                    
+                    CalculationsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 };
             });
         }
