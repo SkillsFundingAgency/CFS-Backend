@@ -166,9 +166,14 @@ namespace CalculateFunding.Services.Calculator
                             value = Convert.ToDecimal(value);
                         }
 
-                        if (propType == "System.Int64")
+                        if (propType == "System.Int32")
                         {
                             value = Convert.ToInt32(value);
+                        }
+
+                        if (propType == "System.Int64")
+                        {
+                            value = Convert.ToInt64(value);
                         }
 
                         property.SetValue(data, value);

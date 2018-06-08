@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Polly;
 using CalculateFunding.Services.Core.Caching;
+using System.Text;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -86,57 +87,33 @@ namespace CalculateFunding.Services.Calculator
 
         async public Task<IActionResult> GenerateAllocations(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            string json = GetMessage();
 
-            var specificationId = specId.FirstOrDefault();
+            byte[] body = Encoding.ASCII.GetBytes(json);
 
-            if (string.IsNullOrWhiteSpace(specificationId))
-            {
-                _logger.Error("No specification Id was provided to GenerateAllocations");
+            IDictionary<string, object> properties = new Dictionary<string, object>();
+            properties.Add("sfa-correlationId", Guid.NewGuid().ToString());
+            properties.Add("provider-summaries-partition-size", 1000);
+            properties.Add("provider-summaries-partition-index", 5000);
+            properties.Add("provider-cache-key", "add key here");
 
-                return new BadRequestObjectResult("Null or empty specification Id provided");
-            }
+            Message message = new Message(body);
+            message.PartitionKey = Guid.NewGuid().ToString();
 
-            request.Query.TryGetValue("providerId", out var provId);
+            foreach (var property in properties)
+                message.UserProperties.Add(property.Key, property.Value);
 
-            var providerId = provId.FirstOrDefault();
+            await GenerateAllocations(message);
 
-            if (string.IsNullOrWhiteSpace(providerId))
-            {
-                _logger.Error("No provider Id was provided to GetTestScenariusBySpecificationId");
+            return new NoContentResult();
+        }
 
-                return new BadRequestObjectResult("Null or empty provider Id provided");
-            }
+        public string GetMessage()
+        {
+            var sb = new System.Text.StringBuilder();
 
-            string json = await request.GetRawBodyStringAsync();
-
-            BuildProject buildProject = JsonConvert.DeserializeObject<BuildProject>(json);
-
-            Task<IEnumerable<CalculationSummaryModel>> calculationsTask =
-                    _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationSummariesForSpecification(buildProject.SpecificationId));
-
-            Task<IEnumerable<ProviderSourceDataset>> providerSourceDatasetsTask =
-                 _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(new[] { providerId }, specificationId));
-
-            await TaskHelper.WhenAllAndThrow(calculationsTask, providerSourceDatasetsTask);
-
-            List<ProviderSourceDataset> providerSourceDatasets;
-            if (providerSourceDatasetsTask.Result == null)
-            {
-                providerSourceDatasets = new List<ProviderSourceDataset>();
-            }
-            else
-            {
-                providerSourceDatasets = new List<ProviderSourceDataset>(providerSourceDatasetsTask.Result);
-            }
-
-            IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(buildProject);
-
-            IEnumerable<CalculationSummaryModel> calculations = calculationsTask.Result;
-
-            ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, new ProviderSummary { Id = providerId }, providerSourceDatasets);
-
-            return new OkObjectResult(result);
+            sb.AppendLine("Copy message here from dead letter");
+            return sb.ToString();
         }
 
         public async Task GenerateAllocations(Message message)
