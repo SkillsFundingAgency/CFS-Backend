@@ -333,6 +333,15 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specifications);
         }
 
+        public async Task<IActionResult> GetSpecificationsSelectedForFunding(HttpRequest request)
+        {
+            IEnumerable<SpecificationSummary> specifications = (
+                await _specificationsRepository.GetSpecificationsByQuery(c=>c.IsSelectedForFunding)
+                    ).Select(s => _mapper.Map<SpecificationSummary>(s));
+
+            return new OkObjectResult(specifications);
+        }
+
         public async Task<IActionResult> GetSpecificationByName(HttpRequest request)
         {
             request.Query.TryGetValue("specificationName", out var specName);

@@ -80,6 +80,17 @@ namespace CalculateFunding.Functions.Specs.Http
             }
         }
 
+        [FunctionName("specifications-selected-for-funding")]
+        public static Task<IActionResult> RunGetSpecificationsSelectedForFunding(
+            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        {
+            using (var scope = IocConfig.Build().CreateScope())
+            {
+                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+                return svc.GetSpecificationsSelectedForFunding(req);
+            }
+        }
+
         [FunctionName("specifications-by-year")]
         public static Task<IActionResult> RunSpecificationsByYear(
             [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)

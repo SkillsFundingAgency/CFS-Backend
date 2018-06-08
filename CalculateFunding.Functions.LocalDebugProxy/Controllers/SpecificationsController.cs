@@ -73,6 +73,15 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
             return _specService.GetSpecifications(ControllerContext.HttpContext.Request);
         }
 
+        [Route("api/specs/specifications-selected-for-funding")]
+        [HttpGet]
+        public Task<IActionResult> RunGetSpecificationsSelectedForFunding()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _specService.GetSpecificationsSelectedForFunding(ControllerContext.HttpContext.Request);
+        }
+
         [Route("api/specs/specifications-by-year")]
         [HttpGet]
         public Task<IActionResult> RunSpecificationsByYear()

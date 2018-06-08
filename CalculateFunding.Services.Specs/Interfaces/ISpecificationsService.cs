@@ -11,6 +11,8 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetSpecifications(HttpRequest request);
 
+        Task<IActionResult> GetSpecificationsSelectedForFunding(HttpRequest request);
+
         Task<IActionResult> GetSpecificationSummaries(HttpRequest request);
 
         Task<IActionResult> EditCalculation(HttpRequest request);
