@@ -47,6 +47,7 @@ namespace CalculateFunding.Services.Specs
         private readonly ICacheProvider _cacheProvider;
         private readonly IValidator<PolicyEditModel> _policyEditModelValidator;
         private readonly IValidator<CalculationEditModel> _calculationEditModelValidator;
+        private readonly IResultsRepository _resultsRepository;
 
         public SpecificationsService(
             IMapper mapper,
@@ -61,7 +62,8 @@ namespace CalculateFunding.Services.Specs
             ICacheProvider cacheProvider,
             IValidator<SpecificationEditModel> specificationEditModelValidator,
             IValidator<PolicyEditModel> policyEditModelValidator,
-            IValidator<CalculationEditModel> calculationEditModelValidator)
+            IValidator<CalculationEditModel> calculationEditModelValidator,
+            IResultsRepository resultsRepository)
         {
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -77,6 +79,7 @@ namespace CalculateFunding.Services.Specs
             _specificationEditModelValidator = specificationEditModelValidator;
             _policyEditModelValidator = policyEditModelValidator;
             _calculationEditModelValidator = calculationEditModelValidator;
+            _resultsRepository = resultsRepository;
         }
 
         public async Task<IActionResult> GetSpecifications(HttpRequest request)
@@ -328,7 +331,7 @@ namespace CalculateFunding.Services.Specs
 
             IEnumerable<SpecificationSummary> specifications = (
                 await _specificationsRepository.GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(fundingPeriodId, fundingStreamId)
-                    ).Select(s => _mapper.Map<SpecificationSummary>(s));
+                    ).Select(s => _mapper.Map<SpecificationSummary>(s)).ToList();
 
             return new OkObjectResult(specifications);
         }
@@ -572,13 +575,20 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetFundingStreams(HttpRequest request)
         {
-            IEnumerable<FundingStream> fundingStreams = await _specificationsRepository.GetFundingStreams();
+            IEnumerable<FundingStream> fundingStreams = await _cacheProvider.GetAsync<FundingStream[]>(CacheKeys.AllFundingStreams);
 
             if (fundingStreams.IsNullOrEmpty())
             {
-                _logger.Error("No funding streams were returned");
+                fundingStreams = await _specificationsRepository.GetFundingStreams();
 
-                fundingStreams = new FundingStream[0];
+                if (fundingStreams.IsNullOrEmpty())
+                {
+                    _logger.Error("No funding streams were returned");
+
+                    fundingStreams = new FundingStream[0];
+                }
+
+                await _cacheProvider.SetAsync<FundingStream[]>(CacheKeys.AllFundingStreams, fundingStreams.ToArray());
             }
 
             return new OkObjectResult(fundingStreams);
@@ -1534,6 +1544,13 @@ namespace CalculateFunding.Services.Specs
 
             _logger.Information($"Successfully saved file: {yamlFilename} to cosmos db");
 
+            bool keyExists = await _cacheProvider.KeyExists<FundingStream[]>(CacheKeys.AllFundingStreams);
+
+            if (keyExists)
+            {
+                await _cacheProvider.KeyDeleteAsync<FundingStream[]>(CacheKeys.AllFundingStreams);
+            }
+
             return new OkResult();
         }
 
@@ -1634,6 +1651,15 @@ namespace CalculateFunding.Services.Specs
                 _logger.Error($"Failed to index search with the following errors: {string.Join(";", errors.Select(m => m.ErrorMessage))}");
 
                 return new InternalServerErrorResult($"Failed to index search when updating specification with id: {specificationId}");
+            }
+
+            statusCode = await _resultsRepository.PublishProviderResults(specificationId);
+
+            if (!statusCode.IsSuccess())
+            {
+                _logger.Error($"Failed to publish provider results for specification id: {specificationId} with status code: {statusCode.ToString()}");
+
+                return new StatusCodeResult((int)statusCode);
             }
 
             return new NoContentResult();

@@ -844,7 +844,9 @@ namespace CalculateFunding.Services.Results.Services
             IProviderSourceDatasetRepository providerSourceDatasetRepository = null,
             ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository = null,
             ISpecificationsRepository specificationsRepository = null,
-            IResultsResilliencePolicies resiliencePolicies = null)
+            IResultsResilliencePolicies resiliencePolicies = null,
+            IPublishedProviderResultsAssemblerService publishedProviderResultsAssemblerService = null,
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = null)
         {
             return new ResultsService(
                 logger ?? CreateLogger(),
@@ -857,7 +859,19 @@ namespace CalculateFunding.Services.Results.Services
                 providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository(),
                 calculationProviderResultsSearchRepository ?? CreateCalculationProviderResultsSearchRepository(),
                 specificationsRepository ?? CreateSpecificationsRepository(),
-                resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies());
+                resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies(),
+                publishedProviderResultsAssemblerService ?? CreateResultsAssembler(),
+                publishedProviderResultsRepository ?? CreatePublishedProviderResultsRepository());
+        }
+
+        static IPublishedProviderResultsAssemblerService CreateResultsAssembler()
+        {
+            return Substitute.For<IPublishedProviderResultsAssemblerService>();
+        }
+
+        static IPublishedProviderResultsRepository CreatePublishedProviderResultsRepository()
+        {
+            return Substitute.For<IPublishedProviderResultsRepository>();
         }
 
         static ILogger CreateLogger()

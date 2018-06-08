@@ -27,6 +27,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.DataImporter;
@@ -181,6 +182,9 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 return new DataSetsRepository(datasetsCosmosRepostory);
             });
 
+            builder
+                .AddSingleton<Services.Calculator.Interfaces.ISpecificationsRepository, Services.Calculator.SpecificationsRepository>();
+
             builder.AddSingleton<Services.Calculator.Interfaces.IProviderResultsRepository, Services.Calculator.ProviderResultsRepository>((ctx) =>
             {
                 CosmosDbSettings calssDbSettings = new CosmosDbSettings();
@@ -193,7 +197,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository = ctx.GetService<ISearchRepository<CalculationProviderResultsIndex>>();
 
-                Services.Calculator.Interfaces.ISpecificationsRepository specificationRepository = ctx.GetService<Services.Calculator.Interfaces.ISpecificationsRepository>();
+                Services.Calculator.Interfaces.ISpecificationsRepository specificationRepository = new Services.Calculator.SpecificationsRepository(ctx.GetService<IApiClientProxy>());
 
                 ILogger logger = ctx.GetService<ILogger>();
 
@@ -275,6 +279,25 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 CosmosRepository specsCosmosRepostory = new CosmosRepository(specsDbSettings);
 
                 return new CalculationResultsRepository(specsCosmosRepostory);
+            });
+
+            builder
+                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
+
+            builder
+                .AddSingleton<IResultsRepository, ResultsRepository>();
+
+            builder.AddSingleton<IPublishedProviderResultsRepository, PublishedProviderResultsRepository>((ctx) =>
+            {
+                CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", resultsDbSettings);
+
+                resultsDbSettings.CollectionName = "publishedproviderresults";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(resultsDbSettings);
+
+                return new PublishedProviderResultsRepository(resultsRepostory);
             });
 
             builder.AddScoped<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>((ctx) =>

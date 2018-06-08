@@ -49,7 +49,8 @@ namespace CalculateFunding.Services.Specs.Services
             ICacheProvider cacheProvider = null,
             IValidator<SpecificationEditModel> specificationEditModelValidator = null,
             IValidator<PolicyEditModel> policyEditModelValidator = null,
-            IValidator<CalculationEditModel> calculationEditModelValidator = null)
+            IValidator<CalculationEditModel> calculationEditModelValidator = null,
+            IResultsRepository resultsRepository = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(),
                 specificationsRepository ?? CreateSpecificationsRepository(),
@@ -64,7 +65,13 @@ namespace CalculateFunding.Services.Specs.Services
                 cacheProvider ?? CreateCacheProvider(),
                 specificationEditModelValidator ?? CreateEditSpecificationValidator(),
                 policyEditModelValidator ?? CreateEditPolicyValidator(),
-                calculationEditModelValidator ?? CreateEditCalculationValidator());
+                calculationEditModelValidator ?? CreateEditCalculationValidator(),
+                resultsRepository ?? CreateResultsRepository());
+        }
+
+        static IResultsRepository CreateResultsRepository()
+        {
+            return Substitute.For<IResultsRepository>();
         }
 
         static IMapper CreateMapper()

@@ -77,8 +77,24 @@ namespace CalculateFunding.Functions.Results
                 return new ProviderSourceDatasetRepository(calcsCosmosRepostory);
             });
 
+            builder.AddSingleton<IPublishedProviderResultsRepository, PublishedProviderResultsRepository>((ctx) =>
+            {
+                CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", resultsDbSettings);
+
+                resultsDbSettings.CollectionName = "publishedproviderresults";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(resultsDbSettings);
+
+                return new PublishedProviderResultsRepository(resultsRepostory);
+            });
+
             builder
                 .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
+
+            builder
+               .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
             builder.AddSearch(config);
 

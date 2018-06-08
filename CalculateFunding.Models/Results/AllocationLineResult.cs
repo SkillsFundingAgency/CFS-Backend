@@ -1,8 +1,13 @@
-﻿namespace CalculateFunding.Models.Results
+﻿using Newtonsoft.Json;
+
+namespace CalculateFunding.Models.Results
 {
     public class AllocationLineResult
 	{
-		public Reference AllocationLine { get; set; }
-		public decimal? Value { get; set; }
+        [JsonProperty("allocationLine")]
+        public Reference AllocationLine { get; set; }
+
+        [JsonProperty("value")]
+        public decimal? Value { get; set; }
 	}
 }

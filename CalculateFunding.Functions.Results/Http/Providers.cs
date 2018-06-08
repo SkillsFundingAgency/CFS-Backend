@@ -130,5 +130,17 @@ namespace CalculateFunding.Functions.Results.Http
                 return svc.GetFundingCalculationResultsForSpecifications(req);
             }
         }
+
+        [FunctionName("publish-provider-results")]
+        public static Task<IActionResult> RunPublishProviderResults(
+          [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IResultsService svc = scope.ServiceProvider.GetService<IResultsService>();
+
+                return svc.PublishProviderResults(req);
+            }
+        }
     }
 }

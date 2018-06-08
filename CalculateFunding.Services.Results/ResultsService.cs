@@ -22,6 +22,7 @@ using Polly;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Models;
 
 namespace CalculateFunding.Services.Results
 {
@@ -40,6 +41,8 @@ namespace CalculateFunding.Services.Results
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly Polly.Policy _resultsSearchRepositoryPolicy;
         private readonly Polly.Policy _specificationsRepositoryPolicy;
+        private readonly IPublishedProviderResultsAssemblerService _publishedProviderResultsAssemblerService;
+        private readonly IPublishedProviderResultsRepository _publishedProviderResultsRepository;
 
         const string ProcessDatasetSubscription = "dataset-events-datasets";
 
@@ -53,7 +56,9 @@ namespace CalculateFunding.Services.Results
             IProviderSourceDatasetRepository providerSourceDatasetRepository,
             ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository,
             ISpecificationsRepository specificationsRepository,
-            IResultsResilliencePolicies resiliencePolicies)
+            IResultsResilliencePolicies resiliencePolicies,
+            IPublishedProviderResultsAssemblerService publishedProviderResultsAssemblerService,
+            IPublishedProviderResultsRepository publishedProviderResultsRepository)
         {
             _logger = logger;
             _resultsRepository = resultsRepository;
@@ -68,6 +73,8 @@ namespace CalculateFunding.Services.Results
             _specificationsRepository = specificationsRepository;
             _resultsSearchRepositoryPolicy = resiliencePolicies.ResultsSearchRepository;
             _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsRepository;
+            _publishedProviderResultsAssemblerService = publishedProviderResultsAssemblerService;
+            _publishedProviderResultsRepository = publishedProviderResultsRepository;
         }
 
         public async Task UpdateProviderData(Message message)
@@ -174,7 +181,7 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            IEnumerable<ProviderResult> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetProviderResultsBySpecificationId(specificationId));
+            IEnumerable<ProviderResult> providerResults = await GetProviderResultsBySpecificationId(specificationId);
 
             return new OkObjectResult(providerResults);
         }
@@ -259,13 +266,41 @@ namespace CalculateFunding.Services.Results
             return new OkObjectResult(totalsModels);
         }
 
-        private static string GetParameter(HttpRequest request, string name)
+        public async Task<IActionResult> PublishProviderResults(HttpRequest request)
         {
-            if (request.Query.TryGetValue(name, out var parameter))
+            string specificationId = GetParameter(request, "specificationId");
+
+            if (string.IsNullOrWhiteSpace(specificationId))
             {
-                return parameter.FirstOrDefault();
+                _logger.Error("No specification Id was provided to GetProviderResults");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
             }
-            return null;
+
+            IEnumerable<ProviderResult> providerResults = await GetProviderResultsBySpecificationId(specificationId);
+
+            if (providerResults.IsNullOrEmpty())
+            {
+                _logger.Error($"Provider results not found for specification id {specificationId}");
+
+                return new NotFoundObjectResult($"Provider results not found");
+            }
+
+            Reference author = request.GetUser();
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsAssemblerService.Assemble(providerResults, author, specificationId);
+
+            try
+            {
+                await _publishedProviderResultsRepository.CreatePublishedResults(publishedProviderResults.ToList());
+            }
+            catch(Exception ex)
+            {
+                _logger.Error(ex, $"Failed to create published provider results for specification: {specificationId}");
+
+                return new InternalServerErrorResult("Failed to create published provider results");
+            }
+
+            return new NoContentResult();
         }
 
         async public Task<IActionResult> UpdateProviderSourceDataset(HttpRequest request)
@@ -405,6 +440,20 @@ namespace CalculateFunding.Services.Results
             }
 
             return new NoContentResult();
+        }
+
+        private static string GetParameter(HttpRequest request, string name)
+        {
+            if (request.Query.TryGetValue(name, out var parameter))
+            {
+                return parameter.FirstOrDefault();
+            }
+            return null;
+        }
+
+        public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId)
+        {
+            return _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetProviderResultsBySpecificationId(specificationId));
         }
     }
 }

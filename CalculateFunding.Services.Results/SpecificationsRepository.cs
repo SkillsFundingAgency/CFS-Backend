@@ -13,6 +13,8 @@ namespace CalculateFunding.Services.Results
     {
         const string specsUrl = "specs/specification-summary-by-id?specificationId=";
 
+        const string fundingStreamsUrl = "specs/get-fundingstreams";
+
         private readonly IApiClientProxy _apiClient;
 
         public SpecificationsRepository(IApiClientProxy apiClient)
@@ -30,6 +32,11 @@ namespace CalculateFunding.Services.Results
             string url = $"{specsUrl}{specificationId}";
 
             return _apiClient.GetAsync<SpecificationSummary>(url);
+        }
+
+        public Task<IEnumerable<FundingStream>> GetFundingStreams()
+        {
+            return _apiClient.GetAsync<IEnumerable<FundingStream>>(fundingStreamsUrl);
         }
     }
 }

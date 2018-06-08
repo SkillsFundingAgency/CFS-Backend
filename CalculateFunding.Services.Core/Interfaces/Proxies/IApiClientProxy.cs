@@ -10,5 +10,7 @@ namespace CalculateFunding.Services.Core.Interfaces.Proxies
         Task<HttpStatusCode> PostAsync<TRequest>(string url, TRequest request);
 
         Task<TResponse> PostAsync<TResponse, TRequest>(string url, TRequest request);
+
+        Task<HttpStatusCode> PostAsync(string url);
     }
 }

@@ -49,6 +49,7 @@ namespace CalculateFunding.Functions.Specs
             builder.AddScoped<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
             builder.AddScoped<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
             builder.AddScoped<ISpecificationsSearchService, SpecificationsSearchService>();
+            builder.AddSingleton<IResultsRepository, ResultsRepository>();
 
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
 
@@ -61,6 +62,10 @@ namespace CalculateFunding.Functions.Specs
             builder.AddSearch(config);
 
             builder.AddCaching(config);
+
+            builder.AddInterServiceClient(config);
+
+            builder.AddPolicySettings(config);
 
             builder.AddApplicationInsightsTelemetryClient(config);
             builder.AddLogging("CalculateFunding.Functions.Specs");

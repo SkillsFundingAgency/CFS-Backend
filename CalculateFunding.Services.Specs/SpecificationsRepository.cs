@@ -90,9 +90,9 @@ namespace CalculateFunding.Services.Specs
 
             //This needs fixing either after doc db client uypgrade or add some sql  as cant use Any() to check funding stream ids    
 
-            IEnumerable<Specification> specifications = specificationsQuery.AsEnumerable().Where(m => m.Current.FundingStreams.Any(fs => fs.Id == fundingStreamId));
+            IEnumerable<Specification> specifications = specificationsQuery.AsEnumerable().ToList();
 
-            //specifications = specifications.Where(m => m.Current.FundingStreams.Any(fs => fs.Id == fundingStreamId));
+            specifications = specifications.Where(m => m.Current.FundingStreams.Any(fs => fs.Id == fundingStreamId));
 
             return Task.FromResult(specifications);   
         }

@@ -9,5 +9,7 @@ namespace CalculateFunding.Services.Results.Interfaces
     public interface ISpecificationsRepository
     {
         Task<SpecificationSummary> GetSpecificationSummaryById(string specificationId);
+
+        Task<IEnumerable<FundingStream>> GetFundingStreams();
     }
 }

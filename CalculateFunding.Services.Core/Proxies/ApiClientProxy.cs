@@ -125,6 +125,22 @@ namespace CalculateFunding.Services.Core.Proxies
             return default(TResponse);
         }
 
+        public async Task<HttpStatusCode> PostAsync(string url)
+        {
+            if (url == null)
+            {
+                throw new ArgumentNullException(nameof(url));
+            }
+
+            HttpResponseMessage response = await _httpClient.PostAsync(url, null);
+            if (response == null)
+            {
+                throw new HttpRequestException($"Unable to connect to server. Url={_httpClient.BaseAddress.AbsoluteUri}{url}");
+            }
+
+            return response.StatusCode;
+        }
+
         public void Dispose()
         {
             Dispose(true);
