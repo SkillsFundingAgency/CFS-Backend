@@ -96,6 +96,7 @@ namespace CalculateFunding.Services.Calculator
             properties.Add("provider-summaries-partition-size", 1000);
             properties.Add("provider-summaries-partition-index", 5000);
             properties.Add("provider-cache-key", "add key here");
+            properties.Add("specification-id", "add spec id here");
 
             Message message = new Message(body);
             message.PartitionKey = Guid.NewGuid().ToString();
@@ -120,15 +121,15 @@ namespace CalculateFunding.Services.Calculator
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            BuildProject buildProject = message.GetPayloadAsInstanceOf<BuildProject>();
-
-            string specificationId = buildProject.SpecificationId;
-
             IEnumerable<ProviderSummary> summaries = null;
+
+            string specificationId = message.UserProperties["specification-id"].ToString();
+
+            BuildProject buildProject = await _calculationsRepository.GetBuildProjectBySpecificationId(specificationId);
 
             if (buildProject == null)
             {
-                _logger.Error("A null build project was provided to GenrateAllocations");
+                _logger.Error("A null build project was provided to UpdateAllocations");
 
                 throw new ArgumentNullException(nameof(buildProject));
             }

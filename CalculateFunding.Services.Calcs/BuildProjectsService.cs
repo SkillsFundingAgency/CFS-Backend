@@ -91,7 +91,13 @@ namespace CalculateFunding.Services.Calcs
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            BuildProject buildProject = message.GetPayloadAsInstanceOf<BuildProject>();
+            IDictionary<string, string> properties = message.BuildMessageProperties();
+
+            string specificationId = message.UserProperties["specification-id"].ToString();
+
+            string buildProjectId = message.UserProperties["buildproject-id"].ToString();
+
+            BuildProject buildProject = await _buildProjectsRepository.GetBuildProjectById(buildProjectId);
 
             if (buildProject == null)
             {
@@ -99,14 +105,6 @@ namespace CalculateFunding.Services.Calcs
 
                 throw new ArgumentNullException(nameof(buildProject));
             }
-
-            string specificationId = buildProject.SpecificationId;
-            if (string.IsNullOrWhiteSpace(specificationId))
-            {
-                throw new Exception("Specification was null or empty string");
-            }
-
-            IDictionary<string, string> properties = message.BuildMessageProperties();
 
             if (message.UserProperties.ContainsKey("ignore-save-provider-results"))
             {
@@ -141,6 +139,8 @@ namespace CalculateFunding.Services.Calcs
 
             properties.Add("provider-cache-key", cacheKey);
 
+            properties.Add("specification-id", specificationId);
+
             for (int partitionIndex = 0; partitionIndex < totalCount; partitionIndex += MaxPartitionSize)
             {
 
@@ -153,7 +153,7 @@ namespace CalculateFunding.Services.Calcs
                     properties.Add(providerSummariesPartitionIndex, partitionIndex.ToString());
                 }
 
-                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, buildProject, properties);
+                await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, null, properties);
             }
         }
 

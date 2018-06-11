@@ -48,47 +48,47 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ShouldThrowExactly<ArgumentNullException>();
         }
 
-        [TestMethod]
-        public void UpdateAllocations_GivenNullPayload_ThrowsArgumentNullException()
-        {
-            //Arrange
-            Message message = new Message(new byte[0]);
+        //[TestMethod]
+        //public void UpdateAllocations_GivenNullPayload_ThrowsArgumentNullException()
+        //{
+        //    //Arrange
+        //    Message message = new Message(new byte[0]);
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService();
+        //    BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
-            //Act
-            Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
+        //    //Act
+        //    Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
 
-            //Assert
-            test
-                .ShouldThrowExactly<ArgumentNullException>();
-        }
+        //    //Assert
+        //    test
+        //        .ShouldThrowExactly<ArgumentNullException>();
+        //}
 
-        [TestMethod]
-        public void UpdateAllocations_GivenSpecificationIdIsNullOrEmptyString_ThrowsArgumentException()
-        {
-            //Arrange
-            BuildProject payload = new BuildProject();
+        //[TestMethod]
+        //public void UpdateAllocations_GivenSpecificationIdIsNullOrEmptyString_ThrowsArgumentException()
+        //{
+        //    //Arrange
+        //    BuildProject payload = new BuildProject();
 
-            var json = JsonConvert.SerializeObject(payload);
+        //    var json = JsonConvert.SerializeObject(payload);
 
-            Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties.Add("specification-id", null);
+        //    Message message = new Message(Encoding.UTF8.GetBytes(json));
+        //    message
+        //        .UserProperties.Add("specification-id", null);
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService();
+        //    BuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
-            //Act
-            Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
+        //    //Act
+        //    Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
 
-            //Assert
-            test
-                .ShouldThrowExactly<Exception>()
-                .Which
-                .Message
-                .Should()
-                .Be("Specification was null or empty string");
-        }
+        //    //Assert
+        //    test
+        //        .ShouldThrowExactly<Exception>()
+        //        .Which
+        //        .Message
+        //        .Should()
+        //        .Be("Specification was null or empty string");
+        //}
 
         [TestMethod]
         public void UpdateBuildProjectRelationships_GivenNullMessage_ThrowsArgumentNullException()

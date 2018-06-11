@@ -1268,7 +1268,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 messengerService
                     .Received(1)
                     .SendToQueue(Arg.Is("calc-events-instruct-generate-allocations"),
-                        Arg.Any<BuildProject>(),
+                        Arg.Is((string)null),
                         Arg.Any<IDictionary<string, string>>());
         }
 

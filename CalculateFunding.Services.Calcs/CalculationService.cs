@@ -1052,9 +1052,10 @@ namespace CalculateFunding.Services.Calcs
             IDictionary<string, string> properties = CreateMessageProperties(request);
 
             properties.Add("specification-id", buildProject.SpecificationId);
+            properties.Add("buildproject-id", buildProject.Id);
 
-            return _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
-                buildProject,
+            return _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
+                null,
                 properties);
         }
 
