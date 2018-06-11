@@ -23,6 +23,7 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Models;
+using CalculateFunding.Services.Results.ResultModels;
 
 namespace CalculateFunding.Services.Results
 {
@@ -442,6 +443,23 @@ namespace CalculateFunding.Services.Results
             return new NoContentResult();
         }
 
+        public async Task<IActionResult> GetPublishedProviderResultsBySpecificationId(HttpRequest request)
+        {
+            var specificationId = GetParameter(request, "specificationId");
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to GetPublishedProviderResultsBySpecificationId");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationId(specificationId);
+
+            IEnumerable<PublishedProviderResultModel> publishedProviderResultModels = MapPublishedProviderResultModels(publishedProviderResults);
+
+            return new OkObjectResult(publishedProviderResultModels);
+        }
+
         private static string GetParameter(HttpRequest request, string name)
         {
             if (request.Query.TryGetValue(name, out var parameter))
@@ -454,6 +472,49 @@ namespace CalculateFunding.Services.Results
         public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId)
         {
             return _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetProviderResultsBySpecificationId(specificationId));
+        }
+
+        IEnumerable<PublishedProviderResultModel> MapPublishedProviderResultModels(IEnumerable<PublishedProviderResult> publishedProviderResults)
+        {
+            if (publishedProviderResults.IsNullOrEmpty())
+            {
+                return Enumerable.Empty<PublishedProviderResultModel>();
+            }
+
+            IList<PublishedProviderResultModel> publishedProviderResultModels = new List<PublishedProviderResultModel>();
+
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                PublishedProviderResultModel publishedProviderResultModel = new PublishedProviderResultModel
+                {
+                    ProviderId = publishedProviderResult.ProviderId,
+                    ProviderName = publishedProviderResult.Name,
+                    Ukprn = publishedProviderResult.Ukprn,
+                    SpecificationId = publishedProviderResult.SpecificationId,
+                    FundingStreamResults = publishedProviderResult.FundingStreamResults.Select(
+                        m => new PublishedFundingStreamResultModel
+                        {
+                            FundingStreamId = m.FundingStream.Id,
+                            FundingStreamName = m.FundingStream.Name,
+                            AllocationLineResults = m.AllocationLineResults.IsNullOrEmpty() ? Enumerable.Empty<PublishedAllocationLineResultModel>() : m.AllocationLineResults.Select(
+                                    alr => new PublishedAllocationLineResultModel
+                                    {
+                                        AllocationLineId = alr.AllocationLine.Id,
+                                        AllocationLineName = alr.AllocationLine.Name,
+                                        FundingAmount = alr.Value,
+                                        Status = alr.Current.Status,
+                                        LastUpdated = alr.Current.Date
+                                    }
+
+                                )
+
+                        })
+                };
+
+                publishedProviderResultModels.Add(publishedProviderResultModel);
+            }
+
+            return publishedProviderResultModels;
         }
     }
 }

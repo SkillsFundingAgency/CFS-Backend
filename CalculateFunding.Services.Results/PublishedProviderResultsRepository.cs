@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Results
 
         public Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsForSpecificationId(string specificationId)
         {
-            IQueryable<PublishedProviderResult> results = _cosmosRepository.Query<PublishedProviderResult>().Where(m => m.SpecificationId == specificationId);
+            IQueryable<PublishedProviderResult> results = _cosmosRepository.Query<PublishedProviderResult>(enableCrossPartitionQuery: true).Where(m => m.SpecificationId == specificationId);
 
             return Task.FromResult(results.AsEnumerable());
         }
