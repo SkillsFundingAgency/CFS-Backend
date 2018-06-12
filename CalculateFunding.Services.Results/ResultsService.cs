@@ -44,8 +44,7 @@ namespace CalculateFunding.Services.Results
         private readonly Polly.Policy _specificationsRepositoryPolicy;
         private readonly IPublishedProviderResultsAssemblerService _publishedProviderResultsAssemblerService;
         private readonly IPublishedProviderResultsRepository _publishedProviderResultsRepository;
-
-        const string ProcessDatasetSubscription = "dataset-events-datasets";
+        private readonly IPublishedProviderCalculationResultsRepository _publishedProviderCalculationResultsRepository;
 
         public ResultsService(ILogger logger,
             ICalculationResultsRepository resultsRepository,
@@ -59,7 +58,8 @@ namespace CalculateFunding.Services.Results
             ISpecificationsRepository specificationsRepository,
             IResultsResilliencePolicies resiliencePolicies,
             IPublishedProviderResultsAssemblerService publishedProviderResultsAssemblerService,
-            IPublishedProviderResultsRepository publishedProviderResultsRepository)
+            IPublishedProviderResultsRepository publishedProviderResultsRepository,
+            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository)
         {
             _logger = logger;
             _resultsRepository = resultsRepository;
@@ -76,6 +76,7 @@ namespace CalculateFunding.Services.Results
             _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsRepository;
             _publishedProviderResultsAssemblerService = publishedProviderResultsAssemblerService;
             _publishedProviderResultsRepository = publishedProviderResultsRepository;
+            _publishedProviderCalculationResultsRepository = publishedProviderCalculationResultsRepository;
         }
 
         public async Task UpdateProviderData(Message message)
@@ -286,19 +287,41 @@ namespace CalculateFunding.Services.Results
                 return new NotFoundObjectResult($"Provider results not found");
             }
 
+            SpecificationCurrentVersion specification = await _specificationsRepository.GetCurrentSpecificationById(specificationId);
+
+            if(specification == null)
+            {
+                _logger.Error($"Specification not found for specification id {specificationId}");
+
+                return new PreconditionFailedResult($"Specification not found for specification id {specificationId}");
+            }
+
             Reference author = request.GetUser();
 
-            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsAssemblerService.Assemble(providerResults, author, specificationId);
+            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsAssemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
 
             try
             {
                 await _publishedProviderResultsRepository.CreatePublishedResults(publishedProviderResults.ToList());
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.Error(ex, $"Failed to create published provider results for specification: {specificationId}");
 
                 return new InternalServerErrorResult("Failed to create published provider results");
+            }
+
+            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalcuationResults = _publishedProviderResultsAssemblerService.AssemblePublishedCalculationResults(providerResults, author, specification);
+
+            try
+            {
+                await _publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(publishedProviderCalcuationResults.ToList());
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, $"Failed to create published provider calculation results for specification: {specificationId}");
+
+                return new InternalServerErrorResult("Failed to create published provider calculation results");
             }
 
             return new NoContentResult();

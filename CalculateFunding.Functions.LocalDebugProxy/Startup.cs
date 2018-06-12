@@ -300,6 +300,19 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 return new PublishedProviderResultsRepository(resultsRepostory);
             });
 
+            builder.AddSingleton<IPublishedProviderCalculationResultsRepository, PublishedProviderCalculationResultsRepository>((ctx) =>
+            {
+                CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", resultsDbSettings);
+
+                resultsDbSettings.CollectionName = "publishedprovidercalcresults";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(resultsDbSettings);
+
+                return new PublishedProviderCalculationResultsRepository(resultsRepostory);
+            });
+
             builder.AddScoped<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>((ctx) =>
             {
                 CosmosDbSettings specsDbSettings = new CosmosDbSettings();

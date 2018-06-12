@@ -846,7 +846,8 @@ namespace CalculateFunding.Services.Results.Services
             ISpecificationsRepository specificationsRepository = null,
             IResultsResilliencePolicies resiliencePolicies = null,
             IPublishedProviderResultsAssemblerService publishedProviderResultsAssemblerService = null,
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = null)
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = null,
+            IPublishedProviderCalculationResultsRepository IPublishedProviderCalculationResultsRepository = null)
         {
             return new ResultsService(
                 logger ?? CreateLogger(),
@@ -861,7 +862,13 @@ namespace CalculateFunding.Services.Results.Services
                 specificationsRepository ?? CreateSpecificationsRepository(),
                 resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies(),
                 publishedProviderResultsAssemblerService ?? CreateResultsAssembler(),
-                publishedProviderResultsRepository ?? CreatePublishedProviderResultsRepository());
+                publishedProviderResultsRepository ?? CreatePublishedProviderResultsRepository(),
+                IPublishedProviderCalculationResultsRepository ?? CreatePublishedProviderCalculationResultsRepository());
+        }
+
+        static IPublishedProviderCalculationResultsRepository CreatePublishedProviderCalculationResultsRepository()
+        {
+            return Substitute.For<IPublishedProviderCalculationResultsRepository>();
         }
 
         static IPublishedProviderResultsAssemblerService CreateResultsAssembler()

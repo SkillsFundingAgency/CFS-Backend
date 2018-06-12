@@ -1,7 +1,6 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
@@ -10,7 +9,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
@@ -31,18 +29,13 @@ namespace CalculateFunding.Services.Results
             _cacheProvider = cacheProvider;
         }
 
-        public async Task<IEnumerable<PublishedProviderResult>> Assemble(IEnumerable<ProviderResult> providerResults, Reference author, string specificationId)
+        public async Task<IEnumerable<PublishedProviderResult>> AssemblePublishedProviderResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion)
         {
             Guard.ArgumentNotNull(providerResults, nameof(providerResults));
             Guard.ArgumentNotNull(author, nameof(author));
-            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.ArgumentNotNull(specificationCurrentVersion, nameof(specificationCurrentVersion));
 
-            SpecificationSummary specificationSummary = await _specificationsRepository.GetSpecificationSummaryById(specificationId);
-            
-            if(specificationSummary == null)
-            {
-                throw new Exception($"A specification with id: {specificationId} could not be found");
-            }
+            string specificationId = specificationCurrentVersion.Id;
 
             IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id);
 
@@ -52,20 +45,23 @@ namespace CalculateFunding.Services.Results
 
             foreach(ProviderResult providerResult in providerResults)
             {
-                assembleTasks.Add(Task.Run(async() =>
+                assembleTasks.Add(Task.Run(async () =>
                 {
-                    PublishedProviderResult publishedProviderResult = new PublishedProviderResult();
+                    PublishedProviderResult publishedProviderResult = new PublishedProviderResult
+                    {
+                        Id = $"{providerResult.Provider.Id}_{specificationId}",
+                        SpecificationId = specificationId,
+                        ProviderId = providerResult.Provider.Id,
+                        Name = providerResult.Provider.Name,
+                        Ukprn = providerResult.Provider.UKPRN,
 
-                    publishedProviderResult.Id = $"{providerResult.Provider.Id}_{specificationId}";
-                    publishedProviderResult.SpecificationId = specificationId;
-                    publishedProviderResult.ProviderId = providerResult.Provider.Id;
-                    publishedProviderResult.Name = providerResult.Provider.Name;
-                    publishedProviderResult.Ukprn = providerResult.Provider.UKPRN;
-                  
-                    publishedProviderResult.FundingStreamResults = await AssembleFundingStreamResults(providerResult, specificationSummary, author);
+                        FundingStreamResults = await AssembleFundingStreamResults(providerResult, specificationCurrentVersion, author)
+                    };
 
                     publishedProviderResults.Add(publishedProviderResult);
-                }));      
+
+                }));
+      
             }
 
             await TaskHelper.WhenAllAndThrow(assembleTasks.ToArray());
@@ -73,13 +69,95 @@ namespace CalculateFunding.Services.Results
             return publishedProviderResults;
         }
 
-        async Task<IEnumerable<PublishedFundingStreamResult>> AssembleFundingStreamResults(ProviderResult providerResult, SpecificationSummary specificationSummary, Reference author)
+        public IEnumerable<PublishedProviderCalculationResult> AssemblePublishedCalculationResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion)
+        {
+            Guard.ArgumentNotNull(providerResults, nameof(providerResults));
+            Guard.ArgumentNotNull(author, nameof(author));
+            Guard.ArgumentNotNull(specificationCurrentVersion, nameof(specificationCurrentVersion));
+
+            string specificationId = specificationCurrentVersion.Id;
+
+            IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id);
+
+            ConcurrentBag<PublishedProviderCalculationResult> publishedProviderCalculationResults = new ConcurrentBag<PublishedProviderCalculationResult>();
+
+            IList<Task> assembleTasks = new List<Task>();
+
+            foreach (ProviderResult providerResult in providerResults)
+            {
+
+                PublishedProviderCalculationResult publishedProviderCalculationResult = new PublishedProviderCalculationResult
+                {
+                    Id = $"{providerResult.Provider.Id}_{specificationId}",
+                    ProviderId = providerResult.Provider.Id,
+                    Name = providerResult.Provider.Name,
+                    Ukprn = providerResult.Provider.UKPRN,
+                    Specification = new Reference(specificationCurrentVersion.Id, specificationCurrentVersion.Name)
+                };
+
+                foreach (Policy policy in specificationCurrentVersion.Policies)
+                {
+                    PublishedProviderCalculationResultPolicy resultPolicy = AssemblePolicyCalculations(policy, providerResult, author);
+
+                    foreach(Policy subPolicy in policy.SubPolicies)
+                    {
+                        PublishedProviderCalculationResultPolicy resultSubPolicy = AssemblePolicyCalculations(subPolicy, providerResult, author);
+
+                        resultPolicy.SubPolicies = resultPolicy.SubPolicies.Concat(new[] { resultSubPolicy });
+                    }
+
+                    publishedProviderCalculationResult.Policies = publishedProviderCalculationResult.Policies.Concat(new[] { resultPolicy });
+                }
+
+                publishedProviderCalculationResults.Add(publishedProviderCalculationResult);
+            }
+
+            return publishedProviderCalculationResults;
+        }
+
+        PublishedProviderCalculationResultPolicy AssemblePolicyCalculations(Policy policy, ProviderResult providerResult, Reference author)
+        {
+            PublishedProviderCalculationResultPolicy resultPolicy = new PublishedProviderCalculationResultPolicy
+            {
+                Id = policy.Id,
+                Name = policy.Name
+            };
+
+            foreach (Calculation calculationSpec in policy.Calculations)
+            {
+                PublishedProviderCalculationResultCalculationVersion current = new PublishedProviderCalculationResultCalculationVersion
+                {
+                    Value = providerResult.CalculationResults.FirstOrDefault(m => m.CalculationSpecification.Id == calculationSpec.Id) != null ?
+                       providerResult.CalculationResults.FirstOrDefault(m => m.CalculationSpecification.Id == calculationSpec.Id).Value : 0,
+
+                    Author = author,
+                    Date = DateTimeOffset.Now,
+                    Version = 1
+                };
+
+                PublishedCalculationResult publishedCalculationResult = new PublishedCalculationResult
+                {
+                    CalculationSpecification = new Reference(calculationSpec.Id, calculationSpec.Name),
+                    CalculationType = calculationSpec.CalculationType,
+                    IsPublic = calculationSpec.IsPublic,
+                    Current = current,
+                    History = new List<PublishedProviderCalculationResultCalculationVersion> { current }
+                };
+
+                resultPolicy.CalculationResults = resultPolicy.CalculationResults.Concat(new[] { publishedCalculationResult });
+
+            }
+
+            return resultPolicy;
+        }
+
+        async Task<IEnumerable<PublishedFundingStreamResult>> AssembleFundingStreamResults(ProviderResult providerResult, SpecificationCurrentVersion specificationCurrentVersion, Reference author)
         {
             IEnumerable<FundingStream> allFundingStreams = await  GetAllFundingStreams();
 
             IList<PublishedFundingStreamResult> publishedFundingStreamResults = new List<PublishedFundingStreamResult>();
 
-            foreach(Reference fundingStreamReference in specificationSummary.FundingStreams)
+            foreach(Reference fundingStreamReference in specificationCurrentVersion.FundingStreams)
             {
                 FundingStream fundingStream = allFundingStreams.FirstOrDefault(m => m.Id == fundingStreamReference.Id);
 
@@ -88,13 +166,13 @@ namespace CalculateFunding.Services.Results
 
                 PublishedFundingStreamResult publishedFundingStreamResult = new PublishedFundingStreamResult();
 
-                publishedFundingStreamResult.FundingStream = fundingStreamReference;
+                publishedFundingStreamResult.FundingStream = new Reference(fundingStreamReference.Id, fundingStreamReference.Name);
 
-                publishedFundingStreamResult.AllocationLineResults = Enumerable.Empty<PublishedAllocationLineResult>();
+                IEnumerable<IGrouping<string, AllocationLineResult>> allocationLineGroups = providerResult.AllocationLineResults.GroupBy(m => m.AllocationLine.Id);
 
-                foreach(AllocationLineResult allocationLineResult in providerResult.AllocationLineResults)
+                foreach (IGrouping<string,AllocationLineResult> allocationLineResultGroup in allocationLineGroups)
                 {
-                    AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == allocationLineResult.AllocationLine.Id);
+                    AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == allocationLineResultGroup.Key);
 
                     if(allocationLine != null)
                     {
@@ -115,7 +193,7 @@ namespace CalculateFunding.Services.Results
                                     Name = allocationLine.Name,
                                     Id = allocationLine.Id
                                 },
-                                Value = allocationLineResult.Value,
+                                Value = allocationLineResultGroup.Sum(m => m.Value),
                                 Current = publishedAllocationLineResultVersion,
                                 History = new List<PublishedAllocationLineResultVersion> { publishedAllocationLineResultVersion }
                             }

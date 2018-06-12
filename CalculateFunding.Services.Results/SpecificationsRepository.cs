@@ -13,6 +13,8 @@ namespace CalculateFunding.Services.Results
     {
         const string specsUrl = "specs/specification-summary-by-id?specificationId=";
 
+        const string currentSpecsUrl = "specs/specification-current-version-by-id?specificationId=";
+
         const string fundingStreamsUrl = "specs/get-fundingstreams";
 
         private readonly IApiClientProxy _apiClient;
@@ -32,6 +34,16 @@ namespace CalculateFunding.Services.Results
             string url = $"{specsUrl}{specificationId}";
 
             return _apiClient.GetAsync<SpecificationSummary>(url);
+        }
+
+        public Task<SpecificationCurrentVersion> GetCurrentSpecificationById(string specificationId)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
+                throw new ArgumentNullException(nameof(specificationId));
+
+            string url = $"{currentSpecsUrl}{specificationId}";
+
+            return _apiClient.GetAsync<SpecificationCurrentVersion>(url);
         }
 
         public Task<IEnumerable<FundingStream>> GetFundingStreams()
