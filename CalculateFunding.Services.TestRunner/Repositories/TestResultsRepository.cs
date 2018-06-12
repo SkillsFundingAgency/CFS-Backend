@@ -127,9 +127,9 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
         public async Task<SpecificationTestScenarioResultCounts> GetSpecificationCounts(string specificationId)
         {
-            Task<int> passedTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>().Where(c => c.Specification.Id == specificationId && c.TestResult == TestResult.Passed).Count());
-            Task<int> failedTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>().Where(c => c.Specification.Id == specificationId && c.TestResult == TestResult.Failed).Count());
-            Task<int> ignoredTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>().Where(c => c.Specification.Id == specificationId && c.TestResult == TestResult.Ignored).Count());
+            Task<int> passedTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>(enableCrossPartitionQuery: true).Where(c => c.Specification.Id == specificationId && c.TestResult == TestResult.Passed).Count());
+            Task<int> failedTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>(enableCrossPartitionQuery: true).Where(c => c.Specification.Id == specificationId && c.TestResult == TestResult.Failed).Count());
+            Task<int> ignoredTask = Task.Run(() => _cosmosRepository.Query<TestScenarioResult>(enableCrossPartitionQuery: true).Where(c => c.Specification.Id == specificationId && c.TestResult == TestResult.Ignored).Count());
 
             await TaskHelper.WhenAllAndThrow(passedTask, failedTask, ignoredTask);
 
