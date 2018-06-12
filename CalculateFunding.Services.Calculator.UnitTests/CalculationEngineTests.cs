@@ -155,6 +155,116 @@ namespace CalculateFunding.Services.Calculator
         }
 
         [TestMethod]
+        async public Task GenerateAllocations_GivenBuildProject_RunsAndMergesAllocationLineResults()
+        {
+            //Arrange
+            BuildProject buildProject = CreateBuildProject();
+
+            IEnumerable<ProviderSummary> providers = new[]
+            {
+                new ProviderSummary{ Id = ProviderId, Name = ProviderName }
+            };
+
+            IEnumerable<ProviderSourceDataset> datasets = new[]
+            {
+                new ProviderSourceDataset()
+            };
+
+            Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> func = (s, p) =>
+            {
+                return Task.FromResult(datasets);
+            };
+
+            Reference allocationLine1 = new Reference("al1", "Allocation Line 1");
+            Reference allocationLine2 = new Reference("al2", "Allocation Line 2");
+
+
+            IEnumerable<CalculationResult> calculationResults = new[]
+            {
+                new CalculationResult
+                {
+                    Calculation = new Reference { Id = CalculationId },
+                     AllocationLine = allocationLine1,
+                     Value = 3,
+                },
+                 new CalculationResult
+                {
+                    Calculation = new Reference { Id = "calc2" },
+                     AllocationLine = allocationLine1,
+                     Value = 5,
+                },
+                  new CalculationResult
+                {
+                    Calculation = new Reference { Id = "calc3" },
+                     AllocationLine = allocationLine2,
+                     Value = 7,
+                }
+            };
+
+            IAllocationModel allocationModel = Substitute.For<IAllocationModel>();
+            allocationModel
+                .Execute(Arg.Is(Arg.Any<List<ProviderSourceDataset>>()))
+                .Returns(calculationResults);
+
+            IAllocationFactory allocationFactory = Substitute.For<IAllocationFactory>();
+            allocationFactory
+                .CreateAllocationModel(Arg.Any<Assembly>())
+                .Returns(allocationModel);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            List<CalculationSummaryModel> calculations = new List<CalculationSummaryModel>()
+            {
+                new CalculationSummaryModel()
+                {
+                    Id = CalculationId,
+                     CalculationType= CalculationType.Funding,
+                },
+                new CalculationSummaryModel()
+                {
+                    Id = "calc2",
+                    CalculationType = CalculationType.Funding,
+                },
+                new CalculationSummaryModel()
+                {
+                    Id = "calc3",
+                    CalculationType = CalculationType.Funding,
+                }
+            };
+
+            calculationsRepository
+                .GetCalculationSummariesForSpecification(Arg.Any<string>())
+                .Returns(calculations);
+
+            CalculationEngine calculationEngine = CreateCalculationEngine(allocationFactory, calculationsRepository, logger: logger);
+
+            //Act
+            IEnumerable<ProviderResult> results = await calculationEngine.GenerateAllocations(buildProject, providers, func);
+
+            //Assert
+            results
+                .Count()
+                .Should()
+                .Be(1);
+
+            results
+                .First()
+                .CalculationResults
+                .Count
+                .Should()
+                .Be(3);
+
+
+            results
+                .First()
+                .AllocationLineResults
+                .Should()
+                .HaveCount(2);
+
+        }
+
+        [TestMethod]
         async public Task GenerateAllocations_GivenBuildProjectWithNoCalculations_Runs()
         {
             //Arrange

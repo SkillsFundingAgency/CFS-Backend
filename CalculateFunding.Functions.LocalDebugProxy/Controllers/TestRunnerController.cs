@@ -90,5 +90,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _testResultsCountsService.GetTestScenarioCountsForSpecifications(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/tests/get-testscenario-result-counts-for-specification-for-provider")]
+        [HttpGet]
+        public Task<IActionResult> RunGetTestScenarioCountsForProviderForSpecification()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _testResultsCountsService.GetTestScenarioCountsForProviderForSpecification(ControllerContext.HttpContext.Request);
+        }
     }
 }

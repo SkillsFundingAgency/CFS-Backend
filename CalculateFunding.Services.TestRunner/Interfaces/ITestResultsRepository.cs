@@ -17,5 +17,7 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
         Task<ProviderTestScenarioResultCounts> GetProviderCounts(string providerId);
 
         Task<SpecificationTestScenarioResultCounts> GetSpecificationCounts(string specificationId);
+
+        Task<ScenarioResultCounts> GetProvideCountForSpecification(string providerId, string specificationId);
     }
 }

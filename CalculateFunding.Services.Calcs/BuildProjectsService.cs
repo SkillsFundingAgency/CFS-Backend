@@ -95,9 +95,7 @@ namespace CalculateFunding.Services.Calcs
 
             string specificationId = message.UserProperties["specification-id"].ToString();
 
-            string buildProjectId = message.UserProperties["buildproject-id"].ToString();
-
-            BuildProject buildProject = await _buildProjectsRepository.GetBuildProjectById(buildProjectId);
+            BuildProject buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId);
 
             if (buildProject == null)
             {

@@ -109,6 +109,35 @@ namespace CalculateFunding.Services.TestRunner.Services
             return new OkObjectResult(result);
         }
 
+        public async Task<IActionResult> GetTestScenarioCountsForProviderForSpecification(HttpRequest request)
+        {
+            request.Query.TryGetValue("providerId", out var providerIdParse);
+
+            string providerId = providerIdParse.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(providerId))
+            {
+                _logger.Error($"No providerId was provided to {nameof(GetTestScenarioCountsForProviderForSpecification)}");
+
+                return new BadRequestObjectResult("Null or empty providerId provided");
+            }
+
+            request.Query.TryGetValue("specificationId", out var specificationIdParse);
+
+            string specificationId = specificationIdParse.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error($"No specificationId was provided to {nameof(GetTestScenarioCountsForProviderForSpecification)}");
+
+                return new BadRequestObjectResult("Null or empty specificationId provided");
+            }
+
+            ScenarioResultCounts result = await _testResultsRepository.GetProvideCountForSpecification(providerId, specificationId);
+
+            return new OkObjectResult(result);
+        }
+
         public async Task<IActionResult> GetTestScenarioCountsForSpecifications(HttpRequest request)
         {
             string json = await request.GetRawBodyStringAsync();

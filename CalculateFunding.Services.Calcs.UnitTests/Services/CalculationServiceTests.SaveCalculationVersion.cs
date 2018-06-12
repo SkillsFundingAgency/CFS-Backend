@@ -511,10 +511,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();
 
-            BuildProject buildProject = new BuildProject
-            {
-                Id = buildProjectId
-            };
+            BuildProject buildProject = null;
 
             Calculation calculation = CreateCalculation();
             calculation.BuildProjectId = buildProjectId;
@@ -555,7 +552,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
-                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
             CalculationIndex calcIndex = new CalculationIndex();
@@ -602,10 +599,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();
 
-            BuildProject buildProject = new BuildProject
-            {
-                Id = buildProjectId
-            };
+            BuildProject buildProject = null;
 
             string specificationId = "789";
 
@@ -670,7 +664,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
-                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
@@ -732,10 +726,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();
 
-            BuildProject buildProject = new BuildProject
-            {
-                Id = buildProjectId
-            };
+            BuildProject buildProject = null;
 
             string specificationId = "789";
 
@@ -818,7 +809,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
-                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
@@ -888,10 +879,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();
 
-            BuildProject buildProject = new BuildProject
-            {
-                Id = buildProjectId,
-            };
+            BuildProject buildProject = null;
 
             Calculation calculation = CreateCalculation();
             calculation.BuildProjectId = buildProjectId;
@@ -932,7 +920,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
-                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
             CalculationIndex calcIndex = new CalculationIndex();
@@ -1022,7 +1010,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
-                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
@@ -1111,7 +1099,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
-                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
             CalculationIndex calcIndex = new CalculationIndex();
@@ -1214,7 +1202,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
-                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
             CalculationIndex calcIndex = new CalculationIndex();
@@ -1327,7 +1315,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
-                .GetBuildProjectById(Arg.Is(buildProjectId))
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
             CalculationIndex calcIndex = new CalculationIndex();

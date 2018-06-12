@@ -1,10 +1,10 @@
-﻿using CalculateFunding.Services.Core.Extensions;
+﻿using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Functions.TestEngine.Http
@@ -32,30 +32,6 @@ namespace CalculateFunding.Functions.TestEngine.Http
                 ITestResultsService svc = scope.ServiceProvider.GetService<ITestResultsService>();
 
                 return svc.ReIndex(req);
-            }
-        }
-
-        [FunctionName("get-result-counts")]
-        public static Task<IActionResult> RunGetResultCounts(
-        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                ITestResultsCountsService svc = scope.ServiceProvider.GetService<ITestResultsCountsService>();
-
-                return svc.GetResultCounts(req);
-            }
-        }
-
-        [FunctionName("get-testscenario-result-counts-for-specifications")]
-        public static Task<IActionResult> RunGetTestScenarioCountsForSpecifications(
-        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                ITestResultsCountsService svc = scope.ServiceProvider.GetService<ITestResultsCountsService>();
-
-                return svc.GetTestScenarioCountsForSpecifications(req);
             }
         }
     }

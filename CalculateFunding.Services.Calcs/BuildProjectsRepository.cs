@@ -17,15 +17,16 @@ namespace CalculateFunding.Services.Calcs
             _cosmosRepository = cosmosRepository;
         }
 
-        public async Task<BuildProject> GetBuildProjectById(string buildProjectId)
-        {
-            var buildProject = await _cosmosRepository.ReadAsync<BuildProject>(buildProjectId);
+        // No longer used directly, lookup is by specification ID instead
+        //public async Task<BuildProject> GetBuildProjectById(string buildProjectId)
+        //{
+        //    var buildProject = await _cosmosRepository.ReadAsync<BuildProject>(buildProjectId);
 
-            if (buildProject == null)
-                return null;
+        //    if (buildProject == null)
+        //        return null;
 
-            return buildProject.Content;
-        }
+        //    return buildProject.Content;
+        //}
 
 	    public Task<BuildProject> GetBuildProjectBySpecificationId(string specificiationId)
 	    {
