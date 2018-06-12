@@ -1728,6 +1728,7 @@ namespace CalculateFunding.Services.Specs
                 Policies = specification.Content.Current.Policies,
                 FundingStreams = fundingStreams,
                 PublishStatus = specification.Content.Current.PublishStatus,
+                IsSelectedForFunding = specification.Content.IsSelectedForFunding
             };
         }
 
