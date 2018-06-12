@@ -24,6 +24,7 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Models;
 using CalculateFunding.Services.Results.ResultModels;
+using System.Collections.Concurrent;
 
 namespace CalculateFunding.Services.Results
 {
@@ -237,7 +238,7 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty specification ids provided");
             }
 
-            IList<FundingCalculationResultsTotals> totalsModels = new List<FundingCalculationResultsTotals>();
+            ConcurrentBag<FundingCalculationResultsTotals> totalsModels = new ConcurrentBag<FundingCalculationResultsTotals>();
 
             IList<Task> totalsTasks = new List<Task>();
 

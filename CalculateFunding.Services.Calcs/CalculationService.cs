@@ -27,6 +27,7 @@ using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -894,7 +895,7 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("Null or empty specification ids provided");
             }
 
-            IList<CalculationStatusCountsModel> statusCountModels = new List<CalculationStatusCountsModel>();
+            ConcurrentBag<CalculationStatusCountsModel> statusCountModels = new ConcurrentBag<CalculationStatusCountsModel>();
 
             IList<Task> statusCountsTasks = new List<Task>();
           

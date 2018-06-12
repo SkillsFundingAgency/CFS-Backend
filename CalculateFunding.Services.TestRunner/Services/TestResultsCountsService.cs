@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Serilog;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -128,7 +129,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return new BadRequestObjectResult("Null or empty specification ids provided");
             }
 
-            IList<SpecificationTestScenarioResultCounts> scenarioCountModels = new List<SpecificationTestScenarioResultCounts>();
+            ConcurrentBag<SpecificationTestScenarioResultCounts> scenarioCountModels = new ConcurrentBag<SpecificationTestScenarioResultCounts>();
 
             IList<Task> scenarioCountsTasks = new List<Task>();
 
