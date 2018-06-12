@@ -37,7 +37,7 @@ namespace CalculateFunding.Functions.TestEngine.Http
 
         [FunctionName("get-testscenario-result-counts-for-specification-for-provider")]
         public static Task<IActionResult> RunGetTestScenarioCountsForProviderForSpecification(
-        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
         {
             using (var scope = IocConfig.Build().CreateHttpScope(req))
             {

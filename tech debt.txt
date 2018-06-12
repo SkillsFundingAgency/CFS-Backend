@@ -28,3 +28,7 @@ Test Coverage
 Retry policies (particulary round the interservice calls)
 
 Debug proxy IOC, split into static methods for each service
+
+Test coverage for the Test and Calc Engine
+
+When a specification is chosen, then disable editing of the funding period and funding streams (frontend enforced at the moment)
