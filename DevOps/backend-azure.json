@@ -577,6 +577,10 @@
               "value": "[toLower(variables('datasetsFunctionAppName'))]"
             },
             {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "GMT Standard Time"
+            },
+            {
               "name": "FUNCTIONS_EXTENSION_VERSION",
               "value": "beta"
             },
@@ -676,6 +680,10 @@
             {
               "name": "WEBSITE_CONTENTSHARE",
               "value": "[toLower(variables('calcsFunctionAppName'))]"
+            },
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "GMT Standard Time"
             },
             {
               "name": "FUNCTIONS_EXTENSION_VERSION",
@@ -784,6 +792,10 @@
               "value": "[toLower(variables('calcEngineFunctionAppName'))]"
             },
             {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "GMT Standard Time"
+            },
+            {
               "name": "FUNCTIONS_EXTENSION_VERSION",
               "value": "beta"
             },
@@ -878,6 +890,10 @@
               "value": "[toLower(variables('testEngineFunctionAppName'))]"
             },
             {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "GMT Standard Time"
+            },
+            {
               "name": "FUNCTIONS_EXTENSION_VERSION",
               "value": "beta"
             },
@@ -966,6 +982,10 @@
             {
               "name": "WEBSITE_CONTENTSHARE",
               "value": "[toLower(variables('resultsFunctionAppName'))]"
+            },
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "GMT Standard Time"
             },
             {
               "name": "FUNCTIONS_EXTENSION_VERSION",
@@ -1100,6 +1120,10 @@
               "value": "specs"
             },
             {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "GMT Standard Time"
+            },
+            {
               "name": "ApiOptions:ApiKey",
               "value": "[parameters('ApiKey')]"
             },
@@ -1167,6 +1191,10 @@
             {
               "name": "ROUTING_EXTENSION_VERSION",
               "value": "~.2"
+            },
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "GMT Standard Time"
             },
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
@@ -1274,6 +1302,10 @@
             {
               "name": "CosmosDbSettings:CollectionName",
               "value": "tests"
+            },
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "GMT Standard Time"
             },
             {
               "name": "SearchServiceName",
