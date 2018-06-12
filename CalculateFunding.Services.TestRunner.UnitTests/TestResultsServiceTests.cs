@@ -109,7 +109,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                         UPIN = "222",
                         URN = "333",
                         EstablishmentNumber = "123",
-                        DateOpened = DateTimeOffset.UtcNow,
+                        DateOpened = DateTimeOffset.Now,
                         Authority = "authority",
                         ProviderSubType = "provider sub type",
                         ProviderType = "provider type",
@@ -147,7 +147,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                     c.First().TestResult == Enum.GetName(typeof(Models.Results.TestResult), testScenarioResult.TestResult) &&
                     c.First().TestScenarioId == testScenarioResult.TestScenario.Id &&
                     c.First().TestScenarioName == testScenarioResult.TestScenario.Name &&
-                    c.First().LastUpdatedDate > DateTime.UtcNow.AddDays(-1) &&
+                    c.First().LastUpdatedDate > DateTimeOffset.Now.AddDays(-1) &&
                     c.First().EstablishmentNumber == "123" &&
                     c.First().UKPRN == "111" &&
                     c.First().UPIN == "222" &&

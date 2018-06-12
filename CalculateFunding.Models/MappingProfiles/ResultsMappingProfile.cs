@@ -19,7 +19,7 @@ namespace CalculateFunding.Models.MappingProfiles
                 .ForMember(m => m.LastUpdatedDate, opt => opt.Ignore()).
                 AfterMap((source, dest) =>
                 {
-                    dest.LastUpdatedDate = DateTime.UtcNow;
+                    dest.LastUpdatedDate = DateTimeOffset.Now;
                 })
                 .ForMember(m => m.ProviderType, opt => opt.Ignore())
                 .ForMember(m => m.LocalAuthority, opt => opt.Ignore())

@@ -16,7 +16,7 @@ namespace CalculateFunding.Models.Calcs
 
         public string SourceCode { get; set; }
 
-        public DateTime? Date { get; set; }
+        public DateTimeOffset? Date { get; set; }
 
         public Reference Author { get; set; }
 

@@ -122,7 +122,7 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             //Arrange
             const string specificationId = "specId";
-            DateTime lastModifiedDate = DateTime.UtcNow;
+            DateTimeOffset lastModifiedDate = DateTimeOffset.Now;
 
             CalculationCurrentVersion calculation = new CalculationCurrentVersion
             {
@@ -199,7 +199,7 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             //Arrange
             const string specificationId = "specId";
-            DateTime lastModifiedDate = DateTime.UtcNow;
+            DateTimeOffset lastModifiedDate = DateTimeOffset.Now;
 
             Calculation calculation = new Calculation
             {

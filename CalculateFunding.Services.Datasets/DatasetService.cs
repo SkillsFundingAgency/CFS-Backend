@@ -123,7 +123,7 @@ namespace CalculateFunding.Services.Datasets
             string fileName = $"{datasetId}/{version}/{model.Filename}";
 
             string blobUrl = _blobClient.GetBlobSasUrl(fileName,
-                DateTimeOffset.UtcNow.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
+                DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
 
             NewDatasetVersionResponseModel responseModel = _mapper.Map<NewDatasetVersionResponseModel>(model);
 
@@ -166,7 +166,7 @@ namespace CalculateFunding.Services.Datasets
             string fileName = $"{dataset.Id}/v{version}/{model.Filename}";
 
             string blobUrl = _blobClient.GetBlobSasUrl(fileName,
-                DateTimeOffset.UtcNow.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
+                DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
 
             NewDatasetVersionResponseModel responseModel = _mapper.Map<NewDatasetVersionResponseModel>(model);
 
@@ -481,7 +481,7 @@ namespace CalculateFunding.Services.Datasets
                 return new NotFoundResult();
             }
 
-            string blobUrl = _blobClient.GetBlobSasUrl(fullBlobName, DateTimeOffset.UtcNow.AddDays(1), SharedAccessBlobPermissions.Read);
+            string blobUrl = _blobClient.GetBlobSasUrl(fullBlobName, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read);
 
             DatasetDownloadModel downloadModel = new DatasetDownloadModel { Url = blobUrl };
 
@@ -591,7 +591,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 Author = new Reference(metadataModel.AuthorId, metadataModel.AuthorName),
                 Version = 1,
-                Date = DateTime.UtcNow,
+                Date = DateTimeOffset.Now,
                 PublishStatus = PublishStatus.Draft,
                 BlobName = blob.Name
             };
@@ -657,7 +657,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 Author = new Reference(author.Id, author.Name),
                 Version = model.Version,
-                Date = DateTime.UtcNow,
+                Date = DateTimeOffset.Now,
                 PublishStatus = PublishStatus.Draft,
                 BlobName = blob.Name,
                 Commment = model.Comment,

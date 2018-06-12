@@ -11,7 +11,7 @@ namespace CalculateFunding.Models.Datasets.ViewModels
 
         public int Version { get; set; }
 
-        public DateTime LastUpdatedDate { get; set; }
+        public DateTimeOffset LastUpdatedDate { get; set; }
 
         public PublishStatus PublishStatus { get; set; }
 

@@ -26,10 +26,10 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         public T Content { get; set; }
 
         [JsonProperty("createdAt")]
-        public DateTime CreatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
 
         [JsonProperty("updatedAt")]
-        public DateTime UpdatedAt { get; set; }
+        public DateTimeOffset UpdatedAt { get; set; }
 
         [JsonProperty("deleted")]
         public bool Deleted { get; set; }

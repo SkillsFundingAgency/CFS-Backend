@@ -18,7 +18,7 @@ namespace CalculateFunding.Models.Specs
         public bool IsPublic { get; set; }
 
         [JsonProperty("lastUpdated")]
-        public DateTime LastUpdated { get; set; }
+        public DateTimeOffset LastUpdated { get; set; }
 
         public Calculation Clone()
         {

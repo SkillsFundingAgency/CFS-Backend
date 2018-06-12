@@ -141,7 +141,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     Current = new CalculationVersion
                     {
                         Author = new Reference(UserId, Username),
-                        Date = DateTime.UtcNow,
+                        Date = DateTimeOffset.Now,
                         PublishStatus = PublishStatus.Draft,
                         SourceCode = "source code",
                         Version = 1
@@ -210,7 +210,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     Current = new CalculationVersion
                     {
                         Author = new Reference(UserId, Username),
-                        Date = DateTime.UtcNow,
+                        Date = DateTimeOffset.Now,
                         PublishStatus = PublishStatus.Draft,
                         SourceCode = "source code",
                         Version = 1
@@ -297,7 +297,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     Current = new CalculationVersion
                     {
                         Author = new Reference(UserId, Username),
-                        Date = DateTime.UtcNow,
+                        Date = DateTimeOffset.Now,
                         PublishStatus = PublishStatus.Draft,
                         SourceCode = "source code",
                         Version = 1
@@ -384,7 +384,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     Current = new CalculationVersion
                     {
                         Author = new Reference(UserId, Username),
-                        Date = DateTime.UtcNow,
+                        Date = DateTimeOffset.Now,
                         PublishStatus = PublishStatus.Draft,
                         SourceCode = "source code",
                         Version = 1

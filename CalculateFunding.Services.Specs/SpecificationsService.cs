@@ -678,7 +678,7 @@ namespace CalculateFunding.Services.Specs
 
             Policy policy = _mapper.Map<Policy>(createModel);
 
-            policy.LastUpdated = DateTime.UtcNow;
+            policy.LastUpdated = DateTimeOffset.Now;
 
             SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
 
@@ -763,7 +763,7 @@ namespace CalculateFunding.Services.Specs
 
             policy.Name = editModel.Name;
             policy.Description = editModel.Description;
-            policy.LastUpdated = DateTime.UtcNow;
+            policy.LastUpdated = DateTimeOffset.Now;
 
             Policy parentPolicy = specificationVersion.GetParentPolicy(policyId);
 
@@ -1182,7 +1182,7 @@ namespace CalculateFunding.Services.Specs
             }
 
             Calculation calculation = _mapper.Map<Calculation>(createModel);
-            calculation.LastUpdated = DateTime.UtcNow;
+            calculation.LastUpdated = DateTimeOffset.Now;
 
             FundingStream currentFundingStream = null;
 
@@ -1302,7 +1302,7 @@ namespace CalculateFunding.Services.Specs
 
             calculation.Name = editModel.Name;
             calculation.Description = editModel.Description;
-            calculation.LastUpdated = DateTime.UtcNow;
+            calculation.LastUpdated = DateTimeOffset.Now;
             calculation.CalculationType = editModel.CalculationType;
 
             if (calculation.CalculationType == CalculationType.Number)

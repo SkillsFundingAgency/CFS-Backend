@@ -335,7 +335,7 @@ namespace CalculateFunding.Services.Calcs
                 {
                     PublishStatus = PublishStatus.Draft,
                     Author = user,
-                    Date = DateTime.UtcNow,
+                    Date = DateTimeOffset.Now,
                     Version = 1,
                     DecimalPlaces = 6,
                     SourceCode = CodeGenerationConstants.VisualBasicDefaultSourceCode
@@ -347,7 +347,7 @@ namespace CalculateFunding.Services.Calcs
                     {
                         PublishStatus = PublishStatus.Draft,
                         Author = user,
-                        Date = DateTime.UtcNow,
+                        Date = DateTimeOffset.Now,
                         Version = 1,
                         DecimalPlaces = 6,
                         SourceCode = CodeGenerationConstants.VisualBasicDefaultSourceCode

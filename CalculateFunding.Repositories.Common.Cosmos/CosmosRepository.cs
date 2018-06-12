@@ -245,8 +245,8 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             var doc = new DocumentEntity<T>(entity)
             {
                 DocumentType = GetDocumentType<T>(),
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.Now,
+                UpdatedAt = DateTimeOffset.Now
             };
 
             var response = await _documentClient.UpsertDocumentAsync(_collectionUri, doc);
@@ -258,8 +258,8 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             var doc = new DocumentEntity<T>(entity)
             {
                 DocumentType = GetDocumentType<T>(),
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.Now,
+                UpdatedAt = DateTimeOffset.Now
             };
 
             var response = await _documentClient.UpsertDocumentAsync(_collectionUri, doc);
@@ -276,14 +276,14 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                 doc = new DocumentEntity<T>(entity)
                 {
                     DocumentType = GetDocumentType<T>(),
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    CreatedAt = DateTimeOffset.Now,
+                    UpdatedAt = DateTimeOffset.Now
                 };
             }
             else
             {
                 doc.Content = entity;
-                doc.UpdatedAt = DateTime.UtcNow;
+                doc.UpdatedAt = DateTimeOffset.Now;
             }
            
             var response = await _documentClient.UpsertDocumentAsync(_collectionUri, doc);
@@ -295,8 +295,8 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             var doc = new DocumentEntity<T>(entity.Value)
             {
                 DocumentType = GetDocumentType<T>(),
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.Now,
+                UpdatedAt = DateTimeOffset.Now
             };
 
             RequestOptions options = new RequestOptions()
@@ -313,8 +313,8 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             var doc = new DocumentEntity<T>(entity)
             {
                 DocumentType = GetDocumentType<T>(),
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.Now,
+                UpdatedAt = DateTimeOffset.Now
             };
             return _documentClient.UpsertDocumentAsync(_collectionUri, doc);
         }
@@ -344,7 +344,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                 throw new ArgumentException($"Cannot change {entity.Id} from {doc.DocumentType} to {typeof(T).Name}");
             }
             doc.DocumentType = documentType; // in case not specified
-            doc.UpdatedAt = DateTime.UtcNow;
+            doc.UpdatedAt = DateTimeOffset.Now;
             var response = await _documentClient.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseName, _collectionName, entity.Id), doc);
             return response.StatusCode;
         }
@@ -364,7 +364,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                 }
 
                 doc.DocumentType = documentType;
-                doc.UpdatedAt = DateTime.UtcNow;
+                doc.UpdatedAt = DateTimeOffset.Now;
                 documents.Add(doc);
             }
 

@@ -226,7 +226,7 @@ namespace CalculateFunding.Services.Core.Caching
                 return TimeSpan.FromHours(72);
 
             if (memoryCacheEntryOptions.AbsoluteExpiration.HasValue)
-                return memoryCacheEntryOptions.AbsoluteExpiration.Value - DateTimeOffset.UtcNow;
+                return memoryCacheEntryOptions.AbsoluteExpiration.Value - DateTimeOffset.Now;
 
             if (memoryCacheEntryOptions.AbsoluteExpirationRelativeToNow.HasValue)
                 return memoryCacheEntryOptions.AbsoluteExpirationRelativeToNow.Value;

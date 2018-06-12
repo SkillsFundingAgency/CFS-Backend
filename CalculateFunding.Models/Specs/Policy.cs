@@ -21,6 +21,6 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("subPolicies")]
         public IEnumerable<Policy> SubPolicies { get; set; }
 
-        public DateTime LastUpdated { get; set; }
+        public DateTimeOffset LastUpdated { get; set; }
     }
 }

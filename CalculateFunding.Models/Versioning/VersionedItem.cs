@@ -12,7 +12,7 @@ namespace CalculateFunding.Models.Versioning
 
         [JsonProperty("date")]
 
-        public DateTime Date { get; set; }
+        public DateTimeOffset Date { get; set; }
 
         [JsonProperty("author")]
 

@@ -9,7 +9,7 @@ namespace CalculateFunding.Models.Specs
 
         public Reference FundingPeriod { get; set; }
 
-        public DateTime UpdatedAt { get; set; }
+        public DateTimeOffset UpdatedAt { get; set; }
 
         public string PublishStatus { get; set; }
 

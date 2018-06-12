@@ -21,7 +21,7 @@ namespace CalculateFunding.Models.Specs
         public IEnumerable<string> DataDefinitionRelationshipIds { get; set; }
 
         [JsonProperty("lastUpdatedDate")]
-        public DateTime LastUpdatedDate { get; set; }
+        public DateTimeOffset LastUpdatedDate { get; set; }
 
         [JsonProperty("fundingStreams")]
         public IEnumerable<FundingStream> FundingStreams { get; set; }

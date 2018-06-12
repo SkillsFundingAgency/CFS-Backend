@@ -155,8 +155,8 @@ namespace CalculateFunding.Services.Calcs.Services
             // Arrange
             const string specificationId = "specid";
 
-            DateTime calc1DateTime = DateTime.UtcNow;
-            DateTime calc2DateTime = DateTime.UtcNow;
+            DateTimeOffset calc1DateTime = DateTimeOffset.Now;
+            DateTimeOffset calc2DateTime = DateTimeOffset.Now;
 
             List<Calculation> calculations = new List<Calculation>()
             {

@@ -928,7 +928,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                     Current = new TestScenarioVersion
                     {
                         Author = new Reference("user-id", "username"),
-                        Date = DateTime.UtcNow,
+                        Date = DateTimeOffset.Now,
                         PublishStatus = PublishStatus.Draft,
                         Gherkin = "source code",
                         Version = 1
