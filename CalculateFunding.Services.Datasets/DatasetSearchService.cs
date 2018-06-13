@@ -13,6 +13,7 @@ using Serilog;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -170,7 +171,7 @@ namespace CalculateFunding.Services.Datasets
                     Name = m.Result.Name,
                     Status = m.Result.Status,
                     DefinitionName = m.Result.DefinitionName,
-                    LastUpdatedDate = m.Result.LastUpdatedDate,
+                    LastUpdatedDate = m.Result.LastUpdatedDate.LocalDateTime,
                     PeriodNames = m.Result.FundingPeriodNames,
                     SpecificationNames = m.Result.SpecificationNames,
                     Description = m.Result.Description,

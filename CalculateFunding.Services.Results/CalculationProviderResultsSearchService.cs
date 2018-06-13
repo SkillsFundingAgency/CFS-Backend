@@ -202,7 +202,7 @@ namespace CalculateFunding.Services.Results
                     CalculationName = m.Result.CalculationName,
                     CalculationType = m.Result.CalculationType,
                     CalculationResult = m.Result.CaclulationResult,
-                    LastUpdatedDate = m.Result.LastUpdatedDate,
+                    LastUpdatedDate = m.Result.LastUpdatedDate.LocalDateTime,
                     LocalAuthority = m.Result.LocalAuthority,
                     ProviderType = m.Result.ProviderType,
                     ProviderSubType = m.Result.ProviderSubType,
