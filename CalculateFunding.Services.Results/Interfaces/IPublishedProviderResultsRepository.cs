@@ -8,8 +8,12 @@ namespace CalculateFunding.Services.Results.Interfaces
 {
     public interface IPublishedProviderResultsRepository
     {
-        Task CreatePublishedResults(IEnumerable<PublishedProviderResult> publishedResults);
+        Task SavePublishedResults(IEnumerable<PublishedProviderResult> publishedResults);
 
         Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsForSpecificationId(string specificationId);
+
+        Task<IEnumerable<PublishedAllocationLineResultHistory>> GetPublishedProviderAllocationLineHistoryForSpecificationId(string specificationId);
+
+        Task SavePublishedAllocationLineResultsHistory(IEnumerable<PublishedAllocationLineResultHistory> publishedResultsHistory);
     }
 }

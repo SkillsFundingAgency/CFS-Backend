@@ -6,8 +6,11 @@ using System.Linq;
 
 namespace CalculateFunding.Models.Results
 {
-    public class PublishedAllocationLineResult : AllocationLineResult
+    public class PublishedAllocationLineResult
     {
+        [JsonProperty("allocationLine")]
+        public Reference AllocationLine { get; set; }
+
         [JsonProperty("current")]
         public PublishedAllocationLineResultVersion Current { get; set; }
 

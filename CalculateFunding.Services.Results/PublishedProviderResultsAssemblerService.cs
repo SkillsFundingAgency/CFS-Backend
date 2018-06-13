@@ -181,7 +181,8 @@ namespace CalculateFunding.Services.Results
                             Author = author,
                             Date = DateTimeOffset.Now,
                             Status = AllocationLineStatus.Held,
-                            Version = 1
+                            Version = 1,
+                            Value = allocationLineResultGroup.Sum(m => m.Value),
                         };
 
                         publishedFundingStreamResult.AllocationLineResults = publishedFundingStreamResult.AllocationLineResults.Concat(new[]
@@ -193,9 +194,7 @@ namespace CalculateFunding.Services.Results
                                     Name = allocationLine.Name,
                                     Id = allocationLine.Id
                                 },
-                                Value = allocationLineResultGroup.Sum(m => m.Value),
-                                Current = publishedAllocationLineResultVersion,
-                                History = new List<PublishedAllocationLineResultVersion> { publishedAllocationLineResultVersion }
+                                Current = publishedAllocationLineResultVersion
                             }
                         }).ToList();
                     }

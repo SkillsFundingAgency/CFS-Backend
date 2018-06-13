@@ -154,5 +154,17 @@ namespace CalculateFunding.Functions.Results.Http
                 return svc.GetPublishedProviderResultsBySpecificationId(req);
             }
         }
+
+        [FunctionName("update-published-allocationline-results-status")]
+        public static Task<IActionResult> RunUpdatePublishedAllocationLineResultsStatus(
+          [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        {
+            using (var scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IResultsService svc = scope.ServiceProvider.GetService<IResultsService>();
+
+                return svc.UpdatePublishedAllocationLineResultsStatus(req);
+            }
+        }
     }
 }

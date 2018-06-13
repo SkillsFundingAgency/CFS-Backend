@@ -134,5 +134,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _resultsService.GetPublishedProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/results/update-published-allocationline-results-status")]
+        [HttpPost]
+        public Task<IActionResult> RunUpdatePublishedAllocationLineResultsStatus()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _resultsService.UpdatePublishedAllocationLineResultsStatus(ControllerContext.HttpContext.Request);
+        }
     }
 }

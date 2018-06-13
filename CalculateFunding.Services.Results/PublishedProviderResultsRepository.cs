@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Results
             _cosmosRepository = cosmosRepository;
         }
 
-        public Task CreatePublishedResults(IEnumerable<PublishedProviderResult> publishedResults)
+        public Task SavePublishedResults(IEnumerable<PublishedProviderResult> publishedResults)
         {
             Guard.ArgumentNotNull(publishedResults, nameof(publishedResults));
 
@@ -29,6 +29,20 @@ namespace CalculateFunding.Services.Results
             IQueryable<PublishedProviderResult> results = _cosmosRepository.Query<PublishedProviderResult>(enableCrossPartitionQuery: true).Where(m => m.SpecificationId == specificationId);
 
             return Task.FromResult(results.AsEnumerable());
+        }
+
+        public Task<IEnumerable<PublishedAllocationLineResultHistory>> GetPublishedProviderAllocationLineHistoryForSpecificationId(string specificationId)
+        {
+            IQueryable<PublishedAllocationLineResultHistory> results = _cosmosRepository.Query<PublishedAllocationLineResultHistory>(enableCrossPartitionQuery: true).Where(m => m.SpecificationId == specificationId);
+
+            return Task.FromResult(results.AsEnumerable());
+        }
+
+        public Task SavePublishedAllocationLineResultsHistory(IEnumerable<PublishedAllocationLineResultHistory> publishedResultsHistory)
+        {
+            Guard.ArgumentNotNull(publishedResultsHistory, nameof(publishedResultsHistory));
+
+            return _cosmosRepository.BulkCreateAsync<PublishedAllocationLineResultHistory>(publishedResultsHistory.Select(m => new KeyValuePair<string, PublishedAllocationLineResultHistory>(m.ProviderId, m)));
         }
     }
 }

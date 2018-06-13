@@ -1,7 +1,6 @@
 ﻿using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace CalculateFunding.Models.Results
@@ -10,6 +9,9 @@ namespace CalculateFunding.Models.Results
     {
         [JsonProperty("status")]
         public AllocationLineStatus Status { get; set; }
+
+        [JsonProperty("value")]
+        public decimal? Value { get; set; }
 
         [JsonProperty("version")]
         public int Version { get; set; }
