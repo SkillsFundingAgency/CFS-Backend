@@ -525,9 +525,9 @@ namespace CalculateFunding.Services.Results
 
             try
             {
-                int countOfAllocationLineUpdates = await UpdateAllocationLineResultsStatus(publishedProviderResults, updateStatusModel, author, specificationId);
+                Tuple<int, int> updateCounts = await UpdateAllocationLineResultsStatus(publishedProviderResults, updateStatusModel, author, specificationId);
 
-                return new OkObjectResult (new { UpdateCount = countOfAllocationLineUpdates });
+                return new OkObjectResult ( new { UpdatedAllocationLines = updateCounts.Item1, UpdatedProviderIds = updateCounts.Item2 } );
             }
             catch (Exception ex)
             {
@@ -592,10 +592,11 @@ namespace CalculateFunding.Services.Results
             return publishedProviderResultModels;
         }
 
-        async Task<int> UpdateAllocationLineResultsStatus(IEnumerable<PublishedProviderResult> publishedProviderResults, 
+        async Task<Tuple<int, int>> UpdateAllocationLineResultsStatus(IEnumerable<PublishedProviderResult> publishedProviderResults, 
             UpdatePublishedAllocationLineResultStatusModel updateStatusModel, Reference author, string specificationId)
         {
-            int countOfAllocationLineUpdates = 0;
+            IList<string> updatedAllocationLineIds = new List<string>();
+            IList<string> updatedProviderIds = new List<string>();
 
             IList<PublishedProviderResult> resultsToUpdate = new List<PublishedProviderResult>();
 
@@ -646,7 +647,15 @@ namespace CalculateFunding.Services.Results
                             historyResultsToUpdate = historyResultsToUpdate.Concat(new[] { historyResult });
                         }
 
-                        countOfAllocationLineUpdates++;
+                        if (!updatedAllocationLineIds.Contains(allocationLineResultId))
+                        {
+                            updatedAllocationLineIds.Add(allocationLineResultId);
+                        }
+
+                        if (!updatedProviderIds.Contains(providerstatusModel.ProviderId))
+                        {
+                            updatedProviderIds.Add(providerstatusModel.ProviderId);
+                        }
 
                         isUpdated = true;
                     }
@@ -674,13 +683,16 @@ namespace CalculateFunding.Services.Results
                 }
             }
 
-            return countOfAllocationLineUpdates; 
+            return new Tuple<int, int>(updatedAllocationLineIds.Count, updatedProviderIds.Count);
         }
 
         bool CanUpdateAllocationLineResult(PublishedAllocationLineResult allocationLineResult, AllocationLineStatus newStatus)
         {
             if(allocationLineResult == null || allocationLineResult.Current.Status == newStatus 
-                || (allocationLineResult.Current.Status == AllocationLineStatus.Held && newStatus == AllocationLineStatus.Published))
+                || (allocationLineResult.Current.Status == AllocationLineStatus.Held && newStatus == AllocationLineStatus.Published)
+                || (allocationLineResult.Current.Status == AllocationLineStatus.Approved && newStatus == AllocationLineStatus.Held)
+                || (allocationLineResult.Current.Status == AllocationLineStatus.Published && newStatus == AllocationLineStatus.Held)
+                || (allocationLineResult.Current.Status == AllocationLineStatus.Published && newStatus == AllocationLineStatus.Approved))
             {
                 return false;
             }
