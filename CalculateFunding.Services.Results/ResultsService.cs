@@ -600,8 +600,7 @@ namespace CalculateFunding.Services.Results
 
             IList<PublishedProviderResult> resultsToUpdate = new List<PublishedProviderResult>();
 
-            IEnumerable<PublishedAllocationLineResultHistory> historyResults = (await _publishedProviderResultsRepository.GetPublishedProviderAllocationLineHistoryForSpecificationId(specificationId)).ToList();
-
+            //IEnumerable<PublishedAllocationLineResultHistory> historyResults = (await _publishedProviderResultsRepository.GetPublishedProviderAllocationLineHistoryForSpecificationId(specificationId)).ToList();
             IEnumerable<PublishedAllocationLineResultHistory> historyResultsToUpdate = new List<PublishedAllocationLineResultHistory>();
 
             foreach (UpdatePublishedAllocationLineResultStatusProviderModel providerstatusModel in updateStatusModel.Providers)
@@ -634,7 +633,8 @@ namespace CalculateFunding.Services.Results
 
                     if (CanUpdateAllocationLineResult(allocationLineResult, updateStatusModel.Status))
                     {
-                        PublishedAllocationLineResultHistory historyResult = historyResults.FirstOrDefault(m => m.AllocationLine.Id == allocationLineResult.AllocationLine.Id && m.ProviderId == providerstatusModel.ProviderId);
+                        PublishedAllocationLineResultHistory historyResult = await _publishedProviderResultsRepository.GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(specificationId, providerstatusModel.ProviderId);
+                        //PublishedAllocationLineResultHistory historyResult = historyResults.FirstOrDefault(m => m.AllocationLine.Id == allocationLineResult.AllocationLine.Id && m.ProviderId == providerstatusModel.ProviderId);
 
                         int nextVersionIndex = historyResult.History.Max(m => m.Version) + 1;
 

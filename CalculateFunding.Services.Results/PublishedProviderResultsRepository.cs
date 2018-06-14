@@ -44,5 +44,10 @@ namespace CalculateFunding.Services.Results
 
             return _cosmosRepository.BulkCreateAsync<PublishedAllocationLineResultHistory>(publishedResultsHistory.Select(m => new KeyValuePair<string, PublishedAllocationLineResultHistory>(m.ProviderId, m)));
         }
+
+        public async Task<PublishedAllocationLineResultHistory> GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(string specificationId, string providerId)
+        {
+            return( await _cosmosRepository.QueryPartitionedEntity<PublishedAllocationLineResultHistory>($"SELECT * from r where r.content.providerId = '{providerId}' and r.content.specificationId = '{specificationId}' and r.documentType = 'PublishedAllocationLineResultHistory'", 1, providerId)).FirstOrDefault();
+        }
     }
 }
