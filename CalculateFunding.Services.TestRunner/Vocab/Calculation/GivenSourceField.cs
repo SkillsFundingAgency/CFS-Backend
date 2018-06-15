@@ -25,17 +25,17 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Calculation
 
             if (actualValue != null)
             {
-                // var expectedValue = Convert.ChangeType(Value, actualValue.GetType());
-                //var logicResult = TestLogic(expectedValue, actualValue, Operator);
-                //if (!logicResult)
-                //{
-                //    return new GherkinParseResult(
-                //        $"{FieldName} in {DatasetName} - {actualValue} is not {Operator} {expectedValue}")
-                //    {
-                //        Abort = true,
-                //        Dependencies = { new Dependency(DatasetName, FieldName, actualValue?.ToString()) }                      
-                //    };
-                //}
+                var expectedValue = Convert.ChangeType(Value, actualValue.GetType());
+                var logicResult = TestLogic(expectedValue, actualValue, Operator);
+                if (!logicResult)
+                {
+                    return new GherkinParseResult(
+                        $"{FieldName} in {DatasetName} - {actualValue} is not {Operator} {expectedValue}")
+                    {
+                        Abort = true,
+                        Dependencies = { new Dependency(DatasetName, FieldName, actualValue?.ToString()) }
+                    };
+                }
                 return new GherkinParseResult()
                 {
                     Dependencies = { new Dependency(DatasetName, FieldName, actualValue?.ToString()) }
