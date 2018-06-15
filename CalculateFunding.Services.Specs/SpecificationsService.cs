@@ -326,7 +326,7 @@ namespace CalculateFunding.Services.Specs
             {
                 _logger.Error("No funding stream Id was provided to GetSpecificationsByFundingPeriodIdAndFundingPeriodId");
 
-                return new BadRequestObjectResult("Null or empty fundingPeriodId provided");
+                return new BadRequestObjectResult("Null or empty fundingstreamId provided");
             }
 
             IEnumerable<SpecificationSummary> specifications = (

@@ -7,7 +7,6 @@ Add any technical debt incurred...
 Test Coverage
 
 	- Spec Service
-		- GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId
 		- SelectSpecificationForFunding
 		- Add cacheprovider check in tests for funding streams
 

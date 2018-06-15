@@ -445,5 +445,94 @@ namespace CalculateFunding.Services.Specs.Services
                                         m.SpecificationId == SpecificationId
                                    ), Arg.Any<IDictionary<string, string>>());
         }
+
+        [TestMethod]
+        public async Task EditCalculation_WhenCalcInSubPolicyButNotTopLevelPolicyUpdatesCosmos_SendsMessageReturnsOk()
+        {
+            // Arrange
+            CalculationEditModel policyEditModel = new CalculationEditModel
+            {
+                Name = "new calc name",
+                CalculationType = CalculationType.Funding,
+                Description = "test description",
+                PolicyId = "policy-id-2"
+            };
+
+            string json = JsonConvert.SerializeObject(policyEditModel);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpContext context = Substitute.For<HttpContext>();
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) },
+                { "calculationId", new StringValues(CalculationId) },
+            });
+
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
+
+            request
+                .HttpContext
+                .Returns(context);
+
+            Specification specification = CreateSpecification();
+            specification
+                .Current
+                .Policies = new[] {
+                    new Policy { Id = PolicyId, Name = PolicyName, SubPolicies = new[] { new Policy { Id = "policy-id-2", Name = "sub-policy", Calculations = new[] { new Calculation { Id = CalculationId, Name = "Old name" } } } }
+                } };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            specificationsRepository
+                .UpdateSpecification(Arg.Is(specification))
+                .Returns(HttpStatusCode.OK);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, cacheProvider: cacheProvider, messengerService: messengerService);
+
+            // Act
+            IActionResult result = await specificationsService.EditCalculation(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            specification
+                .Current
+                .Policies
+                .First()
+                .SubPolicies
+                .First()
+                .Calculations
+                .First()
+                .Name
+                .Should()
+                .Be("new calc name");
+
+            await
+               messengerService
+                   .Received(1)
+                   .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.EditCalculation),
+                               Arg.Is<CalculationVersionComparisonModel>(
+                                   m => m.CalculationId == CalculationId &&
+                                        m.SpecificationId == SpecificationId
+                                   ), Arg.Any<IDictionary<string, string>>());
+        }
     }
 }

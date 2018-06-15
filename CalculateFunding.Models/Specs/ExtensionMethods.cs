@@ -50,7 +50,7 @@ namespace CalculateFunding.Models.Specs
         {
             foreach (Policy policy in specification.Policies)
             {
-                Calculation calculation = policy.Calculations.FirstOrDefault(m => m.Id == id);
+                Calculation calculation = policy.Calculations?.FirstOrDefault(m => m.Id == id);
                 if (calculation != null)
                 {
                     return policy;
