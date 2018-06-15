@@ -6,7 +6,7 @@ using CalculateFunding.Models.Scenarios;
 
 namespace CalculateFunding.Services.TestRunner.Vocab.Calculation
 {
-    [TestStep("given", SyntaxConstants.sourceFieldThen)]
+    [TestStep("given", SyntaxConstants.SourceDatasetStep)]
     public class GivenSourceField : GherkinStepAction
     {
         [TestStepArgument(StepArgumentType.FieldName)]

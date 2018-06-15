@@ -29,19 +29,9 @@ namespace CalculateFunding.Services.TestRunner
         public const string datasetSourceField =            @"(the)(\s)+(result)(\s)+(for)(\s)+'([^'.]*)'(\s)+(.*)(\s)+(the)(\s)+(dataset)(\s)+'([^'.]*)'(\s)+(field)(\s)+'([^'.]*)'";
 
         /// <summary>
-        /// 
+        /// Datasets parse regex
         /// </summary>
-        public const string sourceDatasetsetExpression =    @"(the)(\s)+(dataset)(\s)+'(.*)'(\s)+(field)(\s)+'([^'.]*)'";
-
-        /// <summary>
-        /// a dataset 'dataset name' field 'Field Name'
-        /// </summary>
-        public const string sourceFieldThen =               @"(the)(\s)+(dataset)(\s)+'(.*)'(\s)+(field)(\s)+'([^'.]*)'";
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public const string SourceDatasetStep =             @"(the)(\s)+(dataset)(\s)+'(.*)'(\s)+(field)(\s)+'(([^'.]*)'(\s)(([^'.]*)(\s)'(([^'.]*)'";
+        public const string SourceDatasetStep =             @"(the)(\s)+(dataset)(\s)+'(.*)'(\s)+(field)(\s)+'(([^'.]*))'(\s)(([^'.]*)(\s))'(([^'.]*))'";
 
     }
 }

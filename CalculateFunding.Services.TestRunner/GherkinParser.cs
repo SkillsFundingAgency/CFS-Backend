@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.TestRunner
         static IDictionary<StepType, string> stepExpressions = new Dictionary<StepType, string>
             {
                 { StepType.AssertCalcDataset, SyntaxConstants.assertCalcDatasetExpression },
-                { StepType.Datasets, SyntaxConstants.sourceDatasetsetExpression },
+                { StepType.Datasets, SyntaxConstants.SourceDatasetStep },
                 { StepType.Provider, SyntaxConstants.providerExpression },
                 { StepType.AssertCalc, SyntaxConstants.assertCalcExpression },
             };

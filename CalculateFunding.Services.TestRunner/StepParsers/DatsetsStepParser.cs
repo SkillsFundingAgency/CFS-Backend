@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Gherkin;
+using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Vocab.Calculation;
@@ -46,30 +47,43 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
 
                     string fieldName = matches[9];
 
-                    PropertyInformation dataset = typeInformation.FirstOrDefault(m => m.Type == "Datasets")?.Properties.FirstOrDefault(m => m.FriendlyName == datasetName.Replace("'", ""));
+                    string comparisonOperator = matches[13];
 
+                    string value = matches[15];
 
-                    if (dataset == null)
+                    KeyValuePair<ComparisonOperator, string> comparisonOperatorValue = ComparisonOperators.FirstOrDefault(x => x.Value == comparisonOperator);
+                    if (string.IsNullOrEmpty(comparisonOperatorValue.Value))
                     {
-                        parseResult.AddError($"No dataset with the name '{datasetName}' could be found for this test", step.Location.Line, step.Location.Column);
+                        parseResult.AddError("Invalid comparison operator", step.Location.Line, step.Location.Column);
                     }
                     else
                     {
-                        string type = dataset.Type;
+                        PropertyInformation dataset = typeInformation.FirstOrDefault(m => m.Type == "Datasets")?.Properties.FirstOrDefault(m => m.FriendlyName == datasetName.Replace("'", ""));
 
-                        PropertyInformation fieldInfo = typeInformation.FirstOrDefault(m => m.Type == type)?.Properties.FirstOrDefault(m => m.FriendlyName == fieldName.Replace("'", ""));
-
-                        if (fieldInfo == null)
+                        if (dataset == null)
                         {
-                            parseResult.AddError($"'{fieldName}' does not exist in the dataset '{datasetName}'", step.Location.Line, step.Location.Column);
+                            parseResult.AddError($"No dataset with the name '{datasetName}' could be found for this test", step.Location.Line, step.Location.Column);
                         }
-                    }
+                        else
+                        {
+                            string type = dataset.Type;
 
-                    parseResult.StepActions.Add(new GivenSourceField
-                    {
-                        FieldName = fieldName,
-                        DatasetName = datasetName
-                    });
+                            PropertyInformation fieldInfo = typeInformation.FirstOrDefault(m => m.Type == type)?.Properties.FirstOrDefault(m => m.FriendlyName == fieldName.Replace("'", ""));
+
+                            if (fieldInfo == null)
+                            {
+                                parseResult.AddError($"'{fieldName}' does not exist in the dataset '{datasetName}'", step.Location.Line, step.Location.Column);
+                            }
+                        }
+
+                        parseResult.StepActions.Add(new GivenSourceField
+                        {
+                            FieldName = fieldName,
+                            DatasetName = datasetName,
+                            Value = value,
+                            Operator = comparisonOperatorValue.Key,
+                        });
+                    }
                 }
             }
 
