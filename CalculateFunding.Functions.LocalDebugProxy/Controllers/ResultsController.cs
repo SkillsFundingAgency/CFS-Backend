@@ -143,5 +143,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _resultsService.UpdatePublishedAllocationLineResultsStatus(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/results/get-specification-provider-results")]
+        [HttpGet]
+        public Task<IActionResult> RunGetSpecificationProviderResults()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _resultsService.GetProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
+        }
     }
 }

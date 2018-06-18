@@ -28,6 +28,7 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Helpers;
+using System.Collections.Concurrent;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -329,11 +330,30 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("Null or empty fundingstreamId provided");
             }
 
-            IEnumerable<SpecificationSummary> specifications = (
-                await _specificationsRepository.GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(fundingPeriodId, fundingStreamId)
-                    ).Select(s => _mapper.Map<SpecificationSummary>(s)).ToList();
+            IEnumerable<Specification> specifications = await _specificationsRepository.GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(fundingPeriodId, fundingStreamId);
 
-            return new OkObjectResult(specifications);
+            ConcurrentBag<SpecificationSummary> mappedSpecifications = new ConcurrentBag<SpecificationSummary>();
+
+            IList<Task> checkForResulstsTasks = new List<Task>();
+
+            foreach(Specification specification in specifications)
+            {
+                Task task = Task.Run(async() =>
+                {
+                    bool hasProviderResults = await _resultsRepository.SpecificationHasResults(specification.Id);
+
+                    if (hasProviderResults)
+                    {
+                        mappedSpecifications.Add(_mapper.Map<SpecificationSummary>(specification));
+                    }
+                });
+
+                checkForResulstsTasks.Add(task);
+            }
+
+            await TaskHelper.WhenAllAndThrow(checkForResulstsTasks.ToArray());
+
+            return new OkObjectResult(mappedSpecifications);
         }
 
         public async Task<IActionResult> GetSpecificationsSelectedForFunding(HttpRequest request)

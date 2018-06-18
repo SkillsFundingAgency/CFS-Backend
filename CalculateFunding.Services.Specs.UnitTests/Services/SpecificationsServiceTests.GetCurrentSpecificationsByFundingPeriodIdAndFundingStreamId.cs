@@ -86,8 +86,8 @@ namespace CalculateFunding.Services.Specs.Services
         public async Task GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId_GivenResultsReturned_ReturnsOKObject()
         {
             //Arrange
-            Specification spec1 = new Specification();
-            Specification spec2 = new Specification();
+            Specification spec1 = new Specification { Id = "spec1" } ;
+            Specification spec2 = new Specification { Id = "spec2" };
 
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
@@ -107,7 +107,16 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(Arg.Is(FundingPeriodId), Arg.Is(FundingStreamId))
                 .Returns(new[] { spec1, spec2 });
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
+            IResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .SpecificationHasResults(Arg.Is("spec1"))
+                .Returns(true);
+
+            resultsRepository
+                .SpecificationHasResults(Arg.Is("spec2"))
+                .Returns(true);
+
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, resultsRepository: resultsRepository);
 
             //Act
             IActionResult result = await service.GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(request);
@@ -125,6 +134,60 @@ namespace CalculateFunding.Services.Specs.Services
                 .Count()
                 .Should()
                 .Be(2);
+        }
+
+        [TestMethod]
+        public async Task GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId_GivenResultsReturnedButOnlyOneHasProviderResults_ReturnsOKObjectWithOneSummary()
+        {
+            //Arrange
+            Specification spec1 = new Specification { Id = "spec1" };
+            Specification spec2 = new Specification { Id = "spec2" };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "fundingPeriodId", new StringValues(FundingPeriodId) },
+                { "fundingStreamId", new StringValues(FundingStreamId) }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(Arg.Is(FundingPeriodId), Arg.Is(FundingStreamId))
+                .Returns(new[] { spec1, spec2 });
+
+            IResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .SpecificationHasResults(Arg.Is("spec1"))
+                .Returns(true);
+
+            resultsRepository
+                .SpecificationHasResults(Arg.Is("spec2"))
+                .Returns(false);
+
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, resultsRepository: resultsRepository);
+
+            //Act
+            IActionResult result = await service.GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okObjectResult = result as OkObjectResult;
+
+            IEnumerable<SpecificationSummary> summaries = okObjectResult.Value as IEnumerable<SpecificationSummary>;
+
+            summaries
+                .Count()
+                .Should()
+                .Be(1);
         }
     }
 }

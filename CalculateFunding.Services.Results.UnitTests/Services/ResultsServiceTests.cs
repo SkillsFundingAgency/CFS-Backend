@@ -490,6 +490,54 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        async public Task GetProviderResultsBySpecificationId_GivenSpecificationIsProvidedAndTopIsProvided_ReturnsResults()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) },
+                { "top", new StringValues("1") }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<ProviderResult> providerResults = new[]
+            {
+                new ProviderResult(),
+                new ProviderResult()
+            };
+
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(1))
+                .Returns(providerResults);
+
+            ResultsService service = CreateResultsService(logger, resultsRepository: resultsRepository);
+
+            //Act
+            IActionResult result = await service.GetProviderResultsBySpecificationId(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okResults = result as OkObjectResult;
+
+            IEnumerable<ProviderResult> okResultsValue = okResults.Value as IEnumerable<ProviderResult>;
+
+            okResultsValue
+                .Count()
+                .Should()
+                .Be(2);
+        }
+
+        [TestMethod]
         public void UpdateProviderData_GivenNullResults_ThrowsArgumentNullException()
         {
             //Arrange

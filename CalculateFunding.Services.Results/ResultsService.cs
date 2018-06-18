@@ -184,8 +184,24 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            IEnumerable<ProviderResult> providerResults = await GetProviderResultsBySpecificationId(specificationId);
+            IEnumerable<ProviderResult> providerResults = null;
 
+            string top = GetParameter(request, "top");
+
+            if (!string.IsNullOrWhiteSpace(top))
+            {
+                int maxResults;
+
+                if (int.TryParse(top, out maxResults))
+                {
+                    providerResults = await GetProviderResultsBySpecificationId(specificationId, maxResults);
+
+                    return new OkObjectResult(providerResults);
+                }
+            }
+
+            providerResults = await GetProviderResultsBySpecificationId(specificationId);
+            
             return new OkObjectResult(providerResults);
         }
 
@@ -544,9 +560,9 @@ namespace CalculateFunding.Services.Results
             return null;
         }
 
-        public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId)
+        public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId, int maxResults = -1)
         {
-            return _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetProviderResultsBySpecificationId(specificationId));
+            return _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetProviderResultsBySpecificationId(specificationId, maxResults));
         }
 
         IEnumerable<PublishedProviderResultModel> MapPublishedProviderResultModels(IEnumerable<PublishedProviderResult> publishedProviderResults)
