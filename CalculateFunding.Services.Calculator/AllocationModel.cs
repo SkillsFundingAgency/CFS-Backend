@@ -157,7 +157,15 @@ namespace CalculateFunding.Services.Calculator
                     .FirstOrDefault(x => x.AttributeType.Name == "FieldAttribute");
                 if (fieldAttribute != null)
                 {
-                    if (row.TryGetValue(GetProperty(fieldAttribute, "Name"), out var value))
+                    string propertyName = GetProperty(fieldAttribute, "Name");
+
+                    // Check for the case where the property name begins with an _ due to the property name starting with a number
+                    if (propertyName.StartsWith("_"))
+                    {
+                        propertyName = propertyName.Substring(1, propertyName.Length - 1);
+                    }
+
+                    if (row.TryGetValue(propertyName, out var value))
                     {
                         var propType = property.PropertyType.ToString();
 
