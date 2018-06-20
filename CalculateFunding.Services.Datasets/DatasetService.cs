@@ -536,11 +536,17 @@ namespace CalculateFunding.Services.Datasets
 
             foreach (FieldDefinition field in identifierFields)
             {
-                var identifier = row.Fields[field.Name].ToString();
-                var lookup = await GetDictionaryForIdentifierType(field.IdentifierFieldType, identifier);
-                if (lookup.TryGetValue(identifier, out List<string> providerIds))
+                if (!string.IsNullOrWhiteSpace(field.Name))
                 {
-                    return providerIds;
+                    string identifier = row.Fields[field.Name]?.ToString();
+                    if (!string.IsNullOrWhiteSpace(identifier))
+                    {
+                        var lookup = await GetDictionaryForIdentifierType(field.IdentifierFieldType, identifier);
+                        if (lookup.TryGetValue(identifier, out List<string> providerIds))
+                        {
+                            return providerIds;
+                        }
+                    }
                 }
             }
 

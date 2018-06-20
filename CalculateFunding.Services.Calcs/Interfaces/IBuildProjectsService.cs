@@ -14,5 +14,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IActionResult> GetBuildProjectBySpecificationId(HttpRequest request);
 
         Task<IActionResult> UpdateBuildProjectRelationships(HttpRequest request);
+
+        Task<IActionResult> OutputBuildProjectToFilesystem(HttpRequest request);
     }
 }

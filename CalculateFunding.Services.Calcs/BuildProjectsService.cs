@@ -322,6 +322,46 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
+        public async Task<IActionResult> OutputBuildProjectToFilesystem(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out var specId);
+
+            var specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to GetBuildProjectBySpecificationId");
+
+                return new BadRequestObjectResult("Null or empty specificationId Id provided");
+            }
+
+            BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
+
+            if (buildProject == null)
+                return new NotFoundResult();
+
+            IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
+
+            IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations);
+
+            string sourceDirectory = @"c:\dev\vbout";
+            foreach (SourceFile sourceFile in sourceFiles)
+            {
+                string filename = sourceDirectory + "\\" + sourceFile.FileName;
+                string directory = System.IO.Path.GetDirectoryName(filename);
+                if (!System.IO.Directory.Exists(directory))
+                {
+                    System.IO.Directory.CreateDirectory(directory);
+                }
+
+                System.IO.File.WriteAllText(filename, sourceFile.SourceCode);
+            }
+
+
+            return new OkObjectResult(buildProject);
+
+        }
+
         Task<HttpStatusCode> UpdateBuildProject(BuildProject buildProject)
         {
             return _buildProjectsRepository.UpdateBuildProject(buildProject);

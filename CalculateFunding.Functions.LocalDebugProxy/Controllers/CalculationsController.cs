@@ -156,5 +156,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _calcsService.GetCalculationStatusCounts(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/calcs/output-build-project")]
+        [HttpGet]
+        public Task<IActionResult> RunOutputBuildProjectToFilesystem()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _buildProjectsService.OutputBuildProjectToFilesystem(ControllerContext.HttpContext.Request);
+        }
     }
 }
