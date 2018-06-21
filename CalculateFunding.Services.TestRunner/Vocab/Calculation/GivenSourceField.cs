@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Calculation
 
         public string Value { get; set; }
 
-        public override GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets)
+        public override GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDatasetCurrent> datasets)
         {
             var actualValue = GetActualValue(datasets, DatasetName, FieldName);
 

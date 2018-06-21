@@ -4,10 +4,19 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
-    public class ProviderSourceDataset : VersionContainer<SourceDataset>
+    public class ProviderSourceDatasetHistory : VersionContainer<SourceDataset>
     {
-        [JsonProperty("specification")]
-        public Reference Specification { get; set; }
+        [JsonProperty("id")]
+        public new string Id
+        {
+            get
+            {
+                return $"{SpecificationId}_{DataRelationship.Id}_{Provider.Id}_History";
+            }
+        }
+
+        [JsonProperty("specificationId")]
+        public string SpecificationId { get; set; }
 
         [JsonProperty("provider")]
         public Reference Provider { get; set; }

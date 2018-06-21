@@ -530,7 +530,7 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult($"Indexed total of {totalInserts} Datasets");
         }
 
-        async Task<IEnumerable<string>> GetProviderIdsForIdentifier(DatasetDefinition datasetDefinition, RowLoadResult row)
+        IEnumerable<string> GetProviderIdsForIdentifier(DatasetDefinition datasetDefinition, RowLoadResult row)
         {
             IEnumerable<FieldDefinition> identifierFields = datasetDefinition.TableDefinitions?.First().FieldDefinitions.Where(x => x.IdentifierFieldType.HasValue);
 
@@ -541,11 +541,16 @@ namespace CalculateFunding.Services.Datasets
                     string identifier = row.Fields[field.Name]?.ToString();
                     if (!string.IsNullOrWhiteSpace(identifier))
                     {
-                        var lookup = await GetDictionaryForIdentifierType(field.IdentifierFieldType, identifier);
+                        var lookup = GetDictionaryForIdentifierType(field.IdentifierFieldType, identifier);
                         if (lookup.TryGetValue(identifier, out List<string> providerIds))
                         {
                             return providerIds;
                         }
+                    }
+                    else
+                    {
+                        // For debugging only
+                        //_logger.Debug("Found identifier with null or emtpy string for provider");
                     }
                 }
             }
@@ -553,7 +558,7 @@ namespace CalculateFunding.Services.Datasets
             return new string[0];
         }
 
-        async Task<Dictionary<string, List<string>>> GetDictionaryForIdentifierType(IdentifierFieldType? identifierFieldType, string fieldIdentifier)
+        Dictionary<string, List<string>> GetDictionaryForIdentifierType(IdentifierFieldType? identifierFieldType, string fieldIdentifier)
         {
             var identifierMaps = new Dictionary<IdentifierFieldType, Dictionary<string, List<string>>>();
 
@@ -826,7 +831,7 @@ namespace CalculateFunding.Services.Datasets
 
             Guard.IsNullOrWhiteSpace(relationshipId, nameof(relationshipId));
 
-            IList<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>();
+            IList<ProviderSourceDatasetCurrent> providerSourceDatasets = new List<ProviderSourceDatasetCurrent>();
 
             if (buildProject.DatasetRelationships == null)
             {
@@ -842,42 +847,112 @@ namespace CalculateFunding.Services.Datasets
                 throw new Exception($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {datasetDefinition.Id} and relationshipId '{relationshipId}'");
             }
 
-            var resultsByProviderId = new Dictionary<string, ProviderSourceDataset>();
+            Dictionary<string, ProviderSourceDatasetCurrent> resultsByProviderId = new Dictionary<string, ProviderSourceDatasetCurrent>();
+
+            Dictionary<string, ProviderSourceDatasetCurrent> existingCurrent = new Dictionary<string, ProviderSourceDatasetCurrent>();
+
+            Dictionary<string, ProviderSourceDatasetHistory> existingHistory = new Dictionary<string, ProviderSourceDatasetHistory>();
+
+            Dictionary<string, ProviderSourceDatasetHistory> updateDatasetsHistory = new Dictionary<string, ProviderSourceDatasetHistory>();
+
+            Dictionary<string, ProviderSourceDatasetCurrent> updateCurrentDatasets = new Dictionary<string, ProviderSourceDatasetCurrent>();
+
+            // TODO get history and populate above
 
             foreach (RowLoadResult row in loadResult.Rows)
             {
-                IEnumerable<string> allProviderIds = (await GetProviderIdsForIdentifier(datasetDefinition, row));
+                IEnumerable<string> allProviderIds = GetProviderIdsForIdentifier(datasetDefinition, row);
 
                 IEnumerable<string> providerIds = allProviderIds.Where(x => x == row.Identifier).ToList();
 
-                foreach (var providerId in providerIds)
+                foreach (string providerId in providerIds)
                 {
-                    if (!resultsByProviderId.TryGetValue(providerId, out var sourceDataset))
+                    if (!resultsByProviderId.TryGetValue(providerId, out ProviderSourceDatasetCurrent sourceDataset))
                     {
-                        sourceDataset = new ProviderSourceDataset
+                        sourceDataset = new ProviderSourceDatasetCurrent
                         {
                             DataGranularity = relationshipSummary.DataGranularity,
-                            Specification = new Reference { Id = specificationId },
+                            SpecificationId = specificationId,
                             DefinesScope = relationshipSummary.DefinesScope,
                             DataDefinition = new Reference(relationshipSummary.DatasetDefinition.Id, relationshipSummary.DatasetDefinition.Name),
                             DataRelationship = new Reference(relationshipSummary.Id, relationshipSummary.Name),
-                            Id = Guid.NewGuid().ToString(),
                             Provider = new Reference { Id = providerId },
-                            Current = new SourceDataset
-                            {
-                                Dataset = new VersionReference(dataset.Id, dataset.Name, dataset.Current.Version),
-                                Rows = new List<Dictionary<string, object>>()
-                            }
+                            Dataset = new VersionReference(dataset.Id, dataset.Name, dataset.Current.Version),
+                            Rows = new List<Dictionary<string, object>>()
                         };
+
                         resultsByProviderId.Add(providerId, sourceDataset);
                     }
 
-                    sourceDataset.Current.Rows.Add(row.Fields);
+                    sourceDataset.Rows.Add(row.Fields);
+                }
+            }
+
+            foreach (var providerSourceDataset in resultsByProviderId)
+            {
+                string providerId = providerSourceDataset.Key;
+                ProviderSourceDatasetCurrent sourceDataset = providerSourceDataset.Value;
+
+                if (existingCurrent.ContainsKey(providerId))
+                {
+                    string existingDatasetJson = JsonConvert.SerializeObject(existingCurrent[providerId]);
+                    string latestDatasetJson = JsonConvert.SerializeObject(sourceDataset);
+
+                    if (existingDatasetJson != latestDatasetJson)
+                    {
+                        updateCurrentDatasets.Add(providerId, sourceDataset);
+                    }
+                }
+                else
+                {
+                    updateCurrentDatasets.Add(providerId, sourceDataset);
+                }
+
+                ProviderSourceDatasetHistory datasetHistory = null;
+                if (existingHistory.TryGetValue(providerId, out datasetHistory))
+                {
+                    string existingSourceDatasetJson = JsonConvert.SerializeObject(datasetHistory.Current);
+
+                    SourceDataset latestSourceDataset = new SourceDataset
+                    {
+                        Dataset = new VersionReference(dataset.Id, dataset.Name, dataset.Current.Version),
+                        Rows = new List<Dictionary<string, object>>()
+                    };
+
+                    string currentSourceDatasetJson = JsonConvert.SerializeObject(latestSourceDataset);
+
+                    if (existingSourceDatasetJson != currentSourceDatasetJson)
+                    {
+                        datasetHistory.Save(latestSourceDataset);
+
+                        updateDatasetsHistory.Add(providerId, datasetHistory);
+                    }
+                }
+                else
+                {
+                    datasetHistory = new ProviderSourceDatasetHistory()
+                    {
+                        DataGranularity = relationshipSummary.DataGranularity,
+                        SpecificationId = specificationId,
+                        DefinesScope = relationshipSummary.DefinesScope,
+                        DataDefinition = new Reference(relationshipSummary.DatasetDefinition.Id, relationshipSummary.DatasetDefinition.Name),
+                        DataRelationship = new Reference(relationshipSummary.Id, relationshipSummary.Name),
+                        Provider = new Reference { Id = providerId },
+                    };
+
+                    datasetHistory.Save(new SourceDataset
+                    {
+                        Dataset = new VersionReference(dataset.Id, dataset.Name, dataset.Current.Version),
+                        Rows = new List<Dictionary<string, object>>()
+                    });
+
+                    updateDatasetsHistory.Add(providerId, datasetHistory);
                 }
             }
 
 
-            await _providersResultsRepository.UpdateSourceDatsets(resultsByProviderId.Values, specificationId);
+            await _providersResultsRepository.UpdateCurrentSourceDatsets(updateCurrentDatasets.Values, specificationId);
+            await _providersResultsRepository.UpdateSourceDatasetHistory(updateDatasetsHistory.Values, specificationId);
 
             await PopulateProviderSummariesForSpecification(specificationId, _providerSummaries);
         }
@@ -886,7 +961,9 @@ namespace CalculateFunding.Services.Datasets
         {
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
-            IEnumerable<string> providerIds = await _providersResultsRepository.GetAllProviderIdsForSpecificationid(specificationId);
+            IEnumerable<string> providerIdsAll = await _providersResultsRepository.GetAllProviderIdsForSpecificationid(specificationId);
+
+            IEnumerable<string> providerIds = providerIdsAll.Distinct();
 
             IList<ProviderSummary> providerSummaries = new List<ProviderSummary>();
 

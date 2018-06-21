@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Datasets
             _cacheProvider = cacheProvider;
         }
 
-        public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId)
+        public Task<IEnumerable<ProviderSourceDatasetCurrent>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId)
         {
             if (string.IsNullOrWhiteSpace(providerId))
                 throw new ArgumentNullException(nameof(providerId));
@@ -43,10 +43,10 @@ namespace CalculateFunding.Services.Datasets
 
             string url = string.Format(GetProviderSourceDatasets, providerId, specificationId);
 
-            return _apiClient.GetAsync<IEnumerable<ProviderSourceDataset>>(url);
+            return _apiClient.GetAsync<IEnumerable<ProviderSourceDatasetCurrent>>(url);
         }
 
-        public Task<HttpStatusCode> UpdateProviderSourceDataset(ProviderSourceDataset providerSourceDataset)
+        public Task<HttpStatusCode> UpdateProviderSourceDataset(ProviderSourceDatasetCurrent providerSourceDataset)
         {
             if(providerSourceDataset == null)
                 throw new ArgumentNullException(nameof(providerSourceDataset));

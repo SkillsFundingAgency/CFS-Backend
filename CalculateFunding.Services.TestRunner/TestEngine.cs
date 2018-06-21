@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.TestRunner
         }
 
         public async Task<IEnumerable<TestScenarioResult>> RunTests(IEnumerable<TestScenario> testScenarios, IEnumerable<ProviderResult> providerResults,
-            IEnumerable<ProviderSourceDataset> sourceDatasets, IEnumerable<TestScenarioResult> currentResults, SpecificationSummary specification, BuildProject buildProject)
+            IEnumerable<ProviderSourceDatasetCurrent> sourceDatasets, IEnumerable<TestScenarioResult> currentResults, SpecificationSummary specification, BuildProject buildProject)
         {
             IList<TestScenarioResult> scenarioResults = new List<TestScenarioResult>();
 
@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.TestRunner
         }
 
         async Task<IEnumerable<ScenarioResult>> RunTests(IEnumerable<TestScenario> testScenarios, ProviderResult providerResult,
-            IEnumerable<ProviderSourceDataset> providerSourceDatasets, BuildProject buildProject)
+            IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets, BuildProject buildProject)
         {
             List<ScenarioResult> scenarioResults = new List<ScenarioResult>();
 

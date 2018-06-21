@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
        // Task<IEnumerable<ProviderSummary>> GetAllProviderSummaries();
 
-        Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId);
+        Task<IEnumerable<ProviderSourceDatasetCurrent>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId);
 
         // Task<int> PartitionProviderSummaries(int partitionSize);
 

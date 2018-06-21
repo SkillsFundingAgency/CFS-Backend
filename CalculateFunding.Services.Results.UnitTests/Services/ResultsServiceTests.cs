@@ -573,7 +573,7 @@ namespace CalculateFunding.Services.Results.Services
         async public Task UpdateProviderSourceDataset_GivenUpdatingDatasetFailsWithInternalServerError_ReturnsStatusCode500()
         {
             //Arrange
-            ProviderSourceDataset model = new ProviderSourceDataset();
+            ProviderSourceDatasetCurrent model = new ProviderSourceDatasetCurrent();
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
@@ -587,7 +587,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderSourceDatasetRepository providerSourceDatasetRepository = CreateProviderSourceDatasetRepository();
             providerSourceDatasetRepository
-                 .UpsertProviderSourceDataset(Arg.Any<ProviderSourceDataset>())
+                 .UpsertProviderSourceDataset(Arg.Any<ProviderSourceDatasetCurrent>())
                 .Returns(HttpStatusCode.InternalServerError);
 
             ResultsService service = CreateResultsService(logger, providerSourceDatasetRepository: providerSourceDatasetRepository);
@@ -616,7 +616,7 @@ namespace CalculateFunding.Services.Results.Services
         async public Task UpdateProviderSourceDataset_GivenUpdatingDatasetSucceeds_ReturnsNoContent()
         {
             //Arrange
-            ProviderSourceDataset model = new ProviderSourceDataset();
+            ProviderSourceDatasetCurrent model = new ProviderSourceDatasetCurrent();
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
@@ -630,7 +630,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderSourceDatasetRepository providerSourceDatasetRepository = CreateProviderSourceDatasetRepository();
             providerSourceDatasetRepository
-                .UpsertProviderSourceDataset(Arg.Any<ProviderSourceDataset>())
+                .UpsertProviderSourceDataset(Arg.Any<ProviderSourceDatasetCurrent>())
                 .Returns(HttpStatusCode.OK);
 
             ResultsService service = CreateResultsService(logger, providerSourceDatasetRepository: providerSourceDatasetRepository);
@@ -715,7 +715,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            IEnumerable<ProviderSourceDataset> providerSources = new[] { new ProviderSourceDataset(), new ProviderSourceDataset() };
+            IEnumerable<ProviderSourceDatasetCurrent> providerSources = new[] { new ProviderSourceDatasetCurrent(), new ProviderSourceDatasetCurrent() };
 
             IProviderSourceDatasetRepository providerSourceDatasetRepository = CreateProviderSourceDatasetRepository();
             providerSourceDatasetRepository
@@ -734,7 +734,7 @@ namespace CalculateFunding.Services.Results.Services
 
             OkObjectResult okResult = result as OkObjectResult;
 
-            IEnumerable<ProviderSourceDataset> sourceDatasets = okResult.Value as IEnumerable<ProviderSourceDataset>;
+            IEnumerable<ProviderSourceDatasetCurrent> sourceDatasets = okResult.Value as IEnumerable<ProviderSourceDatasetCurrent>;
 
             sourceDatasets
                 .Count()

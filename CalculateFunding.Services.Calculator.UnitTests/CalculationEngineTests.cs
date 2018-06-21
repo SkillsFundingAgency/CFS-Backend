@@ -33,12 +33,12 @@ namespace CalculateFunding.Services.Calculator
                 new ProviderSummary{ Id = ProviderId, Name = ProviderName }
             };
 
-            IEnumerable<ProviderSourceDataset> datasets = new[]
+            IEnumerable<ProviderSourceDatasetCurrent> datasets = new[]
             {
-                new ProviderSourceDataset()
+                new ProviderSourceDatasetCurrent()
             };
 
-            Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> func = (s, p) =>
+            Func<string, string, Task<IEnumerable<ProviderSourceDatasetCurrent>>> func = (s, p) =>
             {
                 return Task.FromResult(datasets);
             };
@@ -53,7 +53,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel allocationModel = Substitute.For<IAllocationModel>();
             allocationModel
-                .When(x => x.Execute(Arg.Any<List<ProviderSourceDataset>>()))
+                .When(x => x.Execute(Arg.Any<List<ProviderSourceDatasetCurrent>>()))
                 .Do(x => { throw new Exception(); });
 
             IAllocationFactory allocationFactory = Substitute.For<IAllocationFactory>();
@@ -84,12 +84,12 @@ namespace CalculateFunding.Services.Calculator
                 new ProviderSummary{ Id = ProviderId, Name = ProviderName }
             };
 
-            IEnumerable<ProviderSourceDataset> datasets = new[]
+            IEnumerable<ProviderSourceDatasetCurrent> datasets = new[]
             {
-                new ProviderSourceDataset()
+                new ProviderSourceDatasetCurrent()
             };
 
-            Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> func = (s, p) =>
+            Func<string, string, Task<IEnumerable<ProviderSourceDatasetCurrent>>> func = (s, p) =>
             {
                 return Task.FromResult(datasets);
             };
@@ -104,7 +104,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel allocationModel = Substitute.For<IAllocationModel>();
             allocationModel
-                .Execute(Arg.Is(Arg.Any<List<ProviderSourceDataset>>()))
+                .Execute(Arg.Is(Arg.Any<List<ProviderSourceDatasetCurrent>>()))
                 .Returns(calculationResults);
 
             IAllocationFactory allocationFactory = Substitute.For<IAllocationFactory>();
@@ -165,12 +165,12 @@ namespace CalculateFunding.Services.Calculator
                 new ProviderSummary{ Id = ProviderId, Name = ProviderName }
             };
 
-            IEnumerable<ProviderSourceDataset> datasets = new[]
+            IEnumerable<ProviderSourceDatasetCurrent> datasets = new[]
             {
-                new ProviderSourceDataset()
+                new ProviderSourceDatasetCurrent()
             };
 
-            Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> func = (s, p) =>
+            Func<string, string, Task<IEnumerable<ProviderSourceDatasetCurrent>>> func = (s, p) =>
             {
                 return Task.FromResult(datasets);
             };
@@ -203,7 +203,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel allocationModel = Substitute.For<IAllocationModel>();
             allocationModel
-                .Execute(Arg.Is(Arg.Any<List<ProviderSourceDataset>>()))
+                .Execute(Arg.Is(Arg.Any<List<ProviderSourceDatasetCurrent>>()))
                 .Returns(calculationResults);
 
             IAllocationFactory allocationFactory = Substitute.For<IAllocationFactory>();
@@ -275,12 +275,12 @@ namespace CalculateFunding.Services.Calculator
                 new ProviderSummary{ Id = ProviderId, Name = ProviderName }
             };
 
-            IEnumerable<ProviderSourceDataset> datasets = new[]
+            IEnumerable<ProviderSourceDatasetCurrent> datasets = new[]
             {
-                new ProviderSourceDataset()
+                new ProviderSourceDatasetCurrent()
             };
 
-            Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> func = (s, p) =>
+            Func<string, string, Task<IEnumerable<ProviderSourceDatasetCurrent>>> func = (s, p) =>
             {
                 return Task.FromResult(datasets);
             };
@@ -289,7 +289,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel allocationModel = Substitute.For<IAllocationModel>();
             allocationModel
-                .Execute(Arg.Is(Arg.Any<List<ProviderSourceDataset>>()))
+                .Execute(Arg.Is(Arg.Any<List<ProviderSourceDatasetCurrent>>()))
                 .Returns(calculationResults);
 
             IAllocationFactory allocationFactory = Substitute.For<IAllocationFactory>();

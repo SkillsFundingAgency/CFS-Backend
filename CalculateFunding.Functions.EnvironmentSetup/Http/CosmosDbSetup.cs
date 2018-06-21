@@ -53,14 +53,14 @@ namespace CalculateFunding.Functions.EnvironmentSetup.Http
 
             await CreateDatabaseAndCollections(client, "calculate-funding", new[] { "specs", "calcs", "tests", "datasets" }, log);
 
-            // Create unlimited sized collection for providersources
+            // Create unlimited sized collection for providersourcedatasets
             await CreateDatabaseAndCollection(client, "calculate-funding",
                 new DocumentCollection()
                 {
-                    Id = "providersources",
+                    Id = "providersourcedatasets",
                     PartitionKey = new PartitionKeyDefinition()
                     {
-                        Paths = new Collection<string>() { "/content/provider/id" }
+                        Paths = new Collection<string>() { "/content/specificationId" }
                     },
                 },
                 new RequestOptions()

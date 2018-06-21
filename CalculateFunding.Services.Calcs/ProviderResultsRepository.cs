@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Calcs
             return await _cacheProvider.ListRangeAsync<ProviderSummary>(CacheKeys.AllProviderSummaries, start, stop);
         }
 
-        public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId)
+        public Task<IEnumerable<ProviderSourceDatasetCurrent>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId)
         {
             if (string.IsNullOrWhiteSpace(providerId))
                 throw new ArgumentNullException(nameof(providerId));
@@ -78,7 +78,7 @@ namespace CalculateFunding.Services.Calcs
 
             string url = string.Format(getProviderSourceDatasets, providerId, specificationId);
 
-            return _apiClient.GetAsync<IEnumerable<ProviderSourceDataset>>(url);
+            return _apiClient.GetAsync<IEnumerable<ProviderSourceDatasetCurrent>>(url);
         }
 
         public async Task PopulateProviderSummariesForSpecification(string specificationId)

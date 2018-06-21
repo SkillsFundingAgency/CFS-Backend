@@ -50,7 +50,7 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 config.Bind("CosmosDbSettings", calssDbSettings);
 
-                calssDbSettings.CollectionName = "providersources";
+                calssDbSettings.CollectionName = "providersourcedatasets";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 

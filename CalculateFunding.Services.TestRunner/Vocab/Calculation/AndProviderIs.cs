@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Calculation
         public string ProviderId { get; set; }
         public ComparisonOperator Operator { get; set; }
        
-        public override GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets)
+        public override GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDatasetCurrent> datasets)
         {
             var logicResult = TestLogic(ProviderId, providerResult.Provider.Id, Operator);
             if (logicResult)

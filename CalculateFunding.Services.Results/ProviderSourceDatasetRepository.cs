@@ -17,23 +17,21 @@ namespace CalculateFunding.Services.Results
             _cosmosRepository = cosmosRepository;
         }
 
-        public Task<HttpStatusCode> UpsertProviderSourceDataset(ProviderSourceDataset providerSourceDataset)
+        public Task<HttpStatusCode> UpsertProviderSourceDataset(ProviderSourceDatasetCurrent providerSourceDataset)
         {
             return _cosmosRepository.CreateAsync(providerSourceDataset);
         }
 
-        public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasets(string providerId, string specificationId)
+        public Task<IEnumerable<ProviderSourceDatasetCurrent>> GetProviderSourceDatasets(string providerId, string specificationId)
         {
-            var results = _cosmosRepository.Query<ProviderSourceDataset>(enableCrossPartitionQuery: true).Where(x => x.Provider.Id == providerId && x.Specification.Id == specificationId);
-
-            return Task.FromResult(results.AsEnumerable());
+            return _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>($"SELECT * FROM Root r WHERE r.content.provider.id = '{providerId}' AND r.content.specificationId = '{specificationId}' AND r.documentType = '{nameof(ProviderSourceDatasetCurrent)}' & r.deleted = false", -1, specificationId);
         }
 
-        public async Task<IEnumerable<string>> GetAllScopedProviderIdsForSpecificationid(string specificationId)
+        public async Task<IEnumerable<string>> GetAllScopedProviderIdsForSpecificationId(string specificationId)
         {
-            IEnumerable<DocumentEntity<ProviderSourceDataset>> providerSourceDatasets = await _cosmosRepository.GetAllDocumentsAsync<ProviderSourceDataset>(query: m => !m.Deleted && m.Content.Specification.Id == specificationId && m.DocumentType == nameof(ProviderSourceDataset));
+            IEnumerable< ProviderSourceDatasetCurrent> providerSourceDatasets = await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>($"SELECT * FROM Root r WHERE r.content.specificationId = '{specificationId}' AND r.documentType = '{nameof(ProviderSourceDatasetCurrent)}' & r.deleted = false", -1, specificationId);
 
-            return providerSourceDatasets.Select(m => m.Content.Provider.Id);
+            return providerSourceDatasets.Select(m => m.Provider.Id).Distinct();
         }
     }
 }

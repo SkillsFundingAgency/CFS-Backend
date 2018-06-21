@@ -350,7 +350,7 @@ namespace CalculateFunding.Services.Results
         {
             string json = await request.GetRawBodyStringAsync();
 
-            ProviderSourceDataset sourceDatset = JsonConvert.DeserializeObject<ProviderSourceDataset>(json);
+            ProviderSourceDatasetCurrent sourceDatset = JsonConvert.DeserializeObject<ProviderSourceDatasetCurrent>(json);
 
             if (sourceDatset == null)
             {
@@ -390,7 +390,7 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty provider Id provided");
             }
 
-            IEnumerable<ProviderSourceDataset> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetRepository.GetProviderSourceDatasets(providerId, specificationId));
+            IEnumerable<ProviderSourceDatasetCurrent> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetRepository.GetProviderSourceDatasets(providerId, specificationId));
 
             return new OkObjectResult(providerResults);
         }
@@ -405,7 +405,7 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            IEnumerable<string> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetRepository.GetAllScopedProviderIdsForSpecificationid(specificationId));
+            IEnumerable<string> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetRepository.GetAllScopedProviderIdsForSpecificationId(specificationId));
 
             return new OkObjectResult(providerResults);
         }

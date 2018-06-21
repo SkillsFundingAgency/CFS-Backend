@@ -107,6 +107,11 @@ namespace CalculateFunding.Repositories.Common.Search
             {
                 var azureSearchResult = await client.Documents.SearchAsync<T>(id, searchParameters ?? DefaultParameters);
 
+                if(azureSearchResult == null || azureSearchResult.Results == null)
+                {
+                    return null;
+                }
+
                 var response = new SearchResults<T>
                 {
                     Results = azureSearchResult.Results.Select(x => new SearchResult<T>
@@ -116,7 +121,7 @@ namespace CalculateFunding.Repositories.Common.Search
                         Score = x.Score
                     }).ToList()
                 };
-                return response.Results.FirstOrDefault().Result;
+                return response.Results.FirstOrDefault()?.Result;
             }
             catch (Exception ex)
             {

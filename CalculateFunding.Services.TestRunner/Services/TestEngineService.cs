@@ -132,7 +132,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id);
 
             Stopwatch providerSourceDatasetsStopwatch = Stopwatch.StartNew();
-            IEnumerable<ProviderSourceDataset> sourceDatasets = await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(() =>
+            IEnumerable<ProviderSourceDatasetCurrent> sourceDatasets = await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(() =>
                                                      _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIds, specificationId));
 
             providerSourceDatasetsStopwatch.Stop();
@@ -239,7 +239,7 @@ namespace CalculateFunding.Services.TestRunner.Services
 
             IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id).ToList();
 
-            IEnumerable<ProviderSourceDataset> sourceDatasets = await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(() =>
+            IEnumerable<ProviderSourceDatasetCurrent> sourceDatasets = await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(() =>
                                                      _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIds, specificationId));
 
             if (sourceDatasets.IsNullOrEmpty())

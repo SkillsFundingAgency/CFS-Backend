@@ -2757,7 +2757,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 resultsRepository
                     .DidNotReceive()
-                    .UpdateProviderSourceDataset(Arg.Any<ProviderSourceDataset>());
+                    .UpdateProviderSourceDataset(Arg.Any<ProviderSourceDatasetCurrent>());
         }
 
         [TestMethod]
@@ -2845,7 +2845,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 resultsRepository
                     .DidNotReceive()
-                    .UpdateProviderSourceDataset(Arg.Any<ProviderSourceDataset>());
+                    .UpdateProviderSourceDataset(Arg.Any<ProviderSourceDatasetCurrent>());
         }
 
         [TestMethod]
@@ -2951,7 +2951,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 resultsRepository
                     .DidNotReceive()
-                    .UpdateProviderSourceDataset(Arg.Any<ProviderSourceDataset>());
+                    .UpdateProviderSourceDataset(Arg.Any<ProviderSourceDatasetCurrent>());
         }
 
         [TestMethod]
@@ -3068,12 +3068,24 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 providerResultsRepository
                     .Received(1)
-                    .UpdateSourceDatsets(Arg.Is<IEnumerable<ProviderSourceDataset>>(
+                    .UpdateCurrentSourceDatsets(Arg.Is<IEnumerable<ProviderSourceDatasetCurrent>>(
                         m => m.First().DataDefinition.Id == DataDefintionId &&
                              m.First().DataGranularity == DataGranularity.SingleRowPerProvider &&
                              m.First().DefinesScope == false &&
                              !string.IsNullOrWhiteSpace(m.First().Id) &&
-                             m.First().Specification.Id == SpecificationId &&
+                             m.First().SpecificationId == SpecificationId &&
+                             m.First().Provider.Id == "123456"
+                        ), Arg.Is(SpecificationId));
+
+            await
+                providerResultsRepository
+                    .Received(1)
+                    .UpdateSourceDatasetHistory(Arg.Is<IEnumerable<ProviderSourceDatasetHistory>>(
+                        m => m.First().DataDefinition.Id == DataDefintionId &&
+                             m.First().DataGranularity == DataGranularity.SingleRowPerProvider &&
+                             m.First().DefinesScope == false &&
+                             !string.IsNullOrWhiteSpace(m.First().Id) &&
+                             m.First().SpecificationId == SpecificationId &&
                              m.First().Provider.Id == "123456"
                         ), Arg.Is(SpecificationId));
         }
@@ -3193,7 +3205,12 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 providerResultsRepository
                     .Received(1)
-                    .UpdateSourceDatsets(Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Is(SpecificationId));
+                    .UpdateCurrentSourceDatsets(Arg.Any<IEnumerable<ProviderSourceDatasetCurrent>>(), Arg.Is(SpecificationId));
+
+            await
+                providerResultsRepository
+                    .Received(1)
+                    .UpdateSourceDatasetHistory(Arg.Any<IEnumerable<ProviderSourceDatasetHistory>>(), Arg.Is(SpecificationId));
         }
 
         [TestMethod]

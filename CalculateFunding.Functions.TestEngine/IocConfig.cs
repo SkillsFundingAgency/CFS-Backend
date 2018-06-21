@@ -84,7 +84,7 @@ namespace CalculateFunding.Functions.TestEngine
 
                 config.Bind("CosmosDbSettings", providersDbSettings);
 
-                providersDbSettings.CollectionName = "providersources";
+                providersDbSettings.CollectionName = "providersourcedatasets";
 
                 CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
 

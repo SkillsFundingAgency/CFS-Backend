@@ -20,27 +20,44 @@ namespace CalculateFunding.Services.Datasets
             _cacheProvider = cacheProvider;
         }
 
-        public async Task UpdateSourceDatsets(IEnumerable<ProviderSourceDataset> providerSourceDatasets, string specificationId)
+        public async Task UpdateCurrentSourceDatsets(IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets, string specificationId)
         {
+            // TODO - use polly to retry instead of sequentially
             try
             {
-                await _cacheProvider.RemoveAsync<List<ProviderSourceDataset>>(specificationId);
+                await _cacheProvider.RemoveAsync<List<ProviderSourceDatasetCurrent>>(specificationId);
 
                 await _cosmosRepository.BulkCreateAsync(providerSourceDatasets.ToList());
             }
             catch (Exception ex)
             {
                 
-                foreach (ProviderSourceDataset sourceDataset in providerSourceDatasets)
+                foreach (ProviderSourceDatasetCurrent sourceDataset in providerSourceDatasets)
                 {
                     await _cosmosRepository.CreateAsync(sourceDataset);
                 }
             }
         }
-        
+
+        public async Task UpdateSourceDatasetHistory(IEnumerable<ProviderSourceDatasetHistory> providerSourceDatasets, string specificationId)
+        {
+            try
+            {
+                await _cosmosRepository.BulkCreateAsync(providerSourceDatasets.ToList());
+            }
+            catch (Exception ex)
+            {
+
+                foreach (ProviderSourceDatasetHistory sourceDataset in providerSourceDatasets)
+                {
+                    await _cosmosRepository.CreateAsync(sourceDataset);
+                }
+            }
+        }
+
         public async Task<IEnumerable<string>> GetAllProviderIdsForSpecificationid(string specificationId)
         {
-            IEnumerable<DocumentEntity<ProviderSourceDataset>> providerSourceDatasets = await _cosmosRepository.GetAllDocumentsAsync<ProviderSourceDataset>(query: m => !m.Deleted && m.Content.Specification.Id == specificationId && m.DocumentType == nameof(ProviderSourceDataset));
+            IEnumerable<DocumentEntity<ProviderSourceDatasetCurrent>> providerSourceDatasets = await _cosmosRepository.GetAllDocumentsAsync<ProviderSourceDatasetCurrent>(query: m => !m.Deleted && m.Content.SpecificationId == specificationId);
 
             return providerSourceDatasets.Select(m => m.Content.Provider.Id);
         }

@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Calculation
         public ComparisonOperator Operator { get; set; }
         public string Value { get; set; }
 
-        public override GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets)
+        public override GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDatasetCurrent> datasets)
         {
             var calculationResult = providerResult.CalculationResults.SingleOrDefault(x => x.Calculation.Name == CalculationName);
             var actualValue = calculationResult.Value;

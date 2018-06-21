@@ -829,7 +829,7 @@
             },
             {
               "name": "CosmosDbSettings:CollectionName",
-              "value": "providersources"
+              "value": "providersourcedatasets"
             },
             {
               "name": "SearchServiceName",
@@ -1021,7 +1021,7 @@
             },
             {
               "name": "CosmosDbSettings:CollectionName",
-              "value": "providersources"
+              "value": "providersourcedatasets"
             },
             {
               "name": "ApiOptions:ApiKey",

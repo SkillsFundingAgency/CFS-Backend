@@ -7,10 +7,10 @@ namespace CalculateFunding.Services.Results.Interfaces
 {
     public interface IProviderSourceDatasetRepository
     {
-        Task<HttpStatusCode> UpsertProviderSourceDataset(ProviderSourceDataset providerSourceDataset);
+        Task<HttpStatusCode> UpsertProviderSourceDataset(ProviderSourceDatasetCurrent providerSourceDataset);
 
-        Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasets(string providerId, string specificationId);
+        Task<IEnumerable<ProviderSourceDatasetCurrent>> GetProviderSourceDatasets(string providerId, string specificationId);
 
-        Task<IEnumerable<string>> GetAllScopedProviderIdsForSpecificationid(string specificationId);
+        Task<IEnumerable<string>> GetAllScopedProviderIdsForSpecificationId(string specificationId);
     }
 }

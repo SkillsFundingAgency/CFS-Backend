@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Calculator
 
         private Dictionary<string, Type> DatasetTypes { get; }
 
-        public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets)
+        public IEnumerable<CalculationResult> Execute(List<ProviderSourceDatasetCurrent> datasets)
         {
             var datasetNamesUsed = new HashSet<string>();
             foreach (var dataset in datasets)
@@ -103,7 +103,7 @@ namespace CalculateFunding.Services.Calculator
                     datasetNamesUsed.Add(dataset.DataRelationship.Name);
                     if (dataset.DataGranularity == DataGranularity.SingleRowPerProvider)
                     {
-                        var row = PopulateRow(type, dataset.Current.Rows.First());
+                        var row = PopulateRow(type, dataset.Rows.First());
                         setter.SetValue(_datasetsInstance, row);
                     }
                     else
@@ -112,7 +112,7 @@ namespace CalculateFunding.Services.Calculator
                         var list = Activator.CreateInstance(constructGeneric);
                         var addMethod = list.GetType().GetMethod("Add");
                         var itemType = list.GetType().GenericTypeArguments.First();
-                        var rows = dataset.Current.Rows.Select(x => PopulateRow(itemType, x)).ToArray();
+                        var rows = dataset.Rows.Select(x => PopulateRow(itemType, x)).ToArray();
                         foreach (var row in rows)
                         {
                             addMethod.Invoke(list, new[] { row });

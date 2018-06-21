@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.TestRunner
             return gherkinParseResult;
         }
 
-        public async Task<IEnumerable<ScenarioResult>> Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets, IEnumerable<TestScenario> testScenarios, BuildProject buildProject)
+        public async Task<IEnumerable<ScenarioResult>> Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDatasetCurrent> datasets, IEnumerable<TestScenario> testScenarios, BuildProject buildProject)
         {
             IList<ScenarioResult> scenarioResults = new List<ScenarioResult>();
 

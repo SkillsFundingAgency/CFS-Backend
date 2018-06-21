@@ -107,7 +107,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 config.Bind("CosmosDbSettings", calssDbSettings);
 
-                calssDbSettings.CollectionName = "providersources";
+                calssDbSettings.CollectionName = "providersourcedatasets";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
 
@@ -154,7 +154,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 config.Bind("CosmosDbSettings", dbSettings);
 
-                dbSettings.CollectionName = "providersources";
+                dbSettings.CollectionName = "providersourcedatasets";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(dbSettings);
 
@@ -466,7 +466,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 config.Bind("CosmosDbSettings", providersDbSettings);
 
-                providersDbSettings.CollectionName = "providersources";
+                providersDbSettings.CollectionName = "providersourcedatasets";
 
                 CosmosRepository providersCosmosRepostory = new CosmosRepository(providersDbSettings);
 
@@ -528,7 +528,7 @@ namespace CalculateFunding.Functions.LocalDebugProxy
 
                 config.Bind("CosmosDbSettings", provDbSettings);
 
-                provDbSettings.CollectionName = "providersources";
+                provDbSettings.CollectionName = "providersourcedatasets";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(provDbSettings);
 
