@@ -131,7 +131,7 @@ namespace CalculateFunding.Services.Results
 
             if (string.IsNullOrWhiteSpace(providerId))
             {
-                _logger.Error("No provider Id was provided to GetProviderResults");
+                _logger.Error("No provider Id was provided to GetProviderById");
                 return new BadRequestObjectResult("Null or empty provider Id provided");
             }
 

@@ -2205,16 +2205,23 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadButDatasetDefinitionCounldNotBeFound_DoesNotProcess()
+        async public Task ProcessDataset_GivenPayloadButDatasetDefinitionCouldNotBeFound_DoesNotProcess()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1, };
+
             Dataset dataset = new Dataset
             {
                 Definition = new Reference { Id = DataDefintionId },
-                Current = new DatasetVersion { BlobName = blobPath }
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion,
+                }
             };
+
 
             var json = JsonConvert.SerializeObject(dataset);
 
@@ -2233,6 +2240,19 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
                 .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
                 .Returns((IEnumerable<DatasetDefinition>)null);
+
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference("df1", "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
 
             ILogger logger = CreateLogger();
 
@@ -2257,10 +2277,16 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1, };
+
             Dataset dataset = new Dataset
             {
                 Definition = new Reference { Id = DataDefintionId },
-                Current = new DatasetVersion { BlobName = blobPath }
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion,
+                }
             };
 
             var json = JsonConvert.SerializeObject(dataset);
@@ -2293,6 +2319,19 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns((BuildProject)null);
 
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
+
             DatasetService service = CreateDatasetService(datasetRepository: datasetRepository, logger: logger, calcsRepository: calcsRepository);
 
             //Act
@@ -2314,10 +2353,16 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1, };
+
             Dataset dataset = new Dataset
             {
                 Definition = new Reference { Id = DataDefintionId },
-                Current = new DatasetVersion { BlobName = blobPath }
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion,
+                }
             };
 
             var json = JsonConvert.SerializeObject(dataset);
@@ -2357,6 +2402,19 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
+
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient);
@@ -2380,10 +2438,16 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1 };
+
             Dataset dataset = new Dataset
             {
                 Definition = new Reference { Id = DataDefintionId },
-                Current = new DatasetVersion { BlobName = blobPath }
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion
+                }
             };
 
             var json = JsonConvert.SerializeObject(dataset);
@@ -2401,7 +2465,8 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
-                new DatasetDefinition{ Id = DataDefintionId }
+                new DatasetDefinition{ Id = DataDefintionId, },
+
             };
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
@@ -2434,10 +2499,23 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient);
 
-            //Act
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
+
+            // Act
             await service.ProcessDataset(message);
 
-            //Assert
+            // Assert
             logger
                 .Received(1)
                 .Error(Arg.Is($"Invalid blob returned: {blobPath}"));
@@ -2453,10 +2531,16 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1, };
+
             Dataset dataset = new Dataset
             {
                 Definition = new Reference { Id = DataDefintionId },
-                Current = new DatasetVersion { BlobName = blobPath }
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion,
+                }
             };
 
             var json = JsonConvert.SerializeObject(dataset);
@@ -2507,6 +2591,19 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient);
 
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
+
             //Act
             await service.ProcessDataset(message);
 
@@ -2533,10 +2630,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 new TableLoadResult()
             };
 
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1, };
+
             Dataset dataset = new Dataset
             {
                 Definition = new Reference { Id = DataDefintionId },
-                Current = new DatasetVersion { BlobName = blobPath }
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion,
+                }
             };
 
             var json = JsonConvert.SerializeObject(dataset);
@@ -2582,6 +2685,19 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider);
 
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
+
             //Act
             await service.ProcessDataset(message);
 
@@ -2608,10 +2724,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 new TableLoadResult()
             };
 
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1, };
+
             Dataset dataset = new Dataset
             {
                 Definition = new Reference { Id = DataDefintionId },
-                Current = new DatasetVersion { BlobName = blobPath }
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion,
+                }
             };
 
             var json = JsonConvert.SerializeObject(dataset);
@@ -2661,6 +2783,19 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider);
 
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
+
             //Act
             await service.ProcessDataset(message);
 
@@ -2690,10 +2825,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1, };
+
             Dataset dataset = new Dataset
             {
                 Definition = new Reference { Id = DataDefintionId },
-                Current = new DatasetVersion { BlobName = blobPath }
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion,
+                }
             };
 
             var json = JsonConvert.SerializeObject(dataset);
@@ -2745,6 +2886,19 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProviderRepository resultsRepository = CreateProviderRepository();
 
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
+
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
@@ -2779,10 +2933,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1, };
+
             Dataset dataset = new Dataset
             {
                 Definition = new Reference { Id = DataDefintionId },
-                Current = new DatasetVersion { BlobName = blobPath }
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion,
+                }
             };
 
             var json = JsonConvert.SerializeObject(dataset);
@@ -2833,6 +2993,19 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProviderRepository resultsRepository = CreateProviderRepository();
 
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
+
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
@@ -2867,10 +3040,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1, };
+
             Dataset dataset = new Dataset
             {
                 Definition = new Reference { Id = DataDefintionId },
-                Current = new DatasetVersion { BlobName = blobPath }
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion,
+                }
             };
 
             var json = JsonConvert.SerializeObject(dataset);
@@ -2939,6 +3118,19 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProviderRepository resultsRepository = CreateProviderRepository();
 
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
+
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
@@ -2973,10 +3165,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1, };
+
             Dataset dataset = new Dataset
             {
                 Definition = new Reference { Id = DataDefintionId },
-                Current = new DatasetVersion { BlobName = blobPath }
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion,
+                }
             };
 
             var json = JsonConvert.SerializeObject(dataset);
@@ -3056,6 +3254,19 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProvidersResultsRepository providerResultsRepository = CreateProvidesrResultsRepository();
 
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
+
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
@@ -3068,19 +3279,19 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 providerResultsRepository
                     .Received(1)
-                    .UpdateCurrentSourceDatsets(Arg.Is<IEnumerable<ProviderSourceDatasetCurrent>>(
+                    .UpdateCurrentProviderSourceDatasets(Arg.Is<IEnumerable<ProviderSourceDatasetCurrent>>(
                         m => m.First().DataDefinition.Id == DataDefintionId &&
                              m.First().DataGranularity == DataGranularity.SingleRowPerProvider &&
                              m.First().DefinesScope == false &&
                              !string.IsNullOrWhiteSpace(m.First().Id) &&
                              m.First().SpecificationId == SpecificationId &&
-                             m.First().Provider.Id == "123456"
+                             m.First().ProviderId == "123456"
                         ), Arg.Is(SpecificationId));
 
             await
                 providerResultsRepository
                     .Received(1)
-                    .UpdateSourceDatasetHistory(Arg.Is<IEnumerable<ProviderSourceDatasetHistory>>(
+                    .UpdateProviderSourceDatasetHistory(Arg.Is<IEnumerable<ProviderSourceDatasetHistory>>(
                         m => m.First().DataDefinition.Id == DataDefintionId &&
                              m.First().DataGranularity == DataGranularity.SingleRowPerProvider &&
                              m.First().DefinesScope == false &&
@@ -3110,10 +3321,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1, };
+
             Dataset dataset = new Dataset
             {
                 Definition = new Reference { Id = DataDefintionId },
-                Current = new DatasetVersion { BlobName = blobPath }
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion,
+                }
             };
 
             var json = JsonConvert.SerializeObject(dataset);
@@ -3193,6 +3410,19 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IProvidersResultsRepository providerResultsRepository = CreateProvidesrResultsRepository();
 
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
+
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
@@ -3205,12 +3435,12 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 providerResultsRepository
                     .Received(1)
-                    .UpdateCurrentSourceDatsets(Arg.Any<IEnumerable<ProviderSourceDatasetCurrent>>(), Arg.Is(SpecificationId));
+                    .UpdateCurrentProviderSourceDatasets(Arg.Any<IEnumerable<ProviderSourceDatasetCurrent>>(), Arg.Is(SpecificationId));
 
             await
                 providerResultsRepository
                     .Received(1)
-                    .UpdateSourceDatasetHistory(Arg.Any<IEnumerable<ProviderSourceDatasetHistory>>(), Arg.Is(SpecificationId));
+                    .UpdateProviderSourceDatasetHistory(Arg.Any<IEnumerable<ProviderSourceDatasetHistory>>(), Arg.Is(SpecificationId));
         }
 
         [TestMethod]

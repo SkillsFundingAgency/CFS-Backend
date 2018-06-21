@@ -200,7 +200,6 @@ Feature:
                             DefinesScope = dataRelationship.DefinesScope, // states whether this defines the provider scope
                             DataDefinition = new Reference(dataRelationship.DatasetDefinition.Id, dataRelationship.DatasetDefinition.Name),
                             DataRelationship = new Reference("4321", dataRelationship.Name),
-                            Dataset = new VersionReference("apt", "APT 1819", 4),
                             Rows = loadResult.Rows.Where(x => x.Identifier == providerSummary.UPIN && x.IdentifierFieldType == IdentifierFieldType.UPIN).Select(x => x.Fields).ToList()
 
                         });

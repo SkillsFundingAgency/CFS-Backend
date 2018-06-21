@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.TestRunner
 
             foreach (var providerResult in providerResults)
             {
-                var providerSourceDatasets = sourceDatasets.Where(m => m.Provider.Id == providerResult.Provider.Id);
+                var providerSourceDatasets = sourceDatasets.Where(m => m.ProviderId == providerResult.Provider.Id);
 
                 var testResults = await RunTests(testScenarios, providerResult, providerSourceDatasets, buildProject);
 

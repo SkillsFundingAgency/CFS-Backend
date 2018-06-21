@@ -210,7 +210,7 @@ namespace CalculateFunding.Services.Calculator
                 Stopwatch calculationStopwatch = Stopwatch.StartNew();
                 Parallel.ForEach(partitionedSummaries, new ParallelOptions { MaxDegreeOfParallelism = _engineSettings.CalculateProviderResultsDegreeOfParallelism }, provider =>
                 {
-                    IEnumerable<ProviderSourceDatasetCurrent> providerDatasets = providerSourceDatasets.Where(m => m.Provider?.Id == provider.Id);
+                    IEnumerable<ProviderSourceDatasetCurrent> providerDatasets = providerSourceDatasets.Where(m => m.ProviderId == provider.Id);
 
                     var result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets);
 

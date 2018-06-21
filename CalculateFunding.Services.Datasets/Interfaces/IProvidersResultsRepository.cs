@@ -6,9 +6,13 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 {
     public interface IProvidersResultsRepository
     {
-        Task UpdateCurrentSourceDatsets(IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets, string specificationId);
+        Task UpdateCurrentProviderSourceDatasets(IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets, string specificationId);
 
-        Task UpdateSourceDatasetHistory(IEnumerable<ProviderSourceDatasetHistory> providerSourceDatasets, string specificationId);
+        Task UpdateProviderSourceDatasetHistory(IEnumerable<ProviderSourceDatasetHistory> providerSourceDatasets, string specificationId);
+
+        Task<IEnumerable<ProviderSourceDatasetHistory>> GetProviderSourceDatasetHistories(string specificationId, string relationshipId);
+
+        Task<IEnumerable<ProviderSourceDatasetCurrent>> GetCurrentProviderSourceDatasets(string specificationId, string relationshipId);
 
         Task<IEnumerable<string>> GetAllProviderIdsForSpecificationid(string specificationId);
     }

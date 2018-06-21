@@ -13,15 +13,15 @@ namespace CalculateFunding.Models.Results
         {
             get
             {
-                return $"{SpecificationId}_{DataRelationship?.Id}_{Provider?.Id}";
+                return $"{SpecificationId}_{DataRelationship?.Id}_{ProviderId}";
             }
         }
 
         [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }
 
-        [JsonProperty("provider")]
-        public Reference Provider { get; set; }
+        [JsonProperty("providerId")]
+        public string ProviderId { get; set; }
 
         [JsonProperty("dataDefinition")]
         public Reference DataDefinition { get; set; }
@@ -29,14 +29,18 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("dataRelationship")]
         public Reference DataRelationship { get; set; }
 
+        [JsonProperty("datasetRelationshipSummary")]
+        public Reference DatasetRelationshipSummary { get; set; }
+
         [JsonProperty("dataGranularity")]
         public DataGranularity DataGranularity { get; set; }
 
         [JsonProperty("definesScope")]
         public bool DefinesScope { get; set; }
 
-        [JsonProperty("dataset")]
-        public VersionReference Dataset { get; set; }
+        // Not included to reduce updates to Current - if the row values are not changed, then no need to write to cosmos. Can look this value up from relationship if required.
+        //[JsonProperty("dataset")]
+        //public VersionReference Dataset { get; set; }
 
         [JsonProperty("rows")]
         public List<Dictionary<string, object>> Rows { get; set; }

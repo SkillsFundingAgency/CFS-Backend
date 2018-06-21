@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Results.Services
 
             logger
                 .Received(1)
-                .Error(Arg.Is("No provider Id was provided to GetProviderResults"));
+                .Error(Arg.Is("No provider Id was provided to GetProviderById"));
         }
 
         [TestMethod]

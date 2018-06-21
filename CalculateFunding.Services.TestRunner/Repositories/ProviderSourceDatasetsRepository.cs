@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
             ParallelLoopResult result = Parallel.ForEach(providerIds, new ParallelOptions() { MaxDegreeOfParallelism = _engineSettings.GetProviderSourceDatasetsDegreeOfParallelism }, async (providerId) =>
             {
-                string sql = $"SELECT * FROM Root r where r.documentType = '{nameof(ProviderSourceDatasetCurrent)}' and r.content.specificationId = '{specificationId}' and r.content.provider.id ='{providerId}' AND r.deleted = false";
+                string sql = $"SELECT * FROM Root r where r.documentType = '{nameof(ProviderSourceDatasetCurrent)}' and r.content.specificationId = '{specificationId}' and r.content.providerId ='{providerId}' AND r.deleted = false";
                 IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasetResults = await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>(sql, partitionEntityId: specificationId);
                 foreach (ProviderSourceDatasetCurrent repoResult in providerSourceDatasetResults)
                 {

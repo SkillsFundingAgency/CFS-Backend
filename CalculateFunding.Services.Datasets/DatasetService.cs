@@ -294,6 +294,7 @@ namespace CalculateFunding.Services.Datasets
 
             return actionResult;
         }
+
         async public Task<IActionResult> ProcessDataset(HttpRequest request)
         {
             string json = await request.GetRawBodyStringAsync();
@@ -322,11 +323,19 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult($"Null or empty {nameof(relationshipId)} provided");
             }
 
+            DefinitionSpecificationRelationship relationship = await _datasetRepository.GetDefinitionSpecificationRelationshipById(relationshipId);
+
+            if (relationship == null)
+            {
+                _logger.Error($"Relationship not found for relationship id: {relationshipId}");
+                throw new ArgumentNullException(nameof(relationshipId), "A null or empty relationship returned from repository");
+            }
+
             BuildProject buildProject = null;
 
             try
             {
-                buildProject = await ProcessDataset(dataset, specificationId, relationshipId);
+                buildProject = await ProcessDataset(dataset, specificationId, relationshipId, relationship.DatasetVersion.Version);
             }
             catch (Exception exception)
             {
@@ -406,11 +415,19 @@ namespace CalculateFunding.Services.Datasets
                 throw new ArgumentNullException(nameof(specificationId), "A null or empty relationship id was provided to ProcessData");
             }
 
+            DefinitionSpecificationRelationship relationship = await _datasetRepository.GetDefinitionSpecificationRelationshipById(relationshipId);
+
+            if (relationship == null)
+            {
+                _logger.Error($"Relationship not found for relationship id: {relationshipId}");
+                throw new ArgumentNullException(nameof(relationshipId), "A null or empty relationship returned from repository");
+            }
+
             BuildProject buildProject = null;
 
             try
             {
-                buildProject = await ProcessDataset(dataset, specificationId, relationshipId);
+                buildProject = await ProcessDataset(dataset, specificationId, relationshipId, relationship.DatasetVersion.Version);
             }
             catch (Exception exception)
             {
@@ -785,11 +802,18 @@ namespace CalculateFunding.Services.Datasets
             return new OkResult();
         }
 
-        async Task<BuildProject> ProcessDataset(Dataset dataset, string specificationId, string relationshipId)
+        async Task<BuildProject> ProcessDataset(Dataset dataset, string specificationId, string relationshipId, int version)
         {
             string dataDefinitionId = dataset.Definition.Id;
 
-            string fullBlobName = dataset.Current.BlobName;
+            DatasetVersion datasetVersion = dataset.History.Where(v => v.Version == version).SingleOrDefault();
+            if (datasetVersion == null)
+            {
+                _logger.Error("Dataset version not found for dataset '{name}' ({id}) version '{version}'", dataset.Id, dataset.Name, version);
+                throw new InvalidOperationException($"Dataset version not found for dataset '{dataset.Name}' ({dataset.Name}) version '{version}'");
+            }
+
+            string fullBlobName = datasetVersion.BlobName;
 
             DatasetDefinition datasetDefinition =
                     (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == dataDefinitionId))?.FirstOrDefault();
@@ -819,12 +843,12 @@ namespace CalculateFunding.Services.Datasets
                 throw new Exception($"Failed to load table result");
             }
 
-            await PersistDataset(loadResult, dataset, datasetDefinition, buildProject, specificationId, relationshipId);
+            await PersistDataset(loadResult, dataset, datasetDefinition, buildProject, specificationId, relationshipId, version);
 
             return buildProject;
         }
 
-        async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, string specificationId, string relationshipId)
+        async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, string specificationId, string relationshipId, int version)
         {
             if (_providerSummaries.IsNullOrEmpty())
                 _providerSummaries = await _providerRepository.GetAllProviderSummaries();
@@ -847,6 +871,7 @@ namespace CalculateFunding.Services.Datasets
                 throw new Exception($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {datasetDefinition.Id} and relationshipId '{relationshipId}'");
             }
 
+
             Dictionary<string, ProviderSourceDatasetCurrent> resultsByProviderId = new Dictionary<string, ProviderSourceDatasetCurrent>();
 
             Dictionary<string, ProviderSourceDatasetCurrent> existingCurrent = new Dictionary<string, ProviderSourceDatasetCurrent>();
@@ -857,7 +882,24 @@ namespace CalculateFunding.Services.Datasets
 
             Dictionary<string, ProviderSourceDatasetCurrent> updateCurrentDatasets = new Dictionary<string, ProviderSourceDatasetCurrent>();
 
-            // TODO get history and populate above
+            IEnumerable<ProviderSourceDatasetCurrent> existingCurrentDatasets = await _providersResultsRepository.GetCurrentProviderSourceDatasets(specificationId, relationshipId);
+            IEnumerable<ProviderSourceDatasetHistory> existingDatasetHistory = await _providersResultsRepository.GetProviderSourceDatasetHistories(specificationId, relationshipId);
+
+            if (existingCurrentDatasets.AnyWithNullCheck())
+            {
+                foreach (ProviderSourceDatasetCurrent currentDataset in existingCurrentDatasets)
+                {
+                    existingCurrent.Add(currentDataset.ProviderId, currentDataset);
+                }
+            }
+
+            if (existingDatasetHistory.AnyWithNullCheck())
+            {
+                foreach (ProviderSourceDatasetHistory datasetHistory in existingDatasetHistory)
+                {
+                    existingHistory.Add(datasetHistory.Provider.Id, datasetHistory);
+                }
+            }
 
             foreach (RowLoadResult row in loadResult.Rows)
             {
@@ -875,9 +917,9 @@ namespace CalculateFunding.Services.Datasets
                             SpecificationId = specificationId,
                             DefinesScope = relationshipSummary.DefinesScope,
                             DataDefinition = new Reference(relationshipSummary.DatasetDefinition.Id, relationshipSummary.DatasetDefinition.Name),
-                            DataRelationship = new Reference(relationshipSummary.Id, relationshipSummary.Name),
-                            Provider = new Reference { Id = providerId },
-                            Dataset = new VersionReference(dataset.Id, dataset.Name, dataset.Current.Version),
+                            DataRelationship = new Reference(relationshipSummary.Relationship.Id, relationshipSummary.Relationship.Name),
+                            DatasetRelationshipSummary = new Reference(relationshipSummary.Id, relationshipSummary.Name),
+                            ProviderId = providerId,
                             Rows = new List<Dictionary<string, object>>()
                         };
 
@@ -911,19 +953,22 @@ namespace CalculateFunding.Services.Datasets
                 ProviderSourceDatasetHistory datasetHistory = null;
                 if (existingHistory.TryGetValue(providerId, out datasetHistory))
                 {
-                    string existingSourceDatasetJson = JsonConvert.SerializeObject(datasetHistory.Current);
+                    // Only update if the row values change
+                    string existingSourceDatasetJson = JsonConvert.SerializeObject(datasetHistory.History?.LastOrDefault().Rows);
 
-                    SourceDataset latestSourceDataset = new SourceDataset
-                    {
-                        Dataset = new VersionReference(dataset.Id, dataset.Name, dataset.Current.Version),
-                        Rows = new List<Dictionary<string, object>>()
-                    };
-
-                    string currentSourceDatasetJson = JsonConvert.SerializeObject(latestSourceDataset);
+                    string currentSourceDatasetJson = JsonConvert.SerializeObject(providerSourceDataset.Value.Rows);
 
                     if (existingSourceDatasetJson != currentSourceDatasetJson)
                     {
-                        datasetHistory.Save(latestSourceDataset);
+                        SourceDataset latestSourceDataset = new SourceDataset
+                        {
+                            Dataset = new VersionReference(dataset.Id, dataset.Name, version),
+                            Rows = providerSourceDataset.Value.Rows,
+                            Date = DateTimeOffset.Now,
+                            Version = datasetHistory.GetNextVersion(),
+                        };
+
+                        datasetHistory.History = datasetHistory.History.Concat(new[] { latestSourceDataset });
 
                         updateDatasetsHistory.Add(providerId, datasetHistory);
                     }
@@ -936,23 +981,27 @@ namespace CalculateFunding.Services.Datasets
                         SpecificationId = specificationId,
                         DefinesScope = relationshipSummary.DefinesScope,
                         DataDefinition = new Reference(relationshipSummary.DatasetDefinition.Id, relationshipSummary.DatasetDefinition.Name),
-                        DataRelationship = new Reference(relationshipSummary.Id, relationshipSummary.Name),
+                        DataRelationship = new Reference(relationshipSummary.Relationship.Id, relationshipSummary.Relationship.Name),
+                        DatasetRelationshipSummary = new Reference(relationshipSummary.Id, relationshipSummary.Name),
                         Provider = new Reference { Id = providerId },
+                        History = new List<SourceDataset>() {
+                            new SourceDataset
+                            {
+                                Dataset  = new VersionReference(dataset.Id, dataset.Name, version),
+                                Rows = providerSourceDataset.Value.Rows,
+                                Date = DateTimeOffset.Now,
+                                Version = 1,
+                            }
+                        }
                     };
-
-                    datasetHistory.Save(new SourceDataset
-                    {
-                        Dataset = new VersionReference(dataset.Id, dataset.Name, dataset.Current.Version),
-                        Rows = new List<Dictionary<string, object>>()
-                    });
 
                     updateDatasetsHistory.Add(providerId, datasetHistory);
                 }
             }
 
 
-            await _providersResultsRepository.UpdateCurrentSourceDatsets(updateCurrentDatasets.Values, specificationId);
-            await _providersResultsRepository.UpdateSourceDatasetHistory(updateDatasetsHistory.Values, specificationId);
+            await _providersResultsRepository.UpdateCurrentProviderSourceDatasets(updateCurrentDatasets.Values, specificationId);
+            await _providersResultsRepository.UpdateProviderSourceDatasetHistory(updateDatasetsHistory.Values, specificationId);
 
             await PopulateProviderSummariesForSpecification(specificationId, _providerSummaries);
         }

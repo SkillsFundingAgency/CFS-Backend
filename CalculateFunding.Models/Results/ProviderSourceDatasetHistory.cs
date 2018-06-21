@@ -1,13 +1,15 @@
-﻿using CalculateFunding.Models.Datasets.Schema;
+﻿using System.Collections.Generic;
+using System.Linq;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
-    public class ProviderSourceDatasetHistory : VersionContainer<SourceDataset>
+    public class ProviderSourceDatasetHistory : IIdentifiable
     {
         [JsonProperty("id")]
-        public new string Id
+        public string Id
         {
             get
             {
@@ -27,10 +29,26 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("dataRelationship")]
         public Reference DataRelationship { get; set; }
 
+        [JsonProperty("datasetRelationshipSummary")]
+        public Reference DatasetRelationshipSummary { get; set; }
+
         [JsonProperty("dataGranularity")]
         public DataGranularity DataGranularity { get; set; }
 
         [JsonProperty("definesScope")]
         public bool DefinesScope { get; set; }
+
+        [JsonProperty("history")]
+        public IEnumerable<SourceDataset> History { get; set; } = Enumerable.Empty<SourceDataset>();
+
+        public int GetNextVersion()
+        {
+            if (History == null || !History.Any())
+                return 1;
+
+            int maxVersion = History.Max(m => m.Version);
+
+            return maxVersion + 1;
+        }
     }
 }

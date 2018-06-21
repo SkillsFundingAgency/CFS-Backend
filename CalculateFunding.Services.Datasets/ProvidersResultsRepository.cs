@@ -1,11 +1,10 @@
-﻿using CalculateFunding.Models.Results;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Datasets.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -20,46 +19,38 @@ namespace CalculateFunding.Services.Datasets
             _cacheProvider = cacheProvider;
         }
 
-        public async Task UpdateCurrentSourceDatsets(IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets, string specificationId)
+        public async Task UpdateCurrentProviderSourceDatasets(IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets, string specificationId)
         {
-            // TODO - use polly to retry instead of sequentially
-            try
-            {
-                await _cacheProvider.RemoveAsync<List<ProviderSourceDatasetCurrent>>(specificationId);
+            await _cacheProvider.RemoveAsync<List<ProviderSourceDatasetCurrent>>(specificationId);
 
-                await _cosmosRepository.BulkCreateAsync(providerSourceDatasets.ToList());
-            }
-            catch (Exception ex)
-            {
-                
-                foreach (ProviderSourceDatasetCurrent sourceDataset in providerSourceDatasets)
-                {
-                    await _cosmosRepository.CreateAsync(sourceDataset);
-                }
-            }
+            IEnumerable<KeyValuePair<string, ProviderSourceDatasetCurrent>> datasets = providerSourceDatasets.Select(m => new KeyValuePair<string, ProviderSourceDatasetCurrent>(specificationId, m));
+
+            await _cosmosRepository.BulkCreateAsync(datasets);
         }
 
-        public async Task UpdateSourceDatasetHistory(IEnumerable<ProviderSourceDatasetHistory> providerSourceDatasets, string specificationId)
+        public async Task UpdateProviderSourceDatasetHistory(IEnumerable<ProviderSourceDatasetHistory> providerSourceDatasets, string specificationId)
         {
-            try
-            {
-                await _cosmosRepository.BulkCreateAsync(providerSourceDatasets.ToList());
-            }
-            catch (Exception ex)
-            {
+            IEnumerable<KeyValuePair<string, ProviderSourceDatasetHistory>> datasets = providerSourceDatasets.Select(m => new KeyValuePair<string, ProviderSourceDatasetHistory>(specificationId, m));
 
-                foreach (ProviderSourceDatasetHistory sourceDataset in providerSourceDatasets)
-                {
-                    await _cosmosRepository.CreateAsync(sourceDataset);
-                }
-            }
+            await _cosmosRepository.BulkCreateAsync(datasets);
         }
 
         public async Task<IEnumerable<string>> GetAllProviderIdsForSpecificationid(string specificationId)
         {
-            IEnumerable<DocumentEntity<ProviderSourceDatasetCurrent>> providerSourceDatasets = await _cosmosRepository.GetAllDocumentsAsync<ProviderSourceDatasetCurrent>(query: m => !m.Deleted && m.Content.SpecificationId == specificationId);
+            IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets = await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>($"SELECT * FROM r WHERE r.content.specificationId = '{specificationId}' AND r.deleted = false AND r.documentType = '{nameof(ProviderSourceDatasetCurrent)}'", -1, specificationId);
 
-            return providerSourceDatasets.Select(m => m.Content.Provider.Id);
+            return providerSourceDatasets.Select(m => m.ProviderId);
+        }
+
+        public Task<IEnumerable<ProviderSourceDatasetHistory>> GetProviderSourceDatasetHistories(string specificationId, string relationshipId)
+        {
+            return _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetHistory>($"SELECT * FROM r WHERE r.content.specificationId = '{specificationId}' AND r.content.dataRelationship.id = '{relationshipId}' AND r.deleted = false AND r.documentType = '{nameof(ProviderSourceDatasetHistory)}'", -1, specificationId);
+
+        }
+
+        public Task<IEnumerable<ProviderSourceDatasetCurrent>> GetCurrentProviderSourceDatasets(string specificationId, string relationshipId)
+        {
+            return _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>($"SELECT * FROM r WHERE r.content.specificationId = '{specificationId}' AND r.content.dataRelationship.id = '{relationshipId}' AND r.deleted = false AND r.documentType = '{nameof(ProviderSourceDatasetCurrent)}'", -1, specificationId);
         }
     }
 }
