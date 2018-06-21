@@ -547,7 +547,7 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult($"Indexed total of {totalInserts} Datasets");
         }
 
-        IEnumerable<string> GetProviderIdsForIdentifier(DatasetDefinition datasetDefinition, RowLoadResult row)
+        private static IEnumerable<string> GetProviderIdsForIdentifier(DatasetDefinition datasetDefinition, RowLoadResult row)
         {
             IEnumerable<FieldDefinition> identifierFields = datasetDefinition.TableDefinitions?.First().FieldDefinitions.Where(x => x.IdentifierFieldType.HasValue);
 
@@ -575,7 +575,7 @@ namespace CalculateFunding.Services.Datasets
             return new string[0];
         }
 
-        Dictionary<string, List<string>> GetDictionaryForIdentifierType(IdentifierFieldType? identifierFieldType, string fieldIdentifier)
+        private static Dictionary<string, List<string>> GetDictionaryForIdentifierType(IdentifierFieldType? identifierFieldType, string fieldIdentifier)
         {
             var identifierMaps = new Dictionary<IdentifierFieldType, Dictionary<string, List<string>>>();
 
@@ -736,7 +736,7 @@ namespace CalculateFunding.Services.Datasets
             });
         }
 
-        Func<ProviderSummary, string> GetIdentifierSelectorExpression(IdentifierFieldType identifierFieldType)
+        private static Func<ProviderSummary, string> GetIdentifierSelectorExpression(IdentifierFieldType identifierFieldType)
         {
             if (identifierFieldType == IdentifierFieldType.URN)
                 return x => x.URN;
@@ -1012,11 +1012,9 @@ namespace CalculateFunding.Services.Datasets
 
             IEnumerable<string> providerIdsAll = await _providersResultsRepository.GetAllProviderIdsForSpecificationid(specificationId);
 
-            IEnumerable<string> providerIds = providerIdsAll.Distinct();
-
             IList<ProviderSummary> providerSummaries = new List<ProviderSummary>();
 
-            foreach (string providerId in providerIds)
+            foreach (string providerId in providerIdsAll)
             {
                 ProviderSummary cachedProvider = allCachedProviders.FirstOrDefault(m => m.Id == providerId);
 
@@ -1026,6 +1024,7 @@ namespace CalculateFunding.Services.Datasets
                 }
             }
 
+            await _cacheProvider.KeyDeleteAsync<ProviderSummary>(cacheKey);
             await _cacheProvider.CreateListAsync<ProviderSummary>(providerSummaries, cacheKey);
         }
 

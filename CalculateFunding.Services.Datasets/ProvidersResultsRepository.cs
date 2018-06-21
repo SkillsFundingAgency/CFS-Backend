@@ -39,7 +39,7 @@ namespace CalculateFunding.Services.Datasets
         {
             IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets = await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>($"SELECT * FROM r WHERE r.content.specificationId = '{specificationId}' AND r.deleted = false AND r.documentType = '{nameof(ProviderSourceDatasetCurrent)}'", -1, specificationId);
 
-            return providerSourceDatasets.Select(m => m.ProviderId);
+            return providerSourceDatasets.Select(m => m.ProviderId).Distinct();
         }
 
         public Task<IEnumerable<ProviderSourceDatasetHistory>> GetProviderSourceDatasetHistories(string specificationId, string relationshipId)
