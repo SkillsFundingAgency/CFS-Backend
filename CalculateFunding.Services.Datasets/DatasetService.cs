@@ -60,9 +60,6 @@ namespace CalculateFunding.Services.Datasets
 
         const string dataset_cache_key_prefix = "ds-table-rows";
 
-        const string generateAllocationsSubscription = "calc-events-generate-allocations-results";
-        const string GenerateAllocationsInstructionSubscription = "calc-events-instruct-generate-allocations";
-
         static IEnumerable<ProviderSummary> _providerSummaries = new List<ProviderSummary>();
 
         public DatasetService(IBlobClient blobClient,
@@ -359,8 +356,8 @@ namespace CalculateFunding.Services.Datasets
                 messageProperties.Add("specification-id", specificationId);
                 messageProperties.Add("provider-cache-key", $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}");
 
-                await _messengerService.SendToQueue(GenerateAllocationsInstructionSubscription,
-                        buildProject, messageProperties);
+                await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
+                        null, messageProperties);
 
                 _telemetry.TrackEvent("InstructCalculationAllocationEventRun",
                       new Dictionary<string, string>()
@@ -450,8 +447,8 @@ namespace CalculateFunding.Services.Datasets
                 messageProperties.Add("specification-id", specificationId);
                 messageProperties.Add("provider-cache-key", $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}");
 
-                await _messengerService.SendToQueue(GenerateAllocationsInstructionSubscription,
-                        buildProject, messageProperties);
+                await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
+                        null, messageProperties);
 
                 _telemetry.TrackEvent("InstructCalculationAllocationEventRun",
                       new Dictionary<string, string>()

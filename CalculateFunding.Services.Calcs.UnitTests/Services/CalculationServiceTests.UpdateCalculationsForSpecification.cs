@@ -252,7 +252,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 messengerService
                     .Received(1)
-                    .SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.CalculationJobInitialiser), Arg.Any<BuildProject>(), Arg.Any<IDictionary<string, string>>());
+                    .SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.CalculationJobInitialiser), Arg.Is((string)null), Arg.Any<IDictionary<string, string>>());
         }
 
         [TestMethod]
@@ -436,7 +436,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 messengerService
                     .Received(1)
-                    .SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.CalculationJobInitialiser), Arg.Is(buildProject), Arg.Any<IDictionary<string, string>>());
+                    .SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.CalculationJobInitialiser), Arg.Is((string)null), Arg.Any<IDictionary<string, string>>());
         }
     }
 }

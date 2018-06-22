@@ -443,8 +443,8 @@ namespace CalculateFunding.Services.Calcs
 
             properties.Add("specification-id", specificationId);
 
-            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
-                buildProject,
+            await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
+                null,
                 properties);
         }
 
