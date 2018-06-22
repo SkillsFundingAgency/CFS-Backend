@@ -74,6 +74,36 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
                             {
                                 parseResult.AddError($"'{fieldName}' does not exist in the dataset '{datasetName}'", step.Location.Line, step.Location.Column);
                             }
+
+                            try
+                            {
+                                Type destinationType = null;
+                                switch (fieldInfo.Type)
+                                {
+                                    case "String":
+                                        destinationType = typeof(string);
+                                        break;
+                                    case "Decimal":
+                                        destinationType = typeof(decimal);
+                                        break;
+                                    case "Integer":
+                                        destinationType = typeof(int);
+                                        break;
+                                    default:
+                                        parseResult.AddError($"Unknown input datatype of '{fieldInfo.Type}' for field '{fieldName}' in the dataset '{datasetName}'", step.Location.Line, step.Location.Column);
+                                        break;
+                                }
+
+                                if (destinationType != null)
+                                {
+                                    object actualValue = Convert.ChangeType(value, destinationType);
+                                }
+
+                            }
+                            catch (FormatException)
+                            {
+                                parseResult.AddError($"Data type mismatch for '{fieldName}' in the dataset '{datasetName}'", step.Location.Line, step.Location.Column);
+                            }
                         }
 
                         parseResult.StepActions.Add(new GivenSourceField

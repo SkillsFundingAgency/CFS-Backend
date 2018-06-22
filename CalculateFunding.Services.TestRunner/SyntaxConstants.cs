@@ -26,12 +26,12 @@ namespace CalculateFunding.Services.TestRunner
         /// <summary>
         /// 
         /// </summary>
-        public const string datasetSourceField =            @"(the)(\s)+(result)(\s)+(for)(\s)+'([^'.]*)'(\s)+(.*)(\s)+(the)(\s)+(dataset)(\s)+'([^'.]*)'(\s)+(field)(\s)+'([^'.]*)'";
+        public const string datasetSourceField =            @"(the)(\s)+(result)(\s)+(for)(\s)+'([^'.]*)'(\s)+(.*)(\s)+(the)(\s)+(dataset)(\s)+'([^'.]*)'(\s)+(field)(\s)+'([^']*)'";
 
         /// <summary>
         /// Datasets parse regex
         /// </summary>
-        public const string SourceDatasetStep =             @"(the)(\s)+(dataset)(\s)+'(.*)'(\s)+(field)(\s)+'(([^'.]*))'(\s)(([^'.]*)(\s))'(([^'.]*))'";
+        public const string SourceDatasetStep =             @"(the)(\s)+(dataset)(\s)+'(.*)'(\s)+(field)(\s)+'(([^'.]*))'(\s)(([^'.]*)(\s))'(([^']*))'";
 
     }
 }
