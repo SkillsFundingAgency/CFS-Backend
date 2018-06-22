@@ -107,5 +107,12 @@ namespace CalculateFunding.Services.Datasets
 
             return Task.FromResult(dataset);
         }
+
+        public Task<IEnumerable<DefinitionSpecificationRelationship>> GetAllDefinitionSpecificationsRelationships()
+        {
+            IQueryable<DefinitionSpecificationRelationship> relationships = _cosmosRepository.Query<DefinitionSpecificationRelationship>();
+
+            return Task.FromResult(relationships.AsEnumerable());
+        }
     }
 }

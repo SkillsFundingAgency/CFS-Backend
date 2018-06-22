@@ -29,6 +29,8 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<DefinitionSpecificationRelationship> GetRelationshipBySpecificationIdAndName(string specificationId, string name);
 
+        Task<IEnumerable<DefinitionSpecificationRelationship>> GetAllDefinitionSpecificationsRelationships();
+
         Task<Dataset> GetDatasetByDatasetId(string datasetId);
 
         Task<DocumentEntity<Dataset>> GetDatasetDocumentByDatasetId(string datasetId);

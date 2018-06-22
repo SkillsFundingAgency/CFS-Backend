@@ -63,10 +63,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(logger: logger);
 
-            //Act
+            // Act
             IActionResult result = await service.GetDatasetByName(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<BadRequestObjectResult>();
@@ -102,10 +102,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(datasetRepository: datasetsRepository, logger: logger);
 
-            //Act
+            // Act
             IActionResult result = await service.GetDatasetByName(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<NotFoundResult>();
@@ -144,10 +144,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(datasetRepository: datasetsRepository, logger: logger);
 
-            //Act
+            // Act
             IActionResult result = await service.GetDatasetByName(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
@@ -173,10 +173,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(logger: logger);
 
-            //Act
+            // Act
             IActionResult result = await service.CreateNewDataset(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<BadRequestObjectResult>();
@@ -211,10 +211,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(logger: logger, createNewDatasetModelValidator: validator);
 
-            //Act
+            // Act
             IActionResult result = await service.CreateNewDataset(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<BadRequestObjectResult>();
@@ -271,10 +271,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, mapper: mapper);
 
-            //Act
+            // Act
             IActionResult result = await service.CreateNewDataset(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
@@ -312,10 +312,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(logger: logger);
 
-            //Act
+            // Act
             IActionResult result = await service.ValidateDataset(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<BadRequestObjectResult>();
@@ -350,10 +350,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(logger: logger, getDatasetBlobModelValidator: validator);
 
-            //Act
+            // Act
             IActionResult result = await service.ValidateDataset(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<BadRequestObjectResult>();
@@ -389,10 +389,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient);
 
-            //Act
+            // Act
             IActionResult result = await service.ValidateDataset(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<StatusCodeResult>();
@@ -472,10 +472,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository);
 
-            //Act
+            // Act
             IActionResult result = await service.ValidateDataset(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<StatusCodeResult>();
@@ -539,10 +539,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository);
 
-            //Act
+            // Act
             IActionResult result = await service.ValidateDataset(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<StatusCodeResult>();
@@ -636,10 +636,10 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
                 excelDatasetReader: datasetReader);
 
-            //Act
+            // Act
             IActionResult result = await service.ValidateDataset(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
@@ -732,10 +732,10 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
                 excelDatasetReader: datasetReader);
 
-            //Act
+            // Act
             IActionResult result = await service.ValidateDataset(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
@@ -825,10 +825,10 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
                 excelDatasetReader: datasetReader, datasetMetadataModelValidator: datasetMetaDataModelValidator);
 
-            //Act
+            // Act
             IActionResult result = await service.ValidateDataset(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<InternalServerErrorResult>()
@@ -927,10 +927,10 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
                 excelDatasetReader: datasetReader);
 
-            //Act
+            // Act
             IActionResult result = await service.ValidateDataset(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<InternalServerErrorResult>();
@@ -1048,10 +1048,10 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
                 excelDatasetReader: datasetReader, searchRepository: searchRepository);
 
-            //Act
+            // Act
             IActionResult result = await service.ValidateDataset(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<InternalServerErrorResult>()
@@ -1152,10 +1152,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 excelDatasetReader: datasetReader,
                  searchRepository: searchRepository);
 
-            //Act
+            // Act
             IActionResult result = await service.ValidateDataset(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<OkResult>();
@@ -1333,10 +1333,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetByDatasetId(Arg.Is(datasetId))
                 .Returns(existingDataset);
 
-            //Act
+            // Act
             IActionResult result = await service.ValidateDataset(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<OkResult>();
@@ -1528,10 +1528,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetByDatasetId(Arg.Is(datasetId))
                 .Returns(existingDataset);
 
-            //Act
+            // Act
             IActionResult result = await service.ValidateDataset(request);
 
-            //Assert
+            // Assert
             result
                .Should()
                .BeOfType<InternalServerErrorResult>()
@@ -1675,10 +1675,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetByDatasetId(Arg.Is(datasetId))
                 .Returns(existingDataset);
 
-            //Act
+            // Act
             IActionResult result = await service.ValidateDataset(request);
 
-            //Assert
+            // Assert
             result
                .Should()
                .BeOfType<InternalServerErrorResult>()
@@ -1826,10 +1826,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetByDatasetId(Arg.Is(datasetId))
                 .Returns(existingDataset);
 
-            //Act
+            // Act
             IActionResult result = await service.ValidateDataset(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<InternalServerErrorResult>()
@@ -1990,11 +1990,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Index(Arg.Any<List<DatasetIndex>>())
                 .Returns(indexErrors);
 
-            //Act
+            // Act
             IActionResult result = await service.ValidateDataset(request);
 
-            //Assert
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<InternalServerErrorResult>()
@@ -2017,10 +2016,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(logger: logger);
 
-            //Act
+            // Act
             IActionResult result = await service.GetDatasetsByDefinitionId(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<BadRequestObjectResult>();
@@ -2033,7 +2032,7 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         async public Task GetDatasetsByDefinitionId_WhenNullDatasetsReturned_ReturnsOKResult()
         {
-            //Arrange
+            // Arrange
             IEnumerable<Dataset> datasets = Enumerable.Empty<Dataset>();
 
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -2054,10 +2053,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(datasetRepository: datasetRepository);
 
-            //Act
+            // Act
             IActionResult result = await service.GetDatasetsByDefinitionId(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
@@ -2106,10 +2105,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(datasetRepository: datasetRepository, mapper: mapper);
 
-            //Act
+            // Act
             IActionResult result = await service.GetDatasetsByDefinitionId(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
@@ -2137,10 +2136,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService();
 
-            //Act
+            // Act
             Func<Task> test = () => service.ProcessDataset(message);
 
-            //Assert
+            // Assert
             test
                 .ShouldThrowExactly<ArgumentNullException>();
         }
@@ -2153,10 +2152,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService();
 
-            //Act
+            // Act
             Func<Task> test = () => service.ProcessDataset(message);
 
-            //Assert
+            // Assert
             test
                 .ShouldThrowExactly<ArgumentNullException>();
         }
@@ -2173,10 +2172,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService();
 
-            //Act
+            // Act
             Func<Task> test = () => service.ProcessDataset(message);
 
-            //Assert
+            // Assert
             test
                 .ShouldThrowExactly<KeyNotFoundException>();
         }
@@ -2196,10 +2195,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService();
 
-            //Act
+            // Act
             Func<Task> test = () => service.ProcessDataset(message);
 
-            //Assert
+            // Assert
             test
                 .ShouldThrowExactly<ArgumentNullException>();
         }
@@ -2258,10 +2257,18 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(datasetRepository: datasetRepository, logger: logger);
 
-            //Act
-            await service.ProcessDataset(message);
+            // Act
+            Action action = () =>
+            {
+                service.ProcessDataset(message).Wait();
+            };
 
-            //Assert
+            // Assert
+            action
+                .ShouldThrow<AggregateException>()
+                .WithInnerException<Exception>()
+                .WithMessage("One or more errors occurred. (Unable to find a data definition for id: 45d7a71b-f570-4425-801b-250b9129f124, for blob: dataset-id/v1/ds.xlsx)");
+
             logger
                 .Received(1)
                 .Error(Arg.Is($"Unable to find a data definition for id: {DataDefintionId}, for blob: {blobPath}"));
@@ -2272,7 +2279,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadButBuildProjectCouldNotBeFound_DoesNotProcess()
+        public void ProcessDataset_GivenPayloadButBuildProjectCouldNotBeFound_DoesNotProcess()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -2334,10 +2341,18 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(datasetRepository: datasetRepository, logger: logger, calcsRepository: calcsRepository);
 
-            //Act
-            await service.ProcessDataset(message);
+            // Act
+            Action action = () =>
+            {
+                service.ProcessDataset(message).Wait();
+            };
 
-            //Assert
+            // Assert
+            action
+                .ShouldThrow<AggregateException>()
+                .WithInnerException<Exception>()
+                .WithMessage("One or more errors occurred. (Unable to find a build project for id: d557a71b-f570-4425-801b-250b9129f111)");
+
             logger
                 .Received(1)
                 .Error(Arg.Is($"Unable to find a build project for specification id: {SpecificationId}"));
@@ -2348,7 +2363,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadButBlobNotFound_DoesNotProcess()
+        public void ProcessDataset_GivenPayloadButBlobNotFound_DoesNotProcess()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -2419,10 +2434,18 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient);
 
-            //Act
-            await service.ProcessDataset(message);
+            // Act
+            Action action = () =>
+            {
+                service.ProcessDataset(message).Wait();
+            };
 
-            //Assert
+            // Assert
+            action
+                .ShouldThrow<AggregateException>()
+                .WithInnerException<Exception>()
+                .WithMessage("One or more errors occurred. (Failed to find blob with path: dataset-id/v1/ds.xlsx)");
+
             logger
                 .Received(1)
                 .Error(Arg.Is($"Failed to find blob with path: {blobPath}"));
@@ -2513,9 +2536,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(definitionSpecificationRelationship);
 
             // Act
-            await service.ProcessDataset(message);
+            Action action = () =>
+           {
+               service.ProcessDataset(message).Wait();
+           };
 
             // Assert
+            action
+                .ShouldThrow<ArgumentException>()
+                .WithMessage("Invalid blob returned: dataset-id/v1/ds.xlsx");
+
             logger
                 .Received(1)
                 .Error(Arg.Is($"Invalid blob returned: {blobPath}"));
@@ -2526,7 +2556,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndBlobFoundButNoTableResultsReturned_DoesNotProcess()
+        public void ProcessDataset_GivenPayloadAndBlobFoundButNoTableResultsReturned_DoesNotProcess()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -2604,10 +2634,17 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
                 .Returns(definitionSpecificationRelationship);
 
-            //Act
-            await service.ProcessDataset(message);
+            Action action = () =>
+            {
+                service.ProcessDataset(message).Wait();
+            };
 
-            //Assert
+            // Assert
+            action
+                .ShouldThrow<AggregateException>()
+                .WithInnerException<Exception>()
+                .WithMessage("One or more errors occurred. (Failed to load table result)");
+
             logger
                 .Received(1)
                 .Error(Arg.Is($"Failed to load table result"));
@@ -2618,7 +2655,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsButNoDatasetRelationshipSummaries_DoesNotProcess()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsButNoDatasetRelationshipSummaries_DoesNotProcess()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -2698,21 +2735,17 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
                 .Returns(definitionSpecificationRelationship);
 
-            //Act
+            // Act
             await service.ProcessDataset(message);
 
-            //Assert
+            // Assert
             logger
                 .Received(1)
-                .Error(Arg.Is($"No dataset relationships found for build project with id : {BuildProjectId}"));
-
-            logger
-                .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Any<string>());
+                .Error(Arg.Is($"No dataset relationships found for build project with id : '{BuildProjectId}' for specification '{SpecificationId}'"));
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsButNoDatasetRelationshipSummaryCouldBeFound_DoesNotProcess()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsButNoDatasetRelationshipSummaryCouldBeFound_DoesNotProcess()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -2796,17 +2829,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
                 .Returns(definitionSpecificationRelationship);
 
-            //Act
+            // Act
             await service.ProcessDataset(message);
 
-            //Assert
+            // Assert
             logger
                 .Received(1)
                 .Error(Arg.Is($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {DataDefintionId} and relationshipId '{relationshipId}'"));
-
-            logger
-                .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Any<string>());
         }
 
         [TestMethod]
@@ -2904,10 +2933,19 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
                 providerRepository: resultsRepository);
 
-            //Act
-            await service.ProcessDataset(message);
+            // Act
+            Action action = () =>
+            {
+                service.ProcessDataset(message).Wait();
+            };
 
-            //Assert
+            // Assert
+            action
+                .ShouldThrow<AggregateException>()
+                .WithInnerException<Exception>()
+                .WithMessage("One or more errors occurred. (Invalid blob returned: dataset-id/v1/ds.xlsx)");
+
+            // Assert
             await
                 resultsRepository
                     .DidNotReceive()
@@ -2915,7 +2953,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsButNoIdentifiersFound_DoesNotSaveResults()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsButNoIdentifiersFound_DoesNotSaveResults()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -3011,10 +3049,19 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
                 providerRepository: resultsRepository);
 
-            //Act
-            await service.ProcessDataset(message);
+            // Act
+            Action action = () =>
+            {
+                service.ProcessDataset(message).Wait();
+            };
 
-            //Assert
+            // Assert
+            action
+                .ShouldThrow<AggregateException>()
+                .WithInnerException<Exception>()
+                .WithMessage("One or more errors occurred. (Invalid blob returned: dataset-id/v1/ds.xlsx)");
+
+
             await
                 resultsRepository
                     .DidNotReceive()
@@ -3136,10 +3183,18 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
                 providerRepository: resultsRepository);
 
-            //Act
-            await service.ProcessDataset(message);
+            // Act
+            Action action = () =>
+            {
+                service.ProcessDataset(message).Wait();
+            };
 
-            //Assert
+            // Assert
+            action
+                .ShouldThrow<AggregateException>()
+                .WithInnerException<Exception>()
+                .WithMessage("One or more errors occurred. (Invalid blob returned: dataset-id/v1/ds.xlsx)");
+
             await
                 resultsRepository
                     .DidNotReceive()
@@ -3272,10 +3327,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
                 providerRepository: resultsRepository, providersResultsRepository: providerResultsRepository);
 
-            //Act
+            // Act
             await service.ProcessDataset(message);
 
-            //Assert
+            // Assert
             await
                 providerResultsRepository
                     .Received(1)
@@ -3428,10 +3483,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
                 providerRepository: resultsRepository, providersResultsRepository: providerResultsRepository);
 
-            //Act
+            // Act
             await service.ProcessDataset(message);
 
-            //Assert
+            // Assert
             await
                 providerResultsRepository
                     .Received(1)
@@ -3453,10 +3508,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(logger: logger);
 
-            //Act
+            // Act
             IActionResult result = await service.DownloadDatasetFile(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<BadRequestObjectResult>();
@@ -3484,10 +3539,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(logger: logger);
 
-            //Act
+            // Act
             IActionResult result = await service.DownloadDatasetFile(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<StatusCodeResult>();
@@ -3529,10 +3584,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository);
 
-            //Act
+            // Act
             IActionResult result = await service.DownloadDatasetFile(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<StatusCodeResult>();
@@ -3587,10 +3642,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
 
-            //Act
+            // Act
             IActionResult result = await service.DownloadDatasetFile(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<NotFoundResult>();
@@ -3645,10 +3700,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
 
-            //Act
+            // Act
             IActionResult result = await service.DownloadDatasetFile(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
@@ -4240,7 +4295,8 @@ namespace CalculateFunding.Services.Datasets.Services
             ICalcsRepository calcsRepository = null,
             IProviderRepository providerRepository = null,
             IProvidersResultsRepository providersResultsRepository = null,
-            ITelemetry telemetry = null)
+            ITelemetry telemetry = null,
+            IDatasetsResiliencePolicies datasetsResiliencePolicies = null)
         {
             return new DatasetService(
                 blobClient ?? CreateBlobClient(),
@@ -4259,7 +4315,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 cacheProvider ?? CreateCacheProvider(), calcsRepository ?? CreateCalcsRepository(),
                 providerRepository ?? CreateProviderRepository(),
                 providersResultsRepository ?? CreateProvidesrResultsRepository(),
-                telemetry ?? CreateTelemetry());
+                telemetry ?? CreateTelemetry(),
+                datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies());
         }
 
         static ICalcsRepository CreateCalcsRepository()

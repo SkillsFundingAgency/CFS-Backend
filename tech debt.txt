@@ -27,6 +27,7 @@ Test Coverage
 		- AssemblePublishedCalculationResults
 
 Retry policies (particulary round the interservice calls)
+	+ rest of the cosmos repositories, search repos, cache repo
 
 Debug proxy IOC, split into static methods for each service
 

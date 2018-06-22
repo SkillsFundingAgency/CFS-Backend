@@ -198,5 +198,14 @@ namespace CalculateFunding.Functions.LocalDebugProxy.Controllers
 
             return _datasetService.ProcessDataset(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/datasets/regenerate-providersourcedatasets")]
+        [HttpGet]
+        public Task<IActionResult> RunRegenerateProviderSourceDatasets()
+        {
+            SetUserAndCorrelationId(ControllerContext.HttpContext.Request);
+
+            return _datasetService.RegenerateProviderSourceDatasets(ControllerContext.HttpContext.Request);
+        }
     }
 }

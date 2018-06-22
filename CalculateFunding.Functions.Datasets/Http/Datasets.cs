@@ -118,5 +118,17 @@ namespace CalculateFunding.Functions.Datasets.Http
                 return svc.GetCurrentDatasetVersionByDatasetId(req);
             }
         }
+
+        [FunctionName("regenerate-providersourcedatasets")]
+        public static Task<IActionResult> RunRegenerateProviderSourceDatasets(
+        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+        {
+            using (IServiceScope scope = IocConfig.Build().CreateHttpScope(req))
+            {
+                IDatasetService svc = scope.ServiceProvider.GetService<IDatasetService>();
+
+                return svc.RegenerateProviderSourceDatasets(req);
+            }
+        }
     }
 }

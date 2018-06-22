@@ -30,6 +30,8 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Constants;
+using Polly;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -53,6 +55,8 @@ namespace CalculateFunding.Services.Datasets
         private readonly IProviderRepository _providerRepository;
         private readonly IProvidersResultsRepository _providersResultsRepository;
         private readonly ITelemetry _telemetry;
+
+        private readonly Policy _providerResultsRepositoryPolicy;
 
         const string dataset_cache_key_prefix = "ds-table-rows";
 
@@ -78,7 +82,8 @@ namespace CalculateFunding.Services.Datasets
             ICalcsRepository calcsRepository,
             IProviderRepository providerRepository,
             IProvidersResultsRepository providersResultsRepository,
-            ITelemetry telemetry)
+            ITelemetry telemetry,
+            IDatasetsResiliencePolicies datasetsResiliencePolicies)
         {
             _blobClient = blobClient;
             _logger = logger;
@@ -98,6 +103,10 @@ namespace CalculateFunding.Services.Datasets
             _providerRepository = providerRepository;
             _providersResultsRepository = providersResultsRepository;
             _telemetry = telemetry;
+
+            Guard.ArgumentNotNull(datasetsResiliencePolicies, nameof(datasetsResiliencePolicies));
+
+            _providerResultsRepositoryPolicy = datasetsResiliencePolicies.ProviderResultsRepository;
         }
 
         async public Task<IActionResult> CreateNewDataset(HttpRequest request)
@@ -431,7 +440,8 @@ namespace CalculateFunding.Services.Datasets
             }
             catch (Exception exception)
             {
-                _logger.Error(exception, $"Failed to process data with exception: {exception.Message}");
+                _logger.Error(exception, $"Failed to run ProcessDataset with exception: {exception.Message} for relationship ID '{relationshipId}'");
+                throw;
             }
 
             if (buildProject != null && !buildProject.DatasetRelationships.IsNullOrEmpty() && buildProject.DatasetRelationships.Any(m => m.DefinesScope))
@@ -547,6 +557,38 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult($"Indexed total of {totalInserts} Datasets");
         }
 
+        public async Task<IActionResult> RegenerateProviderSourceDatasets(HttpRequest httpRequest)
+        {
+            IEnumerable<DefinitionSpecificationRelationship> relationships = await _datasetRepository.GetAllDefinitionSpecificationsRelationships();
+
+            Dictionary<string, Dataset> datasets = new Dictionary<string, Dataset>();
+
+            foreach (DefinitionSpecificationRelationship relationship in relationships)
+            {
+                Dataset dataset;
+
+                if (relationship == null || relationship.DatasetVersion == null || string.IsNullOrWhiteSpace(relationship.DatasetVersion.Id))
+                {
+                    continue;
+                }
+
+                if (!datasets.TryGetValue(relationship.DatasetVersion.Id, out dataset))
+                {
+                    dataset = (await _datasetRepository.GetDatasetsByQuery(c => c.Id == relationship.DatasetVersion.Id)).FirstOrDefault();
+                    datasets.Add(relationship.DatasetVersion.Id, dataset);
+                }
+
+                IDictionary<string, string> properties = new Dictionary<string, string>();
+                properties.Add("specification-id", relationship.Specification.Id);
+                properties.Add("relationship-id", relationship.Id);
+
+                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.ProcessDataset, dataset, properties);
+
+            }
+
+            return new OkObjectResult(relationships);
+        }
+
         private static IEnumerable<string> GetProviderIdsForIdentifier(DatasetDefinition datasetDefinition, RowLoadResult row)
         {
             IEnumerable<FieldDefinition> identifierFields = datasetDefinition.TableDefinitions?.First().FieldDefinitions.Where(x => x.IdentifierFieldType.HasValue);
@@ -658,7 +700,7 @@ namespace CalculateFunding.Services.Datasets
             }
         }
 
-        async Task UpdateExistingDatasetAndAddVersion(ICloudBlob blob, GetDatasetBlobModel model, Reference author)
+        private async Task UpdateExistingDatasetAndAddVersion(ICloudBlob blob, GetDatasetBlobModel model, Reference author)
         {
             Guard.ArgumentNotNull(blob, nameof(blob));
 
@@ -716,11 +758,11 @@ namespace CalculateFunding.Services.Datasets
             }
         }
 
-        async Task<IEnumerable<IndexError>> IndexDatasetInSearch(Dataset dataset)
+        private Task<IEnumerable<IndexError>> IndexDatasetInSearch(Dataset dataset)
         {
             Guard.ArgumentNotNull(dataset, nameof(dataset));
 
-            return await _searchRepository.Index(new List<DatasetIndex>
+            return _searchRepository.Index(new List<DatasetIndex>
             {
                 new DatasetIndex
                 {
@@ -757,7 +799,7 @@ namespace CalculateFunding.Services.Datasets
                 return null;
         }
 
-        async Task<IActionResult> ValidateTableResults(DatasetDefinition datasetDefinition, ICloudBlob blob)
+        private async Task<IActionResult> ValidateTableResults(DatasetDefinition datasetDefinition, ICloudBlob blob)
         {
             string dataset_cache_key = $"{dataset_cache_key_prefix}:{blob.Name}:{datasetDefinition.Id}";
 
@@ -859,8 +901,8 @@ namespace CalculateFunding.Services.Datasets
 
             if (buildProject.DatasetRelationships == null)
             {
-                _logger.Error($"No dataset relationships found for build project with id : {buildProject.Id}");
-                throw new Exception($"No dataset relationships found for build project with id : {buildProject.Id}");
+                _logger.Error($"No dataset relationships found for build project with id : '{buildProject.Id}' for specification '{specificationId}'");
+                return;
             }
 
             DatasetRelationshipSummary relationshipSummary = buildProject.DatasetRelationships.FirstOrDefault(m => m.Relationship.Id == relationshipId);
@@ -868,7 +910,7 @@ namespace CalculateFunding.Services.Datasets
             if (relationshipSummary == null)
             {
                 _logger.Error($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {datasetDefinition.Id} and relationshipId '{relationshipId}'");
-                throw new Exception($"No dataset relationship found for build project with id : {buildProject.Id} with data definition id {datasetDefinition.Id} and relationshipId '{relationshipId}'");
+                return;
             }
 
 
@@ -882,8 +924,11 @@ namespace CalculateFunding.Services.Datasets
 
             Dictionary<string, ProviderSourceDatasetCurrent> updateCurrentDatasets = new Dictionary<string, ProviderSourceDatasetCurrent>();
 
-            IEnumerable<ProviderSourceDatasetCurrent> existingCurrentDatasets = await _providersResultsRepository.GetCurrentProviderSourceDatasets(specificationId, relationshipId);
-            IEnumerable<ProviderSourceDatasetHistory> existingDatasetHistory = await _providersResultsRepository.GetProviderSourceDatasetHistories(specificationId, relationshipId);
+            IEnumerable<ProviderSourceDatasetCurrent> existingCurrentDatasets = await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
+                _providersResultsRepository.GetCurrentProviderSourceDatasets(specificationId, relationshipId));
+
+            IEnumerable<ProviderSourceDatasetHistory> existingDatasetHistory = await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
+                _providersResultsRepository.GetProviderSourceDatasetHistories(specificationId, relationshipId));
 
             if (existingCurrentDatasets.AnyWithNullCheck())
             {
@@ -1000,8 +1045,11 @@ namespace CalculateFunding.Services.Datasets
             }
 
 
-            await _providersResultsRepository.UpdateCurrentProviderSourceDatasets(updateCurrentDatasets.Values, specificationId);
-            await _providersResultsRepository.UpdateProviderSourceDatasetHistory(updateDatasetsHistory.Values, specificationId);
+            await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
+                _providersResultsRepository.UpdateCurrentProviderSourceDatasets(updateCurrentDatasets.Values, specificationId));
+
+            await _providerResultsRepositoryPolicy.ExecuteAsync(() => 
+            _providersResultsRepository.UpdateProviderSourceDatasetHistory(updateDatasetsHistory.Values, specificationId));
 
             await PopulateProviderSummariesForSpecification(specificationId, _providerSummaries);
         }
@@ -1010,7 +1058,8 @@ namespace CalculateFunding.Services.Datasets
         {
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
-            IEnumerable<string> providerIdsAll = await _providersResultsRepository.GetAllProviderIdsForSpecificationid(specificationId);
+            IEnumerable<string> providerIdsAll = await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
+                _providersResultsRepository.GetAllProviderIdsForSpecificationid(specificationId));
 
             IList<ProviderSummary> providerSummaries = new List<ProviderSummary>();
 
@@ -1047,7 +1096,7 @@ namespace CalculateFunding.Services.Datasets
                 await blob.FetchAttributesAsync();
                 var datasetStream = await _blobClient.DownloadToStreamAsync(blob);
 
-                if (datasetStream.Length == 0)
+                if (datasetStream == null || datasetStream.Length == 0)
                 {
                     _logger.Error($"Invalid blob returned: {fullBlobName}");
                     throw new ArgumentException($"Invalid blob returned: {fullBlobName}");
