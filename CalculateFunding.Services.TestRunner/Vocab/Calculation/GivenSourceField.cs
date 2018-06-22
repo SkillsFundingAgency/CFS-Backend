@@ -25,7 +25,20 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Calculation
 
             if (actualValue != null)
             {
-                var expectedValue = Convert.ChangeType(Value, actualValue.GetType());
+                object expectedValue = null;
+                try
+                {
+                    actualValue  = Convert.ChangeType(Value, actualValue.GetType());
+                }
+                catch (FormatException)
+                {
+                    return new GherkinParseResult(
+                        $"{FieldName} in {DatasetName} - {actualValue} was not in the correct format")
+                    {
+                        Dependencies = { new Dependency(DatasetName, FieldName, actualValue?.ToString()) }
+                    };
+                }
+                
                 var logicResult = TestLogic(expectedValue, actualValue, Operator);
                 if (!logicResult)
                 {

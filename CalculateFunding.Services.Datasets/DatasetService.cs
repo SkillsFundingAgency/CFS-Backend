@@ -597,19 +597,22 @@ namespace CalculateFunding.Services.Datasets
             {
                 if (!string.IsNullOrWhiteSpace(field.Name))
                 {
-                    string identifier = row.Fields[field.Name]?.ToString();
-                    if (!string.IsNullOrWhiteSpace(identifier))
+                    if (row.Fields.ContainsKey(field.Name))
                     {
-                        var lookup = GetDictionaryForIdentifierType(field.IdentifierFieldType, identifier);
-                        if (lookup.TryGetValue(identifier, out List<string> providerIds))
+                        string identifier = row.Fields[field.Name]?.ToString();
+                        if (!string.IsNullOrWhiteSpace(identifier))
                         {
-                            return providerIds;
+                            var lookup = GetDictionaryForIdentifierType(field.IdentifierFieldType, identifier);
+                            if (lookup.TryGetValue(identifier, out List<string> providerIds))
+                            {
+                                return providerIds;
+                            }
                         }
-                    }
-                    else
-                    {
-                        // For debugging only
-                        //_logger.Debug("Found identifier with null or emtpy string for provider");
+                        else
+                        {
+                            // For debugging only
+                            //_logger.Debug("Found identifier with null or emtpy string for provider");
+                        }
                     }
                 }
             }
