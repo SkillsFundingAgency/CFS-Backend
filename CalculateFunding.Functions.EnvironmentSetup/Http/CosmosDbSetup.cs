@@ -138,6 +138,19 @@ namespace CalculateFunding.Functions.EnvironmentSetup.Http
                 }
                 , log);
 
+            // Create unlimited sized collection for users
+            await CreateDatabaseAndCollection(client, "calculate-funding",
+                new DocumentCollection()
+                {
+                    Id = "users"
+                },
+                new RequestOptions()
+                {
+                    // 1100 to get over 1000, you get up to 50000RU, rather than 10000 when created with 1000
+                    OfferThroughput = 1100
+                }
+                , log);
+
             return new OkResult();
         }
 

@@ -35,5 +35,7 @@ namespace CalculateFunding.Services.Core.Caching
         public static string AllProviderSummaryCount { get; set; } = " all-provider-summary-count";
 
         public static string AllFundingStreams { get; set; } = "all-funding-streams";
+
+        public static string UserByUsername { get; set; } = "user";
     }
 }

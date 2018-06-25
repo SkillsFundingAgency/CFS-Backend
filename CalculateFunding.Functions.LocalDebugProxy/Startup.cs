@@ -46,6 +46,8 @@ using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Repositories;
 using CalculateFunding.Services.TestRunner.Services;
+using CalculateFunding.Services.Users;
+using CalculateFunding.Services.Users.Interfaces;
 using CalculateFunding.Services.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
@@ -548,6 +550,24 @@ namespace CalculateFunding.Functions.LocalDebugProxy
                 ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
 
                 return new Services.TestRunner.Repositories.ProviderResultsRepository(providersCosmosRepostory);
+            });
+
+            //User service
+
+            builder
+               .AddSingleton<IUserService, UserService>();
+
+            builder.AddSingleton<IUserRepository, UserRepository>((ctx) =>
+            {
+                CosmosDbSettings usersDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", usersDbSettings);
+
+                usersDbSettings.CollectionName = "users";
+
+                CosmosRepository usersCosmosRepostory = new CosmosRepository(usersDbSettings);
+
+                return new UserRepository(usersCosmosRepostory);
             });
 
             builder.AddSearch(config);
