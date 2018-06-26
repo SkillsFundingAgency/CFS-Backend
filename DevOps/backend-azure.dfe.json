@@ -89,8 +89,8 @@
   },
   "variables": {
     "offerType": "Standard",
-    "applicationInsightsName": "[concat('ai-', parameters('environmentKey'), '-ai')]",
-    "documentDatabaseName": "[concat('cosmos', parameters('environmentKey'),'-cfs')]",
+    "applicationInsightsName": "[concat('ai-', parameters('environmentKey'), '-cfs')]",
+    "documentDatabaseName": "[concat('cos-', parameters('environmentKey'),'-cfs')]",
     "cacheName": "[concat('rc-', parameters('environmentKey'),'-cfs')]",
     "serviceBusNamespaceName": "[concat('ns-', parameters('environmentKey'), '-cfs')]",
     "azureSearchName": "[concat('ss-', parameters('environmentKey'), '-cfs')]",
@@ -113,11 +113,11 @@
     "usersApiAppName": "[concat('app-', parameters('environmentKey'), '-users')]",
     "hostingPlanName": "[concat('asp-', parameters('environmentKey'), '-cfsapi')]",
     "engineHostingPlanName": "[concat('asp-', parameters('environmentKey'), '-engine')]",
-    "datasetStorageAccountName": "[concat('strg', resourceGroup().name, 'datasets')]",
+    "datasetStorageAccountName": "[concat('strg', parameters('environmentKey'), 'datasets')]",
     "datasetStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('datasetstorageAccountName'))]",
-    "calcsStorageAccountName": "[concat('strg', resourceGroup().name, 'calc')]",
+    "calcsStorageAccountName": "[concat('strg', parameters('environmentKey'), 'calc')]",
     "calcsStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('calcsStorageAccountName'))]",
-    "storageAccountName": "[concat('strg', resourceGroup().name, 'functions')]",
+    "storageAccountName": "[concat('strg', parameters('environmentKey'), 'functions')]",
     "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
   },
   "resources": [
@@ -158,9 +158,9 @@
       },
       "properties": {
         "sku": {
-          "name": "basic"
+          "name": "standard"
         },
-        "replicaCount": 3,
+        "replicaCount": 1,
         "partitionCount": 1
       }
     },
