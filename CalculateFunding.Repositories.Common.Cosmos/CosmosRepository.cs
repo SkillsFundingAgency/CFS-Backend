@@ -62,8 +62,6 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                 _collection = await _documentClient.CreateDocumentCollectionIfNotExistsAsync(
                     UriFactory.CreateDatabaseUri(_databaseName), collection);
             }
-
-
         }
 
         public async Task SetThroughput(int requestUnits)
@@ -169,7 +167,6 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return _documentClient.CreateDocumentQuery<T>(_collectionUri,
                 directSql,
                 queryOptions).AsQueryable();
-
         }
 
         public async Task<IEnumerable<DocumentEntity<T>>> GetAllDocumentsAsync<T>(int maxItemCount = 1000, Expression<Func<DocumentEntity<T>, bool>> query = null, bool enableCrossPartitionQuery = true) where T : IIdentifiable
@@ -222,7 +219,6 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             // Set some common query options
             var queryOptions = new FeedOptions { MaxItemCount = maxItemCount };
 
-
             IEnumerable<Document> documents = _documentClient.CreateDocumentQuery<Document>(_collectionUri, directSql, queryOptions).ToArray();
             foreach (var document in documents)
             {
@@ -238,7 +234,6 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             var response = await _documentClient.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseName, _collectionName, doc.Id), doc);
             return response.StatusCode;
         }
-
 
         public async Task<HttpStatusCode> CreateAsync<T>(T entity, string partitionKey = null) where T : IIdentifiable
         {
@@ -399,6 +394,5 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                 _documentClient?.Dispose();
             }
         }
-
     }
 }
