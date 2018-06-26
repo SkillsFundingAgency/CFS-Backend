@@ -6,7 +6,7 @@
       "type": "string",
       "metadata":{
         "description":"The environment key for this particular environment eg t1dv"
-      },
+      }
     },
     "ApiKey": {
       "type": "string",
@@ -160,8 +160,8 @@
         "sku": {
           "name": "basic"
         },
-        "replicaCount": "3",
-        "partitionCount": "1"
+        "replicaCount": 3,
+        "partitionCount": 1
       }
     },
 
