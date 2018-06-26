@@ -1,0 +1,46 @@
+﻿namespace CalculateFunding.Services.Core.Constants
+{
+    public static class ServiceBusConstants
+    {
+        public const string ConnectionStringConfigurationKey = "ServiceBusSettings:ConnectionString";
+
+        public static class QueueNames
+        {
+            public const string CalculationJobInitialiser = "calc-events-instruct-generate-allocations";
+
+            public const string CalcEngineGenerateAllocationResults = "calc-events-generate-allocations-results";
+
+            public const string TestEngineExecuteTests = "test-events-execute-tests";
+
+            public const string AddDefinitionRelationshipToSpecification = "spec-events-add-definition-relationship";
+
+            //public const string ProviderDatasetResults = "dataset-events-results";
+
+            public const string ProcessDataset = "dataset-events-datasets";
+
+            public const string CreateDraftCalculation = "calc-events-create-draft";
+
+            public const string UpdateBuildProjectRelationships = "calc-events-add-relationship-to-buildproject";
+        }
+
+        public static class TopicNames
+        {
+            public const string EditSpecification = "edit-specification";
+
+            public const string EditCalculation = "edit-calculation";
+        }
+
+        public static class TopicSubscribers
+        {
+            public const string UpdateCaclulationsForEditSpecification = "calculation-update";
+
+            public const string UpdateScenariosForEditSpecification = "test-scenario-update";
+
+            public const string UpdateScenarioResultsForEditSpecification = "test-scenario-result-update";
+
+            public const string UpdateScenariosForEditCalculation = "test-scenario-update";
+
+            public const string UpdateCalculationsForEditCalculation = "calcs-calculation-update";
+        }
+    }
+}

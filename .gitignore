@@ -121,6 +121,7 @@ _TeamCity*
 _NCrunch_*
 .*crunch*.local.xml
 nCrunchTemp_*
+.ncrunchproject
 
 # MightyMoose
 *.mm.*
@@ -286,3 +287,14 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+/CalculateFunding.Functions.Specs/CalculateFunding.Functions.Specs.v3.ncrunchproject
+/CalculateFunding.Functions.Scenarios/CalculateFunding.Functions.Scenarios.v3.ncrunchproject
+/CalculateFunding.Functions.Results/CalculateFunding.Functions.Results.v3.ncrunchproject
+/CalculateFunding.Functions.LocalDebugProxy/CalculateFunding.Functions.LocalDebugProxy.v3.ncrunchproject
+/CalculateFunding.Functions.EnvironmentSetup/CalculateFunding.Functions.EnvironmentSetup.v3.ncrunchproject
+/CalculateFunding.Functions.Datasets/CalculateFunding.Functions.Datasets.v3.ncrunchproject
+/CalculateFunding.Functions.Calcs/CalculateFunding.Functions.Calcs.v3.ncrunchproject
+/CalculateFunding-Backend.v3.ncrunchsolution
+/CalculateFunding.Functions.Common/CalculateFunding.Functions.Common.v3.ncrunchproject
+/CalculateFunding.EndToEnd/CalculateFunding.EndToEnd.v3.ncrunchproject
+/CalculateFunding.Functions.LocalDebugQueueProcessor/CalculateFunding.Functions.LocalDebugQueueProcessor.v3.ncrunchproject

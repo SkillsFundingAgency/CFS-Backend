@@ -1,0 +1,6 @@
+{
+  "IsEncrypted": false,
+  "CosmosDbSettings": {
+    "ConnectionString": ""
+  }
+}
