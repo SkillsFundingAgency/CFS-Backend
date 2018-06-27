@@ -46,6 +46,8 @@ namespace CalculateFunding.Api.Specs
                 app.UseHsts();
             }
 
+            app.UseMiddleware<ApiKeyMiddleware>();
+
             app.UseHttpsRedirection();
             app.UseMvc();
 

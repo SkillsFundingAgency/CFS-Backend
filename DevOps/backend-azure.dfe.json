@@ -1488,6 +1488,10 @@
             {
               "name": "AzureStorageSettings:ConnectionString",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "apiKeyMiddleware:apiKey",
+              "value": "[parameters('ApiKey')]"
             }
           ]
         }
@@ -1570,6 +1574,10 @@
             {
               "name": "AzureStorageSettings:ConnectionString",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "apiKeyMiddleware:apiKey",
+              "value": "[parameters('ApiKey')]"
             }
           ]
         }
@@ -1642,6 +1650,10 @@
             {
               "name": "ApiOptions:ApiEndpoint",
               "value": "[parameters('ApiEndpoint')]"
+            },
+            {
+              "name": "apiKeyMiddleware:apiKey",
+              "value": "[parameters('ApiKey')]"
             }
           ]
         }
@@ -1714,6 +1726,10 @@
             {
               "name": "SearchServiceKey",
               "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
+            },
+            {
+              "name": "apiKeyMiddleware:apiKey",
+              "value": "[parameters('ApiKey')]"
             }
           ]
         }
@@ -1794,6 +1810,10 @@
             {
               "name": "AzureStorageSettings:ConnectionString",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "apiKeyMiddleware:apiKey",
+              "value": "[parameters('ApiKey')]"
             }
           ]
         }
@@ -1868,8 +1888,11 @@
             {
               "name": "AzureStorageSettings:ConnectionString",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "apiKeyMiddleware:apiKey",
+              "value": "[parameters('ApiKey')]"
             }
-
           ]
         }
       }
@@ -1942,6 +1965,10 @@
             {
               "name": "AzureStorageSettings:ConnectionString",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "apiKeyMiddleware:apiKey",
+              "value": "[parameters('ApiKey')]"
             }
           ]
         }
@@ -1995,6 +2022,10 @@
             {
               "name": "AzureStorageSettings:ConnectionString",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "apiKeyMiddleware:apiKey",
+              "value": "[parameters('ApiKey')]"
             }
           ]
         }
