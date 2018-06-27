@@ -21,10 +21,10 @@ namespace CalculateFunding.Services.Datasets
         const string UpdateProviderSourceDatset = "results/update-provider-source-dataset";
         const string GetProvidersFromSearch = "results/providers-search";
 
-        private readonly IApiClientProxy _apiClient;
+        private readonly IResultsApiClientProxy _apiClient;
         private readonly ICacheProvider _cacheProvider;
 
-        public ProviderRepository(IApiClientProxy apiClient, ICacheProvider cacheProvider)
+        public ProviderRepository(IResultsApiClientProxy apiClient, ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));

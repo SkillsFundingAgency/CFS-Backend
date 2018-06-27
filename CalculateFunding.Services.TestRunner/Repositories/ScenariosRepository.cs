@@ -13,10 +13,10 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 {
     public class ScenariosRepository : IScenariosRepository
     {
-        private readonly IApiClientProxy _apiClient;
+        private readonly IScenariosApiClientProxy _apiClient;
         private readonly ICacheProvider _cacheProvider;
 
-        public ScenariosRepository(IApiClientProxy apiClient, ICacheProvider cacheProvider)
+        public ScenariosRepository(IScenariosApiClientProxy apiClient, ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));

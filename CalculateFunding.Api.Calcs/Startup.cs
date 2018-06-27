@@ -114,7 +114,8 @@ namespace CalculateFunding.Api.Calcs
 
             builder.AddServiceBus(config);
 
-            builder.AddInterServiceClient(config);
+            builder.AddResultsInterServiceClient(config);
+            builder.AddSpecificationsInterServiceClient(config);
 
             builder.AddCaching(config);
 

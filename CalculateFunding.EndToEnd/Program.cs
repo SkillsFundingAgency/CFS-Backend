@@ -427,7 +427,7 @@ Feature:
 
             builder.AddServiceBus(config);
 
-            builder.AddInterServiceClient(config);
+            //builder.AddInterServiceClient(config);
 
             builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
 

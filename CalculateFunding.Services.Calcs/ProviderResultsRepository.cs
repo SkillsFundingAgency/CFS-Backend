@@ -28,11 +28,11 @@ namespace CalculateFunding.Services.Calcs
 
         const string getScopedProviderIdsUrl = "results/get-scoped-providerids?specificationId=";
 
-        private readonly IApiClientProxy _apiClient;
+        private readonly IResultsApiClientProxy _apiClient;
 
         private readonly ICacheProvider _cacheProvider;
 
-        public ProviderResultsRepository(IApiClientProxy apiClient, ICacheProvider cacheProvider)
+        public ProviderResultsRepository(IResultsApiClientProxy apiClient, ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));

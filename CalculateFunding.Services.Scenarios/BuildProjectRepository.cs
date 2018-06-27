@@ -11,9 +11,9 @@ namespace CalculateFunding.Services.Scenarios
     {
         const string buildProjectUrl = "calcs/get-buildproject-by-specification-id?specificationId=";
 
-        private readonly IApiClientProxy _apiClient;
+        private readonly ICalcsApiClientProxy _apiClient;
 
-        public BuildProjectRepository(IApiClientProxy apiClient)
+        public BuildProjectRepository(ICalcsApiClientProxy apiClient)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
 

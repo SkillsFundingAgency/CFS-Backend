@@ -11,9 +11,9 @@ namespace CalculateFunding.Services.Calculator
     {
         const string specsUrl = "specs/specification-summary-by-id?specificationId=";
 
-        private readonly IApiClientProxy _apiClient;
+        private readonly ISpecificationsApiClientProxy _apiClient;
 
-        public SpecificationsRepository(IApiClientProxy apiClient)
+        public SpecificationsRepository(ISpecificationsApiClientProxy apiClient)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
 

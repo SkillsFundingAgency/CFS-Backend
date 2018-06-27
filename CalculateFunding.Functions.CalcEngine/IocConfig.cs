@@ -84,7 +84,8 @@ namespace CalculateFunding.Functions.CalcEngine
             builder
                 .AddScoped<ICalculationsRepository, CalculationsRepository>();
 
-            builder.AddInterServiceClient(config);
+            builder.AddCalcsInterServiceClient(config);
+            builder.AddSpecificationsInterServiceClient(config);
 
             builder.AddEngineSettings(config);
 

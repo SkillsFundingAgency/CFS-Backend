@@ -49,7 +49,7 @@ namespace CalculateFunding.Functions.Results
             builder
                 .AddSingleton(resultsConfig.CreateMapper());
 
-            builder.AddInterServiceClient(config);
+            builder.AddSpecificationsInterServiceClient(config);
 
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
             {
@@ -119,7 +119,7 @@ namespace CalculateFunding.Functions.Results
             builder.AddLogging("CalculateFunding.Functions.Results");
             builder.AddTelemetry();
 
-            builder.AddInterServiceClient(config);
+            builder.AddSpecificationsInterServiceClient(config);
 
             builder.AddPolicySettings(config);
 

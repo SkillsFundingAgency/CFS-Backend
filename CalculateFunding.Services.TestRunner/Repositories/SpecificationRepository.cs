@@ -11,9 +11,9 @@ namespace CalculateFunding.Services.TestRunner.Repositories
     {
         const string specsUrl = "specs/specification-summary-by-id?specificationId=";
 
-        private readonly IApiClientProxy _apiClient;
+        private readonly ISpecificationsApiClientProxy _apiClient;
 
-        public SpecificationRepository(IApiClientProxy apiClient)
+        public SpecificationRepository(ISpecificationsApiClientProxy apiClient)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
 

@@ -122,7 +122,9 @@ namespace CalculateFunding.Functions.TestEngine
 
             builder.AddSearch(config);
 
-            builder.AddInterServiceClient(config);
+            builder.AddSpecificationsInterServiceClient(config);
+            builder.AddScenariosInterServiceClient(config);
+            builder.AddCalcsInterServiceClient(config);
 
             builder.AddCaching(config);
 
