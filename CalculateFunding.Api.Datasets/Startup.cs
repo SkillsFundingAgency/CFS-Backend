@@ -151,6 +151,8 @@ namespace CalculateFunding.Api.Datasets
 
             builder.AddApiKeyMiddlewareSettings(config);
 
+            builder.AddPolicySettings(config);
+
             builder.AddSingleton<IDatasetsResiliencePolicies>((ctx) =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
