@@ -151,7 +151,9 @@ namespace CalculateFunding.Api.TestRunner
 
             builder.AddSearch(config);
 
-            builder.AddInterServiceClient(config);
+            builder.AddCalcsInterServiceClient(config);
+            builder.AddSpecificationsInterServiceClient(config);
+            builder.AddScenariosInterServiceClient(config);
 
             builder.AddCaching(config);
 

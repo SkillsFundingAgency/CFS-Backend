@@ -44,16 +44,70 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddInterServiceClient(this IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceCollection AddCalcsInterServiceClient(this IServiceCollection builder, IConfigurationRoot config)
         {
-            ApiOptions apiOptions = new ApiOptions();
-
-            config.Bind("apiOptions", apiOptions);
-
-            builder.AddSingleton<ApiOptions>(apiOptions);
-
             builder
-                .AddSingleton<IApiClientProxy, ApiClientProxy>();
+                .AddSingleton<ICalcsApiClientProxy, CalcsApiProxy>((ctx)=> {
+                    ApiOptions apiOptions = new ApiOptions();
+
+                    config.Bind("calcsClient", apiOptions);
+
+                    ILogger logger = ctx.GetService<ILogger>();
+                    ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
+
+                    return new CalcsApiProxy(apiOptions, logger, correlationIdProvider);
+                });
+
+            return builder;
+        }
+
+        public static IServiceCollection AddScenariosInterServiceClient(this IServiceCollection builder, IConfigurationRoot config)
+        {
+            builder
+                 .AddSingleton<IScenariosApiClientProxy, ScenariosApiProxy>((ctx) => {
+                     ApiOptions apiOptions = new ApiOptions();
+
+                     config.Bind("scenariosClient", apiOptions);
+
+                     ILogger logger = ctx.GetService<ILogger>();
+                     ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
+
+                     return new ScenariosApiProxy(apiOptions, logger, correlationIdProvider);
+                 });
+
+            return builder;
+        }
+
+        public static IServiceCollection AddSpecificationsInterServiceClient(this IServiceCollection builder, IConfigurationRoot config)
+        {
+            builder
+                 .AddSingleton<ISpecificationsApiClientProxy, SpecificationsApiProxy>((ctx) => {
+                     ApiOptions apiOptions = new ApiOptions();
+
+                     config.Bind("specificationsClient", apiOptions);
+
+                     ILogger logger = ctx.GetService<ILogger>();
+                     ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
+
+                     return new SpecificationsApiProxy(apiOptions, logger, correlationIdProvider);
+                 });
+
+            return builder;
+        }
+
+        public static IServiceCollection AddResultsInterServiceClient(this IServiceCollection builder, IConfigurationRoot config)
+        {
+            builder
+                 .AddSingleton<IResultsApiClientProxy, ResultsApiProxy>((ctx) => {
+                     ApiOptions apiOptions = new ApiOptions();
+
+                     config.Bind("resultsClient", apiOptions);
+
+                     ILogger logger = ctx.GetService<ILogger>();
+                     ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
+
+                     return new ResultsApiProxy(apiOptions, logger, correlationIdProvider);
+                 });
 
             return builder;
         }

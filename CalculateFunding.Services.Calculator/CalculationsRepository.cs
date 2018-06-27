@@ -11,9 +11,9 @@ namespace CalculateFunding.Services.Calculator
 {
     public class CalculationsRepository : ICalculationsRepository
     {
-        private readonly IApiClientProxy _apiClient;
+        private readonly ICalcsApiClientProxy _apiClient;
 
-        public CalculationsRepository(IApiClientProxy apiClient)
+        public CalculationsRepository(ICalcsApiClientProxy apiClient)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
 

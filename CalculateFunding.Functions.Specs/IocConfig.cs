@@ -63,7 +63,7 @@ namespace CalculateFunding.Functions.Specs
 
             builder.AddCaching(config);
 
-            builder.AddInterServiceClient(config);
+            builder.AddResultsInterServiceClient(config);
 
             builder.AddPolicySettings(config);
 

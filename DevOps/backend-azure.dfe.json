@@ -2,10 +2,10 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "environmentKey":{
+    "environmentKey": {
       "type": "string",
-      "metadata":{
-        "description":"The environment key for this particular environment eg t1dv"
+      "metadata": {
+        "description": "The environment key for this particular environment eg t1dv"
       }
     },
     "ApiKey": {
@@ -129,7 +129,6 @@
       "properties": {
         "appType": "other"
       }
-
     },
     {
       "apiVersion": "2015-04-08",
@@ -147,7 +146,6 @@
         ]
       }
     },
-
     {
       "apiVersion": "2015-02-28",
       "name": "[variables('azureSearchName')]",
@@ -164,7 +162,6 @@
         "partitionCount": 1
       }
     },
-
     {
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[variables('storageAccountName')]",
@@ -175,7 +172,6 @@
         "name": "Standard_LRS"
       }
     },
-
     {
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[variables('datasetStorageAccountName')]",
@@ -186,7 +182,6 @@
         "name": "Standard_LRS"
       }
     },
-
     {
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[variables('calcsStorageAccountName')]",
@@ -197,7 +192,6 @@
         "name": "Standard_LRS"
       }
     },
-
     {
       "name": "[variables('cacheName')]",
       "type": "Microsoft.Cache/Redis",
@@ -520,10 +514,7 @@
           ]
         }
       ]
-
     },
-
-
     {
       "apiVersion": "2016-03-01",
       "name": "[variables('hostingPlanName')]",
@@ -628,12 +619,28 @@
               "value": "datasets"
             },
             {
-              "name": "ApiOptions:ApiKey",
+              "name": "calcsClient:ApiKey",
               "value": "[parameters('ApiKey')]"
             },
             {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
+              "name": "calcsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "resultsClient:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "resultsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "specificationsClient:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "specificationsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "ServiceBusSettings:ConnectionString",
@@ -659,7 +666,6 @@
         }
       }
     },
-
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
@@ -673,7 +679,6 @@
         "[variables('applicationInsightsName')]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
         "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
-
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
@@ -733,12 +738,20 @@
               "value": "calcs"
             },
             {
-              "name": "ApiOptions:ApiKey",
+              "name": "specificationsClient:ApiKey",
               "value": "[parameters('ApiKey')]"
             },
             {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
+              "name": "specificationsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "resultsClient:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "resultsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
             },
             {
               "name": "ServiceBusSettings:ConnectionString",
@@ -768,7 +781,6 @@
         }
       }
     },
-
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
@@ -782,7 +794,6 @@
         "[variables('applicationInsightsName')]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
         "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
-
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
@@ -855,18 +866,25 @@
               "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
             },
             {
-              "name": "ApiOptions:ApiKey",
+              "name": "calcsClient:ApiKey",
               "value": "[parameters('ApiKey')]"
             },
             {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
-            }
+              "name": "calcsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "specificationsClient:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "specificationsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+            },
           ]
         }
       }
     },
-
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
@@ -880,7 +898,6 @@
         "[variables('applicationInsightsName')]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
         "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
-
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
@@ -917,12 +934,28 @@
               "value": "~.2"
             },
             {
-              "name": "ApiOptions:ApiKey",
+              "name": "calcsClient:ApiKey",
               "value": "[parameters('ApiKey')]"
             },
             {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
+              "name": "calcsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "scenariosClient:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "scenariosClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-scenarios.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "specificationsClient:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "specificationsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
@@ -1039,12 +1072,12 @@
               "value": "providersourcedatasets"
             },
             {
-              "name": "ApiOptions:ApiKey",
+              "name": "specificationsClient:ApiKey",
               "value": "[parameters('ApiKey')]"
             },
             {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
+              "name": "specificationsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "SearchServiceName",
@@ -1062,8 +1095,6 @@
         }
       }
     },
-
-
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
@@ -1139,12 +1170,12 @@
               "value": "GMT Standard Time"
             },
             {
-              "name": "ApiOptions:ApiKey",
+              "name": "resultsClient:ApiKey",
               "value": "[parameters('ApiKey')]"
             },
             {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
+              "name": "resultsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
             },
             {
               "name": "SearchServiceName",
@@ -1158,13 +1189,10 @@
               "name": "AzureStorageSettings:ConnectionString",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
             }
-
           ]
         }
       }
     },
-
-
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
@@ -1239,7 +1267,6 @@
         }
       }
     },
-
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
@@ -1303,12 +1330,20 @@
               "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
             },
             {
-              "name": "ApiOptions:ApiKey",
+              "name": "calcsClient:ApiKey",
               "value": "[parameters('ApiKey')]"
             },
             {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
+              "name": "calcsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "specificationsClient:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "specificationsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "CosmosDbSettings:DatabaseName",
@@ -1462,12 +1497,28 @@
               "value": "datasets"
             },
             {
-              "name": "ApiOptions:ApiKey",
+              "name": "calcsClient:ApiKey",
               "value": "[parameters('ApiKey')]"
             },
             {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
+              "name": "calcsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "resultsClient:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "resultsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "specificationsClient:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "specificationsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "ServiceBusSettings:ConnectionString",
@@ -1497,7 +1548,6 @@
         }
       }
     },
-
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
@@ -1544,12 +1594,20 @@
               "value": "calcs"
             },
             {
-              "name": "ApiOptions:ApiKey",
+              "name": "specificationsClient:ApiKey",
               "value": "[parameters('ApiKey')]"
             },
             {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
+              "name": "specificationsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "resultsClient:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "resultsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
             },
             {
               "name": "ServiceBusSettings:ConnectionString",
@@ -1583,7 +1641,6 @@
         }
       }
     },
-
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
@@ -1595,7 +1652,6 @@
         "[variables('applicationInsightsName')]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
         "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
-
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
@@ -1644,12 +1700,20 @@
               "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
             },
             {
-              "name": "ApiOptions:ApiKey",
+              "name": "calcsClient:ApiKey",
               "value": "[parameters('ApiKey')]"
             },
             {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
+              "name": "calcsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "specificationsClient:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "specificationsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "apiKeyMiddleware:apiKey",
@@ -1659,7 +1723,6 @@
         }
       }
     },
-
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
@@ -1671,7 +1734,6 @@
         "[variables('applicationInsightsName')]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
         "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
-
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
@@ -1684,12 +1746,28 @@
               "value": "GMT Standard Time"
             },
             {
-              "name": "ApiOptions:ApiKey",
+              "name": "calcsClient:ApiKey",
               "value": "[parameters('ApiKey')]"
             },
             {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
+              "name": "calcsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "scenariosClient:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "scenariosClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-scenarios.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "specificationsClient:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "specificationsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
@@ -1792,12 +1870,12 @@
               "value": "providersourcedatasets"
             },
             {
-              "name": "ApiOptions:ApiKey",
+              "name": "specificationsClient:ApiKey",
               "value": "[parameters('ApiKey')]"
             },
             {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
+              "name": "specificationsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "SearchServiceName",
@@ -1819,8 +1897,6 @@
         }
       }
     },
-
-
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
@@ -1870,12 +1946,12 @@
               "value": "GMT Standard Time"
             },
             {
-              "name": "ApiOptions:ApiKey",
+              "name": "resultsClient:ApiKey",
               "value": "[parameters('ApiKey')]"
             },
             {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
+              "name": "resultsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
             },
             {
               "name": "SearchServiceName",
@@ -1897,7 +1973,6 @@
         }
       }
     },
-
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
@@ -1935,12 +2010,20 @@
               "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
             },
             {
-              "name": "ApiOptions:ApiKey",
+              "name": "calcsClient:ApiKey",
               "value": "[parameters('ApiKey')]"
             },
             {
-              "name": "ApiOptions:ApiEndpoint",
-              "value": "[parameters('ApiEndpoint')]"
+              "name": "calcsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "specificationsClient:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "specificationsClient:ApiEndpoint",
+              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "CosmosDbSettings:DatabaseName",
@@ -2045,7 +2128,5 @@
       "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]",
       "type": "string"
     }
-
   }
-
 }

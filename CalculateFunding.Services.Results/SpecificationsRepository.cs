@@ -17,9 +17,9 @@ namespace CalculateFunding.Services.Results
 
         const string fundingStreamsUrl = "specs/get-fundingstreams";
 
-        private readonly IApiClientProxy _apiClient;
+        private readonly ISpecificationsApiClientProxy _apiClient;
 
-        public SpecificationsRepository(IApiClientProxy apiClient)
+        public SpecificationsRepository(ISpecificationsApiClientProxy apiClient)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
 

@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const string specificationId = "spec-id";
 
-            IApiClientProxy clientProxy = CreateApiClientProxy();
+            ISpecificationsApiClientProxy clientProxy = CreateApiClientProxy();
 
             SpecificationsRepository specificationsRepository = CreateSpecificationsRepository(clientProxy);
 
@@ -46,14 +46,14 @@ namespace CalculateFunding.Services.Datasets.Services
                     .GetAsync<SpecificationSummary>(Arg.Is($"specs/specification-summary-by-id?specificationId={specificationId}"));
         }
 
-        static SpecificationsRepository CreateSpecificationsRepository(IApiClientProxy apiClientProxy = null)
+        static SpecificationsRepository CreateSpecificationsRepository(ISpecificationsApiClientProxy apiClientProxy = null)
         {
             return new SpecificationsRepository(apiClientProxy ?? CreateApiClientProxy());
         }
 
-        static IApiClientProxy CreateApiClientProxy()
+        static ISpecificationsApiClientProxy CreateApiClientProxy()
         {
-            return Substitute.For<IApiClientProxy>();
+            return Substitute.For<ISpecificationsApiClientProxy>();
         }
     }
 }

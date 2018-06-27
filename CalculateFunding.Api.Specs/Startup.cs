@@ -82,7 +82,7 @@ namespace CalculateFunding.Api.Specs
 
             builder.AddCaching(config);
 
-            builder.AddInterServiceClient(config);
+            builder.AddResultsInterServiceClient(config);
 
             builder.AddPolicySettings(config);
 

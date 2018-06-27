@@ -135,7 +135,9 @@ namespace CalculateFunding.Api.Datasets
             builder
                 .AddSingleton(dataSetsConfig.CreateMapper());
 
-            builder.AddInterServiceClient(config);
+            builder.AddCalcsInterServiceClient(config);
+            builder.AddResultsInterServiceClient(config);
+            builder.AddSpecificationsInterServiceClient(config);
 
             builder.AddCosmosDb(config);
 

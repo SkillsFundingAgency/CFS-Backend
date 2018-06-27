@@ -13,9 +13,9 @@ namespace CalculateFunding.Services.Datasets
 
         const string updateRelationshipsUrl = "calcs/update-buildproject-relationships?specificationId=";
 
-        private readonly IApiClientProxy _apiClient;
+        private readonly ICalcsApiClientProxy _apiClient;
 
-        public CalcsRepository(IApiClientProxy apiClient)
+        public CalcsRepository(ICalcsApiClientProxy apiClient)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
 

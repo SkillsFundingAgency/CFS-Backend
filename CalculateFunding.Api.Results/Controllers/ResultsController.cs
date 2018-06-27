@@ -113,5 +113,12 @@ namespace CalculateFunding.Api.Results.Controllers
         {
             return _resultsService.UpdatePublishedAllocationLineResultsStatus(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/results/get-specification-provider-results")]
+        [HttpGet]
+        public Task<IActionResult> RunGetProviderResultsBySpecificationId()
+        {
+            return _resultsService.GetProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
+        }
     }
 }

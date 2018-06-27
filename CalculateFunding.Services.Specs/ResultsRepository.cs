@@ -15,9 +15,9 @@ namespace CalculateFunding.Services.Specs
 
         const string resultsUrl = "results/publish-provider-results?specificationId=";
 
-        private readonly IApiClientProxy _apiClientProxy;
+        private readonly IResultsApiClientProxy _apiClientProxy;
 
-        public ResultsRepository(IApiClientProxy apiClientProxy)
+        public ResultsRepository(IResultsApiClientProxy apiClientProxy)
         {
             _apiClientProxy = apiClientProxy;
         }
