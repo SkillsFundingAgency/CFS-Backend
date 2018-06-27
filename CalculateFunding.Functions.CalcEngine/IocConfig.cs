@@ -46,13 +46,13 @@ namespace CalculateFunding.Functions.CalcEngine
 
             builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>
             {
-                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+                CosmosDbSettings providerSourceDatasetsCosmosSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", calssDbSettings);
+                config.Bind("CosmosDbSettings", providerSourceDatasetsCosmosSettings);
 
-                calssDbSettings.CollectionName = "providersourcedatasets";
+                providerSourceDatasetsCosmosSettings.CollectionName = "providersourcedatasets";
 
-                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(providerSourceDatasetsCosmosSettings);
 
                 EngineSettings engineSettings = ctx.GetService<EngineSettings>();
 
@@ -61,13 +61,13 @@ namespace CalculateFunding.Functions.CalcEngine
 
             builder.AddSingleton<IProviderResultsRepository, ProviderResultsRepository>((ctx) =>
             {
-                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+                CosmosDbSettings calcResultsDbSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", calssDbSettings);
+                config.Bind("CosmosDbSettings", calcResultsDbSettings);
 
-                calssDbSettings.CollectionName = "calculationresults";
+                calcResultsDbSettings.CollectionName = "calculationresults";
 
-                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calcResultsDbSettings);
 
                 ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository = ctx.GetService<ISearchRepository<CalculationProviderResultsIndex>>();
 
