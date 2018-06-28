@@ -14,12 +14,6 @@
         "description": "Api key for inter services calls"
       }
     },
-    "ApiEndpoint": {
-      "type": "string",
-      "metadata": {
-        "description": "Base url for inter service calls"
-      }
-    },
     "skuName": {
       "type": "string",
       "defaultValue": "S1",
@@ -882,7 +876,7 @@
             {
               "name": "specificationsClient:ApiEndpoint",
               "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
-            },
+            }
           ]
         }
       }
