@@ -11,40 +11,40 @@ namespace CalculateFunding.Functions.TestEngine.Http
 {
     public static class ResultCounts
     {
-        [FunctionName("get-result-counts")]
-        public static Task<IActionResult> RunGetResultCounts(
-       [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                ITestResultsCountsService svc = scope.ServiceProvider.GetService<ITestResultsCountsService>();
+       // [FunctionName("get-result-counts")]
+       // public static Task<IActionResult> RunGetResultCounts(
+       //[HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+       // {
+       //     using (var scope = IocConfig.Build().CreateHttpScope(req))
+       //     {
+       //         ITestResultsCountsService svc = scope.ServiceProvider.GetService<ITestResultsCountsService>();
 
-                return svc.GetResultCounts(req);
-            }
-        }
+       //         return svc.GetResultCounts(req);
+       //     }
+       // }
 
-        [FunctionName("get-testscenario-result-counts-for-specifications")]
-        public static Task<IActionResult> RunGetTestScenarioCountsForSpecifications(
-        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                ITestResultsCountsService svc = scope.ServiceProvider.GetService<ITestResultsCountsService>();
+       // [FunctionName("get-testscenario-result-counts-for-specifications")]
+       // public static Task<IActionResult> RunGetTestScenarioCountsForSpecifications(
+       // [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+       // {
+       //     using (var scope = IocConfig.Build().CreateHttpScope(req))
+       //     {
+       //         ITestResultsCountsService svc = scope.ServiceProvider.GetService<ITestResultsCountsService>();
 
-                return svc.GetTestScenarioCountsForSpecifications(req);
-            }
-        }
+       //         return svc.GetTestScenarioCountsForSpecifications(req);
+       //     }
+       // }
 
-        [FunctionName("get-testscenario-result-counts-for-specification-for-provider")]
-        public static Task<IActionResult> RunGetTestScenarioCountsForProviderForSpecification(
-        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                ITestResultsCountsService svc = scope.ServiceProvider.GetService<ITestResultsCountsService>();
+       // [FunctionName("get-testscenario-result-counts-for-specification-for-provider")]
+       // public static Task<IActionResult> RunGetTestScenarioCountsForProviderForSpecification(
+       // [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+       // {
+       //     using (var scope = IocConfig.Build().CreateHttpScope(req))
+       //     {
+       //         ITestResultsCountsService svc = scope.ServiceProvider.GetService<ITestResultsCountsService>();
 
-                return svc.GetTestScenarioCountsForProviderForSpecification(req);
-            }
-        }
+       //         return svc.GetTestScenarioCountsForProviderForSpecification(req);
+       //     }
+       // }
     }
 }

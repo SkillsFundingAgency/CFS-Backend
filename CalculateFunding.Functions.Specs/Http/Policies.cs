@@ -13,38 +13,38 @@ namespace CalculateFunding.Functions.Specs.Http
 {
     public static class Policies
     {
-        [FunctionName("policy-create")]
-        public static Task<IActionResult> RunCreatePolicy(
-           [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
-        {
-            IServiceProvider provider = IocConfig.Build();
+        //[FunctionName("policy-create")]
+        //public static Task<IActionResult> RunCreatePolicy(
+        //   [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        //{
+        //    IServiceProvider provider = IocConfig.Build();
 
-            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
+        //    ISpecificationsService svc = provider.GetService<ISpecificationsService>();
 
-            return svc.CreatePolicy(req);
-        }
+        //    return svc.CreatePolicy(req);
+        //}
 
-        [FunctionName("policy-by-name")]
-        public static Task<IActionResult> RunPolicyByName(
-          [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
-        {
-            IServiceProvider provider = IocConfig.Build();
+        //[FunctionName("policy-by-name")]
+        //public static Task<IActionResult> RunPolicyByName(
+        //  [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        //{
+        //    IServiceProvider provider = IocConfig.Build();
 
-            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
+        //    ISpecificationsService svc = provider.GetService<ISpecificationsService>();
 
-            return svc.GetPolicyByName(req);
-        }
+        //    return svc.GetPolicyByName(req);
+        //}
 
-        [FunctionName("policy-edit")]
-        public static Task<IActionResult> RunEditPolicy(
-          [HttpTrigger(AuthorizationLevel.Function, "put")] HttpRequest req, ILogger log)
-        {
-            IServiceProvider provider = IocConfig.Build();
+        //[FunctionName("policy-edit")]
+        //public static Task<IActionResult> RunEditPolicy(
+        //  [HttpTrigger(AuthorizationLevel.Function, "put")] HttpRequest req, ILogger log)
+        //{
+        //    IServiceProvider provider = IocConfig.Build();
 
-            ISpecificationsService svc = provider.GetService<ISpecificationsService>();
+        //    ISpecificationsService svc = provider.GetService<ISpecificationsService>();
 
-            return svc.EditPolicy(req);
-        }
+        //    return svc.EditPolicy(req);
+        //}
     }
 
 }

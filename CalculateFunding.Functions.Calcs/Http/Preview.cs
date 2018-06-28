@@ -12,16 +12,16 @@ namespace CalculateFunding.Functions.Calcs.Http
 {
     public static class Preview
     {
-        [FunctionName("compile-preview")]
-        public static Task<IActionResult> RunCompliePreview(
-        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                IPreviewService svc = scope.ServiceProvider.GetService<IPreviewService>();
+        //[FunctionName("compile-preview")]
+        //public static Task<IActionResult> RunCompliePreview(
+        //[HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        //{
+        //    using (var scope = IocConfig.Build().CreateHttpScope(req))
+        //    {
+        //        IPreviewService svc = scope.ServiceProvider.GetService<IPreviewService>();
 
-                return svc.Compile(req);
-            }
-        }
+        //        return svc.Compile(req);
+        //    }
+        //}
     }
 }

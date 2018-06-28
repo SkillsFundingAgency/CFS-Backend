@@ -16,28 +16,28 @@ namespace CalculateFunding.Functions.Users.Http
 {
     public static class Users
     {
-        [FunctionName("confirm-skills")]
-        public static Task<IActionResult> RunConfirmSkills(
-          [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                IUserService svc = scope.ServiceProvider.GetService<IUserService>();
+        //[FunctionName("confirm-skills")]
+        //public static Task<IActionResult> RunConfirmSkills(
+        //  [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateHttpScope(req))
+        //    {
+        //        IUserService svc = scope.ServiceProvider.GetService<IUserService>();
 
-                return svc.ConfirmSkills(req);
-            }
-        }
+        //        return svc.ConfirmSkills(req);
+        //    }
+        //}
 
-        [FunctionName("get-user-by-username")]
-        public static Task<IActionResult> RunGetUserByUsername(
-         [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                IUserService svc = scope.ServiceProvider.GetService<IUserService>();
+        //[FunctionName("get-user-by-username")]
+        //public static Task<IActionResult> RunGetUserByUsername(
+        // [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateHttpScope(req))
+        //    {
+        //        IUserService svc = scope.ServiceProvider.GetService<IUserService>();
 
-                return svc.GetUserByUsername(req);
-            }
-        }
+        //        return svc.GetUserByUsername(req);
+        //    }
+        //}
     }
 }

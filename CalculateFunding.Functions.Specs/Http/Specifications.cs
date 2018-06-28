@@ -14,219 +14,219 @@ namespace CalculateFunding.Functions.Specs.Http
 {
     public static class Specifications
     {
-        [FunctionName("specification-by-id")]
-        public static Task<IActionResult> RunGetSpecificationById(
-            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateScope())
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
-                return svc.GetSpecificationById(req);
-            }
-        }
+        //[FunctionName("specification-by-id")]
+        //public static Task<IActionResult> RunGetSpecificationById(
+        //    [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateScope())
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //        return svc.GetSpecificationById(req);
+        //    }
+        //}
 
-        [FunctionName("specification-summary-by-id")]
-        public static Task<IActionResult> RunGetSpecificationSummaryById(
-            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateScope())
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
-                return svc.GetSpecificationSummaryById(req);
-            }
-        }
+        //[FunctionName("specification-summary-by-id")]
+        //public static Task<IActionResult> RunGetSpecificationSummaryById(
+        //    [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateScope())
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //        return svc.GetSpecificationSummaryById(req);
+        //    }
+        //}
 
-        [FunctionName("specification-summaries-by-ids")]
-        public static Task<IActionResult> RunGetSpecificationSummariesByIds(
-            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateScope())
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
-                return svc.GetSpecificationSummariesByIds(req);
-            }
-        }
+        //[FunctionName("specification-summaries-by-ids")]
+        //public static Task<IActionResult> RunGetSpecificationSummariesByIds(
+        //    [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateScope())
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //        return svc.GetSpecificationSummariesByIds(req);
+        //    }
+        //}
 
-        [FunctionName("specification-summaries")]
-        public static Task<IActionResult> RunGetSpecificationSummaries(
-            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateScope())
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
-                return svc.GetSpecificationSummaries(req);
-            }
-        }
+        //[FunctionName("specification-summaries")]
+        //public static Task<IActionResult> RunGetSpecificationSummaries(
+        //    [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateScope())
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //        return svc.GetSpecificationSummaries(req);
+        //    }
+        //}
 
-        [FunctionName("specification-current-version-by-id")]
-        public static Task<IActionResult> RunGetCurrentSpecificationById(
-            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateScope())
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
-                return svc.GetCurrentSpecificationById(req);
-            }
-        }
+        //[FunctionName("specification-current-version-by-id")]
+        //public static Task<IActionResult> RunGetCurrentSpecificationById(
+        //    [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateScope())
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //        return svc.GetCurrentSpecificationById(req);
+        //    }
+        //}
 
-        [FunctionName("specifications")]
-        public static Task<IActionResult> RunGetSpecifications(
-            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateScope())
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
-                return svc.GetSpecifications(req);
-            }
-        }
+        //[FunctionName("specifications")]
+        //public static Task<IActionResult> RunGetSpecifications(
+        //    [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateScope())
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //        return svc.GetSpecifications(req);
+        //    }
+        //}
 
-        [FunctionName("specifications-selected-for-funding")]
-        public static Task<IActionResult> RunGetSpecificationsSelectedForFunding(
-            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateScope())
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
-                return svc.GetSpecificationsSelectedForFunding(req);
-            }
-        }
+        //[FunctionName("specifications-selected-for-funding")]
+        //public static Task<IActionResult> RunGetSpecificationsSelectedForFunding(
+        //    [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateScope())
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //        return svc.GetSpecificationsSelectedForFunding(req);
+        //    }
+        //}
 
-        [FunctionName("specifications-by-year")]
-        public static Task<IActionResult> RunSpecificationsByYear(
-            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                return DoAsync(() =>
-                {
-                    ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
-                    return svc.GetSpecificationsByFundingPeriodId(req);
-                });
-            }
-        }
+        //[FunctionName("specifications-by-year")]
+        //public static Task<IActionResult> RunSpecificationsByYear(
+        //    [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateHttpScope(req))
+        //    {
+        //        return DoAsync(() =>
+        //        {
+        //            ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //            return svc.GetSpecificationsByFundingPeriodId(req);
+        //        });
+        //    }
+        //}
 
-        [FunctionName("specifications-by-fundingperiod-and-fundingstream")]
-        public static Task<IActionResult> RunGetSpecificationsByFundingPeriodIdAndFundingStreamId(
-            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
-                return svc.GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(req);
-            }
-        }
+        //[FunctionName("specifications-by-fundingperiod-and-fundingstream")]
+        //public static Task<IActionResult> RunGetSpecificationsByFundingPeriodIdAndFundingStreamId(
+        //    [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateHttpScope(req))
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //        return svc.GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(req);
+        //    }
+        //}
 
-        [FunctionName("specification-by-name")]
-        public static Task<IActionResult> RunSpecificationByName(
-           [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateScope())
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //[FunctionName("specification-by-name")]
+        //public static Task<IActionResult> RunSpecificationByName(
+        //   [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateScope())
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-                return svc.GetSpecificationByName(req);
-            }
-        }
+        //        return svc.GetSpecificationByName(req);
+        //    }
+        //}
 
-        [FunctionName("specification-create")]
-        public static async Task<IActionResult> RunCreateSpecification(
-            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateScope())
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //[FunctionName("specification-create")]
+        //public static async Task<IActionResult> RunCreateSpecification(
+        //    [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateScope())
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-                return await svc.CreateSpecification(req);
-            }
-        }
+        //        return await svc.CreateSpecification(req);
+        //    }
+        //}
 
 
-        [FunctionName("specification-edit")]
-        public static async Task<IActionResult> RunEditSpecification(
-            [HttpTrigger(AuthorizationLevel.Function, "put")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateScope())
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //[FunctionName("specification-edit")]
+        //public static async Task<IActionResult> RunEditSpecification(
+        //    [HttpTrigger(AuthorizationLevel.Function, "put")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateScope())
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-                return await svc.EditSpecification(req);
-            }
-        }
+        //        return await svc.EditSpecification(req);
+        //    }
+        //}
 
-        [FunctionName("specification-edit-status")]
-        public static async Task<IActionResult> RunEditSpecificationStatus(
-           [HttpTrigger(AuthorizationLevel.Function, "put")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateScope())
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //[FunctionName("specification-edit-status")]
+        //public static async Task<IActionResult> RunEditSpecificationStatus(
+        //   [HttpTrigger(AuthorizationLevel.Function, "put")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateScope())
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-                return await svc.EditSpecificationStatus(req);
-            }
-        }
+        //        return await svc.EditSpecificationStatus(req);
+        //    }
+        //}
 
-        [FunctionName("specifications-search")]
-        public static async Task<IActionResult> RunSearchSpecifications(
-            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateScope())
-            {
-                ISpecificationsSearchService svc = scope.ServiceProvider.GetService<ISpecificationsSearchService>();
+        //[FunctionName("specifications-search")]
+        //public static async Task<IActionResult> RunSearchSpecifications(
+        //    [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateScope())
+        //    {
+        //        ISpecificationsSearchService svc = scope.ServiceProvider.GetService<ISpecificationsSearchService>();
 
-                return await svc.SearchSpecifications(req);
-            }
-        }
+        //        return await svc.SearchSpecifications(req);
+        //    }
+        //}
 
-        [FunctionName("specifications-dataset-relationships-search")]
-        public static async Task<IActionResult> RunSearchSpecificationsDatasetRelationships(
-            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateScope())
-            {
-                ISpecificationsSearchService svc = scope.ServiceProvider.GetService<ISpecificationsSearchService>();
+        //[FunctionName("specifications-dataset-relationships-search")]
+        //public static async Task<IActionResult> RunSearchSpecificationsDatasetRelationships(
+        //    [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateScope())
+        //    {
+        //        ISpecificationsSearchService svc = scope.ServiceProvider.GetService<ISpecificationsSearchService>();
 
-                return await svc.SearchSpecificationDatasetRelationships(req);
-            }
-        }
+        //        return await svc.SearchSpecificationDatasetRelationships(req);
+        //    }
+        //}
 
-        [FunctionName("reindex")]
-        public static Task<IActionResult> RunReindex(
-          [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateScope())
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //[FunctionName("reindex")]
+        //public static Task<IActionResult> RunReindex(
+        //  [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateScope())
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-                return svc.ReIndex();
-            }
-        }
+        //        return svc.ReIndex();
+        //    }
+        //}
 
-        [FunctionName("select-for-funding")]
-        public static async Task<IActionResult> RunSelectSpecificationForFunding(
-            [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateScope())
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //[FunctionName("select-for-funding")]
+        //public static async Task<IActionResult> RunSelectSpecificationForFunding(
+        //    [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateScope())
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-                return await svc.SelectSpecificationForFunding(req);
-            }
-        }
+        //        return await svc.SelectSpecificationForFunding(req);
+        //    }
+        //}
 
-        async static public Task<T> DoAsync<T>(Func<Task<T>> func,  Func<T, Task> test = null)
-        {
-            try
-            {
-                var result = await func().ConfigureAwait(false);
-                if (test != null)
-                    await test.Invoke(result).ConfigureAwait(false);
+        //async static public Task<T> DoAsync<T>(Func<Task<T>> func,  Func<T, Task> test = null)
+        //{
+        //    try
+        //    {
+        //        var result = await func().ConfigureAwait(false);
+        //        if (test != null)
+        //            await test.Invoke(result).ConfigureAwait(false);
 
-                return result;
-            }
-            catch
-            {
-                throw new ApplicationException("Knifed");
-            }
-         }
+        //        return result;
+        //    }
+        //    catch
+        //    {
+        //        throw new ApplicationException("Knifed");
+        //    }
+        // }
     }
 }

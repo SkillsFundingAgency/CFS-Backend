@@ -14,53 +14,53 @@ namespace CalculateFunding.Functions.Specs.Http
 {
     public static class FundingStreams
     {
-        [FunctionName("get-fundingstreams")]
-        public static Task<IActionResult> RunGetFundingStreams(
-           [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //[FunctionName("get-fundingstreams")]
+        //public static Task<IActionResult> RunGetFundingStreams(
+        //   [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateHttpScope(req))
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-                return svc.GetFundingStreams(req);
-            }
-        }
+        //        return svc.GetFundingStreams(req);
+        //    }
+        //}
 
-        [FunctionName("get-fundingstream-by-id")]
-        public static Task<IActionResult> RunGetFundingStreamById(
-           [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //[FunctionName("get-fundingstream-by-id")]
+        //public static Task<IActionResult> RunGetFundingStreamById(
+        //   [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateHttpScope(req))
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-                return svc.GetFundingStreamById(req);
-            }
-        }
+        //        return svc.GetFundingStreamById(req);
+        //    }
+        //}
 
-        [FunctionName("save-fundingStream")]
-        public static Task<IActionResult> RunSaveFundingStreamn(
-           [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //[FunctionName("save-fundingStream")]
+        //public static Task<IActionResult> RunSaveFundingStreamn(
+        //   [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        //{
+        //    using (var scope = IocConfig.Build().CreateHttpScope(req))
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-                return svc.SaveFundingStream(req);
-            }
-        }
+        //        return svc.SaveFundingStream(req);
+        //    }
+        //}
 
-        [FunctionName("get-fundingstreams-for-specification")]
-        public static Task<IActionResult> RunGetFundingStreamsForSpecificationById(
-           [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //[FunctionName("get-fundingstreams-for-specification")]
+        //public static Task<IActionResult> RunGetFundingStreamsForSpecificationById(
+        //   [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateHttpScope(req))
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-                return svc.GetFundingStreamsForSpecificationById(req);
-            }
-        }
+        //        return svc.GetFundingStreamsForSpecificationById(req);
+        //    }
+        //}
     }
 
 }

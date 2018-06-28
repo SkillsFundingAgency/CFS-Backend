@@ -13,65 +13,65 @@ namespace CalculateFunding.Functions.Specs.Http
 {
     public static class Calculations
     {
-        [FunctionName("calculation-create")]
-        public static Task<IActionResult> RunCreateCalculation(
-           [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //[FunctionName("calculation-create")]
+        //public static Task<IActionResult> RunCreateCalculation(
+        //   [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateHttpScope(req))
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-                return svc.CreateCalculation(req);
-            }
-        }
+        //        return svc.CreateCalculation(req);
+        //    }
+        //}
 
-        [FunctionName("calculation-edit")]
-        public static Task<IActionResult> RunEditCalculation(
-         [HttpTrigger(AuthorizationLevel.Function, "put")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //[FunctionName("calculation-edit")]
+        //public static Task<IActionResult> RunEditCalculation(
+        // [HttpTrigger(AuthorizationLevel.Function, "put")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateHttpScope(req))
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-                return svc.EditCalculation(req);
-            }
-        }
+        //        return svc.EditCalculation(req);
+        //    }
+        //}
 
-        [FunctionName("calculation-by-name")]
-        public static Task<IActionResult> RunCalculationByName(
-          [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //[FunctionName("calculation-by-name")]
+        //public static Task<IActionResult> RunCalculationByName(
+        //  [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateHttpScope(req))
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-                return svc.GetCalculationByName(req);
-            }
-        }
+        //        return svc.GetCalculationByName(req);
+        //    }
+        //}
 
-        [FunctionName("calculation-by-id")]
-        public static Task<IActionResult> RunCalculationBySpecificationIdAndCalculationId(
-         [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //[FunctionName("calculation-by-id")]
+        //public static Task<IActionResult> RunCalculationBySpecificationIdAndCalculationId(
+        // [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateHttpScope(req))
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-                return svc.GetCalculationBySpecificationIdAndCalculationId(req);
-            }
-        }
+        //        return svc.GetCalculationBySpecificationIdAndCalculationId(req);
+        //    }
+        //}
 
-        [FunctionName("calculations-by-specificationid")]
-        public static Task<IActionResult> RunCalculationsBySpecificationId(
-         [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
+        //[FunctionName("calculations-by-specificationid")]
+        //public static Task<IActionResult> RunCalculationsBySpecificationId(
+        // [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req, ILogger log)
+        //{
+        //    using (var scope = IocConfig.Build().CreateHttpScope(req))
+        //    {
+        //        ISpecificationsService svc = scope.ServiceProvider.GetService<ISpecificationsService>();
 
-                return svc.GetCalculationsBySpecificationId(req);
-            }
-        }
+        //        return svc.GetCalculationsBySpecificationId(req);
+        //    }
+        //}
     }
 
 }

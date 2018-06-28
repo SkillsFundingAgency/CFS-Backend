@@ -11,16 +11,16 @@ namespace CalculateFunding.Functions.TestEngine.Http
 {
     public static class TestValidation
     {
-        [FunctionName("validate-test")]
-        public static Task<IActionResult> RunValidateTest(
-        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
-        {
-            using (var scope = IocConfig.Build().CreateHttpScope(req))
-            {
-                IGherkinParserService svc = scope.ServiceProvider.GetService<IGherkinParserService>();
+        //[FunctionName("validate-test")]
+        //public static Task<IActionResult> RunValidateTest(
+        //[HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
+        //{
+        //    using (var scope = IocConfig.Build().CreateHttpScope(req))
+        //    {
+        //        IGherkinParserService svc = scope.ServiceProvider.GetService<IGherkinParserService>();
 
-                return svc.ValidateGherkin(req);
-            }
-        }
+        //        return svc.ValidateGherkin(req);
+        //    }
+        //}
     }
 }

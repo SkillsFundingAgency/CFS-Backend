@@ -12,23 +12,23 @@ namespace CalculateFunding.Functions.Results.Http
 {
     public static class HealthCheck
     {
-        [FunctionName("health-check")]
-        public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
-        {
-            var versionNumber = typeof(Specification).Assembly.GetName().Version;
+        //[FunctionName("health-check")]
+        //public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
+        //{
+        //    var versionNumber = typeof(Specification).Assembly.GetName().Version;
 
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(JsonConvert.SerializeObject(new
-                    {
-                        versionNumber
-                    },
-                    new JsonSerializerSettings
-                    {
-                        ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                        Formatting = Formatting.Indented
-                    }), System.Text.Encoding.UTF8, "application/json")
-            };
-        }
+        //    return new HttpResponseMessage(HttpStatusCode.OK)
+        //    {
+        //        Content = new StringContent(JsonConvert.SerializeObject(new
+        //            {
+        //                versionNumber
+        //            },
+        //            new JsonSerializerSettings
+        //            {
+        //                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+        //                Formatting = Formatting.Indented
+        //            }), System.Text.Encoding.UTF8, "application/json")
+        //    };
+        //}
     }
 }
