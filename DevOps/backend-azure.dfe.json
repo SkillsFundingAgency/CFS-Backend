@@ -2120,6 +2120,14 @@
     "AzureSearchKey": {
       "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]",
       "type": "string"
+    },
+    "EnvironmentSetupFunctionKey": {
+      "type": "string",
+      "value": "[listsecrets(resourceId('Microsoft.Web/sites/functions', concat('fa-', parameters('environmentKey'), '-environment'), 'cosmos-db-setup'),'2015-08-01').key]"
+    },
+    "EnvironmentSetupFunctionUrl": {
+      "type": "string",
+      "value": "[listsecrets(resourceId('Microsoft.Web/sites/functions', concat('fa-', parameters('environmentKey'), '-environment'), 'cosmos-db-setup') ,'2015-08-01').trigger_url]"
     }
   }
 }
