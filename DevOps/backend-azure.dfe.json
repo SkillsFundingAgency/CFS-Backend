@@ -1835,14 +1835,6 @@
               "value": "GMT Standard Time"
             },
             {
-              "name": "FUNCTIONS_EXTENSION_VERSION",
-              "value": "beta"
-            },
-            {
-              "name": "ROUTING_EXTENSION_VERSION",
-              "value": "~.2"
-            },
-            {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
               "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
             },
