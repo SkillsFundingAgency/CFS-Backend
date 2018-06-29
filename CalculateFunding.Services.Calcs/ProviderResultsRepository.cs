@@ -209,6 +209,9 @@ namespace CalculateFunding.Services.Calcs
 
         int GetPageCount(int totalCount, int maxResultsCount = MaxResultsCount)
         {
+            if ((totalCount > 0) && (totalCount < MaxResultsCount))
+                return 1;
+
             int pageCount = totalCount / maxResultsCount;
 
             if (pageCount % MaxResultsCount != 0)

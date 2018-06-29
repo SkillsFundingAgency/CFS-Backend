@@ -132,6 +132,9 @@ namespace CalculateFunding.Services.Datasets
 
         int GetPageCount(int totalCount)
         {
+            if ((totalCount > 0) && (totalCount < MaxResultsCount))
+                return 1;
+
             int pageCount = totalCount / MaxResultsCount;
 
             if (pageCount % MaxResultsCount != 0)
