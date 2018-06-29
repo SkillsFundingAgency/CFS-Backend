@@ -619,7 +619,7 @@
             },
             {
               "name": "calcsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
             },
             {
               "name": "resultsClient:ApiKey",
@@ -627,7 +627,7 @@
             },
             {
               "name": "resultsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
             },
             {
               "name": "specificationsClient:ApiKey",
@@ -635,7 +635,7 @@
             },
             {
               "name": "specificationsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "ServiceBusSettings:ConnectionString",
@@ -739,7 +739,7 @@
             },
             {
               "name": "specificationsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "resultsClient:ApiKey",
@@ -747,7 +747,7 @@
             },
             {
               "name": "resultsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
             },
             {
               "name": "ServiceBusSettings:ConnectionString",
@@ -867,7 +867,7 @@
             },
             {
               "name": "calcsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
             },
             {
               "name": "specificationsClient:ApiKey",
@@ -875,7 +875,7 @@
             },
             {
               "name": "specificationsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             }
           ]
         }
@@ -935,7 +935,7 @@
             },
             {
               "name": "calcsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
             },
             {
               "name": "scenariosClient:ApiKey",
@@ -943,7 +943,7 @@
             },
             {
               "name": "scenariosClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-scenarios.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-scenarios.azurewebsites.net/api/')]"
             },
             {
               "name": "specificationsClient:ApiKey",
@@ -951,7 +951,7 @@
             },
             {
               "name": "specificationsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
@@ -1074,7 +1074,7 @@
             },
             {
               "name": "specificationsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "SearchServiceName",
@@ -1173,7 +1173,7 @@
             },
             {
               "name": "resultsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
             },
             {
               "name": "SearchServiceName",
@@ -1335,7 +1335,7 @@
             },
             {
               "name": "calcsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
             },
             {
               "name": "specificationsClient:ApiKey",
@@ -1343,7 +1343,7 @@
             },
             {
               "name": "specificationsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "CosmosDbSettings:DatabaseName",
@@ -1503,7 +1503,7 @@
             },
             {
               "name": "calcsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
             },
             {
               "name": "resultsClient:ApiKey",
@@ -1511,7 +1511,7 @@
             },
             {
               "name": "resultsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
             },
             {
               "name": "specificationsClient:ApiKey",
@@ -1519,7 +1519,7 @@
             },
             {
               "name": "specificationsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "ServiceBusSettings:ConnectionString",
@@ -1600,7 +1600,7 @@
             },
             {
               "name": "specificationsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "resultsClient:ApiKey",
@@ -1608,7 +1608,7 @@
             },
             {
               "name": "resultsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
             },
             {
               "name": "ServiceBusSettings:ConnectionString",
@@ -1706,7 +1706,7 @@
             },
             {
               "name": "calcsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
             },
             {
               "name": "specificationsClient:ApiKey",
@@ -1714,7 +1714,7 @@
             },
             {
               "name": "specificationsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "apiKeyMiddleware:apiKey",
@@ -1752,7 +1752,7 @@
             },
             {
               "name": "calcsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
             },
             {
               "name": "scenariosClient:ApiKey",
@@ -1760,7 +1760,7 @@
             },
             {
               "name": "scenariosClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-scenarios.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-scenarios.azurewebsites.net/api/')]"
             },
             {
               "name": "specificationsClient:ApiKey",
@@ -1768,7 +1768,7 @@
             },
             {
               "name": "specificationsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
@@ -1876,7 +1876,7 @@
             },
             {
               "name": "specificationsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "SearchServiceName",
@@ -1952,7 +1952,7 @@
             },
             {
               "name": "resultsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
             },
             {
               "name": "SearchServiceName",
@@ -2016,7 +2016,7 @@
             },
             {
               "name": "calcsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
             },
             {
               "name": "specificationsClient:ApiKey",
@@ -2024,7 +2024,7 @@
             },
             {
               "name": "specificationsClient:ApiEndpoint",
-              "value": "[concat('app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+              "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
               "name": "CosmosDbSettings:DatabaseName",
