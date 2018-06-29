@@ -109,8 +109,6 @@
     "engineHostingPlanName": "[concat('asp-', parameters('environmentKey'), '-engine')]",
     "datasetStorageAccountName": "[concat('strg', parameters('environmentKey'), 'datasets')]",
     "datasetStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('datasetstorageAccountName'))]",
-    "calcsStorageAccountName": "[concat('strg', parameters('environmentKey'), 'calc')]",
-    "calcsStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('calcsStorageAccountName'))]",
     "storageAccountName": "[concat('strg', parameters('environmentKey'), 'functions')]",
     "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
   },
@@ -169,16 +167,6 @@
     {
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[variables('datasetStorageAccountName')]",
-      "apiVersion": "2017-06-01",
-      "location": "[resourceGroup().location]",
-      "kind": "Storage",
-      "sku": {
-        "name": "Standard_LRS"
-      }
-    },
-    {
-      "type": "Microsoft.Storage/storageAccounts",
-      "name": "[variables('calcsStorageAccountName')]",
       "apiVersion": "2017-06-01",
       "location": "[resourceGroup().location]",
       "kind": "Storage",
@@ -764,10 +752,6 @@
             {
               "name": "SearchServiceKey",
               "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
-            },
-            {
-              "name": "ProvidersStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('calcsStorageAccountName'), ';AccountKey=', listKeys(variables('calcsStorageAccountid'),'2015-05-01-preview').key1)]"
             },
             {
               "name": "AzureStorageSettings:ConnectionString",
@@ -1625,10 +1609,6 @@
             {
               "name": "SearchServiceKey",
               "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
-            },
-            {
-              "name": "ProvidersStorage",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('calcsStorageAccountName'), ';AccountKey=', listKeys(variables('calcsStorageAccountid'),'2015-05-01-preview').key1)]"
             },
             {
               "name": "AzureStorageSettings:ConnectionString",
