@@ -2100,6 +2100,6 @@
     "AzureSearchKey": {
       "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]",
       "type": "string"
-    },
+    }
   }
 }
