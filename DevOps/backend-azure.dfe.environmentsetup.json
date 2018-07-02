@@ -1,0 +1,22 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentKey": {
+      "type": "string",
+      "metadata": {
+        "description": "The environment key for this particular environment eg t1dv"
+      }
+    }
+  },
+  "variables": {
+  },
+  "resources": [
+  ],
+  "outputs": {
+    "EnvironmentSetupFunctionUrl": {
+      "type": "string",
+      "value": "[listsecrets(resourceId('Microsoft.Web/sites/functions', concat('fa-', parameters('environmentKey'), '-environment'), 'cosmos-db-setup') ,'2015-08-01').trigger_url]"
+    }
+  }
+}
