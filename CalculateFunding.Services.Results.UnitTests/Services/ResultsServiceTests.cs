@@ -26,6 +26,7 @@ using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Results.UnitTests;
+using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -882,6 +883,150 @@ namespace CalculateFunding.Services.Results.Services
                     ));
         }
 
+        [TestMethod]
+        public async Task ImportProviders_GivenNullProviders_ReturnsBadRequestObject()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            ResultsService resultsService = CreateResultsService(logger: logger);
+
+            //Act
+            IActionResult result = await resultsService.ImportProviders(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("No providers were provided");
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No providers were provided"));
+        }
+
+        [TestMethod]
+        public async Task ImportProviders_GivenInvalidProviders_ReturnsBadRequestObject()
+        {
+            //Arrange
+            string[] providers = { "one", "two" };
+            string json = JsonConvert.SerializeObject(providers);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            ResultsService resultsService = CreateResultsService(logger: logger);
+
+            //Act
+            IActionResult result = await resultsService.ImportProviders(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("Invalid providers were provided");
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is("Invalid providers were provided"));
+        }
+
+        [TestMethod]
+        public async Task ImportProviders_GivenErrorOccurredDuringIndexing_ReturnsInternalServerError()
+        {
+            //Arrange
+            IEnumerable<ProviderIndex> providers = CreateProviderIndexes();
+            string json = JsonConvert.SerializeObject(providers);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<IndexError> errors = new[]
+            {
+                new IndexError{ ErrorMessage = "errored" }
+            };
+
+            ISearchRepository<ProviderIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Index(Arg.Any<IEnumerable<ProviderIndex>>())
+                .Returns(errors);
+
+            ResultsService resultsService = CreateResultsService(logger, searchRepository: searchRepository);
+
+            const string expectedErrorMessage = "Failed to index providers result documents with errors: errored";
+
+            //Act
+            IActionResult result = await resultsService.ImportProviders(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
+                .Should()
+                .Be(expectedErrorMessage);
+
+            logger
+                .Received(1)
+                .Error(Arg.Is(expectedErrorMessage));
+        }
+
+        [TestMethod]
+        public async Task ImportProviders_GivenProvidersIndexed_ReturnsNoContentResult()
+        {
+            //Arrange
+            IEnumerable<ProviderIndex> providers = CreateProviderIndexes();
+            string json = JsonConvert.SerializeObject(providers);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ISearchRepository<ProviderIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Index(Arg.Is(providers))
+                .Returns(Enumerable.Empty<IndexError>());
+
+            ResultsService resultsService = CreateResultsService(searchRepository: searchRepository);
+
+            //Act
+            IActionResult result = await resultsService.ImportProviders(request);
+
+            //Assert
+            await
+                searchRepository
+                .Received(1)
+                .Index(Arg.Is<IEnumerable<ProviderIndex>>(m => m.Count() == 3));
+
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+         }
+
         static ResultsService CreateResultsService(ILogger logger = null,
             ICalculationResultsRepository resultsRepository = null,
             IMapper mapper = null,
@@ -1018,6 +1163,16 @@ namespace CalculateFunding.Services.Results.Services
                         DateOpened = DateTime.Now.AddDays(-7)
                     }
                 }
+            };
+        }
+
+        static IEnumerable<ProviderIndex> CreateProviderIndexes()
+        {
+            return new[]
+            {
+                new ProviderIndex(),
+                new ProviderIndex(),
+                new ProviderIndex()
             };
         }
     }

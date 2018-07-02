@@ -551,6 +551,48 @@ namespace CalculateFunding.Services.Results
             }
         }
 
+        public async Task<IActionResult> ImportProviders(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            ProviderIndex[] providers = new ProviderIndex[0];
+
+            try
+            {
+                providers = JsonConvert.DeserializeObject<ProviderIndex[]>(json);
+            }
+            catch(Exception ex)
+            {
+                _logger.Error(ex, "Invalid providers were provided");
+
+                return new BadRequestObjectResult("Invalid providers were provided");
+            }
+
+            if (providers.IsNullOrEmpty())
+            {
+                _logger.Error("No providers were provided");
+
+                return new BadRequestObjectResult("No providers were provided");
+            }
+
+            for (int i = 0; i < providers.Length; i += 500)
+            {
+                IEnumerable<ProviderIndex> partitionedResults = providers.Skip(i).Take(500);
+
+                IEnumerable<IndexError> errors = await _resultsSearchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Index(partitionedResults));
+
+                if (errors.Any())
+                {
+                    string errorMessage = $"Failed to index providers result documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }";
+                    _logger.Error(errorMessage);
+
+                    return new InternalServerErrorResult(errorMessage);
+                }
+            }
+
+            return new NoContentResult();
+        }
+
         private static string GetParameter(HttpRequest request, string name)
         {
             if (request.Query.TryGetValue(name, out var parameter))

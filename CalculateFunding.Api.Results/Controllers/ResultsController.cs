@@ -120,5 +120,12 @@ namespace CalculateFunding.Api.Results.Controllers
         {
             return _resultsService.GetProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/results/import-providers")]
+        [HttpPost]
+        public Task<IActionResult> RunImportProviders()
+        {
+            return _resultsService.ImportProviders(ControllerContext.HttpContext.Request);
+        }
     }
 }

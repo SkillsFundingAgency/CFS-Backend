@@ -36,7 +36,7 @@ namespace CalculateFunding.Api.TestEngine.Controllers
 
         [Route("api/tests/validate-test")]
         [HttpPost]
-        public Task<IActionResult> RunScenariosSearch()
+        public Task<IActionResult> RunValidateGherkin()
         {
             return _gherkinParserService.ValidateGherkin(ControllerContext.HttpContext.Request);
         }
