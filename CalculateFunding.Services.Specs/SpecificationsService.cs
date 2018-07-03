@@ -55,9 +55,10 @@ namespace CalculateFunding.Services.Specs
             ISpecificationsRepository specificationsRepository,
             ILogger logger,
             IValidator<PolicyCreateModel> policyCreateModelValidator,
-            IValidator<SpecificationCreateModel> specificationCreateModelvalidator,
+            IValidator<SpecificationCreateModel> specificationCreateModelValidator,
             IValidator<CalculationCreateModel> calculationCreateModelValidator,
-            IMessengerService messengerService, ServiceBusSettings eventHubSettings,
+            IMessengerService messengerService,
+            ServiceBusSettings eventHubSettings,
             ISearchRepository<SpecificationIndex> searchRepository,
             IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator,
             ICacheProvider cacheProvider,
@@ -66,11 +67,26 @@ namespace CalculateFunding.Services.Specs
             IValidator<CalculationEditModel> calculationEditModelValidator,
             IResultsRepository resultsRepository)
         {
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(policyCreateModelValidator, nameof(policyCreateModelValidator));
+            Guard.ArgumentNotNull(specificationCreateModelValidator, nameof(specificationCreateModelValidator));
+            Guard.ArgumentNotNull(calculationCreateModelValidator, nameof(calculationCreateModelValidator));
+            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
+            Guard.ArgumentNotNull(eventHubSettings, nameof(eventHubSettings));
+            Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
+            Guard.ArgumentNotNull(assignDefinitionRelationshipMessageValidator, nameof(assignDefinitionRelationshipMessageValidator));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(specificationEditModelValidator, nameof(specificationEditModelValidator));
+            Guard.ArgumentNotNull(policyEditModelValidator, nameof(policyEditModelValidator));
+            Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
+
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
             _logger = logger;
             _policyCreateModelValidator = policyCreateModelValidator;
-            _specificationCreateModelvalidator = specificationCreateModelvalidator;
+            _specificationCreateModelvalidator = specificationCreateModelValidator;
             _calculationCreateModelValidator = calculationCreateModelValidator;
             _messengerService = messengerService;
             _eventHubSettings = eventHubSettings;
@@ -336,9 +352,9 @@ namespace CalculateFunding.Services.Specs
 
             IList<Task> checkForResulstsTasks = new List<Task>();
 
-            foreach(Specification specification in specifications)
+            foreach (Specification specification in specifications)
             {
-                Task task = Task.Run(async() =>
+                Task task = Task.Run(async () =>
                 {
                     bool hasProviderResults = await _resultsRepository.SpecificationHasResults(specification.Id);
 
@@ -359,7 +375,7 @@ namespace CalculateFunding.Services.Specs
         public async Task<IActionResult> GetSpecificationsSelectedForFunding(HttpRequest request)
         {
             IEnumerable<SpecificationSummary> specifications = (
-                await _specificationsRepository.GetSpecificationsByQuery(c=>c.IsSelectedForFunding)
+                await _specificationsRepository.GetSpecificationsByQuery(c => c.IsSelectedForFunding)
                     ).Select(s => _mapper.Map<SpecificationSummary>(s));
 
             return new OkObjectResult(specifications);
