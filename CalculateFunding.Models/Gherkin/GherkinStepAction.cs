@@ -44,15 +44,6 @@ namespace CalculateFunding.Models.Gherkin
         {
             object actualValue = null;
 
-            //var datasetsByType = new Dictionary<string, ProviderSourceDataset>();
-
-            //foreach (var dataset in datasets)
-            //{
-            //    var field = dataset.GetType().GetProperty("DataRelationship");
-            //    var relationship = field.GetValue(dataset) as Reference;
-            //    datasetsByType.Add(relationship.Name, dataset);
-            //}
-
             ProviderSourceDatasetCurrent providerSourceDataset = datasets.Where(d => d.DataRelationship.Name == datasetRelationshipName).FirstOrDefault();
             if (providerSourceDataset != null)
             {

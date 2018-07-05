@@ -37,32 +37,15 @@ namespace CalculateFunding.Services.TestRunner
             _cacheProviderPolicy = resiliencePolicies.CacheProviderRepository;
         }
 
-        async Task<GherkinParseResult> GetGherkinParseResult(TestScenario testScenario, BuildProject buildProject)
+        public async Task<IEnumerable<ScenarioResult>> Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDatasetCurrent> datasets, 
+            IEnumerable<TestScenario> testScenarios, BuildProject buildProject)
         {
 
-            string cacheKey = $"{CacheKeys.GherkinParseResult}{testScenario.Id}";
+            Guard.ArgumentNotNull(providerResult, nameof(providerResult));
+            Guard.ArgumentNotNull(datasets, nameof(datasets));
+            Guard.ArgumentNotNull(testScenarios, nameof(testScenarios));
+            Guard.ArgumentNotNull(buildProject, nameof(buildProject));
 
-            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings()
-            {
-                TypeNameHandling = TypeNameHandling.All
-            };
-
-            GherkinParseResult gherkinParseResult = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<GherkinParseResult>(cacheKey, jsonSerializerSettings));
-            if (gherkinParseResult == null)
-            {
-                gherkinParseResult = await _parser.Parse(testScenario.Current.Gherkin, buildProject);
-
-                if (gherkinParseResult != null && !gherkinParseResult.StepActions.IsNullOrEmpty())
-                {
-                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<GherkinParseResult>(cacheKey, gherkinParseResult, TimeSpan.FromHours(24), true, jsonSerializerSettings));
-                }
-            }
-
-            return gherkinParseResult;
-        }
-
-        public async Task<IEnumerable<ScenarioResult>> Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDatasetCurrent> datasets, IEnumerable<TestScenario> testScenarios, BuildProject buildProject)
-        {
             IList<ScenarioResult> scenarioResults = new List<ScenarioResult>();
 
             foreach (var scenario in testScenarios)
@@ -72,7 +55,7 @@ namespace CalculateFunding.Services.TestRunner
                     Scenario = new Reference(scenario.Id, scenario.Name)
                 };
 
-                var parseResult = await GetGherkinParseResult(scenario, buildProject);
+                GherkinParseResult parseResult = await GetGherkinParseResult(scenario, buildProject);
 
                 if (parseResult != null && !parseResult.StepActions.IsNullOrEmpty())
                 {
@@ -111,6 +94,33 @@ namespace CalculateFunding.Services.TestRunner
                 scenarioResults.Add(scenarioResult);
             }
             return scenarioResults;
+        }
+
+        async Task<GherkinParseResult> GetGherkinParseResult(TestScenario testScenario, BuildProject buildProject)
+        {
+            Guard.ArgumentNotNull(testScenario, nameof(buildProject));
+            Guard.ArgumentNotNull(buildProject, nameof(buildProject));
+
+            string cacheKey = $"{CacheKeys.GherkinParseResult}{testScenario.Id}";
+
+            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings()
+            {
+                TypeNameHandling = TypeNameHandling.All
+            };
+
+            GherkinParseResult gherkinParseResult = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<GherkinParseResult>(cacheKey, jsonSerializerSettings));
+
+            if (gherkinParseResult == null)
+            {
+                gherkinParseResult = await _parser.Parse(testScenario.Current.Gherkin, buildProject);
+
+                if (gherkinParseResult != null && !gherkinParseResult.StepActions.IsNullOrEmpty())
+                {
+                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<GherkinParseResult>(cacheKey, gherkinParseResult, TimeSpan.FromHours(24), true, jsonSerializerSettings));
+                }
+            }
+
+            return gherkinParseResult;
         }
     }
 }

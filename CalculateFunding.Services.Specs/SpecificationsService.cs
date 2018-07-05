@@ -1649,7 +1649,7 @@ namespace CalculateFunding.Services.Specs
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
-                _logger.Error("No specification Id was provided to EditSpecification");
+                _logger.Warning("No specification Id was provided to SelectSpecificationForFunding");
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
@@ -1657,6 +1657,8 @@ namespace CalculateFunding.Services.Specs
 
             if (specification == null)
             {
+                _logger.Warning($"Specification not found for id: {specificationId}");
+
                 return new NotFoundObjectResult($"Specification not found for id: {specificationId}");
             }
 
@@ -1669,33 +1671,53 @@ namespace CalculateFunding.Services.Specs
 
             specification.IsSelectedForFunding = true;
 
-            HttpStatusCode statusCode = await _specificationsRepository.UpdateSpecification(specification);
+            SpecificationIndex specificationIndex = null;
 
-            if (!statusCode.IsSuccess())
+            try
             {
-                _logger.Error($"Failed to set IsSelectedForFunding on specification for id: {specificationId} with status code: {statusCode.ToString()}");
+                HttpStatusCode statusCode = await _specificationsRepository.UpdateSpecification(specification);
 
-                return new StatusCodeResult((int)statusCode);
+                if (!statusCode.IsSuccess())
+                {
+                    string error = $"Failed to set IsSelectedForFunding on specification for id: {specificationId} with status code: {statusCode.ToString()}";
+                    _logger.Error(error);
+                    return new InternalServerErrorResult(error);
+                }
+
+                specificationIndex = CreateSpecificationIndex(specification);
+
+                IEnumerable<IndexError> errors = await _searchRepository.Index(new List<SpecificationIndex> { specificationIndex });
+
+                if (errors.Any())
+                {
+                    string error = $"Failed to index search for specification {specificationId} with the following errors: {string.Join(";", errors.Select(m => m.ErrorMessage))}";
+                    _logger.Error(error);
+                    throw new Exception(error);
+                }
+
+                statusCode = await _resultsRepository.PublishProviderResults(specificationId);
+
+                if (!statusCode.IsSuccess())
+                {
+                    string error = $"Failed to publish provider results for specification id: {specificationId} with status code: {statusCode.ToString()}";
+                    _logger.Error(error);
+                    throw new Exception(error);
+                }
             }
-
-            SpecificationIndex specificationIndex = CreateSpecificationIndex(specification);
-
-            IEnumerable<IndexError> errors = await _searchRepository.Index(new List<SpecificationIndex> { specificationIndex });
-
-            if (errors.Any())
+            catch(Exception ex)
             {
-                _logger.Error($"Failed to index search with the following errors: {string.Join(";", errors.Select(m => m.ErrorMessage))}");
+                specification.IsSelectedForFunding = false;
 
-                return new InternalServerErrorResult($"Failed to index search when updating specification with id: {specificationId}");
-            }
+                specificationIndex = CreateSpecificationIndex(specification);
 
-            statusCode = await _resultsRepository.PublishProviderResults(specificationId);
+                await TaskHelper.WhenAllAndThrow(
+                    _specificationsRepository.UpdateSpecification(specification), 
+                    _searchRepository.Index(new [] { specificationIndex })
+                );
 
-            if (!statusCode.IsSuccess())
-            {
-                _logger.Error($"Failed to publish provider results for specification id: {specificationId} with status code: {statusCode.ToString()}");
+                _logger.Error(ex, ex.Message);
 
-                return new StatusCodeResult((int)statusCode);
+                return new InternalServerErrorResult(ex.Message);
             }
 
             return new NoContentResult();
