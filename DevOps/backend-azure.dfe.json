@@ -105,6 +105,7 @@
     "testEngineApiAppName": "[concat('app-', parameters('environmentKey'), '-testengine')]",
     "scenariosApiAppName": "[concat('app-', parameters('environmentKey'), '-scenarios')]",
     "usersApiAppName": "[concat('app-', parameters('environmentKey'), '-users')]",
+    "externalApiAppName": "[concat('app-', parameters('environmentKey'), '-external')]",
     "hostingPlanName": "[concat('asp-', parameters('environmentKey'), '-cfsapi')]",
     "engineHostingPlanName": "[concat('asp-', parameters('environmentKey'), '-engine')]",
     "datasetStorageAccountName": "[concat('strg', parameters('environmentKey'), 'datasets')]",
@@ -1695,6 +1696,91 @@
             {
               "name": "specificationsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "apiKeyMiddleware:apiKey",
+              "value": "[parameters('ApiKey')]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "apiVersion": "2016-08-01",
+      "type": "Microsoft.Web/sites",
+      "name": "[variables('externalApiAppName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+        "[variables('applicationInsightsName')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
+        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "siteConfig": {
+          "alwaysOn": true,
+          "appSettings": [
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "GMT Standard Time"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "ApplicationInsightsOptions:InstrumentationKey",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "RedisSettings:CacheConnection",
+              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+            },
+            {
+              "name": "CosmosDbSettings:ConnectionString",
+              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+            },
+            {
+              "name": "CosmosDbSettings:DatabaseName",
+              "value": "calculate-funding"
+            },
+            {
+              "name": "specificationsClient:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "specificationsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "resultsClient:ApiKey",
+              "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "resultsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "ServiceBusSettings:ConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+            },
+            {
+              "name": "ServiceBusConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2015-08-01').primaryConnectionString]"
+            },
+            {
+              "name": "SearchServiceName",
+              "value": "[variables('azureSearchName')]"
+            },
+            {
+              "name": "SearchServiceKey",
+              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
+            },
+            {
+              "name": "AzureStorageSettings:ConnectionString",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
             },
             {
               "name": "apiKeyMiddleware:apiKey",
