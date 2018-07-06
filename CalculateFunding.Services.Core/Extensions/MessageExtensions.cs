@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.AspNetCore.Http;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -58,6 +59,24 @@ namespace CalculateFunding.Services.Core.Extensions
 
             IDictionary<string, string> properties = new Dictionary<string, string>();
             properties.Add("sfa-correlationId", message.GetCorrelationId());
+
+            if (user != null)
+            {
+                properties.Add("user-id", user.Id);
+                properties.Add("user-name", user.Name);
+            }
+
+            return properties;
+        }
+
+        public static IDictionary<string, string> BuildMessageProperties(this HttpRequest request)
+        {
+            Reference user = request.GetUser();
+
+            IDictionary<string, string> properties = new Dictionary<string, string>
+            {
+                { "sfa-correlationId", request.GetCorrelationId() }
+            };
 
             if (user != null)
             {

@@ -1,14 +1,18 @@
-﻿using CalculateFunding.Services.Core.Helpers;
+﻿using CalculateFunding.Models.Users;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Core.Options;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Serilog;
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,7 +30,7 @@ namespace CalculateFunding.Services.Core.Proxies
         private readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings { Formatting = Formatting.Indented, ContractResolver = new CamelCasePropertyNamesContractResolver() };
         private readonly ICorrelationIdProvider _correlationIdProvider;
 
-        public ApiClientProxy(ApiOptions options, ILogger logger, ICorrelationIdProvider correlationIdProvider)
+        public ApiClientProxy(ApiOptions options, ILogger logger, ICorrelationIdProvider correlationIdProvider, UserProfile userProfile)
         {
             Guard.ArgumentNotNull(options, nameof(options));
             Guard.IsNullOrWhiteSpace(options.ApiEndpoint, nameof(options.ApiEndpoint));
@@ -50,13 +54,13 @@ namespace CalculateFunding.Services.Core.Proxies
             _httpClient.BaseAddress = new Uri(baseAddress, UriKind.Absolute);
             _httpClient.DefaultRequestHeaders?.Add(OcpApimSubscriptionKey, options.ApiKey);
             _httpClient.DefaultRequestHeaders?.Add(SfaCorellationId, _correlationIdProvider.GetCorrelationId());
-            _httpClient.DefaultRequestHeaders?.Add(SfaUsernameProperty, "testuser");
-            _httpClient.DefaultRequestHeaders?.Add(SfaUserIdProperty, "b001af14-3754-4cb1-9980-359e850700a8");
+
+            _httpClient.DefaultRequestHeaders?.Add(SfaUsernameProperty, userProfile.Name);
+            _httpClient.DefaultRequestHeaders?.Add(SfaUserIdProperty, userProfile.Id);
 
             _httpClient.DefaultRequestHeaders?.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
             _httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
-
         }
 
         public async Task<T> GetAsync<T>(string url)

@@ -43,9 +43,10 @@ namespace CalculateFunding.Api.Scenarios
             }
 
             app.UseHttpsRedirection();
-            app.UseMvc();
 
             app.UseMiddleware<LoggedInUserMiddleware>();
+
+            app.UseMvc();
         }
 
         static public void RegisterComponents(IServiceCollection builder)
@@ -82,6 +83,8 @@ namespace CalculateFunding.Api.Scenarios
             builder.AddTelemetry();
 
             builder.AddApiKeyMiddlewareSettings(config);
+
+            builder.AddHttpContextAccessor();
         }
     }
 }

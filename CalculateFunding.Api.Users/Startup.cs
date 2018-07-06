@@ -44,9 +44,9 @@ namespace CalculateFunding.Api.Users
 
             app.UseMiddleware<ApiKeyMiddleware>();
 
-            app.UseMvc();
-
             app.UseMiddleware<LoggedInUserMiddleware>();
+
+            app.UseMvc();
         }
 
         static public void RegisterComponents(IServiceCollection builder)
@@ -80,6 +80,8 @@ namespace CalculateFunding.Api.Users
             builder.AddLogging("CalculateFunding.Api.Users");
 
             builder.AddTelemetry();
+
+            builder.AddHttpContextAccessor();
         }
 
     }

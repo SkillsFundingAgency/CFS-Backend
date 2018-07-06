@@ -1253,7 +1253,7 @@ namespace CalculateFunding.Services.Specs
                 return new StatusCodeResult((int)statusCode);
             }
 
-            IDictionary<string, string> properties = CreateMessageProperties(request);
+            IDictionary<string, string> properties = request.BuildMessageProperties();
 
             await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CreateDraftCalculation,
                 new Models.Calcs.Calculation

@@ -63,9 +63,9 @@ namespace CalculateFunding.Api.TestRunner
 
             app.UseMiddleware<ApiKeyMiddleware>();
 
-            app.UseMvc();
-
             app.UseMiddleware<LoggedInUserMiddleware>();
+
+            app.UseMvc();
         }
 
         static public void RegisterComponents(IServiceCollection builder)
@@ -75,10 +75,10 @@ namespace CalculateFunding.Api.TestRunner
             builder.AddApiKeyMiddlewareSettings(config);
 
             builder
-                .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
+                .AddScoped<IBuildProjectRepository, BuildProjectRepository>();
 
             builder
-                .AddSingleton<IGherkinParserService, GherkinParserService>();
+                .AddScoped<IGherkinParserService, GherkinParserService>();
 
             builder
                .AddSingleton<IGherkinParser, GherkinParser>();
@@ -93,13 +93,13 @@ namespace CalculateFunding.Api.TestRunner
                 .AddSingleton<ITestResultsRepository, TestResultsRepository>();
 
             builder
-                .AddSingleton<ISpecificationRepository, SpecificationRepository>();
+                .AddScoped<ISpecificationRepository, SpecificationRepository>();
 
             builder
-                .AddSingleton<IScenariosRepository, ScenariosRepository>();
+                .AddScoped<IScenariosRepository, ScenariosRepository>();
 
             builder
-                .AddSingleton<ITestEngineService, Services.TestRunner.Services.TestEngineService>();
+                .AddScoped<ITestEngineService, Services.TestRunner.Services.TestEngineService>();
 
             builder
                 .AddSingleton<ITestEngine, Services.TestRunner.TestEngine>();
@@ -166,6 +166,8 @@ namespace CalculateFunding.Api.TestRunner
             builder.AddEngineSettings(config);
 
             builder.AddPolicySettings(config);
+
+            builder.AddHttpContextAccessor();
 
             builder.AddSingleton<ITestRunnerResiliencePolicies>((ctx) =>
             {

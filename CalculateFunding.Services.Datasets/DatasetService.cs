@@ -575,7 +575,8 @@ namespace CalculateFunding.Services.Datasets
                     datasets.Add(relationship.DatasetVersion.Id, dataset);
                 }
 
-                IDictionary<string, string> properties = new Dictionary<string, string>();
+                IDictionary<string, string> properties = httpRequest.BuildMessageProperties();
+
                 properties.Add("specification-id", relationship.Specification.Id);
                 properties.Add("relationship-id", relationship.Id);
 

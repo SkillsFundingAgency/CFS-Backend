@@ -55,9 +55,10 @@ namespace CalculateFunding.Api.Datasets
             }
 
             app.UseHttpsRedirection();
-            app.UseMvc();
 
             app.UseMiddleware<LoggedInUserMiddleware>();
+
+            app.UseMvc();
         }
 
         static public void RegisterComponents(IServiceCollection builder)
@@ -154,6 +155,8 @@ namespace CalculateFunding.Api.Datasets
             builder.AddApiKeyMiddlewareSettings(config);
 
             builder.AddPolicySettings(config);
+
+            builder.AddHttpContextAccessor();
 
             builder.AddSingleton<IDatasetsResiliencePolicies>((ctx) =>
             {

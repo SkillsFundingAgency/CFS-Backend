@@ -110,7 +110,7 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult((int)statusCode);
             }
 
-            IDictionary<string, string> properties = CreateMessageProperties(request);
+            IDictionary<string, string> properties = request.BuildMessageProperties();
 
             await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification,
                 new AssignDefinitionRelationshipMessage
@@ -251,7 +251,7 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult((int)statusCode);
             }
 
-            IDictionary<string, string> properties = CreateMessageProperties(request);
+            IDictionary<string, string> properties = request.BuildMessageProperties();
             properties.Add("specification-id", relationship.Specification.Id);
             properties.Add("relationship-id", relationship.Id);
 

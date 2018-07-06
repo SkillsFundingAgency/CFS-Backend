@@ -46,7 +46,7 @@ namespace CalculateFunding.Functions.TestEngine
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
             builder
-                .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
+                .AddScoped<IBuildProjectRepository, BuildProjectRepository>();
 
             builder
                 .AddSingleton<IGherkinParserService, GherkinParserService>();

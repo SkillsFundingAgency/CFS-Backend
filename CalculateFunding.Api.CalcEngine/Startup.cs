@@ -47,9 +47,10 @@ namespace CalculateFunding.Api.Calculator
             }
 
             app.UseHttpsRedirection();
-            app.UseMvc();
 
             app.UseMiddleware<LoggedInUserMiddleware>();
+
+            app.UseMvc();
         }
 
         public static void RegisterComponents(IServiceCollection builder)
@@ -136,6 +137,8 @@ namespace CalculateFunding.Api.Calculator
             });
 
             builder.AddApiKeyMiddlewareSettings(config);
+
+            builder.AddHttpContextAccessor();
         }
     }
 }

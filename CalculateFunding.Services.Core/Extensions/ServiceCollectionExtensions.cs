@@ -25,6 +25,8 @@ using Microsoft.ApplicationInsights;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.ServiceBus;
+using System.Linq;
+using CalculateFunding.Models.Users;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -47,15 +49,18 @@ namespace CalculateFunding.Services.Core.Extensions
         public static IServiceCollection AddCalcsInterServiceClient(this IServiceCollection builder, IConfigurationRoot config)
         {
             builder
-                .AddSingleton<ICalcsApiClientProxy, CalcsApiProxy>((ctx)=> {
+                .AddScoped<ICalcsApiClientProxy, CalcsApiProxy>((ctx)=> {
                     ApiOptions apiOptions = new ApiOptions();
 
                     config.Bind("calcsClient", apiOptions);
 
                     ILogger logger = ctx.GetService<ILogger>();
                     ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
+                    IHttpContextAccessor httpContextAccessor = ctx.GetService<IHttpContextAccessor>();
 
-                    return new CalcsApiProxy(apiOptions, logger, correlationIdProvider);
+                    UserProfile userProfile = CreateUserProfileFromRequest(httpContextAccessor);
+
+                    return new CalcsApiProxy(apiOptions, logger, correlationIdProvider, userProfile);
                 });
 
             return builder;
@@ -64,7 +69,7 @@ namespace CalculateFunding.Services.Core.Extensions
         public static IServiceCollection AddScenariosInterServiceClient(this IServiceCollection builder, IConfigurationRoot config)
         {
             builder
-                 .AddSingleton<IScenariosApiClientProxy, ScenariosApiProxy>((ctx) => {
+                 .AddScoped<IScenariosApiClientProxy, ScenariosApiProxy>((ctx) => {
                      ApiOptions apiOptions = new ApiOptions();
 
                      config.Bind("scenariosClient", apiOptions);
@@ -72,7 +77,11 @@ namespace CalculateFunding.Services.Core.Extensions
                      ILogger logger = ctx.GetService<ILogger>();
                      ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
 
-                     return new ScenariosApiProxy(apiOptions, logger, correlationIdProvider);
+                     IHttpContextAccessor httpContextAccessor = ctx.GetService<IHttpContextAccessor>();
+
+                     UserProfile userProfile = CreateUserProfileFromRequest(httpContextAccessor);
+
+                     return new ScenariosApiProxy(apiOptions, logger, correlationIdProvider, userProfile);
                  });
 
             return builder;
@@ -81,7 +90,7 @@ namespace CalculateFunding.Services.Core.Extensions
         public static IServiceCollection AddSpecificationsInterServiceClient(this IServiceCollection builder, IConfigurationRoot config)
         {
             builder
-                 .AddSingleton<ISpecificationsApiClientProxy, SpecificationsApiProxy>((ctx) => {
+                 .AddScoped<ISpecificationsApiClientProxy, SpecificationsApiProxy>((ctx) => {
                      ApiOptions apiOptions = new ApiOptions();
 
                      config.Bind("specificationsClient", apiOptions);
@@ -89,7 +98,11 @@ namespace CalculateFunding.Services.Core.Extensions
                      ILogger logger = ctx.GetService<ILogger>();
                      ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
 
-                     return new SpecificationsApiProxy(apiOptions, logger, correlationIdProvider);
+                     IHttpContextAccessor httpContextAccessor = ctx.GetService<IHttpContextAccessor>();
+
+                     UserProfile userProfile = CreateUserProfileFromRequest(httpContextAccessor);
+
+                     return new SpecificationsApiProxy(apiOptions, logger, correlationIdProvider, userProfile);
                  });
 
             return builder;
@@ -98,7 +111,7 @@ namespace CalculateFunding.Services.Core.Extensions
         public static IServiceCollection AddResultsInterServiceClient(this IServiceCollection builder, IConfigurationRoot config)
         {
             builder
-                 .AddSingleton<IResultsApiClientProxy, ResultsApiProxy>((ctx) => {
+                 .AddScoped<IResultsApiClientProxy, ResultsApiProxy>((ctx) => {
                      ApiOptions apiOptions = new ApiOptions();
 
                      config.Bind("resultsClient", apiOptions);
@@ -106,7 +119,11 @@ namespace CalculateFunding.Services.Core.Extensions
                      ILogger logger = ctx.GetService<ILogger>();
                      ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
 
-                     return new ResultsApiProxy(apiOptions, logger, correlationIdProvider);
+                     IHttpContextAccessor httpContextAccessor = ctx.GetService<IHttpContextAccessor>();
+
+                     UserProfile userProfile = CreateUserProfileFromRequest(httpContextAccessor);
+
+                     return new ResultsApiProxy(apiOptions, logger, correlationIdProvider, userProfile);
                  });
 
             return builder;
@@ -295,6 +312,18 @@ namespace CalculateFunding.Services.Core.Extensions
             builder.AddSingleton<PolicySettings>(policySettings);
 
             return builder;
+        }
+
+        public static UserProfile CreateUserProfileFromRequest(IHttpContextAccessor httpContextAccessor)
+        {
+            string userId = httpContextAccessor.HttpContext?.User?.Claims.FirstOrDefault(m => m.Type == ClaimTypes.Sid)?.Value;
+            string userName = httpContextAccessor.HttpContext?.User?.Claims.FirstOrDefault(m => m.Type == ClaimTypes.Name)?.Value;
+
+            return new UserProfile
+            {
+                Id = userId,
+                Name = userName
+            };
         }
     }
 }

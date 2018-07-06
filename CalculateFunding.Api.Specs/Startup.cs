@@ -49,9 +49,10 @@ namespace CalculateFunding.Api.Specs
             app.UseMiddleware<ApiKeyMiddleware>();
 
             app.UseHttpsRedirection();
-            app.UseMvc();
 
             app.UseMiddleware<LoggedInUserMiddleware>();
+
+            app.UseMvc();
         }
 
         static public void RegisterComponents(IServiceCollection builder)
@@ -68,7 +69,7 @@ namespace CalculateFunding.Api.Specs
             builder.AddScoped<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
             builder.AddScoped<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
             builder.AddScoped<ISpecificationsSearchService, SpecificationsSearchService>();
-            builder.AddSingleton<IResultsRepository, ResultsRepository>();
+            builder.AddScoped<IResultsRepository, ResultsRepository>();
 
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
 
@@ -91,6 +92,8 @@ namespace CalculateFunding.Api.Specs
             builder.AddTelemetry();
 
             builder.AddApiKeyMiddlewareSettings(config);
+
+            builder.AddHttpContextAccessor();
         }
     }
 }

@@ -47,9 +47,10 @@ namespace CalculateFunding.Api.Results
             }
 
             app.UseHttpsRedirection();
-            app.UseMvc();
 
             app.UseMiddleware<LoggedInUserMiddleware>();
+
+            app.UseMvc();
         }
 
         public static void RegisterComponents(IServiceCollection builder)
@@ -121,10 +122,10 @@ namespace CalculateFunding.Api.Results
             });
 
             builder
-                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
+                .AddScoped<ISpecificationsRepository, SpecificationsRepository>();
 
             builder
-               .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
+               .AddScoped<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
             builder.AddSearch(config);
 
@@ -139,6 +140,8 @@ namespace CalculateFunding.Api.Results
             builder.AddSpecificationsInterServiceClient(config);
 
             builder.AddPolicySettings(config);
+
+            builder.AddHttpContextAccessor();
 
             builder.AddSingleton<IResultsResilliencePolicies>((ctx) =>
             {

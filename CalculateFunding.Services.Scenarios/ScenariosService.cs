@@ -389,7 +389,7 @@ namespace CalculateFunding.Services.Scenarios
 
         Task SendGenerateAllocationsMessage(BuildProject buildProject, HttpRequest request)
         {
-            IDictionary<string, string> properties = CreateMessageProperties(request);
+            IDictionary<string, string> properties = request.BuildMessageProperties();
 
             properties.Add("specification-id", buildProject.SpecificationId);
 

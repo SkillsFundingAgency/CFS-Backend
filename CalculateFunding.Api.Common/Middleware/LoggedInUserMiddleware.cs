@@ -13,7 +13,7 @@ namespace CalculateFunding.Api.Common.Middleware
             _next = next;
         }
 
-        public Task InvokeAsync(HttpContext context)
+        public Task Invoke(HttpContext context)
         {
             string userId = "unknown";
             string username = "unknown";
