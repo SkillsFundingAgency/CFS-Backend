@@ -16,7 +16,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
         [FunctionName("on-calcs-add-data-relationship")]
         public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.UpdateBuildProjectRelationships, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            using (var scope = IocConfig.Build().CreateScope())
+            using (var scope = IocConfig.Build(message).CreateScope())
             {
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 var buildProjectsService = scope.ServiceProvider.GetService<IBuildProjectsService>();

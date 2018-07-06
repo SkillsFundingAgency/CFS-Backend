@@ -16,7 +16,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
         [FunctionName("on-calcs-create-draft-event")]
         public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.CreateDraftCalculation, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            using (var scope = IocConfig.Build().CreateScope())
+            using (var scope = IocConfig.Build(message).CreateScope())
             {
                 var calculationService = scope.ServiceProvider.GetService<ICalculationService>();
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();

@@ -15,7 +15,7 @@ namespace CalculateFunding.Functions.Specs.EventHub
         [FunctionName("on-add-relationship-event")]
         public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            using (var scope = IocConfig.Build().CreateScope())
+            using (var scope = IocConfig.Build(message).CreateScope())
             {
                 var specificationsService = scope.ServiceProvider.GetService<ISpecificationsService>();
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();

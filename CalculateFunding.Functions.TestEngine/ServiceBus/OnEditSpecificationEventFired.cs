@@ -18,7 +18,7 @@ namespace CalculateFunding.Functions.TestEngine.ServiceBus
             ServiceBusConstants.TopicSubscribers.UpdateScenarioResultsForEditSpecification,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            using (var scope = IocConfig.Build().CreateScope())
+            using (var scope = IocConfig.Build(message).CreateScope())
             {
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 var testResultsService = scope.ServiceProvider.GetService<ITestResultsService>();

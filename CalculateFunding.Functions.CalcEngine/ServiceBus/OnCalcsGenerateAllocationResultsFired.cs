@@ -16,7 +16,7 @@ namespace CalculateFunding.Functions.CalcEngine.ServiceBus
         [FunctionName("on-calcs-generate-allocations-event")]
         public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            using (var scope = IocConfig.Build().CreateScope())
+            using (var scope = IocConfig.Build(message).CreateScope())
             {
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 var calculationEngineService = scope.ServiceProvider.GetService<ICalculationEngineService>();

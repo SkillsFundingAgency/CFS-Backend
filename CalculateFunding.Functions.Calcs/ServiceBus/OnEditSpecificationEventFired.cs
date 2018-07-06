@@ -18,7 +18,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             ServiceBusConstants.TopicSubscribers.UpdateCaclulationsForEditSpecification,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            using (var scope = IocConfig.Build().CreateScope())
+            using (var scope = IocConfig.Build(message).CreateScope())
             {
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 var calculationService = scope.ServiceProvider.GetService<ICalculationService>();
