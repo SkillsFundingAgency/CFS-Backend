@@ -101,6 +101,8 @@ namespace CalculateFunding.Api.Calculator
             builder
                 .AddScoped<ICalculationsRepository, CalculationsRepository>();
 
+            builder.AddUserProviderFromRequest();
+
             builder.AddCalcsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
 

@@ -15,6 +15,7 @@ using CalculateFunding.Services.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.Validators;
 using FluentValidation;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
@@ -37,6 +38,25 @@ namespace CalculateFunding.Functions.Datasets
         static public IServiceProvider BuildServiceProvider()
         {
             var serviceProvider = new ServiceCollection();
+
+            RegisterComponents(serviceProvider);
+
+            return serviceProvider.BuildServiceProvider();
+        }
+
+        public static IServiceProvider Build(Message message)
+        {
+            if (_serviceProvider == null)
+                _serviceProvider = BuildServiceProvider(message);
+
+            return _serviceProvider;
+        }
+
+        static public IServiceProvider BuildServiceProvider(Message message)
+        {
+            var serviceProvider = new ServiceCollection();
+
+            serviceProvider.AddUserProviderFromMessage(message);
 
             RegisterComponents(serviceProvider);
 

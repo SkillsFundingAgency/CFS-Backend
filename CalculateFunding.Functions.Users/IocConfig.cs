@@ -1,18 +1,10 @@
 ﻿using System;
-using AutoMapper;
-using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Cosmos;
-using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Users;
 using CalculateFunding.Services.Users.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Polly;
-using Polly.Bulkhead;
 
 namespace CalculateFunding.Functions.Users
 {

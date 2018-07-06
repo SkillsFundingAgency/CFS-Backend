@@ -134,7 +134,7 @@ namespace CalculateFunding.Services.Results
                 _logger.Error("No provider Id was provided to GetProviderById");
                 return new BadRequestObjectResult("Null or empty provider Id provided");
             }
-
+            // TODO: remove id field
             ProviderIndex provider = await _resultsRepositoryPolicy.ExecuteAsync(() => _searchRepository.SearchById(providerId, IdFieldOverride: "ukPrn"));
 
             if (provider == null)

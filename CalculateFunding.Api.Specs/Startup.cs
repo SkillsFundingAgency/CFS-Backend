@@ -75,6 +75,8 @@ namespace CalculateFunding.Api.Specs
 
             builder.AddSingleton(mappingConfig.CreateMapper());
 
+            builder.AddUserProviderFromRequest();
+
             builder.AddCosmosDb(config);
 
             builder.AddServiceBus(config);

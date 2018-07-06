@@ -65,6 +65,8 @@ namespace CalculateFunding.Api.Scenarios
             builder
                .AddScoped<IBuildProjectRepository, BuildProjectRepository>();
 
+            builder.AddUserProviderFromRequest();
+
             builder.AddCalcsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
 

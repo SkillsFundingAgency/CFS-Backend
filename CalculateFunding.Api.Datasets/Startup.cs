@@ -136,6 +136,8 @@ namespace CalculateFunding.Api.Datasets
             builder
                 .AddSingleton(dataSetsConfig.CreateMapper());
 
+            builder.AddUserProviderFromRequest();
+
             builder.AddCalcsInterServiceClient(config);
             builder.AddResultsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);

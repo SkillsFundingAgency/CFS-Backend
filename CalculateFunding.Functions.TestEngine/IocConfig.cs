@@ -13,6 +13,7 @@ using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Repositories;
 using CalculateFunding.Services.TestRunner.Services;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
@@ -35,6 +36,25 @@ namespace CalculateFunding.Functions.TestEngine
         static public IServiceProvider BuildServiceProvider()
         {
             var serviceProvider = new ServiceCollection();
+
+            RegisterComponents(serviceProvider);
+
+            return serviceProvider.BuildServiceProvider();
+        }
+
+        public static IServiceProvider Build(Message message)
+        {
+            if (_serviceProvider == null)
+                _serviceProvider = BuildServiceProvider(message);
+
+            return _serviceProvider;
+        }
+
+        static public IServiceProvider BuildServiceProvider(Message message)
+        {
+            var serviceProvider = new ServiceCollection();
+
+            serviceProvider.AddUserProviderFromMessage(message);
 
             RegisterComponents(serviceProvider);
 

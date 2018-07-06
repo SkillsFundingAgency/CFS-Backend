@@ -109,6 +109,8 @@ namespace CalculateFunding.Api.Calcs
 
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
+            builder.AddUserProviderFromRequest();
+
             builder.AddCosmosDb(config);
 
             builder.AddSearch(config);

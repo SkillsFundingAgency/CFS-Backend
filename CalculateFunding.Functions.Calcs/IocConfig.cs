@@ -19,6 +19,7 @@ using CalculateFunding.Services.Core.Options;
 using Polly.Bulkhead;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Repositories.Common.Cosmos;
+using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Functions.Calcs
 {
@@ -37,6 +38,25 @@ namespace CalculateFunding.Functions.Calcs
         static public IServiceProvider BuildServiceProvider()
         {
             var serviceProvider = new ServiceCollection();
+
+            RegisterComponents(serviceProvider);
+
+            return serviceProvider.BuildServiceProvider();
+        }
+
+        public static IServiceProvider Build(Message message)
+        {
+            if (_serviceProvider == null)
+                _serviceProvider = BuildServiceProvider(message);
+
+            return _serviceProvider;
+        }
+
+        static public IServiceProvider BuildServiceProvider(Message message)
+        {
+            var serviceProvider = new ServiceCollection();
+
+            serviceProvider.AddUserProviderFromMessage(message);
 
             RegisterComponents(serviceProvider);
 

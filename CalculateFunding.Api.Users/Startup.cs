@@ -71,6 +71,8 @@ namespace CalculateFunding.Api.Users
                 return new UserRepository(usersCosmosRepostory);
             });
 
+            builder.AddUserProviderFromRequest();
+
             builder.AddCosmosDb(config);
 
             builder.AddCaching(config);

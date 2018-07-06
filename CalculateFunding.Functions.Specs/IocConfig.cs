@@ -11,6 +11,7 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Services.Validators;
+using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Functions.Specs
 {
@@ -29,6 +30,25 @@ namespace CalculateFunding.Functions.Specs
         static public IServiceProvider BuildServiceProvider()
         {
             var serviceProvider = new ServiceCollection();
+
+            RegisterComponents(serviceProvider);
+
+            return serviceProvider.BuildServiceProvider();
+        }
+
+        public static IServiceProvider Build(Message message)
+        {
+            if (_serviceProvider == null)
+                _serviceProvider = BuildServiceProvider(message);
+
+            return _serviceProvider;
+        }
+
+        static public IServiceProvider BuildServiceProvider(Message message)
+        {
+            var serviceProvider = new ServiceCollection();
+
+            serviceProvider.AddUserProviderFromMessage(message);
 
             RegisterComponents(serviceProvider);
 

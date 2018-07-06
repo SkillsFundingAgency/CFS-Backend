@@ -127,6 +127,8 @@ namespace CalculateFunding.Api.Results
             builder
                .AddScoped<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
+            builder.AddUserProviderFromRequest();
+
             builder.AddSearch(config);
 
             builder.AddServiceBus(config);

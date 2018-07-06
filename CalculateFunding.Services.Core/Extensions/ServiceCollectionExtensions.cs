@@ -27,6 +27,10 @@ using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.ServiceBus;
 using System.Linq;
 using CalculateFunding.Models.Users;
+using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Models;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -56,11 +60,10 @@ namespace CalculateFunding.Services.Core.Extensions
 
                     ILogger logger = ctx.GetService<ILogger>();
                     ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
-                    IHttpContextAccessor httpContextAccessor = ctx.GetService<IHttpContextAccessor>();
 
-                    UserProfile userProfile = CreateUserProfileFromRequest(httpContextAccessor);
+                    IUserProfileProvider userProfileProvider = ctx.GetService<IUserProfileProvider>();
 
-                    return new CalcsApiProxy(apiOptions, logger, correlationIdProvider, userProfile);
+                    return new CalcsApiProxy(apiOptions, logger, correlationIdProvider, userProfileProvider);
                 });
 
             return builder;
@@ -77,11 +80,9 @@ namespace CalculateFunding.Services.Core.Extensions
                      ILogger logger = ctx.GetService<ILogger>();
                      ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
 
-                     IHttpContextAccessor httpContextAccessor = ctx.GetService<IHttpContextAccessor>();
+                     IUserProfileProvider userProfileProvider = ctx.GetService<IUserProfileProvider>();
 
-                     UserProfile userProfile = CreateUserProfileFromRequest(httpContextAccessor);
-
-                     return new ScenariosApiProxy(apiOptions, logger, correlationIdProvider, userProfile);
+                     return new ScenariosApiProxy(apiOptions, logger, correlationIdProvider, userProfileProvider);
                  });
 
             return builder;
@@ -98,11 +99,9 @@ namespace CalculateFunding.Services.Core.Extensions
                      ILogger logger = ctx.GetService<ILogger>();
                      ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
 
-                     IHttpContextAccessor httpContextAccessor = ctx.GetService<IHttpContextAccessor>();
+                     IUserProfileProvider userProfileProvider = ctx.GetService<IUserProfileProvider>();
 
-                     UserProfile userProfile = CreateUserProfileFromRequest(httpContextAccessor);
-
-                     return new SpecificationsApiProxy(apiOptions, logger, correlationIdProvider, userProfile);
+                     return new SpecificationsApiProxy(apiOptions, logger, correlationIdProvider, userProfileProvider);
                  });
 
             return builder;
@@ -119,11 +118,9 @@ namespace CalculateFunding.Services.Core.Extensions
                      ILogger logger = ctx.GetService<ILogger>();
                      ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
 
-                     IHttpContextAccessor httpContextAccessor = ctx.GetService<IHttpContextAccessor>();
+                     IUserProfileProvider userProfileProvider = ctx.GetService<IUserProfileProvider>();
 
-                     UserProfile userProfile = CreateUserProfileFromRequest(httpContextAccessor);
-
-                     return new ResultsApiProxy(apiOptions, logger, correlationIdProvider, userProfile);
+                     return new ResultsApiProxy(apiOptions, logger, correlationIdProvider, userProfileProvider);
                  });
 
             return builder;
@@ -303,6 +300,42 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
+        public static IServiceCollection AddUserProviderFromMessage(this IServiceCollection builder, Message message)
+        {
+            builder.AddScoped<IUserProfileProvider, UserProfileProvider>((ctx) =>
+            {
+                Reference user = message.GetUserDetails();
+
+                UserProfileProvider userProfileProvider = new UserProfileProvider();
+
+                userProfileProvider.SetUser(user.Id, user.Name);
+
+                return userProfileProvider;
+            });
+
+            return builder;
+        }
+
+        public static IServiceCollection AddUserProviderFromRequest(this IServiceCollection builder)
+        {
+            builder.AddScoped<IUserProfileProvider, UserProfileProvider>((ctx) =>
+            {
+                IHttpContextAccessor httpContextAccessor = ctx.GetService<IHttpContextAccessor>();
+
+                string userId = httpContextAccessor.HttpContext?.User?.Claims.FirstOrDefault(m => m.Type == ClaimTypes.Sid)?.Value;
+
+                string userName = httpContextAccessor.HttpContext?.User?.Claims.FirstOrDefault(m => m.Type == ClaimTypes.Name)?.Value;
+
+                UserProfileProvider userProfileProvider = new UserProfileProvider();
+
+                userProfileProvider.SetUser(userId, userName);
+
+                return userProfileProvider;
+            });
+
+            return builder;
+        }
+
         public static IServiceCollection AddPolicySettings(this IServiceCollection builder, IConfigurationRoot config)
         {
             PolicySettings policySettings = new PolicySettings();
@@ -312,18 +345,6 @@ namespace CalculateFunding.Services.Core.Extensions
             builder.AddSingleton<PolicySettings>(policySettings);
 
             return builder;
-        }
-
-        public static UserProfile CreateUserProfileFromRequest(IHttpContextAccessor httpContextAccessor)
-        {
-            string userId = httpContextAccessor.HttpContext?.User?.Claims.FirstOrDefault(m => m.Type == ClaimTypes.Sid)?.Value;
-            string userName = httpContextAccessor.HttpContext?.User?.Claims.FirstOrDefault(m => m.Type == ClaimTypes.Name)?.Value;
-
-            return new UserProfile
-            {
-                Id = userId,
-                Name = userName
-            };
         }
     }
 }

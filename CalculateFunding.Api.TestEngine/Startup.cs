@@ -147,6 +147,8 @@ namespace CalculateFunding.Api.TestRunner
 
             builder.AddSingleton<ITestResultsService, TestResultsService>();
 
+            builder.AddUserProviderFromRequest();
+
             builder.AddCosmosDb(config);
 
             builder.AddSearch(config);

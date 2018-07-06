@@ -2,6 +2,7 @@
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
@@ -30,13 +31,14 @@ namespace CalculateFunding.Services.Core.Proxies
         private readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings { Formatting = Formatting.Indented, ContractResolver = new CamelCasePropertyNamesContractResolver() };
         private readonly ICorrelationIdProvider _correlationIdProvider;
 
-        public ApiClientProxy(ApiOptions options, ILogger logger, ICorrelationIdProvider correlationIdProvider, UserProfile userProfile)
+        public ApiClientProxy(ApiOptions options, ILogger logger, ICorrelationIdProvider correlationIdProvider, IUserProfileProvider userProfileProvider)
         {
             Guard.ArgumentNotNull(options, nameof(options));
             Guard.IsNullOrWhiteSpace(options.ApiEndpoint, nameof(options.ApiEndpoint));
             Guard.IsNullOrWhiteSpace(options.ApiKey, nameof(options.ApiKey));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
+            Guard.ArgumentNotNull(userProfileProvider, nameof(userProfileProvider));
 
             _correlationIdProvider = correlationIdProvider;
 
@@ -50,6 +52,8 @@ namespace CalculateFunding.Services.Core.Proxies
             {
                 baseAddress = $"{baseAddress}/";
             }
+
+            UserProfile userProfile = userProfileProvider.GetUser();
 
             _httpClient.BaseAddress = new Uri(baseAddress, UriKind.Absolute);
             _httpClient.DefaultRequestHeaders?.Add(OcpApimSubscriptionKey, options.ApiKey);
