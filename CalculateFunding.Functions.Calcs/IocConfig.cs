@@ -20,6 +20,8 @@ using Polly.Bulkhead;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Repositories.Common.Cosmos;
 using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Models;
 
 namespace CalculateFunding.Functions.Calcs
 {
@@ -48,6 +50,12 @@ namespace CalculateFunding.Functions.Calcs
         {
             if (_serviceProvider == null)
                 _serviceProvider = BuildServiceProvider(message);
+
+            IUserProfileProvider userProfileProvider = _serviceProvider.GetService<IUserProfileProvider>();
+
+            Reference user = message.GetUserDetails();
+
+            userProfileProvider.SetUser(user.Id, user.Name);
 
             return _serviceProvider;
         }

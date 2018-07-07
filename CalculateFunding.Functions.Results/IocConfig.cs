@@ -1,11 +1,13 @@
 ﻿using System;
 using AutoMapper;
+using CalculateFunding.Models;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
@@ -41,6 +43,12 @@ namespace CalculateFunding.Functions.Results
         {
             if (_serviceProvider == null)
                 _serviceProvider = BuildServiceProvider(message);
+
+            IUserProfileProvider userProfileProvider = _serviceProvider.GetService<IUserProfileProvider>();
+
+            Reference user = message.GetUserDetails();
+
+            userProfileProvider.SetUser(user.Id, user.Name);
 
             return _serviceProvider;
         }

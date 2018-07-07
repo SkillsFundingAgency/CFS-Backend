@@ -12,6 +12,8 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Services.Validators;
 using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Models;
 
 namespace CalculateFunding.Functions.Specs
 {
@@ -40,6 +42,12 @@ namespace CalculateFunding.Functions.Specs
         {
             if (_serviceProvider == null)
                 _serviceProvider = BuildServiceProvider(message);
+
+            IUserProfileProvider userProfileProvider = _serviceProvider.GetService<IUserProfileProvider>();
+
+            Reference user = message.GetUserDetails();
+
+            userProfileProvider.SetUser(user.Id, user.Name);
 
             return _serviceProvider;
         }

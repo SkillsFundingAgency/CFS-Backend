@@ -1,5 +1,6 @@
 ﻿using System;
 using AutoMapper;
+using CalculateFunding.Models;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
@@ -8,6 +9,7 @@ using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
@@ -46,6 +48,12 @@ namespace CalculateFunding.Functions.TestEngine
         {
             if (_serviceProvider == null)
                 _serviceProvider = BuildServiceProvider(message);
+
+            IUserProfileProvider userProfileProvider = _serviceProvider.GetService<IUserProfileProvider>();
+
+            Reference user = message.GetUserDetails();
+
+            userProfileProvider.SetUser(user.Id, user.Name);
 
             return _serviceProvider;
         }

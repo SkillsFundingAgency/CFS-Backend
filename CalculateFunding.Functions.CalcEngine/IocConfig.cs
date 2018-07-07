@@ -1,4 +1,5 @@
 ﻿using System;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
@@ -6,6 +7,7 @@ using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
@@ -41,6 +43,12 @@ namespace CalculateFunding.Functions.CalcEngine
         {
             if (_serviceProvider == null)
                 _serviceProvider = BuildServiceProvider(message);
+
+            IUserProfileProvider userProfileProvider = _serviceProvider.GetService<IUserProfileProvider>();
+
+            Reference user = message.GetUserDetails();
+
+            userProfileProvider.SetUser(user.Id, user.Name);
 
             return _serviceProvider;
         }
