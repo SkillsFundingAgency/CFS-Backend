@@ -21,11 +21,7 @@ namespace CalculateFunding.Services.Core.Services
             Guard.IsNullOrWhiteSpace(id, nameof(id));
             Guard.IsNullOrWhiteSpace(name, nameof(name));
 
-            _userProfile = new UserProfile
-            {
-                Id = id,
-                Name = name
-            };
+            _userProfile = new UserProfile(id, name);
         }
     }
 }

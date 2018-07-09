@@ -59,17 +59,17 @@ namespace CalculateFunding.Api.Specs
         {
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            builder.AddScoped<ISpecificationsRepository, SpecificationsRepository>();
-            builder.AddScoped<ISpecificationsService, SpecificationsService>();
-            builder.AddScoped<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
-            builder.AddScoped<IValidator<PolicyEditModel>, PolicyEditModelValidator>();
-            builder.AddScoped<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
-            builder.AddScoped<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
-            builder.AddScoped<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
-            builder.AddScoped<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
-            builder.AddScoped<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
-            builder.AddScoped<ISpecificationsSearchService, SpecificationsSearchService>();
-            builder.AddScoped<IResultsRepository, ResultsRepository>();
+            builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
+            builder.AddSingleton<ISpecificationsService, SpecificationsService>();
+            builder.AddSingleton<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
+            builder.AddSingleton<IValidator<PolicyEditModel>, PolicyEditModelValidator>();
+            builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
+            builder.AddSingleton<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
+            builder.AddSingleton<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
+            builder.AddSingleton<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
+            builder.AddSingleton<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
+            builder.AddSingleton<ISpecificationsSearchService, SpecificationsSearchService>();
+            builder.AddSingleton<IResultsRepository, ResultsRepository>();
 
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
 

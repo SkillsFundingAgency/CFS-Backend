@@ -15,7 +15,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
         [FunctionName("on-calcs-instruct-allocations")]
         public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.CalculationJobInitialiser, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            using (var scope = IocConfig.Build(message).CreateScope())
+            using (var scope = IocConfig.Build().CreateScope())
             {
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 var buildProjectsService = scope.ServiceProvider.GetService<IBuildProjectsService>();

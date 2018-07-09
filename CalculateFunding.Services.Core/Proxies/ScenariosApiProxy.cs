@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Core.Proxies
 {
     public class ScenariosApiProxy : ApiClientProxy, IScenariosApiClientProxy
     {
-        public ScenariosApiProxy(ApiOptions options, ILogger logger, ICorrelationIdProvider correlationIdProvider, IUserProfileProvider userProfileProvider) : base(options, logger, correlationIdProvider, userProfileProvider)
+        public ScenariosApiProxy(ApiOptions options, ILogger logger, ICorrelationIdProvider correlationIdProvider) : base(options, logger, correlationIdProvider)
         {
         }
     }

@@ -96,10 +96,10 @@ namespace CalculateFunding.Api.Calculator
             });
 
             builder
-                .AddScoped<ISpecificationsRepository, SpecificationsRepository>();
+                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
             builder
-                .AddScoped<ICalculationsRepository, CalculationsRepository>();
+                .AddSingleton<ICalculationsRepository, CalculationsRepository>();
 
             builder.AddUserProviderFromRequest();
 

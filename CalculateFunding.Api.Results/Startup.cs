@@ -57,10 +57,10 @@ namespace CalculateFunding.Api.Results
         {
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            builder.AddScoped<ICalculationResultsRepository, CalculationResultsRepository>();
-            builder.AddScoped<IResultsService, ResultsService>();
-            builder.AddScoped<IResultsSearchService, ResultsSearchService>();
-            builder.AddScoped<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>();
+            builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
+            builder.AddSingleton<IResultsService, ResultsService>();
+            builder.AddSingleton<IResultsSearchService, ResultsSearchService>();
+            builder.AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>();
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
 
@@ -122,10 +122,10 @@ namespace CalculateFunding.Api.Results
             });
 
             builder
-                .AddScoped<ISpecificationsRepository, SpecificationsRepository>();
+                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
             builder
-               .AddScoped<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
+               .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
             builder.AddUserProviderFromRequest();
 

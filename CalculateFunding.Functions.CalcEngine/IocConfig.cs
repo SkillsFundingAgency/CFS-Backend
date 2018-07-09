@@ -39,31 +39,6 @@ namespace CalculateFunding.Functions.CalcEngine
             return serviceProvider.BuildServiceProvider();
         }
 
-        public static IServiceProvider Build(Message message)
-        {
-            if (_serviceProvider == null)
-                _serviceProvider = BuildServiceProvider(message);
-
-            IUserProfileProvider userProfileProvider = _serviceProvider.GetService<IUserProfileProvider>();
-
-            Reference user = message.GetUserDetails();
-
-            userProfileProvider.SetUser(user.Id, user.Name);
-
-            return _serviceProvider;
-        }
-
-        static public IServiceProvider BuildServiceProvider(Message message)
-        {
-            var serviceProvider = new ServiceCollection();
-
-            serviceProvider.AddUserProviderFromMessage(message);
-
-            RegisterComponents(serviceProvider);
-
-            return serviceProvider.BuildServiceProvider();
-        }
-
         static public void RegisterComponents(IServiceCollection builder)
         {
             IConfigurationRoot config = ConfigHelper.AddConfig();
@@ -107,10 +82,10 @@ namespace CalculateFunding.Functions.CalcEngine
             });
 
             builder
-                .AddScoped<ISpecificationsRepository, SpecificationsRepository>();
+                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
             builder
-                .AddScoped<ICalculationsRepository, CalculationsRepository>();
+                .AddSingleton<ICalculationsRepository, CalculationsRepository>();
 
             builder.AddCalcsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);

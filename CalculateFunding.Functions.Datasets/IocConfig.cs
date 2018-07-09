@@ -76,28 +76,28 @@ namespace CalculateFunding.Functions.Datasets
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
             builder
-                .AddScoped<IDefinitionsService, DefinitionsService>();
+                .AddSingleton<IDefinitionsService, DefinitionsService>();
 
             builder
-                .AddScoped<IDatasetService, DatasetService>();
+                .AddSingleton<IDatasetService, DatasetService>();
 
             builder
-              .AddScoped<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();
+              .AddSingleton<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();
 
             builder
-                .AddScoped<IValidator<DatasetVersionUpdateModel>, DatasetVersionUpdateModelValidator>();
+                .AddSingleton<IValidator<DatasetVersionUpdateModel>, DatasetVersionUpdateModelValidator>();
 
             builder
-              .AddScoped<IValidator<DatasetMetadataModel>, DatasetMetadataModelValidator>();
+              .AddSingleton<IValidator<DatasetMetadataModel>, DatasetMetadataModelValidator>();
 
             builder
-                .AddScoped<IValidator<GetDatasetBlobModel>, GetDatasetBlobModelValidator>();
+                .AddSingleton<IValidator<GetDatasetBlobModel>, GetDatasetBlobModelValidator>();
 
             builder
-               .AddScoped<IValidator<CreateDefinitionSpecificationRelationshipModel>, CreateDefinitionSpecificationRelationshipModelValidator>();
+               .AddSingleton<IValidator<CreateDefinitionSpecificationRelationshipModel>, CreateDefinitionSpecificationRelationshipModelValidator>();
 
             builder
-                .AddScoped<IBlobClient, BlobClient>((ctx) =>
+                .AddSingleton<IBlobClient, BlobClient>((ctx) =>
                 {
                     AzureStorageSettings storageSettings = new AzureStorageSettings();
 
@@ -123,24 +123,24 @@ namespace CalculateFunding.Functions.Datasets
                 return new ProvidersResultsRepository(calcsCosmosRepostory, cacheProvider);
             });
 
-            builder.AddScoped<IDatasetRepository, DataSetsRepository>();
+            builder.AddSingleton<IDatasetRepository, DataSetsRepository>();
 
-            builder.AddScoped<IDatasetSearchService, DatasetSearchService>();
-
-            builder
-               .AddScoped<IDefinitionSpecificationRelationshipService, DefinitionSpecificationRelationshipService>();
+            builder.AddSingleton<IDatasetSearchService, DatasetSearchService>();
 
             builder
-                .AddScoped<ISpecificationsRepository, SpecificationsRepository>();
+               .AddSingleton<IDefinitionSpecificationRelationshipService, DefinitionSpecificationRelationshipService>();
+
+            builder
+                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
             builder
                .AddSingleton<IExcelDatasetReader, ExcelDatasetReader>();
 
             builder
-                .AddScoped<IProviderRepository, ProviderRepository>();
+                .AddSingleton<IProviderRepository, ProviderRepository>();
 
             builder
-               .AddScoped<ICalcsRepository, CalcsRepository>();
+               .AddSingleton<ICalcsRepository, CalcsRepository>();
 
             MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             builder

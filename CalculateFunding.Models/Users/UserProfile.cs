@@ -4,10 +4,9 @@ using System.Text;
 
 namespace CalculateFunding.Models.Users
 {
-    public class UserProfile
+    public class UserProfile : Reference
     {
-        public string Id { get; set; }
-
-        public string Name { get; set; }
+        public UserProfile(string id, string name): base (id, name)
+        { }
     }
 }

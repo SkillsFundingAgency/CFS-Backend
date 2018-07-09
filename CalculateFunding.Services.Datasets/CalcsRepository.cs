@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Datasets.Interfaces;

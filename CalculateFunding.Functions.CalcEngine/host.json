@@ -2,5 +2,12 @@
   "serviceBus": {
     "maxConcurrentCalls": 1,
     "prefetchCount": 0
+  },
+
+  "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+  "AzureWebJobsDashboard": "UseDevelopmentStorage=true",
+  "AzureWebJobsServiceBus": "",
+  "ServiceBusSettings": {
+    "ConnectionString": "Endpoint=sb://esfacfsbdevbus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=/bIH6q4JG//GahUMvVx11e9/7FWMKR0iyIdbmo3Apag="
   }
 }

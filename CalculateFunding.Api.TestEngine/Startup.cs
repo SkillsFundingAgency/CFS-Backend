@@ -75,10 +75,10 @@ namespace CalculateFunding.Api.TestRunner
             builder.AddApiKeyMiddlewareSettings(config);
 
             builder
-                .AddScoped<IBuildProjectRepository, BuildProjectRepository>();
+                .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
 
             builder
-                .AddScoped<IGherkinParserService, GherkinParserService>();
+                .AddSingleton<IGherkinParserService, GherkinParserService>();
 
             builder
                .AddSingleton<IGherkinParser, GherkinParser>();
@@ -93,13 +93,13 @@ namespace CalculateFunding.Api.TestRunner
                 .AddSingleton<ITestResultsRepository, TestResultsRepository>();
 
             builder
-                .AddScoped<ISpecificationRepository, SpecificationRepository>();
+                .AddSingleton<ISpecificationRepository, SpecificationRepository>();
 
             builder
-                .AddScoped<IScenariosRepository, ScenariosRepository>();
+                .AddSingleton<IScenariosRepository, ScenariosRepository>();
 
             builder
-                .AddScoped<ITestEngineService, Services.TestRunner.Services.TestEngineService>();
+                .AddSingleton<ITestEngineService, Services.TestRunner.Services.TestEngineService>();
 
             builder
                 .AddSingleton<ITestEngine, Services.TestRunner.TestEngine>();

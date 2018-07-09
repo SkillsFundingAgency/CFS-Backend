@@ -53,17 +53,17 @@ namespace CalculateFunding.Api.Scenarios
         {
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            builder.AddScoped<IScenariosRepository, ScenariosRepository>();
-            builder.AddScoped<IScenariosService, ScenariosService>();
-            builder.AddScoped<IScenariosSearchService, ScenariosSearchService>();
+            builder.AddSingleton<IScenariosRepository, ScenariosRepository>();
+            builder.AddSingleton<IScenariosService, ScenariosService>();
+            builder.AddSingleton<IScenariosSearchService, ScenariosSearchService>();
 
             builder
-                .AddScoped<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();
+                .AddSingleton<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();
             builder
-                .AddScoped<ISpecificationsRepository, SpecificationsRepository>();
+                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
             builder
-               .AddScoped<IBuildProjectRepository, BuildProjectRepository>();
+               .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
 
             builder.AddUserProviderFromRequest();
 

@@ -16,7 +16,7 @@ namespace CalculateFunding.Functions.TestEngine.ServiceBus
         [FunctionName("on-test-execution-event")]
         public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.TestEngineExecuteTests, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            using (IServiceScope scope = IocConfig.Build(message).CreateScope())
+            using (IServiceScope scope = IocConfig.Build().CreateScope())
             {
                 ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 ITestEngineService testEngineService = scope.ServiceProvider.GetService<ITestEngineService>();

@@ -1,19 +1,16 @@
-﻿using CalculateFunding.Models.Users;
+﻿using CalculateFunding.Models;
+using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
-using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Serilog;
 using System;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,23 +19,23 @@ namespace CalculateFunding.Services.Core.Proxies
     public class ApiClientProxy : IApiClientProxy, IDisposable
     {
         private const string SfaCorellationId = "sfa-correlationId";
+
+        private const string OcpApimSubscriptionKey = "Ocp-Apim-Subscription-Key";
         private const string SfaUsernameProperty = "sfa-username";
         private const string SfaUserIdProperty = "sfa-userid";
 
-        private const string OcpApimSubscriptionKey = "Ocp-Apim-Subscription-Key";
 
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings { Formatting = Formatting.Indented, ContractResolver = new CamelCasePropertyNamesContractResolver() };
         private readonly ICorrelationIdProvider _correlationIdProvider;
 
-        public ApiClientProxy(ApiOptions options, ILogger logger, ICorrelationIdProvider correlationIdProvider, IUserProfileProvider userProfileProvider)
+        public ApiClientProxy(ApiOptions options, ILogger logger, ICorrelationIdProvider correlationIdProvider)
         {
             Guard.ArgumentNotNull(options, nameof(options));
             Guard.IsNullOrWhiteSpace(options.ApiEndpoint, nameof(options.ApiEndpoint));
             Guard.IsNullOrWhiteSpace(options.ApiKey, nameof(options.ApiKey));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
-            Guard.ArgumentNotNull(userProfileProvider, nameof(userProfileProvider));
 
             _correlationIdProvider = correlationIdProvider;
 
@@ -53,15 +50,9 @@ namespace CalculateFunding.Services.Core.Proxies
                 baseAddress = $"{baseAddress}/";
             }
 
-            UserProfile userProfile = userProfileProvider.GetUser();
-
             _httpClient.BaseAddress = new Uri(baseAddress, UriKind.Absolute);
             _httpClient.DefaultRequestHeaders?.Add(OcpApimSubscriptionKey, options.ApiKey);
             _httpClient.DefaultRequestHeaders?.Add(SfaCorellationId, _correlationIdProvider.GetCorrelationId());
-
-            _httpClient.DefaultRequestHeaders?.Add(SfaUsernameProperty, userProfile.Name);
-            _httpClient.DefaultRequestHeaders?.Add(SfaUserIdProperty, userProfile.Id);
-
             _httpClient.DefaultRequestHeaders?.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
             _httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
@@ -90,7 +81,7 @@ namespace CalculateFunding.Services.Core.Proxies
             return default(T);
         }
 
-        public async Task<HttpStatusCode> PostAsync<TRequest>(string url, TRequest request)
+        public async Task<HttpStatusCode> PostAsync<TRequest>(string url, TRequest request, UserProfile userProfile = null)
         {
             if (url == null)
             {
@@ -98,9 +89,22 @@ namespace CalculateFunding.Services.Core.Proxies
             }
 
             string json = JsonConvert.SerializeObject(request, _serializerSettings);
-            //_logger.Debug($"ApiClient POST: {{url}} ({typeof(TRequest).Name})", url);
 
-            HttpResponseMessage response = await _httpClient.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json"));
+            var postRequest = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(url),
+                Content = new StringContent(json, Encoding.UTF8, "application/json"),
+            };
+
+            if (userProfile != null)
+            {
+                postRequest.Headers.Add(SfaUsernameProperty, userProfile.Name);
+                postRequest.Headers.Add(SfaUserIdProperty, userProfile.Id);
+            }
+
+            HttpResponseMessage response = await _httpClient.SendAsync(postRequest);
+
             if (response == null)
             {
                 throw new HttpRequestException($"Unable to connect to server. Url={_httpClient.BaseAddress.AbsoluteUri}{url}");
@@ -109,7 +113,7 @@ namespace CalculateFunding.Services.Core.Proxies
             return response.StatusCode;
         }
 
-        public async Task<TResponse> PostAsync<TResponse, TRequest>(string url, TRequest request)
+        public async Task<TResponse> PostAsync<TResponse, TRequest>(string url, TRequest request, UserProfile userProfile = null)
         {
             if (url == null)
             {
@@ -117,8 +121,22 @@ namespace CalculateFunding.Services.Core.Proxies
             }
 
             var json = JsonConvert.SerializeObject(request, _serializerSettings);
-           // _logger.Debug($"ApiClient POST: {{url}} ({typeof(TRequest).Name} => {typeof(TResponse).Name})", url);
-            HttpResponseMessage response = await _httpClient.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json"));
+
+            var postRequest = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(url),
+                Content = new StringContent(json, Encoding.UTF8, "application/json"),
+            };
+
+            if (userProfile != null)
+            {
+                postRequest.Headers.Add(SfaUsernameProperty, userProfile.Name);
+                postRequest.Headers.Add(SfaUserIdProperty, userProfile.Id);
+            }
+
+            HttpResponseMessage response = await _httpClient.SendAsync(postRequest);
+
             if (response == null)
             {
                 throw new HttpRequestException($"Unable to connect to server. Url={_httpClient.BaseAddress.AbsoluteUri}{url}");
@@ -133,14 +151,27 @@ namespace CalculateFunding.Services.Core.Proxies
             return default(TResponse);
         }
 
-        public async Task<HttpStatusCode> PostAsync(string url)
+        public async Task<HttpStatusCode> PostAsync(string url, UserProfile userProfile = null)
         {
             if (url == null)
             {
                 throw new ArgumentNullException(nameof(url));
             }
 
-            HttpResponseMessage response = await _httpClient.PostAsync(url, null);
+            var postRequest = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(url)
+            };
+
+            if (userProfile != null)
+            {
+                postRequest.Headers.Add(SfaUsernameProperty, userProfile.Name);
+                postRequest.Headers.Add(SfaUserIdProperty, userProfile.Id);
+            }
+
+            HttpResponseMessage response = await _httpClient.SendAsync(postRequest);
+
             if (response == null)
             {
                 throw new HttpRequestException($"Unable to connect to server. Url={_httpClient.BaseAddress.AbsoluteUri}{url}");
@@ -161,5 +192,6 @@ namespace CalculateFunding.Services.Core.Proxies
                 _httpClient?.Dispose();
             }
         }
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Users;
 using CalculateFunding.Repositories.Common.Search.Results;
 using System.Collections.Generic;
 using System.Net;
@@ -11,7 +12,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
     {
         Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId);
 
-        Task<HttpStatusCode> UpdateProviderResults(IEnumerable<ProviderResult> providerResults);
+        Task<HttpStatusCode> UpdateProviderResults(IEnumerable<ProviderResult> providerResults, UserProfile userProfile);
 
         Task<ProviderSearchResults> SearchProviders(SearchModel searchModel);
 

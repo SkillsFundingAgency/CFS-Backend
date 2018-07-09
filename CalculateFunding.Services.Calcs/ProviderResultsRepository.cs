@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Users;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Caching;
@@ -51,9 +52,9 @@ namespace CalculateFunding.Services.Calcs
             return _apiClient.GetAsync<IEnumerable<ProviderResult>>(url);
         }
 
-        public Task<HttpStatusCode> UpdateProviderResults(IEnumerable<ProviderResult> providerResults)
+        public Task<HttpStatusCode> UpdateProviderResults(IEnumerable<ProviderResult> providerResults, UserProfile userProfile)
         {
-            return _apiClient.PostAsync(updateProviderResultsUrl, providerResults);
+            return _apiClient.PostAsync(updateProviderResultsUrl, providerResults, userProfile);
         }
 
         public Task<ProviderSearchResults> SearchProviders(SearchModel searchModel)

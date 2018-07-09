@@ -74,45 +74,45 @@ namespace CalculateFunding.Functions.Calcs
         static public void RegisterComponents(IServiceCollection builder)
         {
             builder
-                .AddScoped<Services.Calcs.Interfaces.ICalculationsRepository, Services.Calcs.CalculationsRepository>();
+                .AddSingleton<Services.Calcs.Interfaces.ICalculationsRepository, Services.Calcs.CalculationsRepository>();
 
             builder
-               .AddScoped<ICalculationService, CalculationService>();
+               .AddSingleton<ICalculationService, CalculationService>();
 
             builder
-               .AddScoped<ICalculationsSearchService, CalculationSearchService>();
+               .AddSingleton<ICalculationsSearchService, CalculationSearchService>();
 
             builder
-                .AddScoped<IValidator<Calculation>, CalculationModelValidator>();
+                .AddSingleton<IValidator<Calculation>, CalculationModelValidator>();
 
             builder
-               .AddScoped<IBuildProjectsRepository, BuildProjectsRepository>();
+               .AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>();
 
             builder
-                .AddScoped<IPreviewService, PreviewService>();
+                .AddSingleton<IPreviewService, PreviewService>();
 
             builder
-               .AddScoped<ICompilerFactory, CompilerFactory>();
+               .AddSingleton<ICompilerFactory, CompilerFactory>();
 
             builder
-                .AddScoped<CSharpCompiler>()
-                .AddScoped<VisualBasicCompiler>()
-                .AddScoped<VisualBasicSourceFileGenerator>();
+                .AddSingleton<CSharpCompiler>()
+                .AddSingleton<VisualBasicCompiler>()
+                .AddSingleton<VisualBasicSourceFileGenerator>();
 
             builder
-              .AddScoped<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
+              .AddSingleton<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
 
             builder
-               .AddScoped<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
+               .AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
 
             builder
                 .AddSingleton<Services.Calcs.Interfaces.IProviderResultsRepository, Services.Calcs.ProviderResultsRepository>();
 
             builder
-               .AddScoped<ISpecificationRepository, SpecificationRepository>();
+               .AddSingleton<ISpecificationRepository, SpecificationRepository>();
 
             builder
-                .AddScoped<IBuildProjectsService, BuildProjectsService>();
+                .AddSingleton<IBuildProjectsService, BuildProjectsService>();
 
             builder
                 .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();

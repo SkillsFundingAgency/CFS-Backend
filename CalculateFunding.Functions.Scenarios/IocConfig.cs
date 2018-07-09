@@ -34,20 +34,6 @@ namespace CalculateFunding.Functions.Scenarios
             return serviceProvider.BuildServiceProvider();
         }
 
-        public static IServiceProvider Build(Message message)
-        {
-            if (_serviceProvider == null)
-                _serviceProvider = BuildServiceProvider(message);
-
-            IUserProfileProvider userProfileProvider = _serviceProvider.GetService<IUserProfileProvider>();
-
-            Reference user = message.GetUserDetails();
-
-            userProfileProvider.SetUser(user.Id, user.Name);
-
-            return _serviceProvider;
-        }
-
         static public IServiceProvider BuildServiceProvider(Message message)
         {
             var serviceProvider = new ServiceCollection();
@@ -63,16 +49,16 @@ namespace CalculateFunding.Functions.Scenarios
         {
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            builder.AddScoped<IScenariosRepository, ScenariosRepository>();
-            builder.AddScoped<IScenariosService, ScenariosService>();
-            builder.AddScoped<IScenariosSearchService, ScenariosSearchService>();
+            builder.AddSingleton<IScenariosRepository, ScenariosRepository>();
+            builder.AddSingleton<IScenariosService, ScenariosService>();
+            builder.AddSingleton<IScenariosSearchService, ScenariosSearchService>();
             builder
-                .AddScoped<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();
+                .AddSingleton<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();
             builder
-                .AddScoped<ISpecificationsRepository, SpecificationsRepository>();
+                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
             builder
-               .AddScoped<IBuildProjectRepository, BuildProjectRepository>();
+               .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
 
             builder.AddCalcsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);

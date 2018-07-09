@@ -43,38 +43,13 @@ namespace CalculateFunding.Functions.TestEngine
 
             return serviceProvider.BuildServiceProvider();
         }
-
-        public static IServiceProvider Build(Message message)
-        {
-            if (_serviceProvider == null)
-                _serviceProvider = BuildServiceProvider(message);
-
-            IUserProfileProvider userProfileProvider = _serviceProvider.GetService<IUserProfileProvider>();
-
-            Reference user = message.GetUserDetails();
-
-            userProfileProvider.SetUser(user.Id, user.Name);
-
-            return _serviceProvider;
-        }
-
-        static public IServiceProvider BuildServiceProvider(Message message)
-        {
-            var serviceProvider = new ServiceCollection();
-
-            serviceProvider.AddUserProviderFromMessage(message);
-
-            RegisterComponents(serviceProvider);
-
-            return serviceProvider.BuildServiceProvider();
-        }
-
+       
         static public void RegisterComponents(IServiceCollection builder)
         {
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
             builder
-                .AddScoped<IBuildProjectRepository, BuildProjectRepository>();
+                .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
 
             builder
                 .AddSingleton<IGherkinParserService, GherkinParserService>();
@@ -104,7 +79,7 @@ namespace CalculateFunding.Functions.TestEngine
                 .AddSingleton<ITestEngine, Services.TestRunner.TestEngine>();
 
             builder
-               .AddScoped<IGherkinExecutor, GherkinExecutor>();
+               .AddSingleton<IGherkinExecutor, GherkinExecutor>();
 
             builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>
             {
