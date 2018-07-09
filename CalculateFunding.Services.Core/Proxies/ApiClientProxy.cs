@@ -93,7 +93,7 @@ namespace CalculateFunding.Services.Core.Proxies
             var postRequest = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(url),
+                RequestUri = new Uri(_httpClient.BaseAddress, url),
                 Content = new StringContent(json, Encoding.UTF8, "application/json"),
             };
 
@@ -125,7 +125,7 @@ namespace CalculateFunding.Services.Core.Proxies
             var postRequest = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(url),
+                RequestUri = new Uri(_httpClient.BaseAddress, url),
                 Content = new StringContent(json, Encoding.UTF8, "application/json"),
             };
 
@@ -161,7 +161,7 @@ namespace CalculateFunding.Services.Core.Proxies
             var postRequest = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(url)
+                RequestUri = new Uri(_httpClient.BaseAddress, url)
             };
 
             if (userProfile != null)
