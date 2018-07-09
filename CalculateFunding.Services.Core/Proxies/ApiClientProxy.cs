@@ -29,6 +29,8 @@ namespace CalculateFunding.Services.Core.Proxies
         private readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings { Formatting = Formatting.Indented, ContractResolver = new CamelCasePropertyNamesContractResolver() };
         private readonly ICorrelationIdProvider _correlationIdProvider;
 
+        private string baseAddress;
+
         public ApiClientProxy(ApiOptions options, ILogger logger, ICorrelationIdProvider correlationIdProvider)
         {
             Guard.ArgumentNotNull(options, nameof(options));
@@ -44,7 +46,8 @@ namespace CalculateFunding.Services.Core.Proxies
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
             });
 
-            string baseAddress = options.ApiEndpoint;
+            baseAddress = options.ApiEndpoint;
+
             if (!baseAddress.EndsWith("/", StringComparison.CurrentCulture))
             {
                 baseAddress = $"{baseAddress}/";
@@ -90,10 +93,8 @@ namespace CalculateFunding.Services.Core.Proxies
 
             string json = JsonConvert.SerializeObject(request, _serializerSettings);
 
-            var postRequest = new HttpRequestMessage
+            var postRequest = new HttpRequestMessage(HttpMethod.Post, $"{baseAddress}{url}")
             {
-                Method = HttpMethod.Post,
-                RequestUri = new Uri(_httpClient.BaseAddress, url),
                 Content = new StringContent(json, Encoding.UTF8, "application/json"),
             };
 
@@ -122,10 +123,8 @@ namespace CalculateFunding.Services.Core.Proxies
 
             var json = JsonConvert.SerializeObject(request, _serializerSettings);
 
-            var postRequest = new HttpRequestMessage
+            var postRequest = new HttpRequestMessage(HttpMethod.Post, $"{baseAddress}{url}")
             {
-                Method = HttpMethod.Post,
-                RequestUri = new Uri(_httpClient.BaseAddress, url),
                 Content = new StringContent(json, Encoding.UTF8, "application/json"),
             };
 
@@ -158,11 +157,7 @@ namespace CalculateFunding.Services.Core.Proxies
                 throw new ArgumentNullException(nameof(url));
             }
 
-            var postRequest = new HttpRequestMessage
-            {
-                Method = HttpMethod.Post,
-                RequestUri = new Uri(_httpClient.BaseAddress, url)
-            };
+            var postRequest = new HttpRequestMessage(HttpMethod.Post, $"{baseAddress}{url}");
 
             if (userProfile != null)
             {
