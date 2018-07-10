@@ -28,8 +28,7 @@ namespace CalculateFunding.Services.Core.Proxies
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings { Formatting = Formatting.Indented, ContractResolver = new CamelCasePropertyNamesContractResolver() };
         private readonly ICorrelationIdProvider _correlationIdProvider;
-
-        private string baseAddress;
+        private readonly ILogger _logger;
 
         public ApiClientProxy(ApiOptions options, ILogger logger, ICorrelationIdProvider correlationIdProvider)
         {
@@ -46,7 +45,7 @@ namespace CalculateFunding.Services.Core.Proxies
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
             });
 
-            baseAddress = options.ApiEndpoint;
+            string baseAddress = options.ApiEndpoint;
 
             if (!baseAddress.EndsWith("/", StringComparison.CurrentCulture))
             {
@@ -59,6 +58,7 @@ namespace CalculateFunding.Services.Core.Proxies
             _httpClient.DefaultRequestHeaders?.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
             _httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
+            _logger = logger;
         }
 
         public async Task<T> GetAsync<T>(string url)
@@ -93,10 +93,12 @@ namespace CalculateFunding.Services.Core.Proxies
 
             string json = JsonConvert.SerializeObject(request, _serializerSettings);
 
-            var postRequest = new HttpRequestMessage(HttpMethod.Post, $"{baseAddress}{url}")
+            var postRequest = new HttpRequestMessage(HttpMethod.Post, url)
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json"),
             };
+
+            _logger.Information($"POST request to {postRequest.RequestUri.AbsolutePath}");
 
             if (userProfile != null)
             {
@@ -123,10 +125,12 @@ namespace CalculateFunding.Services.Core.Proxies
 
             var json = JsonConvert.SerializeObject(request, _serializerSettings);
 
-            var postRequest = new HttpRequestMessage(HttpMethod.Post, $"{baseAddress}{url}")
+            var postRequest = new HttpRequestMessage(HttpMethod.Post, url)
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json"),
             };
+
+            _logger.Information($"POST request to {postRequest.RequestUri.AbsolutePath}");
 
             if (userProfile != null)
             {
@@ -157,13 +161,15 @@ namespace CalculateFunding.Services.Core.Proxies
                 throw new ArgumentNullException(nameof(url));
             }
 
-            var postRequest = new HttpRequestMessage(HttpMethod.Post, $"{baseAddress}{url}");
+            var postRequest = new HttpRequestMessage(HttpMethod.Post, url);
 
             if (userProfile != null)
             {
                 postRequest.Headers.Add(SfaUsernameProperty, userProfile.Name);
                 postRequest.Headers.Add(SfaUserIdProperty, userProfile.Id);
             }
+
+            _logger.Information($"POST request to {postRequest.RequestUri.AbsolutePath}");
 
             HttpResponseMessage response = await _httpClient.SendAsync(postRequest);
 
