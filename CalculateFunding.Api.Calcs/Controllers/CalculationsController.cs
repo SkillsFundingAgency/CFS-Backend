@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Services.Calcs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using System;
 using System.Threading.Tasks;
 
@@ -128,6 +129,23 @@ namespace CalculateFunding.Api.Calcs.Controllers
         public Task<IActionResult> RunGetCalculationStatusCounts()
         {
             return _calcsService.GetCalculationStatusCounts(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/calcs/update-allocations")]
+        [HttpPost]
+        public async Task<IActionResult> RunUpdateAllocations()
+        {
+
+            //local debug testing only
+            Message message = new Message();
+            message.UserProperties.Add("sfa-correlationId", "d3942352-5121-4c87-9c79-2fe21ff20605");
+            message.UserProperties.Add("user-id", "c2585580-b1a9-487d-81b9-440fdb6e2560");
+            message.UserProperties.Add("user-name", "Adam BRYANT");
+            message.UserProperties.Add("specification-id", "dc790603-8e9a-45ac-bde1-485bc0cfb327");
+            message.UserProperties.Add("provider-cache-key", "scoped-provider-summaries:dc790603-8e9a-45ac-bde1-485bc0cfb327");
+
+            await _buildProjectsService.UpdateAllocations(message);
+            return new OkResult();
         }
     }
 }

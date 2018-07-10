@@ -7,7 +7,9 @@
 
   <ItemGroup>
     <Compile Remove="OnSourceUpdated.cs" />
+    <Compile Remove="Storage\DatasetBlobTriggers.cs" />
   </ItemGroup>
+
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="7.0.0" />
@@ -25,13 +27,24 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="host.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="host.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <None Update="host.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="local.settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="Storage\" />
   </ItemGroup>
 
 </Project>

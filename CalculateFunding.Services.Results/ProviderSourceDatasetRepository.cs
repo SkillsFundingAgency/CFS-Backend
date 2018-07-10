@@ -24,12 +24,12 @@ namespace CalculateFunding.Services.Results
 
         public Task<IEnumerable<ProviderSourceDatasetCurrent>> GetProviderSourceDatasets(string providerId, string specificationId)
         {
-            return _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>($"SELECT * FROM Root r WHERE r.content.providerId = '{providerId}' AND r.content.specificationId = '{specificationId}' AND r.documentType = '{nameof(ProviderSourceDatasetCurrent)}' & r.deleted = false", -1, specificationId);
+            return _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>($"SELECT * FROM Root r WHERE r.content.providerId = '{providerId}' AND r.content.specificationId = '{specificationId}' AND r.documentType = '{nameof(ProviderSourceDatasetCurrent)}' AND r.deleted = false", -1, specificationId);
         }
 
         public async Task<IEnumerable<string>> GetAllScopedProviderIdsForSpecificationId(string specificationId)
         {
-            IEnumerable< ProviderSourceDatasetCurrent> providerSourceDatasets = await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>($"SELECT * FROM Root r WHERE r.content.specificationId = '{specificationId}' AND r.documentType = '{nameof(ProviderSourceDatasetCurrent)}' & r.deleted = false", -1, specificationId);
+            IEnumerable< ProviderSourceDatasetCurrent> providerSourceDatasets = await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>($"SELECT * FROM Root r WHERE r.content.specificationId = '{specificationId}' AND r.documentType = '{nameof(ProviderSourceDatasetCurrent)}' AND r.deleted = false", -1, specificationId);
 
             return providerSourceDatasets.Select(m => m.ProviderId).Distinct();
         }
