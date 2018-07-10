@@ -98,8 +98,6 @@ namespace CalculateFunding.Services.Core.Proxies
                 Content = new StringContent(json, Encoding.UTF8, "application/json"),
             };
 
-            _logger.Information($"POST request to {postRequest.RequestUri.AbsolutePath}");
-
             if (userProfile != null)
             {
                 postRequest.Headers.Add(SfaUsernameProperty, userProfile.Name);
@@ -129,8 +127,6 @@ namespace CalculateFunding.Services.Core.Proxies
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json"),
             };
-
-            _logger.Information($"POST request to {postRequest.RequestUri.AbsolutePath}");
 
             if (userProfile != null)
             {
@@ -168,8 +164,6 @@ namespace CalculateFunding.Services.Core.Proxies
                 postRequest.Headers.Add(SfaUsernameProperty, userProfile.Name);
                 postRequest.Headers.Add(SfaUserIdProperty, userProfile.Id);
             }
-
-            _logger.Information($"POST request to {postRequest.RequestUri.AbsolutePath}");
 
             HttpResponseMessage response = await _httpClient.SendAsync(postRequest);
 
