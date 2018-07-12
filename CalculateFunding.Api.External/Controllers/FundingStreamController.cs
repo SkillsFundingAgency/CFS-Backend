@@ -1,18 +1,20 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using CalculateFunding.Models.External;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Formatters.Internal;
 
 
 namespace CalculateFunding.Api.External.Controllers
 {
     [ApiController]
-    [Route("funding-streams")]
+    [Route("api/funding-streams")]
     public class FundingStreamController : Controller
     {
         /// <summary>
         /// Return the funding streams supported by the service
         /// </summary>
+        /// <param name="ifNoneMatch">if a previously provided ETag value is provided, the service will return a 304 Not Modified response is the resource has not changed.</param>
+        /// <param name="Accept">The calculate funding service uses the Media Type provided in the Accept header to determine what representation of a particular resources to serve. In particular this includes the version of the resource and the wire format.</param>
         /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
@@ -21,7 +23,9 @@ namespace CalculateFunding.Api.External.Controllers
         [ProducesResponseType(401)]
         [ProducesResponseType(500)]
         
-        public ActionResult GetFundingStreams()
+        public ActionResult GetFundingStreams(
+            [FromHeader(Name = "If-None-Match")]string ifNoneMatch,
+            [Required,FromHeader(Name = "Accept")] string Accept = "application/vnd.sfa.allocation.1+json")
         {
             IReadOnlyCollection<AllocationLine> allocationLines = new List<AllocationLine>()
             {

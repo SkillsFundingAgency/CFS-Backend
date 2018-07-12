@@ -1,0 +1,90 @@
+﻿<div class="row">
+    <div class="information-container wrapper col-xs-12">
+        <section class="block">
+            <div class="info">
+                <hgroup class="main"><h2 class="title"><!-- react-text: 35 -->Calculate Funding Service API<!-- /react-text --><small><pre class="version"><!-- react-text: 38 --> <!-- /react-text --><!-- react-text: 39 -->v1<!-- /react-text --><!-- react-text: 40 --> <!-- /react-text --></pre></small></h2><a target="_blank" href="/swagger/v1/swagger.json"><span class="url"><!-- react-text: 43 --> <!-- /react-text --><!-- react-text: 44 -->/swagger/v1/swagger.json<!-- /react-text --><!-- react-text: 45 --> <!-- /react-text --></span></a></hgroup><div class="description">
+                    <div class="markdown">
+                        <h1>Calculate Funding Service</h1>
+                        <h1>Service Context</h1>
+                        <h3>Purpose of the Service</h3>
+                        <p>The Calculate Funding Service manages the specification, calculation, testing and publishing of provider allocations. It’s main responsibilities include:</p>
+                        <ul>
+                            <li>Specifying funding policies, linked to funding streams and allocation lines</li>
+                            <li>Defining calculations that implement specified policies</li>
+                            <li>Defining and importing datasets that provider source data required by the calculations</li>
+                            <li>Supporting the creation and execution of test scenarios that validate the calculation results</li>
+                            <li>Supporting the publishing of correct allocations through viewing the results of tests and calculations</li>
+                            <li>Providing an API that allows external systems to obtain details of published allocations</li>
+                        </ul>
+                        <h2>Governance</h2>
+                        <p>TBC</p>
+                        <h2>Usage Scope</h2>
+                        <p>This Service is designed for internal Agency use only.</p>
+                        <h2>Availability</h2>
+                        <p>TBC</p>
+                        <h2>Performance and Scalability</h2>
+                        <p>TBC</p>
+                        <h2>Pre-Requisites</h2>
+                        <ul>
+                            <li>Client must have network access to the calculate funding api</li>
+                            <li>Client must have the necessary credentials to access the API</li>
+                            <li>Client must trust the server certificate used for SSL connections.</li>
+                        </ul>
+                        <h2>Post-Requisites</h2>
+                        <ul>
+                            <li>None</li>
+                        </ul>
+                        <h2>Media Types</h2>
+                        <p>The following table lists the media types used by the service:</p>
+                        <table>
+                            <thead>
+                                <tr><th>Media Type</th><th>Description</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>application/vnd.sfa.allocation.{VERSION}+xml</td><td>An allocation in XML format</td></tr>
+                                <tr><td>application/vnd.sfa.allocation.{VERSION}+json</td><td>An allocation in JSON format</td></tr>
+                                <tr><td>application/vnd.sfa.allocation.{VERSION}+atom+xml</td><td>An atom feed representing a stream of allocations in XML format. Each content item in the feed will be vnd.sfa.allocation.{VERSION}</td></tr>
+                                <tr><td>application/vnd.sfa.allocation.{VERSION}+atom+json</td><td>An atom feed representing a stream of allocations in JSON format.* Each content item in the feed will be vnd.sfa.allocation.{VERSION}</td></tr>
+                            </tbody>
+                        </table>
+                        <ul>
+                            <li>
+                                This not a part of the ATOM standard but is a convenience feature for native JSON clients.<br>
+                                The media Type above conform to the Accept Header specification. In simple terms that states that the media Type is vendor specific, is a given representation (sfa.allocation and version) and delivered in a particular wire format (JSON or XML).
+                            </li>
+                        </ul>
+                        <h2>Request Headers</h2>
+                        <p>The following HTTP headers are supported by the service.</p>
+                        <table>
+                            <thead>
+                                <tr><th>Header</th><th>Optionality</th><th>Description</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Accept</td><td>Required</td><td>The calculate funding service uses the Media Type provided in the Accept header to determine what representation of a particular resources to serve. In particular this includes the version of the resource and the wire format.</td></tr>
+                            </tbody>
+                        </table>
+                        <h2>Response Header</h2>
+                        <p>There are no custom headers returned by the service. However each call will return header to aid the client with caching responses.</p>
+                        <h2>Page of Results</h2>
+                        <p>The calculate funding API provides resources that represent notification streams. These will be provided as an ATOM feed. The ATOM specification makes provision for paging results in two ways. Both methods provides a means for client to navigate the stream without prior knowledge of the necessary URIs. This follows a Hypermedia As The Engine Of Application State (HATEAOS) pattern. The selected paging method will depend on the specific resource. Clients are expected to be tolerant to changes to the paging method within the confines of the ATOM specification</p>
+                        <h2>Generic Error and Exception Behaviour</h2>
+                        <p>All operations will return one of the following messages in the event a generic exception is encountered.</p>
+                        <table>
+                            <thead>
+                                <tr><th>Error</th><th>Description</th><th>Should Retry</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>401 Unauthorized</td><td>The consumer is not authorized to use this service.</td><td>No</td></tr>
+                                <tr><td>404 Not Found</td><td>The resource requested cannot be found. Check the structure of the URI</td><td>No</td></tr>
+                                <tr><td>410 Gone</td><td>The requested resource is no longer available at the server and no forwarding address is known. This will be used when a previously supported resource URI has been depreciated.</td><td>No</td></tr>
+                                <tr><td>415 Unsupported Media Type</td><td>The media Type provide in the Accept header is not supported by the server. This error will also be produced if the client requests a version of a media Type not supported by the service.</td><td>No</td></tr>
+                                <tr><td>500 Internal Server Error</td><td>The service encountered an unexpected error. The service may have logged an error, and if possible the body will contain a text/plain guid that can be used to search the logs.</td><td>Unknown, so limited retries may be attempted</td></tr>
+                                <tr><td>503 Service Unavailable</td><td>The service is too busy</td><td>Yes</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div><div><a href="mailto:cliffordsmith@education.gov.uk">Contact Clifford Smith</a></div><div><a target="_blank" href="https://opensource.org/licenses/MIT">MIT License</a></div>
+            </div>
+        </section>
+    </div>
+</div>

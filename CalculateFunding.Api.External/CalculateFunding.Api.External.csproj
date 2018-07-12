@@ -8,17 +8,39 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\" />
+    <Content Remove="wwwroot\assets\js\Index.js" />
+    <Content Remove="wwwroot\Index.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Views\IndexTop.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="gulpfile.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="wwwroot\assets\js\Index.js" />
+    <EmbeddedResource Include="wwwroot\Index.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="3.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Api.Common\CalculateFunding.Api.Common.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.External\CalculateFunding.Services.External.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Views\" />
+    <Folder Include="wwwroot\assets\css\" />
+    <Folder Include="wwwroot\assets\libs\fonts\" />
   </ItemGroup>
 
 </Project>
