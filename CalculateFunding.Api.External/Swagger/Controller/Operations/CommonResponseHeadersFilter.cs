@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using CalculateFunding.Api.External.Swagger.Controller.Operations.Abstractions;
+using CalculateFunding.Api.External.Swagger.Helpers;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -14,7 +15,7 @@ namespace CalculateFunding.Api.External.Swagger.Controller.Operations
             AddResponseHeaders(operation);
         }
 
-        private void AddResponseHeaders(Operation operation)
+        private static void AddResponseHeaders(Operation operation)
         {
             const string etagResponseHeaderDescription = "An ETag of the resource";
             const string cacheControlDescription = "Caching information for the resource";

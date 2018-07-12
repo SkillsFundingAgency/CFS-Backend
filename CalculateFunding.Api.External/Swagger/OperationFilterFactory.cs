@@ -8,13 +8,13 @@ namespace CalculateFunding.Api.External.Swagger
 {
     public class OperationFilterFactory : IOperationFilter
     {
-        private IReadOnlyCollection<ISwaggerOperation> _swaggerOperations;
+        private IReadOnlyCollection<ISwaggerOperationFilterApplier> _swaggerOperations;
 
         public void InitializeOperations()
         {
-            IReadOnlyCollection<ISwaggerOperation> swaggerOperations = new List<ISwaggerOperation>
+            IReadOnlyCollection<ISwaggerOperationFilterApplier> swaggerOperations = new List<ISwaggerOperationFilterApplier>
             {
-                new CommonResponseHeaders()
+                new CommonResponseHeadersFilter()
             };
 
             _swaggerOperations = swaggerOperations;
@@ -23,7 +23,7 @@ namespace CalculateFunding.Api.External.Swagger
         public void Apply(Operation operation, OperationFilterContext context)
         {
             InitializeOperations();
-            foreach (ISwaggerOperation swaggerOperation in _swaggerOperations)
+            foreach (ISwaggerOperationFilterApplier swaggerOperation in _swaggerOperations)
             {
                 swaggerOperation.Apply(operation, context);
             }
