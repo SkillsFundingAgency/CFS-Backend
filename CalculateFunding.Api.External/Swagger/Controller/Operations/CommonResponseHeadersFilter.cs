@@ -5,7 +5,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace CalculateFunding.Api.External.Swagger.Controller.Operations
 {
-    public class CommonResponseHeaders : OperationAbs
+    public class CommonResponseHeadersFilter : SwaggerOperationFilterApplierAbs
     {
         public override string[] GetOperationIds() => new []{"ApiAllocationsByAllocationIdGet", "ApiFunding-streamsGet"};
 

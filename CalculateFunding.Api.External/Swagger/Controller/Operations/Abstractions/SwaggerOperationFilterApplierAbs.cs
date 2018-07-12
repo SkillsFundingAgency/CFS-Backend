@@ -1,12 +1,10 @@
 ﻿using System.Linq;
-using CalculateFunding.Api.External.Swagger.Controller.Operations.Abstractions;
-using Microsoft.EntityFrameworkCore.Internal;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace CalculateFunding.Api.External.Swagger.Controller.Operations.Abstractions
 {
-    public abstract class OperationAbs : ISwaggerOperation
+    public abstract class SwaggerOperationFilterApplierAbs : ISwaggerOperationFilterApplier
     {
         public abstract string[] GetOperationIds();
 

@@ -79,7 +79,7 @@
     </script>
     
     <script>
-        window.onload = function () {
+        $(document).ready(function() {
             var configObject = JSON.parse('%(ConfigObject)');
             var oauthConfigObject = JSON.parse('%(OAuthConfigObject)');
             // Apply mandatory parameters
@@ -93,7 +93,7 @@
             const ui = SwaggerUIBundle(configObject);
             // Apply OAuth config
             ui.initOAuth(oauthConfigObject);
-        }
+        });
     </script>
 </body>
 

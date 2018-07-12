@@ -1,9 +1,6 @@
-﻿using System.Collections.Generic;
-using CalculateFunding.Models.External;
-using Swashbuckle.AspNetCore.Swagger;
-using Swashbuckle.AspNetCore.SwaggerGen;
+﻿using Swashbuckle.AspNetCore.Swagger;
 
-namespace CalculateFunding.Api.External.Swagger
+namespace CalculateFunding.Api.External.Swagger.Helpers
 {
     public static class SwaggerHelper
     {
