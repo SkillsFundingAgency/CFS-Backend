@@ -36,6 +36,7 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 
         public string ProviderSubType { get; set; }
 
+        [JsonProperty("authority")]
         public string LocalAuthority { get; set; }
 
         public string UKPRN { get; set; }

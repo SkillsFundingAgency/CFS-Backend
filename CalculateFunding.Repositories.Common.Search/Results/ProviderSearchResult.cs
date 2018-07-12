@@ -13,7 +13,8 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 		public string Rid { get; set; }
 		public string Name { get; set; }
 		public string Authority { get; set; }
-		public string ProviderType { get; set; }
+        public string ProviderId { get; set; }
+        public string ProviderType { get; set; }
 		public string ProviderSubType { get; set; }
 		public DateTimeOffset? OpenDate { get; set; }
 		public DateTimeOffset? CloseDate { get; set; }

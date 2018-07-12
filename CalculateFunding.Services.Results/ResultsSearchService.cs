@@ -182,6 +182,7 @@ namespace CalculateFunding.Services.Results
                         URN = m.Result.URN,
                         UPIN = m.Result.UPIN,
                         Rid = m.Result.Rid,
+                        ProviderId = m.Result.ProviderId,
                         EstablishmentNumber = m.Result.EstablishmentNumber,
                         Name = m.Result.Name,
                         Authority = m.Result.Authority,

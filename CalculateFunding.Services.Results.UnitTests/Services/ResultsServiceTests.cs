@@ -115,7 +115,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ISearchRepository<ProviderIndex> searchRepository = CreateSearchRepository();
             searchRepository
-                .SearchById(Arg.Is(providerId), IdFieldOverride: Arg.Is("ukPrn"))
+                .SearchById(Arg.Is(providerId), IdFieldOverride: Arg.Is("providerId"))
                 .Returns(provider);
 
             ResultsService service = CreateResultsService(logger: logger, searchRepository: searchRepository);
