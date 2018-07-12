@@ -87,14 +87,16 @@ namespace CalculateFunding.Services.Datasets
             return searchResults.Select(x => new ProviderSummary
             {
                 Name = x.Name,
-                Id = x.UKPRN,
+                Id = x.ProviderProfileId,
+                ProviderProfileIdType = x.ProviderProfileIdType,
                 UKPRN = x.UKPRN,
                 URN = x.URN,
                 Authority = x.Authority,
                 UPIN = x.UPIN,
                 ProviderSubType = x.ProviderSubType,
                 EstablishmentNumber = x.EstablishmentNumber,
-                ProviderType = x.ProviderType
+                ProviderType = x.ProviderType,
+                LACode = x.LACode
             });
         }
 

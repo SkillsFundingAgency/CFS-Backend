@@ -127,5 +127,12 @@ namespace CalculateFunding.Api.Results.Controllers
         {
             return _resultsService.ImportProviders(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/results/remove-current-providers")]
+        [HttpPost]
+        public Task<IActionResult> RunRemoveCurrentProviders()
+        {
+            return _resultsService.RemoveCurrentProviders();
+        }
     }
 }

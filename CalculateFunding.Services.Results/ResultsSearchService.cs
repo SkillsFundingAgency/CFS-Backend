@@ -188,7 +188,8 @@ namespace CalculateFunding.Services.Results
                         ProviderType = m.Result.ProviderType,
                         ProviderSubType = m.Result.ProviderSubType,
                         OpenDate = m.Result.OpenDate,
-                        CloseDate = m.Result.CloseDate
+                        CloseDate = m.Result.CloseDate,
+                        ProviderProfileId = m.Result.ProviderId
                     });
                 }
             }

@@ -25,6 +25,10 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Models;
 using CalculateFunding.Services.Results.ResultModels;
 using System.Collections.Concurrent;
+using CalculateFunding.Models.Datasets.Schema;
+using Newtonsoft.Json.Converters;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Results
 {
@@ -46,6 +50,8 @@ namespace CalculateFunding.Services.Results
         private readonly IPublishedProviderResultsAssemblerService _publishedProviderResultsAssemblerService;
         private readonly IPublishedProviderResultsRepository _publishedProviderResultsRepository;
         private readonly IPublishedProviderCalculationResultsRepository _publishedProviderCalculationResultsRepository;
+        private readonly IProviderImportMappingService _providerImportMappingService;
+        private readonly ICacheProvider _cacheProvider;
 
         public ResultsService(ILogger logger,
             ICalculationResultsRepository resultsRepository,
@@ -60,7 +66,9 @@ namespace CalculateFunding.Services.Results
             IResultsResilliencePolicies resiliencePolicies,
             IPublishedProviderResultsAssemblerService publishedProviderResultsAssemblerService,
             IPublishedProviderResultsRepository publishedProviderResultsRepository,
-            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository)
+            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository,
+            IProviderImportMappingService providerImportMappingService,
+            ICacheProvider cacheProvider)
         {
             _logger = logger;
             _resultsRepository = resultsRepository;
@@ -78,6 +86,8 @@ namespace CalculateFunding.Services.Results
             _publishedProviderResultsAssemblerService = publishedProviderResultsAssemblerService;
             _publishedProviderResultsRepository = publishedProviderResultsRepository;
             _publishedProviderCalculationResultsRepository = publishedProviderCalculationResultsRepository;
+            _providerImportMappingService = providerImportMappingService;
+            _cacheProvider = cacheProvider;
         }
 
         public async Task UpdateProviderData(Message message)
@@ -551,15 +561,45 @@ namespace CalculateFunding.Services.Results
             }
         }
 
+        public async Task<IActionResult> RemoveCurrentProviders()
+        {
+            try
+            {
+                await _searchRepository.DeleteIndex();
+            }
+            catch(Exception ex)
+            {
+                _logger.Error(ex, "Failed to delete providers index");
+
+                return new InternalServerErrorResult(ex.Message);
+            }
+
+            bool cachedSummaryCountExists = await _cacheProvider.KeyExists<string>(CacheKeys.AllProviderSummaryCount);
+
+            if (cachedSummaryCountExists)
+            {
+                await _cacheProvider.KeyDeleteAsync<string>(CacheKeys.AllProviderSummaryCount);
+            }
+
+            bool cachedSummariesExists = await _cacheProvider.KeyExists<List<ProviderSummary>>(CacheKeys.AllProviderSummaries);
+
+            if (cachedSummariesExists)
+            {
+                await _cacheProvider.KeyDeleteAsync<List<ProviderSummary>>(CacheKeys.AllProviderSummaries);
+            }
+
+            return new NoContentResult();
+        }
+
         public async Task<IActionResult> ImportProviders(HttpRequest request)
         {
             string json = await request.GetRawBodyStringAsync();
 
-            ProviderIndex[] providers = new ProviderIndex[0];
+            MasterProviderModel[] providers = new MasterProviderModel[0];
 
             try
             {
-                providers = JsonConvert.DeserializeObject<ProviderIndex[]>(json);
+                providers = JsonConvert.DeserializeObject<MasterProviderModel[]>(json);
             }
             catch(Exception ex)
             {
@@ -575,20 +615,28 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("No providers were provided");
             }
 
-            for (int i = 0; i < providers.Length; i += 500)
+            IList<ProviderIndex> providersToIndex = new List<ProviderIndex>();
+
+            foreach(MasterProviderModel provider in providers)
             {
-                IEnumerable<ProviderIndex> partitionedResults = providers.Skip(i).Take(500);
+                ProviderIndex providerIndex = _providerImportMappingService.Map(provider);
 
-                IEnumerable<IndexError> errors = await _resultsSearchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Index(partitionedResults));
-
-                if (errors.Any())
+                if(providerIndex != null)
                 {
-                    string errorMessage = $"Failed to index providers result documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }";
-                    _logger.Error(errorMessage);
-
-                    return new InternalServerErrorResult(errorMessage);
+                    providersToIndex.Add(providerIndex);
                 }
             }
+
+            IEnumerable<IndexError> errors = await _resultsSearchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Index(providersToIndex));
+
+            if (errors.Any())
+            {
+                string errorMessage = $"Failed to index providers result documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }";
+                _logger.Error(errorMessage);
+
+                return new InternalServerErrorResult(errorMessage);
+            }
+
 
             return new NoContentResult();
         }

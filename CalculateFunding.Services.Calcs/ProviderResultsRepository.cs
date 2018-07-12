@@ -154,7 +154,8 @@ namespace CalculateFunding.Services.Calcs
             return searchResults.Select(x => new ProviderSummary
             {
                 Name = x.Name,
-                Id = x.UKPRN,
+                Id = x.ProviderProfileId,
+                ProviderProfileIdType = x.ProviderProfileIdType,
                 UKPRN = x.UKPRN,
                 URN = x.URN,
                 Authority = x.Authority,
@@ -162,7 +163,8 @@ namespace CalculateFunding.Services.Calcs
                 ProviderSubType = x.ProviderSubType,
                 EstablishmentNumber = x.EstablishmentNumber,
                 ProviderType = x.ProviderType,
-                DateOpened = x.OpenDate
+                DateOpened = x.OpenDate,
+                LACode = x.LACode
             });
         }
 

@@ -61,6 +61,7 @@ namespace CalculateFunding.Api.Results
             builder.AddSingleton<IResultsService, ResultsService>();
             builder.AddSingleton<IResultsSearchService, ResultsSearchService>();
             builder.AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>();
+            builder.AddSingleton<IProviderImportMappingService, ProviderImportMappingService>();
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
 

@@ -5,7 +5,7 @@ namespace CalculateFunding.Models.Results
 {
     public class ProviderSummary : Reference
 	{
-		[JsonProperty("urn")]
+        [JsonProperty("urn")]
 		// ReSharper disable once InconsistentNaming
 		public string URN { get; set; }
 		[JsonProperty("ukPrn")]
@@ -17,6 +17,7 @@ namespace CalculateFunding.Models.Results
 		[JsonProperty("establishmentNumber")]
 		// ReSharper disable once InconsistentNaming
 		public string EstablishmentNumber { get; set; }
+
 		[JsonProperty("authority")]
 		public string Authority { get; set; }
 
@@ -28,5 +29,11 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("dateOpened")]
         public DateTimeOffset? DateOpened { get; set; }
+
+        [JsonProperty("providerProfileIdType")]
+        public string ProviderProfileIdType { get; set; }
+
+        [JsonProperty("laCode")]
+        public string LACode { get; set; }
     }
 }

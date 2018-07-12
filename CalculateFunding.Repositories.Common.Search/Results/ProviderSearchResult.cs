@@ -4,7 +4,9 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 {
     public class ProviderSearchResult
 	{
-		public string UKPRN { get; set; }
+        public string ProviderProfileId { get; set; }
+        public string ProviderProfileIdType { get; set; }
+        public string UKPRN { get; set; }
 		public string URN { get; set; }
 		public string UPIN { get; set; }
 		public string EstablishmentNumber { get; set; }
@@ -15,5 +17,6 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 		public string ProviderSubType { get; set; }
 		public DateTimeOffset? OpenDate { get; set; }
 		public DateTimeOffset? CloseDate { get; set; }
-	}
+        public string LACode { get; set; }
+    }
 }

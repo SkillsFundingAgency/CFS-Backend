@@ -21,5 +21,6 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IActionResult> GetPublishedProviderResultsBySpecificationId(HttpRequest request);
         Task<IActionResult> UpdatePublishedAllocationLineResultsStatus(HttpRequest request);
         Task<IActionResult> ImportProviders(HttpRequest request);
+        Task<IActionResult> RemoveCurrentProviders();
     }
 }

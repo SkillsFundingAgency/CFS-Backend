@@ -27,6 +27,8 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Results.UnitTests;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -949,7 +951,7 @@ namespace CalculateFunding.Services.Results.Services
         public async Task ImportProviders_GivenErrorOccurredDuringIndexing_ReturnsInternalServerError()
         {
             //Arrange
-            IEnumerable<ProviderIndex> providers = CreateProviderIndexes();
+            IEnumerable<MasterProviderModel> providers = CreateProviderModels();
             string json = JsonConvert.SerializeObject(providers);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
@@ -996,7 +998,7 @@ namespace CalculateFunding.Services.Results.Services
         public async Task ImportProviders_GivenProvidersIndexed_ReturnsNoContentResult()
         {
             //Arrange
-            IEnumerable<ProviderIndex> providers = CreateProviderIndexes();
+            IEnumerable<MasterProviderModel> providers = CreateProviderModels();
             string json = JsonConvert.SerializeObject(providers);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
@@ -1008,10 +1010,22 @@ namespace CalculateFunding.Services.Results.Services
 
             ISearchRepository<ProviderIndex> searchRepository = CreateSearchRepository();
             searchRepository
-                .Index(Arg.Is(providers))
+                .Index(Arg.Any<IEnumerable<ProviderIndex>>())
                 .Returns(Enumerable.Empty<IndexError>());
 
-            ResultsService resultsService = CreateResultsService(searchRepository: searchRepository);
+
+            IProviderImportMappingService mappingService = CreateProviderImportMappingService();
+            mappingService
+                .Map(Arg.Any<MasterProviderModel>())
+                .Returns(new ProviderIndex());
+            mappingService
+               .Map(Arg.Any<MasterProviderModel>())
+               .Returns(new ProviderIndex());
+            mappingService
+               .Map(Arg.Any<MasterProviderModel>())
+               .Returns(new ProviderIndex());
+
+            ResultsService resultsService = CreateResultsService(searchRepository: searchRepository, providerImportMappingService: mappingService);
 
             //Act
             IActionResult result = await resultsService.ImportProviders(request);
@@ -1025,7 +1039,95 @@ namespace CalculateFunding.Services.Results.Services
             result
                 .Should()
                 .BeOfType<NoContentResult>();
-         }
+        }
+
+        [TestMethod]
+        public async Task RemoveCurrentProviders_WhenSummaryCountsExist_DeletesSummaryCounts()
+        {
+            //Arrange
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<string>(Arg.Is(CacheKeys.AllProviderSummaryCount))
+                .Returns(true);
+
+            ResultsService resultsService = CreateResultsService(cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult result = await resultsService.RemoveCurrentProviders();
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+
+            await
+                cacheProvider
+                .Received(1)
+                .KeyDeleteAsync<string>(Arg.Is(CacheKeys.AllProviderSummaryCount));
+        }
+
+        [TestMethod]
+        public async Task RemoveCurrentProviders_WhenSummariesExist_DeletesSummaries()
+        {
+            //Arrange
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<List<ProviderSummary>>(Arg.Is(CacheKeys.AllProviderSummaries))
+                .Returns(true);
+
+            ResultsService resultsService = CreateResultsService(cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult result = await resultsService.RemoveCurrentProviders();
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+
+            await
+                cacheProvider
+                .Received(1)
+                .KeyDeleteAsync<List<ProviderSummary>>(Arg.Is(CacheKeys.AllProviderSummaries));
+        }
+
+        [TestMethod]
+        public async Task RemoveCurrentProviders_WhenDeletingIndexThrowsException_ReturnsInternalServerError()
+        {
+            //Arrange
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            ISearchRepository<ProviderIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .When(x => x.DeleteIndex())
+                .Do(x => { throw new Exception(); });
+
+            ILogger logger = CreateLogger();
+
+            ResultsService resultsService = CreateResultsService(cacheProvider: cacheProvider, searchRepository: searchRepository, logger: logger);
+
+            //Act
+            IActionResult result = await resultsService.RemoveCurrentProviders();
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<InternalServerErrorResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is("Failed to delete providers index"));
+
+            await
+                cacheProvider
+                .DidNotReceive()
+                .KeyExists<string>(Arg.Any<string>());
+
+            await
+                cacheProvider
+                .DidNotReceive()
+                .KeyExists<List<ProviderSummary>>(Arg.Any<string>());
+        }
 
         static ResultsService CreateResultsService(ILogger logger = null,
             ICalculationResultsRepository resultsRepository = null,
@@ -1040,7 +1142,9 @@ namespace CalculateFunding.Services.Results.Services
             IResultsResilliencePolicies resiliencePolicies = null,
             IPublishedProviderResultsAssemblerService publishedProviderResultsAssemblerService = null,
             IPublishedProviderResultsRepository publishedProviderResultsRepository = null,
-            IPublishedProviderCalculationResultsRepository IPublishedProviderCalculationResultsRepository = null)
+            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = null,
+            IProviderImportMappingService providerImportMappingService = null,
+            ICacheProvider cacheProvider = null)
         {
             return new ResultsService(
                 logger ?? CreateLogger(),
@@ -1056,7 +1160,19 @@ namespace CalculateFunding.Services.Results.Services
                 resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies(),
                 publishedProviderResultsAssemblerService ?? CreateResultsAssembler(),
                 publishedProviderResultsRepository ?? CreatePublishedProviderResultsRepository(),
-                IPublishedProviderCalculationResultsRepository ?? CreatePublishedProviderCalculationResultsRepository());
+                publishedProviderCalculationResultsRepository ?? CreatePublishedProviderCalculationResultsRepository(),
+                providerImportMappingService ?? CreateProviderImportMappingService(),
+                cacheProvider ?? CreateCacheProvider());
+        }
+
+        static ICacheProvider CreateCacheProvider()
+        {
+            return Substitute.For<ICacheProvider>();
+        }
+
+        static IProviderImportMappingService CreateProviderImportMappingService()
+        {
+            return Substitute.For<IProviderImportMappingService>();
         }
 
         static IPublishedProviderCalculationResultsRepository CreatePublishedProviderCalculationResultsRepository()
@@ -1166,13 +1282,13 @@ namespace CalculateFunding.Services.Results.Services
             };
         }
 
-        static IEnumerable<ProviderIndex> CreateProviderIndexes()
+        static IEnumerable<MasterProviderModel> CreateProviderModels()
         {
             return new[]
             {
-                new ProviderIndex(),
-                new ProviderIndex(),
-                new ProviderIndex()
+                new MasterProviderModel { MasterUKPRN = "1234" },
+                new MasterProviderModel { MasterUKPRN = "5678" },
+                new MasterProviderModel { MasterUKPRN = "1122" }
             };
         }
     }
