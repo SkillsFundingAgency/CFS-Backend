@@ -8,15 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="wwwroot\Index.cshtml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="Views\IndexTop.html" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="wwwroot\Index.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,8 +25,7 @@
 
   <ItemGroup>
     <Folder Include="Views\" />
-    <Folder Include="wwwroot\assets\css\" />
-    <Folder Include="wwwroot\assets\libs\fonts\" />
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 
 </Project>
