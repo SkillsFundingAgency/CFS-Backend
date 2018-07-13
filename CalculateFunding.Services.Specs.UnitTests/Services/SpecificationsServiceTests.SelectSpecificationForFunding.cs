@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Specs;
+using CalculateFunding.Models.Users;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
@@ -14,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -242,6 +244,9 @@ namespace CalculateFunding.Services.Specs.Services
         public async Task SelectSpecificationForFunding_GivenPublishingResultsfails_ReturnsInternalServerError()
         {
             //Arrange
+            const string authorId = "author-id";
+            const string authorName = "author-name";
+
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
                 { "specificationId", new StringValues(SpecificationId) }
@@ -252,6 +257,16 @@ namespace CalculateFunding.Services.Specs.Services
             request
                 .Query
                 .Returns(queryStringValues);
+
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Sid, authorId),
+                new Claim(ClaimTypes.Name, authorName)
+            };
+
+            request
+                .HttpContext.User.Claims
+                .Returns(claims.AsEnumerable());
 
             Specification specification = CreateSpecification();
 
@@ -273,7 +288,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             IResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
-                .PublishProviderResults(Arg.Is(SpecificationId))
+                .PublishProviderResults(Arg.Is(SpecificationId), Arg.Any<UserProfile>())
                 .Returns(HttpStatusCode.BadRequest);
 
             SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, 
@@ -299,6 +314,11 @@ namespace CalculateFunding.Services.Specs.Services
             logger
                 .Received(1)
                 .Error(Arg.Any<Exception>(), Arg.Is($"Failed to publish provider results for specification id: {SpecificationId} with status code: BadRequest"));
+
+            await
+                resultsRepository
+                .Received(1)
+                .PublishProviderResults(Arg.Is(SpecificationId), Arg.Is<UserProfile>(m => m.Id == authorId && m.Name == authorName));
         }
     }
 }

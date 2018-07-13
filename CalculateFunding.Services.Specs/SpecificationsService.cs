@@ -29,6 +29,7 @@ using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Helpers;
 using System.Collections.Concurrent;
+using CalculateFunding.Models.Users;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -1695,7 +1696,11 @@ namespace CalculateFunding.Services.Specs
                     throw new Exception(error);
                 }
 
-                statusCode = await _resultsRepository.PublishProviderResults(specificationId);
+                Reference user = request.GetUser();
+
+                UserProfile userProfile = new UserProfile(user);
+
+                statusCode = await _resultsRepository.PublishProviderResults(specificationId, userProfile);
 
                 if (!statusCode.IsSuccess())
                 {

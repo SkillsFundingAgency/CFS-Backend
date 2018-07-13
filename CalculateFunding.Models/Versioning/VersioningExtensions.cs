@@ -92,7 +92,7 @@ namespace CalculateFunding.Models.Versioning
             item.Version = maxVersion + 1;
             container.Current = item;
             container.History.Add(container.Current);
-            item.Date = DateTimeOffset.Now;
+            item.Date = DateTimeOffset.Now.ToLocalTime();
 
             return container.Current;
         }

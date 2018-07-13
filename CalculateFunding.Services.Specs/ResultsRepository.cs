@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Specs.Interfaces;
 using System;
@@ -22,11 +23,11 @@ namespace CalculateFunding.Services.Specs
             _apiClientProxy = apiClientProxy;
         }
 
-        public Task<HttpStatusCode> PublishProviderResults(string specificationId)
+        public Task<HttpStatusCode> PublishProviderResults(string specificationId, UserProfile userProfile)
         {
             string url = $"{resultsUrl}{specificationId}";
 
-            return _apiClientProxy.PostAsync(url);
+            return _apiClientProxy.PostAsync(url, userProfile);
         }
 
         public async Task<bool> SpecificationHasResults(string specificationId)
