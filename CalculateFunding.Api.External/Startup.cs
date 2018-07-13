@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using CalculateFunding.Api.External.Swagger;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -28,12 +29,14 @@ namespace CalculateFunding.Api.External
                 c.SwaggerDoc("v1",
                     new Info
                     {
-                        Title = "My API",
-                        Version = "v1"
+                        //Title = "My API",
+                        //Version = "v1",
+                        //Contact = new Contact(){ Name = "cliffordsmith@education.gov.uk", Email = "Clifford Smith" }
                     });
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
+                c.OperationFilter<OperationFilterFactory>();
             });
             services.AddMvc();
         }
@@ -51,12 +54,14 @@ namespace CalculateFunding.Api.External
                 app.UseHsts();
             }
 
+            app.UseStaticFiles();
             app.UseHttpsRedirection();
             app.UseMvcWithDefaultRoute();
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                c.RoutePrefix = string.Empty;
             });
         }
     }
