@@ -21,6 +21,8 @@
             public const string CreateDraftCalculation = "calc-events-create-draft";
 
             public const string UpdateBuildProjectRelationships = "calc-events-add-relationship-to-buildproject";
+
+            public const string PublishProviderResults = "publish-provider-results";
         }
 
         public static class TopicNames

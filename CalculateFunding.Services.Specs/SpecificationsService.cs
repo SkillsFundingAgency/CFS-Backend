@@ -17,7 +17,6 @@ using System;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Models.Exceptions;
-using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
@@ -1696,15 +1695,18 @@ namespace CalculateFunding.Services.Specs
                     throw new Exception(error);
                 }
 
-                Reference user = request.GetUser();
-
-                UserProfile userProfile = new UserProfile(user);
-
-                statusCode = await _resultsRepository.PublishProviderResults(specificationId, userProfile);
-
-                if (!statusCode.IsSuccess())
+                try
                 {
-                    string error = $"Failed to publish provider results for specification id: {specificationId} with status code: {statusCode.ToString()}";
+                    IDictionary<string, string> properties = request.BuildMessageProperties();
+                    properties.Add("specification-id", specificationId);
+
+                    await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.PublishProviderResults,
+                        null,
+                        properties);
+                }
+                catch (Exception)
+                {
+                    string error = $"Failed to queue publishing of provider results for specification id: {specificationId}";
                     _logger.Error(error);
                     throw new Exception(error);
                 }

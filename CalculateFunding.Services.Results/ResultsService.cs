@@ -295,23 +295,24 @@ namespace CalculateFunding.Services.Results
             return new OkObjectResult(totalsModels);
         }
 
-        public async Task<IActionResult> PublishProviderResults(HttpRequest request)
+        public async Task PublishProviderResults(Message message)
         {
-            string specificationId = GetParameter(request, "specificationId");
+            Guard.ArgumentNotNull(message, nameof(message));
 
-            if (string.IsNullOrWhiteSpace(specificationId))
+            if (!message.UserProperties.ContainsKey("specification-id"))
             {
-                _logger.Error("No specification Id was provided to GetProviderResults");
-                return new BadRequestObjectResult("Null or empty specification Id provided");
+                _logger.Error("No specification Id was provided to PublishProviderResults");
+                throw new ArgumentException("Message must contain a specification id");
             }
+
+            string specificationId = message.UserProperties["specification-id"].ToString();
 
             IEnumerable<ProviderResult> providerResults = await GetProviderResultsBySpecificationId(specificationId);
 
             if (providerResults.IsNullOrEmpty())
             {
                 _logger.Error($"Provider results not found for specification id {specificationId}");
-
-                return new NotFoundObjectResult($"Provider results not found");
+                throw new ArgumentException("Could not find any provider results for specification");
             }
 
             SpecificationCurrentVersion specification = await _specificationsRepository.GetCurrentSpecificationById(specificationId);
@@ -319,11 +320,10 @@ namespace CalculateFunding.Services.Results
             if(specification == null)
             {
                 _logger.Error($"Specification not found for specification id {specificationId}");
-
-                return new PreconditionFailedResult($"Specification not found for specification id {specificationId}");
+                throw new ArgumentException($"Specification not found for specification id {specificationId}");
             }
 
-            Reference author = request.GetUser();
+            Reference author = message.GetUserDetails();
 
             IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsAssemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
 
@@ -336,8 +336,7 @@ namespace CalculateFunding.Services.Results
             catch (Exception ex)
             {
                 _logger.Error(ex, $"Failed to create published provider results for specification: {specificationId}");
-
-                return new InternalServerErrorResult("Failed to create published provider results");
+                throw new Exception($"Failed to create published provider results for specification: {specificationId}", ex);
             }
 
             IEnumerable<PublishedProviderCalculationResult> publishedProviderCalcuationResults = _publishedProviderResultsAssemblerService.AssemblePublishedCalculationResults(providerResults, author, specification);
@@ -349,11 +348,8 @@ namespace CalculateFunding.Services.Results
             catch (Exception ex)
             {
                 _logger.Error(ex, $"Failed to create published provider calculation results for specification: {specificationId}");
-
-                return new InternalServerErrorResult("Failed to create published provider calculation results");
+                throw new Exception($"Failed to create published provider calculation results for specification: {specificationId}", ex);
             }
-
-            return new NoContentResult();
         }
 
         async public Task<IActionResult> UpdateProviderSourceDataset(HttpRequest request)

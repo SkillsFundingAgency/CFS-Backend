@@ -1,7 +1,9 @@
 ﻿using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -286,13 +288,13 @@ namespace CalculateFunding.Services.Specs.Services
                 .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
                 .Returns(Enumerable.Empty<IndexError>());
 
-            IResultsRepository resultsRepository = CreateResultsRepository();
-            resultsRepository
-                .PublishProviderResults(Arg.Is(SpecificationId), Arg.Any<UserProfile>())
-                .Returns(HttpStatusCode.BadRequest);
+            IMessengerService messengerService = CreateMessengerService();
+            messengerService
+                .SendToQueue<string>(Arg.Is(ServiceBusConstants.QueueNames.PublishProviderResults), Arg.Is((string)null), Arg.Any<IDictionary<string,string>>())
+                .Returns(ex => { throw new Exception(); });
 
             SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, 
-                searchRepository: searchRepository, resultsRepository: resultsRepository);
+                searchRepository: searchRepository, messengerService: messengerService);
 
             //Act
             IActionResult result = await service.SelectSpecificationForFunding(request);
@@ -304,21 +306,16 @@ namespace CalculateFunding.Services.Specs.Services
                 .Which
                 .Value
                 .Should()
-                .Be($"Failed to publish provider results for specification id: {SpecificationId} with status code: BadRequest");
+                .Be($"Failed to queue publishing of provider results for specification id: {SpecificationId}");
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Failed to publish provider results for specification id: {SpecificationId} with status code: BadRequest"));
+                .Error(Arg.Is($"Failed to queue publishing of provider results for specification id: {SpecificationId}"));
 
 
             logger
                 .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Failed to publish provider results for specification id: {SpecificationId} with status code: BadRequest"));
-
-            await
-                resultsRepository
-                .Received(1)
-                .PublishProviderResults(Arg.Is(SpecificationId), Arg.Is<UserProfile>(m => m.Id == authorId && m.Name == authorName));
+                .Error(Arg.Any<Exception>(), Arg.Is($"Failed to queue publishing of provider results for specification id: {SpecificationId}"));
         }
     }
 }

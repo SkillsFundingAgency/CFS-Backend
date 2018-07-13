@@ -93,13 +93,6 @@ namespace CalculateFunding.Api.Results.Controllers
             return _resultsService.GetFundingCalculationResultsForSpecifications(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/results/publish-provider-results")]
-        [HttpPost]
-        public Task<IActionResult> RunPublishProviderResults()
-        {
-            return _resultsService.PublishProviderResults(ControllerContext.HttpContext.Request);
-        }
-
         [Route("api/results/get-published-provider-results-for-specification")]
         [HttpGet]
         public Task<IActionResult> RunGetPublishedProviderResultsForSpecification()

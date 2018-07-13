@@ -14,20 +14,11 @@ namespace CalculateFunding.Services.Specs
     {
         const string resultsForSpecificationUrl = "results/get-specification-provider-results?specificationId={0}&top={1}";
 
-        const string resultsUrl = "results/publish-provider-results?specificationId=";
-
         private readonly IResultsApiClientProxy _apiClientProxy;
 
         public ResultsRepository(IResultsApiClientProxy apiClientProxy)
         {
             _apiClientProxy = apiClientProxy;
-        }
-
-        public Task<HttpStatusCode> PublishProviderResults(string specificationId, UserProfile userProfile)
-        {
-            string url = $"{resultsUrl}{specificationId}";
-
-            return _apiClientProxy.PostAsync(url, userProfile);
         }
 
         public async Task<bool> SpecificationHasResults(string specificationId)
