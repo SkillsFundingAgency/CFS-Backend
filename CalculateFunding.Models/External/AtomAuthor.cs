@@ -2,6 +2,10 @@
 {
     public class AtomAuthor
     {
+        public AtomAuthor()
+        {
+        }
+
         public AtomAuthor(string email, string name)
         {
             Email = email;

@@ -2,6 +2,10 @@
 {
     public class Period
     {
+        public Period()
+        {
+        }
+
         public Period(string periodType, string periodId, string startDate, string endDate)
         {
             PeriodType = periodType;

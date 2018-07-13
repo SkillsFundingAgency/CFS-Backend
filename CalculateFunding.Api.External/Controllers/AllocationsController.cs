@@ -22,7 +22,7 @@ namespace CalculateFunding.Api.External.Controllers
         /// <param name="ifNoneMatch">If a previously provided ETag value is provided, the service will return a 304 Not Modified response as the resource has not changed.</param>
         [HttpGet("{allocationId}")]
 
-        [ProducesResponseType(typeof(IList<Allocation>), 200)]
+        [ProducesResponseType(typeof(Allocation), 200)]
         [ProducesResponseType(304)]
         [ProducesResponseType(401)]
         [ProducesResponseType(500)]

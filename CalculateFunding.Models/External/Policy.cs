@@ -2,6 +2,10 @@
 {
     public class Policy
     {
+        public Policy()
+        {
+        }
+
         public Policy(string policyId, string policyName, string policyDescription)
         {
             PolicyId = policyId;

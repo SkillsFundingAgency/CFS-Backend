@@ -2,6 +2,10 @@
 {
     public class ProviderPolicyResult
     {
+        public ProviderPolicyResult()
+        {
+        }
+
         public ProviderPolicyResult(Period period, Provider provider, PolicyResult policyResult)
         {
             Period = period;

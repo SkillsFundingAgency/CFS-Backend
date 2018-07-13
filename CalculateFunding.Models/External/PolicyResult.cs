@@ -4,7 +4,11 @@ namespace CalculateFunding.Models.External
 {
     public class PolicyResult
     {
-        public PolicyResult(Policy policy, double totalAmount, CalculationResult[] calculationResults)
+        public PolicyResult()
+        {
+        }
+
+        public PolicyResult(Policy policy, double totalAmount, IEnumerable<CalculationResult> calculationResults)
         {
             Policy = policy;
             TotalAmount = totalAmount;

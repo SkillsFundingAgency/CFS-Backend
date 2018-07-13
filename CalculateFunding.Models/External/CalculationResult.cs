@@ -2,6 +2,10 @@
 {
     public class CalculationResult
     {
+        public CalculationResult()
+        {
+        }
+
         public CalculationResult(string calculationName, int calculationVersionNumber, string calculationStatus, double calculationAmount)
         {
             CalculationName = calculationName;

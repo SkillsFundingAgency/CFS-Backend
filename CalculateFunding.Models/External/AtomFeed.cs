@@ -2,6 +2,10 @@
 {
     public class AtomFeed
     {
+        public AtomFeed()
+        {
+        }
+
         public AtomFeed(string id, string title, AtomAuthor atomAuthor, string updated, string rights, AtomLink link,
             AtomEntry atomEntry)
         {

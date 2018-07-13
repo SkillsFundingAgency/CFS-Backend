@@ -2,6 +2,10 @@
 {
     public class AtomEntry
     {
+        public AtomEntry()
+        {
+        }
+
         public AtomEntry(string id, string title, string summary, string published, string version, AtomLink link,
             AtomContent content)
         {

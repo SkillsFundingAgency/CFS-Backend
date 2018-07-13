@@ -4,6 +4,10 @@ namespace CalculateFunding.Models.External
 {
     public class FundingStream
     {
+        public FundingStream()
+        {
+        }
+
         public FundingStream(string fundingStreamCode, string fundingStreamName,
             IEnumerable<AllocationLine> allocationLines)
         {

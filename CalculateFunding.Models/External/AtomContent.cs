@@ -2,6 +2,10 @@
 {
     public class AtomContent
     {
+        public AtomContent()
+        {
+        }
+
         public AtomContent(Allocation allocation, string type)
         {
             Allocation = allocation;

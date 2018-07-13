@@ -4,6 +4,10 @@ namespace CalculateFunding.Models.External
 {
     public class FundingStreamResultsSummary
     {
+        public FundingStreamResultsSummary()
+        {
+        }
+
         public FundingStreamResultsSummary(FundingStream fundingStream, double totalAmount,
             IEnumerable<AllocationResult> allocations, IEnumerable<PolicyResult> policies)
         {

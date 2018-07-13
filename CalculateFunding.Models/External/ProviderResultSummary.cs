@@ -4,7 +4,11 @@ namespace CalculateFunding.Models.External
 {
     public class ProviderResultSummary
     {
-        public ProviderResultSummary(Period period, Provider provider, FundingStreamResultsSummary[] fundingStreams)
+        public ProviderResultSummary()
+        {
+        }
+
+        public ProviderResultSummary(Period period, Provider provider, IEnumerable<FundingStreamResultsSummary> fundingStreams)
         {
             Period = period;
             Provider = provider;

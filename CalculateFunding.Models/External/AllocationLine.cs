@@ -2,6 +2,10 @@
 {
     public class AllocationLine
     {
+        public AllocationLine()
+        {
+        }
+
         public AllocationLine(string allocationLineCode, string allocationLineName)
         {
             AllocationLineCode = allocationLineCode;

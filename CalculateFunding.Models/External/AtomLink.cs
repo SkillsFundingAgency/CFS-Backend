@@ -2,6 +2,10 @@
 {
     public class AtomLink
     {
+        public AtomLink()
+        {
+        }
+
         public AtomLink(string href, string rel)
         {
             Href = href;

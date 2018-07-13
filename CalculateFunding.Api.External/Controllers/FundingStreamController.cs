@@ -18,7 +18,7 @@ namespace CalculateFunding.Api.External.Controllers
         /// <returns></returns>
         [HttpGet]
         [Produces("application/json")]
-        [ProducesResponseType(typeof(IList<FundingStream>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<FundingStream>), 200)]
         [ProducesResponseType(304)]
         [ProducesResponseType(401)]
         [ProducesResponseType(500)]

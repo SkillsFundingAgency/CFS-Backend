@@ -2,6 +2,10 @@
 {
     public class Provider
     {
+        public Provider()
+        {
+        }
+
         public Provider(string ukprn, string upin, string providerOpenDate, string legalName)
         {
             Ukprn = ukprn;

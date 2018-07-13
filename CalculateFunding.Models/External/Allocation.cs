@@ -2,6 +2,10 @@
 {
     public class Allocation
     {
+        public Allocation()
+        {
+        }
+
         public Allocation(FundingStream fundingStream, Period period, Provider provider, AllocationLine allocationLine,
             int allocationVersionNumber, string status, double allocationAmount, int allocationLearnerCount)
         {

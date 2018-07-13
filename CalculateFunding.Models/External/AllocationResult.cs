@@ -2,6 +2,10 @@
 {
     public class AllocationResult
     {
+        public AllocationResult()
+        {
+        }
+
         public AllocationResult(AllocationLine allocationLine, int allocationVersionNumber, string allocationStatus,
             double aLlocationAmount, int allocationLearnerCount)
         {
