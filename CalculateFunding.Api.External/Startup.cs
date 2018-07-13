@@ -60,7 +60,6 @@ namespace CalculateFunding.Api.External
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.InjectJavascript("/assets/js/Index.js");
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
                 c.RoutePrefix = string.Empty;
             });

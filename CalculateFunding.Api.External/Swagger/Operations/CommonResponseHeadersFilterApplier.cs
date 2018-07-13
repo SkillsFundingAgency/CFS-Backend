@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
-using CalculateFunding.Api.External.Swagger.Controller.Operations.Abstractions;
 using CalculateFunding.Api.External.Swagger.Helpers;
+using CalculateFunding.Api.External.Swagger.Operations.Abstractions;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace CalculateFunding.Api.External.Swagger.Controller.Operations
+namespace CalculateFunding.Api.External.Swagger.Operations
 {
-    public class CommonResponseHeadersFilter : SwaggerOperationFilterApplierAbs
+    public class CommonResponseHeadersFilterApplier : SwaggerOperationFilterApplierAbs
     {
         public override string[] GetOperationIds() => new []{"ApiAllocationsByAllocationIdGet", "ApiFunding-streamsGet"};
 

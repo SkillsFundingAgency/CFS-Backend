@@ -22,7 +22,7 @@ namespace CalculateFunding.Api.External.Swagger.Helpers
         {
             Header headerGenerated = new Header
             {
-                Description = "An ETag of the resource",
+                Description = description,
                 Type = type
             };
             return headerGenerated;

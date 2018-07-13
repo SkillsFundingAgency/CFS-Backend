@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using CalculateFunding.Api.External.Swagger.Controller.Operations;
-using CalculateFunding.Api.External.Swagger.Controller.Operations.Abstractions;
+using CalculateFunding.Api.External.Swagger.Operations;
+using CalculateFunding.Api.External.Swagger.Operations.Abstractions;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -14,7 +15,7 @@ namespace CalculateFunding.Api.External.Swagger
         {
             IReadOnlyCollection<ISwaggerOperationFilterApplier> swaggerOperations = new List<ISwaggerOperationFilterApplier>
             {
-                new CommonResponseHeadersFilter()
+                new CommonResponseHeadersFilterApplier()
             };
 
             _swaggerOperations = swaggerOperations;

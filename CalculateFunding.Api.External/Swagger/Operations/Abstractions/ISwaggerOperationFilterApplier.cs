@@ -1,7 +1,7 @@
 ﻿using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace CalculateFunding.Api.External.Swagger.Controller.Operations.Abstractions
+namespace CalculateFunding.Api.External.Swagger.Operations.Abstractions
 {
     public interface ISwaggerOperationFilterApplier
     {
