@@ -1,25 +1,28 @@
-﻿namespace CalculateFunding.Models.External
+﻿using System;
+
+namespace CalculateFunding.Models.External
 {
+    [Serializable]
     public class Provider
     {
         public Provider()
         {
         }
 
-        public Provider(string ukprn, string upin, string providerOpenDate, string legalName)
+        public Provider(string ukprn, string upin, DateTime? providerOpenDate, string legalName)
         {
-            Ukprn = ukprn;
-            Upin = upin;
+            UKPRN = ukprn;
+            UPIN = upin;
             ProviderOpenDate = providerOpenDate;
             LegalName = legalName;
         }
 
-        public string Ukprn { get; }
+        public string UKPRN { get; set; }
 
-        public string Upin { get; }
+        public string UPIN { get; set; }
 
-        public string ProviderOpenDate { get; }
+        public DateTime? ProviderOpenDate { get; set; }
 
-        public string LegalName { get; }
+        public string LegalName { get; set; }
     }
 }

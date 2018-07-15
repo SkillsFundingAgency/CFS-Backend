@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
+﻿using CalculateFunding.Api.External.ExampleProviders;
+using CalculateFunding.Api.External.Swagger.Helpers;
+using CalculateFunding.Api.External.Swagger.OperationFilters;
 using CalculateFunding.Models.External;
+using CalculateFunding.Models.External.AtomItems;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Formatters.Internal;
+using Swashbuckle.AspNetCore.Examples;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace CalculateFunding.Api.External.Controllers
 {
-    [ApiController]
+    //[ApiController]
     [Route("api/allocations")]
+    //[Produces("application/vnd.sfa.allocation.1+json")]
     public class AllocationsController : Controller
     {
         /// <summary>
@@ -18,37 +20,21 @@ namespace CalculateFunding.Api.External.Controllers
         /// </summary>
         /// <param name="allocationId">The id of the requested allocation</param>
         /// <param name="version">An optional version reference for a specific version</param>
-        /// <param name="accept">The calculate funding service uses the Media Type provided in the Accept header to determine what representation of a particular resources to serve. In particular this includes the version of the resource and the wire format.</param>
-        /// <param name="ifNoneMatch">If a previously provided ETag value is provided, the service will return a 304 Not Modified response as the resource has not changed.</param>
         [HttpGet("{allocationId}")]
-
+        [Produces(typeof(Allocation))]
+        [SwaggerResponseExample(200, typeof(AllocationExamples))]
+        [SwaggerOperation("getAllocationById")]
+        [SwaggerOperationFilter(typeof(OperationFilter<Allocation>))]
         [ProducesResponseType(typeof(Allocation), 200)]
         [ProducesResponseType(304)]
         [ProducesResponseType(401)]
         [ProducesResponseType(500)]
-        public ActionResult GetAllocation(
-            string allocationId,
-            [FromQuery(Name = "version")] int? version,
-            [FromHeader(Name = "If-None-Match")] string ifNoneMatch,
-            [Required,FromHeader(Name = "Accept")] string accept = "application/vnd.sfa.allocation.1+json")
+        [SwaggerResponseHeader(200, "ETag", "string", "An ETag of the resource")]
+        [SwaggerResponseHeader(200, "Cache-Control", "string", "Caching information for the resource")]
+        [SwaggerResponseHeader(200, "Last-Modified", "date", "Date the resource was last modified")]
+        public IActionResult GetAllocation(string allocationId, ushort? version = null)
         {
-            IReadOnlyCollection<AllocationLine> allocationLines = new List<AllocationLine>()
-            {
-                new AllocationLine("a1", "alloc1"),
-                new AllocationLine("a2", "alloc2"),
-                new AllocationLine("a3", "alloc3")
-            };
-
-            FundingStream fundingStream1 =
-                new FundingStream("FundingStreamCode1", "FundingStreamName1", allocationLines);
-
-            Provider provider = new Provider("10025222", "A21345", DateTime.MinValue.ToShortDateString(), "Education and Skills Funding Agency");
-
-            Period period1819 = new Period("AY", "AY1819", DateTime.MinValue.ToShortDateString(), DateTime.MaxValue.ToShortDateString());
-
-            Allocation dummyAllocationToReturn = new Allocation(fundingStream1, period1819, provider, allocationLines.ElementAt(0), 1, "Status", 10000d, 200);
-
-            return Ok(dummyAllocationToReturn);
+            return ExampleFormatter.ActionResult<AllocationExamples, Allocation>(Request);
         }
     }
 }

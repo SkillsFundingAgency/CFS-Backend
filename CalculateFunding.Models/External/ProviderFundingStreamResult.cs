@@ -1,14 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Models.External
 {
+    [Serializable]
     public class ProviderFundingStreamResult
     {
         public ProviderFundingStreamResult()
         {
         }
 
-        public ProviderFundingStreamResult(Period period, Provider provider, FundingStream fundingStream, IEnumerable<PolicyResult> policyResults)
+        public ProviderFundingStreamResult(Period period, Provider provider, FundingStream fundingStream, List<PolicyResult> policyResults)
         {
             Period = period;
             Provider = provider;
@@ -22,6 +24,6 @@ namespace CalculateFunding.Models.External
 
         public FundingStream FundingStream { get; set; }
 
-        public IEnumerable<PolicyResult> PolicyResults { get; set; }
+        public List<PolicyResult> PolicyResults { get; set; }
     }
 }
