@@ -1,12 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
+using System.Reflection;
+using CalculateFunding.Api.External.ExampleProviders;
+using CalculateFunding.Api.External.Swagger.OperationFilters;
 using CalculateFunding.Models.External;
+using CsvHelper;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Examples;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 
 namespace CalculateFunding.Api.External.Controllers
 {
-    [ApiController]
     [Route("api/funding-streams")]
     public class FundingStreamController : Controller
     {
@@ -17,32 +23,78 @@ namespace CalculateFunding.Api.External.Controllers
         /// <param name="Accept">The calculate funding service uses the Media Type provided in the Accept header to determine what representation of a particular resources to serve. In particular this includes the version of the resource and the wire format.</param>
         /// <returns></returns>
         [HttpGet]
-        [Produces("application/json")]
+        [Produces(typeof(IEnumerable<FundingStream>))]
+        [SwaggerResponseExample(200, typeof(FundingStreamExamples))]
+        [SwaggerOperation("getFundingStreams")]
+        [SwaggerOperationFilter(typeof(OperationFilter<List<FundingStream>>))]
         [ProducesResponseType(typeof(IEnumerable<FundingStream>), 200)]
         [ProducesResponseType(304)]
         [ProducesResponseType(401)]
         [ProducesResponseType(500)]
-        
-        public ActionResult GetFundingStreams(
-            [FromHeader(Name = "If-None-Match")]string ifNoneMatch,
-            [Required,FromHeader(Name = "Accept")] string Accept = "application/vnd.sfa.allocation.1+json")
+        [SwaggerResponseHeader(200, "ETag", "string", "An ETag of the resource")]
+        [SwaggerResponseHeader(200, "Cache-Control", "string", "Caching information for the resource")]
+        [SwaggerResponseHeader(200, "Last-Modified", "date", "Date the resource was last modified")]
+
+        public ActionResult GetFundingStreams()
         {
-            IReadOnlyCollection<AllocationLine> allocationLines = new List<AllocationLine>()
-            {
-                new AllocationLine("a1", "alloc1"),
-                new AllocationLine("a2", "alloc2"),
-                new AllocationLine("a3", "alloc3")
-            };
-
-            FundingStream fundingStream1 =
-                new FundingStream("FundingStreamCode1", "FundingStreamName1", allocationLines);
-            FundingStream fundingStream2 =
-                new FundingStream("FundingStreamCode2", "FundingStreamName2", allocationLines);
-
-            IList<FundingStream> fundingStreams = new List<FundingStream>() {fundingStream1, fundingStream2};
-            return Ok(fundingStreams);
+            return Json(FakeData());
         }
 
-        
+        internal static IEnumerable<FundingStream> FakeData()
+        {
+            var allocationLines = FakeAllocationLines();
+            using (var stream = Assembly.GetExecutingAssembly()
+                .GetManifestResourceStream("CalculateFunding.Api.External.StoreExport.budgets.csv"))
+            {
+                using (var textReader = new StreamReader(stream))
+                {
+                    var csv = new CsvReader(textReader);
+                    while (csv.Read())
+                    {
+                        var name = csv.GetField<string>(0);
+                        var id = csv.GetField<string>(1);
+                        allocationLines.TryGetValue(id, out var lines);
+                        yield return new FundingStream
+                        {
+                            FundingStreamCode = id,
+                            FundingStreamName = name,
+                            AllocationLines = lines?.ToArray() ?? new AllocationLine[0]
+                        };
+
+                    }
+                }
+            }
+        }
+
+        private static Dictionary<string, List<AllocationLine>> FakeAllocationLines()
+        {
+            var results = new Dictionary<string, List<AllocationLine>>();
+            using (var stream = Assembly.GetExecutingAssembly()
+                .GetManifestResourceStream("CalculateFunding.Api.External.StoreExport.allocation-lines.csv"))
+            {
+                using (var textReader = new StreamReader(stream))
+                {
+                    var csv = new CsvReader(textReader);
+                    while (csv.Read())
+                    {
+                        var name = csv.GetField<string>(2);
+                        var id = csv.GetField<string>(0);
+                        var budgetId = csv.GetField<string>(1);
+                        if (!results.TryGetValue(budgetId, out var allocationLines))
+                        {
+                            allocationLines = new List<AllocationLine>();
+                            results.Add(budgetId, allocationLines);
+                        }
+                        allocationLines.Add(new AllocationLine
+                        {
+                            AllocationLineCode = id,
+                            AllocationLineName = name
+                        });
+
+                    }
+                }
+            }
+            return results;
+        }
     }
 }

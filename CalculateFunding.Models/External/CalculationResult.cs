@@ -1,12 +1,15 @@
-﻿namespace CalculateFunding.Models.External
+﻿using System;
+
+namespace CalculateFunding.Models.External
 {
+    [Serializable]
     public class CalculationResult
     {
         public CalculationResult()
         {
         }
 
-        public CalculationResult(string calculationName, int calculationVersionNumber, string calculationStatus, double calculationAmount)
+        public CalculationResult(string calculationName, ushort calculationVersionNumber, string calculationStatus, decimal calculationAmount)
         {
             CalculationName = calculationName;
             CalculationVersionNumber = calculationVersionNumber;
@@ -16,10 +19,10 @@
 
         public string CalculationName { get; set; }
 
-        public int CalculationVersionNumber { get; set; }
+        public ushort CalculationVersionNumber { get; set; }
 
         public string CalculationStatus { get; set; }
 
-        public double CalculationAmount { get; set; }
+        public decimal CalculationAmount { get; set; }
     }
 }
