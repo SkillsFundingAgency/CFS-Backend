@@ -36,6 +36,7 @@ namespace CalculateFunding.Api.External
                     options.OutputFormatters.FirstOrDefault(f => f.GetType() == typeof(JsonOutputFormatter)) as
                         JsonOutputFormatter;
                 jFormatter?.SupportedMediaTypes.Clear();
+                jFormatter?.SupportedMediaTypes.Add("text/plain");
                 jFormatter?.SupportedMediaTypes.Add("application/vnd.sfa.allocation.1+json");
                 jFormatter?.SupportedMediaTypes.Add("application/vnd.sfa.allocation.1+atom+json");
 
