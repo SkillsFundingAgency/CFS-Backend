@@ -40,7 +40,6 @@ namespace CalculateFunding.Services.Results
         private readonly IMapper _mapper;
         private readonly ISearchRepository<ProviderIndex> _searchRepository;
         private readonly IMessengerService _messengerService;
-        private readonly ServiceBusSettings _eventHubSettings;
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
         private readonly ISearchRepository<CalculationProviderResultsIndex> _calculationProviderResultsSearchRepository;
         private readonly Polly.Policy _resultsRepositoryPolicy;
@@ -58,7 +57,6 @@ namespace CalculateFunding.Services.Results
             IMapper mapper,
             ISearchRepository<ProviderIndex> searchRepository,
             IMessengerService messengerService,
-            ServiceBusSettings EventHubSettings,
             ITelemetry telemetry,
             IProviderSourceDatasetRepository providerSourceDatasetRepository,
             ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository,
@@ -75,7 +73,6 @@ namespace CalculateFunding.Services.Results
             _mapper = mapper;
             _searchRepository = searchRepository;
             _messengerService = messengerService;
-            _eventHubSettings = EventHubSettings;
             _telemetry = telemetry;
             _providerSourceDatasetRepository = providerSourceDatasetRepository;
             _calculationProviderResultsSearchRepository = calculationProviderResultsSearchRepository;

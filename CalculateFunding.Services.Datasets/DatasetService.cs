@@ -47,7 +47,6 @@ namespace CalculateFunding.Services.Datasets
         private readonly ISearchRepository<DatasetIndex> _searchRepository;
         private readonly IValidator<GetDatasetBlobModel> _getDatasetBlobModelValidator;
         private readonly IMessengerService _messengerService;
-        private readonly ServiceBusSettings _eventHubSettings;
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly IExcelDatasetReader _excelDatasetReader;
         private readonly ICacheProvider _cacheProvider;
@@ -73,7 +72,6 @@ namespace CalculateFunding.Services.Datasets
             IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator,
             ISpecificationsRepository specificationsRepository,
             IMessengerService messengerService,
-            ServiceBusSettings eventHubSettings,
             IExcelDatasetReader excelDatasetReader,
             ICacheProvider cacheProvider,
             ICalcsRepository calcsRepository,
@@ -92,7 +90,6 @@ namespace CalculateFunding.Services.Datasets
             _searchRepository = searchRepository;
             _getDatasetBlobModelValidator = getDatasetBlobModelValidator;
             _messengerService = messengerService;
-            _eventHubSettings = eventHubSettings;
             _specificationsRepository = specificationsRepository;
             _excelDatasetReader = excelDatasetReader;
             _cacheProvider = cacheProvider;

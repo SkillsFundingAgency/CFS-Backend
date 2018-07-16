@@ -49,7 +49,14 @@ namespace CalculateFunding.Functions.Users
                 return new UserRepository(usersCosmosRepostory);
             });
 
-            builder.AddCosmosDb(config);
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                builder.AddCosmosDb(config, "users");
+            }
+            else
+            {
+                builder.AddCosmosDb(config);
+            }
 
             builder.AddCaching(config);
 

@@ -13,6 +13,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
 {
     public static class OnCalcsCreateDraftEvent
     {
+
         [FunctionName("on-calcs-create-draft-event")]
         public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.CreateDraftCalculation, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
@@ -36,5 +37,6 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
                 
             }
         }
+
     }
 }

@@ -1357,7 +1357,6 @@ namespace CalculateFunding.Services.Results.Services
             IMapper mapper = null,
             ISearchRepository<ProviderIndex> searchRepository = null,
             IMessengerService messengerService = null,
-            ServiceBusSettings EventHubSettings = null,
             ITelemetry telemetry = null,
             IProviderSourceDatasetRepository providerSourceDatasetRepository = null,
             ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository = null,
@@ -1375,7 +1374,6 @@ namespace CalculateFunding.Services.Results.Services
                 mapper ?? CreateMapper(),
                 searchRepository ?? CreateSearchRepository(),
                 messengerService ?? CreateMessengerService(),
-                EventHubSettings ?? CreateEventHubSettings(),
                 telemetry ?? CreateTelemetry(),
                 providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository(),
                 calculationProviderResultsSearchRepository ?? CreateCalculationProviderResultsSearchRepository(),
@@ -1446,11 +1444,6 @@ namespace CalculateFunding.Services.Results.Services
         static IMessengerService CreateMessengerService()
         {
             return Substitute.For<IMessengerService>();
-        }
-
-        static ServiceBusSettings CreateEventHubSettings()
-        {
-            return new ServiceBusSettings();
         }
 
         static ISearchRepository<CalculationProviderResultsIndex> CreateCalculationProviderResultsSearchRepository()

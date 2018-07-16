@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "CalculateFunding.Functions.DebugQueue": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

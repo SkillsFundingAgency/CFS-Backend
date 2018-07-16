@@ -119,7 +119,14 @@ namespace CalculateFunding.Functions.Calcs
 
             IConfigurationRoot config = Services.Core.Extensions.ConfigHelper.AddConfig();
 
-            builder.AddCosmosDb(config);
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                builder.AddCosmosDb(config, "calcs");
+            }
+            else
+            {
+                builder.AddCosmosDb(config);
+            }
 
             builder.AddSearch(config);
 

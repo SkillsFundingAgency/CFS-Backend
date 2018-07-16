@@ -33,7 +33,6 @@ namespace CalculateFunding.Services.Calcs
 
         private readonly IBuildProjectsRepository _buildProjectsRepository;
         private readonly IMessengerService _messengerService;
-        private readonly ServiceBusSettings _eventHubSettings;
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
         private readonly IProviderResultsRepository _providerResultsRepository;
@@ -48,7 +47,6 @@ namespace CalculateFunding.Services.Calcs
         public BuildProjectsService(
             IBuildProjectsRepository buildProjectsRepository,
             IMessengerService messengerService,
-            ServiceBusSettings eventHubSettings,
             ILogger logger,
             ITelemetry telemetry,
             IProviderResultsRepository providerResultsRepository,
@@ -61,7 +59,6 @@ namespace CalculateFunding.Services.Calcs
         {
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
-            Guard.ArgumentNotNull(eventHubSettings, nameof(eventHubSettings));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(providerResultsRepository, nameof(providerResultsRepository));
@@ -74,7 +71,6 @@ namespace CalculateFunding.Services.Calcs
 
             _buildProjectsRepository = buildProjectsRepository;
             _messengerService = messengerService;
-            _eventHubSettings = eventHubSettings;
             _logger = logger;
             _telemetry = telemetry;
             _providerResultsRepository = providerResultsRepository;

@@ -157,16 +157,7 @@ namespace CalculateFunding.Services.Scenarios
 
             await _cacheProvider.RemoveAsync<GherkinParseResult>($"{CacheKeys.GherkinParseResult}{testScenario.Id}");
 
-            BuildProject buildProject = await _buildProjectRepository.GetBuildProjectBySpecificationId(testScenario.SpecificationId);
-
-            if (buildProject == null)
-            {
-                _logger.Error($"Failed to find a build project for specification id {testScenario.SpecificationId}");
-            }
-            else
-            {
-                await SendGenerateAllocationsMessage(buildProject, request);
-            }
+            await SendGenerateAllocationsMessage(specification.Id, request);
 
             CurrentTestScenario testScenarioResult = await _scenariosRepository.GetCurrentTestScenarioById(testScenario.Id);
 
@@ -387,16 +378,16 @@ namespace CalculateFunding.Services.Scenarios
             return properties;
         }
 
-        Task SendGenerateAllocationsMessage(BuildProject buildProject, HttpRequest request)
+        Task SendGenerateAllocationsMessage(string specificationId, HttpRequest request)
         {
             IDictionary<string, string> properties = request.BuildMessageProperties();
 
-            properties.Add("specification-id", buildProject.SpecificationId);
+            properties.Add("specification-id", specificationId);
 
             properties.Add("ignore-save-provider-results", "true");
 
-            return _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
-                buildProject,
+            return _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
+                null,
                 properties);
         }
 

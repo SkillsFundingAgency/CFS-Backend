@@ -36,11 +36,16 @@ namespace CalculateFunding.Services.Core.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddCosmosDb(this IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceCollection AddCosmosDb(this IServiceCollection builder, IConfigurationRoot config, string collectionNameOverride = null)
         {
             CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
             config.Bind("CosmosDbSettings", cosmosDbSettings);
+
+            if (!string.IsNullOrWhiteSpace(collectionNameOverride))
+            {
+                cosmosDbSettings.CollectionName = collectionNameOverride;
+            }
 
             builder.AddSingleton<CosmosDbSettings>(cosmosDbSettings);
 
@@ -154,14 +159,26 @@ namespace CalculateFunding.Services.Core.Extensions
 
         public static IServiceCollection AddServiceBus(this IServiceCollection builder, IConfigurationRoot config)
         {
-            ServiceBusSettings serviceBusSettings = new ServiceBusSettings();
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                builder
+                .AddSingleton<IMessengerService, QueueMessengerService>((ctx) => {
 
-            config.Bind("ServiceBusSettings", serviceBusSettings);
+                    return new QueueMessengerService("UseDevelopmentStorage=true");
+                });
+            }
+            else
+            {
 
-            builder.AddSingleton(serviceBusSettings);
+                ServiceBusSettings serviceBusSettings = new ServiceBusSettings();
 
-            builder
-                .AddSingleton<IMessengerService, MessengerService>();
+                config.Bind("ServiceBusSettings", serviceBusSettings);
+
+                builder.AddSingleton(serviceBusSettings);
+
+                builder
+                    .AddSingleton<IMessengerService, MessengerService>();
+            }
 
             return builder;
         }

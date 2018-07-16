@@ -41,7 +41,6 @@ namespace CalculateFunding.Services.Specs
         private readonly IValidator<SpecificationCreateModel> _specificationCreateModelvalidator;
         private readonly IValidator<CalculationCreateModel> _calculationCreateModelValidator;
         private readonly IMessengerService _messengerService;
-        private readonly ServiceBusSettings _eventHubSettings;
         private readonly ISearchRepository<SpecificationIndex> _searchRepository;
         private readonly IValidator<AssignDefinitionRelationshipMessage> _assignDefinitionRelationshipMessageValidator;
         private readonly IValidator<SpecificationEditModel> _specificationEditModelValidator;
@@ -58,7 +57,6 @@ namespace CalculateFunding.Services.Specs
             IValidator<SpecificationCreateModel> specificationCreateModelValidator,
             IValidator<CalculationCreateModel> calculationCreateModelValidator,
             IMessengerService messengerService,
-            ServiceBusSettings eventHubSettings,
             ISearchRepository<SpecificationIndex> searchRepository,
             IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator,
             ICacheProvider cacheProvider,
@@ -74,7 +72,6 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(specificationCreateModelValidator, nameof(specificationCreateModelValidator));
             Guard.ArgumentNotNull(calculationCreateModelValidator, nameof(calculationCreateModelValidator));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
-            Guard.ArgumentNotNull(eventHubSettings, nameof(eventHubSettings));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(assignDefinitionRelationshipMessageValidator, nameof(assignDefinitionRelationshipMessageValidator));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
@@ -89,7 +86,6 @@ namespace CalculateFunding.Services.Specs
             _specificationCreateModelvalidator = specificationCreateModelValidator;
             _calculationCreateModelValidator = calculationCreateModelValidator;
             _messengerService = messengerService;
-            _eventHubSettings = eventHubSettings;
             _searchRepository = searchRepository;
             _assignDefinitionRelationshipMessageValidator = assignDefinitionRelationshipMessageValidator;
             _cacheProvider = cacheProvider;

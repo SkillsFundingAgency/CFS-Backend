@@ -58,7 +58,14 @@ namespace CalculateFunding.Functions.Specs
 
             builder.AddSingleton(mappingConfig.CreateMapper());
 
-            builder.AddCosmosDb(config);
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                builder.AddCosmosDb(config, "specs");
+            }
+            else
+            {
+                builder.AddCosmosDb(config);
+            }
 
             builder.AddServiceBus(config);
 

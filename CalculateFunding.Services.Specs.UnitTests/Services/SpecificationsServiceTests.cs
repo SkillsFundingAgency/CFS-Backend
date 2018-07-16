@@ -59,7 +59,6 @@ namespace CalculateFunding.Services.Specs.Services
                 specificationCreateModelvalidator ?? CreateSpecificationValidator(),
                 calculationCreateModelValidator ?? CreateCalculationValidator(),
                 messengerService ?? CreateMessengerService(),
-                EventHubSettings ?? CreateEventHubSettings(),
                 searchRepository ?? CreateSearchRepository(),
                 assignDefinitionRelationshipMessageValidator ?? CreateAssignDefinitionRelationshipMessageValidator(),
                 cacheProvider ?? CreateCacheProvider(),
@@ -104,13 +103,6 @@ namespace CalculateFunding.Services.Specs.Services
         static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
-        }
-
-        static ServiceBusSettings CreateEventHubSettings()
-        {
-            return new ServiceBusSettings
-            {
-            };
         }
 
         static ISearchRepository<SpecificationIndex> CreateSearchRepository()

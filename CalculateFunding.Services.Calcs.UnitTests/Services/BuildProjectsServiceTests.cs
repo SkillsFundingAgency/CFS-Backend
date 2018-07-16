@@ -667,7 +667,6 @@ namespace CalculateFunding.Services.Calcs.Services
         static BuildProjectsService CreateBuildProjectsService(
             IBuildProjectsRepository buildProjectsRepository = null, 
             IMessengerService messengerService = null,
-            ServiceBusSettings EventHubSettings = null, 
             ILogger logger = null, 
             ITelemetry telemetry = null,
             IProviderResultsRepository providerResultsRepository = null, 
@@ -681,7 +680,6 @@ namespace CalculateFunding.Services.Calcs.Services
             return new BuildProjectsService(
                 buildProjectsRepository ?? CreateBuildProjectsRepository(),
                 messengerService ?? CreateMessengerService(),
-                EventHubSettings ?? CreateEventHubSettings(), 
                 logger ?? CreateLogger(), 
                 telemetry ?? CreateTelemetry(),
                 providerResultsRepository ?? CreateProviderResultsRepository(), 
@@ -737,13 +735,6 @@ namespace CalculateFunding.Services.Calcs.Services
         static IMessengerService CreateMessengerService()
         {
             return Substitute.For<IMessengerService>();
-        }
-
-        static ServiceBusSettings CreateEventHubSettings()
-        {
-            return new ServiceBusSettings
-            {
-            };
         }
 
         static IBuildProjectsRepository CreateBuildProjectsRepository()

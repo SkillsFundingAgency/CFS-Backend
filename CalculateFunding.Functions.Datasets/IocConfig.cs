@@ -150,7 +150,14 @@ namespace CalculateFunding.Functions.Datasets
             builder.AddResultsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
 
-            builder.AddCosmosDb(config);
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                builder.AddCosmosDb(config, "datasets");
+            }
+            else
+            {
+                builder.AddCosmosDb(config);
+            }
 
             builder.AddSearch(config);
 

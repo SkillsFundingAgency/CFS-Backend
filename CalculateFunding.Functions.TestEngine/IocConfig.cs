@@ -121,7 +121,14 @@ namespace CalculateFunding.Functions.TestEngine
 
             builder.AddSingleton<ITestResultsService, TestResultsService>();
 
-            builder.AddCosmosDb(config);
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                builder.AddCosmosDb(config, "testresults");
+            }
+            else
+            {
+                builder.AddCosmosDb(config);
+            }
 
             builder.AddSearch(config);
 

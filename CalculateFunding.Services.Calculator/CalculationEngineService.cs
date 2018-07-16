@@ -244,11 +244,11 @@ namespace CalculateFunding.Services.Calculator
                     IDictionary<string, string> properties = message.BuildMessageProperties();
 
                     properties.Add("specificationId", specificationId);
-
+                   
                     properties.Add("providerResultsCacheKey", providerResultsCacheKey);
 
                     Stopwatch saveQueueStopwatch = Stopwatch.StartNew();
-                    await _messengerServicePolicy.ExecuteAsync(() => _messengerService.SendToQueue(ExecuteTestsEventSubscription, buildProject, properties));
+                    await _messengerServicePolicy.ExecuteAsync(() => _messengerService.SendToQueue<string>(ExecuteTestsEventSubscription, null, properties));
                     saveQueueStopwatch.Stop();
 
                     saveQueueElapsedMs = saveQueueStopwatch.ElapsedMilliseconds;

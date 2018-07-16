@@ -19,6 +19,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Caching;
+using System;
 
 namespace CalculateFunding.Services.TestRunner.Services
 {
@@ -32,6 +33,7 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly IProviderSourceDatasetsRepository _providerSourceDatasetsRepository;
         private readonly ITestResultsService _testResultsService;
         private readonly ITestResultsRepository _testResultsRepository;
+        private readonly IBuildProjectRepository _buildProjectRepository;
         private readonly ITelemetry _telemetry;
 
         private readonly Polly.Policy _cacheProviderPolicy;
@@ -39,6 +41,8 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly Polly.Policy _scenariosRepositoryPolicy;
         private readonly Polly.Policy _providerSourceDatasetsRepositoryPolicy;
         private readonly Polly.Policy _testResultsRepositoryPolicy;
+        private readonly Polly.Policy _builProjectsRepositoryPolicy;
+       
 
         public TestEngineService(
             ICacheProvider cacheProvider,
@@ -49,6 +53,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             IProviderSourceDatasetsRepository providerSourceDatasetsRepository,
             ITestResultsService testResultsService,
             ITestResultsRepository testResultsRepository,
+            IBuildProjectRepository buildProjectRepository,
             ITelemetry telemetry,
             ITestRunnerResiliencePolicies resiliencePolicies)
         {
@@ -67,19 +72,13 @@ namespace CalculateFunding.Services.TestRunner.Services
             _scenariosRepositoryPolicy = resiliencePolicies.ScenariosRepository;
             _providerSourceDatasetsRepositoryPolicy = resiliencePolicies.ProviderSourceDatasetsRepository;
             _testResultsRepositoryPolicy = resiliencePolicies.TestResultsRepository;
+            _builProjectsRepositoryPolicy = resiliencePolicies.BuildProjectRepository;
+            _buildProjectRepository = buildProjectRepository;
         }
 
         public async Task RunTests(Message message)
         {
             Stopwatch runTestsStopWatch = Stopwatch.StartNew();
-
-            BuildProject buildProject = message.GetPayloadAsInstanceOf<BuildProject>();
-
-            if (buildProject == null)
-            {
-                _logger.Error("Null build project provided");
-                return;
-            }
 
             string specificationId = message.UserProperties["specificationId"].ToString();
 
@@ -87,6 +86,15 @@ namespace CalculateFunding.Services.TestRunner.Services
             {
                 _logger.Error("Null or empty specification id provided");
                 return;
+            }
+
+            BuildProject buildProject = await _builProjectsRepositoryPolicy.ExecuteAsync(() => _buildProjectRepository.GetBuildProjectBySpecificationId(specificationId));
+
+            if (buildProject == null)
+            {
+                _logger.Error("A null build project was provided to UpdateAllocations");
+
+                throw new ArgumentNullException(nameof(buildProject));
             }
 
             string cacheKey = message.UserProperties["providerResultsCacheKey"].ToString();

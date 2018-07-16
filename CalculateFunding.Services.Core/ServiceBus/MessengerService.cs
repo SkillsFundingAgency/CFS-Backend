@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
             });
         }
 
-        public async Task SendToQueue<T>(string queueName, T data, IDictionary<string, string> properties)
+        public async Task SendToQueue<T>(string queueName, T data, IDictionary<string, string> properties) where T : class
         {
             var queueClient = GetQueueClient(queueName);
 
@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
             });
         }
 
-        public async Task SendToTopic<T>(string topicName, T data, IDictionary<string, string> properties)
+        public async Task SendToTopic<T>(string topicName, T data, IDictionary<string, string> properties) where T : class
         {
             var topicClient = GetTopicClient(topicName);
 

@@ -31,14 +31,13 @@ namespace CalculateFunding.Services.Datasets
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly IValidator<CreateDefinitionSpecificationRelationshipModel> _relationshipModelValidator;
         private readonly IMessengerService _messengerService;
-        private readonly ServiceBusSettings _eventHubSettings;
         private readonly IDatasetService _datasetService;
         private readonly ICalcsRepository _calcsRepository;
 
         public DefinitionSpecificationRelationshipService(IDatasetRepository datasetRepository, 
             ILogger logger, ISpecificationsRepository specificationsRepository, 
             IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator, 
-            IMessengerService messengerService, ServiceBusSettings eventHubSettings, IDatasetService datasetService, ICalcsRepository calcsRepository)
+            IMessengerService messengerService, IDatasetService datasetService, ICalcsRepository calcsRepository)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -51,7 +50,6 @@ namespace CalculateFunding.Services.Datasets
             _specificationsRepository = specificationsRepository;
             _relationshipModelValidator = relationshipModelValidator;
             _messengerService = messengerService;
-            _eventHubSettings = eventHubSettings;
             _datasetService = datasetService;
             _calcsRepository = calcsRepository;
         }

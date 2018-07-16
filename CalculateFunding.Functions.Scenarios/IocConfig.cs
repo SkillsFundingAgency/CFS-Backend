@@ -63,7 +63,14 @@ namespace CalculateFunding.Functions.Scenarios
             builder.AddCalcsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
 
-            builder.AddCosmosDb(config);
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                builder.AddCosmosDb(config, "tests");
+            }
+            else
+            {
+                builder.AddCosmosDb(config);
+            }
 
             builder.AddSearch(config);
 
