@@ -12,18 +12,18 @@ namespace CalculateFunding.Models.External
         {
         }
 
-        //public Allocation(FundingStream fundingStream, Period period, Provider provider, AllocationLine allocationLine,
-        //    ushort allocationVersionNumber, string status, decimal allocationAmount, uint? allocationLearnerCount)
-        //{
-        //    FundingStream = fundingStream;
-        //    Period = period;
-        //    Provider = provider;
-        //    AllocationLine = allocationLine;
-        //    AllocationVersionNumber = allocationVersionNumber;
-        //    AllocationStatus = status;
-        //    AllocationAmount = allocationAmount;
-        //    AllocationLearnerCount = allocationLearnerCount;
-        //}
+        public Allocation(FundingStream fundingStream, Period period, Provider provider, AllocationLine allocationLine,
+            ushort allocationVersionNumber, string status, decimal allocationAmount, uint? allocationLearnerCount)
+        {
+            FundingStream = fundingStream;
+            Period = period;
+            Provider = provider;
+            AllocationLine = allocationLine;
+            AllocationVersionNumber = allocationVersionNumber;
+            AllocationStatus = status;
+            AllocationAmount = allocationAmount;
+            AllocationLearnerCount = allocationLearnerCount;
+        }
 
         public FundingStream FundingStream { get; set; }
 

@@ -15,7 +15,7 @@ namespace CalculateFunding.Api.External.ExampleProviders
                 Provider = new Provider
                 {
                     LegalName = "Provider name",
-                    UKPRN = "12341234",
+                    Ukprn = "12341234",
                     ProviderOpenDate = new DateTime(2016, 4, 1)
                 },
                 Period = new Period
@@ -92,7 +92,7 @@ public class FundingStreamResultCalculationExamples : IExamplesProvider
                     FundingStreamCode = "YPLRE",
                     FundingStreamName = "Academies General Annual Grant"
                 },
-                Provider = new Provider { LegalName = "Provider name", UKPRN = "12341234", ProviderOpenDate = new DateTime(2016, 4, 1) },
+                Provider = new Provider { LegalName = "Provider name", Ukprn = "12341234", ProviderOpenDate = new DateTime(2016, 4, 1) },
                 Period = new Period
                 {
                     PeriodType = "AY",

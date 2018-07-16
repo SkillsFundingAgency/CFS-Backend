@@ -11,7 +11,7 @@ namespace CalculateFunding.Api.External.ExampleProviders
         {
             return new ProviderResultSummary
             {
-                Provider = new Provider {LegalName = "", UKPRN = "", ProviderOpenDate = new DateTime(2016, 4, 1)},
+                Provider = new Provider {LegalName = "", Ukprn = "", ProviderOpenDate = new DateTime(2016, 4, 1)},
                 Period = new Period
                 {
                     PeriodType = "AY",

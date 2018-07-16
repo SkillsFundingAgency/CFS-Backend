@@ -11,17 +11,17 @@ namespace CalculateFunding.Models.External
 
         public Provider(string ukprn, string upin, DateTime? providerOpenDate, string legalName)
         {
-            UKPRN = ukprn;
-            UPIN = upin;
+            Ukprn = ukprn;
+            Upin = upin;
             ProviderOpenDate = providerOpenDate;
             LegalName = legalName;
         }
 
-        public string UKPRN { get; set; }
+        public string Ukprn { get; set; }
 
-        public string UPIN { get; set; }
+        public string Upin { get; set; }
 
-        public DateTime? ProviderOpenDate { get; set; }
+        public DateTimeOffset? ProviderOpenDate { get; set; }
 
         public string LegalName { get; set; }
     }

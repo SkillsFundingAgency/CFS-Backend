@@ -21,8 +21,8 @@ namespace CalculateFunding.Models.External
 
         public decimal TotalAmount { get; set; }
 
-        public List<CalculationResult> Calculations { get; set; }
+        public IEnumerable<CalculationResult> Calculations { get; set; }
 
-        public List<PolicyResult> SubPolicyResults { get; set; }
+        public IEnumerable<PolicyResult> SubPolicyResults { get; set; }
     }
 }

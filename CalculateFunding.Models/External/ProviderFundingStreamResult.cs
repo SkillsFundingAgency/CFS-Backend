@@ -24,6 +24,6 @@ namespace CalculateFunding.Models.External
 
         public FundingStream FundingStream { get; set; }
 
-        public List<PolicyResult> PolicyResults { get; set; }
+        public IEnumerable<PolicyResult> PolicyResults { get; set; }
     }
 }

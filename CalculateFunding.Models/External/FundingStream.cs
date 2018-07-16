@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Models.External
 {
@@ -13,7 +14,7 @@ namespace CalculateFunding.Models.External
         }
 
         public FundingStream(string fundingStreamCode, string fundingStreamName,
-            AllocationLine[] allocationLines)
+            IEnumerable<AllocationLine> allocationLines)
         {
             FundingStreamCode = fundingStreamCode;
             FundingStreamName = fundingStreamName;
@@ -33,6 +34,6 @@ namespace CalculateFunding.Models.External
         /// <summary>
         /// The allocation lines that relate to this funding stream
         /// </summary>
-        public AllocationLine[] AllocationLines { get; set; }
+        public IEnumerable<AllocationLine> AllocationLines { get; set; }
     }
 }

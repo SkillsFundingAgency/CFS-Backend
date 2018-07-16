@@ -42,26 +42,29 @@ namespace CalculateFunding.Api.External.Controllers
         [ProducesResponseType(500)]
         public ActionResult Summary(string ukprn, string periodId, bool includeUnpublished = false)
         {
+            List<FundingStreamResultSummary> fundingStreamResultSummaries = new List<FundingStreamResultSummary>();
             var result = new ProviderResultSummary
             {
                 Provider = new Provider(),
                 Period = TimePeriodsController.FakeData().FirstOrDefault(x => x.PeriodId == periodId),
-                FundingStreamResults = new List<FundingStreamResultSummary>()
+                FundingStreamResults = fundingStreamResultSummaries
             };
-
-            var sbs = new PolicyResult { Policy = new Policy { PolicyId = "sbs", PolicyName = "School Block Share", PolicyDescription = "TBC" }, SubPolicyResults = new List<PolicyResult>() };
 
             var be = new PolicyResult { Policy = new Policy { PolicyId = "basic-entitlement", PolicyName = "Basic Entitlement", PolicyDescription = "TBC" }, Calculations = GetCalculationResults(ukprn, result.Provider, "sbs-basic-entitlement.csv") };
             be.TotalAmount = be.Calculations.Sum(x => x.CalculationAmount);
+
             var plf = new AllocationResult
             {
                 AllocationLine = new AllocationLine { AllocationLineCode = "YPE13", AllocationLineName = "Pupil led factors" },
                 AllocationAmount = be.Calculations.Sum(x => x.CalculationAmount)
             };
-            sbs.SubPolicyResults.Add(be);
+
+            List<PolicyResult> subPolicyResults = new List<PolicyResult>();
+            subPolicyResults.Add(be);
+            var sbs = new PolicyResult { Policy = new Policy { PolicyId = "sbs", PolicyName = "School Block Share", PolicyDescription = "TBC" }, SubPolicyResults = subPolicyResults };
             sbs.TotalAmount = sbs.SubPolicyResults.Sum(x => x.TotalAmount);
 
-            result.FundingStreamResults.Add(new FundingStreamResultSummary
+            fundingStreamResultSummaries.Add(new FundingStreamResultSummary
             {
                 FundingStream = new FundingStream
                 {
@@ -72,8 +75,7 @@ namespace CalculateFunding.Api.External.Controllers
                 Policies = new List<PolicyResult> { sbs }
             });
 
-
-            if (result?.Provider?.UKPRN == null) return NotFound();
+            if (result?.Provider?.Ukprn == null) return NotFound();
             return Json(result);
         }
 
@@ -103,11 +105,12 @@ namespace CalculateFunding.Api.External.Controllers
             var result = new ProviderPolicyResult
             {
                 Provider = new Provider(),
-                Period = TimePeriodsController.FakeData().FirstOrDefault(x => x.PeriodId == periodId),
-
+                Period = TimePeriodsController.FakeData().FirstOrDefault(x => x.PeriodId == periodId)
             };
 
-            var sbs = new PolicyResult { Policy = new Policy { PolicyId = "sbs", PolicyName = "School Block Share", PolicyDescription = "TBC" }, SubPolicyResults = new List<PolicyResult>() };
+
+            List<PolicyResult> subPolicyResults = new List<PolicyResult>();
+            var sbs = new PolicyResult { Policy = new Policy { PolicyId = "sbs", PolicyName = "School Block Share", PolicyDescription = "TBC" }, SubPolicyResults = subPolicyResults };
 
             var be = new PolicyResult { Policy = new Policy { PolicyId = "basic-entitlement", PolicyName = "Basic Entitlement", PolicyDescription = "TBC" }, Calculations = GetCalculationResults(ukprn, result.Provider, "sbs-basic-entitlement.csv") };
             be.TotalAmount = be.Calculations.Sum(x => x.CalculationAmount);
@@ -116,13 +119,13 @@ namespace CalculateFunding.Api.External.Controllers
                 AllocationLine = new AllocationLine { AllocationLineCode = "YPE13", AllocationLineName = "Pupil led factors" },
                 AllocationAmount = be.Calculations.Sum(x => x.CalculationAmount)
             };
-            sbs.SubPolicyResults.Add(be);
+            subPolicyResults.Add(be);
             sbs.TotalAmount = sbs.SubPolicyResults.Sum(x => x.TotalAmount);
 
             result.PolicyResult = sbs;
 
 
-            if (result?.Provider?.UKPRN == null) return NotFound();
+            if (result?.Provider?.Ukprn == null) return NotFound();
             return Json(result);
         }
 
@@ -149,6 +152,7 @@ namespace CalculateFunding.Api.External.Controllers
         [ProducesResponseType(500)]
         public ActionResult AllocationsLineCodes(string ukprn, string periodId, string fundingStreamCode, string allocationLineCode, bool includeUnpublished = false)
         {
+            List<PolicyResult> policyResults = new List<PolicyResult>();
             var result = new ProviderFundingStreamResult
             {
                 Provider = new Provider(),
@@ -158,20 +162,21 @@ namespace CalculateFunding.Api.External.Controllers
                     FundingStreamCode = "YPLRE",
                     FundingStreamName = "Academies General Annual Grant"
                 },
-                PolicyResults = new List<PolicyResult>()
+                PolicyResults = policyResults
             };
 
-            var sbs = new PolicyResult { Policy = new Policy { PolicyId = "sbs", PolicyName = "School Block Share", PolicyDescription = "TBC" }, SubPolicyResults = new List<PolicyResult>() };
+            List<PolicyResult> subPolicyResults = new List<PolicyResult>();
+            var sbs = new PolicyResult { Policy = new Policy { PolicyId = "sbs", PolicyName = "School Block Share", PolicyDescription = "TBC" }, SubPolicyResults = subPolicyResults };
 
             var be = new PolicyResult { Policy = new Policy { PolicyId = "basic-entitlement", PolicyName = "Basic Entitlement", PolicyDescription = "TBC" }, Calculations = GetCalculationResults(ukprn, result.Provider, "sbs-basic-entitlement.csv") };
             be.TotalAmount = be.Calculations.Sum(x => x.CalculationAmount);
-            sbs.SubPolicyResults.Add(be);
+            subPolicyResults.Add(be);
             sbs.TotalAmount = sbs.SubPolicyResults.Sum(x => x.TotalAmount);
 
-            result.PolicyResults.Add(be);
+            policyResults.Add(be);
 
 
-            if (result?.Provider?.UKPRN == null) return NotFound();
+            if (result?.Provider?.Ukprn == null) return NotFound();
             return Json(result);
         }
 
@@ -222,10 +227,10 @@ namespace CalculateFunding.Api.External.Controllers
                         var calcUpin = csv.GetField<string>(3);
                         if (upin == calcUpin)
                         {
-                            if (provider.UKPRN == null)
+                            if (provider.Ukprn == null)
                             {
-                                provider.UKPRN = calcUpin;
-                                provider.UPIN = csv.GetField<string>(4);
+                                provider.Ukprn = calcUpin;
+                                provider.Upin = csv.GetField<string>(4);
                                 provider.LegalName = csv.GetField<string>(5);
                                 //provider.ProviderOpenDate = csv.GetField<DateTime?>(20);
                             }

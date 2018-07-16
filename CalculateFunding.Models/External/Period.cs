@@ -30,12 +30,12 @@ namespace CalculateFunding.Models.External
         /// <summary>
         /// The (inclusive) start date of the period
         /// </summary>
-        public DateTime StartDate { get; set; }
+        public DateTimeOffset StartDate { get; set; }
 
         /// <summary>
         /// The (inclusive) end date of the period
         /// </summary>
-        public DateTime EndDate { get; set; }
+        public DateTimeOffset EndDate { get; set; }
 
     }
 }

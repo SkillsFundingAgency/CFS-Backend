@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Xml.Serialization;
 
 namespace CalculateFunding.Models.External
 {
@@ -10,7 +12,7 @@ namespace CalculateFunding.Models.External
         {
         }
 
-        public ProviderResultSummary(Period period, Provider provider, List<FundingStreamResultSummary> fundingStreams)
+        public ProviderResultSummary(Period period, Provider provider, IEnumerable<FundingStreamResultSummary> fundingStreams)
         {
             Period = period;
             Provider = provider;
@@ -21,6 +23,9 @@ namespace CalculateFunding.Models.External
 
         public Provider Provider { get; set; }
 
-        public List<FundingStreamResultSummary> FundingStreamResults { get; set; }
+        [XmlIgnore]
+        public IEnumerable<FundingStreamResultSummary> FundingStreamResults { get; set; }
+
+        public List<FundingStreamResultSummary> FundingStreamResultList { get => FundingStreamResults.ToList(); set => FundingStreamResults = value;}
     }
 }

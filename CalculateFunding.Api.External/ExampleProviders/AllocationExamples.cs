@@ -25,8 +25,8 @@ namespace CalculateFunding.Api.External.ExampleProviders
                 AllocationStatus = "publsihed",
                 Provider = new Provider
                 {
-                    UKPRN = $"10000{providerId}",
-                    UPIN = $"100{providerId}",
+                    Ukprn = $"10000{providerId}",
+                    Upin = $"100{providerId}",
                     ProviderOpenDate = new DateTime(2016, 9, 1),
                 },
                 Period = new Period

@@ -12,18 +12,18 @@ namespace CalculateFunding.Models.External.AtomItems
         {
         }
 
-        //public AtomEntry(string id, string title, string summary, DateTimeOffset published, string version, AtomLink link,
-        //    AtomContent content, DateTimeOffset updated)
-        //{
-        //    Id = id;
-        //    Title = title;
-        //    Summary = summary;
-        //    Published = published;
-        //    Version = version;
-        //    Link = link;
-        //    Content = content;
-        //    Updated = updated;
-        //}
+        public AtomEntry(string id, string title, string summary, DateTimeOffset published, string version, AtomLink link,
+            AtomContent content, DateTimeOffset updated)
+        {
+            Id = id;
+            Title = title;
+            Summary = summary;
+            Published = published;
+            Version = version;
+            Link = link;
+            Content = content;
+            Updated = updated;
+        }
 
         public string Id { get; set; }
 
