@@ -1,14 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Models.External
 {
+    [Serializable]
     public class PolicyResult
     {
         public PolicyResult()
         {
         }
 
-        public PolicyResult(Policy policy, double totalAmount, IEnumerable<CalculationResult> calculationResults)
+        public PolicyResult(Policy policy, decimal totalAmount, List<CalculationResult> calculationResults)
         {
             Policy = policy;
             TotalAmount = totalAmount;
@@ -17,8 +19,10 @@ namespace CalculateFunding.Models.External
 
         public Policy Policy { get; set; }
 
-        public double TotalAmount { get; set; }
+        public decimal TotalAmount { get; set; }
 
         public IEnumerable<CalculationResult> Calculations { get; set; }
+
+        public IEnumerable<PolicyResult> SubPolicyResults { get; set; }
     }
 }

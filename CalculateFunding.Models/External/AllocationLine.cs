@@ -1,5 +1,8 @@
-﻿namespace CalculateFunding.Models.External
+﻿using System;
+
+namespace CalculateFunding.Models.External
 {
+    [Serializable]
     public class AllocationLine
     {
         public AllocationLine()
@@ -12,8 +15,14 @@
             AllocationLineName = allocationLineName;
         }
 
+        /// <summary>
+        /// The identifier for the allocation line
+        /// </summary>
         public string AllocationLineCode { get; set; }
 
+        /// <summary>
+        /// The description of the allocation line
+        /// </summary>
         public string AllocationLineName { get; set; }
     }
 }

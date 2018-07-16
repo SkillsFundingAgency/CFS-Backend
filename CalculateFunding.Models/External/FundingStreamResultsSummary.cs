@@ -1,14 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Models.External
 {
-    public class FundingStreamResultsSummary
+    [Serializable]
+    public class FundingStreamResultSummary
     {
-        public FundingStreamResultsSummary()
+        public FundingStreamResultSummary()
         {
         }
 
-        public FundingStreamResultsSummary(FundingStream fundingStream, double totalAmount,
+        public FundingStreamResultSummary(FundingStream fundingStream, decimal totalAmount,
             IEnumerable<AllocationResult> allocations, IEnumerable<PolicyResult> policies)
         {
             FundingStream = fundingStream;
@@ -19,7 +21,7 @@ namespace CalculateFunding.Models.External
 
         public FundingStream FundingStream { get; set; }
 
-        public double TotalAmount { get; set; }
+        public decimal TotalAmount { get; set; }
 
         public IEnumerable<AllocationResult> Allocations { get; set; }
 

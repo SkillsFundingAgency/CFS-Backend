@@ -1,5 +1,11 @@
-﻿namespace CalculateFunding.Models.External
+﻿using System;
+using System.Xml.Serialization;
+
+namespace CalculateFunding.Models.External
 {
+    [Serializable]
+    [XmlType(AnonymousType = true, Namespace = "urn:TBC")]
+    [XmlRoot(Namespace = "urn:TBC", IsNullable = false)]
     public class Allocation
     {
         public Allocation()
@@ -7,14 +13,14 @@
         }
 
         public Allocation(FundingStream fundingStream, Period period, Provider provider, AllocationLine allocationLine,
-            int allocationVersionNumber, string status, double allocationAmount, int allocationLearnerCount)
+            ushort allocationVersionNumber, string status, decimal allocationAmount, uint? allocationLearnerCount)
         {
             FundingStream = fundingStream;
             Period = period;
             Provider = provider;
             AllocationLine = allocationLine;
             AllocationVersionNumber = allocationVersionNumber;
-            Status = status;
+            AllocationStatus = status;
             AllocationAmount = allocationAmount;
             AllocationLearnerCount = allocationLearnerCount;
         }
@@ -27,12 +33,12 @@
 
         public AllocationLine AllocationLine { get; set; }
 
-        public int AllocationVersionNumber { get; set; }
+        public ushort AllocationVersionNumber { get; set; }
 
-        public string Status { get; set; }
+        public string AllocationStatus { get; set; }
 
-        public double AllocationAmount { get; set; }
+        public decimal AllocationAmount { get; set; }
 
-        public int AllocationLearnerCount { get; set; }
+        public uint? AllocationLearnerCount { get; set; }
     }
 }

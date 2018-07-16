@@ -1,12 +1,15 @@
-﻿namespace CalculateFunding.Models.External
+﻿using System;
+
+namespace CalculateFunding.Models.External
 {
+    [Serializable]
     public class Period
     {
         public Period()
         {
         }
 
-        public Period(string periodType, string periodId, string startDate, string endDate)
+        public Period(string periodType, string periodId, DateTime startDate, DateTime endDate)
         {
             PeriodType = periodType;
             PeriodId = periodId;
@@ -14,13 +17,25 @@
             EndDate = endDate;
         }
 
+        /// <summary>
+        /// The type of the period
+        /// </summary>
         public string PeriodType { get; set; }
 
+        /// <summary>
+        /// The description of the period
+        /// </summary>
         public string PeriodId { get; set; }
 
-        public string StartDate { get; set; }
+        /// <summary>
+        /// The (inclusive) start date of the period
+        /// </summary>
+        public DateTimeOffset StartDate { get; set; }
 
-        public string EndDate { get; set; }
+        /// <summary>
+        /// The (inclusive) end date of the period
+        /// </summary>
+        public DateTimeOffset EndDate { get; set; }
 
     }
 }

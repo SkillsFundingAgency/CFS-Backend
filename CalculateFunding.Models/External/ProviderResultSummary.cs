@@ -1,24 +1,31 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml.Serialization;
 
 namespace CalculateFunding.Models.External
 {
+    [Serializable]
     public class ProviderResultSummary
     {
         public ProviderResultSummary()
         {
         }
 
-        public ProviderResultSummary(Period period, Provider provider, IEnumerable<FundingStreamResultsSummary> fundingStreams)
+        public ProviderResultSummary(Period period, Provider provider, IEnumerable<FundingStreamResultSummary> fundingStreams)
         {
             Period = period;
             Provider = provider;
-            FundingStreamsResults = fundingStreams;
+            FundingStreamResults = fundingStreams;
         }
 
         public Period Period { get; set; }
 
         public Provider Provider { get; set; }
 
-        public IEnumerable<FundingStreamResultsSummary> FundingStreamsResults { get; set; }
+        [XmlIgnore]
+        public IEnumerable<FundingStreamResultSummary> FundingStreamResults { get; set; }
+
+        public List<FundingStreamResultSummary> FundingStreamResultList { get => FundingStreamResults.ToList(); set => FundingStreamResults = value;}
     }
 }

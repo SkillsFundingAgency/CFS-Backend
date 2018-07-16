@@ -8,10 +8,53 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="StoreExport\allocation-lines.csv" />
+    <None Remove="StoreExport\budgets.csv" />
+    <None Remove="StoreExport\periods.csv" />
+    <None Remove="StoreExport\provider-allocations.csv" />
+    <None Remove="StoreExport\sbs-basic-dedelegation.csv" />
+    <None Remove="StoreExport\sbs-basic-entitlement.csv" />
+    <None Remove="StoreExport\sbs-eal.csv" />
+    <None Remove="StoreExport\sbs-fap.csv" />
+    <None Remove="StoreExport\sbs-fsm.csv" />
+    <None Remove="StoreExport\sbs-idaci.csv" />
+    <None Remove="StoreExport\sbs-lac.csv" />
+    <None Remove="StoreExport\sbs-mobility.csv" />
+    <None Remove="StoreExport\sbs-other-factors.csv" />
+    <None Remove="StoreExport\sbs-prior-attainment.csv" />
+    <None Remove="StoreExport\sbs-sparsity.csv" />
+    <None Remove="StoreExport\sbs-split-sites.csv" />
+    <None Remove="StoreExport\sbs-totals.csv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="StoreExport\allocation-lines.csv" />
+    <EmbeddedResource Include="StoreExport\budgets.csv" />
+    <EmbeddedResource Include="StoreExport\periods.csv" />
+    <EmbeddedResource Include="StoreExport\provider-allocations.csv" />
+    <EmbeddedResource Include="StoreExport\sbs-basic-dedelegation.csv" />
+    <EmbeddedResource Include="StoreExport\sbs-basic-entitlement.csv" />
+    <EmbeddedResource Include="StoreExport\sbs-eal.csv" />
+    <EmbeddedResource Include="StoreExport\sbs-fap.csv" />
+    <EmbeddedResource Include="StoreExport\sbs-fsm.csv" />
+    <EmbeddedResource Include="StoreExport\sbs-idaci.csv" />
+    <EmbeddedResource Include="StoreExport\sbs-lac.csv" />
+    <EmbeddedResource Include="StoreExport\sbs-mobility.csv" />
+    <EmbeddedResource Include="StoreExport\sbs-other-factors.csv" />
+    <EmbeddedResource Include="StoreExport\sbs-prior-attainment.csv" />
+    <EmbeddedResource Include="StoreExport\sbs-sparsity.csv" />
+    <EmbeddedResource Include="StoreExport\sbs-split-sites.csv" />
+    <EmbeddedResource Include="StoreExport\sbs-totals.csv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="7.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="3.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="2.4.0" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Examples" Version="2.9.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +64,12 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="CsvHelper">
+      <HintPath>..\..\..\..\.nuget\packages\csvhelper\6.1.0\lib\netstandard2.0\CsvHelper.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

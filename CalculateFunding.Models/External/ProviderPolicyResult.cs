@@ -1,5 +1,8 @@
-﻿namespace CalculateFunding.Models.External
+﻿using System;
+
+namespace CalculateFunding.Models.External
 {
+    [Serializable]
     public class ProviderPolicyResult
     {
         public ProviderPolicyResult()
