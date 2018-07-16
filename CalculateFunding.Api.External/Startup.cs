@@ -48,8 +48,8 @@ namespace CalculateFunding.Api.External
                 xFormatter?.SupportedMediaTypes.Clear();
                 xFormatter?.SupportedMediaTypes.Add("application/vnd.sfa.allocation.1+xml");
                 xFormatter?.SupportedMediaTypes.Add("application/vnd.sfa.allocation.1+atom+xml");
-            }).AddJsonOptions(options => { options.SerializerSettings.Formatting = Formatting.Indented; });
-                //.SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            }).AddJsonOptions(options => { options.SerializerSettings.Formatting = Formatting.Indented; })
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             services.AddSwaggerGen(c =>
             {
