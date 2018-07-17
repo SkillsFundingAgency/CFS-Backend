@@ -4,6 +4,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
@@ -18,7 +19,9 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
             ServiceBusConstants.TopicSubscribers.UpdateCalculationsForEditCalculation,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            using (var scope = IocConfig.Build().CreateScope())
+            IConfigurationRoot config = ConfigHelper.AddConfig();
+
+            using (var scope = IocConfig.Build(config).CreateScope())
             {
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 var calculationService = scope.ServiceProvider.GetService<ICalculationService>();

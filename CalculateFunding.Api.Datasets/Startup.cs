@@ -61,10 +61,8 @@ namespace CalculateFunding.Api.Datasets
             app.UseMvc();
         }
 
-        static public void RegisterComponents(IServiceCollection builder)
+        public void RegisterComponents(IServiceCollection builder)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
-
             builder
                 .AddSingleton<IDefinitionsService, DefinitionsService>();
 
@@ -91,7 +89,7 @@ namespace CalculateFunding.Api.Datasets
                 {
                     AzureStorageSettings storageSettings = new AzureStorageSettings();
 
-                    config.Bind("AzureStorageSettings", storageSettings);
+                    Configuration.Bind("AzureStorageSettings", storageSettings);
 
                     storageSettings.ContainerName = "datasets";
 
@@ -102,7 +100,7 @@ namespace CalculateFunding.Api.Datasets
             {
                 CosmosDbSettings dbSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", dbSettings);
+                Configuration.Bind("CosmosDbSettings", dbSettings);
 
                 dbSettings.CollectionName = "providersources";
 
@@ -138,25 +136,25 @@ namespace CalculateFunding.Api.Datasets
 
             builder.AddUserProviderFromRequest();
 
-            builder.AddCalcsInterServiceClient(config);
-            builder.AddResultsInterServiceClient(config);
-            builder.AddSpecificationsInterServiceClient(config);
+            builder.AddCalcsInterServiceClient(Configuration);
+            builder.AddResultsInterServiceClient(Configuration);
+            builder.AddSpecificationsInterServiceClient(Configuration);
 
-            builder.AddCosmosDb(config);
+            builder.AddCosmosDb(Configuration);
 
-            builder.AddSearch(config);
+            builder.AddSearch(Configuration);
 
-            builder.AddServiceBus(config);
+            builder.AddServiceBus(Configuration);
 
-            builder.AddCaching(config);
+            builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsightsTelemetryClient(config);
+            builder.AddApplicationInsightsTelemetryClient(Configuration);
             builder.AddLogging("CalculateFunding.Api.Datasets");
             builder.AddTelemetry();
 
-            builder.AddApiKeyMiddlewareSettings(config);
+            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
-            builder.AddPolicySettings(config);
+            builder.AddPolicySettings(Configuration);
 
             builder.AddHttpContextAccessor();
 

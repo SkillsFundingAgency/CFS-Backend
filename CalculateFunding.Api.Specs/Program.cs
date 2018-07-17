@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore;
+﻿using CalculateFunding.Services.Core.Extensions;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
 namespace CalculateFunding.Api.Specs
@@ -7,11 +8,16 @@ namespace CalculateFunding.Api.Specs
     {
         public static void Main(string[] args)
         {
-            CreateWebHostBuilder(args).Build().Run();
+            BuildWebHost(args).Run();
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+        public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
+                .ConfigureAppConfiguration((builderContext, config) =>
+                {
+                    ConfigHelper.LoadConfiguration(config);
+                })
+                .UseStartup<Startup>()
+                .Build();
     }
 }

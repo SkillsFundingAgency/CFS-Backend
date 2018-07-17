@@ -23,5 +23,21 @@ namespace CalculateFunding.Services.Core.Extensions
 
             return configBuilder.Build();
         }
+
+        public static void LoadConfiguration(IConfigurationBuilder configBuilder)
+        {
+            configBuilder
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("local.settings.json", optional: true)
+                .AddJsonFile("appsettings.json", optional: true)
+                .AddEnvironmentVariables();
+
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                // Add user secrets for CalculateFunding.Functions.LocalDebugProxy
+                configBuilder.AddJsonFile("appsettings.development.json", true);
+                configBuilder.AddUserSecrets("df0d69d5-a6db-4598-909f-262fc39cb8c8");
+            }
+        }
     }
 }

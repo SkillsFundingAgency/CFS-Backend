@@ -55,10 +55,8 @@ namespace CalculateFunding.Api.Specs
             app.UseMvc();
         }
 
-        static public void RegisterComponents(IServiceCollection builder)
+        public void RegisterComponents(IServiceCollection builder)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
-
             builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
             builder.AddSingleton<ISpecificationsService, SpecificationsService>();
             builder.AddSingleton<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
@@ -77,23 +75,23 @@ namespace CalculateFunding.Api.Specs
 
             builder.AddUserProviderFromRequest();
 
-            builder.AddCosmosDb(config);
+            builder.AddCosmosDb(Configuration);
 
-            builder.AddServiceBus(config);
+            builder.AddServiceBus(Configuration);
 
-            builder.AddSearch(config);
+            builder.AddSearch(Configuration);
 
-            builder.AddCaching(config);
+            builder.AddCaching(Configuration);
 
-            builder.AddResultsInterServiceClient(config);
+            builder.AddResultsInterServiceClient(Configuration);
 
-            builder.AddPolicySettings(config);
+            builder.AddPolicySettings(Configuration);
 
-            builder.AddApplicationInsightsTelemetryClient(config);
+            builder.AddApplicationInsightsTelemetryClient(Configuration);
             builder.AddLogging("CalculateFunding.Apis.Specs");
             builder.AddTelemetry();
 
-            builder.AddApiKeyMiddlewareSettings(config);
+            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder.AddHttpContextAccessor();
         }

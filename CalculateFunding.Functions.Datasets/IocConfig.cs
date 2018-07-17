@@ -29,27 +29,27 @@ namespace CalculateFunding.Functions.Datasets
     {
         private static IServiceProvider _serviceProvider;
 
-        public static IServiceProvider Build()
+        public static IServiceProvider Build(IConfigurationRoot config)
         {
             if (_serviceProvider == null)
-                _serviceProvider = BuildServiceProvider();
+                _serviceProvider = BuildServiceProvider(config);
 
             return _serviceProvider;
         }
 
-        static public IServiceProvider BuildServiceProvider()
+        static public IServiceProvider BuildServiceProvider(IConfigurationRoot config)
         {
             var serviceProvider = new ServiceCollection();
 
-            RegisterComponents(serviceProvider);
+            RegisterComponents(serviceProvider, config);
 
             return serviceProvider.BuildServiceProvider();
         }
 
-        public static IServiceProvider Build(Message message)
+        public static IServiceProvider Build(Message message, IConfigurationRoot config)
         {
             if (_serviceProvider == null)
-                _serviceProvider = BuildServiceProvider(message);
+                _serviceProvider = BuildServiceProvider(message, config);
 
             IUserProfileProvider userProfileProvider = _serviceProvider.GetService<IUserProfileProvider>();
 
@@ -60,21 +60,19 @@ namespace CalculateFunding.Functions.Datasets
             return _serviceProvider;
         }
 
-        static public IServiceProvider BuildServiceProvider(Message message)
+        static public IServiceProvider BuildServiceProvider(Message message, IConfigurationRoot config)
         {
             var serviceProvider = new ServiceCollection();
 
             serviceProvider.AddUserProviderFromMessage(message);
 
-            RegisterComponents(serviceProvider);
+            RegisterComponents(serviceProvider, config);
 
             return serviceProvider.BuildServiceProvider();
         }
 
-        static public void RegisterComponents(IServiceCollection builder)
+        static public void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
-
             builder
                 .AddSingleton<IDefinitionsService, DefinitionsService>();
 

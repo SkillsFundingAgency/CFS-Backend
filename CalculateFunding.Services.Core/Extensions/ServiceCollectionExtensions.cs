@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Core.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddCosmosDb(this IServiceCollection builder, IConfigurationRoot config, string collectionNameOverride = null)
+        public static IServiceCollection AddCosmosDb(this IServiceCollection builder, IConfiguration config, string collectionNameOverride = null)
         {
             CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddCalcsInterServiceClient(this IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceCollection AddCalcsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder
                 .AddSingleton<ICalcsApiClientProxy, CalcsApiProxy>((ctx)=> {
@@ -72,7 +72,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddScenariosInterServiceClient(this IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceCollection AddScenariosInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder
                  .AddSingleton<IScenariosApiClientProxy, ScenariosApiProxy>((ctx) => {
@@ -89,7 +89,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddSpecificationsInterServiceClient(this IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceCollection AddSpecificationsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder
                  .AddSingleton<ISpecificationsApiClientProxy, SpecificationsApiProxy>((ctx) => {
@@ -106,7 +106,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddResultsInterServiceClient(this IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceCollection AddResultsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder
                  .AddSingleton<IResultsApiClientProxy, ResultsApiProxy>((ctx) => {
@@ -123,7 +123,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddSearch(this IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceCollection AddSearch(this IServiceCollection builder, IConfiguration config)
         {
             SearchRepositorySettings searchSettings = new SearchRepositorySettings
             {
@@ -157,7 +157,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddServiceBus(this IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceCollection AddServiceBus(this IServiceCollection builder, IConfiguration config)
         {
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
@@ -212,7 +212,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddApplicationInsightsTelemetryClient(this IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceCollection AddApplicationInsightsTelemetryClient(this IServiceCollection builder, IConfiguration config)
         {
             Guard.ArgumentNotNull(config, nameof(config));
 
@@ -284,7 +284,7 @@ namespace CalculateFunding.Services.Core.Extensions
             .WriteTo.ApplicationInsightsTraces(telemetryClient, LogEventLevel.Verbose, null, null);
         }
 
-        public static IServiceCollection AddCaching(this IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceCollection AddCaching(this IServiceCollection builder, IConfiguration config)
         {
             RedisSettings redisSettings = new RedisSettings();
 
@@ -298,7 +298,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddEngineSettings(this IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceCollection AddEngineSettings(this IServiceCollection builder, IConfiguration config)
         {
             EngineSettings engineSettings = new EngineSettings();
 
@@ -345,7 +345,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddPolicySettings(this IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceCollection AddPolicySettings(this IServiceCollection builder, IConfiguration config)
         {
             PolicySettings policySettings = new PolicySettings();
 

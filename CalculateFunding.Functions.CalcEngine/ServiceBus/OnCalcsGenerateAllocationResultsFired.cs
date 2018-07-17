@@ -6,6 +6,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
@@ -16,7 +17,9 @@ namespace CalculateFunding.Functions.CalcEngine.ServiceBus
         [FunctionName("on-calcs-generate-allocations-event")]
         public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            using (var scope = IocConfig.Build().CreateScope())
+            IConfigurationRoot config = ConfigHelper.AddConfig();
+
+            using (var scope = IocConfig.Build(config).CreateScope())
             {
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 var calculationEngineService = scope.ServiceProvider.GetService<ICalculationEngineService>();

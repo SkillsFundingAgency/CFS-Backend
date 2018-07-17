@@ -1,5 +1,4 @@
 ﻿using System;
-using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
@@ -7,12 +6,9 @@ using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Polly;
 using Polly.Bulkhead;
 using Serilog;
 
@@ -22,27 +18,25 @@ namespace CalculateFunding.Functions.CalcEngine
     {
         private static IServiceProvider _serviceProvider;
 
-        public static IServiceProvider Build()
+        public static IServiceProvider Build(IConfigurationRoot config)
         {
             if (_serviceProvider == null)
-                _serviceProvider = BuildServiceProvider();
+                _serviceProvider = BuildServiceProvider(config);
 
             return _serviceProvider;
         }
 
-        static public IServiceProvider BuildServiceProvider()
+        static public IServiceProvider BuildServiceProvider(IConfigurationRoot config)
         {
             var serviceProvider = new ServiceCollection();
 
-            RegisterComponents(serviceProvider);
+            RegisterComponents(serviceProvider, config);
 
             return serviceProvider.BuildServiceProvider();
         }
 
-        static public void RegisterComponents(IServiceCollection builder)
+        static public void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
-
             builder.AddSingleton<ICalculationEngineService, CalculationEngineService>();
             builder.AddSingleton<ICalculationEngine, CalculationEngine>();
             builder.AddSingleton<IAllocationFactory, AllocationFactory>();

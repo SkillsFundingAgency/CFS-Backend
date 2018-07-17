@@ -49,10 +49,8 @@ namespace CalculateFunding.Api.Scenarios
             app.UseMvc();
         }
 
-        static public void RegisterComponents(IServiceCollection builder)
+        public void RegisterComponents(IServiceCollection builder)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
-
             builder.AddSingleton<IScenariosRepository, ScenariosRepository>();
             builder.AddSingleton<IScenariosService, ScenariosService>();
             builder.AddSingleton<IScenariosSearchService, ScenariosSearchService>();
@@ -67,24 +65,24 @@ namespace CalculateFunding.Api.Scenarios
 
             builder.AddUserProviderFromRequest();
 
-            builder.AddCalcsInterServiceClient(config);
-            builder.AddSpecificationsInterServiceClient(config);
+            builder.AddCalcsInterServiceClient(Configuration);
+            builder.AddSpecificationsInterServiceClient(Configuration);
 
-            builder.AddCosmosDb(config);
+            builder.AddCosmosDb(Configuration);
 
-            builder.AddSearch(config);
+            builder.AddSearch(Configuration);
 
-            builder.AddServiceBus(config);
+            builder.AddServiceBus(Configuration);
 
-            builder.AddCaching(config);
+            builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsightsTelemetryClient(config);
+            builder.AddApplicationInsightsTelemetryClient(Configuration);
 
             builder.AddLogging("CalculateFunding.Api.Scenarios");
 
             builder.AddTelemetry();
 
-            builder.AddApiKeyMiddlewareSettings(config);
+            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder.AddHttpContextAccessor();
         }

@@ -53,10 +53,8 @@ namespace CalculateFunding.Api.Results
             app.UseMvc();
         }
 
-        public static void RegisterComponents(IServiceCollection builder)
+        public void RegisterComponents(IServiceCollection builder)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
-
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder.AddSingleton<IResultsService, ResultsService>();
             builder.AddSingleton<IResultsSearchService, ResultsSearchService>();
@@ -68,13 +66,13 @@ namespace CalculateFunding.Api.Results
             builder
                 .AddSingleton(resultsConfig.CreateMapper());
 
-            builder.AddSpecificationsInterServiceClient(config);
+            builder.AddSpecificationsInterServiceClient(Configuration);
 
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
             {
                 CosmosDbSettings calssDbSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", calssDbSettings);
+                Configuration.Bind("CosmosDbSettings", calssDbSettings);
 
                 calssDbSettings.CollectionName = "calculationresults";
 
@@ -87,7 +85,7 @@ namespace CalculateFunding.Api.Results
             {
                 CosmosDbSettings provDbSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", provDbSettings);
+                Configuration.Bind("CosmosDbSettings", provDbSettings);
 
                 provDbSettings.CollectionName = "providersourcedatasets";
 
@@ -100,7 +98,7 @@ namespace CalculateFunding.Api.Results
             {
                 CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", resultsDbSettings);
+                Configuration.Bind("CosmosDbSettings", resultsDbSettings);
 
                 resultsDbSettings.CollectionName = "publishedproviderresults";
 
@@ -113,7 +111,7 @@ namespace CalculateFunding.Api.Results
             {
                 CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", resultsDbSettings);
+                Configuration.Bind("CosmosDbSettings", resultsDbSettings);
 
                 resultsDbSettings.CollectionName = "publishedprovidercalcresults";
 
@@ -130,19 +128,19 @@ namespace CalculateFunding.Api.Results
 
             builder.AddUserProviderFromRequest();
 
-            builder.AddSearch(config);
+            builder.AddSearch(Configuration);
 
-            builder.AddServiceBus(config);
+            builder.AddServiceBus(Configuration);
 
-            builder.AddCaching(config);
+            builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsightsTelemetryClient(config);
+            builder.AddApplicationInsightsTelemetryClient(Configuration);
             builder.AddLogging("CalculateFunding.Api.Results");
             builder.AddTelemetry();
 
-            builder.AddSpecificationsInterServiceClient(config);
+            builder.AddSpecificationsInterServiceClient(Configuration);
 
-            builder.AddPolicySettings(config);
+            builder.AddPolicySettings(Configuration);
 
             builder.AddHttpContextAccessor();
 
@@ -161,7 +159,7 @@ namespace CalculateFunding.Api.Results
                 };
             });
 
-            builder.AddApiKeyMiddlewareSettings(config);
+            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
         }
     }
 }

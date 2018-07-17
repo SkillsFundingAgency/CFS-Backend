@@ -53,10 +53,8 @@ namespace CalculateFunding.Api.Calculator
             app.UseMvc();
         }
 
-        public static void RegisterComponents(IServiceCollection builder)
+        public void RegisterComponents(IServiceCollection builder)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
-
             builder.AddSingleton<ICalculationEngineService, CalculationEngineService>();
             builder.AddSingleton<ICalculationEngine, CalculationEngine>();
             builder.AddSingleton<IAllocationFactory, AllocationFactory>();
@@ -65,7 +63,7 @@ namespace CalculateFunding.Api.Calculator
             {
                 CosmosDbSettings calssDbSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", calssDbSettings);
+                Configuration.Bind("CosmosDbSettings", calssDbSettings);
 
                 calssDbSettings.CollectionName = "providersources";
 
@@ -80,7 +78,7 @@ namespace CalculateFunding.Api.Calculator
             {
                 CosmosDbSettings calssDbSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", calssDbSettings);
+                Configuration.Bind("CosmosDbSettings", calssDbSettings);
 
                 calssDbSettings.CollectionName = "calculationresults";
 
@@ -103,24 +101,24 @@ namespace CalculateFunding.Api.Calculator
 
             builder.AddUserProviderFromRequest();
 
-            builder.AddCalcsInterServiceClient(config);
-            builder.AddSpecificationsInterServiceClient(config);
+            builder.AddCalcsInterServiceClient(Configuration);
+            builder.AddSpecificationsInterServiceClient(Configuration);
 
-            builder.AddEngineSettings(config);
+            builder.AddEngineSettings(Configuration);
 
-            builder.AddServiceBus(config);
+            builder.AddServiceBus(Configuration);
 
-            builder.AddCaching(config);
+            builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsightsTelemetryClient(config);
+            builder.AddApplicationInsightsTelemetryClient(Configuration);
 
             builder.AddLogging("CalculateFunding.Api.CalcEngine");
 
             builder.AddTelemetry();
 
-            builder.AddSearch(config);
+            builder.AddSearch(Configuration);
 
-            builder.AddPolicySettings(config);
+            builder.AddPolicySettings(Configuration);
 
             builder.AddSingleton<ICalculatorResiliencePolicies>((ctx) =>
             {
@@ -138,7 +136,7 @@ namespace CalculateFunding.Api.Calculator
                 };
             });
 
-            builder.AddApiKeyMiddlewareSettings(config);
+            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder.AddHttpContextAccessor();
         }

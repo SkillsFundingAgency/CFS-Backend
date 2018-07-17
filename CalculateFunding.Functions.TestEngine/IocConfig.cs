@@ -27,27 +27,25 @@ namespace CalculateFunding.Functions.TestEngine
     {
         private static IServiceProvider _serviceProvider;
 
-        public static IServiceProvider Build()
+        public static IServiceProvider Build(IConfigurationRoot config)
         {
             if (_serviceProvider == null)
-                _serviceProvider = BuildServiceProvider();
+                _serviceProvider = BuildServiceProvider(config);
 
             return _serviceProvider;
         }
 
-        static public IServiceProvider BuildServiceProvider()
+        static public IServiceProvider BuildServiceProvider(IConfigurationRoot config)
         {
             var serviceProvider = new ServiceCollection();
 
-            RegisterComponents(serviceProvider);
+            RegisterComponents(serviceProvider, config);
 
             return serviceProvider.BuildServiceProvider();
         }
        
-        static public void RegisterComponents(IServiceCollection builder)
+        static public void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
-
             builder
                 .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
 

@@ -15,7 +15,9 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
         [FunctionName("on-dataset-event")]
         public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.ProcessDataset, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            using (var scope = IocConfig.Build().CreateScope())
+            var config = ConfigHelper.AddConfig();
+
+            using (var scope = IocConfig.Build(config).CreateScope())
             {
                 var datasetService = scope.ServiceProvider.GetService<IDatasetService>();
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();

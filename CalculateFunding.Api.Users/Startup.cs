@@ -49,11 +49,9 @@ namespace CalculateFunding.Api.Users
             app.UseMvc();
         }
 
-        static public void RegisterComponents(IServiceCollection builder)
+        public void RegisterComponents(IServiceCollection builder)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
-
-            builder.AddApiKeyMiddlewareSettings(config);
+            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder
                .AddSingleton<IUserService, UserService>();
@@ -62,7 +60,7 @@ namespace CalculateFunding.Api.Users
             {
                 CosmosDbSettings usersDbSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", usersDbSettings);
+                Configuration.Bind("CosmosDbSettings", usersDbSettings);
 
                 usersDbSettings.CollectionName = "users";
 
@@ -73,11 +71,11 @@ namespace CalculateFunding.Api.Users
 
             builder.AddUserProviderFromRequest();
 
-            builder.AddCosmosDb(config);
+            builder.AddCosmosDb(Configuration);
 
-            builder.AddCaching(config);
+            builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsightsTelemetryClient(config);
+            builder.AddApplicationInsightsTelemetryClient(Configuration);
 
             builder.AddLogging("CalculateFunding.Api.Users");
 

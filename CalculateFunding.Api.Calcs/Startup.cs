@@ -61,7 +61,7 @@ namespace CalculateFunding.Api.Calcs
             app.UseMvc();
         }
 
-        static public void RegisterComponents(IServiceCollection builder)
+        public void RegisterComponents(IServiceCollection builder)
         {
             builder
                 .AddSingleton<ICalculationsRepository, CalculationsRepository>();
@@ -107,26 +107,24 @@ namespace CalculateFunding.Api.Calcs
             builder
                 .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
 
-            IConfigurationRoot config = ConfigHelper.AddConfig();
-
             builder.AddUserProviderFromRequest();
 
-            builder.AddCosmosDb(config);
+            builder.AddCosmosDb(Configuration);
 
-            builder.AddSearch(config);
+            builder.AddSearch(Configuration);
 
-            builder.AddServiceBus(config);
+            builder.AddServiceBus(Configuration);
 
-            builder.AddResultsInterServiceClient(config);
-            builder.AddSpecificationsInterServiceClient(config);
+            builder.AddResultsInterServiceClient(Configuration);
+            builder.AddSpecificationsInterServiceClient(Configuration);
 
-            builder.AddCaching(config);
+            builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsightsTelemetryClient(config);
+            builder.AddApplicationInsightsTelemetryClient(Configuration);
             builder.AddLogging("CalculateFunding.Api.Calcs");
             builder.AddTelemetry();
 
-            builder.AddPolicySettings(config);
+            builder.AddPolicySettings(Configuration);
 
             builder.AddSingleton<ICalcsResilliencePolicies>((ctx) =>
             {
@@ -140,7 +138,7 @@ namespace CalculateFunding.Api.Calcs
                 };
             });
 
-            builder.AddApiKeyMiddlewareSettings(config);
+            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder.AddHttpContextAccessor();
         }

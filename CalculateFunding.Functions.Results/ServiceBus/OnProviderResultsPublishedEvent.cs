@@ -15,7 +15,9 @@ namespace CalculateFunding.Functions.Results.ServiceBus
         [FunctionName("on-provider-results-published")]
         public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.PublishProviderResults, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            using (var scope = IocConfig.Build().CreateScope())
+            var config = ConfigHelper.AddConfig();
+
+            using (var scope = IocConfig.Build(config).CreateScope())
             {
                 var resultsService = scope.ServiceProvider.GetService<IResultsService>();
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();

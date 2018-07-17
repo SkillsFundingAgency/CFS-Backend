@@ -68,11 +68,9 @@ namespace CalculateFunding.Api.TestRunner
             app.UseMvc();
         }
 
-        static public void RegisterComponents(IServiceCollection builder)
+        public void RegisterComponents(IServiceCollection builder)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
-
-            builder.AddApiKeyMiddlewareSettings(config);
+            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder
                 .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
@@ -111,7 +109,7 @@ namespace CalculateFunding.Api.TestRunner
             {
                 CosmosDbSettings providersDbSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", providersDbSettings);
+                Configuration.Bind("CosmosDbSettings", providersDbSettings);
 
                 providersDbSettings.CollectionName = "providersources";
 
@@ -126,7 +124,7 @@ namespace CalculateFunding.Api.TestRunner
             {
                 CosmosDbSettings providersDbSettings = new CosmosDbSettings();
 
-                config.Bind("CosmosDbSettings", providersDbSettings);
+                Configuration.Bind("CosmosDbSettings", providersDbSettings);
 
                 providersDbSettings.CollectionName = "calculationresults";
 
@@ -149,25 +147,25 @@ namespace CalculateFunding.Api.TestRunner
 
             builder.AddUserProviderFromRequest();
 
-            builder.AddCosmosDb(config);
+            builder.AddCosmosDb(Configuration);
 
-            builder.AddSearch(config);
+            builder.AddSearch(Configuration);
 
-            builder.AddCalcsInterServiceClient(config);
-            builder.AddSpecificationsInterServiceClient(config);
-            builder.AddScenariosInterServiceClient(config);
+            builder.AddCalcsInterServiceClient(Configuration);
+            builder.AddSpecificationsInterServiceClient(Configuration);
+            builder.AddScenariosInterServiceClient(Configuration);
 
-            builder.AddCaching(config);
+            builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsightsTelemetryClient(config);
+            builder.AddApplicationInsightsTelemetryClient(Configuration);
 
             builder.AddLogging("CalculateFunding.Api.TestRunner");
 
             builder.AddTelemetry();
 
-            builder.AddEngineSettings(config);
+            builder.AddEngineSettings(Configuration);
 
-            builder.AddPolicySettings(config);
+            builder.AddPolicySettings(Configuration);
 
             builder.AddHttpContextAccessor();
 

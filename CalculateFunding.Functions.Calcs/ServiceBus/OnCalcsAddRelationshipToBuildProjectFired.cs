@@ -7,6 +7,7 @@ using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Functions.Calcs.ServiceBus
@@ -16,7 +17,9 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
         [FunctionName("on-calcs-add-data-relationship")]
         public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.UpdateBuildProjectRelationships, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            using (var scope = IocConfig.Build().CreateScope())
+            IConfigurationRoot config = ConfigHelper.AddConfig();
+
+            using (var scope = IocConfig.Build(config).CreateScope())
             {
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 var buildProjectsService = scope.ServiceProvider.GetService<IBuildProjectsService>();

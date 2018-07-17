@@ -18,7 +18,9 @@ namespace CalculateFunding.Functions.Scenarios.ServiceBus
             ServiceBusConstants.TopicSubscribers.UpdateScenariosForEditCalculation,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            using (var scope = IocConfig.Build().CreateScope())
+            var config = ConfigHelper.AddConfig();
+
+            using (var scope = IocConfig.Build(config).CreateScope())
             {
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 var scenariosService = scope.ServiceProvider.GetService<IScenariosService>();
