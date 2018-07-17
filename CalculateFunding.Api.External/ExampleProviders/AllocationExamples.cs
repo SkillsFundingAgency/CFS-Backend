@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using CalculateFunding.Models.External;
 using Swashbuckle.AspNetCore.Examples;
 
@@ -38,6 +39,15 @@ namespace CalculateFunding.Api.External.ExampleProviders
                 },
                 AllocationAmount = amount,
                 AllocationLearnerCount = count,
+                ProfilePeriods = new ProfilePeriods()
+                {
+                    Periods = new List<ProfilePeriod>()
+                    {
+                        new ProfilePeriod("Aug", 1, "2018", "CalendarMonth", 2765.84m, "2018-2019"),
+                        new ProfilePeriod("Sep", 1, "2018", "CalendarMonth", 1643.42m, "2018-2019"),
+                        new ProfilePeriod("Oct", 1, "2018", "CalendarMonth", 1660.65m, "2018-2019")
+                    }
+                }
                 //SchemaVersion = 0.01M
             };
         }

@@ -40,5 +40,7 @@ namespace CalculateFunding.Models.External
         public decimal AllocationAmount { get; set; }
 
         public uint? AllocationLearnerCount { get; set; }
+
+        public ProfilePeriods ProfilePeriods { get; set; }
     }
 }

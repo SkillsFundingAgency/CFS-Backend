@@ -25,6 +25,7 @@
     <None Remove="StoreExport\sbs-sparsity.csv" />
     <None Remove="StoreExport\sbs-split-sites.csv" />
     <None Remove="StoreExport\sbs-totals.csv" />
+    <None Remove="Swagger\Helpers\DocsTopContents.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,6 +46,9 @@
     <EmbeddedResource Include="StoreExport\sbs-sparsity.csv" />
     <EmbeddedResource Include="StoreExport\sbs-split-sites.csv" />
     <EmbeddedResource Include="StoreExport\sbs-totals.csv" />
+    <EmbeddedResource Include="Swagger\DocsTopContents.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
@@ -60,10 +64,6 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Api.Common\CalculateFunding.Api.Common.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.External\CalculateFunding.Services.External.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="wwwroot\" />
   </ItemGroup>
 
   <ItemGroup>

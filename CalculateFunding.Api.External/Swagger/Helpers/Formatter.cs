@@ -7,7 +7,7 @@ using Swashbuckle.AspNetCore.Examples;
 
 namespace CalculateFunding.Api.External.Swagger.Helpers
 {
-    public static class ExampleFormatter
+    public static class Formatter
     {
         public static IActionResult ActionResult<TExampleProvider, TPayload>(HttpRequest request) where TExampleProvider : IExamplesProvider, new()
         {

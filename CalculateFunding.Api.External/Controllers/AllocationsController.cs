@@ -34,7 +34,7 @@ namespace CalculateFunding.Api.External.Controllers
         [SwaggerResponseHeader(200, "Last-Modified", "date", "Date the resource was last modified")]
         public IActionResult GetAllocation(string allocationId, ushort? version = null)
         {
-            return ExampleFormatter.ActionResult<AllocationExamples, Allocation>(Request);
+            return Formatter.ActionResult<AllocationExamples, Allocation>(Request);
         }
     }
 }
