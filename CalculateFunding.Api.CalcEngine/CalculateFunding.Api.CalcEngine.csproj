@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Api.Common\CalculateFunding.Api.Common.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Services.Calculator\CalculateFunding.Services.Calculator.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.CalcEngine\CalculateFunding.Services.CalcEngine.csproj" />
   </ItemGroup>
 
 </Project>

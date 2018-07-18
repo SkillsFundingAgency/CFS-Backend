@@ -24,7 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Services.CodeMetadataGenerator\CalculateFunding.Services.CodeMetadataGenerator.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Services.TestRunner\CalculateFunding.Services.TestRunner.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.TestEngine\CalculateFunding.Services.TestEngine.csproj" />
   </ItemGroup>
 
 </Project>

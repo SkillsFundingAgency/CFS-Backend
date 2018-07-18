@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Api.Common\CalculateFunding.Api.Common.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Services.TestRunner\CalculateFunding.Services.TestRunner.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.TestEngine\CalculateFunding.Services.TestEngine.csproj" />
   </ItemGroup>
 
 </Project>

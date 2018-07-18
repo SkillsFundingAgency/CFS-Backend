@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Services.TestRunner\CalculateFunding.Services.TestRunner.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.TestEngine\CalculateFunding.Services.TestEngine.csproj" />
   </ItemGroup>
 
 </Project>
