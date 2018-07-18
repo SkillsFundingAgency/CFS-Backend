@@ -12,7 +12,7 @@ namespace CalculateFunding.Models.External
         {
         }
 
-        public ProviderResultSummary(Period period, Provider provider, IEnumerable<FundingStreamResultSummary> fundingStreams)
+        public ProviderResultSummary(Period period, Provider provider, List<FundingStreamResultSummary> fundingStreams)
         {
             Period = period;
             Provider = provider;
@@ -23,9 +23,6 @@ namespace CalculateFunding.Models.External
 
         public Provider Provider { get; set; }
 
-        [XmlIgnore]
-        public IEnumerable<FundingStreamResultSummary> FundingStreamResults { get; set; }
-
-        public List<FundingStreamResultSummary> FundingStreamResultList { get => FundingStreamResults.ToList(); set => FundingStreamResults = value;}
+        public List<FundingStreamResultSummary> FundingStreamResults { get; set; }
     }
 }

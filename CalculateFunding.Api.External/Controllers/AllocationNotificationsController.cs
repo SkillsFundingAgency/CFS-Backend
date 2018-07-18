@@ -17,7 +17,7 @@ namespace CalculateFunding.Api.External.Controllers
         /// </summary>
         /// <param name="pageRef">Optional page number of notification results. Please see the links in the atom feed for available pages</param>
         /// <param name="allocationStatus">
-        /// The allocation status you want to filter request by. Default is Approved
+        /// The allocation status you want to filter results by. Default is Published
         /// ### Allocation Statuses available in the system
         ///
         ///| Status    | Visible to Api      | Visible to Provider | Description                                                                                                                                                                            |
@@ -28,7 +28,7 @@ namespace CalculateFunding.Api.External.Controllers
         ///| Published | Yes                 | Yes                       | This status indicates ESFA are happy for the funding (both money and information about that funding) are good to be made external to the provider.|
         /// </param>
         /// <returns></returns>
-        [HttpGet("{pageRef}")]
+        [HttpGet("{pageRef?}")]
         [Produces(typeof(AtomFeed))]
         [SwaggerResponseExample(200, typeof(AllocationNotificationExamples))]
         [SwaggerOperation("getAllocationNotifications")]
@@ -41,7 +41,7 @@ namespace CalculateFunding.Api.External.Controllers
         [ProducesResponseType(415)]
         [ProducesResponseType(500)]
         [ProducesResponseType(500)]
-        public IActionResult GetNotifications(int? pageRef = null, string allocationStatus = "Approved")
+        public IActionResult GetNotifications(int? pageRef = null, string allocationStatus = "Published")
         {
             return Formatter.ActionResult<AllocationNotificationExamples, AtomFeed>(Request);
         }

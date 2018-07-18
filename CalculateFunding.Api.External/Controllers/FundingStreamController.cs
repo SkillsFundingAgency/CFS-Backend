@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using CalculateFunding.Api.External.ExampleProviders;
 using CalculateFunding.Api.External.Swagger.OperationFilters;
@@ -37,7 +38,7 @@ namespace CalculateFunding.Api.External.Controllers
 
         public ActionResult GetFundingStreams()
         {
-            return Json(FakeData());
+            return Ok(FakeData().ToList());
         }
 
         internal static IEnumerable<FundingStream> FakeData()
@@ -58,7 +59,7 @@ namespace CalculateFunding.Api.External.Controllers
                         {
                             FundingStreamCode = id,
                             FundingStreamName = name,
-                            AllocationLines = lines?.ToArray() ?? new AllocationLine[0]
+                            AllocationLines = lines
                         };
 
                     }

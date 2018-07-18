@@ -14,7 +14,7 @@ namespace CalculateFunding.Models.External
         }
 
         public FundingStream(string fundingStreamCode, string fundingStreamName,
-            IEnumerable<AllocationLine> allocationLines)
+            List<AllocationLine> allocationLines)
         {
             FundingStreamCode = fundingStreamCode;
             FundingStreamName = fundingStreamName;
@@ -34,6 +34,6 @@ namespace CalculateFunding.Models.External
         /// <summary>
         /// The allocation lines that relate to this funding stream
         /// </summary>
-        public IEnumerable<AllocationLine> AllocationLines { get; set; }
+        public List<AllocationLine> AllocationLines { get; set; }
     }
 }

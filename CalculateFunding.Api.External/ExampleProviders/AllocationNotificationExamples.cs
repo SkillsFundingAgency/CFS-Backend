@@ -23,14 +23,15 @@ namespace CalculateFunding.Api.External.ExampleProviders
                     Name = "Calculate Funding Service"
                 },
                 Rights = $"Copyright (C) {DateTime.Today.Year} Department for Education",
-                Link = new[]{
+                Link = new List<AtomLink>
+                {
                     new AtomLink{ Href = $"{baseUrl}?page=21", Rel = "self"},
                     new AtomLink{ Href = $"{baseUrl}", Rel = "first"},
                     new AtomLink{ Href = $"{baseUrl}?page=1067", Rel = "last"},
                     new AtomLink{ Href = $"{baseUrl}?page=11", Rel = "previous"},
                     new AtomLink{ Href = $"{baseUrl}?page=13", Rel = "next"},
                 },
-                AtomEntry = new[]
+                AtomEntry = new List<AtomEntry>
                 {
                     AllocationEntry("AY1819", new DateTime(2018, 9, 1), "63432", new FundingStream { FundingStreamCode = "YPLRE", FundingStreamName = "Academies General Annual Grant"}, new AllocationLine{ AllocationLineCode = "YPE01", AllocationLineName = "School Budget Share"}, 46283M, 2340 ),
                     AllocationEntry("AY1819", new DateTime(2018, 9, 1), "63432", new FundingStream { FundingStreamCode = "YPLRE", FundingStreamName = "Academies General Annual Grant"}, new AllocationLine{ AllocationLineCode = "YPE13", AllocationLineName = "Pupil Led Factors"}, 1623M, 340 )

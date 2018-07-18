@@ -11,7 +11,7 @@ namespace CalculateFunding.Api.External.ExampleProviders
         {
             return new ProviderResultSummary
             {
-                Provider = new Provider {LegalName = "", Ukprn = "", ProviderOpenDate = new DateTime(2016, 4, 1)},
+                Provider = new Provider { LegalName = "", Ukprn = "", ProviderOpenDate = new DateTime(2016, 4, 1) },
                 Period = new Period
                 {
                     PeriodType = "AY",
@@ -19,7 +19,7 @@ namespace CalculateFunding.Api.External.ExampleProviders
                     StartDate = new DateTime(2017, 9, 1),
                     EndDate = new DateTime(2018, 8, 30)
                 },
-                FundingStreamResults = new List<FundingStreamResultSummary>()
+                FundingStreamResults = new List<FundingStreamResultSummary>
                 {
                     new FundingStreamResultSummary
                     {
@@ -30,36 +30,28 @@ namespace CalculateFunding.Api.External.ExampleProviders
                                 FundingStreamName = "Academies General Annual Grant"
                             },
                         TotalAmount = 1500000M,
-                        Allocations = new List<AllocationResult>()
+                        Allocations = new List<AllocationResult>
                         {
                             new AllocationResult
                             {
-                                AllocationLine = new AllocationLine
-                                {
-                                    AllocationLineCode = "YPE01",
-                                    AllocationLineName = "School Budget Share"
-                                },
+                                AllocationLine = new AllocationLine{ AllocationLineCode = "YPE01", AllocationLineName = "School Budget Share"},
                                 AllocationAmount = 1000000M,
                                 AllocationVersionNumber = 3,
-                                AllocationStatus = "published"
+                                AllocationStatus = "published",
                                 //SchemaVersion = 0.01M
                             },
                             new AllocationResult
                             {
-                                AllocationLine = new AllocationLine
-                                {
-                                    AllocationLineCode = "YPE13",
-                                    AllocationLineName = "Pupil Led Factors"
-                                },
+                                AllocationLine = new AllocationLine{ AllocationLineCode = "YPE13", AllocationLineName = "Pupil Led Factors"},
                                 AllocationAmount = 500000M,
                                 AllocationVersionNumber = 5,
-                                AllocationStatus = "published"
+                                AllocationStatus = "published",
                                 //SchemaVersion = 0.01M
-                            }
+                            },
                         },
-                        Policies = new List<PolicyResult>()
+                        Policies = new List<PolicyResult>
                         {
-                            new PolicyResult
+                                                        new PolicyResult
                             {
                                 Policy = new Policy
                                 {
@@ -68,14 +60,14 @@ namespace CalculateFunding.Api.External.ExampleProviders
                                     PolicyDescription = "Policy description...."
                                 },
                                 TotalAmount = 1500000M,
-                                Calculations = new List<CalculationResult>()
+                                Calculations = new List<CalculationResult>
                                 {
                                     new CalculationResult
                                     {
                                         CalculationName = "Calculation One Amount",
                                         CalculationAmount = 500000M,
                                         CalculationVersionNumber = 5,
-                                        CalculationStatus = "published"
+                                        CalculationStatus = "published",
                                         //SchemaVersion = 0.01M
                                     },
 
@@ -84,7 +76,7 @@ namespace CalculateFunding.Api.External.ExampleProviders
                                         CalculationName = "Calculation Two Count",
                                         CalculationAmount = 500000M,
                                         CalculationVersionNumber = 8,
-                                        CalculationStatus = "published"
+                                        CalculationStatus = "published",
                                         //SchemaVersion = 0.01M
                                     },
 
@@ -93,12 +85,15 @@ namespace CalculateFunding.Api.External.ExampleProviders
                                         CalculationName = "Calculation Three Rate",
                                         CalculationAmount = 500000M,
                                         CalculationVersionNumber = 2,
-                                        CalculationStatus = "published"
+                                        CalculationStatus = "published",
                                         //SchemaVersion = 0.01M
-                                    }
+                                    },
+
                                 }
-                            }
+                               }
+
                         }
+
                     },
                     new FundingStreamResultSummary
                     {
@@ -109,22 +104,18 @@ namespace CalculateFunding.Api.External.ExampleProviders
                                 FundingStreamName = "DSG"
                             },
                         TotalAmount = 500000M,
-                        Allocations = new List<AllocationResult>()
+                        Allocations = new List<AllocationResult>
                         {
                             new AllocationResult
                             {
-                                AllocationLine = new AllocationLine
-                                {
-                                    AllocationLineCode = "YPP01",
-                                    AllocationLineName = "DSG Allocations"
-                                },
+                                AllocationLine = new AllocationLine{ AllocationLineCode = "YPP01", AllocationLineName = "DSG Allocations"},
                                 AllocationAmount = 1000000M,
                                 AllocationVersionNumber = 3,
-                                AllocationStatus = "published"
+                                AllocationStatus = "published",
                                 //SchemaVersion = 0.01M
                             }
                         }
-                    }
+                    },
                 }
             };
         }

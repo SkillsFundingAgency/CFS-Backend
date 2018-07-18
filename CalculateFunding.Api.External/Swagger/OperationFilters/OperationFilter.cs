@@ -45,8 +45,8 @@ namespace CalculateFunding.Api.External.Swagger.OperationFilters
         private static object FormatJson(IExamplesProvider provider, JsonSerializerSettings serializerSettings, bool includeMediaType)
         {
             var stringwriter = new System.IO.StringWriter();
-            //var serializer = new XmlSerializer(typeof(T));
-            //serializer.Serialize(stringwriter, provider.GetExamples());
+            var serializer = new XmlSerializer(typeof(T));
+            serializer.Serialize(stringwriter, provider.GetExamples());
 
             object examples;
             if (includeMediaType)

@@ -10,7 +10,7 @@ namespace CalculateFunding.Models.External.AtomItems
         {
         }
 
-        public AtomFeed(string id, string title, AtomAuthor atomAuthor, DateTimeOffset updated, string rights, IEnumerable<AtomLink> link, IEnumerable<AtomEntry> atomEntry)
+        public AtomFeed(string id, string title, AtomAuthor atomAuthor, DateTimeOffset updated, string rights, List<AtomLink> link, List<AtomEntry> atomEntry)
         {
             Id = id;
             Title = title;
@@ -31,8 +31,8 @@ namespace CalculateFunding.Models.External.AtomItems
 
         public string Rights { get; set; }
 
-        public IEnumerable<AtomLink> Link { get; set; }
+        public List<AtomLink> Link { get; set; }
 
-        public IEnumerable<AtomEntry> AtomEntry { get; set; }
+        public List<AtomEntry> AtomEntry { get; set; }
     }
 }

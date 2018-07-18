@@ -76,7 +76,7 @@ namespace CalculateFunding.Api.External.Controllers
             });
 
             if (result?.Provider?.Ukprn == null) return NotFound();
-            return Json(result);
+            return Ok(result);
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace CalculateFunding.Api.External.Controllers
 
 
             if (result?.Provider?.Ukprn == null) return NotFound();
-            return Json(result);
+            return Ok(result);
         }
 
         /// <summary>
@@ -177,7 +177,7 @@ namespace CalculateFunding.Api.External.Controllers
 
 
             if (result?.Provider?.Ukprn == null) return NotFound();
-            return Json(result);
+            return Ok(result);
         }
 
         private static string GetUPin(string ukPrn)

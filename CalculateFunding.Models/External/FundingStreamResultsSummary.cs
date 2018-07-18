@@ -11,7 +11,7 @@ namespace CalculateFunding.Models.External
         }
 
         public FundingStreamResultSummary(FundingStream fundingStream, decimal totalAmount,
-            IEnumerable<AllocationResult> allocations, IEnumerable<PolicyResult> policies)
+            List<AllocationResult> allocations, List<PolicyResult> policies)
         {
             FundingStream = fundingStream;
             TotalAmount = totalAmount;
@@ -23,8 +23,8 @@ namespace CalculateFunding.Models.External
 
         public decimal TotalAmount { get; set; }
 
-        public IEnumerable<AllocationResult> Allocations { get; set; }
+        public List<AllocationResult> Allocations { get; set; }
 
-        public IEnumerable<PolicyResult> Policies { get; set; }
+        public List<PolicyResult> Policies { get; set; }
     }
 }

@@ -23,7 +23,7 @@ namespace CalculateFunding.Api.External.Controllers
         /// Returns the time periods supported by the service
         /// </summary>
         /// <returns>A list of time periods </returns>
-        [HttpGet("")]
+        [HttpGet]
         [Produces(typeof(List<Period>))]
         [SwaggerResponseExample(200, typeof(PeriodExamples))]
         [SwaggerOperation("getTimePeriods")]
@@ -38,7 +38,7 @@ namespace CalculateFunding.Api.External.Controllers
 
         public IActionResult Get()
         {
-            return Json(FakeData());
+            return Ok(FakeData().ToArray());
         }
 
         internal static IEnumerable<Period> FakeData()
