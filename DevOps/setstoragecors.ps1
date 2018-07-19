@@ -12,11 +12,11 @@ if($storageAccountName -ne $null)
     $existingCorsRule = Get-AzureStorageCorsRule -ServiceType Blob -Context $storageAccount.Context
 
     $CorsRules = (@{
-        AllowedHeaders=@("x-ms-blob-content-type","x-ms-blob-content-disposition", "x-ms-blob-type");
+        AllowedHeaders=@("*");
         AllowedOrigins=@("*");
         MaxAgeInSeconds=3600;
         AllowedMethods=@("Get","POST", "PUT")
-        ExposedHeaders=@("x-ms-meta-*", "x-ms-blob-type"); 
+        ExposedHeaders=@("*"); 
     });
 
     if($existingCorsRule.Length -eq 0)
