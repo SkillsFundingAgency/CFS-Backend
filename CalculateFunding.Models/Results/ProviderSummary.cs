@@ -35,5 +35,14 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("laCode")]
         public string LACode { get; set; }
+
+        [JsonProperty("navVendorNo")]
+        public string NavVendorNo { get; set; }
+
+        [JsonProperty("crmAccountId")]
+        public string CrmAccountId { get; set; }
+
+        [JsonProperty("legalName")]
+        public string LegalName { get; set; }
     }
 }

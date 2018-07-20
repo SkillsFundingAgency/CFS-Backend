@@ -224,6 +224,13 @@ namespace CalculateFunding.Api.Specs.Controllers
             return _specService.GetFundingPeriods(ControllerContext.HttpContext.Request);
         }
 
+        [Route("api/specs/get-fundingperiod-by-id")]
+        [HttpGet]
+        public Task<IActionResult> RunGetFundingPeriodById()
+        {
+            return _specService.GetFundingPeriodById(ControllerContext.HttpContext.Request);
+        }
+
         [Route("api/specs/save-fundingperiods")]
         [HttpPost]
         public Task<IActionResult> RunSaveFundingPeriods()

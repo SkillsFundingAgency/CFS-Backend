@@ -1,8 +1,17 @@
 ﻿<ProjectConfiguration>
   <Settings>
+    <BuildProcessArchitecture>x86</BuildProcessArchitecture>
+    <CopyReferencedAssembliesToWorkspace>False</CopyReferencedAssembliesToWorkspace>
+    <FrameworkUtilisationTypeForMSTest>UseStaticAnalysis</FrameworkUtilisationTypeForMSTest>
+    <HiddenComponentWarnings>
+      <Value>CopyReferencedAssembliesToWorkspaceIsOn</Value>
+    </HiddenComponentWarnings>
     <IgnoredTests>
       <AllTestsSelector />
     </IgnoredTests>
     <IgnoreThisComponentCompletely>True</IgnoreThisComponentCompletely>
+    <ImplicitProjectDependencyPathsRelativeToSolutionDirectory />
+    <PreloadReferencedAssemblies>True</PreloadReferencedAssemblies>
+    <TrackFileDependencies>False</TrackFileDependencies>
   </Settings>
 </ProjectConfiguration>

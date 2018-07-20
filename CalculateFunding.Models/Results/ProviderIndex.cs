@@ -75,6 +75,9 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("crmAccountId")]
         public string CrmAccountId { get; set; }
 
+        [JsonProperty("navVendorNo")]
+        public string NavVendorNo { get; set; }
+
         [JsonProperty("status")]
         public string Status { get; set; }
     }

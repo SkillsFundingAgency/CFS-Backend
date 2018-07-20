@@ -5,6 +5,8 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Results.Interfaces;
+using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -17,16 +19,19 @@ namespace CalculateFunding.Services.Results
     {
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly ICacheProvider _cacheProvider;
+        private readonly ILogger _logger;
 
         public PublishedProviderResultsAssemblerService(
             ISpecificationsRepository specificationsRepository,
-            ICacheProvider cacheProvider)
+            ICacheProvider cacheProvider,
+            ILogger logger)
         {
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
 
             _specificationsRepository = specificationsRepository;
             _cacheProvider = cacheProvider;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<PublishedProviderResult>> AssemblePublishedProviderResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion)
@@ -36,6 +41,13 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(specificationCurrentVersion, nameof(specificationCurrentVersion));
 
             string specificationId = specificationCurrentVersion.Id;
+
+            FundingPeriod fundingPeriod = await _specificationsRepository.GetFundingPeriodById(specificationCurrentVersion.FundingPeriod.Id);
+
+            if(fundingPeriod == null)
+            {
+                throw new Exception($"Failed to find a funding period for id: {specificationCurrentVersion.FundingPeriod.Id}");
+            }
 
             IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id);
 
@@ -47,18 +59,23 @@ namespace CalculateFunding.Services.Results
             {
                 assembleTasks.Add(Task.Run(async () =>
                 {
-                    PublishedProviderResult publishedProviderResult = new PublishedProviderResult
+                    IEnumerable<PublishedFundingStreamResult> publishedFundingStreamResults = await AssembleFundingStreamResults(providerResult, specificationCurrentVersion, author);
+                    
+                    foreach(PublishedFundingStreamResult publishedFundingStreamResult in publishedFundingStreamResults)
                     {
-                        Id = $"{providerResult.Provider.Id}_{specificationId}",
-                        SpecificationId = specificationId,
-                        ProviderId = providerResult.Provider.Id,
-                        Name = providerResult.Provider.Name,
-                        Ukprn = providerResult.Provider.UKPRN,
+                        PublishedProviderResult publishedProviderResult = new PublishedProviderResult
+                        {
+                            Id = $"{providerResult.Provider.Id}_{specificationId}_{publishedFundingStreamResult.AllocationLineResult.AllocationLine.Id}",
+                            SpecificationId = specificationId,
+                            Provider = providerResult.Provider,
+                            FundingStreamResult = publishedFundingStreamResult,
+                            Summary = "Some summary yet to be defined",
+                            Title = "Some Title",
+                            FundingPeriod = fundingPeriod
+                        };
 
-                        FundingStreamResults = await AssembleFundingStreamResults(providerResult, specificationCurrentVersion, author)
-                    };
-
-                    publishedProviderResults.Add(publishedProviderResult);
+                        publishedProviderResults.Add(publishedProviderResult);
+                    }
 
                 }));
       
@@ -164,10 +181,6 @@ namespace CalculateFunding.Services.Results
                 if (fundingStream == null)
                     throw new Exception($"Failed to find a funding stream for id: {fundingStreamReference.Id}");
 
-                PublishedFundingStreamResult publishedFundingStreamResult = new PublishedFundingStreamResult();
-
-                publishedFundingStreamResult.FundingStream = new Reference(fundingStreamReference.Id, fundingStreamReference.Name);
-
                 IEnumerable<IGrouping<string, AllocationLineResult>> allocationLineGroups = providerResult.AllocationLineResults.GroupBy(m => m.AllocationLine.Id);
 
                 foreach (IGrouping<string,AllocationLineResult> allocationLineResultGroup in allocationLineGroups)
@@ -176,6 +189,10 @@ namespace CalculateFunding.Services.Results
 
                     if(allocationLine != null)
                     {
+                        PublishedFundingStreamResult publishedFundingStreamResult = new PublishedFundingStreamResult();
+
+                        publishedFundingStreamResult.FundingStream = new Reference(fundingStreamReference.Id, fundingStreamReference.Name);
+
                         PublishedAllocationLineResultVersion publishedAllocationLineResultVersion = new PublishedAllocationLineResultVersion
                         {
                             Author = author,
@@ -185,9 +202,7 @@ namespace CalculateFunding.Services.Results
                             Value = allocationLineResultGroup.Sum(m => m.Value),
                         };
 
-                        publishedFundingStreamResult.AllocationLineResults = publishedFundingStreamResult.AllocationLineResults.Concat(new[]
-                        {
-                            new PublishedAllocationLineResult
+                        publishedFundingStreamResult.AllocationLineResult = new PublishedAllocationLineResult
                             {
                                 AllocationLine = new Reference
                                 {
@@ -195,12 +210,11 @@ namespace CalculateFunding.Services.Results
                                     Id = allocationLine.Id
                                 },
                                 Current = publishedAllocationLineResultVersion
-                            }
-                        }).ToList();
+                            };
+
+                        publishedFundingStreamResults.Add(publishedFundingStreamResult);
                     }
                 }
-
-                publishedFundingStreamResults.Add(publishedFundingStreamResult);
             }
 
             return publishedFundingStreamResults;

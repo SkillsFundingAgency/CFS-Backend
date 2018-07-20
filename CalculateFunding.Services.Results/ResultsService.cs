@@ -10,7 +10,6 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,15 +17,12 @@ using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
 using CalculateFunding.Repositories.Common.Cosmos;
-using Polly;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Models;
 using CalculateFunding.Services.Results.ResultModels;
 using System.Collections.Concurrent;
-using CalculateFunding.Models.Datasets.Schema;
-using Newtonsoft.Json.Converters;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Caching;
 
@@ -208,7 +204,7 @@ namespace CalculateFunding.Services.Results
             }
 
             providerResults = await GetProviderResultsBySpecificationId(specificationId);
-            
+
             return new OkObjectResult(providerResults);
         }
 
@@ -314,7 +310,7 @@ namespace CalculateFunding.Services.Results
 
             SpecificationCurrentVersion specification = await _specificationsRepository.GetCurrentSpecificationById(specificationId);
 
-            if(specification == null)
+            if (specification == null)
             {
                 _logger.Error($"Specification not found for specification id {specificationId}");
                 throw new ArgumentException($"Specification not found for specification id {specificationId}");
@@ -433,7 +429,7 @@ namespace CalculateFunding.Services.Results
                         if (!specifications.ContainsKey(providerResult.SpecificationId))
                         {
                             specificationSummary = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetSpecificationSummaryById(providerResult.SpecificationId));
-                            if(specificationSummary == null)
+                            if (specificationSummary == null)
                             {
                                 throw new InvalidOperationException($"Specification Summary returned null for specification ID '{providerResult.SpecificationId}'");
                             }
@@ -500,6 +496,11 @@ namespace CalculateFunding.Services.Results
 
             IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationId(specificationId);
 
+            if (publishedProviderResults.IsNullOrEmpty())
+            {
+                return new OkObjectResult(Enumerable.Empty<PublishedProviderResultModel>());
+            }
+
             IEnumerable<PublishedProviderResultModel> publishedProviderResultModels = MapPublishedProviderResultModels(publishedProviderResults);
 
             return new OkObjectResult(publishedProviderResultModels);
@@ -512,25 +513,25 @@ namespace CalculateFunding.Services.Results
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification Id was provided to UpdateAllocationLineResultStatus");
-                return new BadRequestObjectResult ("Null or empty specification Id provided");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
             string json = await request.GetRawBodyStringAsync();
 
             UpdatePublishedAllocationLineResultStatusModel updateStatusModel = JsonConvert.DeserializeObject<UpdatePublishedAllocationLineResultStatusModel>(json);
 
-            if(updateStatusModel == null)
+            if (updateStatusModel == null)
             {
                 _logger.Error("Null updateStatusModel was provided to UpdateAllocationLineResultStatus");
 
-                return new BadRequestObjectResult ("Null updateStatusModel was provided");
+                return new BadRequestObjectResult("Null updateStatusModel was provided");
             }
 
             if (updateStatusModel.Providers.IsNullOrEmpty())
             {
                 _logger.Error("Null or empty providers was provided to UpdateAllocationLineResultStatus");
 
-                return new BadRequestObjectResult ("Null or empty providers was provided");
+                return new BadRequestObjectResult("Null or empty providers was provided");
             }
 
             Reference author = request.GetUser();
@@ -539,17 +540,18 @@ namespace CalculateFunding.Services.Results
 
             if (publishedProviderResults.IsNullOrEmpty())
             {
-                return new NotFoundObjectResult ($"No provider results to update for specification id: {specificationId}");
+                return new NotFoundObjectResult($"No provider results to update for specification id: {specificationId}");
             }
 
             try
             {
-                Tuple<int, int> updateCounts = await UpdateAllocationLineResultsStatus(publishedProviderResults, updateStatusModel, author, specificationId);
+                Tuple<int, int> updateCounts = await UpdateAllocationLineResultsStatus(publishedProviderResults.ToList(), updateStatusModel, author, specificationId);
 
-                return new OkObjectResult ( new { UpdatedAllocationLines = updateCounts.Item1, UpdatedProviderIds = updateCounts.Item2 } );
+                return new OkObjectResult(new UpdateAllocationResultsStatusCounts { UpdatedAllocationLines = updateCounts.Item1, UpdatedProviderIds = updateCounts.Item2 });
             }
             catch (Exception ex)
             {
+                _logger.Error(ex, "Failed to update result status's");
                 return new InternalServerErrorResult(ex.Message);
             }
         }
@@ -560,7 +562,7 @@ namespace CalculateFunding.Services.Results
             {
                 await _searchRepository.DeleteIndex();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.Error(ex, "Failed to delete providers index");
 
@@ -594,7 +596,7 @@ namespace CalculateFunding.Services.Results
             {
                 providers = JsonConvert.DeserializeObject<MasterProviderModel[]>(json);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.Error(ex, "Invalid providers were provided");
 
@@ -610,11 +612,11 @@ namespace CalculateFunding.Services.Results
 
             IList<ProviderIndex> providersToIndex = new List<ProviderIndex>();
 
-            foreach(MasterProviderModel provider in providers)
+            foreach (MasterProviderModel provider in providers)
             {
                 ProviderIndex providerIndex = _providerImportMappingService.Map(provider);
 
-                if(providerIndex != null)
+                if (providerIndex != null)
                 {
                     providersToIndex.Add(providerIndex);
                 }
@@ -655,51 +657,68 @@ namespace CalculateFunding.Services.Results
                 return Enumerable.Empty<PublishedProviderResultModel>();
             }
 
-            IList<PublishedProviderResultModel> publishedProviderResultModels = new List<PublishedProviderResultModel>();
+            IList<PublishedProviderResultModel> results = new List<PublishedProviderResultModel>();
 
-            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            IEnumerable<IGrouping<string, PublishedProviderResult>> providerResultsGroups = publishedProviderResults.GroupBy(m => m.Provider.Id);
+
+            foreach (IGrouping<string, PublishedProviderResult> providerResultGroup in providerResultsGroups)
             {
+                IEnumerable<PublishedFundingStreamResult> fundingStreamResults = providerResultGroup.Select(m => m.FundingStreamResult);
+
+                PublishedProviderResult providerResult = providerResultGroup.First();
+
                 PublishedProviderResultModel publishedProviderResultModel = new PublishedProviderResultModel
                 {
-                    ProviderId = publishedProviderResult.ProviderId,
-                    ProviderName = publishedProviderResult.Name,
-                    Ukprn = publishedProviderResult.Ukprn,
-                    SpecificationId = publishedProviderResult.SpecificationId,
-                    FundingStreamResults = publishedProviderResult.FundingStreamResults.Select(
-                        m => new PublishedFundingStreamResultModel
-                        {
-                            FundingStreamId = m.FundingStream.Id,
-                            FundingStreamName = m.FundingStream.Name,
-                            AllocationLineResults = m.AllocationLineResults.IsNullOrEmpty() ? Enumerable.Empty<PublishedAllocationLineResultModel>() : m.AllocationLineResults.Select(
-                                    alr => new PublishedAllocationLineResultModel
-                                    {
-                                        AllocationLineId = alr.AllocationLine.Id,
-                                        AllocationLineName = alr.AllocationLine.Name,
-                                        FundingAmount = alr.Current.Value,
-                                        Status = alr.Current.Status,
-                                        LastUpdated = alr.Current.Date
-                                    }
-
-                                )
-
-                        })
+                    ProviderId = providerResult.Provider.Id
                 };
 
-                publishedProviderResultModels.Add(publishedProviderResultModel);
+                if (!results.Any(m => m.ProviderId == providerResultGroup.Key))
+                {
+                    results.Add(publishedProviderResultModel);
+                }
+
+                IEnumerable<IGrouping<string, PublishedFundingStreamResult>> fundingStreamResultsGroups = fundingStreamResults.GroupBy(m => m.FundingStream.Id);
+
+                foreach (IGrouping<string, PublishedFundingStreamResult> fundingStreamResultsGroup in fundingStreamResultsGroups)
+                {
+                    IEnumerable<PublishedAllocationLineResult> allocationLineResults = fundingStreamResultsGroup.Select(m => m.AllocationLineResult);
+
+                    PublishedFundingStreamResult fundingStreamResult = fundingStreamResultsGroup.First();
+
+                    if(!publishedProviderResultModel.FundingStreamResults.Any(m => m.FundingStreamId == fundingStreamResultsGroup.Key))
+                    {
+                        publishedProviderResultModel.FundingStreamResults = publishedProviderResultModel.FundingStreamResults.Concat(new[] { new PublishedFundingStreamResultModel
+                        {
+                            FundingStreamId = fundingStreamResult.FundingStream.Id,
+                            FundingStreamName = fundingStreamResult.FundingStream.Name,
+                            AllocationLineResults = allocationLineResults.IsNullOrEmpty() ? Enumerable.Empty<PublishedAllocationLineResultModel>() : allocationLineResults.Select(
+                                        alr => new PublishedAllocationLineResultModel
+                                        {
+                                            AllocationLineId = alr.AllocationLine.Id,
+                                            AllocationLineName = alr.AllocationLine.Name,
+                                            FundingAmount = alr.Current.Value,
+                                            Status = alr.Current.Status,
+                                            LastUpdated = alr.Current.Date
+                                        }
+
+                                    )
+                        } });
+                    }
+
+                }
             }
 
-            return publishedProviderResultModels;
+            return results;
         }
 
-        async Task<Tuple<int, int>> UpdateAllocationLineResultsStatus(IEnumerable<PublishedProviderResult> publishedProviderResults, 
+        async Task<Tuple<int, int>> UpdateAllocationLineResultsStatus(IEnumerable<PublishedProviderResult> publishedProviderResults,
             UpdatePublishedAllocationLineResultStatusModel updateStatusModel, Reference author, string specificationId)
         {
             IList<string> updatedAllocationLineIds = new List<string>();
             IList<string> updatedProviderIds = new List<string>();
 
-            IList<PublishedProviderResult> resultsToUpdate = new List<PublishedProviderResult>();
+            List<PublishedProviderResult> resultsToUpdate = new List<PublishedProviderResult>();
 
-            //IEnumerable<PublishedAllocationLineResultHistory> historyResults = (await _publishedProviderResultsRepository.GetPublishedProviderAllocationLineHistoryForSpecificationId(specificationId)).ToList();
             IEnumerable<PublishedAllocationLineResultHistory> historyResultsToUpdate = new List<PublishedAllocationLineResultHistory>();
 
             foreach (UpdatePublishedAllocationLineResultStatusProviderModel providerstatusModel in updateStatusModel.Providers)
@@ -709,15 +728,14 @@ namespace CalculateFunding.Services.Results
                     continue;
                 }
 
-                PublishedProviderResult publishedProviderResult = publishedProviderResults.FirstOrDefault(m => m.ProviderId == providerstatusModel.ProviderId);
+                IEnumerable<PublishedProviderResult> results = publishedProviderResults.Where(m => m.Provider?.Id == providerstatusModel.ProviderId);
 
-                if (publishedProviderResult == null)
+                if (results.IsNullOrEmpty())
                 {
                     continue;
                 }
 
-                IEnumerable<PublishedAllocationLineResult> publishedAllocationLineResults =
-                    (from allocationLineResult in publishedProviderResult.FundingStreamResults.SelectMany(l => l.AllocationLineResults) select allocationLineResult).ToArraySafe();
+                IEnumerable<PublishedAllocationLineResult> publishedAllocationLineResults = results.Select(m => m.FundingStreamResult.AllocationLineResult).ToArraySafe();
 
                 if (publishedAllocationLineResults.IsNullOrEmpty())
                 {
@@ -728,41 +746,48 @@ namespace CalculateFunding.Services.Results
 
                 foreach (string allocationLineResultId in providerstatusModel.AllocationLineIds)
                 {
-                    PublishedAllocationLineResult allocationLineResult = publishedAllocationLineResults.FirstOrDefault(m => m.AllocationLine.Id == allocationLineResultId);
+                    IEnumerable<PublishedAllocationLineResult> allocationLineResults = publishedAllocationLineResults.Where(m => m.AllocationLine.Id == allocationLineResultId);
 
-                    if (CanUpdateAllocationLineResult(allocationLineResult, updateStatusModel.Status))
-                    {
-                        PublishedAllocationLineResultHistory historyResult = await _publishedProviderResultsRepository.GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(specificationId, providerstatusModel.ProviderId);
-                        //PublishedAllocationLineResultHistory historyResult = historyResults.FirstOrDefault(m => m.AllocationLine.Id == allocationLineResult.AllocationLine.Id && m.ProviderId == providerstatusModel.ProviderId);
+                    foreach(PublishedAllocationLineResult allocationLineResult in allocationLineResults){
 
-                        int nextVersionIndex = historyResult.History.Max(m => m.Version) + 1;
-
-                        PublishedAllocationLineResultVersion newVersion = CreateNewPublishedAllocationLineResultVersion(allocationLineResult, author, updateStatusModel.Status, nextVersionIndex);
-
-                        if(historyResult != null)
+                        if (CanUpdateAllocationLineResult(allocationLineResult, updateStatusModel.Status))
                         {
-                            historyResult.History = (historyResult.History.Concat(new[] { newVersion.Clone() })).ToList();
+                            PublishedAllocationLineResultHistory historyResult = await _publishedProviderResultsRepository.GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(specificationId, providerstatusModel.ProviderId, allocationLineResult.AllocationLine.Id);
 
-                            historyResultsToUpdate = historyResultsToUpdate.Concat(new[] { historyResult });
+                            int nextVersionIndex = historyResult.History.IsNullOrEmpty() ? 1 : historyResult.History.Max(m => m.Version) + 1;
+
+                            PublishedAllocationLineResultVersion newVersion = CreateNewPublishedAllocationLineResultVersion(allocationLineResult, author, updateStatusModel.Status, nextVersionIndex);
+
+                            if (historyResult != null)
+                            {
+                                if(historyResult.History == null)
+                                {
+                                    historyResult.History = Enumerable.Empty<PublishedAllocationLineResultVersion>();
+                                }
+
+                                historyResult.History = (historyResult.History.Concat(new[] { newVersion.Clone() })).ToList();
+
+                                historyResultsToUpdate = historyResultsToUpdate.Concat(new[] { historyResult });
+                            }
+
+                            if (!updatedAllocationLineIds.Contains(allocationLineResultId))
+                            {
+                                updatedAllocationLineIds.Add(allocationLineResultId);
+                            }
+
+                            if (!updatedProviderIds.Contains(providerstatusModel.ProviderId))
+                            {
+                                updatedProviderIds.Add(providerstatusModel.ProviderId);
+                            }
+
+                            isUpdated = true;
                         }
-
-                        if (!updatedAllocationLineIds.Contains(allocationLineResultId))
-                        {
-                            updatedAllocationLineIds.Add(allocationLineResultId);
-                        }
-
-                        if (!updatedProviderIds.Contains(providerstatusModel.ProviderId))
-                        {
-                            updatedProviderIds.Add(providerstatusModel.ProviderId);
-                        }
-
-                        isUpdated = true;
                     }
                 }
 
                 if (isUpdated)
                 {
-                    resultsToUpdate.Add(publishedProviderResult);
+                    resultsToUpdate.AddRange(results);
                 }
             }
 
@@ -787,7 +812,7 @@ namespace CalculateFunding.Services.Results
 
         bool CanUpdateAllocationLineResult(PublishedAllocationLineResult allocationLineResult, AllocationLineStatus newStatus)
         {
-            if(allocationLineResult == null || allocationLineResult.Current.Status == newStatus 
+            if (allocationLineResult == null || allocationLineResult.Current.Status == newStatus
                 || (allocationLineResult.Current.Status == AllocationLineStatus.Held && newStatus == AllocationLineStatus.Published)
                 || (allocationLineResult.Current.Status == AllocationLineStatus.Approved && newStatus == AllocationLineStatus.Held)
                 || (allocationLineResult.Current.Status == AllocationLineStatus.Published && newStatus == AllocationLineStatus.Held)
@@ -799,7 +824,7 @@ namespace CalculateFunding.Services.Results
             return true;
         }
 
-        PublishedAllocationLineResultVersion CreateNewPublishedAllocationLineResultVersion(PublishedAllocationLineResult allocationLineResult, 
+        PublishedAllocationLineResultVersion CreateNewPublishedAllocationLineResultVersion(PublishedAllocationLineResult allocationLineResult,
             Reference author, AllocationLineStatus newStatus, int nextVersionIndex)
         {
             PublishedAllocationLineResultVersion newVersion = allocationLineResult.Current.Clone();
@@ -809,7 +834,7 @@ namespace CalculateFunding.Services.Results
             newVersion.Version = nextVersionIndex;
 
             allocationLineResult.Current = newVersion;
-            
+
             if (newStatus == AllocationLineStatus.Published)
             {
                 allocationLineResult.Published = newVersion;
@@ -820,39 +845,35 @@ namespace CalculateFunding.Services.Results
 
         async Task SavePublishedAllocationLineResultVersionHistory(IEnumerable<PublishedProviderResult> publishedProviderResults, string specificationId)
         {
-            IEnumerable<PublishedAllocationLineResultHistory> historyResults = await _publishedProviderResultsRepository.GetPublishedProviderAllocationLineHistoryForSpecificationId(specificationId);
+            IEnumerable<PublishedAllocationLineResultHistory> historyResults = (await _publishedProviderResultsRepository.GetPublishedProviderAllocationLineHistoryForSpecificationId(specificationId)).ToList();
 
             IEnumerable<PublishedAllocationLineResultHistory> historyResultsToSave = new List<PublishedAllocationLineResultHistory>();
 
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
-                IEnumerable<PublishedAllocationLineResult> publishedAllocationLineResults =
-                        (from allocationLineResult in publishedProviderResult.FundingStreamResults.SelectMany(l => l.AllocationLineResults) select allocationLineResult).ToArraySafe();
+                PublishedAllocationLineResult  publishedAllocationLineResult = publishedProviderResult.FundingStreamResult.AllocationLineResult;
 
-                IEnumerable<PublishedAllocationLineResultHistory> publishedAllocationLineResultHistoryList = historyResults.Where(m => m.ProviderId == publishedProviderResult.ProviderId);
+                IEnumerable<PublishedAllocationLineResultHistory> publishedAllocationLineResultHistoryList = historyResults.Where(m => m.ProviderId == publishedProviderResult.Provider.Id);
 
-                foreach(PublishedAllocationLineResult publishedAllocationLineResult in publishedAllocationLineResults)
+                PublishedAllocationLineResultHistory publishedAllocationLineResultHistory = publishedAllocationLineResultHistoryList.FirstOrDefault(m => m.AllocationLine?.Id == publishedAllocationLineResult.AllocationLine.Id);
+
+                if (publishedAllocationLineResultHistory == null)
                 {
-                    PublishedAllocationLineResultHistory publishedAllocationLineResultHistory = publishedAllocationLineResultHistoryList.FirstOrDefault(m => m.AllocationLine.Id == publishedAllocationLineResult.AllocationLine.Id);
-
-                    if(publishedAllocationLineResultHistory == null)
+                    publishedAllocationLineResultHistory = new PublishedAllocationLineResultHistory
                     {
-                        publishedAllocationLineResultHistory = new PublishedAllocationLineResultHistory
-                        {
-                            ProviderId = publishedProviderResult.ProviderId,
-                            SpecificationId = specificationId,
-                            AllocationLine = publishedAllocationLineResult.AllocationLine,
-                            History = new[] { publishedAllocationLineResult.Current }
-                        };
-                    }
-                    else
-                    {
-                        publishedAllocationLineResultHistory.History = publishedAllocationLineResultHistory.History.Concat(new[] { publishedAllocationLineResult.Current });
-                    }
-
-                    historyResultsToSave = historyResultsToSave.Concat(new[] { publishedAllocationLineResultHistory });
+                        ProviderId = publishedProviderResult.Provider.Id,
+                        SpecificationId = specificationId,
+                        AllocationLine = publishedAllocationLineResult.AllocationLine,
+                        History = new[] { publishedAllocationLineResult.Current }
+                    };
                 }
-               
+                else
+                {
+                    publishedAllocationLineResultHistory.History = publishedAllocationLineResultHistory.History.Concat(new[] { publishedAllocationLineResult.Current });
+                }
+
+                historyResultsToSave = historyResultsToSave.Concat(new[] { publishedAllocationLineResultHistory });
+
             }
 
             await _publishedProviderResultsRepository.SavePublishedAllocationLineResultsHistory(historyResultsToSave);
