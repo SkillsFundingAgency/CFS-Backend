@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Repositories.Common.Search;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets.Interfaces
@@ -13,5 +16,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> GetDatasetDefinitionById(HttpRequest request);
 
         Task<IActionResult> GetDatasetDefinitionsByIds(HttpRequest request);
+
+        Task<IEnumerable<IndexError>> IndexDatasetDefinition(DatasetDefinition definition);
     }
 }

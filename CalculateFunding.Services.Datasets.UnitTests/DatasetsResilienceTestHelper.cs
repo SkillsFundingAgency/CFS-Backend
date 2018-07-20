@@ -15,6 +15,7 @@ namespace CalculateFunding.Services.Datasets
                 DatasetSearchService = Policy.NoOpAsync(),
                 ProviderRepository = Policy.NoOpAsync(),
                 SpecificationsRepository = Policy.NoOpAsync(),
+                DatasetDefinitionSearchRepository = Policy.NoOpAsync(),
             };
         }
     }

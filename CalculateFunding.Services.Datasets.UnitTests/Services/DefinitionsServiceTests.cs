@@ -14,13 +14,15 @@ using System.IO;
 using CalculateFunding.Models.Datasets.Schema;
 using System.Net;
 using System.Linq;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Repositories.Common.Search;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
     [TestClass]
     public class DefinitionsServiceTests
     {
-        const string yamlFile = "12345.yaml";
+        private const string yamlFile = "12345.yaml";
 
         [TestMethod]
         async public Task SaveDefinition_GivenNoYamlWasProvidedWithNoFileName_ReturnsBadRequest()
@@ -191,7 +193,7 @@ namespace CalculateFunding.Services.Datasets.Services
             dataSetsRepository
                 .When(x => x.SaveDefinition(Arg.Any<DatasetDefinition>()))
                 .Do(x => { throw new Exception(); });
-                               
+
             DefinitionsService service = CreateDefinitionsService(logger, dataSetsRepository);
 
             //Act
@@ -200,13 +202,11 @@ namespace CalculateFunding.Services.Datasets.Services
             //Assert
             result
                 .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = (StatusCodeResult)result;
-            statusCodeResult
-                .StatusCode
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
                 .Should()
-                .Be(500);
+                .Be("Exception occurred writing to yaml file: 12345.yaml to cosmos db");
 
             logger
                 .Received(1)
@@ -214,10 +214,12 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task SaveDefinition_GivenValidYamlAndSaveWasSuccesful_ReturnsOK()
+        async public Task SaveDefinition_GivenValidYamlAndSearchDoesNotContainExistingItem_ThenSaveWasSuccesfulAndReturnsOK()
         {
             //Arrange
             string yaml = CreateRawDefinition();
+            string definitionId = "9183";
+
             byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
             MemoryStream stream = new MemoryStream(byteArray);
 
@@ -238,12 +240,17 @@ namespace CalculateFunding.Services.Datasets.Services
 
             HttpStatusCode statusCode = HttpStatusCode.Created;
 
-            IDatasetRepository dataSetsRepository = CreateDataSetsRepository();
-            dataSetsRepository
+            IDatasetRepository datasetsRepository = CreateDataSetsRepository();
+            datasetsRepository
                 .SaveDefinition(Arg.Any<DatasetDefinition>())
                 .Returns(statusCode);
 
-            DefinitionsService service = CreateDefinitionsService(logger, dataSetsRepository);
+            ISearchRepository<DatasetDefinitionIndex> searchRepository = CreateDatasetDefinitionSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(definitionId))
+                .Returns((DatasetDefinitionIndex)null);
+
+            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository);
 
             //Act
             IActionResult result = await service.SaveDefinition(request);
@@ -252,6 +259,190 @@ namespace CalculateFunding.Services.Datasets.Services
             result
                 .Should()
                 .BeOfType<OkResult>();
+
+            await searchRepository
+                 .Received(1)
+                 .SearchById(Arg.Is(definitionId));
+
+            await searchRepository
+                .Received(1)
+                .Index(Arg.Is<IEnumerable<DatasetDefinitionIndex>>(
+                    i => i.First().Description == "14/15 description" &&
+                    i.First().Id == "9183" &&
+                    !string.IsNullOrWhiteSpace(i.First().ModelHash) &&
+                    i.First().Name == "14/15" &&
+                    i.First().ProviderIdentifier == "None"
+                   ));
+
+            await datasetsRepository
+                .Received(1)
+                .SaveDefinition(Arg.Is<DatasetDefinition>(
+                    i => i.Description == "14/15 description" &&
+                    i.Id == "9183" &&
+                    i.Name == "14/15"
+                   ));
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Successfully saved file: {yamlFile} to cosmos db"));
+        }
+
+        [TestMethod]
+        async public Task SaveDefinition_GivenValidYamlAndSearchDoesContainsExistingItemWithModelUpdates_ThenSaveWasSuccesfulAndSearchUpdatedAndReturnsOK()
+        {
+            //Arrange
+            string yaml = CreateRawDefinition();
+            string definitionId = "9183";
+
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            HttpStatusCode statusCode = HttpStatusCode.Created;
+
+            IDatasetRepository datasetsRepository = CreateDataSetsRepository();
+            datasetsRepository
+                .SaveDefinition(Arg.Any<DatasetDefinition>())
+                .Returns(statusCode);
+
+            DatasetDefinitionIndex existingIndex = new DatasetDefinitionIndex()
+            {
+                Description = "14/15 description",
+                Id = "9183",
+                LastUpdatedDate = new DateTimeOffset(2018, 6, 19, 14, 10, 2, TimeSpan.Zero),
+                ModelHash = "OLDHASH",
+                Name = "14/15",
+                ProviderIdentifier = "None",
+            };
+
+            ISearchRepository<DatasetDefinitionIndex> searchRepository = CreateDatasetDefinitionSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(definitionId))
+                .Returns(existingIndex);
+
+            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository);
+
+            //Act
+            IActionResult result = await service.SaveDefinition(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkResult>();
+
+            await searchRepository
+                 .Received(1)
+                 .SearchById(Arg.Is(definitionId));
+
+            await searchRepository
+                .Received(1)
+                .Index(Arg.Is<IEnumerable<DatasetDefinitionIndex>>(
+                    i => i.First().Description == "14/15 description" &&
+                    i.First().Id == "9183" &&
+                    i.First().ModelHash == "1A24899BEB5336B654A070ABFCE857EAC1083533751E3F43A5EA0F2F361E3444" &&
+                    i.First().Name == "14/15" &&
+                    i.First().ProviderIdentifier == "None"
+                   ));
+
+            await datasetsRepository
+                .Received(1)
+                .SaveDefinition(Arg.Is<DatasetDefinition>(
+                    i => i.Description == "14/15 description" &&
+                    i.Id == "9183" &&
+                    i.Name == "14/15"
+                   ));
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Successfully saved file: {yamlFile} to cosmos db"));
+        }
+
+        [TestMethod]
+        async public Task SaveDefinition_GivenValidYamlAndSearchDoesContainsExistingItemWithNoUpdates_ThenDatasetDefinitionSavedInCosmosAndSearchNotUpdatedAndReturnsOK()
+        {
+            //Arrange
+            string yaml = CreateRawDefinition();
+            string definitionId = "9183";
+
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            HttpStatusCode statusCode = HttpStatusCode.Created;
+
+            IDatasetRepository datasetsRepository = CreateDataSetsRepository();
+            datasetsRepository
+                .SaveDefinition(Arg.Any<DatasetDefinition>())
+                .Returns(statusCode);
+
+            DatasetDefinitionIndex existingIndex = new DatasetDefinitionIndex()
+            {
+                Description = "14/15 description",
+                Id = "9183",
+                LastUpdatedDate = new DateTimeOffset(2018, 6, 19, 14, 10, 2, TimeSpan.Zero),
+                ModelHash = "1A24899BEB5336B654A070ABFCE857EAC1083533751E3F43A5EA0F2F361E3444",
+                Name = "14/15",
+                ProviderIdentifier = "None",
+            };
+
+            ISearchRepository<DatasetDefinitionIndex> searchRepository = CreateDatasetDefinitionSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(definitionId))
+                .Returns(existingIndex);
+
+            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository);
+
+            //Act
+            IActionResult result = await service.SaveDefinition(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkResult>();
+
+            await searchRepository
+                 .Received(1)
+                 .SearchById(Arg.Is(definitionId));
+
+            await searchRepository
+                .Received(0)
+                .Index(Arg.Any<IEnumerable<DatasetDefinitionIndex>>());
+
+            await datasetsRepository
+                .Received(1)
+                .SaveDefinition(Arg.Is<DatasetDefinition>(
+                    i => i.Description == "14/15 description" &&
+                    i.Id == "9183" &&
+                    i.Name == "14/15"
+                   ));
 
             logger
                 .Received(1)
@@ -271,7 +462,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetDefinitions()
                 .Returns(definitions);
 
-            DefinitionsService service = CreateDefinitionsService(dataSetsRepository: repository);
+            DefinitionsService service = CreateDefinitionsService(datasetsRepository: repository);
 
             //Act
             IActionResult result = await service.GetDatasetDefinitions(request);
@@ -307,7 +498,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetDefinitions()
                 .Returns(definitions);
 
-            DefinitionsService service = CreateDefinitionsService(dataSetsRepository: repository);
+            DefinitionsService service = CreateDefinitionsService(datasetsRepository: repository);
 
             //Act
             IActionResult result = await service.GetDatasetDefinitions(request);
@@ -327,9 +518,17 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Be(2);
         }
 
-        static DefinitionsService CreateDefinitionsService(ILogger logger = null, IDatasetRepository dataSetsRepository = null)
+        static DefinitionsService CreateDefinitionsService(
+            ILogger logger = null,
+            IDatasetRepository datasetsRepository = null,
+            ISearchRepository<DatasetDefinitionIndex> datasetDefinitionSearchRepository = null,
+            IDatasetsResiliencePolicies datasetsResiliencePolicies = null)
         {
-            return new DefinitionsService(logger ?? CreateLogger(), dataSetsRepository ?? CreateDataSetsRepository());
+            return new DefinitionsService(logger ?? CreateLogger(),
+                datasetsRepository ?? CreateDataSetsRepository(),
+                 datasetDefinitionSearchRepository ?? CreateDatasetDefinitionSearchRepository(),
+                 datasetsResiliencePolicies ?? CreateDatasetsResiliencePolicies()
+                );
         }
 
         static ILogger CreateLogger()
@@ -342,12 +541,23 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<IDatasetRepository>();
         }
 
+        private static IDatasetsResiliencePolicies CreateDatasetsResiliencePolicies()
+        {
+            return DatasetsResilienceTestHelper.GenerateTestPolicies();
+        }
+
+        private static ISearchRepository<DatasetDefinitionIndex> CreateDatasetDefinitionSearchRepository()
+        {
+            return Substitute.For<ISearchRepository<DatasetDefinitionIndex>>();
+        }
+
+
         static string CreateRawDefinition()
         {
             StringBuilder yaml = new StringBuilder(185);
             yaml.AppendLine(@"id: 9183");
             yaml.AppendLine(@"name: 14/15");
-            yaml.AppendLine(@"description: 14/15");
+            yaml.AppendLine(@"description: 14/15 description");
             yaml.AppendLine(@"tableDefinitions:");
             yaml.AppendLine(@"- id: 9189");
             yaml.AppendLine(@"  name: 14/15");
