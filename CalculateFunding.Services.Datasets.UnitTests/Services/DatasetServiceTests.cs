@@ -2456,7 +2456,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndBlobFoundButEmptyFile_DoesNotProcess()
+        public void ProcessDataset_GivenPayloadAndBlobFoundButEmptyFile_DoesNotProcess()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";

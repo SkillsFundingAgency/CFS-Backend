@@ -46,9 +46,9 @@
     <EmbeddedResource Include="StoreExport\sbs-sparsity.csv" />
     <EmbeddedResource Include="StoreExport\sbs-split-sites.csv" />
     <EmbeddedResource Include="StoreExport\sbs-totals.csv" />
-    <EmbeddedResource Include="Swagger\DocsTopContents.txt">
+    <Content Include="Swagger\DocsTopContents.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

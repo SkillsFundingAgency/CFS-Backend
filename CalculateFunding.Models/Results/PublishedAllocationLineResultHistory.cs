@@ -11,7 +11,7 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("providerId")]
         public string ProviderId { get; set; }
 
-        [JsonProperty("allocationIdLine")]
+        [JsonProperty("allocationLine")]
         public Reference AllocationLine { get; set; }
 
         [JsonProperty("id")]

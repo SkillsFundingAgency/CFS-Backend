@@ -180,7 +180,10 @@ namespace CalculateFunding.Services.Calcs
                 EstablishmentNumber = x.EstablishmentNumber,
                 ProviderType = x.ProviderType,
                 DateOpened = x.OpenDate,
-                LACode = x.LACode
+                LACode = x.LACode,
+                CrmAccountId = x.CrmAccountId,
+                LegalName = x.LegalName,
+                NavVendorNo = x.NavVendorNo,
             });
         }
 

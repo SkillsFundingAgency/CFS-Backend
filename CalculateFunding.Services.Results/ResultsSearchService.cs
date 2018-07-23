@@ -160,7 +160,6 @@ namespace CalculateFunding.Services.Results
             return searchTasks;
         }
 
-		//TODO - refactor - seems common?
         Task<SearchResults<ProviderIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel)
         {
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
@@ -205,7 +204,10 @@ namespace CalculateFunding.Services.Results
                         ProviderSubType = m.Result.ProviderSubType,
                         OpenDate = m.Result.OpenDate,
                         CloseDate = m.Result.CloseDate,
-                        ProviderProfileId = m.Result.ProviderId
+                        ProviderProfileId = m.Result.ProviderId,
+                        NavVendorNo = m.Result.NavVendorNo,
+                        CrmAccountId = m.Result.CrmAccountId,
+                        LegalName = m.Result.LegalName
                     });
                 }
             }

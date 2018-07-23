@@ -627,6 +627,31 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(fundingPeriods);
         }
 
+        public async Task<IActionResult> GetFundingPeriodById(HttpRequest request)
+        {
+            request.Query.TryGetValue("fundingPeriodId", out var fundingPeriodIdParse);
+
+            string fundingPeriodId = fundingPeriodIdParse.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(fundingPeriodId))
+            {
+                _logger.Error("No funding period was provided to GetFundingPeriodById");
+
+                return new BadRequestObjectResult("Null or empty funding period id provided");
+            }
+
+            FundingPeriod fundingPeriod = await _specificationsRepository.GetFundingPeriodById(fundingPeriodId);
+
+            if (fundingPeriod == null)
+            {
+                _logger.Error($"No funding period was returned for funding period id: {fundingPeriodId}");
+
+                return new NotFoundResult();
+            }
+
+            return new OkObjectResult(fundingPeriod);
+        }
+
         public async Task<IActionResult> GetFundingStreams(HttpRequest request)
         {
             IEnumerable<FundingStream> fundingStreams = await _cacheProvider.GetAsync<FundingStream[]>(CacheKeys.AllFundingStreams);

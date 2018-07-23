@@ -13,5 +13,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IEnumerable<FundingStream>> GetFundingStreams();
 
         Task<SpecificationCurrentVersion> GetCurrentSpecificationById(string specificationId);
+
+        Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId);
     }
 }

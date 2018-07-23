@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Results
         {
             Guard.ArgumentNotNull(publishedResults, nameof(publishedResults));
 
-            return _cosmosRepository.BulkCreateAsync<PublishedProviderResult>(publishedResults.Select(m => new KeyValuePair<string, PublishedProviderResult>(m.ProviderId, m)));
+            return _cosmosRepository.BulkCreateAsync<PublishedProviderResult>(publishedResults.Select(m => new KeyValuePair<string, PublishedProviderResult>(m.Provider.Id, m)));
         }
 
         public Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsForSpecificationId(string specificationId)
@@ -61,9 +61,11 @@ namespace CalculateFunding.Services.Results
             return _cosmosRepository.BulkCreateAsync<PublishedAllocationLineResultHistory>(publishedResultsHistory.Select(m => new KeyValuePair<string, PublishedAllocationLineResultHistory>(m.ProviderId, m)));
         }
 
-        public async Task<PublishedAllocationLineResultHistory> GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(string specificationId, string providerId)
+        public async Task<PublishedAllocationLineResultHistory> GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(string specificationId, string providerId, string allocationLineId)
         {
-            return( await _cosmosRepository.QueryPartitionedEntity<PublishedAllocationLineResultHistory>($"SELECT * from r where r.content.providerId = '{providerId}' and r.content.specificationId = '{specificationId}' and r.documentType = 'PublishedAllocationLineResultHistory'", 1, providerId)).FirstOrDefault();
+            string query = $"SELECT * from r where r.content.providerId = '{providerId}' and r.content.specificationId = '{specificationId}' and r.content.allocationLine.id = '{allocationLineId}' and r.documentType = 'PublishedAllocationLineResultHistory'";
+
+            return ( await _cosmosRepository.QueryPartitionedEntity<PublishedAllocationLineResultHistory>(query, 1, providerId)).FirstOrDefault();
         }
     }
 }

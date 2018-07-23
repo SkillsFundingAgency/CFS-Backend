@@ -31,6 +31,7 @@ using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Datasets.Schema;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -153,6 +154,9 @@ namespace CalculateFunding.Services.Core.Extensions
 
             builder
               .AddSingleton<ISearchRepository<CalculationProviderResultsIndex>, SearchRepository<CalculationProviderResultsIndex>>();
+
+            builder
+              .AddSingleton<ISearchRepository<DatasetDefinitionIndex>, SearchRepository<DatasetDefinitionIndex>>();
 
             return builder;
         }

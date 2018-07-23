@@ -19,5 +19,8 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 		public DateTimeOffset? OpenDate { get; set; }
 		public DateTimeOffset? CloseDate { get; set; }
         public string LACode { get; set; }
+        public string NavVendorNo { get; set; }
+        public string CrmAccountId { get; set; }
+        public string LegalName { get; set; }
     }
 }

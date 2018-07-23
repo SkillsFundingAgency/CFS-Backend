@@ -34,7 +34,7 @@ using CalculateFunding.Models.Specs;
 namespace CalculateFunding.Services.Results.Services
 {
     [TestClass]
-    public class ResultsServiceTests
+    public partial class ResultsServiceTests
     {
         const string providerId = "123456";
         const string specificationId = "888999";
@@ -1043,228 +1043,6 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void PublishProviderResults_WhenMessageIsNull_ThenArgumentNullExceptionThrown()
-        {
-            // Arrange
-            ResultsService resultsService = CreateResultsService();
-
-            // Act
-            Func<Task> test = () => resultsService.PublishProviderResults(null);
-
-            //Assert
-            test.ShouldThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("message");
-        }
-
-        [TestMethod]
-        public void PublishProviderResults_WhenMessageDoesNotHaveSpecificationId_ThenArgumentExceptionThrown()
-        {
-            // Arrange
-            ResultsService resultsService = CreateResultsService();
-            Message message = new Message();
-
-            // Act
-            Func<Task> test = () => resultsService.PublishProviderResults(message);
-
-            //Assert
-            test.ShouldThrowExactly<ArgumentException>().And.Message.Should().Be("Message must contain a specification id");
-        }
-
-        [TestMethod]
-        public void PublishProviderResults_WhenNoProviderResultsForSpecification_ThenArgumnetExceptionThrown()
-        {
-            // Arrange
-            ResultsService resultsService = CreateResultsService();
-            Message message = new Message();
-            message.UserProperties["specification-id"] = "-1";
-
-            // Act
-            Func<Task> test = () => resultsService.PublishProviderResults(message);
-
-            //Assert
-            test.ShouldThrowExactly<ArgumentException>().And.Message.Should().Be("Could not find any provider results for specification");
-        }
-
-        [TestMethod]
-        public void PublishProviderResults_WhenSpecificationNotFound_ThenArgumentExceptionThrown()
-        {
-            // Arrange
-            string specificationId = "1";
-            IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
-            {
-                new ProviderResult()
-            };
-
-            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
-            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
-                .Returns(Task.FromResult(providerResults));
-            ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository);
-
-            Message message = new Message();
-            message.UserProperties["specification-id"] = specificationId;
-
-            // Act
-            Func<Task> test = () => resultsService.PublishProviderResults(message);
-
-            //Assert
-            test.ShouldThrowExactly<ArgumentException>().And.Message.Should().Be($"Specification not found for specification id {specificationId}");
-        }
-
-        [TestMethod]
-        public void PublishProviderResults_WhenErrorSavingPublishedResults_ThenExceptionThrown()
-        {
-            // Arrange
-            string specificationId = "1";
-            IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
-            {
-                new ProviderResult()
-            };
-
-            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
-            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
-                .Returns(Task.FromResult(providerResults));
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
-                .Returns(Task.FromResult(new SpecificationCurrentVersion()));
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
-                .Returns(ex => { throw new Exception("Error saving published results"); });
-            ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository, 
-                publishedProviderResultsRepository: publishedProviderResultsRepository,
-                specificationsRepository: specificationsRepository);
-
-            Message message = new Message();
-            message.UserProperties["specification-id"] = specificationId;
-
-            // Act
-            Func<Task> test = () => resultsService.PublishProviderResults(message);
-
-            //Assert
-            var thrownException = test.ShouldThrowExactly<Exception>().Subject.First();
-            thrownException.Message.Should().Be($"Failed to create published provider results for specification: {specificationId}");
-            thrownException.InnerException.Should().NotBeNull();
-            thrownException.InnerException.Message.Should().Be("Error saving published results");
-        }
-
-        [TestMethod]
-        public void PublishProviderResults_WhenErrorSavingPublishedResultsVersionHistory_ThenExceptionThrown()
-        {
-            // Arrange
-            string specificationId = "1";
-            IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
-            {
-                new ProviderResult()
-            };
-
-            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
-            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
-                .Returns(Task.FromResult(providerResults));
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
-                .Returns(Task.FromResult(new SpecificationCurrentVersion()));
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
-                .Returns(Task.CompletedTask);
-            publishedProviderResultsRepository.SavePublishedAllocationLineResultsHistory(Arg.Any<IEnumerable<PublishedAllocationLineResultHistory>>())
-                .Returns(ex => { throw new Exception("Error saving published results version history"); });
-            ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
-                publishedProviderResultsRepository: publishedProviderResultsRepository,
-                specificationsRepository: specificationsRepository);
-
-            Message message = new Message();
-            message.UserProperties["specification-id"] = specificationId;
-
-            // Act
-            Func<Task> test = () => resultsService.PublishProviderResults(message);
-
-            //Assert
-            var thrownException = test.ShouldThrowExactly<Exception>().Subject.First();
-            thrownException.Message.Should().Be($"Failed to create published provider results for specification: {specificationId}");
-            thrownException.InnerException.Should().NotBeNull();
-            thrownException.InnerException.Message.Should().Be("Error saving published results version history");
-        }
-
-        [TestMethod]
-        public void PublishProviderResults_WhenErrorSavingPublishedCalculationResults_ThenExceptionThrown()
-        {
-            // Arrange
-            string specificationId = "1";
-            IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
-            {
-                new ProviderResult()
-            };
-
-            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
-            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
-                .Returns(Task.FromResult(providerResults));
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
-                .Returns(Task.FromResult(new SpecificationCurrentVersion()));
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
-                .Returns(Task.CompletedTask);
-            publishedProviderResultsRepository.SavePublishedAllocationLineResultsHistory(Arg.Any<IEnumerable<PublishedAllocationLineResultHistory>>())
-                .Returns(Task.CompletedTask);
-            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
-            publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(Arg.Any<IEnumerable<PublishedProviderCalculationResult>>())
-                .Returns(ex => { throw new Exception("Error saving published calculation results"); });
-            ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
-                publishedProviderResultsRepository: publishedProviderResultsRepository,
-                specificationsRepository: specificationsRepository,
-                publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository);
-
-            Message message = new Message();
-            message.UserProperties["specification-id"] = specificationId;
-
-            // Act
-            Func<Task> test = () => resultsService.PublishProviderResults(message);
-
-            //Assert
-            var thrownException = test.ShouldThrowExactly<Exception>().Subject.First();
-            thrownException.Message.Should().Be($"Failed to create published provider calculation results for specification: {specificationId}");
-            thrownException.InnerException.Should().NotBeNull();
-            thrownException.InnerException.Message.Should().Be("Error saving published calculation results");
-        }
-
-        [TestMethod]
-        public void PublishProviderResults_WhenCompletesSuccessfully_ThenNoExceptionThrown()
-        {
-            // Arrange
-            string specificationId = "1";
-            IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
-            {
-                new ProviderResult()
-            };
-
-            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
-            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
-                .Returns(Task.FromResult(providerResults));
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
-                .Returns(Task.FromResult(new SpecificationCurrentVersion()));
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
-                .Returns(Task.CompletedTask);
-            publishedProviderResultsRepository.SavePublishedAllocationLineResultsHistory(Arg.Any<IEnumerable<PublishedAllocationLineResultHistory>>())
-                .Returns(Task.CompletedTask);
-            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
-            publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(Arg.Any<IEnumerable<PublishedProviderCalculationResult>>())
-                .Returns(Task.CompletedTask);
-            ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
-                publishedProviderResultsRepository: publishedProviderResultsRepository,
-                specificationsRepository: specificationsRepository,
-                publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository);
-
-            Message message = new Message();
-            message.UserProperties["specification-id"] = specificationId;
-
-            // Act
-            Func<Task> test = () => resultsService.PublishProviderResults(message);
-
-            //Assert
-            test.ShouldNotThrow();
-        }
-
-        [TestMethod]
         public async Task RemoveCurrentProviders_WhenSummaryCountsExist_DeletesSummaryCounts()
         {
             //Arrange
@@ -1503,6 +1281,320 @@ namespace CalculateFunding.Services.Results.Services
                 new MasterProviderModel { MasterUKPRN = "1234" },
                 new MasterProviderModel { MasterUKPRN = "5678" },
                 new MasterProviderModel { MasterUKPRN = "1122" }
+            };
+        }
+
+        static IEnumerable<PublishedProviderResult> CreatePublishedProviderResults()
+        {
+            return new[]
+            {
+                new PublishedProviderResult
+                {
+                    Title = "test title 1",
+                    Summary = "test summary 1",
+                    Id = "116202_dc790603-8e9a-45ac-bde1-485bc0cfb327_SSF Programme Funding",
+                    Provider = new ProviderSummary
+                    {
+                        URN = "12345",
+                        UKPRN = "1111",
+                        UPIN = "2222",
+                        EstablishmentNumber = "es123",
+                        Authority = "London",
+                        ProviderType = "test type",
+                        ProviderSubType = "test sub type",
+                        DateOpened = DateTimeOffset.Now,
+                        ProviderProfileIdType = "UKPRN",
+                        LACode = "77777",
+                        Id = "1111",
+                        Name = "test provider name 1"
+                    },
+                    SpecificationId = "spec-1",
+                    FundingStreamResult = new PublishedFundingStreamResult
+                    {
+                        FundingStream = new FundingStream
+                        {
+                            Id = "fs-1",
+                            Name = "funding stream 1"
+                        },
+                        AllocationLineResult = new PublishedAllocationLineResult
+                        {
+                            AllocationLine = new Reference
+                            {
+                                Id = "AAAAA",
+                                Name = "test allocation line 1"
+                            },
+                            Current = new PublishedAllocationLineResultVersion
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 50,
+                                Version = 1,
+                                Date = DateTimeOffset.Now
+                            }
+                        }
+                    },
+                    FundingPeriod = new FundingPeriod
+                    {
+                        Id = "Ay12345",
+                        Name = "fp-1"
+                    }
+                },
+                new PublishedProviderResult
+                {
+                    Title = "test title 2",
+                    Summary = "test summary 2",
+                    Id = "116202_dc790603-8e9a-45ac-bde1-485bc0cfb327_SSF Programme Funding",
+                    Provider = new ProviderSummary
+                    {
+                        URN = "12345",
+                        UKPRN = "1111",
+                        UPIN = "2222",
+                        EstablishmentNumber = "es123",
+                        Authority = "London",
+                        ProviderType = "test type",
+                        ProviderSubType = "test sub type",
+                        DateOpened = DateTimeOffset.Now,
+                        ProviderProfileIdType = "UKPRN",
+                        LACode = "77777",
+                        Id = "1111",
+                        Name = "test provider name 1"
+                    },
+                    SpecificationId = "spec-1",
+                    FundingStreamResult = new PublishedFundingStreamResult
+                    {
+                        FundingStream = new FundingStream
+                        {
+                            Id = "fs-1",
+                            Name = "funding stream 1"
+                        },
+                        AllocationLineResult = new PublishedAllocationLineResult
+                        {
+                            AllocationLine = new Reference
+                            {
+                                Id = "AAAAA",
+                                Name = "test allocation line 1"
+                            },
+                            Current = new PublishedAllocationLineResultVersion
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 100,
+                                Version = 1,
+                                Date = DateTimeOffset.Now
+                            }
+                        }
+                    },
+                    FundingPeriod = new FundingPeriod
+                    {
+                        Id = "Ay12345",
+                        Name = "fp-1"
+                    }
+                },
+                new PublishedProviderResult
+                {
+                    Title = "test title 3",
+                    Summary = "test summary 3",
+                    Id = "116202_dc790603-8e9a-45ac-bde1-485bc0cfb327_SSF Programme Funding",
+                    Provider = new ProviderSummary
+                    {
+                        URN = "12345",
+                        UKPRN = "1111",
+                        UPIN = "2222",
+                        EstablishmentNumber = "es123",
+                        Authority = "London",
+                        ProviderType = "test type",
+                        ProviderSubType = "test sub type",
+                        DateOpened = DateTimeOffset.Now,
+                        ProviderProfileIdType = "UKPRN",
+                        LACode = "77777",
+                        Id = "1111",
+                        Name = "test provider name 1"
+                    },
+                    SpecificationId = "spec-1",
+                    FundingStreamResult = new PublishedFundingStreamResult
+                    {
+                        FundingStream = new FundingStream
+                        {
+                            Id = "fs-2",
+                            Name = "funding stream 2"
+                        },
+                        AllocationLineResult = new PublishedAllocationLineResult
+                        {
+                            AllocationLine = new Reference
+                            {
+                                Id = "AAAAA",
+                                Name = "test allocation line 1"
+                            },
+                            Current = new PublishedAllocationLineResultVersion
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 100,
+                                Version = 1,
+                                Date = DateTimeOffset.Now
+                            }
+                        }
+                    },
+                    FundingPeriod = new FundingPeriod
+                    {
+                        Id = "Ay12345",
+                        Name = "fp-1"
+                    }
+                }
+            };
+        }
+
+        static IEnumerable<PublishedProviderResult> CreatePublishedProviderResultsWithDifferentProviders()
+        {
+            return new[]
+            {
+                new PublishedProviderResult
+                {
+                    Title = "test title 1",
+                    Summary = "test summary 1",
+                    Id = "116202_dc790603-8e9a-45ac-bde1-485bc0cfb327_SSF Programme Funding",
+                    Provider = new ProviderSummary
+                    {
+                        URN = "12345",
+                        UKPRN = "1111",
+                        UPIN = "2222",
+                        EstablishmentNumber = "es123",
+                        Authority = "London",
+                        ProviderType = "test type",
+                        ProviderSubType = "test sub type",
+                        DateOpened = DateTimeOffset.Now,
+                        ProviderProfileIdType = "UKPRN",
+                        LACode = "77777",
+                        Id = "1111",
+                        Name = "test provider name 1"
+                    },
+                    SpecificationId = "spec-1",
+                    FundingStreamResult = new PublishedFundingStreamResult
+                    {
+                        FundingStream = new FundingStream
+                        {
+                            Id = "fs-1",
+                            Name = "funding stream 1"
+                        },
+                        AllocationLineResult = new PublishedAllocationLineResult
+                        {
+                            AllocationLine = new Reference
+                            {
+                                Id = "AAAAA",
+                                Name = "test allocation line 1"
+                            },
+                            Current = new PublishedAllocationLineResultVersion
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 50,
+                                Version = 1,
+                                Date = DateTimeOffset.Now
+                            }
+                        }
+                    },
+                    FundingPeriod = new FundingPeriod
+                    {
+                        Id = "Ay12345",
+                        Name = "fp-1"
+                    }
+                },
+                new PublishedProviderResult
+                {
+                    Title = "test title 2",
+                    Summary = "test summary 2",
+                    Id = "116202_dc790603-8e9a-45ac-bde1-485bc0cfb327_SSF Programme Funding",
+                    Provider = new ProviderSummary
+                    {
+                        URN = "12345",
+                        UKPRN = "1111-1",
+                        UPIN = "2222",
+                        EstablishmentNumber = "es123",
+                        Authority = "London",
+                        ProviderType = "test type",
+                        ProviderSubType = "test sub type",
+                        DateOpened = DateTimeOffset.Now,
+                        ProviderProfileIdType = "UKPRN",
+                        LACode = "77777",
+                        Id = "1111-1",
+                        Name = "test provider name 2"
+                    },
+                    SpecificationId = "spec-1",
+                    FundingStreamResult = new PublishedFundingStreamResult
+                    {
+                        FundingStream = new FundingStream
+                        {
+                            Id = "fs-1",
+                            Name = "funding stream 1"
+                        },
+                        AllocationLineResult = new PublishedAllocationLineResult
+                        {
+                            AllocationLine = new Reference
+                            {
+                                Id = "AAAAA",
+                                Name = "test allocation line 1"
+                            },
+                            Current = new PublishedAllocationLineResultVersion
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 100,
+                                Version = 1,
+                                Date = DateTimeOffset.Now
+                            }
+                        }
+                    },
+                    FundingPeriod = new FundingPeriod
+                    {
+                        Id = "Ay12345",
+                        Name = "fp-1"
+                    }
+                },
+                new PublishedProviderResult
+                {
+                    Title = "test title 3",
+                    Summary = "test summary 3",
+                    Id = "116202_dc790603-8e9a-45ac-bde1-485bc0cfb327_SSF Programme Funding",
+                    Provider = new ProviderSummary
+                    {
+                        URN = "12345",
+                        UKPRN = "1111-2",
+                        UPIN = "2222",
+                        EstablishmentNumber = "es123",
+                        Authority = "London",
+                        ProviderType = "test type",
+                        ProviderSubType = "test sub type",
+                        DateOpened = DateTimeOffset.Now,
+                        ProviderProfileIdType = "UKPRN",
+                        LACode = "77777",
+                        Id = "1111-2",
+                        Name = "test provider name 3"
+                    },
+                    SpecificationId = "spec-1",
+                    FundingStreamResult = new PublishedFundingStreamResult
+                    {
+                        FundingStream = new FundingStream
+                        {
+                            Id = "fs-2",
+                            Name = "funding stream 2"
+                        },
+                        AllocationLineResult = new PublishedAllocationLineResult
+                        {
+                            AllocationLine = new Reference
+                            {
+                                Id = "AAAAA",
+                                Name = "test allocation line 1"
+                            },
+                            Current = new PublishedAllocationLineResultVersion
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 100,
+                                Version = 1,
+                                Date = DateTimeOffset.Now
+                            }
+                        }
+                    },
+                    FundingPeriod = new FundingPeriod
+                    {
+                        Id = "Ay12345",
+                        Name = "fp-1"
+                    }
+                }
             };
         }
     }

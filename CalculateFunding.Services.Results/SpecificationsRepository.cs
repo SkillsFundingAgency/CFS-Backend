@@ -17,6 +17,8 @@ namespace CalculateFunding.Services.Results
 
         const string fundingStreamsUrl = "specs/get-fundingstreams";
 
+        const string fundingPeriodUrl = "specs/get-fundingPeriod-by-id?fundingPeriodId=";
+
         private readonly ISpecificationsApiClientProxy _apiClient;
 
         public SpecificationsRepository(ISpecificationsApiClientProxy apiClient)
@@ -49,6 +51,16 @@ namespace CalculateFunding.Services.Results
         public Task<IEnumerable<FundingStream>> GetFundingStreams()
         {
             return _apiClient.GetAsync<IEnumerable<FundingStream>>(fundingStreamsUrl);
+        }
+
+        public Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId)
+        {
+            if (string.IsNullOrWhiteSpace(fundingPeriodId))
+                throw new ArgumentNullException(nameof(fundingPeriodId));
+
+            string url = $"{fundingPeriodUrl}{fundingPeriodId}";
+
+            return _apiClient.GetAsync<FundingPeriod>(url);
         }
     }
 }
