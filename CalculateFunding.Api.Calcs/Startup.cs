@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Api.Common.Middleware;
+﻿using CalculateFunding.Api.Common.Extensions;
+using CalculateFunding.Api.Common.Middleware;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calcs;
@@ -14,6 +15,7 @@ using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
@@ -59,6 +61,8 @@ namespace CalculateFunding.Api.Calcs
             app.UseMiddleware<LoggedInUserMiddleware>();
 
             app.UseMvc();
+
+            app.UseHealthCheckMiddleware();
         }
 
         public void RegisterComponents(IServiceCollection builder)
@@ -67,19 +71,23 @@ namespace CalculateFunding.Api.Calcs
                 .AddSingleton<ICalculationsRepository, CalculationsRepository>();
 
             builder
-               .AddSingleton<ICalculationService, CalculationService>();
+               .AddSingleton<ICalculationService, CalculationService>()
+               .AddSingleton<IHealthChecker, CalculationService>();
 
             builder
-               .AddSingleton<ICalculationsSearchService, CalculationSearchService>();
+               .AddSingleton<ICalculationsSearchService, CalculationSearchService>()
+               .AddSingleton<IHealthChecker, CalculationSearchService>();
 
             builder
                 .AddSingleton<IValidator<Calculation>, CalculationModelValidator>();
 
             builder
-               .AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>();
+               .AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>()
+               .AddSingleton<IHealthChecker, BuildProjectsRepository>();
 
             builder
-                .AddSingleton<IPreviewService, PreviewService>();
+                .AddSingleton<IPreviewService, PreviewService>()
+                .AddSingleton<IHealthChecker, PreviewService>();
 
             builder
                .AddSingleton<ICompilerFactory, CompilerFactory>();
@@ -96,13 +104,15 @@ namespace CalculateFunding.Api.Calcs
                .AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
 
             builder
-                .AddSingleton<IProviderResultsRepository, ProviderResultsRepository>();
+                .AddSingleton<IProviderResultsRepository, ProviderResultsRepository>()
+                .AddSingleton<IHealthChecker, ProviderResultsRepository>();
 
             builder
                .AddSingleton<ISpecificationRepository, SpecificationRepository>();
 
             builder
-                .AddSingleton<IBuildProjectsService, BuildProjectsService>();
+                .AddSingleton<IBuildProjectsService, BuildProjectsService>()
+                .AddSingleton<IHealthChecker, BuildProjectsService>();
 
             builder
                 .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
@@ -141,6 +151,8 @@ namespace CalculateFunding.Api.Calcs
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder.AddHttpContextAccessor();
+
+            builder.AddHealthCheckMiddleware();
         }
     }
 }

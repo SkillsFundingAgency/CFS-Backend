@@ -1,6 +1,8 @@
 ﻿using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +18,7 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace CalculateFunding.Services.Datasets
 {
-    public class DefinitionsService : IDefinitionsService
+    public class DefinitionsService : IDefinitionsService, IHealthChecker
     {
         private readonly ILogger _logger;
         private readonly IDatasetRepository _dataSetsRepository;
@@ -28,6 +30,19 @@ namespace CalculateFunding.Services.Datasets
 
             _logger = logger;
             _dataSetsRepository = dataSetsRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_dataSetsRepository).IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(DefinitionsService)
+            };
+            health.Dependencies.AddRange(datasetsRepoHealth.Dependencies);
+
+            return health;
         }
 
         async public Task<IActionResult> SaveDefinition(HttpRequest request)

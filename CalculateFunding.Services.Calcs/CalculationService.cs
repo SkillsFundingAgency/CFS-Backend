@@ -3,6 +3,7 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Exceptions;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -20,6 +21,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -36,7 +38,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class CalculationService : ICalculationService
+    public class CalculationService : ICalculationService, IHealthChecker
     {
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly ILogger _logger;
@@ -84,6 +86,24 @@ namespace CalculateFunding.Services.Calcs
             _specsRepository = specificationRepository;
             _cacheProvider = cacheProvider;
             _calculationRepositoryPolicy = resilliencePolicies.CalculationsRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth calcsRepoHealth = await ((IHealthChecker)_calculationsRepository).IsHealthOk();
+            var searchRepoHealth = await _searchRepository.IsHealthOk();
+            string queueName = ServiceBusConstants.QueueNames.CalculationJobInitialiser;
+            var messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(CalculationService)
+            };
+            health.Dependencies.AddRange(calcsRepoHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = messengerServiceHealth.Ok, DependencyName = $"{_messengerService.GetType().GetFriendlyName()} for queue: {queueName}", Message = messengerServiceHealth.Message });
+
+            return health;
         }
 
         Build Compile(BuildProject buildProject, IEnumerable<Calculation> calculations)

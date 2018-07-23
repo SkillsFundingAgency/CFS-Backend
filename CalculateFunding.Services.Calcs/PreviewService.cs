@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.CodeGeneration;
@@ -6,6 +7,7 @@ using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class PreviewService : IPreviewService
+    public class PreviewService : IPreviewService, IHealthChecker
     {
         private readonly ISourceFileGeneratorProvider _sourceFileGeneratorProvider;
         private readonly ILogger _logger;
@@ -36,6 +38,19 @@ namespace CalculateFunding.Services.Calcs
             _compilerFactory = compilerFactory;
             _previewRequestValidator = previewRequestValidator;
             _calculationsRepository = calculationsRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth calcsRepoHealth = await ((IHealthChecker)_calculationsRepository).IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(CalculationService)
+            };
+            health.Dependencies.AddRange(calcsRepoHealth.Dependencies);
+
+            return health;
         }
 
         public async Task<IActionResult> Compile(HttpRequest request)

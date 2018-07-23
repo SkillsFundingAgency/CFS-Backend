@@ -2,6 +2,7 @@
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
@@ -12,6 +13,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
@@ -29,7 +31,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Scenarios
 {
-    public class ScenariosService : IScenariosService
+    public class ScenariosService : IScenariosService, IHealthChecker
     {
         private readonly IScenariosRepository _scenariosRepository;
         private readonly ILogger _logger;
@@ -67,6 +69,26 @@ namespace CalculateFunding.Services.Scenarios
             _messengerService = messengerService;
             _buildProjectRepository = buildProjectRepository;
             _cacheProvider = cacheProvider;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth scenariosRepoHealth = await ((IHealthChecker)_scenariosRepository).IsHealthOk();
+            var searchRepoHealth = await _searchRepository.IsHealthOk();
+            var cacheRepoHealth = await _cacheProvider.IsHealthOk();
+            string queueName = ServiceBusConstants.QueueNames.CalculationJobInitialiser;
+            var messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(ScenariosService)
+            };
+            health.Dependencies.AddRange(scenariosRepoHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheRepoHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = messengerServiceHealth.Ok, DependencyName = _messengerService.GetType().GetFriendlyName(), Message = messengerServiceHealth.Message });
+
+            return health;
         }
 
         async public Task<IActionResult> SaveVersion(HttpRequest request)

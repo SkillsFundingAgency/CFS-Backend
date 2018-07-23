@@ -14,10 +14,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Models.Health;
 
 namespace CalculateFunding.Services.Datasets
 {
-    public class DatasetSearchService : IDatasetSearchService
+    public class DatasetSearchService : IDatasetSearchService, IHealthChecker
     {
         private readonly ILogger _logger;
         private readonly ISearchRepository<DatasetIndex> _searchRepository;
@@ -41,6 +43,19 @@ namespace CalculateFunding.Services.Datasets
 
             _logger = logger;
             _searchRepository = searchRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            var searchRepoHealth = await _searchRepository.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(DatasetService)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+
+            return health;
         }
 
         async public Task<IActionResult> SearchDatasets(HttpRequest request)

@@ -3,16 +3,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Serilog;
 
 namespace CalculateFunding.Services.TestRunner
 {
-    public class TestEngine : ITestEngine
+    public class TestEngine : ITestEngine, IHealthChecker
     {
         private readonly IGherkinExecutor _gherkinExecutor;
         private readonly ILogger _logger;
@@ -21,6 +24,19 @@ namespace CalculateFunding.Services.TestRunner
         {
             _gherkinExecutor = gherkinExecutor;
             _logger = logger;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth gherkinHealth = await ((IHealthChecker)_gherkinExecutor).IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(TestEngine)
+            };
+            health.Dependencies.AddRange(gherkinHealth.Dependencies);
+
+            return health;
         }
 
         public async Task<IEnumerable<TestScenarioResult>> RunTests(IEnumerable<TestScenario> testScenarios, IEnumerable<ProviderResult> providerResults,

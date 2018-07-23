@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Results
 {
-    public class CalculationResultsRepository : ICalculationResultsRepository
+    public class CalculationResultsRepository : ICalculationResultsRepository, IHealthChecker
     {
         private readonly CosmosRepository _cosmosRepository;
 
@@ -19,7 +22,20 @@ namespace CalculateFunding.Services.Results
             _cosmosRepository = cosmosRepository;
         }
 
-	    public Task<ProviderResult> GetProviderResult(string providerId, string specificationId)
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            var cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(CalculationResultsRepository)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosRepoHealth.Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = cosmosRepoHealth.Message });
+
+            return health;
+        }
+
+        public Task<ProviderResult> GetProviderResult(string providerId, string specificationId)
 	    {
 		    var results = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId && x.SpecificationId == specificationId).ToList().Take(1);
 

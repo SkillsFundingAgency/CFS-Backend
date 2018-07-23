@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
+using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.Common.Middleware;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
@@ -51,14 +53,22 @@ namespace CalculateFunding.Api.Results
             app.UseMiddleware<LoggedInUserMiddleware>();
 
             app.UseMvc();
+
+            app.UseHealthCheckMiddleware();
         }
 
         public void RegisterComponents(IServiceCollection builder)
         {
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
-            builder.AddSingleton<IResultsService, ResultsService>();
-            builder.AddSingleton<IResultsSearchService, ResultsSearchService>();
-            builder.AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>();
+            builder
+                .AddSingleton<IResultsService, ResultsService>()
+                .AddSingleton<IHealthChecker, ResultsService>();
+            builder
+                .AddSingleton<IResultsSearchService, ResultsSearchService>()
+                .AddSingleton<IHealthChecker, ResultsSearchService>();
+            builder
+                .AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>()
+                .AddSingleton<IHealthChecker, CalculationProviderResultsSearchService>();
             builder.AddSingleton<IProviderImportMappingService, ProviderImportMappingService>();
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
@@ -160,6 +170,8 @@ namespace CalculateFunding.Api.Results
             });
 
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
+
+            builder.AddHealthCheckMiddleware();
         }
     }
 }

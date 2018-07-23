@@ -31,6 +31,19 @@ namespace CalculateFunding.Services.Core.Caching
             });
         }
 
+        public async Task<(bool Ok, string Message)> IsHealthOk()
+        {
+            try
+            {
+                GetDatabase();
+                return await Task.FromResult((true, string.Empty));
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
         async public Task<T> GetAsync<T>(string key, JsonSerializerSettings jsonSerializerSettings)
         {
             key = GenerateCacheKey<T>(key);

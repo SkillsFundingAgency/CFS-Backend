@@ -1,6 +1,9 @@
-﻿using CalculateFunding.Models.Scenarios;
+﻿using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Scenarios
 {
-    public class ScenariosRepository : IScenariosRepository
+    public class ScenariosRepository : IScenariosRepository, IHealthChecker
     {
         private readonly CosmosRepository _cosmosRepository;
 
@@ -17,6 +20,19 @@ namespace CalculateFunding.Services.Scenarios
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
             _cosmosRepository = cosmosRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            var cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
+            
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(ScenariosRepository)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosRepoHealth.Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = cosmosRepoHealth.Message });
+
+            return health;
         }
 
         public Task<IEnumerable<DocumentEntity<TestScenario>>> GetAllTestScenarios()

@@ -10,16 +10,32 @@ using System.Linq.Expressions;
 using System.Net;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Models.Versioning;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Models.Health;
+using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Services.Specs
 {
-    public class SpecificationsRepository : ISpecificationsRepository
+    public class SpecificationsRepository : ISpecificationsRepository, IHealthChecker
     {
         readonly CosmosRepository _repository;
 
         public SpecificationsRepository(CosmosRepository cosmosRepository)
         {
             _repository = cosmosRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            var cosmosRepoHealth = await _repository.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(SpecificationsRepository)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosRepoHealth.Ok, DependencyName = _repository.GetType().GetFriendlyName(), Message = cosmosRepoHealth.Message });
+            
+            return health;
         }
 
         public async Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId)

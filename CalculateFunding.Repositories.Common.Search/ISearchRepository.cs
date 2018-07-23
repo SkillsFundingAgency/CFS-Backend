@@ -8,6 +8,8 @@ namespace CalculateFunding.Repositories.Common.Search
 {
     public interface ISearchRepository<T> where T : class
     {
+        Task<(bool Ok, string Message)> IsHealthOk();
+
         Task<ISearchIndexClient> GetOrCreateIndex();
 
         Task<IEnumerable<IndexError>> Index(IEnumerable<T> documents);

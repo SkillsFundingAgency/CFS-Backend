@@ -1,6 +1,8 @@
-﻿using CalculateFunding.Api.Common.Middleware;
+﻿using CalculateFunding.Api.Common.Extensions;
+using CalculateFunding.Api.Common.Middleware;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Scenarios;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using CalculateFunding.Services.Scenarios.Validators;
@@ -47,13 +49,19 @@ namespace CalculateFunding.Api.Scenarios
             app.UseMiddleware<LoggedInUserMiddleware>();
 
             app.UseMvc();
+
+            app.UseHealthCheckMiddleware();
         }
 
         public void RegisterComponents(IServiceCollection builder)
         {
             builder.AddSingleton<IScenariosRepository, ScenariosRepository>();
-            builder.AddSingleton<IScenariosService, ScenariosService>();
-            builder.AddSingleton<IScenariosSearchService, ScenariosSearchService>();
+            builder
+                .AddSingleton<IScenariosService, ScenariosService>()
+                .AddSingleton<IHealthChecker, ScenariosService>();
+            builder
+                .AddSingleton<IScenariosSearchService, ScenariosSearchService>()
+                .AddSingleton<IHealthChecker, ScenariosSearchService>();
 
             builder
                 .AddSingleton<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();
@@ -85,6 +93,8 @@ namespace CalculateFunding.Api.Scenarios
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder.AddHttpContextAccessor();
+
+            builder.AddHealthCheckMiddleware();
         }
     }
 }

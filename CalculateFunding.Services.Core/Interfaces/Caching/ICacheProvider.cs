@@ -7,7 +7,9 @@ namespace CalculateFunding.Services.Core.Interfaces.Caching
 {
 	public interface ICacheProvider
 	{
-		Task<T> GetAsync<T>(string key, JsonSerializerSettings jsonSerializerSettings = null);
+        Task<(bool Ok, string Message)> IsHealthOk();
+
+        Task<T> GetAsync<T>(string key, JsonSerializerSettings jsonSerializerSettings = null);
 
 		Task SetAsync<T>(string key, T item, JsonSerializerSettings jsonSerializerSettings = null);
 

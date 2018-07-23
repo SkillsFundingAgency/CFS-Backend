@@ -7,6 +7,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.ServiceBus.Core;
 using Newtonsoft.Json;
 
 
@@ -21,6 +22,22 @@ namespace CalculateFunding.Services.Core.ServiceBus
         public MessengerService(ServiceBusSettings settings)
         {
             _connectionString = settings.ConnectionString;
+        }
+
+        public async Task<(bool Ok, string Message)> IsHealthOk(string queueName)
+        {
+            try
+            {
+                // Only way to check if connection string is correct is try receiving a message, which isn't possible for topics as don't have a subscription
+                var receiver = new MessageReceiver(_connectionString, queueName);
+                var message = await receiver.PeekAsync(1);
+                await receiver.CloseAsync();
+                return await Task.FromResult((true, string.Empty));
+            }
+            catch (ServiceBusCommunicationException ex)
+            {
+                return (false, ex.Message);
+            }
         }
 
         QueueClient GetQueueClient(string queueName)

@@ -31,6 +31,19 @@ namespace CalculateFunding.Repositories.Common.Search
             _searchServiceClient = new SearchServiceClient(_settings.SearchServiceName, new SearchCredentials(_settings.SearchKey));
         }
 
+        public async Task<(bool Ok, string Message)> IsHealthOk()
+        {
+            try
+            {
+                var dataSources = await _searchServiceClient.DataSources.ListAsync();
+                return (true, string.Empty);
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
         public async Task<ISearchIndexClient> GetOrCreateIndex()
         {
             if (_searchIndexClient == null)

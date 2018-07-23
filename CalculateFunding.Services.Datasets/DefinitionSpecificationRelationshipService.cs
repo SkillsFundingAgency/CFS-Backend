@@ -21,10 +21,12 @@ using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Models.Health;
 
 namespace CalculateFunding.Services.Datasets
 {
-    public class DefinitionSpecificationRelationshipService : IDefinitionSpecificationRelationshipService
+    public class DefinitionSpecificationRelationshipService : IDefinitionSpecificationRelationshipService, IHealthChecker
     {
         private readonly IDatasetRepository _datasetRepository;
         private readonly ILogger _logger;
@@ -52,6 +54,22 @@ namespace CalculateFunding.Services.Datasets
             _messengerService = messengerService;
             _datasetService = datasetService;
             _calcsRepository = calcsRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_datasetRepository).IsHealthOk();
+            string queueName = ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification;
+            var messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(DatasetService)
+            };
+            health.Dependencies.AddRange(datasetsRepoHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = messengerServiceHealth.Ok, DependencyName = $"{_messengerService.GetType().GetFriendlyName()} for queue: {queueName}", Message = messengerServiceHealth.Message });
+
+            return health;
         }
 
         async public Task<IActionResult> CreateRelationship(HttpRequest request)

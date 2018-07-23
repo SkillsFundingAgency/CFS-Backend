@@ -1,8 +1,10 @@
 ﻿using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -10,13 +12,25 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class CalculationsRepository : ICalculationsRepository
+    public class CalculationsRepository : ICalculationsRepository, IHealthChecker
     {
         private readonly CosmosRepository _cosmosRepository;
 
         public CalculationsRepository(CosmosRepository cosmosRepository)
         {
             _cosmosRepository = cosmosRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth health = new ServiceHealth();
+
+            var cosmosHealth = await _cosmosRepository.IsHealthOk();
+
+            health.Name = nameof(CalculationsRepository);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
+
+            return health;
         }
 
         public Task<HttpStatusCode> CreateDraftCalculation(Calculation calculation)

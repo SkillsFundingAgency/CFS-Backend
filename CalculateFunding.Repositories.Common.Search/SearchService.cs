@@ -19,6 +19,11 @@ namespace CalculateFunding.Repositories.Common.Search
             _searchRepository = searchRepository;
         }
 
+        protected ISearchRepository<T> SearchRepository
+        {
+            get { return _searchRepository; }
+        }
+
         protected Task<SearchResults<T>> PerformNonfacetSearch(SearchModel searchModel)
         {
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;

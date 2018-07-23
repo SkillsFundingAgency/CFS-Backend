@@ -1,14 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Datasets.Interfaces;
 
 namespace CalculateFunding.Services.Datasets
 {
-    public class ProvidersResultsRepository : IProvidersResultsRepository
+    public class ProvidersResultsRepository : IProvidersResultsRepository, IHealthChecker
     {
         private readonly CosmosRepository _cosmosRepository;
         private readonly ICacheProvider _cacheProvider;
@@ -17,6 +20,21 @@ namespace CalculateFunding.Services.Datasets
         {
             _cosmosRepository = cosmosRepository;
             _cacheProvider = cacheProvider;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            var cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
+            var cacheRepoHealth = await _cacheProvider.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(ProvidersResultsRepository)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosRepoHealth.Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = cosmosRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheRepoHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheRepoHealth.Message });
+
+            return health;
         }
 
         public async Task UpdateCurrentProviderSourceDatasets(IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets, string specificationId)
