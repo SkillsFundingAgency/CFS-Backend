@@ -11,22 +11,26 @@ namespace CalculateFunding.Api.Datasets.Controllers
         private readonly IDefinitionsService _definitionService;
         private readonly IDatasetService _datasetService;
         private readonly IDatasetSearchService _datasetSearchService;
+        private readonly IDatasetDefinitionSearchService _datasetDefinitionSearchService;
         private readonly IDefinitionSpecificationRelationshipService _definitionSpecificationRelationshipService;
 
         public DatasetsController(
             IDefinitionsService definitionService,
             IDatasetService datasetService,
             IDatasetSearchService datasetSearchService,
+            IDatasetDefinitionSearchService datasetDefinitionSearchService,
             IDefinitionSpecificationRelationshipService definitionSpecificationRelationshipService)
         {
             Guard.ArgumentNotNull(definitionService, nameof(definitionService));
             Guard.ArgumentNotNull(datasetService, nameof(datasetService));
             Guard.ArgumentNotNull(datasetSearchService, nameof(datasetSearchService));
+            Guard.ArgumentNotNull(datasetDefinitionSearchService, nameof(datasetDefinitionSearchService));
             Guard.ArgumentNotNull(definitionSpecificationRelationshipService, nameof(definitionSpecificationRelationshipService));
 
             _definitionService = definitionService;
             _datasetService = datasetService;
             _datasetSearchService = datasetSearchService;
+            _datasetDefinitionSearchService = datasetDefinitionSearchService;
             _definitionSpecificationRelationshipService = definitionSpecificationRelationshipService;
         }
 
@@ -77,6 +81,13 @@ namespace CalculateFunding.Api.Datasets.Controllers
         public Task<IActionResult> RunDatasetsSearch()
         {
             return _datasetSearchService.SearchDatasets(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/datasets/dataset-definitions-search")]
+        [HttpPost]
+        public Task<IActionResult> RunDatasetDefinitionsSearch()
+        {
+            return _datasetDefinitionSearchService.SearchDatasetDefinitions(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/datasets/validate-dataset")]

@@ -126,6 +126,8 @@ namespace CalculateFunding.Api.Datasets
             builder.AddSingleton<IDatasetSearchService, DatasetSearchService>()
                 .AddSingleton<IHealthChecker,DatasetSearchService>();
 
+            builder.AddSingleton<IDatasetDefinitionSearchService, DatasetDefinitionSearchService>();
+
             builder
                .AddSingleton<IDefinitionSpecificationRelationshipService, DefinitionSpecificationRelationshipService>()
                .AddSingleton<IHealthChecker, DefinitionSpecificationRelationshipService>();

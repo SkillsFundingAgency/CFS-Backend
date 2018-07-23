@@ -129,6 +129,8 @@ namespace CalculateFunding.Functions.Datasets
 
             builder.AddSingleton<IDatasetSearchService, DatasetSearchService>();
 
+            builder.AddSingleton<IDatasetDefinitionSearchService, DatasetDefinitionSearchService>();
+
             builder
                .AddSingleton<IDefinitionSpecificationRelationshipService, DefinitionSpecificationRelationshipService>();
 
