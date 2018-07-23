@@ -10,7 +10,6 @@ namespace CalculateFunding.Models.Datasets.Schema
 
         [JsonProperty("tableDefinitions")]
         public List<TableDefinition> TableDefinitions { get; set; }
-
     }
 
 }

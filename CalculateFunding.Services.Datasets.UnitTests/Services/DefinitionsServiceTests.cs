@@ -16,6 +16,11 @@ using System.Net;
 using System.Linq;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.DataImporter;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using CalculateFunding.Models.Datasets;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -214,6 +219,139 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        async public Task SaveDefinition_GivenValidYamlButFailsToGenerateExcelFile_ReturnsInvalidServerError()
+        {
+            //Arrange
+            string yaml = CreateRawDefinition();
+            string definitionId = "9183";
+
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            HttpStatusCode statusCode = HttpStatusCode.Created;
+
+            IDatasetRepository datasetsRepository = CreateDataSetsRepository();
+            datasetsRepository
+                .SaveDefinition(Arg.Any<DatasetDefinition>())
+                .Returns(statusCode);
+
+            ISearchRepository<DatasetDefinitionIndex> searchRepository = CreateDatasetDefinitionSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(definitionId))
+                .Returns((DatasetDefinitionIndex)null);
+
+            byte[] excelAsBytes = new byte[0];
+
+            IExcelWriter<DatasetDefinition> excelWriter = CreateExcelWriter();
+            excelWriter
+                .Write(Arg.Any<DatasetDefinition>())
+                .Returns(excelAsBytes);
+
+          
+            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter);
+
+            //Act
+            IActionResult result = await service.SaveDefinition(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
+                .Should()
+                .Be($"Failed to generate excel file for 14/15");
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Failed to generate excel file for 14/15"));
+        }
+
+        [TestMethod]
+        async public Task SaveDefinition_GivenValidYamlButFailsToUploadToBlobStorage_ReturnsInvalidServerError()
+        {
+            //Arrange
+            string yaml = CreateRawDefinition();
+            string definitionId = "9183";
+
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            HttpStatusCode statusCode = HttpStatusCode.Created;
+
+            IDatasetRepository datasetsRepository = CreateDataSetsRepository();
+            datasetsRepository
+                .SaveDefinition(Arg.Any<DatasetDefinition>())
+                .Returns(statusCode);
+
+            ISearchRepository<DatasetDefinitionIndex> searchRepository = CreateDatasetDefinitionSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(definitionId))
+                .Returns((DatasetDefinitionIndex)null);
+
+            byte[] excelAsBytes = new byte[100];
+
+            IExcelWriter<DatasetDefinition> excelWriter = CreateExcelWriter();
+            excelWriter
+                .Write(Arg.Any<DatasetDefinition>())
+                .Returns(excelAsBytes);
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .When(x => x.UploadFromStreamAsync(Arg.Any<Stream>()))
+                 .Do(x => { throw new Exception($"Failed to upload 14/15 blob storage"); });
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlockBlobReference(Arg.Is("schemas/14_15.xlsx"))
+                .Returns(blob);
+
+            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter, blobClient: blobClient);
+
+            //Act
+            IActionResult result = await service.SaveDefinition(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
+                .Should()
+                .Be($"Failed to upload 14/15 blob storage");
+        }
+
+        [TestMethod]
         async public Task SaveDefinition_GivenValidYamlAndSearchDoesNotContainExistingItem_ThenSaveWasSuccesfulAndReturnsOK()
         {
             //Arrange
@@ -250,7 +388,21 @@ namespace CalculateFunding.Services.Datasets.Services
                 .SearchById(Arg.Is(definitionId))
                 .Returns((DatasetDefinitionIndex)null);
 
-            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository);
+            byte[] excelAsBytes = new byte[100];
+
+            IExcelWriter<DatasetDefinition> excelWriter = CreateExcelWriter();
+            excelWriter
+                .Write(Arg.Any<DatasetDefinition>())
+                .Returns(excelAsBytes);
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlockBlobReference(Arg.Any<string>())
+                .Returns(blob);
+
+            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter, blobClient: blobClient);
 
             //Act
             IActionResult result = await service.SaveDefinition(request);
@@ -334,7 +486,21 @@ namespace CalculateFunding.Services.Datasets.Services
                 .SearchById(Arg.Is(definitionId))
                 .Returns(existingIndex);
 
-            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository);
+            byte[] excelAsBytes = new byte[100];
+
+            IExcelWriter<DatasetDefinition> excelWriter = CreateExcelWriter();
+            excelWriter
+                .Write(Arg.Any<DatasetDefinition>())
+                .Returns(excelAsBytes);
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlockBlobReference(Arg.Any<string>())
+                .Returns(blob);
+
+            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter, blobClient: blobClient);
 
             //Act
             IActionResult result = await service.SaveDefinition(request);
@@ -418,7 +584,21 @@ namespace CalculateFunding.Services.Datasets.Services
                 .SearchById(Arg.Is(definitionId))
                 .Returns(existingIndex);
 
-            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository);
+            byte[] excelAsBytes = new byte[100];
+
+            IExcelWriter<DatasetDefinition> excelWriter = CreateExcelWriter();
+            excelWriter
+                .Write(Arg.Any<DatasetDefinition>())
+                .Returns(excelAsBytes);
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlockBlobReference(Arg.Any<string>())
+                .Returns(blob);
+
+            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter, blobClient: blobClient);
 
             //Act
             IActionResult result = await service.SaveDefinition(request);
@@ -518,17 +698,177 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Be(2);
         }
 
+        [TestMethod]
+        public async Task GetDatasetSchemaSasUrl_GivenNullRequestModel_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            DefinitionsService definitionsService = CreateDefinitionsService(logger);
+
+            //Act
+            IActionResult result = await definitionsService.GetDatasetSchemaSasUrl(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("No dataset schema request model was provided");
+
+            logger
+                .Received(1)
+                .Warning(Arg.Is("No dataset schema request model was provided"));
+        }
+
+        [TestMethod]
+        public async Task GetDatasetSchemaSasUrl_GivenNullOrEmptyDefinitionName_ReturnsBadRequest()
+        {
+            //Arrange
+            DatasetSchemaSasUrlRequestModel model = new DatasetSchemaSasUrlRequestModel();
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            DefinitionsService definitionsService = CreateDefinitionsService(logger);
+
+            //Act
+            IActionResult result = await definitionsService.GetDatasetSchemaSasUrl(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("No dataset schema name was provided");
+
+            logger
+                .Received(1)
+                .Warning(Arg.Is("No dataset schema name was provided"));
+        }
+
+        [TestMethod]
+        public async Task GetDatasetSchemaSasUrl_GivenModelAndDatasetNameContainsSlashes_ReplacesSlashesWithUnderscoreAndReturnsUrl()
+        {
+            //Arrange
+            DatasetSchemaSasUrlRequestModel model = new DatasetSchemaSasUrlRequestModel
+            {
+                DatasetDefinitionName = "14/15"
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IBlobClient blobClient = CreateBlobClient();
+
+            DefinitionsService definitionsService = CreateDefinitionsService(blobClient: blobClient);
+
+            //Act
+            IActionResult result = await definitionsService.GetDatasetSchemaSasUrl(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            blobClient
+                .Received(1)
+                .GetBlobSasUrl(Arg.Is("schemas/14_15.xlsx"), Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>());
+        }
+
+        [TestMethod]
+        public async Task GetDatasetSchemaSasUrl_GivenModelAndDatasetNameDoesNotContainSlashes_GetSasUrl()
+        {
+            //Arrange
+            const string sasUrl = "https://wherever.naf?jhjhjhjhjhhjhjhjhjjhj";
+
+            DatasetSchemaSasUrlRequestModel model = new DatasetSchemaSasUrlRequestModel
+            {
+                DatasetDefinitionName = "14 15"
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobSasUrl(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>())
+                .Returns(sasUrl);
+
+            DefinitionsService definitionsService = CreateDefinitionsService(blobClient: blobClient);
+
+            //Act
+            IActionResult result = await definitionsService.GetDatasetSchemaSasUrl(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okObjectResult = result as OkObjectResult;
+
+            DatasetSchemaSasUrlResponseModel responseModel = okObjectResult.Value as DatasetSchemaSasUrlResponseModel;
+
+            responseModel
+                .SchemaUrl
+                .Should()
+                .Be(sasUrl);
+
+            blobClient
+                .Received(1)
+                .GetBlobSasUrl(Arg.Is("schemas/14 15.xlsx"), Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>());
+        }
+
         static DefinitionsService CreateDefinitionsService(
             ILogger logger = null,
             IDatasetRepository datasetsRepository = null,
             ISearchRepository<DatasetDefinitionIndex> datasetDefinitionSearchRepository = null,
-            IDatasetsResiliencePolicies datasetsResiliencePolicies = null)
+            IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
+            IExcelWriter<DatasetDefinition> excelWriter = null,
+            IBlobClient blobClient = null)
         {
             return new DefinitionsService(logger ?? CreateLogger(),
                 datasetsRepository ?? CreateDataSetsRepository(),
                  datasetDefinitionSearchRepository ?? CreateDatasetDefinitionSearchRepository(),
-                 datasetsResiliencePolicies ?? CreateDatasetsResiliencePolicies()
+                 datasetsResiliencePolicies ?? CreateDatasetsResiliencePolicies(),
+                 excelWriter ?? CreateExcelWriter(),
+                 blobClient ?? CreateBlobClient()
                 );
+        }
+
+        static IBlobClient CreateBlobClient()
+        {
+            return Substitute.For<IBlobClient>();
+        }
+
+        static IExcelWriter<DatasetDefinition> CreateExcelWriter()
+        {
+            return Substitute.For<IExcelWriter<DatasetDefinition>>();
         }
 
         static ILogger CreateLogger()

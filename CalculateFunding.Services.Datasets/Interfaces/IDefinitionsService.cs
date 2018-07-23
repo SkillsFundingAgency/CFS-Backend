@@ -18,5 +18,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> GetDatasetDefinitionsByIds(HttpRequest request);
 
         Task<IEnumerable<IndexError>> IndexDatasetDefinition(DatasetDefinition definition);
+
+        Task<IActionResult> GetDatasetSchemaSasUrl(HttpRequest request);
     }
 }

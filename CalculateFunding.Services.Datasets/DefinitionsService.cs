@@ -1,19 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Polly;
 using Serilog;
@@ -29,13 +34,18 @@ namespace CalculateFunding.Services.Datasets
         private readonly ISearchRepository<DatasetDefinitionIndex> _datasetDefinitionSearchRepository;
         private readonly Policy _datasetDefinitionSearchRepositoryPolicy;
         private readonly Policy _datasetsRepositoryPolicy;
+        private readonly IExcelWriter<DatasetDefinition> _excelWriter;
+        private readonly IBlobClient _blobClient;
+        private readonly Policy _blobClientPolicy;
 
-        public DefinitionsService(ILogger logger, IDatasetRepository dataSetsRepository, ISearchRepository<DatasetDefinitionIndex> datasetDefinitionSearchRepository, IDatasetsResiliencePolicies datasetsResiliencePolicies)
+        public DefinitionsService(ILogger logger, IDatasetRepository dataSetsRepository, 
+            ISearchRepository<DatasetDefinitionIndex> datasetDefinitionSearchRepository, IDatasetsResiliencePolicies datasetsResiliencePolicies, IExcelWriter<DatasetDefinition> excelWriter, IBlobClient blobClient)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(dataSetsRepository, nameof(dataSetsRepository));
             Guard.ArgumentNotNull(datasetDefinitionSearchRepository, nameof(datasetDefinitionSearchRepository));
             Guard.ArgumentNotNull(datasetsResiliencePolicies, nameof(datasetsResiliencePolicies));
+            Guard.ArgumentNotNull(excelWriter, nameof(excelWriter));
 
             _logger = logger;
             _datasetsRepository = dataSetsRepository;
@@ -43,6 +53,9 @@ namespace CalculateFunding.Services.Datasets
 
             _datasetDefinitionSearchRepositoryPolicy = datasetsResiliencePolicies.DatasetDefinitionSearchRepository;
             _datasetsRepositoryPolicy = datasetsResiliencePolicies.DatasetRepository;
+            _excelWriter = excelWriter;
+            _blobClient = blobClient;
+            _blobClientPolicy = datasetsResiliencePolicies.BlobClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -107,6 +120,24 @@ namespace CalculateFunding.Services.Datasets
                 _logger.Error(exception, $"Exception occurred writing to yaml file: {yamlFilename} to cosmos db");
 
                 return new InternalServerErrorResult($"Exception occurred writing to yaml file: {yamlFilename} to cosmos db");
+            }
+
+            byte[] excelAsBytes = _excelWriter.Write(definition);
+
+            if (excelAsBytes == null || excelAsBytes.Length == 0)
+            {
+                _logger.Error($"Failed to generate excel file for {definition.Name}");
+
+                return new InternalServerErrorResult($"Failed to generate excel file for {definition.Name}");
+            }
+
+            try
+            {
+                await SaveToBlobStorage(excelAsBytes, definition.Name);
+            }
+            catch(Exception ex)
+            {
+                return new InternalServerErrorResult(ex.Message);
             }
 
             _logger.Information($"Successfully saved file: {yamlFilename} to cosmos db");
@@ -210,6 +241,55 @@ namespace CalculateFunding.Services.Datasets
 
             IEnumerable<DatasetDefinition> defintions = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDatasetDefinitionsByQuery(d => definitionIds.Contains(d.Id)));
             return new OkObjectResult(definitionIds);
+        }
+
+        private async Task SaveToBlobStorage(byte[] excelfile, string definitionName)
+        {
+            string friendlyDefinitionName = definitionName.Replace("/", "_").Replace("\\", "_");
+
+            ICloudBlob blob = _blobClient.GetBlockBlobReference($"schemas/{friendlyDefinitionName}.xlsx");
+
+            try
+            {
+                using (MemoryStream memoryStream = new MemoryStream(excelfile))
+                {
+                    await _blobClientPolicy.ExecuteAsync(() => blob.UploadFromStreamAsync(memoryStream));
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, $"Failed to upload {definitionName} to blob storage");
+
+                throw;
+            }
+        }
+
+        public async Task<IActionResult> GetDatasetSchemaSasUrl(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
+
+            DatasetSchemaSasUrlRequestModel requestModel = JsonConvert.DeserializeObject<DatasetSchemaSasUrlRequestModel>(json);
+
+            if (requestModel == null)
+            {
+                _logger.Warning("No dataset schema request model was provided");
+                return new BadRequestObjectResult("No dataset schema request model was provided");
+            }
+
+            if (requestModel.DatasetDefinitionName.IsNullOrEmpty())
+            {
+                _logger.Warning("No dataset schema name was provided");
+                return new BadRequestObjectResult("No dataset schema name was provided");
+            }
+
+            string definitionName = requestModel.DatasetDefinitionName.Replace("/", "_").Replace("\\", "_");
+
+            string fileName = $"schemas/{definitionName}.xlsx";
+
+            string blobUrl = _blobClient.GetBlobSasUrl(fileName,
+                DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
+
+            return new OkObjectResult(new DatasetSchemaSasUrlResponseModel { SchemaUrl = blobUrl });
         }
     }
 }

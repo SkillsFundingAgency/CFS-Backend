@@ -16,6 +16,7 @@ namespace CalculateFunding.Services.Datasets
                 ProviderRepository = Policy.NoOpAsync(),
                 SpecificationsRepository = Policy.NoOpAsync(),
                 DatasetDefinitionSearchRepository = Policy.NoOpAsync(),
+                BlobClient = Policy.NoOpAsync()
             };
         }
     }
