@@ -1,8 +1,11 @@
-﻿using CalculateFunding.Models.Scenarios;
+﻿using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -11,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
 {
-    public class ScenariosRepository : IScenariosRepository
+    public class ScenariosRepository : IScenariosRepository, IHealthChecker
     {
         private readonly IScenariosApiClientProxy _apiClient;
         private readonly ICacheProvider _cacheProvider;
@@ -23,6 +26,18 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
             _apiClient = apiClient;
             _cacheProvider = cacheProvider;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth health = new ServiceHealth();
+
+            var cacheHealth = await _cacheProvider.IsHealthOk();
+
+            health.Name = nameof(ScenariosRepository);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = this.GetType().GetFriendlyName(), Message = cacheHealth.Message });
+
+            return health;
         }
 
         public async Task<IEnumerable<TestScenario>> GetTestScenariosBySpecificationId(string specificationId)

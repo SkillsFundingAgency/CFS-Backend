@@ -20,10 +20,12 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Caching;
 using System;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Models.Health;
 
 namespace CalculateFunding.Services.TestRunner.Services
 {
-    public class TestEngineService : ITestEngineService
+    public class TestEngineService : ITestEngineService, IHealthChecker
     {
         private readonly ICacheProvider _cacheProvider;
         private readonly ISpecificationRepository _specificationRepository;
@@ -74,6 +76,27 @@ namespace CalculateFunding.Services.TestRunner.Services
             _testResultsRepositoryPolicy = resiliencePolicies.TestResultsRepository;
             _builProjectsRepositoryPolicy = resiliencePolicies.BuildProjectRepository;
             _buildProjectRepository = buildProjectRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            var cacheHealth = await _cacheProvider.IsHealthOk();
+            ServiceHealth testEngineHealth = await ((IHealthChecker)_testEngine).IsHealthOk();
+            ServiceHealth scenariosRepoHealth = await ((IHealthChecker)_scenariosRepository).IsHealthOk();
+            ServiceHealth providerSourceRepoHealth = await ((IHealthChecker)_providerSourceDatasetsRepository).IsHealthOk();
+            ServiceHealth testResultsRepoHealth = await ((IHealthChecker)_testResultsRepository).IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(TestEngineService)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
+            health.Dependencies.AddRange(testEngineHealth.Dependencies);
+            health.Dependencies.AddRange(scenariosRepoHealth.Dependencies);
+            health.Dependencies.AddRange(providerSourceRepoHealth.Dependencies);
+            health.Dependencies.AddRange(testResultsRepoHealth.Dependencies);
+
+            return health;
         }
 
         public async Task RunTests(Message message)

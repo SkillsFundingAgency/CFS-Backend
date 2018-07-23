@@ -1,10 +1,12 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
@@ -17,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class CalculationSearchService : ICalculationsSearchService
+    public class CalculationSearchService : ICalculationsSearchService, IHealthChecker
     {
         private readonly ILogger _logger;
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
@@ -40,6 +42,19 @@ namespace CalculateFunding.Services.Calcs
         {
             _logger = logger;
             _searchRepository = searchRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            var searchRepoHealth = await _searchRepository.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(CalculationService)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+
+            return health;
         }
 
         async public Task<IActionResult> SearchCalculations(HttpRequest request)

@@ -2,11 +2,13 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +19,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Results
 {
-    public class ResultsSearchService : IResultsSearchService
+    public class ResultsSearchService : IResultsSearchService, IHealthChecker
     {
         private readonly ILogger _logger;
         private readonly ISearchRepository<ProviderIndex> _searchRepository;
@@ -43,6 +45,19 @@ namespace CalculateFunding.Services.Results
             _logger = logger;
             _searchRepository = searchRepository;
             _resultsSearchRepositoryPolicy = resilliencePolicies.ResultsSearchRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            var searchRepoHealth = await _searchRepository.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(ResultsSearchService)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+
+            return health;
         }
 
         async public Task<IActionResult> SearchProviders(HttpRequest request)

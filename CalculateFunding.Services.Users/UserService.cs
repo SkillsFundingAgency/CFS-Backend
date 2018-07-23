@@ -1,8 +1,10 @@
-﻿using CalculateFunding.Models.Users;
+﻿using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Users.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Users
 {
-    public class UserService : IUserService
+    public class UserService : IUserService, IHealthChecker
     {
         private readonly IUserRepository _userRepository;
         private readonly ILogger _logger;
@@ -31,6 +33,21 @@ namespace CalculateFunding.Services.Users
             _userRepository = userRepository;
             _logger = logger;
             _cacheProvider = cacheProvider;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth userRepoHealth = await ((IHealthChecker)_userRepository).IsHealthOk();
+            var cacheHealth = await _cacheProvider.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(UserService)
+            };
+            health.Dependencies.AddRange(userRepoHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
+ 
+            return health;
         }
 
         public async Task<IActionResult> GetUserByUsername(HttpRequest request)

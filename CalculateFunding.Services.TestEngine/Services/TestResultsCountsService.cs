@@ -1,11 +1,13 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Aggregations;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +22,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.Services
 {
-    public class TestResultsCountsService : ITestResultsCountsService
+    public class TestResultsCountsService : ITestResultsCountsService, IHealthChecker
     {
         private readonly ITestResultsSearchService _testResultsService;
         private readonly ITestResultsRepository _testResultsRepository;
@@ -35,6 +37,19 @@ namespace CalculateFunding.Services.TestRunner.Services
             _testResultsService = testResultsService;
             _testResultsRepository = testResultsRepository;
             _logger = logger;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth testResultsRepoHealth = await ((IHealthChecker)_testResultsRepository).IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(TestResultsCountsService)
+            };
+            health.Dependencies.AddRange(testResultsRepoHealth.Dependencies);
+
+            return health;
         }
 
         public async Task<IActionResult> GetResultCounts(HttpRequest request)

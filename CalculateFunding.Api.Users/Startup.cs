@@ -1,6 +1,8 @@
-﻿using CalculateFunding.Api.Common.Middleware;
+﻿using CalculateFunding.Api.Common.Extensions;
+using CalculateFunding.Api.Common.Middleware;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Users;
 using CalculateFunding.Services.Users.Interfaces;
 using Microsoft.AspNetCore.Builder;
@@ -47,6 +49,8 @@ namespace CalculateFunding.Api.Users
             app.UseMiddleware<LoggedInUserMiddleware>();
 
             app.UseMvc();
+
+            app.UseHealthCheckMiddleware();
         }
 
         public void RegisterComponents(IServiceCollection builder)
@@ -54,7 +58,8 @@ namespace CalculateFunding.Api.Users
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder
-               .AddSingleton<IUserService, UserService>();
+               .AddSingleton<IUserService, UserService>()
+               .AddSingleton<IHealthChecker, UserService>();
 
             builder.AddSingleton<IUserRepository, UserRepository>((ctx) =>
             {
@@ -82,6 +87,8 @@ namespace CalculateFunding.Api.Users
             builder.AddTelemetry();
 
             builder.AddHttpContextAccessor();
+
+            builder.AddHealthCheckMiddleware();
         }
 
     }

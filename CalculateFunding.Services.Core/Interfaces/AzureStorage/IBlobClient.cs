@@ -7,6 +7,8 @@ namespace CalculateFunding.Services.Core.Interfaces.AzureStorage
 {
     public interface IBlobClient
     {
+        Task<(bool Ok, string Message)> IsHealthOk();
+
         string GetBlobSasUrl(string blobName, DateTimeOffset finish,
             SharedAccessBlobPermissions permissions);
 

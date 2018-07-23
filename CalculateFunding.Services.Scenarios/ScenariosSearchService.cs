@@ -1,10 +1,12 @@
 ﻿using CalculateFunding.Models;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Scenarios
 {
-    public class ScenariosSearchService : IScenariosSearchService
+    public class ScenariosSearchService : IScenariosSearchService, IHealthChecker
     {
         private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
         private readonly ILogger _logger;
@@ -41,6 +43,21 @@ namespace CalculateFunding.Services.Scenarios
             _scenariosRepository = scenariosRepository;
             _specificationsRepository = specificationsRepository;
             _logger = logger;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            var searchRepoHealth = await _searchRepository.IsHealthOk();
+            ServiceHealth scenariosRepoHealth = await ((IHealthChecker)_scenariosRepository).IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(ScenariosService)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.AddRange(scenariosRepoHealth.Dependencies);
+
+            return health;
         }
 
         async public Task<IActionResult> SearchScenarios(HttpRequest request)

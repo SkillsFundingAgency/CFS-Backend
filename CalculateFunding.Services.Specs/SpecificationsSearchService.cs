@@ -1,9 +1,11 @@
 ﻿using CalculateFunding.Models;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Specs
 {
-    public class SpecificationsSearchService : SearchService<SpecificationIndex>,  ISpecificationsSearchService
+    public class SpecificationsSearchService : SearchService<SpecificationIndex>,  ISpecificationsSearchService, IHealthChecker
     {
         private readonly ILogger _logger;
 
@@ -30,6 +32,19 @@ namespace CalculateFunding.Services.Specs
             : base(searchRepository)
         {
             _logger = logger;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            var searchRepoHealth = await SearchRepository.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(SpecificationsService)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = SearchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+
+            return health;
         }
 
         async public Task<IActionResult> SearchSpecificationDatasetRelationships(HttpRequest request)

@@ -21,6 +21,20 @@ namespace CalculateFunding.Services.Core.AzureStorage
             Initialize();
         }
 
+        public async Task<(bool Ok, string Message)> IsHealthOk()
+        {
+            try
+            {
+                Initialize();
+                var container = _container.Value;
+                return await Task.FromResult((true, string.Empty));
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
         public string GetBlobSasUrl(string blobName, DateTimeOffset finish, 
             SharedAccessBlobPermissions permissions)
         {

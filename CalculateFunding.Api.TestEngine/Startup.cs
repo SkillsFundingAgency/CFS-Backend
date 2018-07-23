@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.Common.Middleware;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Cosmos;
@@ -12,6 +13,7 @@ using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
@@ -66,6 +68,8 @@ namespace CalculateFunding.Api.TestRunner
             app.UseMiddleware<LoggedInUserMiddleware>();
 
             app.UseMvc();
+
+            app.UseHealthCheckMiddleware();
         }
 
         public void RegisterComponents(IServiceCollection builder)
@@ -97,7 +101,8 @@ namespace CalculateFunding.Api.TestRunner
                 .AddSingleton<IScenariosRepository, ScenariosRepository>();
 
             builder
-                .AddSingleton<ITestEngineService, Services.TestRunner.Services.TestEngineService>();
+                .AddSingleton<ITestEngineService, TestEngineService>()
+                .AddSingleton<IHealthChecker, TestEngineService>();
 
             builder
                 .AddSingleton<ITestEngine, Services.TestRunner.TestEngine>();
@@ -135,15 +140,21 @@ namespace CalculateFunding.Api.TestRunner
                 return new ProviderResultsRepository(providersCosmosRepostory);
             });
 
-            builder.AddSingleton<ITestResultsSearchService, TestResultsSearchService>();
+            builder
+                .AddSingleton<ITestResultsSearchService, TestResultsSearchService>()
+                .AddSingleton<IHealthChecker, TestResultsSearchService>();
 
-            builder.AddSingleton<ITestResultsCountsService, TestResultsCountsService>();
+            builder
+                .AddSingleton<ITestResultsCountsService, TestResultsCountsService>()
+                .AddSingleton<IHealthChecker, TestResultsCountsService>();
 
             MapperConfiguration resultsMappingConfiguration = new MapperConfiguration(c => c.AddProfile<ResultsMappingProfile>());
             builder
                 .AddSingleton(resultsMappingConfiguration.CreateMapper());
 
-            builder.AddSingleton<ITestResultsService, TestResultsService>();
+            builder
+                .AddSingleton<ITestResultsService, TestResultsService>()
+                .AddSingleton<IHealthChecker, TestResultsService>();
 
             builder.AddUserProviderFromRequest();
 
@@ -189,6 +200,8 @@ namespace CalculateFunding.Api.TestRunner
                     TestResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy)
                 };
             });
+
+            builder.AddHealthCheckMiddleware();
         }
     }
 }

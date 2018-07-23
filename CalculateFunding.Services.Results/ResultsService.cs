@@ -25,17 +25,18 @@ using CalculateFunding.Services.Results.ResultModels;
 using System.Collections.Concurrent;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Models.Health;
 
 namespace CalculateFunding.Services.Results
 {
-    public class ResultsService : IResultsService
+    public class ResultsService : IResultsService, IHealthChecker
     {
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
         private readonly ICalculationResultsRepository _resultsRepository;
         private readonly IMapper _mapper;
         private readonly ISearchRepository<ProviderIndex> _searchRepository;
-        private readonly IMessengerService _messengerService;
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
         private readonly ISearchRepository<CalculationProviderResultsIndex> _calculationProviderResultsSearchRepository;
         private readonly Polly.Policy _resultsRepositoryPolicy;
@@ -52,7 +53,6 @@ namespace CalculateFunding.Services.Results
             ICalculationResultsRepository resultsRepository,
             IMapper mapper,
             ISearchRepository<ProviderIndex> searchRepository,
-            IMessengerService messengerService,
             ITelemetry telemetry,
             IProviderSourceDatasetRepository providerSourceDatasetRepository,
             ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository,
@@ -68,7 +68,6 @@ namespace CalculateFunding.Services.Results
             _resultsRepository = resultsRepository;
             _mapper = mapper;
             _searchRepository = searchRepository;
-            _messengerService = messengerService;
             _telemetry = telemetry;
             _providerSourceDatasetRepository = providerSourceDatasetRepository;
             _calculationProviderResultsSearchRepository = calculationProviderResultsSearchRepository;
@@ -81,6 +80,31 @@ namespace CalculateFunding.Services.Results
             _publishedProviderCalculationResultsRepository = publishedProviderCalculationResultsRepository;
             _providerImportMappingService = providerImportMappingService;
             _cacheProvider = cacheProvider;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_resultsRepository).IsHealthOk();
+            var searchRepoHealth = await _searchRepository.IsHealthOk();
+            ServiceHealth providerSourceDatasetRepoHealth = await ((IHealthChecker)_providerSourceDatasetRepository).IsHealthOk();
+            var calcSearchRepoHealth = await _calculationProviderResultsSearchRepository.IsHealthOk();
+            ServiceHealth providerResultsAssemblerHeatlh = await ((IHealthChecker)_publishedProviderResultsAssemblerService).IsHealthOk();
+            ServiceHealth providerRepoHealth = await ((IHealthChecker)_publishedProviderResultsRepository).IsHealthOk();
+            var cacheHealth = await _cacheProvider.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(ResultsService)
+            };
+            health.Dependencies.AddRange(datasetsRepoHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.AddRange(providerSourceDatasetRepoHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = calcSearchRepoHealth.Ok, DependencyName = _calculationProviderResultsSearchRepository.GetType().GetFriendlyName(), Message = calcSearchRepoHealth.Message });
+            health.Dependencies.AddRange(providerResultsAssemblerHeatlh.Dependencies);
+            health.Dependencies.AddRange(providerRepoHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
+
+            return health;
         }
 
         public async Task UpdateProviderData(Message message)

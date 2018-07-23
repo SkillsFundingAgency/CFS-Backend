@@ -29,10 +29,12 @@ using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Helpers;
 using System.Collections.Concurrent;
 using CalculateFunding.Models.Users;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Models.Health;
 
 namespace CalculateFunding.Services.Specs
 {
-    public class SpecificationsService : ISpecificationsService
+    public class SpecificationsService : ISpecificationsService, IHealthChecker
     {
         private readonly IMapper _mapper;
         private readonly ISpecificationsRepository _specificationsRepository;
@@ -93,6 +95,26 @@ namespace CalculateFunding.Services.Specs
             _policyEditModelValidator = policyEditModelValidator;
             _calculationEditModelValidator = calculationEditModelValidator;
             _resultsRepository = resultsRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth specRepoHealth = await ((IHealthChecker)_specificationsRepository).IsHealthOk();
+            string queueName = ServiceBusConstants.QueueNames.CalculationJobInitialiser;
+            var messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
+            var searchRepoHealth = await _searchRepository.IsHealthOk();
+            var cacheHealth = await _cacheProvider.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(SpecificationsService)
+            };
+            health.Dependencies.AddRange(specRepoHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = messengerServiceHealth.Ok, DependencyName = $"{_messengerService.GetType().GetFriendlyName()} for queue: {queueName}", Message = messengerServiceHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
+
+            return health;
         }
 
         public async Task<IActionResult> GetSpecifications(HttpRequest request)

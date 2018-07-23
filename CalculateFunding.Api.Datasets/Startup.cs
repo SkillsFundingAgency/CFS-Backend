@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.Common.Middleware;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
@@ -10,6 +11,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets;
@@ -60,15 +62,19 @@ namespace CalculateFunding.Api.Datasets
             app.UseMiddleware<LoggedInUserMiddleware>();
 
             app.UseMvc();
+
+            app.UseHealthCheckMiddleware();
         }
 
         public void RegisterComponents(IServiceCollection builder)
         {
             builder
-                .AddSingleton<IDefinitionsService, DefinitionsService>();
+                .AddSingleton<IDefinitionsService, DefinitionsService>()
+                .AddSingleton<IHealthChecker, DefinitionsService>();
 
             builder
-                .AddSingleton<IDatasetService, DatasetService>();
+                .AddSingleton<IDatasetService, DatasetService>()
+                .AddSingleton<IHealthChecker,DatasetService>();
 
             builder
               .AddSingleton<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();
@@ -117,10 +123,12 @@ namespace CalculateFunding.Api.Datasets
 
             builder.AddSingleton<IDatasetRepository, DataSetsRepository>();
 
-            builder.AddSingleton<IDatasetSearchService, DatasetSearchService>();
+            builder.AddSingleton<IDatasetSearchService, DatasetSearchService>()
+                .AddSingleton<IHealthChecker,DatasetSearchService>();
 
             builder
-               .AddSingleton<IDefinitionSpecificationRelationshipService, DefinitionSpecificationRelationshipService>();
+               .AddSingleton<IDefinitionSpecificationRelationshipService, DefinitionSpecificationRelationshipService>()
+               .AddSingleton<IHealthChecker, DefinitionSpecificationRelationshipService>();
 
             builder
                 .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
@@ -182,6 +190,8 @@ namespace CalculateFunding.Api.Datasets
                     BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
+
+            builder.AddHealthCheckMiddleware();
         }
     }
 }

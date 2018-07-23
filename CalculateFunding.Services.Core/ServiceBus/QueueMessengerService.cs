@@ -20,18 +20,32 @@ namespace CalculateFunding.Services.Core.ServiceBus
             _storageAccount = CloudStorageAccount.Parse(connectionString);
         }
 
-       private CloudQueueClient QueueClient
-       {
+        public async Task<(bool Ok, string Message)> IsHealthOk(string queueName)
+        {
+            try
+            {
+                var queue = QueueClient.GetQueueReference(queueName);
+                var result = await queue.ExistsAsync();
+                return (true, string.Empty);
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
+        private CloudQueueClient QueueClient
+        {
             get
             {
-                if(_queueClient == null)
+                if (_queueClient == null)
                 {
                     _queueClient = _storageAccount.CreateCloudQueueClient();
                 }
 
                 return _queueClient;
             }
-       }
+        }
 
         public async Task SendToQueue<T>(string queueName, T data, IDictionary<string, string> properties) where T : class
         {

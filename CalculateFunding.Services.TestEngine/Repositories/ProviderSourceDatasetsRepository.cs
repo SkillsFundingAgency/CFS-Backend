@@ -1,6 +1,8 @@
-﻿using CalculateFunding.Models.Results;
+﻿using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using System.Collections.Concurrent;
@@ -11,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
 {
-    public class ProviderSourceDatasetsRepository : IProviderSourceDatasetsRepository
+    public class ProviderSourceDatasetsRepository : IProviderSourceDatasetsRepository, IHealthChecker
     {
         private readonly CosmosRepository _cosmosRepository;
         private readonly EngineSettings _engineSettings;
@@ -23,6 +25,18 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
             _cosmosRepository = cosmosRepository;
             _engineSettings = engineSettings;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth health = new ServiceHealth();
+
+            var cosmosHealth = await _cosmosRepository.IsHealthOk();
+
+            health.Name = nameof(ProviderSourceDatasetsRepository);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
+
+            return health;
         }
 
         public async Task<IEnumerable<ProviderSourceDatasetCurrent>> GetProviderSourceDatasetsByProviderIdsAndSpecificationId(IEnumerable<string> providerIds, string specificationId)

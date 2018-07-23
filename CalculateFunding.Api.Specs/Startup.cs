@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
+using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.Common.Middleware;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
@@ -53,12 +55,16 @@ namespace CalculateFunding.Api.Specs
             app.UseMiddleware<LoggedInUserMiddleware>();
 
             app.UseMvc();
+
+            app.UseHealthCheckMiddleware();
         }
 
         public void RegisterComponents(IServiceCollection builder)
         {
             builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
-            builder.AddSingleton<ISpecificationsService, SpecificationsService>();
+            builder
+                .AddSingleton<ISpecificationsService, SpecificationsService>()
+                .AddSingleton<IHealthChecker, SpecificationsService>();
             builder.AddSingleton<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
             builder.AddSingleton<IValidator<PolicyEditModel>, PolicyEditModelValidator>();
             builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
@@ -66,7 +72,9 @@ namespace CalculateFunding.Api.Specs
             builder.AddSingleton<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
             builder.AddSingleton<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
             builder.AddSingleton<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
-            builder.AddSingleton<ISpecificationsSearchService, SpecificationsSearchService>();
+            builder
+                .AddSingleton<ISpecificationsSearchService, SpecificationsSearchService>()
+                .AddSingleton<IHealthChecker, SpecificationsSearchService>();
             builder.AddSingleton<IResultsRepository, ResultsRepository>();
 
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
@@ -94,6 +102,8 @@ namespace CalculateFunding.Api.Specs
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder.AddHttpContextAccessor();
-        }
+
+            builder.AddHealthCheckMiddleware();
+        } 
     }
 }

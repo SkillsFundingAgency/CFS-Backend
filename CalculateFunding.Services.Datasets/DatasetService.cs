@@ -32,10 +32,12 @@ using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using Polly;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Models.Health;
 
 namespace CalculateFunding.Services.Datasets
 {
-    public class DatasetService : IDatasetService
+    public class DatasetService : IDatasetService, IHealthChecker
     {
         private readonly IBlobClient _blobClient;
         private readonly ILogger _logger;
@@ -101,6 +103,32 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(datasetsResiliencePolicies, nameof(datasetsResiliencePolicies));
 
             _providerResultsRepositoryPolicy = datasetsResiliencePolicies.ProviderResultsRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            var blobHealth = await _blobClient.IsHealthOk();
+            ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_datasetRepository).IsHealthOk();
+            var searchRepoHealth = await _searchRepository.IsHealthOk();
+            string queueName = ServiceBusConstants.QueueNames.CalculationJobInitialiser;
+            var messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
+            var cacheHealth = await _cacheProvider.IsHealthOk();
+            ServiceHealth providersResultsRepoHealth = await ((IHealthChecker)_providersResultsRepository).IsHealthOk();
+            ServiceHealth providerRepoHealth = await ((IHealthChecker)_providerRepository).IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(DatasetService)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = blobHealth.Ok, DependencyName = _blobClient.GetType().GetFriendlyName(), Message = blobHealth.Message });
+            health.Dependencies.AddRange(datasetsRepoHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = messengerServiceHealth.Ok, DependencyName = $"{_messengerService.GetType().GetFriendlyName()} for queue: {queueName}", Message = messengerServiceHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
+            health.Dependencies.AddRange(providersResultsRepoHealth.Dependencies);
+            health.Dependencies.AddRange(providerRepoHealth.Dependencies);
+
+            return health;
         }
 
         async public Task<IActionResult> CreateNewDataset(HttpRequest request)

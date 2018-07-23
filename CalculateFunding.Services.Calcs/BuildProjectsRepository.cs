@@ -5,16 +5,30 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using System.Net;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Models.Health;
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class BuildProjectsRepository : IBuildProjectsRepository
+    public class BuildProjectsRepository : IBuildProjectsRepository, IHealthChecker
     {
         private readonly CosmosRepository _cosmosRepository;
 
         public BuildProjectsRepository(CosmosRepository cosmosRepository)
         {
             _cosmosRepository = cosmosRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth health = new ServiceHealth();
+
+            var cosmosHealth = await _cosmosRepository.IsHealthOk();
+
+            health.Name = this.GetType().Name;
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = typeof(CosmosRepository).Name, Message = cosmosHealth.Message });
+
+            return health;
         }
 
         // No longer used directly, lookup is by specification ID instead
@@ -28,7 +42,7 @@ namespace CalculateFunding.Services.Calcs
         //    return buildProject.Content;
         //}
 
-	    public Task<BuildProject> GetBuildProjectBySpecificationId(string specificiationId)
+        public Task<BuildProject> GetBuildProjectBySpecificationId(string specificiationId)
 	    {
 		    IEnumerable<BuildProject> buildProjects = _cosmosRepository.Query<BuildProject>().Where(x => x.SpecificationId == specificiationId).ToList();
 

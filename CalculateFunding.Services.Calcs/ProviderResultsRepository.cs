@@ -1,12 +1,15 @@
 ﻿using CalculateFunding.Models;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class ProviderResultsRepository : IProviderResultsRepository
+    public class ProviderResultsRepository : IProviderResultsRepository, IHealthChecker
     {
         const int MaxResultsCount = 1000;
 
@@ -40,6 +43,19 @@ namespace CalculateFunding.Services.Calcs
 
             _apiClient = apiClient;
             _cacheProvider = cacheProvider;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            var cacheRepoHealth = await _cacheProvider.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(ProviderResultsRepository)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheRepoHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheRepoHealth.Message });
+
+            return health;
         }
 
         public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId)

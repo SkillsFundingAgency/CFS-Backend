@@ -40,6 +40,19 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_databaseName, _collectionName);
         }
 
+        public async Task<(bool Ok, string Message)> IsHealthOk()
+        {
+            try
+            {
+                await _documentClient.OpenAsync();
+                return (true, string.Empty);
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
         public async Task EnsureCollectionExists()
         {
             if (_collection == null)

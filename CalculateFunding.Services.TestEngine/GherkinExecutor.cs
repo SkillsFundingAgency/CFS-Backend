@@ -14,10 +14,12 @@ using Polly;
 using System.Diagnostics;
 using Newtonsoft.Json;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Models.Health;
 
 namespace CalculateFunding.Services.TestRunner
 {
-    public class GherkinExecutor : IGherkinExecutor
+    public class GherkinExecutor : IGherkinExecutor, IHealthChecker
     {
         private readonly IGherkinParser _parser;
         private readonly ICacheProvider _cacheProvider;
@@ -35,6 +37,19 @@ namespace CalculateFunding.Services.TestRunner
             _cacheProvider = cacheProvider;
 
             _cacheProviderPolicy = resiliencePolicies.CacheProviderRepository;
+        }
+
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth health = new ServiceHealth();
+
+            var cacheHealth = await _cacheProvider.IsHealthOk();
+
+            health.Name = nameof(GherkinExecutor);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = this.GetType().Name, Message = cacheHealth.Message });
+
+            return health;
         }
 
         public async Task<IEnumerable<ScenarioResult>> Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDatasetCurrent> datasets, 

@@ -24,10 +24,12 @@ using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Models.Health;
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class BuildProjectsService : IBuildProjectsService
+    public class BuildProjectsService : IBuildProjectsService, IHealthChecker
     {
         const int MaxPartitionSize = 1000;
 
@@ -81,6 +83,24 @@ namespace CalculateFunding.Services.Calcs
             _cacheProvider = cacheProvider;
             _calculationService = calculationService;
             _calculationsRepository = calculationsRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth calcsRepoHealth = await ((IHealthChecker)_calculationsRepository).IsHealthOk();
+            var cacheRepoHealth = await _cacheProvider.IsHealthOk();
+            string queueName = ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults;
+            var messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(BuildProjectsService)
+            };
+            health.Dependencies.AddRange(calcsRepoHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheRepoHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = messengerServiceHealth.Ok, DependencyName = $"{_messengerService.GetType().GetFriendlyName()} for queue: {queueName}", Message = messengerServiceHealth.Message });
+
+            return health;
         }
 
         public async Task UpdateAllocations(Message message)

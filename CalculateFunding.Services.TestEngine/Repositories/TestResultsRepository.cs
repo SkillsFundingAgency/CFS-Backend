@@ -10,10 +10,12 @@ using CalculateFunding.Services.Core.Helpers;
 using Serilog;
 using CalculateFunding.Services.Core.Options;
 using System.Collections.Concurrent;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Models.Health;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
 {
-    public class TestResultsRepository : ITestResultsRepository
+    public class TestResultsRepository : ITestResultsRepository, IHealthChecker
     {
         private readonly CosmosRepository _cosmosRepository;
         private readonly ILogger _logger;
@@ -28,6 +30,18 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             _cosmosRepository = cosmosRepository;
             _logger = logger;
             _engineSettings = engineSettings;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth health = new ServiceHealth();
+
+            var cosmosHealth = await _cosmosRepository.IsHealthOk();
+
+            health.Name = nameof(TestResultsRepository);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
+
+            return health;
         }
 
         public async Task<IEnumerable<TestScenarioResult>> GetCurrentTestResults(IEnumerable<string> providerIds, string specificationId)

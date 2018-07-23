@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
@@ -10,6 +11,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +27,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.Services
 {
-    public class TestResultsService : ITestResultsService
+    public class TestResultsService : ITestResultsService, IHealthChecker
     {
         private readonly ITestResultsRepository _testResultsRepository;
         private readonly ISearchRepository<TestScenarioResultIndex> _searchRepository;
@@ -60,6 +62,23 @@ namespace CalculateFunding.Services.TestRunner.Services
             _testResultsPolicy = policies.TestResultsRepository;
             _testResultsSearchPolicy = policies.TestResultsSearchRepository;
             _cacheProvider = cacheProvider;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth testResultsRepoHealth = await ((IHealthChecker)_testResultsRepository).IsHealthOk();
+            var searchRepoHealth = await _searchRepository.IsHealthOk();
+            var cacheHealth = await _cacheProvider.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(TestEngineService)
+            };
+            health.Dependencies.AddRange(testResultsRepoHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
+
+            return health;
         }
 
         public async Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> testResults, IEnumerable<ProviderResult> providerResults)

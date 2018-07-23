@@ -1,9 +1,12 @@
 ﻿using CalculateFunding.Models;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
 using Newtonsoft.Json;
 using Serilog;
@@ -15,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
 {
-    public class PublishedProviderResultsAssemblerService : IPublishedProviderResultsAssemblerService
+    public class PublishedProviderResultsAssemblerService : IPublishedProviderResultsAssemblerService, IHealthChecker
     {
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly ICacheProvider _cacheProvider;
@@ -32,6 +35,19 @@ namespace CalculateFunding.Services.Results
             _specificationsRepository = specificationsRepository;
             _cacheProvider = cacheProvider;
             _logger = logger;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            var cacheHealth = await _cacheProvider.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(PublishedProviderResultsAssemblerService)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
+
+            return health;
         }
 
         public async Task<IEnumerable<PublishedProviderResult>> AssemblePublishedProviderResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion)
