@@ -162,5 +162,12 @@ namespace CalculateFunding.Api.Datasets.Controllers
         {
             return _datasetService.ProcessDataset(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/datasets/get-schema-download-url")]
+        [HttpPost]
+        public Task<IActionResult> RunGetDatasetSchemaSasUrl()
+        {
+            return _definitionService.GetDatasetSchemaSasUrl(ControllerContext.HttpContext.Request);
+        }
     }
 }

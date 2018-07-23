@@ -17,5 +17,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Policy CacheProviderRepository { get; set; }
 
         Policy DatasetDefinitionSearchRepository { get; set; }
+
+        Policy BlobClient { get; set; }
     }
 }

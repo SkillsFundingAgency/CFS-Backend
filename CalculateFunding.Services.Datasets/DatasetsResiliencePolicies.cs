@@ -18,5 +18,7 @@ namespace CalculateFunding.Services.Datasets
         public Policy CacheProviderRepository { get; set; }
 
         public Policy DatasetDefinitionSearchRepository { get; set; }
+
+        public Policy BlobClient { get; set; }
     }
 }

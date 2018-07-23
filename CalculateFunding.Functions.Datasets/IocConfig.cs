@@ -2,6 +2,7 @@
 using AutoMapper;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
@@ -95,6 +96,9 @@ namespace CalculateFunding.Functions.Datasets
                .AddSingleton<IValidator<CreateDefinitionSpecificationRelationshipModel>, CreateDefinitionSpecificationRelationshipModelValidator>();
 
             builder
+               .AddSingleton<IExcelWriter<DatasetDefinition>, DataDefinitionExcelWriter>();
+
+            builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>
                 {
                     AzureStorageSettings storageSettings = new AzureStorageSettings();
@@ -186,6 +190,7 @@ namespace CalculateFunding.Functions.Datasets
                     DatasetRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     DatasetSearchService = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     DatasetDefinitionSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                    BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }
