@@ -47,13 +47,15 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_dataSetsRepository).IsHealthOk();
+            ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_datasetsRepository).IsHealthOk();
+            var searchRepoHealth = await _datasetDefinitionSearchRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(DefinitionsService)
             };
             health.Dependencies.AddRange(datasetsRepoHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _datasetDefinitionSearchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
 
             return health;
         }
