@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
 using Microsoft.Azure.Search;
@@ -29,6 +30,22 @@ namespace CalculateFunding.Repositories.Common.Search
             _indexName = typeof(T).Name.ToLowerInvariant();
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _searchServiceClient = new SearchServiceClient(_settings.SearchServiceName, new SearchCredentials(_settings.SearchKey));
+        }
+
+        public static string ParseSearchText(string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                return string.Empty;
+            }
+
+            // Need to do a prefix search on each term passed in the search text, so append a wildcard character to the end of each term (breaking on spaces)
+            // Also need to remove quotation marks as we don't support that
+            string[] terms = searchText.Replace("\"", string.Empty).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            StringBuilder newSearchText = new StringBuilder();
+            newSearchText.Append(string.Join("* ", terms));
+            newSearchText.Append("*");
+            return newSearchText.ToString();
         }
 
         public async Task<(bool Ok, string Message)> IsHealthOk()
@@ -64,19 +81,19 @@ namespace CalculateFunding.Repositories.Common.Search
             await searchInitializer.Initialise<T>();
         }
 
-        public async Task<SearchResults<T>> Search(string searchTerm, SearchParameters searchParameters = null)
+        public async Task<SearchResults<T>> Search(string searchText, SearchParameters searchParameters = null)
         {
             var client = await GetOrCreateIndex();
 
             try
             {
-                searchTerm = !string.IsNullOrWhiteSpace(searchTerm) ? $"/.*{searchTerm}.*/" : "";
+                searchText = ParseSearchText(searchText);
 
-                var azureSearchResult = await client.Documents.SearchAsync<T>(searchTerm, searchParameters ?? DefaultParameters);
+                var azureSearchResult = await client.Documents.SearchAsync<T>(searchText, searchParameters ?? DefaultParameters);
 
                 var response = new SearchResults<T>
                 {
-                    SearchTerm = searchTerm,
+                    SearchTerm = searchText,
                     TotalCount = azureSearchResult.Count,
                     Facets = azureSearchResult.Facets?.Select(x => new Facet
                     {
