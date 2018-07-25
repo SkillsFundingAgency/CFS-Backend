@@ -312,9 +312,9 @@ namespace CalculateFunding.Services.Results.Services
 
             PublishedProviderResult result = results.First();
 
-            result.Title.Should().Be("Some Title");
-            result.Summary.Should().Be("Some summary yet to be defined");
-            result.Id.Should().Be("prov-id_spec-id-1_AAAAA");
+            result.Title.Should().Be("Allocation test allocation line 1 was Held");
+            result.Summary.Should().Be("UKPRN: ukprn-001, version 1");
+            result.Id.Should().Be("ukprn-001_spec-id-1_AAAAA");
             result.Provider.URN.Should().Be("urn");
             result.Provider.UKPRN.Should().Be("ukprn");
             result.Provider.UPIN.Should().Be("upin");
@@ -322,7 +322,7 @@ namespace CalculateFunding.Services.Results.Services
             result.Provider.Authority.Should().Be("authority");
             result.Provider.ProviderType.Should().Be("prov type");
             result.Provider.ProviderSubType.Should().Be("prov sub type");
-            result.Provider.Id.Should().Be("prov-id");
+            result.Provider.Id.Should().Be("ukprn-001");
             result.Provider.Name.Should().Be("prov name");
             result.SpecificationId.Should().Be("spec-id-1");
             result.FundingStreamResult.FundingStream.Id.Should().Be("fs-001");
@@ -544,7 +544,7 @@ namespace CalculateFunding.Services.Results.Services
                 },
                 Provider = new ProviderSummary
                 {
-                    Id = "prov-id",
+                    Id = "ukprn-001",
                     Name = "prov name",
                     ProviderType = "prov type",
                     ProviderSubType = "prov sub type",
@@ -553,7 +553,8 @@ namespace CalculateFunding.Services.Results.Services
                     UPIN = "upin",
                     URN = "urn",
                     EstablishmentNumber = "12345",
-                    DateOpened = DateTime.Now.AddDays(-7)
+                    DateOpened = DateTime.Now.AddDays(-7),
+                    ProviderProfileIdType = "UKPRN"
                 }
             }
             };

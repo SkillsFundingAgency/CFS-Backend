@@ -4,6 +4,7 @@ using System.Reflection;
 using CalculateFunding.Api.External.Swagger.Helpers.Readers;
 using CalculateFunding.Api.External.Swagger.OperationFilters;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.PlatformAbstractions;
 using Swashbuckle.AspNetCore.Examples;
@@ -13,28 +14,46 @@ namespace CalculateFunding.Api.External.Swagger
 {
     public static class SwaggerSetup
     {
-        public static void ConfigureSwaggerServices(IServiceCollection services)
+        static Info CreateInfoForApiVersion(ApiVersionDescription description)
         {
             string swaggerDocsTopContents = SwaggerTopContentReader.ReadContents();
 
+            Info info = new Info()
+            {
+                Title = "Calculate Funding Service API",
+                Version = "v1",
+                Description = swaggerDocsTopContents,
+                Contact = new Contact
+                {
+                    Name = "Clifford Smith",
+                    Email = "cliffordsmith@education.gov.uk"
+                },
+                License = new License
+                {
+                    Name = "MIT License",
+                    Url = "https://opensource.org/licenses/MIT"
+                }
+            };
+
+            if (description.IsDeprecated)
+            {
+                info.Description += " This API version has been deprecated.";
+            }
+
+            return info;
+        }
+
+        public static void ConfigureSwaggerServices(IServiceCollection services)
+        {
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Info
+                IApiVersionDescriptionProvider provider = services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>();
+
+                foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
                 {
-                    Title = "Calculate Funding Service API",
-                    Version = "v1",
-                    Description = swaggerDocsTopContents,
-                    Contact = new Contact
-                    {
-                        Name = "Clifford Smith",
-                        Email = "cliffordsmith@education.gov.uk"
-                    },
-                    License = new License
-                    {
-                        Name = "MIT License",
-                        Url = "https://opensource.org/licenses/MIT"
-                    }
-                });
+                    c.SwaggerDoc(description.GroupName, CreateInfoForApiVersion(description));
+                }
+
                 c.AddSecurityDefinition("apiKey", new ApiKeyScheme
                 {
                     Type = "apiKey",
@@ -54,14 +73,17 @@ namespace CalculateFunding.Api.External.Swagger
             });
         }
 
-        public static void ConfigureSwagger(IApplicationBuilder app)
+        public static void ConfigureSwagger(IApplicationBuilder app, IApiVersionDescriptionProvider provider)
         {
             app.UseSwagger();
-            app.UseSwaggerUI(c =>
+            app.UseSwaggerUI(options =>
             {
-                c.DocExpansion(DocExpansion.List);
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Calculate Funding Service API V1");
-                c.RoutePrefix = "docs";
+                foreach (var description in provider.ApiVersionDescriptions)
+                {
+                    options.DocExpansion(DocExpansion.List);
+                    options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
+                    options.RoutePrefix = $"{description.GroupName}/docs";
+                }
             });
         }
     }

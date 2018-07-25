@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Xml.Serialization;
+using CalculateFunding.Models.External.AtomItems;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -33,6 +34,35 @@ namespace CalculateFunding.Api.External.Swagger.Helpers
                 {
                     StatusCode = 200,
                     Content = JsonConvert.SerializeObject(response),
+                    ContentType = mediaType
+                };
+            }
+
+            return new BadRequestResult();
+        }
+
+        public static IActionResult ActionResult<TPayload>(HttpRequest request, AtomFeed atomFeed)
+        {
+            if (request.Headers.TryGetValue("Accept", out var accept))
+            {
+                var mediaType = accept.FirstOrDefault()?.ToLowerInvariant();
+                mediaType = mediaType?.Split(',').First().Trim();
+                if (mediaType != null && mediaType.Contains("xml"))
+                {
+                    var stringwriter = new System.IO.StringWriter();
+                    var serializer = new XmlSerializer(typeof(TPayload));
+                    serializer.Serialize(stringwriter, atomFeed);
+                    return new ContentResult()
+                    {
+                        StatusCode = 200,
+                        Content = stringwriter.ToString(),
+                        ContentType = mediaType
+                    };
+                }
+                return new ContentResult()
+                {
+                    StatusCode = 200,
+                    Content = JsonConvert.SerializeObject(atomFeed),
                     ContentType = mediaType
                 };
             }

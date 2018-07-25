@@ -1,23 +1,32 @@
-﻿using Swashbuckle.AspNetCore.SwaggerGen;
-using CalculateFunding.Api.External.ExampleProviders;
-using CalculateFunding.Api.External.Swagger.Helpers;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Api.External.Swagger.OperationFilters;
+using CalculateFunding.Api.External.V1.Interfaces;
+using CalculateFunding.Api.External.V1.Models.Examples;
 using CalculateFunding.Models.External.AtomItems;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Examples;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace CalculateFunding.Api.External.Controllers
+namespace CalculateFunding.Api.External.V1.Controllers
 {
+    [ApiVersion("1.0")]
     [Route("api/allocations/notifications")]
+    [Route("api/v{version:apiVersion}/allocations/notifications")]
     [Produces("application/vnd.sfa.allocation.1+atom+xml", "application/vnd.sfa.allocation.1+atom+json")]
     public class AllocationNotificationsController : Controller
     {
+        private readonly IAllocationNotificationFeedsService _allocationFeedsService;
+
+        public AllocationNotificationsController(IAllocationNotificationFeedsService allocationFeedsService)
+        {
+            _allocationFeedsService = allocationFeedsService;
+        }
+
         /// <summary>
         /// Retrieves notifications of allocation events. These may be the creation, updating or publication of allocations.
         /// </summary>
         /// <param name="pageRef">Optional page number of notification results. Please see the links in the atom feed for available pages</param>
-        /// <param name="allocationStatus">
-        /// The allocation status you want to filter results by. Default is Published
+        /// <param name="allocationStatuses">Optional comm a seperated list of statuses of notification results. Please see the links in the atom feed for available pages</param>
         /// ### Allocation Statuses available in the system
         ///
         ///| Status    | Visible to Api      | Visible to Provider | Description                                                                                                                                                                            |
@@ -26,9 +35,8 @@ namespace CalculateFunding.Api.External.Controllers
         ///| Approved  | Yes                 | No                        | This status means the approver has reviewed the allocation internally using Calculate Funding Service and are happy that the result is accurate. There are business reasons they want to delay releasing this information to the provider. (i.e. wait for all the providers in a local authority to be approved)|
         ///| Updated   | Yes                 | No                        | This status means result of this calculation has been changed and new version of calculation is available.|
         ///| Published | Yes                 | Yes                       | This status indicates ESFA are happy for the funding (both money and information about that funding) are good to be made external to the provider.|
-        /// </param>
         /// <returns></returns>
-        [HttpGet("{pageRef?}")]
+        [HttpGet("{pageRef?}/{allocationStatuses?}")]
         [Produces(typeof(AtomFeed))]
         [SwaggerResponseExample(200, typeof(AllocationNotificationExamples))]
         [SwaggerOperation("getAllocationNotifications")]
@@ -36,14 +44,15 @@ namespace CalculateFunding.Api.External.Controllers
         [ProducesResponseType(typeof(AtomFeed), 200)]
         [ProducesResponseType(304)]
         [ProducesResponseType(401)]
+        [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         [ProducesResponseType(410)]
         [ProducesResponseType(415)]
         [ProducesResponseType(500)]
-        [ProducesResponseType(500)]
-        public IActionResult GetNotifications(int? pageRef = null, string allocationStatus = "Published")
+        [ProducesResponseType(503)]
+        public Task<IActionResult> GetNotifications(int? pageRef = null, string allocationStatuses = "")
         {
-            return Formatter.ActionResult<AllocationNotificationExamples, AtomFeed>(Request);
+            return _allocationFeedsService.GetNotifications(pageRef.Value, allocationStatuses, Request);
         }
     }
 }

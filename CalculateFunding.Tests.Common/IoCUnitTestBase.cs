@@ -44,7 +44,7 @@ namespace CalculateFunding.Tests.Common
                 { "Logging:LogLevel:Default", "Debug" },
                 { "Logging:LogLevel:System", "Information" },
                 { "Logging:LogLevel:Microsoft", "Information" },
-                { "apiKeyMiddleware:apiKey", "Local" },
+                { "apiKeyMiddleware:apiKey", "Local" }
             };
 
             var cb = new ConfigurationBuilder()

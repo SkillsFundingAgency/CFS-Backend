@@ -48,6 +48,8 @@ namespace CalculateFunding.Services.Results
         private readonly IPublishedProviderCalculationResultsRepository _publishedProviderCalculationResultsRepository;
         private readonly IProviderImportMappingService _providerImportMappingService;
         private readonly ICacheProvider _cacheProvider;
+        private readonly ISearchRepository<AllocationNotificationFeedIndex> _allocationNotificationsSearchRepository;
+        private readonly Polly.Policy _allocationNotificationsSearchRepositoryPolicy;
 
         public ResultsService(ILogger logger,
             ICalculationResultsRepository resultsRepository,
@@ -62,7 +64,8 @@ namespace CalculateFunding.Services.Results
             IPublishedProviderResultsRepository publishedProviderResultsRepository,
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository,
             IProviderImportMappingService providerImportMappingService,
-            ICacheProvider cacheProvider)
+            ICacheProvider cacheProvider,
+            ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationsSearchRepository)
         {
             _logger = logger;
             _resultsRepository = resultsRepository;
@@ -80,6 +83,8 @@ namespace CalculateFunding.Services.Results
             _publishedProviderCalculationResultsRepository = publishedProviderCalculationResultsRepository;
             _providerImportMappingService = providerImportMappingService;
             _cacheProvider = cacheProvider;
+            _allocationNotificationsSearchRepository = allocationNotificationsSearchRepository;
+            _allocationNotificationsSearchRepositoryPolicy = resiliencePolicies.AllocationNotificationFeedSearchRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -349,6 +354,8 @@ namespace CalculateFunding.Services.Results
                 await _publishedProviderResultsRepository.SavePublishedResults(publishedProviderResults.ToList());
 
                 await SavePublishedAllocationLineResultVersionHistory(publishedProviderResults, specificationId);
+
+                await UpdateAllocationNotificationsFeedIndex(publishedProviderResults);
             }
             catch (Exception ex)
             {
@@ -810,7 +817,12 @@ namespace CalculateFunding.Services.Results
                 }
 
                 if (isUpdated)
-                {
+                { 
+                    foreach(PublishedProviderResult result in results)
+                    {
+                        result.Title = $"Allocation {result.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {result.FundingStreamResult.AllocationLineResult.Current.Status.ToString()}";
+                    }
+
                     resultsToUpdate.AddRange(results);
                 }
             }
@@ -822,6 +834,8 @@ namespace CalculateFunding.Services.Results
                     await _publishedProviderResultsRepository.SavePublishedResults(resultsToUpdate);
 
                     await _publishedProviderResultsRepository.SavePublishedAllocationLineResultsHistory(historyResultsToUpdate.ToList());
+
+                    await UpdateAllocationNotificationsFeedIndex(resultsToUpdate);
                 }
                 catch (Exception ex)
                 {
@@ -901,6 +915,60 @@ namespace CalculateFunding.Services.Results
             }
 
             await _publishedProviderResultsRepository.SavePublishedAllocationLineResultsHistory(historyResultsToSave);
+        }
+
+        async Task UpdateAllocationNotificationsFeedIndex(IEnumerable<PublishedProviderResult> publishedProviderResults)
+        {
+            Guard.ArgumentNotNull(publishedProviderResults, nameof(publishedProviderResults));
+
+            IList<AllocationNotificationFeedIndex> notifications = new List<AllocationNotificationFeedIndex>();
+
+            foreach(PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                if(publishedProviderResult.FundingStreamResult == null || publishedProviderResult.FundingStreamResult.AllocationLineResult == null)
+                {
+                    continue;
+                }
+
+                notifications.Add(new AllocationNotificationFeedIndex
+                {
+                    Id = publishedProviderResult.Id,
+                    Title = publishedProviderResult.Title,
+                    Summary = publishedProviderResult.Summary,
+                    DatePublished = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Published
+                        ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Date : (DateTimeOffset?)null,
+                    DateUpdated = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Date,
+                    FundingStreamId = publishedProviderResult.FundingStreamResult.FundingStream.Id,
+                    FundingStreamName = publishedProviderResult.FundingStreamResult.FundingStream.Name,
+                    FundingPeriodType = publishedProviderResult.FundingPeriod.Type,
+                    FundingPeriodId = publishedProviderResult.FundingPeriod.Id,
+                    FundingPeriodStartDate = publishedProviderResult.FundingPeriod.StartDate,
+                    FundingPeriodEndDate = publishedProviderResult.FundingPeriod.EndDate,
+                    ProviderId = publishedProviderResult.Provider.Id,
+                    ProviderUkPrn = publishedProviderResult.Provider.UKPRN,
+                    ProviderUpin = publishedProviderResult.Provider.UPIN,
+                    ProviderOpenDate = publishedProviderResult.Provider.DateOpened,
+                    AllocationLineId = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id,
+                    AllocationLineName = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name,
+                    AllocationVersionNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Version,
+                    AllocationStatus = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status.ToString(),
+                    AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue 
+                                            ? Convert.ToDouble(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value) : 0,
+                });
+            }
+
+            if (notifications.Any())
+            {
+                IEnumerable<IndexError> errors = await _allocationNotificationsSearchRepositoryPolicy.ExecuteAsync(() => _allocationNotificationsSearchRepository.Index(notifications));
+
+                if (errors.Any())
+                {
+                    string errorMessage = $"Failed to index allocation notification feed documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }";
+                    _logger.Error(errorMessage);
+
+                    throw new Exception(errorMessage);
+                }
+            }
         }
     }
 }

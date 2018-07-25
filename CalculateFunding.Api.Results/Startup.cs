@@ -71,6 +71,9 @@ namespace CalculateFunding.Api.Results
                 .AddSingleton<IHealthChecker, CalculationProviderResultsSearchService>();
             builder.AddSingleton<IProviderImportMappingService, ProviderImportMappingService>();
 
+            builder
+               .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
+
             MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
 
             builder
@@ -166,6 +169,7 @@ namespace CalculateFunding.Api.Results
                     ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     SpecificationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    AllocationNotificationFeedSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

@@ -1,0 +1,80 @@
+﻿using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Search;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Results.Interfaces;
+using Microsoft.Azure.Search.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace CalculateFunding.Services.Results
+{
+    public class AllocationNotificationsFeedsSearchService : IAllocationNotificationsFeedsSearchService
+    {
+        private readonly ISearchRepository<AllocationNotificationFeedIndex> _allocationNotificationsSearchRepository;
+        private readonly Polly.Policy _allocationNotificationsSearchRepositoryPolicy;
+
+        private IEnumerable<string> DefaultOrderBy = new[] { "dateUpdated" };
+
+        public AllocationNotificationsFeedsSearchService (
+            ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationsSearchRepository,
+            IResultsResilliencePolicies resiliencePolicies)
+        {
+            Guard.ArgumentNotNull(allocationNotificationsSearchRepository, nameof(allocationNotificationsSearchRepository));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+
+            _allocationNotificationsSearchRepository = allocationNotificationsSearchRepository;
+            _allocationNotificationsSearchRepositoryPolicy = resiliencePolicies.AllocationNotificationFeedSearchRepository;
+        }
+
+        public async Task<SearchFeed<AllocationNotificationFeedIndex>> GetFeeds(int pageRef, int top = 500, IEnumerable<string> statuses = null)
+        {
+            if(pageRef < 1)
+            {
+                throw new ArgumentException("Page ref cannot be less than one", nameof(pageRef));
+            }
+
+            if (top < 1)
+            {
+                top = 500;
+            }
+
+            int skip = (pageRef - 1) * top;
+
+            IList<string> filter = new List<string>();
+
+            if (!statuses.IsNullOrEmpty())
+            {
+                if (!statuses.Contains("All"))
+                {
+                    foreach (string status in statuses)
+                    {
+                        filter.Add($"allocationStatus eq '{status}'");
+                    }
+                }
+            }
+
+            SearchResults<AllocationNotificationFeedIndex> searchResults = await _allocationNotificationsSearchRepositoryPolicy.ExecuteAsync(
+                () => _allocationNotificationsSearchRepository.Search("", new SearchParameters
+            {
+                Skip = skip,
+                Top = top,
+                SearchMode = SearchMode.Any,
+                IncludeTotalResultCount = true,
+                Filter = filter.IsNullOrEmpty() ? "" : string.Join(" or ", filter),
+                OrderBy = DefaultOrderBy.ToList(),
+                QueryType = QueryType.Full
+            }));
+
+            return new SearchFeed<AllocationNotificationFeedIndex>
+            {
+                PageRef = pageRef,
+                Top = top,
+                TotalCount = searchResults != null && searchResults.TotalCount.HasValue ? (int)searchResults?.TotalCount : 0,
+                Entries = searchResults?.Results.Select(m => m.Result)
+            };
+        }
+    }
+}

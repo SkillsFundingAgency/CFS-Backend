@@ -71,6 +71,7 @@ namespace CalculateFunding.Functions.Results
 	        builder.AddSingleton<IResultsSearchService, ResultsSearchService>();
             builder.AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>();
             builder.AddSingleton<IProviderImportMappingService, ProviderImportMappingService>();
+            builder.AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             builder
@@ -162,6 +163,7 @@ namespace CalculateFunding.Functions.Results
                     ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     SpecificationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    AllocationNotificationFeedSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy)
                 };
 
                 return resiliencePolicies;

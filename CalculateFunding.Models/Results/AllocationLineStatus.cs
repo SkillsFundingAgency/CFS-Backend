@@ -8,6 +8,7 @@ namespace CalculateFunding.Models.Results
     {
         Held,
         Approved,
-        Published
+        Published,
+        Updated
     }
 }

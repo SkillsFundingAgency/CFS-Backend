@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Results;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
@@ -699,7 +700,9 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111"), Arg.Is("AAAAA"))
                 .Returns(history);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+            ISearchRepository<AllocationNotificationFeedIndex> searchRepository = CreateAllocationNotificationFeedSearchRepository();
+
+            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, allocationNotificationFeedSearchRepository: searchRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -716,6 +719,26 @@ namespace CalculateFunding.Services.Results.Services
                  .Count()
                  .Should()
                  .Be(1);
+
+            await searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
+                        m.First().ProviderId == "1111" &&
+                        m.First().Title == "Allocation test allocation line 1 was Approved" &&
+                        m.First().Summary == "test summary 1" &&
+                        m.First().DatePublished.HasValue == false &&
+                        m.First().FundingStreamId == "fs-1" &&
+                        m.First().FundingStreamName == "funding stream 1" &&
+                        m.First().FundingPeriodId == "Ay12345" &&
+                        m.First().ProviderUkPrn == "1111" &&
+                        m.First().ProviderUpin == "2222" &&
+                        m.First().ProviderOpenDate.HasValue &&
+                        m.First().AllocationLineId == "AAAAA" &&
+                        m.First().AllocationLineName == "test allocation line 1" &&
+                        m.First().AllocationVersionNumber == 1 &&
+                        m.First().AllocationStatus == "Approved" &&
+                        m.First().AllocationAmount == (double)50.0
+            ));
         }
 
         [TestMethod]

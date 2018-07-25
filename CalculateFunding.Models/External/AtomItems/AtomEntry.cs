@@ -31,7 +31,7 @@ namespace CalculateFunding.Models.External.AtomItems
 
         public string Summary { get; set; }
 
-        public DateTimeOffset Published { get; set; }
+        public DateTimeOffset? Published { get; set; }
 
         public DateTimeOffset Updated { get; set; }
 

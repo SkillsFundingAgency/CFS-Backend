@@ -1143,7 +1143,8 @@ namespace CalculateFunding.Services.Results.Services
             IPublishedProviderResultsRepository publishedProviderResultsRepository = null,
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = null,
             IProviderImportMappingService providerImportMappingService = null,
-            ICacheProvider cacheProvider = null)
+            ICacheProvider cacheProvider = null,
+            ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationFeedSearchRepository = null)
         {
             return new ResultsService(
                 logger ?? CreateLogger(),
@@ -1159,7 +1160,13 @@ namespace CalculateFunding.Services.Results.Services
                 publishedProviderResultsRepository ?? CreatePublishedProviderResultsRepository(),
                 publishedProviderCalculationResultsRepository ?? CreatePublishedProviderCalculationResultsRepository(),
                 providerImportMappingService ?? CreateProviderImportMappingService(),
-                cacheProvider ?? CreateCacheProvider());
+                cacheProvider ?? CreateCacheProvider(),
+                allocationNotificationFeedSearchRepository ?? CreateAllocationNotificationFeedSearchRepository());
+        }
+
+        static ISearchRepository<AllocationNotificationFeedIndex> CreateAllocationNotificationFeedSearchRepository()
+        {
+            return Substitute.For<ISearchRepository<AllocationNotificationFeedIndex>>();
         }
 
         static ICacheProvider CreateCacheProvider()

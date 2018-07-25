@@ -85,8 +85,8 @@ namespace CalculateFunding.Services.Results
                             SpecificationId = specificationId,
                             Provider = providerResult.Provider,
                             FundingStreamResult = publishedFundingStreamResult,
-                            Summary = "Some summary yet to be defined",
-                            Title = "Some Title",
+                            Summary = $"{providerResult.Provider.ProviderProfileIdType}: {providerResult.Provider.Id}, version {publishedFundingStreamResult.AllocationLineResult.Current.Version}",
+                            Title = $"Allocation {publishedFundingStreamResult.AllocationLineResult.AllocationLine.Name} was {publishedFundingStreamResult.AllocationLineResult.Current.Status.ToString()}",
                             FundingPeriod = fundingPeriod
                         };
 

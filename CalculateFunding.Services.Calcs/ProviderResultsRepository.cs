@@ -183,7 +183,7 @@ namespace CalculateFunding.Services.Calcs
                 LACode = x.LACode,
                 CrmAccountId = x.CrmAccountId,
                 LegalName = x.LegalName,
-                NavVendorNo = x.NavVendorNo,
+                NavVendorNo = x.NavVendorNo
             });
         }
 
