@@ -89,12 +89,15 @@ namespace CalculateFunding.Api.External
             
             app.UseMvc();
             SwaggerSetup.ConfigureSwagger(app, provider);
+
+            app.UseHealthCheckMiddleware();
         }
 
         public void RegisterComponents(IServiceCollection builder)
         {
             builder
-                .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
+                .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>()
+                .AddSingleton<IHealthChecker, AllocationNotificationsFeedsSearchService>();
 
             builder
                .AddSingleton<IAllocationNotificationFeedsService, AllocationNotificationFeedsService>();
@@ -104,19 +107,20 @@ namespace CalculateFunding.Api.External
 
             builder
                 .AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
+
             builder
                 .AddSingleton<IResultsService, ResultsService>()
                 .AddSingleton<IHealthChecker, ResultsService>();
+
             builder
                 .AddSingleton<IResultsSearchService, ResultsSearchService>()
                 .AddSingleton<IHealthChecker, ResultsSearchService>();
+
             builder
                 .AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>()
                 .AddSingleton<IHealthChecker, CalculationProviderResultsSearchService>();
-            builder.AddSingleton<IProviderImportMappingService, ProviderImportMappingService>();
 
-            builder
-               .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
+            builder.AddSingleton<IProviderImportMappingService, ProviderImportMappingService>();
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
 
@@ -219,6 +223,8 @@ namespace CalculateFunding.Api.External
 
 
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
+
+            builder.AddHealthCheckMiddleware();
 
             builder.AddHealthCheckMiddleware();
         }
