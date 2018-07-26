@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using CalculateFunding.Api.External.Swagger.OperationFilters;
 using CalculateFunding.Api.External.V1.Interfaces;
+using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Api.External.V1.Models.Examples;
 using CalculateFunding.Models.External.AtomItems;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,6 @@ namespace CalculateFunding.Api.External.V1.Controllers
     [ApiVersion("1.0")]
     [Route("api/allocations/notifications")]
     [Route("api/v{version:apiVersion}/allocations/notifications")]
-    [Produces("application/vnd.sfa.allocation.1+atom+xml", "application/vnd.sfa.allocation.1+atom+json")]
     public class AllocationNotificationsController : Controller
     {
         private readonly IAllocationNotificationFeedsService _allocationFeedsService;
@@ -37,11 +37,11 @@ namespace CalculateFunding.Api.External.V1.Controllers
         ///| Published | Yes                 | Yes                       | This status indicates ESFA are happy for the funding (both money and information about that funding) are good to be made external to the provider.|
         /// <returns></returns>
         [HttpGet("{pageRef?}/{allocationStatuses?}")]
-        [Produces(typeof(AtomFeed))]
+        [Produces(typeof(AtomFeed<AllocationModel>))]
         [SwaggerResponseExample(200, typeof(AllocationNotificationExamples))]
         [SwaggerOperation("getAllocationNotifications")]
-        [SwaggerOperationFilter(typeof(OperationFilter<AtomFeed>))]
-        [ProducesResponseType(typeof(AtomFeed), 200)]
+        [SwaggerOperationFilter(typeof(OperationFilter<AtomFeed<AllocationModel>>))]
+        [ProducesResponseType(typeof(AtomFeed<AllocationModel>), 200)]
         [ProducesResponseType(304)]
         [ProducesResponseType(401)]
         [ProducesResponseType(400)]

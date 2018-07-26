@@ -1,19 +1,26 @@
-﻿using CalculateFunding.Api.External.ExampleProviders;
-using CalculateFunding.Api.External.Swagger.Helpers;
-using CalculateFunding.Api.External.Swagger.OperationFilters;
+﻿using CalculateFunding.Api.External.Swagger.OperationFilters;
+using CalculateFunding.Api.External.V1.Interfaces;
+using CalculateFunding.Api.External.V1.Models.Examples;
 using CalculateFunding.Models.External;
-using CalculateFunding.Models.External.AtomItems;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Examples;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Threading.Tasks;
 
-namespace CalculateFunding.Api.External.Controllers
+namespace CalculateFunding.Api.External.V1.Controllers
 {
-    //[ApiController]
+    [ApiVersion("1.0")]
     [Route("api/allocations")]
-    //[Produces("application/vnd.sfa.allocation.1+json")]
+    [Route("api/v{version:apiVersion}/allocations")]
     public class AllocationsController : Controller
     {
+        private readonly IAllocationsService _allocationsService;
+
+        public AllocationsController(IAllocationsService allocationsService)
+        {
+            _allocationsService = allocationsService;
+        }
+
         /// <summary>
         /// Return a given allocation. By default the latest published allocation is returned, or 404 if none is published. 
         /// An optional specific version can be requested
@@ -32,9 +39,9 @@ namespace CalculateFunding.Api.External.Controllers
         [SwaggerResponseHeader(200, "ETag", "string", "An ETag of the resource")]
         [SwaggerResponseHeader(200, "Cache-Control", "string", "Caching information for the resource")]
         [SwaggerResponseHeader(200, "Last-Modified", "date", "Date the resource was last modified")]
-        public IActionResult GetAllocation(string allocationId, ushort? version = null)
+        public Task<IActionResult> GetAllocation(string allocationId, int? version = null)
         {
-            return Formatter.ActionResult<AllocationExamples, Allocation>(Request);
+            return _allocationsService.GetAllocationByAllocationResultId(allocationId, version, Request);
         }
     }
 }

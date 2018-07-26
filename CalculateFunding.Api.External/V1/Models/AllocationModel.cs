@@ -1,19 +1,24 @@
-﻿using System;
+﻿using CalculateFunding.Models.External;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace CalculateFunding.Models.External
+namespace CalculateFunding.Api.External.V1.Models
 {
     [Serializable]
     [XmlType(AnonymousType = true, Namespace = "urn:TBC")]
     [XmlRoot(Namespace = "urn:TBC", IsNullable = false)]
-    public class Allocation
+    public class AllocationModel
     {
-        public Allocation()
+        public AllocationModel()
         {
+
         }
 
-        public Allocation(FundingStream fundingStream, Period period, Provider provider, AllocationLine allocationLine,
-            ushort allocationVersionNumber, string status, decimal allocationAmount, uint? allocationLearnerCount, string allocationResultId)
+        public AllocationModel(AllocationFundingStreamModel fundingStream, Period period, AllocationProviderModel provider, AllocationLine allocationLine,
+           int allocationVersionNumber, string status, decimal allocationAmount, int? allocationLearnerCount, string allocationResultId)
         {
             FundingStream = fundingStream;
             Period = period;
@@ -28,22 +33,20 @@ namespace CalculateFunding.Models.External
 
         public string AllocationResultId { get; set; }
 
-        public FundingStream FundingStream { get; set; }
+        public AllocationFundingStreamModel FundingStream { get; set; }
 
         public Period Period { get; set; }
 
-        public Provider Provider { get; set; }
+        public AllocationProviderModel Provider { get; set; }
 
         public AllocationLine AllocationLine { get; set; }
 
-        public ushort AllocationVersionNumber { get; set; }
+        public int AllocationVersionNumber { get; set; }
 
         public string AllocationStatus { get; set; }
 
         public decimal AllocationAmount { get; set; }
 
-        public uint? AllocationLearnerCount { get; set; }
-
-        public ProfilePeriods ProfilePeriods { get; set; }
+        public int? AllocationLearnerCount { get; set; }
     }
 }

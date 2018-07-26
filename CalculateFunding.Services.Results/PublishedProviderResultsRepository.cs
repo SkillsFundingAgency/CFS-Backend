@@ -47,6 +47,25 @@ namespace CalculateFunding.Services.Results
             return Task.FromResult(results.AsEnumerable());
         }
 
+        public Task<PublishedProviderResult> GetPublishedProviderResultForId(string id)
+        {
+            Guard.IsNullOrWhiteSpace(id, nameof(id));
+
+            IQueryable<PublishedProviderResult> results = _cosmosRepository.Query<PublishedProviderResult>(enableCrossPartitionQuery: true).Where(m => m.Id == id && 
+                m.FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Published);
+
+            return Task.FromResult(results.AsEnumerable().FirstOrDefault());
+        }
+
+        public Task<PublishedAllocationLineResultHistory> GetPublishedAllocationLineResultHistoryForId(string id)
+        {
+            Guard.IsNullOrWhiteSpace(id, nameof(id));
+
+            IQueryable<PublishedAllocationLineResultHistory> results = _cosmosRepository.Query<PublishedAllocationLineResultHistory>(enableCrossPartitionQuery: true).Where(m => m.AllocationResultId == id);
+
+            return Task.FromResult(results.AsEnumerable().FirstOrDefault());
+        }
+
         public Task<IEnumerable<PublishedAllocationLineResultHistory>> GetPublishedProviderAllocationLineHistoryForSpecificationId(string specificationId)
         {
             IQueryable<PublishedAllocationLineResultHistory> results = _cosmosRepository.Query<PublishedAllocationLineResultHistory>(enableCrossPartitionQuery: true).Where(m => m.SpecificationId == specificationId);

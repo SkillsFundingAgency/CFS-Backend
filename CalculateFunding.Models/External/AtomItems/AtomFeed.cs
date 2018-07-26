@@ -4,13 +4,13 @@ using System.Collections.Generic;
 namespace CalculateFunding.Models.External.AtomItems
 {
     [Serializable]
-    public class AtomFeed
+    public class AtomFeed<T> where T: class
     {
         public AtomFeed()
         {
         }
 
-        public AtomFeed(string id, string title, AtomAuthor atomAuthor, DateTimeOffset updated, string rights, List<AtomLink> link, List<AtomEntry> atomEntry)
+        public AtomFeed(string id, string title, AtomAuthor atomAuthor, DateTimeOffset updated, string rights, List<AtomLink> link, List<AtomEntry<T>> atomEntry)
         {
             Id = id;
             Title = title;
@@ -33,6 +33,6 @@ namespace CalculateFunding.Models.External.AtomItems
 
         public List<AtomLink> Link { get; set; }
 
-        public List<AtomEntry> AtomEntry { get; set; }
+        public List<AtomEntry<T>> AtomEntry { get; set; }
     }
 }

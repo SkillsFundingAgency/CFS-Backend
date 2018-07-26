@@ -15,6 +15,7 @@ using CalculateFunding.Models.Search;
 using Microsoft.Extensions.Primitives;
 using CalculateFunding.Models.External.AtomItems;
 using Newtonsoft.Json;
+using CalculateFunding.Api.External.V1.Models;
 
 namespace CalculateFunding.Api.External.UnitTests.Services
 {
@@ -164,7 +165,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                 .BeOfType<ContentResult>();
 
             ContentResult contentResult = result as ContentResult;
-            AtomFeed atomFeed = JsonConvert.DeserializeObject<AtomFeed>(contentResult.Content);
+            AtomFeed<AllocationModel> atomFeed = JsonConvert.DeserializeObject<AtomFeed<AllocationModel>>(contentResult.Content);
 
             atomFeed
                 .Should()

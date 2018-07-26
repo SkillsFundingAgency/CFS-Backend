@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Api.External.Swagger.Helpers;
 using CalculateFunding.Api.External.V1.Interfaces;
+using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Models.External;
 using CalculateFunding.Models.External.AtomItems;
 using CalculateFunding.Models.Results;
@@ -51,18 +52,18 @@ namespace CalculateFunding.Api.External.V1.Services
                 return new NotFoundResult();
             }
 
-            AtomFeed atomFeed = CreateAtomFeed(searchFeed, request);
+            AtomFeed<AllocationModel> atomFeed = CreateAtomFeed(searchFeed, request);
 
-            return Formatter.ActionResult<AtomFeed>(request, atomFeed);
+            return Formatter.ActionResult<AtomFeed<AllocationModel>>(request, atomFeed);
         }
 
-        AtomFeed CreateAtomFeed(SearchFeed<AllocationNotificationFeedIndex> searchFeed, HttpRequest request)
+        AtomFeed<AllocationModel> CreateAtomFeed(SearchFeed<AllocationNotificationFeedIndex> searchFeed, HttpRequest request)
         {
             string trimmedRequestPath = request.Path.Value.Substring(0, request.Path.Value.LastIndexOf("/", StringComparison.Ordinal));
 
             string notificationsUrl = $"{request.Scheme}://{request.Host.Value}{trimmedRequestPath}/{{0}}{(request.QueryString.HasValue ? request.QueryString.Value : "")}";
 
-            AtomFeed atomFeed = new AtomFeed
+            AtomFeed<AllocationModel> atomFeed = new AtomFeed<AllocationModel>
             {
                 Id = Guid.NewGuid().ToString("N"),
                 Title = "Calculate Funding Service Allocation Feed",
@@ -80,12 +81,12 @@ namespace CalculateFunding.Api.External.V1.Services
                     new AtomLink(string.Format(notificationsUrl, searchFeed.Previous), "previous"),
                     new AtomLink(string.Format(notificationsUrl, searchFeed.Next), "next"),
                 },
-                AtomEntry = new List<AtomEntry>()
+                AtomEntry = new List<AtomEntry<AllocationModel>>()
             };
 
             foreach (AllocationNotificationFeedIndex feedIndex in searchFeed.Entries)
             {
-                atomFeed.AtomEntry.Add(new AtomEntry
+                atomFeed.AtomEntry.Add(new AtomEntry<AllocationModel>
                 {
                     Id = feedIndex.Id,
                     Title = feedIndex.Title,
@@ -93,11 +94,12 @@ namespace CalculateFunding.Api.External.V1.Services
                     Published = feedIndex.DatePublished,
                     Updated = feedIndex.DateUpdated.Value,
                     Version = feedIndex.AllocationVersionNumber.ToString(),
-                    Content = new AtomContent
+                    Link = feedIndex.AllocationStatus == "Published" ? new AtomLink("Allocation", $"{ request.Scheme }://{request.Host.Value}/api/allocations/{feedIndex.Id}") : null,
+                    Content = new AtomContent<AllocationModel>
                     {
-                        Allocation = new Allocation
+                        Allocation = new AllocationModel
                         {
-                            FundingStream = new FundingStream
+                            FundingStream = new AllocationFundingStreamModel
                             {
                                 FundingStreamCode = feedIndex.FundingStreamId,
                                 FundingStreamName = feedIndex.FundingStreamName
@@ -109,7 +111,7 @@ namespace CalculateFunding.Api.External.V1.Services
                                 StartDate = feedIndex.FundingPeriodStartDate,
                                 EndDate = feedIndex.FundingPeriodEndDate
                             },
-                            Provider = new Provider
+                            Provider = new AllocationProviderModel
                             {
                                 Ukprn = feedIndex.ProviderUkPrn,
                                 Upin = feedIndex.ProviderUpin,
@@ -120,10 +122,11 @@ namespace CalculateFunding.Api.External.V1.Services
                                 AllocationLineCode = feedIndex.AllocationLineId,
                                 AllocationLineName = feedIndex.AllocationLineName
                             },
-                            AllocationVersionNumber = (ushort)feedIndex.AllocationVersionNumber,
+                            AllocationVersionNumber = feedIndex.AllocationVersionNumber,
                             AllocationStatus = feedIndex.AllocationStatus,
                             AllocationAmount = (decimal)feedIndex.AllocationAmount,
-                            AllocationLearnerCount = (uint)feedIndex.AllocationLearnerCount
+                            AllocationLearnerCount = feedIndex.AllocationLearnerCount,
+                            AllocationResultId = feedIndex.Id,
                         }
                     }
                 });

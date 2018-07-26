@@ -11,17 +11,6 @@ namespace CalculateFunding.Api.External.Swagger.OperationFilters
             if (operation.Parameters == null)
                 operation.Parameters = new List<IParameter>();
 
-
-            operation.Parameters.Add(new NonBodyParameter
-            {
-                Name = "Accept",
-                In = "header",
-                Type = "string",
-                Required = true,
-                Default = "application/vnd.sfa.allocation.1+json",
-                Description = "The calculate funding service uses the Media Type provided in the Accept header to determine what representation of a particular resources to serve. In particular this includes the version of the resource and the wire format."
-            });
-
             operation.Parameters.Add(new NonBodyParameter
             {
                 Name = "If-None-Match",

@@ -6,14 +6,14 @@ namespace CalculateFunding.Models.External.AtomItems
     [Serializable]
     [XmlType(AnonymousType = true)]
     [XmlRoot(Namespace = "", IsNullable = false)]
-    public class AtomEntry
+    public class AtomEntry<T> where T: class
     {
         public AtomEntry()
         {
         }
 
         public AtomEntry(string id, string title, string summary, DateTimeOffset published, string version, AtomLink link,
-            AtomContent content, DateTimeOffset updated)
+            AtomContent<T> content, DateTimeOffset updated)
         {
             Id = id;
             Title = title;
@@ -39,7 +39,7 @@ namespace CalculateFunding.Models.External.AtomItems
 
         public AtomLink Link { get; set; }
 
-        public AtomContent Content { get; set; }
+        public AtomContent<T> Content { get; set; }
 
     }
 }

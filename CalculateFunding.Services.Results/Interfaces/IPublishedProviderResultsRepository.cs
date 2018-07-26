@@ -17,5 +17,9 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task SavePublishedAllocationLineResultsHistory(IEnumerable<PublishedAllocationLineResultHistory> publishedResultsHistory);
 
         Task<PublishedAllocationLineResultHistory> GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(string specificationId, string providerId, string allocationLineId);
+
+        Task<PublishedProviderResult> GetPublishedProviderResultForId(string id);
+
+        Task<PublishedAllocationLineResultHistory> GetPublishedAllocationLineResultHistoryForId(string id);
     }
 }

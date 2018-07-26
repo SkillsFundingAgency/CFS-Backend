@@ -206,6 +206,39 @@ namespace CalculateFunding.Services.Results
             return new NotFoundResult();
         }
 
+        public async Task<PublishedProviderResult> GetPublishedProviderResultByAllocationResultId(string allocationResultId, int? version = null)
+        {
+            Guard.IsNullOrWhiteSpace(allocationResultId, nameof(allocationResultId));
+
+            PublishedProviderResult publishedProviderResult = await _publishedProviderResultsRepository.GetPublishedProviderResultForId(allocationResultId);
+
+            if(publishedProviderResult == null)
+            {
+                return null;
+            }
+
+            if (version.HasValue && version.Value != publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Version)
+            {
+                PublishedAllocationLineResultHistory history = await _publishedProviderResultsRepository.GetPublishedAllocationLineResultHistoryForId(allocationResultId);
+
+                if(history == null)
+                {
+                    return null;
+                }
+
+                PublishedAllocationLineResultVersion resultVersion = history.History.FirstOrDefault(m => m.Version == version.Value);
+
+                if(resultVersion == null)
+                {
+                    return null;
+                }
+
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current = resultVersion;
+            }
+
+            return publishedProviderResult;
+        }
+
         public async Task<IActionResult> GetProviderResultsBySpecificationId(HttpRequest request)
         {
             var specificationId = GetParameter(request, "specificationId");
@@ -893,13 +926,14 @@ namespace CalculateFunding.Services.Results
 
                 IEnumerable<PublishedAllocationLineResultHistory> publishedAllocationLineResultHistoryList = historyResults.Where(m => m.ProviderId == publishedProviderResult.Provider.Id);
 
-                PublishedAllocationLineResultHistory publishedAllocationLineResultHistory = publishedAllocationLineResultHistoryList.FirstOrDefault(m => m.AllocationLine?.Id == publishedAllocationLineResult.AllocationLine.Id);
+                PublishedAllocationLineResultHistory publishedAllocationLineResultHistory = publishedAllocationLineResultHistoryList.FirstOrDefault(m => m.AllocationResultId == publishedProviderResult.Id);
 
                 if (publishedAllocationLineResultHistory == null)
                 {
                     publishedAllocationLineResultHistory = new PublishedAllocationLineResultHistory
                     {
                         ProviderId = publishedProviderResult.Provider.Id,
+                        AllocationResultId = publishedProviderResult.Id,
                         SpecificationId = specificationId,
                         AllocationLine = publishedAllocationLineResult.AllocationLine,
                         History = new[] { publishedAllocationLineResult.Current }

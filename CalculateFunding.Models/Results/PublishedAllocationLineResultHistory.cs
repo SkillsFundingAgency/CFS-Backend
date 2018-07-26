@@ -11,14 +11,18 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("providerId")]
         public string ProviderId { get; set; }
 
+        [JsonProperty("allocationResultId")]
+        public string AllocationResultId { get; set; }
+
         [JsonProperty("allocationLine")]
         public Reference AllocationLine { get; set; }
 
         [JsonProperty("id")]
-        public string Id {
+        public string Id
+        {
             get
             {
-                return $"{SpecificationId}_{ProviderId}_{AllocationLine.Id}";
+                return $"{AllocationResultId}_hist";
             }
         }
 

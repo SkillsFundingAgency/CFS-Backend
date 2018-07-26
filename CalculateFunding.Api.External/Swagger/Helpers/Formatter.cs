@@ -41,7 +41,7 @@ namespace CalculateFunding.Api.External.Swagger.Helpers
             return new BadRequestResult();
         }
 
-        public static IActionResult ActionResult<TPayload>(HttpRequest request, AtomFeed atomFeed)
+        public static IActionResult ActionResult<TPayload>(HttpRequest request, TPayload payload)
         {
             if (request.Headers.TryGetValue("Accept", out var accept))
             {
@@ -51,7 +51,7 @@ namespace CalculateFunding.Api.External.Swagger.Helpers
                 {
                     var stringwriter = new System.IO.StringWriter();
                     var serializer = new XmlSerializer(typeof(TPayload));
-                    serializer.Serialize(stringwriter, atomFeed);
+                    serializer.Serialize(stringwriter, payload);
                     return new ContentResult()
                     {
                         StatusCode = 200,
@@ -62,7 +62,7 @@ namespace CalculateFunding.Api.External.Swagger.Helpers
                 return new ContentResult()
                 {
                     StatusCode = 200,
-                    Content = JsonConvert.SerializeObject(atomFeed),
+                    Content = JsonConvert.SerializeObject(payload),
                     ContentType = mediaType
                 };
             }

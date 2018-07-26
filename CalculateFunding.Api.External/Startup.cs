@@ -99,6 +99,58 @@ namespace CalculateFunding.Api.External
             builder
                .AddSingleton<IAllocationNotificationFeedsService, AllocationNotificationFeedsService>();
 
+            builder
+                .AddSingleton<IAllocationsService, AllocationsService>();
+
+            builder
+                .AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
+            builder
+                .AddSingleton<IResultsService, ResultsService>()
+                .AddSingleton<IHealthChecker, ResultsService>();
+            builder
+                .AddSingleton<IResultsSearchService, ResultsSearchService>()
+                .AddSingleton<IHealthChecker, ResultsSearchService>();
+            builder
+                .AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>()
+                .AddSingleton<IHealthChecker, CalculationProviderResultsSearchService>();
+            builder.AddSingleton<IProviderImportMappingService, ProviderImportMappingService>();
+
+            builder
+               .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
+
+            MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
+
+            builder
+                .AddSingleton(resultsConfig.CreateMapper());
+
+            builder.AddSpecificationsInterServiceClient(Configuration);
+
+            builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
+            {
+                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", calssDbSettings);
+
+                calssDbSettings.CollectionName = "calculationresults";
+
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+
+                return new CalculationResultsRepository(calcsCosmosRepostory);
+            });
+
+            builder.AddSingleton<IProviderSourceDatasetRepository, ProviderSourceDatasetRepository>((ctx) =>
+            {
+                CosmosDbSettings provDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", provDbSettings);
+
+                provDbSettings.CollectionName = "providersourcedatasets";
+
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(provDbSettings);
+
+                return new ProviderSourceDatasetRepository(calcsCosmosRepostory);
+            });
+
             builder.AddSingleton<IPublishedProviderResultsRepository, PublishedProviderResultsRepository>((ctx) =>
             {
                 CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
@@ -112,15 +164,38 @@ namespace CalculateFunding.Api.External
                 return new PublishedProviderResultsRepository(resultsRepostory);
             });
 
+            builder.AddSingleton<IPublishedProviderCalculationResultsRepository, PublishedProviderCalculationResultsRepository>((ctx) =>
+            {
+                CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", resultsDbSettings);
+
+                resultsDbSettings.CollectionName = "publishedprovidercalcresults";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(resultsDbSettings);
+
+                return new PublishedProviderCalculationResultsRepository(resultsRepostory);
+            });
+
+            builder
+                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
+
+            builder
+               .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
+
             builder.AddUserProviderFromRequest();
 
             builder.AddSearch(Configuration);
 
+            builder.AddServiceBus(Configuration);
+
             builder.AddCaching(Configuration);
 
             builder.AddApplicationInsightsTelemetryClient(Configuration);
-            builder.AddLogging("CalculateFunding.Api.Results");
+            builder.AddLogging("CalculateFunding.Api.External");
             builder.AddTelemetry();
+
+            builder.AddSpecificationsInterServiceClient(Configuration);
 
             builder.AddPolicySettings(Configuration);
 
@@ -134,9 +209,14 @@ namespace CalculateFunding.Api.External
 
                 return new ResiliencePolicies()
                 {
+                    CalculationProviderResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                    ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    ResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                    SpecificationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     AllocationNotificationFeedSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy)
                 };
             });
+
 
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 

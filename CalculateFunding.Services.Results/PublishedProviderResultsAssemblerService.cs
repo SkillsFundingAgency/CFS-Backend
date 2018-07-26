@@ -81,7 +81,7 @@ namespace CalculateFunding.Services.Results
                     {
                         PublishedProviderResult publishedProviderResult = new PublishedProviderResult
                         {
-                            Id = $"{providerResult.Provider.Id}_{specificationId}_{publishedFundingStreamResult.AllocationLineResult.AllocationLine.Id}",
+                            Id = Guid.NewGuid().ToString("N"),
                             SpecificationId = specificationId,
                             Provider = providerResult.Provider,
                             FundingStreamResult = publishedFundingStreamResult,
