@@ -1,7 +1,10 @@
-﻿using CalculateFunding.Models.Results;
+﻿using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Search;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Azure.Search.Models;
 using System;
@@ -11,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
 {
-    public class AllocationNotificationsFeedsSearchService : IAllocationNotificationsFeedsSearchService
+    public class AllocationNotificationsFeedsSearchService : IAllocationNotificationsFeedsSearchService, IHealthChecker
     {
         private readonly ISearchRepository<AllocationNotificationFeedIndex> _allocationNotificationsSearchRepository;
         private readonly Polly.Policy _allocationNotificationsSearchRepositoryPolicy;
@@ -27,6 +30,19 @@ namespace CalculateFunding.Services.Results
 
             _allocationNotificationsSearchRepository = allocationNotificationsSearchRepository;
             _allocationNotificationsSearchRepositoryPolicy = resiliencePolicies.AllocationNotificationFeedSearchRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            var searchRepoHealth = await _allocationNotificationsSearchRepository.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(CalculationProviderResultsSearchService)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _allocationNotificationsSearchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+
+            return health;
         }
 
         public async Task<SearchFeed<AllocationNotificationFeedIndex>> GetFeeds(int pageRef, int top = 500, IEnumerable<string> statuses = null)
