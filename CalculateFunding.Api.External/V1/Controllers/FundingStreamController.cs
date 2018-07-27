@@ -3,8 +3,9 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using CalculateFunding.Api.External.ExampleProviders;
 using CalculateFunding.Api.External.Swagger.OperationFilters;
+using CalculateFunding.Api.External.V1.Models;
+using CalculateFunding.Api.External.V1.Models.Examples;
 using CalculateFunding.Models.External;
 using CsvHelper;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,7 @@ using Swashbuckle.AspNetCore.Examples;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 
-namespace CalculateFunding.Api.External.Controllers
+namespace CalculateFunding.Api.External.V1.Controllers
 {
     [Route("api/funding-streams")]
     public class FundingStreamController : Controller

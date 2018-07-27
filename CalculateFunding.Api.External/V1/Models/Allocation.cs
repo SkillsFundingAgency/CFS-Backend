@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Xml.Serialization;
 
-namespace CalculateFunding.Models.External
+namespace CalculateFunding.Api.External.V1.Models
 {
     [Serializable]
     [XmlType(AnonymousType = true, Namespace = "urn:TBC")]

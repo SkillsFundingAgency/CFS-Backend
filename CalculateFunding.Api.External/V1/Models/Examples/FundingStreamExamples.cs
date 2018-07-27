@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using CalculateFunding.Models.External;
 using Swashbuckle.AspNetCore.Examples;
 
-namespace CalculateFunding.Api.External.ExampleProviders
+namespace CalculateFunding.Api.External.V1.Models.Examples
 {
     public class FundingStreamExamples : IExamplesProvider
     {
@@ -10,7 +9,6 @@ namespace CalculateFunding.Api.External.ExampleProviders
         {
             return new List<FundingStream>
             {
-                   
                 new FundingStream { FundingStreamCode = "YPLRE", FundingStreamName = "Academies General Annual Grant", AllocationLines = new List<AllocationLine>()
                 {                 
                     new AllocationLine{ AllocationLineCode = "YPE01", AllocationLineName = "School Budget Share"},

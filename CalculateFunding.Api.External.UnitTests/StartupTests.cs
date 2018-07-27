@@ -1,5 +1,3 @@
-using CalculateFunding.Api.External;
-using CalculateFunding.Api.External.Controllers;
 using CalculateFunding.Api.External.V1.Controllers;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;

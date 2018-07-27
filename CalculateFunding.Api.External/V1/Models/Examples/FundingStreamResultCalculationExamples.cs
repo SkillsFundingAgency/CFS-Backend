@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using CalculateFunding.Models.External;
 using Swashbuckle.AspNetCore.Examples;
 
-namespace CalculateFunding.Api.External.ExampleProviders
+namespace CalculateFunding.Api.External.V1.Models.Examples
 {
     public class PolicyResultCalculationExamples : IExamplesProvider
     {

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace CalculateFunding.Models.External
-{
+namespace CalculateFunding.Api.External.V1.Models{
     /// <summary>
     /// Represents a funding stream
     /// </summary>

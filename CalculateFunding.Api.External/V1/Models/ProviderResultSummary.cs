@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
 
-namespace CalculateFunding.Models.External
+namespace CalculateFunding.Api.External.V1.Models
 {
     [Serializable]
     public class ProviderResultSummary

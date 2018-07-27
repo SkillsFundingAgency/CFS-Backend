@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.PlatformAbstractions;
 using Swashbuckle.AspNetCore.Examples;
 using Swashbuckle.AspNetCore.Swagger;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace CalculateFunding.Api.External.Swagger
 {
@@ -81,8 +82,8 @@ namespace CalculateFunding.Api.External.Swagger
                 foreach (var description in provider.ApiVersionDescriptions)
                 {
                     options.DocExpansion(DocExpansion.List);
-                    options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
-                    options.RoutePrefix = $"{description.GroupName}/docs";
+                    options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json","Calculation Funding " + description.GroupName.ToUpperInvariant());
+                    options.RoutePrefix = "docs";
                 }
             });
         }

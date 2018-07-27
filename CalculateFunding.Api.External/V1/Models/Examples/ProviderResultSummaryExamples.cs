@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Models.External;
 using Swashbuckle.AspNetCore.Examples;
 
-namespace CalculateFunding.Api.External.ExampleProviders
+namespace CalculateFunding.Api.External.V1.Controllers
 {
     public class ProviderResultSummaryExamples : IExamplesProvider
     {

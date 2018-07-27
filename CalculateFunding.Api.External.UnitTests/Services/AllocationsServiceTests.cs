@@ -190,7 +190,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                 SpecificationId = "spec-1",
                 FundingStreamResult = new PublishedFundingStreamResult
                 {
-                    FundingStream = new FundingStream
+                    FundingStream = new Reference
                     {
                         Id = "fs-1",
                         Name = "funding stream 1"

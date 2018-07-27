@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Api.External.Swagger.OperationFilters;
 using CalculateFunding.Api.External.V1.Interfaces;
+using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Api.External.V1.Models.Examples;
 using CalculateFunding.Models.External;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,6 @@ using System.Threading.Tasks;
 namespace CalculateFunding.Api.External.V1.Controllers
 {
     [ApiVersion("1.0")]
-    [Route("api/allocations")]
     [Route("api/v{version:apiVersion}/allocations")]
     public class AllocationsController : Controller
     {
@@ -28,11 +28,11 @@ namespace CalculateFunding.Api.External.V1.Controllers
         /// <param name="allocationId">The id of the requested allocation</param>
         /// <param name="version">An optional version reference for a specific version</param>
         [HttpGet("{allocationId}")]
-        [Produces(typeof(Allocation))]
+        [Produces(typeof(AllocationModel))]
         [SwaggerResponseExample(200, typeof(AllocationExamples))]
         [SwaggerOperation("getAllocationById")]
-        [SwaggerOperationFilter(typeof(OperationFilter<Allocation>))]
-        [ProducesResponseType(typeof(Allocation), 200)]
+        [SwaggerOperationFilter(typeof(OperationFilter<AllocationModel>))]
+        [ProducesResponseType(typeof(AllocationModel), 200)]
         [ProducesResponseType(304)]
         [ProducesResponseType(401)]
         [ProducesResponseType(500)]

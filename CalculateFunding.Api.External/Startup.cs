@@ -107,20 +107,19 @@ namespace CalculateFunding.Api.External
 
             builder
                 .AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
-
             builder
                 .AddSingleton<IResultsService, ResultsService>()
                 .AddSingleton<IHealthChecker, ResultsService>();
-
             builder
                 .AddSingleton<IResultsSearchService, ResultsSearchService>()
                 .AddSingleton<IHealthChecker, ResultsSearchService>();
-
             builder
                 .AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>()
                 .AddSingleton<IHealthChecker, CalculationProviderResultsSearchService>();
-
             builder.AddSingleton<IProviderImportMappingService, ProviderImportMappingService>();
+
+            builder
+               .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
 

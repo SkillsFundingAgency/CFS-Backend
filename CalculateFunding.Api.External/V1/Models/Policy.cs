@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CalculateFunding.Models.External
+namespace CalculateFunding.Api.External.V1.Models
 {
     /// <summary>
     /// Repesents a funding stream

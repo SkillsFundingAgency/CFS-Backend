@@ -49,7 +49,7 @@ namespace CalculateFunding.Api.External.V1.Services
                 AllocationResultId = publishedProviderResult.Id,
                 AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue ? (decimal)publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.Value : 0,
                 AllocationVersionNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Version,
-                AllocationLine = new AllocationLine
+                AllocationLine = new Models.AllocationLine
                 {
                     AllocationLineCode = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id,
                     AllocationLineName = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name
@@ -60,7 +60,7 @@ namespace CalculateFunding.Api.External.V1.Services
                     FundingStreamCode = publishedProviderResult.FundingStreamResult.FundingStream.Id,
                     FundingStreamName = publishedProviderResult.FundingStreamResult.FundingStream.Name
                 },
-                Period = new Period
+                Period = new Models.Period
                 {
                     PeriodId = publishedProviderResult.FundingPeriod.Id,
                     PeriodType = publishedProviderResult.FundingPeriod.Name,

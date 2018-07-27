@@ -1,4 +1,4 @@
-﻿namespace CalculateFunding.Models.External
+﻿namespace CalculateFunding.Api.External.V1.Models
 {
     public class ProfilePeriod
     {
