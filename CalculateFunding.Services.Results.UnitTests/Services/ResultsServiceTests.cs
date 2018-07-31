@@ -1282,6 +1282,7 @@ namespace CalculateFunding.Services.Results.Services
                         UPIN = "upin",
                         URN = "urn",
                         EstablishmentNumber = "12345",
+                        LACode = "la code",
                         DateOpened = DateTime.Now.AddDays(-7)
                     }
                 }

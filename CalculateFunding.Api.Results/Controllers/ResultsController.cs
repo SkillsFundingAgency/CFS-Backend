@@ -127,5 +127,12 @@ namespace CalculateFunding.Api.Results.Controllers
         {
             return _resultsService.RemoveCurrentProviders();
         }
+
+        [Route("api/results/reindex/allocation-feeds")]
+        [HttpGet]
+        public Task<IActionResult> ReIndexAllocationFeeds()
+        {
+            return _resultsService.ReIndexAllocationNotificationFeeds();
+        }
     }
 }

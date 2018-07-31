@@ -86,5 +86,13 @@ namespace CalculateFunding.Services.Results
 
             return ( await _cosmosRepository.QueryPartitionedEntity<PublishedAllocationLineResultHistory>(query, 1, providerId)).FirstOrDefault();
         }
+
+        public async Task<IEnumerable<PublishedProviderResult>> GetAllNonHeldPublishedProviderResults()
+        {
+            IEnumerable<DocumentEntity<PublishedProviderResult>> documentEntities = await _cosmosRepository.GetAllDocumentsAsync<PublishedProviderResult>(
+                query: m => m.Content.FundingStreamResult.AllocationLineResult.Current.Status != AllocationLineStatus.Held, enableCrossPartitionQuery: true);
+
+            return documentEntities.Select(m => m.Content);
+        }
     }
 }

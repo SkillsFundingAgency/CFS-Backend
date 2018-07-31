@@ -79,5 +79,27 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("providerProfiling")]
         public string ProviderProfiling { get; set; }
+
+        [JsonProperty("providerName")]
+        public string ProviderName { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("laCode")]
+        public string LaCode { get; set; }
+
+        [JsonProperty("authority")]
+        public string Authority { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("providerType")]
+        public string ProviderType { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("subProviderType")]
+        public string SubProviderType { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("establishmentNumber")]
+        public string EstablishmentNumber { get; set; }
     }
 }

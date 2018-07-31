@@ -742,6 +742,25 @@ namespace CalculateFunding.Services.Results
             return _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetProviderResultsBySpecificationId(specificationId, maxResults));
         }
 
+        public async Task<IActionResult> ReIndexAllocationNotificationFeeds()
+        {
+            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepository.GetAllNonHeldPublishedProviderResults();
+
+            try
+            {
+                if (!publishedProviderResults.IsNullOrEmpty())
+                {
+                    await UpdateAllocationNotificationsFeedIndex(publishedProviderResults);
+                }
+            }
+            catch(Exception ex)
+            {
+                return new InternalServerErrorResult(ex.Message);
+            }
+
+            return new NoContentResult();
+        }
+
         IEnumerable<PublishedProviderResultModel> MapPublishedProviderResultModels(IEnumerable<PublishedProviderResult> publishedProviderResults)
         {
             if (publishedProviderResults.IsNullOrEmpty())
@@ -1025,13 +1044,31 @@ namespace CalculateFunding.Services.Results
 
         async Task UpdateAllocationNotificationsFeedIndex(IEnumerable<PublishedProviderResult> publishedProviderResults)
         {
+            IEnumerable<AllocationNotificationFeedIndex> notifications = BuildAllocationNotificationIndexItems(publishedProviderResults);
+
+            if (notifications.Any())
+            {
+                IEnumerable<IndexError> errors = await _allocationNotificationsSearchRepositoryPolicy.ExecuteAsync(() => _allocationNotificationsSearchRepository.Index(notifications));
+
+                if (errors.Any())
+                {
+                    string errorMessage = $"Failed to index allocation notification feed documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }";
+                    _logger.Error(errorMessage);
+
+                    throw new Exception(errorMessage);
+                }
+            }
+        }
+
+        IEnumerable<AllocationNotificationFeedIndex> BuildAllocationNotificationIndexItems(IEnumerable<PublishedProviderResult> publishedProviderResults)
+        {
             Guard.ArgumentNotNull(publishedProviderResults, nameof(publishedProviderResults));
 
             IList<AllocationNotificationFeedIndex> notifications = new List<AllocationNotificationFeedIndex>();
 
-            foreach(PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
-                if(publishedProviderResult.FundingStreamResult == null || publishedProviderResult.FundingStreamResult.AllocationLineResult == null)
+                if (publishedProviderResult.FundingStreamResult == null || publishedProviderResult.FundingStreamResult.AllocationLineResult == null)
                 {
                     continue;
                 }
@@ -1060,22 +1097,19 @@ namespace CalculateFunding.Services.Results
                     AllocationStatus = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status.ToString(),
                     AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue
                                             ? Convert.ToDouble(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value) : 0,
-                    ProviderProfiling = JsonConvert.SerializeObject(publishedProviderResult.ProfilingPeriods)
+                    ProviderProfiling = JsonConvert.SerializeObject(publishedProviderResult.ProfilingPeriods),
+                    ProviderName = publishedProviderResult.Provider.Name,
+                    LaCode = publishedProviderResult.Provider.LACode,
+                    Authority = publishedProviderResult.Provider.Authority,
+                    ProviderType = publishedProviderResult.Provider.ProviderType,
+                    SubProviderType = publishedProviderResult.Provider.ProviderSubType,
+                    EstablishmentNumber = publishedProviderResult.Provider.EstablishmentNumber
                 });
             }
 
-            if (notifications.Any())
-            {
-                IEnumerable<IndexError> errors = await _allocationNotificationsSearchRepositoryPolicy.ExecuteAsync(() => _allocationNotificationsSearchRepository.Index(notifications));
+            var s = JsonConvert.SerializeObject(notifications);
 
-                if (errors.Any())
-                {
-                    string errorMessage = $"Failed to index allocation notification feed documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }";
-                    _logger.Error(errorMessage);
-
-                    throw new Exception(errorMessage);
-                }
-            }
+            return notifications;
         }
     }
 }
