@@ -194,6 +194,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationVersionNumber.Should().Be(1);
             atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationStatus.Should().Be("Published");
             atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationAmount.Should().Be(10);
+            atomFeed.AtomEntry.ElementAt(0).Content.Allocation.ProfilePeriods.Length.Should().Be(0);
             atomFeed.AtomEntry.ElementAt(1).Id.Should().Be("id-2");
             atomFeed.AtomEntry.ElementAt(1).Title.Should().Be("test title 2");
             atomFeed.AtomEntry.ElementAt(1).Summary.Should().Be("test summary 2");
@@ -208,6 +209,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationVersionNumber.Should().Be(1);
             atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationStatus.Should().Be("Published");
             atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationAmount.Should().Be(100);
+            atomFeed.AtomEntry.ElementAt(1).Content.Allocation.ProfilePeriods.Length.Should().Be(2);
             atomFeed.AtomEntry.ElementAt(2).Id.Should().Be("id-3");
             atomFeed.AtomEntry.ElementAt(2).Title.Should().Be("test title 3");
             atomFeed.AtomEntry.ElementAt(2).Summary.Should().Be("test summary 3");
@@ -222,6 +224,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationVersionNumber.Should().Be(1);
             atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationStatus.Should().Be("Approved");
             atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationAmount.Should().Be(20);
+            atomFeed.AtomEntry.ElementAt(2).Content.Allocation.ProfilePeriods.Length.Should().Be(0);
         }
 
         [TestMethod]
@@ -292,7 +295,8 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                          ProviderUkPrn = "1111",
                          ProviderUpin = "0001",
                          Summary = "test summary 1",
-                         Title = "test title 1"
+                         Title = "test title 1",
+                         ProviderProfiling = "[]"
                     },
                     new AllocationNotificationFeedIndex
                     {
@@ -314,7 +318,8 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                          ProviderUkPrn = "2222",
                          ProviderUpin = "0002",
                          Summary = "test summary 2",
-                         Title = "test title 2"
+                         Title = "test title 2",
+                         ProviderProfiling = "[{\"period\":\"Oct\",\"occurrence\":1,\"periodYear\":2017,\"periodType\":\"CalendarMonth\",\"periodValue\":5.5,\"distributionPeriod\":\"2017-2018\"},{\"period\":\"Apr\",\"occurrence\":1,\"periodYear\":2018,\"periodType\":\"CalendarMonth\",\"periodValue\":5.5,\"distributionPeriod\":\"2017-2018\"}]"
                     },
                     new AllocationNotificationFeedIndex
                     {
@@ -336,7 +341,8 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                          ProviderUkPrn = "3333",
                          ProviderUpin = "0003",
                          Summary = "test summary 3",
-                         Title = "test title 3"
+                         Title = "test title 3",
+                         ProviderProfiling = "[]"
                     }
                 };
         }

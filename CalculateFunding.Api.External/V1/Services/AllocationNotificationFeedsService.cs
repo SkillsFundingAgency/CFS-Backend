@@ -8,6 +8,7 @@ using CalculateFunding.Models.Search;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,6 +62,8 @@ namespace CalculateFunding.Api.External.V1.Services
         {
             string trimmedRequestPath = request.Path.Value.Substring(0, request.Path.Value.LastIndexOf("/", StringComparison.Ordinal));
 
+            string allocationTrimmedRequestPath = trimmedRequestPath.Replace("notifications", "");
+
             string notificationsUrl = $"{request.Scheme}://{request.Host.Value}{trimmedRequestPath}/{{0}}{(request.QueryString.HasValue ? request.QueryString.Value : "")}";
 
             AtomFeed<AllocationModel> atomFeed = new AtomFeed<AllocationModel>
@@ -94,7 +97,7 @@ namespace CalculateFunding.Api.External.V1.Services
                     Published = feedIndex.DatePublished,
                     Updated = feedIndex.DateUpdated.Value,
                     Version = feedIndex.AllocationVersionNumber.ToString(),
-                    Link = feedIndex.AllocationStatus == "Published" ? new AtomLink("Allocation", $"{ request.Scheme }://{request.Host.Value}/api/allocations/{feedIndex.Id}") : null,
+                    Link = feedIndex.AllocationStatus == "Published" ? new AtomLink("Allocation", $"{ request.Scheme }://{request.Host.Value}{allocationTrimmedRequestPath}{feedIndex.Id}") : null,
                     Content = new AtomContent<AllocationModel>
                     {
                         Allocation = new AllocationModel
@@ -127,6 +130,8 @@ namespace CalculateFunding.Api.External.V1.Services
                             AllocationAmount = (decimal)feedIndex.AllocationAmount,
                             AllocationLearnerCount = feedIndex.AllocationLearnerCount,
                             AllocationResultId = feedIndex.Id,
+                            ProfilePeriods = JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(feedIndex.ProviderProfiling).Select(
+                                    m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod)).ToArraySafe()
                         }
                     }
                 });

@@ -153,6 +153,151 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             allocationModel.Provider.ProviderOpenDate.Should().NotBeNull();
             allocationModel.AllocationLine.AllocationLineCode.Should().Be("AAAAA");
             allocationModel.AllocationLine.AllocationLineName.Should().Be("test allocation line 1");
+            allocationModel.ProfilePeriods.Length.Should().Be(1);
+        }
+
+        [TestMethod]
+        public async Task GetAllocationAndHistoryByAllocationResultId_GivenNullResultFound_ReturnsNotFound()
+        {
+            //Arrange
+            string allocationResultId = "12345";
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IResultsService resultsService = CreateResultsService();
+            resultsService
+                .GetPublishedProviderResultWithHistoryByAllocationResultId(Arg.Is(allocationResultId))
+                .Returns((PublishedProviderResult)null);
+
+            AllocationsService service = CreateService(resultsService);
+
+            //Act
+            IActionResult result = await service.GetAllocationAndHistoryByAllocationResultId(allocationResultId, request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task GetAllocationAndHistoryByAllocationResultId_GivenResultFoundButNoHeaders_ReturnsBadRequest()
+        {
+            //Arrange
+            string allocationResultId = "12345";
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            PublishedProviderResult publishedProviderResult = CreatePublishedProviderResult();
+
+            IResultsService resultsService = CreateResultsService();
+            resultsService
+                .GetPublishedProviderResultWithHistoryByAllocationResultId(Arg.Is(allocationResultId))
+                .Returns(publishedProviderResult);
+
+            AllocationsService service = CreateService(resultsService);
+
+            //Act
+            IActionResult result = await service.GetAllocationAndHistoryByAllocationResultId(allocationResultId, request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestResult>();
+        }
+
+        [TestMethod]
+        public async Task GetAllocationAndHistoryByAllocationResultId_GivenResultFound_ReturnsContentResult()
+        {
+            //Arrange
+            string allocationResultId = "12345";
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary.Add("Accept", new StringValues("application/json"));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            PublishedProviderResult publishedProviderResult = CreatePublishedProviderResult();
+            publishedProviderResult.FundingStreamResult.AllocationLineResult.History = new List<PublishedAllocationLineResultVersion>
+            {
+                new PublishedAllocationLineResultVersion
+                {
+                    Value = 50,
+                    Version = 1,
+                    Status = AllocationLineStatus.Held,
+                    Author = new Reference
+                    {
+                        Name = "Joe Bloggs"
+                    },
+                    Commment = "Wahey",
+                    Date = DateTimeOffset.Now.AddDays(-2)
+                },
+                 new PublishedAllocationLineResultVersion
+                {
+                    Value = 40,
+                    Version = 2,
+                    Status = AllocationLineStatus.Approved,
+                    Author = new Reference
+                    {
+                        Name = "Joe Bloggs"
+                    },
+                    Commment = "Wahey",
+                    Date = DateTimeOffset.Now.AddDays(-1)
+                }
+            };
+
+            IResultsService resultsService = CreateResultsService();
+            resultsService
+                .GetPublishedProviderResultWithHistoryByAllocationResultId(Arg.Is(allocationResultId))
+                .Returns(publishedProviderResult);
+
+            AllocationsService service = CreateService(resultsService);
+
+            //Act
+            IActionResult result = await service.GetAllocationAndHistoryByAllocationResultId(allocationResultId, request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<ContentResult>();
+
+            ContentResult contentResult = result as ContentResult;
+
+            AllocationWithHistoryModel allocationModel = JsonConvert.DeserializeObject<AllocationWithHistoryModel>(contentResult.Content);
+
+            allocationModel
+                .Should()
+                .NotBeNull();
+
+            allocationModel.AllocationResultId.Should().Be("1234567");
+            allocationModel.AllocationVersionNumber.Should().Be(1);
+            allocationModel.AllocationStatus.Should().Be("Published");
+            allocationModel.AllocationAmount.Should().Be(50);
+            allocationModel.FundingStream.FundingStreamCode.Should().Be("fs-1");
+            allocationModel.FundingStream.FundingStreamName.Should().Be("funding stream 1");
+            allocationModel.Period.PeriodType.Should().Be("fp-1");
+            allocationModel.Period.PeriodId.Should().Be("Ay12345");
+            allocationModel.Provider.Ukprn.Should().Be("1111");
+            allocationModel.Provider.Upin.Should().Be("2222");
+            allocationModel.Provider.ProviderOpenDate.Should().NotBeNull();
+            allocationModel.AllocationLine.AllocationLineCode.Should().Be("AAAAA");
+            allocationModel.AllocationLine.AllocationLineName.Should().Be("test allocation line 1");
+            allocationModel.ProfilePeriods.Length.Should().Be(1);
+            allocationModel.History.Length.Should().Be(2);
+            allocationModel.History[0].AllocationVersionNumber.Should().Be(2);
+            allocationModel.History[0].AllocationAmount.Should().Be(40);
+            allocationModel.History[0].Status.Should().Be("Approved");
+            allocationModel.History[1].AllocationVersionNumber.Should().Be(1);
+            allocationModel.History[1].AllocationAmount.Should().Be(50);
+            allocationModel.History[1].Status.Should().Be("Held");
         }
 
         static AllocationsService CreateService(IResultsService resultsService = null)
@@ -215,6 +360,10 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                 {
                     Id = "Ay12345",
                     Name = "fp-1"
+                },
+                ProfilingPeriods = new[]
+                {
+                    new ProfilingPeriod()
                 }
             };
         }

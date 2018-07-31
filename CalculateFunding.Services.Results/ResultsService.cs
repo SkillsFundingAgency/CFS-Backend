@@ -50,6 +50,8 @@ namespace CalculateFunding.Services.Results
         private readonly ICacheProvider _cacheProvider;
         private readonly ISearchRepository<AllocationNotificationFeedIndex> _allocationNotificationsSearchRepository;
         private readonly Polly.Policy _allocationNotificationsSearchRepositoryPolicy;
+        private readonly IProviderProfilingRepository _providerProfilingRepository;
+        private readonly Polly.Policy _providerProfilingRepositoryPolicy;
 
         public ResultsService(ILogger logger,
             ICalculationResultsRepository resultsRepository,
@@ -65,7 +67,8 @@ namespace CalculateFunding.Services.Results
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository,
             IProviderImportMappingService providerImportMappingService,
             ICacheProvider cacheProvider,
-            ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationsSearchRepository)
+            ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationsSearchRepository,
+            IProviderProfilingRepository providerProfilingRepository)
         {
             _logger = logger;
             _resultsRepository = resultsRepository;
@@ -85,6 +88,8 @@ namespace CalculateFunding.Services.Results
             _cacheProvider = cacheProvider;
             _allocationNotificationsSearchRepository = allocationNotificationsSearchRepository;
             _allocationNotificationsSearchRepositoryPolicy = resiliencePolicies.AllocationNotificationFeedSearchRepository;
+            _providerProfilingRepository = providerProfilingRepository;
+            _providerProfilingRepositoryPolicy = resiliencePolicies.ProviderProfilingRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -235,6 +240,29 @@ namespace CalculateFunding.Services.Results
 
                 publishedProviderResult.FundingStreamResult.AllocationLineResult.Current = resultVersion;
             }
+
+            return publishedProviderResult;
+        }
+
+        public async Task<PublishedProviderResult> GetPublishedProviderResultWithHistoryByAllocationResultId(string allocationResultId)
+        {
+            Guard.IsNullOrWhiteSpace(allocationResultId, nameof(allocationResultId));
+
+            PublishedProviderResult publishedProviderResult = await _publishedProviderResultsRepository.GetPublishedProviderResultForId(allocationResultId);
+
+            if (publishedProviderResult == null)
+            {
+                return null;
+            }
+
+            PublishedAllocationLineResultHistory history = await _publishedProviderResultsRepository.GetPublishedAllocationLineResultHistoryForId(allocationResultId);
+
+            if (history == null)
+            {
+                return null;
+            }
+
+            publishedProviderResult.FundingStreamResult.AllocationLineResult.History = history.History.ToList();
 
             return publishedProviderResult;
         }
@@ -854,6 +882,11 @@ namespace CalculateFunding.Services.Results
                     foreach(PublishedProviderResult result in results)
                     {
                         result.Title = $"Allocation {result.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {result.FundingStreamResult.AllocationLineResult.Current.Status.ToString()}";
+
+                        if(updateStatusModel.Status == AllocationLineStatus.Approved)
+                        {
+                            await GetProfilingPeriods(result);
+                        }
                     }
 
                     resultsToUpdate.AddRange(results);
@@ -879,6 +912,45 @@ namespace CalculateFunding.Services.Results
             }
 
             return new Tuple<int, int>(updatedAllocationLineIds.Count, updatedProviderIds.Count);
+        }
+
+        async Task GetProfilingPeriods(PublishedProviderResult result)
+        {
+            ProviderProfilingRequestModel providerProfilingRequestModel = new ProviderProfilingRequestModel
+            {
+                AllocationOrganisation = new AllocationOrganisation
+                {
+                    OrganisationId = result.ProviderId,
+                    AlternateOrgainisation = new AlternateOrgainisation
+                    {
+                        Identifier = result.Provider.Id,
+                        IdentifierName = string.IsNullOrWhiteSpace(result.Provider.ProviderProfileIdType) ? "UKPRN" : result.Provider.ProviderProfileIdType
+                    }
+                },
+                FundingStreamPeriod = result.FundingPeriod.Id,
+                AllocationStartDate = result.FundingPeriod.StartDate,
+                AllocationEndDate = result.FundingPeriod.EndDate,
+                AllocationValuesByDistributionPeriod = new[]
+                {
+                    new AllocationPeriodValue
+                    {
+                        Period = $"{ result.FundingPeriod.StartDate.Year }-{ result.FundingPeriod.EndDate.Year }",
+                        Value = (decimal)result.FundingStreamResult.AllocationLineResult.Current.Value
+                    }
+                }
+            };
+
+            ProviderProfilingResponseModel responseModel = await  _providerProfilingRepositoryPolicy.ExecuteAsync(() => _providerProfilingRepository.GetProviderProfilePeriods(providerProfilingRequestModel));
+
+            if (responseModel != null)
+            {
+                result.ProfilingPeriods = responseModel.ProfilePeriods.ToArraySafe();
+            }
+            else
+            {
+                _logger.Error($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}");
+            }
+
         }
 
         bool CanUpdateAllocationLineResult(PublishedAllocationLineResult allocationLineResult, AllocationLineStatus newStatus)
@@ -986,8 +1058,9 @@ namespace CalculateFunding.Services.Results
                     AllocationLineName = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name,
                     AllocationVersionNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Version,
                     AllocationStatus = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status.ToString(),
-                    AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue 
+                    AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue
                                             ? Convert.ToDouble(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value) : 0,
+                    ProviderProfiling = JsonConvert.SerializeObject(publishedProviderResult.ProfilingPeriods)
                 });
             }
 

@@ -14,5 +14,7 @@ namespace CalculateFunding.Services.Results
         public Policy SpecificationsRepository { get; set; }
 
         public Policy AllocationNotificationFeedSearchRepository { get; set; }
+
+        public Policy ProviderProfilingRepository { get; set; }
     }
 }

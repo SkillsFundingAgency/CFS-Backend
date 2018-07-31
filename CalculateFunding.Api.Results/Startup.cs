@@ -139,6 +139,9 @@ namespace CalculateFunding.Api.Results
             builder
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
+            builder
+              .AddSingleton<IProviderProfilingRepository, MockProviderProfilingRepository>();
+
             builder.AddUserProviderFromRequest();
 
             builder.AddSearch(Configuration);
@@ -152,6 +155,8 @@ namespace CalculateFunding.Api.Results
             builder.AddTelemetry();
 
             builder.AddSpecificationsInterServiceClient(Configuration);
+
+            builder.AddProviderProfileServiceClient(Configuration);
 
             builder.AddPolicySettings(Configuration);
 
@@ -169,7 +174,8 @@ namespace CalculateFunding.Api.Results
                     ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     SpecificationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    AllocationNotificationFeedSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy)
+                    AllocationNotificationFeedSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                    ProviderProfilingRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

@@ -53,8 +53,6 @@ namespace CalculateFunding.Api.External.V1.Models.Examples
                     Allocation = AllocationExamples.Allocation(periodId, periodStartDate, providerId, fundingStream, allocationLine, amount, count, Guid.NewGuid().ToString("N"))
 
                 }
-
-
             };
         }
 

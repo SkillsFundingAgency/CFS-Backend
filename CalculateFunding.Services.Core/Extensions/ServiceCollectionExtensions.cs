@@ -32,6 +32,8 @@ using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Services.Core.Interfaces.Proxies.External;
+using CalculateFunding.Services.Core.Proxies.External;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -102,6 +104,22 @@ namespace CalculateFunding.Services.Core.Extensions
                      ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
 
                      return new SpecificationsApiProxy(apiOptions, logger, correlationIdProvider);
+                 });
+
+            return builder;
+        }
+
+        public static IServiceCollection AddProviderProfileServiceClient(this IServiceCollection builder, IConfiguration config)
+        {
+            builder
+                 .AddSingleton<IProviderProfilingApiProxy, ProviderProfilingApiProxy>((ctx) => {
+                     ExternalApiOptions apiOptions = new ExternalApiOptions();
+
+                     config.Bind("providerProfilingClient", apiOptions);
+
+                     ILogger logger = ctx.GetService<ILogger>();
+
+                     return new ProviderProfilingApiProxy(apiOptions, logger);
                  });
 
             return builder;

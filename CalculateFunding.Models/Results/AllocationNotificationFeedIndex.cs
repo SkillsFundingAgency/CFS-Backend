@@ -76,5 +76,8 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("allocationLearnerCount")]
         public int AllocationLearnerCount { get; set; }
+
+        [JsonProperty("providerProfiling")]
+        public string ProviderProfiling { get; set; }
     }
 }

@@ -137,6 +137,9 @@ namespace CalculateFunding.Functions.Results
             builder
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
+            builder
+              .AddSingleton<IProviderProfilingRepository, MockProviderProfilingRepository>();
+
             builder.AddSearch(config);
 
             builder.AddServiceBus(config);

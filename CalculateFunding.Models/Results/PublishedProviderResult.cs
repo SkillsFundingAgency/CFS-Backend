@@ -9,7 +9,7 @@ namespace CalculateFunding.Models.Results
     {
         public PublishedProviderResult()
         {
-            ProfilingPeriods = Enumerable.Empty<ProfilingPeriod>();
+            ProfilingPeriods = new ProfilingPeriod[0];
         }
 
         [JsonProperty("providerId")]
@@ -43,6 +43,6 @@ namespace CalculateFunding.Models.Results
         public FundingPeriod FundingPeriod { get; set; }
 
         [JsonProperty("profilePeriods")]
-        public IEnumerable<ProfilingPeriod> ProfilingPeriods { get; set; }
+        public ProfilingPeriod[] ProfilingPeriods { get; set; }
     }
 }

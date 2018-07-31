@@ -737,7 +737,8 @@ namespace CalculateFunding.Services.Results.Services
                         m.First().AllocationLineName == "test allocation line 1" &&
                         m.First().AllocationVersionNumber == 1 &&
                         m.First().AllocationStatus == "Approved" &&
-                        m.First().AllocationAmount == (double)50.0
+                        m.First().AllocationAmount == (double)50.0 &&
+                        m.First().ProviderProfiling == "[]"
             ));
         }
 
@@ -890,6 +891,310 @@ namespace CalculateFunding.Services.Results.Services
                  .Count()
                  .Should()
                  .Be(1);
+        }
+
+        [TestMethod]
+        public async Task UpdatePublishedAllocationLineResultsStatus_GivenThreeProvidersToApproveButNoProfilingReturned_ReturnsOKObjectResultCreatesThreeHistoryItemsLogsError()
+        {
+            //arrange
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            {
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111",
+                    AllocationLineIds = new[] { "AAAAA" }
+                },
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111-1",
+                    AllocationLineIds = new[] { "AAAAA" }
+                },
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111-2",
+                    AllocationLineIds = new[] { "AAAAA" }
+                }
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) },
+            });
+
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
+            {
+                Providers = Providers,
+                Status = AllocationLineStatus.Approved
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
+
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Sid, "authorId"),
+                new Claim(ClaimTypes.Name, "authorname")
+            };
+
+            request
+                .HttpContext.User.Claims
+                .Returns(claims.AsEnumerable());
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
+
+            PublishedAllocationLineResultHistory history1 = new PublishedAllocationLineResultHistory
+            {
+                SpecificationId = specificationId,
+                ProviderId = "1111",
+                AllocationLine = new Models.Reference
+                {
+                    Id = "AAAAA"
+                },
+                History = null
+            };
+
+            PublishedAllocationLineResultHistory history2 = new PublishedAllocationLineResultHistory
+            {
+                SpecificationId = specificationId,
+                ProviderId = "1111-1",
+                AllocationLine = new Models.Reference
+                {
+                    Id = "AAAAA"
+                },
+                History = null
+            };
+
+            PublishedAllocationLineResultHistory history3 = new PublishedAllocationLineResultHistory
+            {
+                SpecificationId = specificationId,
+                ProviderId = "1111-2",
+                AllocationLine = new Models.Reference
+                {
+                    Id = "AAAAA"
+                },
+                History = null
+            };
+
+            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
+            resultsProviderRepository
+                .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
+                .Returns(publishedProviderResults);
+
+            resultsProviderRepository
+                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111"), Arg.Is("AAAAA"))
+                .Returns(history1);
+
+            resultsProviderRepository
+                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111-1"), Arg.Is("AAAAA"))
+                .Returns(history2);
+
+            resultsProviderRepository
+                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111-2"), Arg.Is("AAAAA"))
+                .Returns(history3);
+
+            ILogger logger = CreateLogger();
+
+            ResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: resultsProviderRepository);
+
+            //Act
+            IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okObjectResult = actionResult as OkObjectResult;
+
+            UpdateAllocationResultsStatusCounts value = okObjectResult.Value as UpdateAllocationResultsStatusCounts;
+
+            value
+                .UpdatedAllocationLines
+                .Should()
+                .Be(1);
+
+            value
+               .UpdatedProviderIds
+               .Should()
+               .Be(3);
+
+            history1
+                 .History
+                 .Count()
+                 .Should()
+                 .Be(1);
+
+            history2
+                 .History
+                 .Count()
+                 .Should()
+                 .Be(1);
+
+            history3
+                 .History
+                 .Count()
+                 .Should()
+                 .Be(1);
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("Failed to obtain profiling periods for provider: 1111 and period: fp-1"));
+        }
+
+        [TestMethod]
+        public async Task UpdatePublishedAllocationLineResultsStatus_GivenThreeProvidersToApproveButAnfdProfilingReturned_ReturnsOKObjectResult()
+        {
+            //arrange
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            {
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111",
+                    AllocationLineIds = new[] { "AAAAA" }
+                },
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111-1",
+                    AllocationLineIds = new[] { "AAAAA" }
+                },
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111-2",
+                    AllocationLineIds = new[] { "AAAAA" }
+                }
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) },
+            });
+
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
+            {
+                Providers = Providers,
+                Status = AllocationLineStatus.Approved
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
+
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Sid, "authorId"),
+                new Claim(ClaimTypes.Name, "authorname")
+            };
+
+            request
+                .HttpContext.User.Claims
+                .Returns(claims.AsEnumerable());
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
+
+            PublishedAllocationLineResultHistory history1 = new PublishedAllocationLineResultHistory
+            {
+                SpecificationId = specificationId,
+                ProviderId = "1111",
+                AllocationLine = new Models.Reference
+                {
+                    Id = "AAAAA"
+                },
+                History = null
+            };
+
+            PublishedAllocationLineResultHistory history2 = new PublishedAllocationLineResultHistory
+            {
+                SpecificationId = specificationId,
+                ProviderId = "1111-1",
+                AllocationLine = new Models.Reference
+                {
+                    Id = "AAAAA"
+                },
+                History = null
+            };
+
+            PublishedAllocationLineResultHistory history3 = new PublishedAllocationLineResultHistory
+            {
+                SpecificationId = specificationId,
+                ProviderId = "1111-2",
+                AllocationLine = new Models.Reference
+                {
+                    Id = "AAAAA"
+                },
+                History = null
+            };
+
+            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
+            resultsProviderRepository
+                .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
+                .Returns(publishedProviderResults);
+
+            resultsProviderRepository
+                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111"), Arg.Is("AAAAA"))
+                .Returns(history1);
+
+            resultsProviderRepository
+                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111-1"), Arg.Is("AAAAA"))
+                .Returns(history2);
+
+            resultsProviderRepository
+                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111-2"), Arg.Is("AAAAA"))
+                .Returns(history3);
+
+            ProviderProfilingResponseModel providerProfilingResponse = new ProviderProfilingResponseModel
+            {
+                ProfilePeriods = new[]
+                {
+                    new ProfilingPeriod(),
+                    new ProfilingPeriod()
+                }
+            };
+
+            IProviderProfilingRepository providerProfilingRepository = CreateProfilingRepository();
+            providerProfilingRepository
+                .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
+                .Returns(providerProfilingResponse);
+
+            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, providerProfilingRepository: providerProfilingRepository);
+
+            //Act
+            IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
+
+            //Assertl
+            actionResult
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okObjectResult = actionResult as OkObjectResult;
+
+            UpdateAllocationResultsStatusCounts value = okObjectResult.Value as UpdateAllocationResultsStatusCounts;
+
+            value
+                .UpdatedAllocationLines
+                .Should()
+                .Be(1);
+
+            value
+               .UpdatedProviderIds
+               .Should()
+               .Be(3);
         }
     }
 }

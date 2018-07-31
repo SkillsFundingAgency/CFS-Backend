@@ -61,6 +61,32 @@ namespace CalculateFunding.Services.Core.Proxies
             _logger = logger;
         }
 
+        public ApiClientProxy(ExternalApiOptions options, ILogger logger)
+        {
+            Guard.ArgumentNotNull(options, nameof(options));
+            Guard.IsNullOrWhiteSpace(options.ApiEndpoint, nameof(options.ApiEndpoint));
+            
+            Guard.ArgumentNotNull(logger, nameof(logger));
+
+            _httpClient = new HttpClient(new HttpClientHandler()
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+            });
+
+            string baseAddress = options.ApiEndpoint;
+
+            if (!baseAddress.EndsWith("/", StringComparison.CurrentCulture))
+            {
+                baseAddress = $"{baseAddress}/";
+            }
+
+            _httpClient.BaseAddress = new Uri(baseAddress, UriKind.Absolute);
+            _httpClient.DefaultRequestHeaders?.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+            _httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
+            _logger = logger;
+        }
+
         public async Task<T> GetAsync<T>(string url)
         {
             if (string.IsNullOrWhiteSpace(url))

@@ -1,6 +1,5 @@
 ﻿using CalculateFunding.Models.External;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -48,5 +47,7 @@ namespace CalculateFunding.Api.External.V1.Models
         public decimal AllocationAmount { get; set; }
 
         public int? AllocationLearnerCount { get; set; }
+
+        public ProfilePeriod[] ProfilePeriods { get; set; }
     }
 }

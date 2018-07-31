@@ -10,5 +10,7 @@ namespace CalculateFunding.Api.External.V1.Interfaces
     public interface IAllocationsService
     {
         Task<IActionResult> GetAllocationByAllocationResultId(string allocationResultId, int? version, HttpRequest httpRequest);
+
+        Task<IActionResult> GetAllocationAndHistoryByAllocationResultId(string allocationResultId, HttpRequest httpRequest);
     }
 }

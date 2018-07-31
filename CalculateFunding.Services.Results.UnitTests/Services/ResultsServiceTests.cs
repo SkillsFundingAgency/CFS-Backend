@@ -1144,7 +1144,8 @@ namespace CalculateFunding.Services.Results.Services
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = null,
             IProviderImportMappingService providerImportMappingService = null,
             ICacheProvider cacheProvider = null,
-            ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationFeedSearchRepository = null)
+            ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationFeedSearchRepository = null,
+            IProviderProfilingRepository providerProfilingRepository = null)
         {
             return new ResultsService(
                 logger ?? CreateLogger(),
@@ -1161,7 +1162,13 @@ namespace CalculateFunding.Services.Results.Services
                 publishedProviderCalculationResultsRepository ?? CreatePublishedProviderCalculationResultsRepository(),
                 providerImportMappingService ?? CreateProviderImportMappingService(),
                 cacheProvider ?? CreateCacheProvider(),
-                allocationNotificationFeedSearchRepository ?? CreateAllocationNotificationFeedSearchRepository());
+                allocationNotificationFeedSearchRepository ?? CreateAllocationNotificationFeedSearchRepository(),
+                providerProfilingRepository ?? CreateProfilingRepository());
+        }
+
+        static IProviderProfilingRepository CreateProfilingRepository()
+        {
+            return Substitute.For<IProviderProfilingRepository>();
         }
 
         static ISearchRepository<AllocationNotificationFeedIndex> CreateAllocationNotificationFeedSearchRepository()
@@ -1456,7 +1463,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "test title 1",
                     Summary = "test summary 1",
-                    Id = "116202_dc790603-8e9a-45ac-bde1-485bc0cfb327_SSF Programme Funding",
+                    Id = "prov-alloc-1",
                     Provider = new ProviderSummary
                     {
                         URN = "12345",
@@ -1499,14 +1506,16 @@ namespace CalculateFunding.Services.Results.Services
                     FundingPeriod = new FundingPeriod
                     {
                         Id = "Ay12345",
-                        Name = "fp-1"
+                        Name = "fp-1",
+                        StartDate = DateTimeOffset.Now,
+                        EndDate = DateTimeOffset.Now.AddYears(1)
                     }
                 },
                 new PublishedProviderResult
                 {
                     Title = "test title 2",
                     Summary = "test summary 2",
-                    Id = "116202_dc790603-8e9a-45ac-bde1-485bc0cfb327_SSF Programme Funding",
+                    Id = "prov-alloc-2",
                     Provider = new ProviderSummary
                     {
                         URN = "12345",
@@ -1549,14 +1558,16 @@ namespace CalculateFunding.Services.Results.Services
                     FundingPeriod = new FundingPeriod
                     {
                         Id = "Ay12345",
-                        Name = "fp-1"
+                        Name = "fp-1",
+                        StartDate = DateTimeOffset.Now,
+                        EndDate = DateTimeOffset.Now.AddYears(1)
                     }
                 },
                 new PublishedProviderResult
                 {
                     Title = "test title 3",
                     Summary = "test summary 3",
-                    Id = "116202_dc790603-8e9a-45ac-bde1-485bc0cfb327_SSF Programme Funding",
+                    Id = "prov-alloc-3",
                     Provider = new ProviderSummary
                     {
                         URN = "12345",
@@ -1599,7 +1610,9 @@ namespace CalculateFunding.Services.Results.Services
                     FundingPeriod = new FundingPeriod
                     {
                         Id = "Ay12345",
-                        Name = "fp-1"
+                        Name = "fp-1",
+                        StartDate = DateTimeOffset.Now,
+                        EndDate = DateTimeOffset.Now.AddYears(1)
                     }
                 }
             };
