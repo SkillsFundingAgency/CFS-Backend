@@ -25,114 +25,114 @@ namespace CalculateFunding.Api.Results.Controllers
 
 		[Route("api/results/providers-search")]
 		[HttpPost]
-		public Task<IActionResult> RunProvidersSearch()
+		public async Task<IActionResult> RunProvidersSearch()
 		{
-			return _resultsSearchService.SearchProviders(ControllerContext.HttpContext.Request);
+            return await _resultsSearchService.SearchProviders(ControllerContext.HttpContext.Request);
 		}
 
 		[Route("api/results/get-provider-specs")]
 		[HttpGet]
-		public Task<IActionResult> RunGetProviderSpecifications()
+		public async Task<IActionResult> RunGetProviderSpecifications()
 		{
-			return _resultsService.GetProviderSpecifications(ControllerContext.HttpContext.Request);
+			return await _resultsService.GetProviderSpecifications(ControllerContext.HttpContext.Request);
 		}
 
 		[Route("api/results/get-provider-results")]
 		[HttpGet]
-		public Task<IActionResult> RunGetProviderResults()
+		public async Task<IActionResult> RunGetProviderResults()
 		{
-			return _resultsService.GetProviderResults(ControllerContext.HttpContext.Request);
+			return await _resultsService.GetProviderResults(ControllerContext.HttpContext.Request);
 		}
 
         [Route("api/results/get-provider")]
         [HttpGet]
-        public Task<IActionResult> RunGetProvider()
+        public async Task<IActionResult> RunGetProvider()
         {
-            return _resultsService.GetProviderById(ControllerContext.HttpContext.Request);
+            return await _resultsService.GetProviderById(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/update-provider-source-dataset")]
         [HttpPost]
-        public Task<IActionResult> RunUpdateProviderSourceDataset()
+        public async Task<IActionResult> RunUpdateProviderSourceDataset()
         {
-            return _resultsService.UpdateProviderSourceDataset(ControllerContext.HttpContext.Request);
+            return await _resultsService.UpdateProviderSourceDataset(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/get-provider-source-datasets")]
         [HttpGet]
-        public Task<IActionResult> RunGetProviderSourceDatasetsByProviderIdAndSpecificationId()
+        public async Task<IActionResult> RunGetProviderSourceDatasetsByProviderIdAndSpecificationId()
         {
-            return _resultsService.GetProviderSourceDatasetsByProviderIdAndSpecificationId(ControllerContext.HttpContext.Request);
+            return await _resultsService.GetProviderSourceDatasetsByProviderIdAndSpecificationId(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/reindex-calc-provider-results")]
         [HttpGet]
-        public Task<IActionResult> RunReIndexCalculationProviderResults()
+        public async Task<IActionResult> RunReIndexCalculationProviderResults()
         {
-            return _resultsService.ReIndexCalculationProviderResults();
+            return await _resultsService.ReIndexCalculationProviderResults();
         }
 
         [Route("api/results/calculation-provider-results-search")]
         [HttpPost]
-        public Task<IActionResult> RunCalculationProviderResultsSearch()
+        public async Task<IActionResult> RunCalculationProviderResultsSearch()
         {
-            return _calculationProviderResultsSearchService.SearchCalculationProviderResults(ControllerContext.HttpContext.Request);
+            return await _calculationProviderResultsSearchService.SearchCalculationProviderResults(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/get-scoped-providerids")]
         [HttpGet]
-        public Task<IActionResult> RunGetScopedProviderIds()
+        public async Task<IActionResult> RunGetScopedProviderIds()
         {
-            return _resultsService.GetScopedProviderIdsBySpecificationId(ControllerContext.HttpContext.Request);
+            return await _resultsService.GetScopedProviderIdsBySpecificationId(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/get-calculation-result-totals-for-specifications")]
         [HttpPost]
-        public Task<IActionResult> RunGetFundingCalculationResultsForSpecifications()
+        public async Task<IActionResult> RunGetFundingCalculationResultsForSpecifications()
         {
-            return _resultsService.GetFundingCalculationResultsForSpecifications(ControllerContext.HttpContext.Request);
+            return await _resultsService.GetFundingCalculationResultsForSpecifications(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/get-published-provider-results-for-specification")]
         [HttpGet]
-        public Task<IActionResult> RunGetPublishedProviderResultsForSpecification()
+        public async Task<IActionResult> RunGetPublishedProviderResultsForSpecification()
         {
-            return _resultsService.GetPublishedProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
+            return await _resultsService.GetPublishedProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/update-published-allocationline-results-status")]
         [HttpPost]
-        public Task<IActionResult> RunUpdatePublishedAllocationLineResultsStatus()
+        public async Task<IActionResult> RunUpdatePublishedAllocationLineResultsStatus()
         {
-            return _resultsService.UpdatePublishedAllocationLineResultsStatus(ControllerContext.HttpContext.Request);
+            return await _resultsService.UpdatePublishedAllocationLineResultsStatus(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/get-specification-provider-results")]
         [HttpGet]
-        public Task<IActionResult> RunGetProviderResultsBySpecificationId()
+        public async Task<IActionResult> RunGetProviderResultsBySpecificationId()
         {
-            return _resultsService.GetProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
+            return await _resultsService.GetProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/import-providers")]
         [HttpPost]
-        public Task<IActionResult> RunImportProviders()
+        public async Task<IActionResult> RunImportProviders()
         {
-            return _resultsService.ImportProviders(ControllerContext.HttpContext.Request);
+            return await _resultsService.ImportProviders(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/remove-current-providers")]
         [HttpPost]
-        public Task<IActionResult> RunRemoveCurrentProviders()
+        public async Task<IActionResult> RunRemoveCurrentProviders()
         {
-            return _resultsService.RemoveCurrentProviders();
+            return await _resultsService.RemoveCurrentProviders();
         }
 
         [Route("api/results/reindex/allocation-feeds")]
         [HttpGet]
-        public Task<IActionResult> ReIndexAllocationFeeds()
+        public async Task<IActionResult> ReIndexAllocationFeeds()
         {
-            return _resultsService.ReIndexAllocationNotificationFeeds();
+            return await _resultsService.ReIndexAllocationNotificationFeeds();
         }
     }
 }
