@@ -752,9 +752,15 @@ namespace CalculateFunding.Services.Results
                 {
                     await UpdateAllocationNotificationsFeedIndex(publishedProviderResults);
                 }
+                else
+                {
+                    _logger.Warning("No published provider results were found to index.");
+                }
             }
             catch(Exception ex)
             {
+                _logger.Error(ex, "Failed to index allocation feeds");
+
                 return new InternalServerErrorResult(ex.Message);
             }
 
