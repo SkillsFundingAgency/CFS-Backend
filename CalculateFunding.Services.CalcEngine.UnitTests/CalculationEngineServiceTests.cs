@@ -20,70 +20,6 @@ namespace CalculateFunding.Services.Calculator
     public class CalculationEngineServiceTests
     {
         [TestMethod]
-        public void CalculationEngineService_WhenAGivenObjectIsNull_ShouldThrowException()
-        {
-            ILogger mockLogger = Substitute.For<ILogger>();
-            ICalculationEngine mockCalculationService = Substitute.For<ICalculationEngine>();
-            ICacheProvider mockCacheProvider = Substitute.For<ICacheProvider>();
-            IMessengerService mockMessengerService = Substitute.For<IMessengerService>();
-            IProviderSourceDatasetsRepository mockDatasetRepo = Substitute.For<IProviderSourceDatasetsRepository>();
-            ITelemetry mockTelemetry = Substitute.For<ITelemetry>();
-            IProviderResultsRepository mockProviderResultRepo = Substitute.For<IProviderResultsRepository>();
-            ICalculationsRepository mockCalculationRepository = Substitute.For<ICalculationsRepository>();
-            EngineSettings mockEngineSettings = Substitute.For<EngineSettings>();
-
-            Action serviceInstantiator = () =>
-            {
-                CalculationEngineService service =
-                    new CalculationEngineService(
-                        mockLogger,
-                        mockCalculationService,
-                        mockCacheProvider,
-                        mockMessengerService,
-                        mockDatasetRepo,
-                        mockTelemetry,
-                        mockProviderResultRepo,
-                        mockCalculationRepository,
-                        mockEngineSettings,
-                        null);
-            };
-            serviceInstantiator.ShouldThrow<ArgumentNullException>();
-        }
-
-        [TestMethod]
-        public void GenerateAllocations_WhenMessageDoesNotContainValueForExpectedKey_ShouldThrowException()
-        {
-            // Arrange
-            const string cacheKey = "Cache-key";
-            const string specificationId = "spec1";
-            const int partitionSize = 100;
-
-            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
-                new CalculationEngineServiceTestsHelper();
-
-            BuildProject buildProject = CreateBuildProject();
-            calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetBuildProjectBySpecificationId(Arg.Any<string>())
-                .Returns(buildProject);
-
-            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
-
-            Message message = new Message();
-            IDictionary<string, object> messageUserProperties = message.UserProperties;
-
-            messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
-            messageUserProperties.Add("provider-cache-key", cacheKey);
-            messageUserProperties.Add("specification-id", specificationId);
-
-            // Act
-            Action serviceAction = () => { service.GenerateAllocations(message).Wait(); };
-
-            // Assert
-            serviceAction.ShouldThrow<KeyNotFoundException>();
-        }
-
-        [TestMethod]
         public void GenerateAllocations_WhenBuildProjectIsNull_ShouldThrowException()
         {
             // Arrange
@@ -112,44 +48,9 @@ namespace CalculateFunding.Services.Calculator
             serviceAction.ShouldThrow<ArgumentNullException>();
         }
 
-        [TestMethod]
-        public void GenerateAllocations_WhenPartitionSizeIsZero_ShouldThrowException()
-        {
-            // Arrange
-            const string cacheKey = "Cache-key";
-            const string specificationId = "spec1";
-            const int partitionIndex = 0;
-            const int partitionSize = 0;
-
-            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
-                new CalculationEngineServiceTestsHelper();
-            BuildProject buildProject = CreateBuildProject();
-            calculationEngineServiceTestsHelper
-                .MockCalculationRepository
-                .GetBuildProjectBySpecificationId(Arg.Any<string>())
-                .Returns(buildProject);
-
-            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
-
-            Message message = new Message();
-            IDictionary<string, object> messageUserProperties = message.UserProperties;
-
-            messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
-            messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
-            messageUserProperties.Add("provider-cache-key", cacheKey);
-            messageUserProperties.Add("specification-id", specificationId);
-
-            // Act
-            Action serviceAction = () => { service.GenerateAllocations(message).Wait(); };
-
-            // Assert
-            serviceAction.ShouldThrow<KeyNotFoundException>().And.Message
-                .ShouldBeEquivalentTo($"Partition size is zero or less. {partitionSize}");
-        }
-
-        [TestMethod]
-        public void
-            GenerateAllocations_GivenAValidRequestWhereSaveProviderResultsNotIgnored_ShouldBatchCorrectlyAndSaveProviderResults()
+       [TestMethod]
+        public void 
+           GenerateAllocations_GivenAValidRequestWhereSaveProviderResultsNotIgnored_ShouldBatchCorrectlyAndSaveProviderResults()
         {
             const string cacheKey = "Cache-key";
             const string specificationId = "spec1";

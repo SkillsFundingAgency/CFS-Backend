@@ -2,11 +2,13 @@
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.CalcEngine.Validators;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
+using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -135,6 +137,8 @@ namespace CalculateFunding.Api.Calculator
                     CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
             });
+
+            builder.AddSingleton<IValidator<ICalculatorResiliencePolicies>, CalculatorResiliencePoliciesValidator>();
 
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 

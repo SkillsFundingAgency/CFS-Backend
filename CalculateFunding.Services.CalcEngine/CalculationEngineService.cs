@@ -20,6 +20,8 @@ using Newtonsoft.Json;
 using Polly;
 using CalculateFunding.Services.Core.Caching;
 using System.Text;
+using CalculateFunding.Services.CalcEngine;
+using FluentValidation;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -43,6 +45,7 @@ namespace CalculateFunding.Services.Calculator
         private readonly Policy _providerSourceDatasetsRepositoryPolicy;
         private readonly Policy _providerResultsRepositoryPolicy;
         private readonly Policy _calculationsRepositoryPolicy;
+        private readonly IValidator<ICalculatorResiliencePolicies> _calculatorResiliencePoliciesValidator;
 
 
         public CalculationEngineService(
@@ -55,19 +58,14 @@ namespace CalculateFunding.Services.Calculator
             IProviderResultsRepository providerResultsRepository,
             ICalculationsRepository calculationsRepository,
             EngineSettings engineSettings,
-            ICalculatorResiliencePolicies resiliencePolicies)
+            ICalculatorResiliencePolicies resiliencePolicies, 
+            IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator)
         {
-            Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
-            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
-            Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
+            _calculatorResiliencePoliciesValidator = calculatorResiliencePoliciesValidator;
 
-            Guard.ArgumentNotNull(resiliencePolicies.CacheProvider, nameof(resiliencePolicies.CacheProvider));
-            Guard.ArgumentNotNull(resiliencePolicies.Messenger, nameof(resiliencePolicies.Messenger));
-            Guard.ArgumentNotNull(resiliencePolicies.ProviderSourceDatasetsRepository, nameof(resiliencePolicies.ProviderSourceDatasetsRepository));
-            Guard.ArgumentNotNull(resiliencePolicies.ProviderResultsRepository, nameof(resiliencePolicies.ProviderResultsRepository));
-            Guard.ArgumentNotNull(resiliencePolicies.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
-
-
+            CalculationEngineServiceValidator.ValidateConstruction(_calculatorResiliencePoliciesValidator,
+                engineSettings, resiliencePolicies, calculationsRepository);
+            
             _logger = logger;
             _calculationEngine = calculationEngine;
             _cacheProvider = cacheProvider;
@@ -125,6 +123,8 @@ namespace CalculateFunding.Services.Calculator
 
             string specificationId = message.UserProperties["specification-id"].ToString();
 
+            CalculationEngineServiceValidator.ValidateMessage(_logger, message);
+
             BuildProject buildProject = await _calculationsRepository.GetBuildProjectBySpecificationId(specificationId);
 
             if (buildProject == null)
@@ -134,37 +134,9 @@ namespace CalculateFunding.Services.Calculator
                 throw new ArgumentNullException(nameof(buildProject));
             }
 
-            if (!message.UserProperties.ContainsKey("provider-summaries-partition-index"))
-            {
-                _logger.Error("Provider summaries partition index key not found in message properties");
-
-                throw new KeyNotFoundException("Provider summaries partition index key not found in message properties");
-            }
-
-            if (!message.UserProperties.ContainsKey("provider-summaries-partition-size"))
-            {
-                _logger.Error("Provider summaries partition size key not found in message properties");
-
-                throw new KeyNotFoundException("Provider summaries partition size key not found in message properties");
-            }
-
-            if (!message.UserProperties.ContainsKey("provider-cache-key"))
-            {
-                _logger.Error("Provider cache key not found");
-
-                throw new KeyNotFoundException("Provider cache key not found");
-            }
-
             int partitionIndex = int.Parse(message.UserProperties["provider-summaries-partition-index"].ToString());
 
             int partitionSize = int.Parse(message.UserProperties["provider-summaries-partition-size"].ToString());
-
-            if (partitionSize <= 0)
-            {
-                _logger.Error("Partition size is zero or less. {partitionSize}", partitionSize);
-
-                throw new KeyNotFoundException($"Partition size is zero or less. {partitionSize}");
-            }
 
             int start = partitionIndex;
 

@@ -2,11 +2,13 @@
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.CalcEngine.Validators;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
@@ -117,6 +119,8 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 return resiliencePolicies;
             });
+
+            builder.AddSingleton<IValidator<ICalculatorResiliencePolicies>, CalculatorResiliencePoliciesValidator>();
         }
     }
 }

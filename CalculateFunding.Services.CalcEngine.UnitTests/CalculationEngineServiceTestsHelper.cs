@@ -3,6 +3,8 @@ using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
+using FluentValidation;
+using FluentValidation.Results;
 using NSubstitute;
 using Polly;
 using Serilog;
@@ -18,6 +20,9 @@ namespace CalculateFunding.Services.Calculator
             MockCalculatorResiliencePolicies.ProviderSourceDatasetsRepository.Returns(MockProviderSourceDatasetsRepositoryPolicy);
             MockCalculatorResiliencePolicies.ProviderResultsRepository.Returns(MockProviderResultsRepositoryPolicy);
             MockCalculatorResiliencePolicies.CalculationsRepository.Returns(MockCalculationRepositoryPolicy);
+            MockCalculatorResiliencePoliciesValidator
+                .Validate(Arg.Any<ICalculatorResiliencePolicies>())
+                .Returns(new ValidationResult());
         }
 
         public CalculationEngineService CreateCalculationEngineService()
@@ -33,7 +38,8 @@ namespace CalculateFunding.Services.Calculator
                     MockProviderResultRepo,
                     MockCalculationRepository,
                     MockEngineSettings,
-                    MockCalculatorResiliencePolicies);
+                    MockCalculatorResiliencePolicies,
+                    MockCalculatorResiliencePoliciesValidator);
 
             return service;
         }
@@ -48,6 +54,7 @@ namespace CalculateFunding.Services.Calculator
         public EngineSettings MockEngineSettings { get; set; } = Substitute.For<EngineSettings>();
         public ICalculatorResiliencePolicies MockCalculatorResiliencePolicies { get; set; } = Substitute.For<ICalculatorResiliencePolicies>();
         public ICalculationEngine MockCalculationEngine { get; set; } = Substitute.For<ICalculationEngine>();
+        public IValidator<ICalculatorResiliencePolicies> MockCalculatorResiliencePoliciesValidator { get; set; } = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
         public Policy MockCacheProviderPolicy { get; set; } = Policy.NoOpAsync();
         public Policy MockMessengerPolicy { get; set; } = Policy.NoOpAsync();
         public Policy MockProviderSourceDatasetsRepositoryPolicy { get; set; } = Policy.NoOpAsync();
