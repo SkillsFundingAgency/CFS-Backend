@@ -21,5 +21,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<PublishedProviderResult> GetPublishedProviderResultForId(string id);
 
         Task<PublishedAllocationLineResultHistory> GetPublishedAllocationLineResultHistoryForId(string id);
+
+        Task<IEnumerable<PublishedProviderResult>> GetAllNonHeldPublishedProviderResults();
     }
 }

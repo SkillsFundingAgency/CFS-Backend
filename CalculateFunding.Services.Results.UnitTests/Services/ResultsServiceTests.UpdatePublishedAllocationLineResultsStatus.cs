@@ -738,7 +738,13 @@ namespace CalculateFunding.Services.Results.Services
                         m.First().AllocationVersionNumber == 1 &&
                         m.First().AllocationStatus == "Approved" &&
                         m.First().AllocationAmount == (double)50.0 &&
-                        m.First().ProviderProfiling == "[]"
+                        m.First().ProviderProfiling == "[]" &&
+                        m.First().ProviderName == "test provider name 1" &&
+                        m.First().LaCode == "77777" &&
+                        m.First().Authority == "London" &&
+                        m.First().ProviderType == "test type" &&
+                        m.First().SubProviderType == "test sub type" &&
+                        m.First().EstablishmentNumber == "es123"
             ));
         }
 

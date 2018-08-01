@@ -25,5 +25,6 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IActionResult> RemoveCurrentProviders();
         Task<PublishedProviderResult> GetPublishedProviderResultByAllocationResultId(string allocationResultId, int? version = null);
         Task<PublishedProviderResult> GetPublishedProviderResultWithHistoryByAllocationResultId(string allocationResultId);
+        Task<IActionResult> ReIndexAllocationNotificationFeeds();
     }
 }

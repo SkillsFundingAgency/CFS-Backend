@@ -207,7 +207,9 @@ namespace CalculateFunding.Services.Results
                         ProviderProfileId = m.Result.ProviderId,
                         NavVendorNo = m.Result.NavVendorNo,
                         CrmAccountId = m.Result.CrmAccountId,
-                        LegalName = m.Result.LegalName
+                        LegalName = m.Result.LegalName,
+                        LACode = m.Result.LACode,
+                        ProviderProfileIdType = m.Result.ProviderIdType
                     });
                 }
             }
