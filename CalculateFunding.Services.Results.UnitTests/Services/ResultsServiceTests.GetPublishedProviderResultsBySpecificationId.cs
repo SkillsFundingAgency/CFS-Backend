@@ -116,6 +116,18 @@ namespace CalculateFunding.Services.Results.Services
                 .Be(1);
 
             publishedProviderResultModels
+              .First()
+              .ProviderName
+              .Should()
+              .Be("test provider name 1");
+
+            publishedProviderResultModels
+             .First()
+             .ProviderId
+             .Should()
+             .Be("1111");
+
+            publishedProviderResultModels
                 .First()
                 .FundingStreamResults
                 .Count()
