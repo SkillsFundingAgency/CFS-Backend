@@ -306,21 +306,14 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(412);
             }
 
-            try
+            using (ExcelPackage excel = new ExcelPackage(datasetStream))
             {
-                using (ExcelPackage excel = new ExcelPackage(datasetStream))
-                {
-                    validationResult = _dataWorksheetValidator.Validate(excel)?.PopulateModelState();
+                validationResult = _dataWorksheetValidator.Validate(excel)?.PopulateModelState();
 
-                    if (validationResult != null)
-                        return validationResult;
-                }
+                if (validationResult != null)
+                    return validationResult;
             }
-            catch(Exception ex)
-            {
-                throw ex;
-            }
-
+           
             DatasetDefinition datasetDefinition =
                 (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == dataDefinitionId)).FirstOrDefault();
 

@@ -28,6 +28,13 @@ namespace CalculateFunding.Services.Scenarios.Validators
                 .IsValid
                 .Should()
                 .Be(false);
+
+            result
+                .Errors
+                .First()
+                .ErrorMessage
+                .Should()
+                .Be("Excel file does not contain any values");
         }
 
         [TestMethod]
@@ -63,7 +70,7 @@ namespace CalculateFunding.Services.Scenarios.Validators
                 .First()
                 .ErrorMessage
                 .Should()
-                .Be("Invalid worksheet, worksheet cannot contain merged cells (B1:C1,D1:E1)");
+                .Be("Excel file contains merged cells");
         }
 
         [TestMethod]

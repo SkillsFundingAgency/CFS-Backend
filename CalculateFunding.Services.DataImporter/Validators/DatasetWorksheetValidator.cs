@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
 
                     if (firstCell.Value == null || string.IsNullOrWhiteSpace(firstCell.Value.ToString()))
                     {
-                        context.AddFailure($"Invalid worksheet, data not present in cell A:1");
+                        context.AddFailure("Excel file does not contain any values");
                         return;
                     }
 
@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
                     {
                         string mergedCellLocations = string.Join(",", mergedCells);
 
-                        context.AddFailure($"Invalid worksheet, worksheet cannot contain merged cells ({mergedCellLocations})");
+                        context.AddFailure("Excel file contains merged cells");
                         return;
                     }
 
