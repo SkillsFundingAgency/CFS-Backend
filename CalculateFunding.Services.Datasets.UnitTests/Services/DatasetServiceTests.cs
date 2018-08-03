@@ -39,6 +39,8 @@ using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.DataImporter.Validators.Models;
+using OfficeOpenXml;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -525,10 +527,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Metadata
                 .Returns(metaData);
 
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
             IBlobClient blobClient = CreateBlobClient();
             blobClient
                 .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
                 .Returns(blob);
+            blobClient
+               .DownloadToStreamAsync(Arg.Is(blob))
+               .Returns(memoryStream);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = Enumerable.Empty<DatasetDefinition>();
 
@@ -593,7 +600,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Metadata
                 .Returns(metaData);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -687,7 +694,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Metadata
                 .Returns(metaData);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -783,7 +790,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Metadata
                 .Returns(metaData);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -886,7 +893,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Metadata
                 .Returns(metaData);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -996,7 +1003,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Metadata
                 .Returns(metaData);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -1105,7 +1112,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Metadata
                 .Returns(metaData);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -1265,7 +1272,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Name
                 .Returns(filename);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -1452,7 +1459,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Name
                 .Returns(filename);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -1611,7 +1618,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Name
                 .Returns(filename);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -1758,7 +1765,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Name
                 .Returns(filename);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -1909,7 +1916,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Name
                 .Returns(filename);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -4295,7 +4302,8 @@ namespace CalculateFunding.Services.Datasets.Services
             IProviderRepository providerRepository = null,
             IProvidersResultsRepository providersResultsRepository = null,
             ITelemetry telemetry = null,
-            IDatasetsResiliencePolicies datasetsResiliencePolicies = null)
+            IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
+            IValidator<ExcelPackage> datasetWorksheetValidator = null)
         {
             return new DatasetService(
                 blobClient ?? CreateBlobClient(),
@@ -4314,7 +4322,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerRepository ?? CreateProviderRepository(),
                 providersResultsRepository ?? CreateProvidesrResultsRepository(),
                 telemetry ?? CreateTelemetry(),
-                datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies());
+                datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies(),
+                datasetWorksheetValidator ?? CreateDataWorksheetValidator());
         }
 
         static ICalcsRepository CreateCalcsRepository()
@@ -4423,6 +4432,20 @@ namespace CalculateFunding.Services.Datasets.Services
             return validator;
         }
 
+        static IValidator<ExcelPackage> CreateDataWorksheetValidator(ValidationResult validationResult = null)
+        {
+            if (validationResult == null)
+                validationResult = new ValidationResult();
+
+            IValidator<ExcelPackage> validator = Substitute.For<IValidator<ExcelPackage>>();
+
+            validator
+               .ValidateAsync(Arg.Any<ExcelPackage>())
+               .Returns(validationResult);
+
+            return validator;
+        }
+
         static IBlobClient CreateBlobClient()
         {
             return Substitute.For<IBlobClient>();
@@ -4451,6 +4474,20 @@ namespace CalculateFunding.Services.Datasets.Services
         static IDatasetRepository CreateDatasetsRepository()
         {
             return Substitute.For<IDatasetRepository>();
+        }
+
+        static byte[] CreateTestExcelPackage()
+        {
+            using (ExcelPackage package = new ExcelPackage())
+            {
+                ExcelWorksheet workSheet = package.Workbook.Worksheets.Add("Test Worksheet");
+
+                workSheet.Cells["A1"].Value = "1";
+                workSheet.Cells["B1"].Value = "2";
+                workSheet.Cells["C1"].Value = "3";
+
+                return package.GetAsByteArray();
+            }
         }
     }
 }

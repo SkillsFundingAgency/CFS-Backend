@@ -34,6 +34,10 @@ using CalculateFunding.Services.Core.Constants;
 using Polly;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Models.Health;
+using CalculateFunding.Services.DataImporter.Validators.Models;
+using FluentValidation.Results;
+using System.IO;
+using OfficeOpenXml;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -56,7 +60,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IProviderRepository _providerRepository;
         private readonly IProvidersResultsRepository _providersResultsRepository;
         private readonly ITelemetry _telemetry;
-
+        private readonly IValidator<ExcelPackage> _dataWorksheetValidator;
         private readonly Policy _providerResultsRepositoryPolicy;
 
         const string dataset_cache_key_prefix = "ds-table-rows";
@@ -80,7 +84,8 @@ namespace CalculateFunding.Services.Datasets
             IProviderRepository providerRepository,
             IProvidersResultsRepository providersResultsRepository,
             ITelemetry telemetry,
-            IDatasetsResiliencePolicies datasetsResiliencePolicies)
+            IDatasetsResiliencePolicies datasetsResiliencePolicies,
+            IValidator<ExcelPackage> dataWorksheetValidator)
         {
             _blobClient = blobClient;
             _logger = logger;
@@ -99,6 +104,7 @@ namespace CalculateFunding.Services.Datasets
             _providerRepository = providerRepository;
             _providersResultsRepository = providersResultsRepository;
             _telemetry = telemetry;
+            _dataWorksheetValidator = dataWorksheetValidator;
 
             Guard.ArgumentNotNull(datasetsResiliencePolicies, nameof(datasetsResiliencePolicies));
 
@@ -290,6 +296,30 @@ namespace CalculateFunding.Services.Datasets
             await blob.FetchAttributesAsync();
 
             string dataDefinitionId = blob.Metadata["dataDefinitionId"];
+
+
+            var datasetStream = await _blobClient.DownloadToStreamAsync(blob);
+
+            if(datasetStream == null || datasetStream.Length == 0)
+            {
+                _logger.Error($"Blob {blob.Name} contains no data");
+                return new StatusCodeResult(412);
+            }
+
+            try
+            {
+                using (ExcelPackage excel = new ExcelPackage(datasetStream))
+                {
+                    validationResult = _dataWorksheetValidator.Validate(excel)?.PopulateModelState();
+
+                    if (validationResult != null)
+                        return validationResult;
+                }
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
 
             DatasetDefinition datasetDefinition =
                 (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == dataDefinitionId)).FirstOrDefault();
