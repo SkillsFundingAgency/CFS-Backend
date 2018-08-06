@@ -23,7 +23,7 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("calculationType")]
         public PublishedCalculationType CalculationType { get; set; }
 
-        [JsonProperty("providerId")]
+        [JsonProperty("provider")]
         public ProviderSummary Provider { get; set; }
 
         public PublishedProviderCalculationResultCalculationVersion Clone()

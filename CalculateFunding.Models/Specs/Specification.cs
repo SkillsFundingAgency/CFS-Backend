@@ -7,6 +7,7 @@ namespace CalculateFunding.Models.Specs
 {
     public class Specification : VersionContainer<SpecificationVersion>
     {
+        [JsonProperty("isSelectedForFunding")]
         public bool IsSelectedForFunding { get; set; }
     }
 }
