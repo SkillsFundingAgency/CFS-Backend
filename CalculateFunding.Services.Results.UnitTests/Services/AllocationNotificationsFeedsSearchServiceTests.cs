@@ -31,7 +31,8 @@ namespace CalculateFunding.Services.Results.Services
 
             //Assert
             test
-                .ShouldThrowExactly<ArgumentException>();
+                .Should()
+                .ThrowExactly<ArgumentException>();
         }
 
         [TestMethod]

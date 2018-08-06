@@ -6,16 +6,15 @@ namespace CalculateFunding.Models.Results
     public class ProviderSummary : Reference
 	{
         [JsonProperty("urn")]
-		// ReSharper disable once InconsistentNaming
 		public string URN { get; set; }
+
 		[JsonProperty("ukPrn")]
-		// ReSharper disable once InconsistentNaming
 		public string UKPRN { get; set; }
+
 		[JsonProperty("upin")]
-		// ReSharper disable once InconsistentNaming
 		public string UPIN { get; set; }
+
 		[JsonProperty("establishmentNumber")]
-		// ReSharper disable once InconsistentNaming
 		public string EstablishmentNumber { get; set; }
 
 		[JsonProperty("authority")]

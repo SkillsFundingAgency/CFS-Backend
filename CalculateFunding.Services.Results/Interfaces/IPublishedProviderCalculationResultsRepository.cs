@@ -7,5 +7,9 @@ namespace CalculateFunding.Services.Results.Interfaces
     public interface IPublishedProviderCalculationResultsRepository
     {
         Task CreatePublishedCalculationResults(IEnumerable<PublishedProviderCalculationResult> publishedCalculationResults);
+
+        Task<IEnumerable<PublishedProviderCalculationResultHistory>> GetPublishedProviderCalculationHistoryForSpecificationId(string specificationId);
+
+        Task SavePublishedCalculationResultsHistory(IEnumerable<PublishedProviderCalculationResultHistory> publishedCalculationResultsHistory);
     }
 }

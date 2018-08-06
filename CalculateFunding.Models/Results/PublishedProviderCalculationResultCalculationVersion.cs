@@ -20,6 +20,12 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("value")]
         public decimal? Value { get; set; }
 
+        [JsonProperty("calculationType")]
+        public PublishedCalculationType CalculationType { get; set; }
+
+        [JsonProperty("providerId")]
+        public ProviderSummary Provider { get; set; }
+
         public PublishedProviderCalculationResultCalculationVersion Clone()
         {
             // Serialise to perform a deep copy

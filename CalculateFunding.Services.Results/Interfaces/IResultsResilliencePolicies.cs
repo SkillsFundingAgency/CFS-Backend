@@ -18,5 +18,9 @@ namespace CalculateFunding.Services.Results.Interfaces
         Policy AllocationNotificationFeedSearchRepository { get; set; }
 
         Policy ProviderProfilingRepository { get; set; }
+
+        Policy PublishedProviderCalculationResultsRepository { get; set; }
+
+        Policy PublishedProviderResultsRepository { get; set; }
     }
 }
