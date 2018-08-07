@@ -100,6 +100,13 @@ namespace CalculateFunding.Api.Results.Controllers
             return await _resultsService.GetPublishedProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
         }
 
+        [Route("api/results/get-confirmation-details-for-approve-publish-provider-results")]
+        [HttpPost]
+        public async Task<IActionResult> RunGetConfirmationDetailsForApprovePublishProviderResults()
+        {
+            return await _resultsService.GetConfirmationDetailsForApprovePublishProviderResults(ControllerContext.HttpContext.Request);
+        }
+
         [Route("api/results/update-published-allocationline-results-status")]
         [HttpPost]
         public async Task<IActionResult> RunUpdatePublishedAllocationLineResultsStatus()

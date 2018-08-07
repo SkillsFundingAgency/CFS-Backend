@@ -20,6 +20,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IActionResult> GetFundingCalculationResultsForSpecifications(HttpRequest request);
         Task PublishProviderResults(Message message);
         Task<IActionResult> GetPublishedProviderResultsBySpecificationId(HttpRequest request);
+        Task<IActionResult> GetConfirmationDetailsForApprovePublishProviderResults(HttpRequest request);
         Task<IActionResult> UpdatePublishedAllocationLineResultsStatus(HttpRequest request);
         Task<IActionResult> ImportProviders(HttpRequest request);
         Task<IActionResult> RemoveCurrentProviders();
