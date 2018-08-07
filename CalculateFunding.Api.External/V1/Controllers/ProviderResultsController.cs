@@ -10,12 +10,14 @@ using CalculateFunding.Api.External.V1.Models.Examples;
 using CalculateFunding.Models.External;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Examples;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace CalculateFunding.Api.External.V1.Controllers
 {
+    [Authorize(Roles = "ExecuteApi")]
     [ApiController]
     [Route("api/providers/{ukprn}/periods/{periodId}")]
     public class ProviderResultsController : Controller
