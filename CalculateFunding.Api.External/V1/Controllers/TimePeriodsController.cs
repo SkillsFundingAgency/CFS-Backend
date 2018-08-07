@@ -10,12 +10,14 @@ using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Api.External.V1.Models.Examples;
 using CalculateFunding.Models.External;
 using CsvHelper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Examples;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace CalculateFunding.Api.External.V1.Controllers
 {
+    [Authorize(Roles = Constants.ExecuteApiRole)]
     [Produces("application/vnd.sfa.allocation.1+json")]
     [Route("api/periods")]
     public class TimePeriodsController : Controller

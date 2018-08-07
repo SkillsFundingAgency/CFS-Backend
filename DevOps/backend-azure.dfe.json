@@ -79,6 +79,18 @@
       "metadata": {
         "description": "The size of the new Azure Redis Cache instance. "
       }
+    },
+    "AzureAdTenantId": {
+      "type": "string",
+      "metadata": {
+        "description": "The identifier of the Azure AD Tenant."
+      }
+    },
+    "AzureAdAudience": {
+      "type": "string",
+      "metadata": {
+        "description": "The identifier of the audience used by the External Api."
+      }
     }
   },
   "variables": {
@@ -1807,6 +1819,14 @@
             {
               "name": "apiKeyMiddleware:apiKey",
               "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "AzureAd:TenantId",
+              "value": "[parameters('AzureAdTenantId')]"
+            },
+            {
+              "name": "AzureAd:Audience",
+              "value": "[parameters('AzureAdAudience')]"
             }
           ]
         }
