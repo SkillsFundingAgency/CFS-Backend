@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.Datasets.Validators
     public class CreateNewDatasetModelValidatorTests
     {
         const string DefinitionId = "definition-id";
-        const string Filename = "filename.csv";
+        const string Filename = "filename.xlsx";
         const string Name = "test-name";
         const string Description = "test description";
 
@@ -178,10 +178,11 @@ namespace CalculateFunding.Services.Datasets.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenvalidModelWithCsvFile_ValidIsTrue()
+        public void Validate_GivenInvalidModelWithCsvFile_ValidIsFalse()
         {
             //Arrange
             CreateNewDatasetModel model = CreateModel();
+	        model.Filename = "filename.csv";
 
             CreateNewDatasetModelValidator validator = CreateValidator();
 
@@ -192,7 +193,17 @@ namespace CalculateFunding.Services.Datasets.Validators
             result
                 .IsValid
                 .Should()
-                .BeTrue();
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should().Be(1);
+
+            result
+                .Errors[0]
+                .ErrorMessage
+                .Should().Contain("Check you have the right file format");
         }
 
         [TestMethod]
@@ -232,7 +243,6 @@ namespace CalculateFunding.Services.Datasets.Validators
                 .Should()
                 .BeTrue();
         }
-
 
         static CreateNewDatasetModelValidator CreateValidator(IDatasetRepository datasetsRepository = null)
         {

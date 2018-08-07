@@ -12,6 +12,7 @@ using CalculateFunding.Services.Datasets.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Serilog;
@@ -38,6 +39,7 @@ using CalculateFunding.Services.DataImporter.Validators.Models;
 using FluentValidation.Results;
 using System.IO;
 using OfficeOpenXml;
+
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -306,14 +308,27 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(412);
             }
 
-            using (ExcelPackage excel = new ExcelPackage(datasetStream))
+            try
             {
-                validationResult = _dataWorksheetValidator.Validate(excel)?.PopulateModelState();
+                using (ExcelPackage excel = new ExcelPackage(datasetStream))
+                {
+                    validationResult = _dataWorksheetValidator.Validate(excel)?.PopulateModelState();
 
-                if (validationResult != null)
-                    return validationResult;
+                    if (validationResult != null)
+                        return validationResult;
+                }
             }
-           
+            catch(Exception exception)
+            {
+	            const string errorMessage = "File was unreadable. This could be because the correct extension type has been appended to an unsupported file.";
+
+				_logger.Error(exception.Message);
+	            ModelStateDictionary dictionary = new ModelStateDictionary();
+				dictionary.AddModelError("typical-model-validation-error",string.Empty);
+	            dictionary.AddModelError(nameof(model.Filename), errorMessage);
+	            return new BadRequestObjectResult(dictionary);
+            }
+
             DatasetDefinition datasetDefinition =
                 (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == dataDefinitionId)).FirstOrDefault();
 
