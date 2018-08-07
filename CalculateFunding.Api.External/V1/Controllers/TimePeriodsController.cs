@@ -17,7 +17,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace CalculateFunding.Api.External.V1.Controllers
 {
-    [Authorize(Roles = "ExecuteApi")]
+    [Authorize(Roles = Constants.ExecuteApiRole)]
     [Produces("application/vnd.sfa.allocation.1+json")]
     [Route("api/periods")]
     public class TimePeriodsController : Controller

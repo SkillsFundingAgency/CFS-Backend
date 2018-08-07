@@ -16,7 +16,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace CalculateFunding.Api.External.V1.Controllers
 {
-    [Authorize(Roles = "ExecuteApi")]
+    [Authorize(Roles = Constants.ExecuteApiRole)]
     [Route("api/funding-streams")]
     public class FundingStreamController : Controller
     {

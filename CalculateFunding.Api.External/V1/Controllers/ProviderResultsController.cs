@@ -17,7 +17,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace CalculateFunding.Api.External.V1.Controllers
 {
-    [Authorize(Roles = "ExecuteApi")]
+    [Authorize(Roles = Constants.ExecuteApiRole)]
     [ApiController]
     [Route("api/providers/{ukprn}/periods/{periodId}")]
     public class ProviderResultsController : Controller
