@@ -91,6 +91,13 @@
       "metadata": {
         "description": "The identifier of the audience used by the External Api."
       }
+    },
+    "AzureAdAuthority": {
+      "type": "string",
+      "defaultValue": "https://login.windows.net",
+      "metadata": {
+        "description": "The authority used to validate JWT Tokens."
+      }
     }
   },
   "variables": {
