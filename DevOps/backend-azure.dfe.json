@@ -1834,6 +1834,10 @@
             {
               "name": "AzureAd:Audience",
               "value": "[parameters('AzureAdAudience')]"
+            },
+            {
+              "name": "AzureAd:Authority",
+              "value": "[parameters('AzureAdAuthority')]"
             }
           ]
         }
