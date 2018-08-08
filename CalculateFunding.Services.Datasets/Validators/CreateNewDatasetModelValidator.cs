@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Datasets.Validators
     {
         private readonly IDatasetRepository _datasetsRepository;
 
-        private IEnumerable<string> validExtensions = new[] { ".csv", ".xls", ".xlsx" };
+        private IEnumerable<string> validExtensions = new[] {".xls", ".xlsx" };
 
         public CreateNewDatasetModelValidator(IDatasetRepository datasetsRepository)
         {

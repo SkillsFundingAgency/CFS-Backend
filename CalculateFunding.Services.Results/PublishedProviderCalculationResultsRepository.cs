@@ -39,5 +39,19 @@ namespace CalculateFunding.Services.Results
 
             return _cosmosRepository.BulkCreateAsync(publishedCalculationResults.Select(m => new KeyValuePair<string, PublishedProviderCalculationResult>(m.ProviderId, m)));
         }
+
+        public Task<IEnumerable<PublishedProviderCalculationResultHistory>> GetPublishedProviderCalculationHistoryForSpecificationId(string specificationId)
+        {
+            IQueryable<PublishedProviderCalculationResultHistory> results = _cosmosRepository.Query<PublishedProviderCalculationResultHistory>(enableCrossPartitionQuery: true).Where(m => m.SpecificationId == specificationId);
+
+            return Task.FromResult(results.AsEnumerable());
+        }
+
+        public Task SavePublishedCalculationResultsHistory(IEnumerable<PublishedProviderCalculationResultHistory> publishedCalculationResultsHistory)
+        {
+            Guard.ArgumentNotNull(publishedCalculationResultsHistory, nameof(publishedCalculationResultsHistory));
+
+            return _cosmosRepository.BulkCreateAsync<PublishedProviderCalculationResultHistory>(publishedCalculationResultsHistory.Select(m => new KeyValuePair<string, PublishedProviderCalculationResultHistory>(m.ProviderId, m)));
+        }
     }
 }

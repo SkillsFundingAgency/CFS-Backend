@@ -14,6 +14,8 @@ using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.DataImporter;
+using CalculateFunding.Services.DataImporter.Validators;
+using CalculateFunding.Services.DataImporter.Validators.Models;
 using CalculateFunding.Services.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.Validators;
@@ -21,6 +23,7 @@ using FluentValidation;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OfficeOpenXml;
 using Polly;
 using Polly.Bulkhead;
 
@@ -97,6 +100,9 @@ namespace CalculateFunding.Functions.Datasets
 
             builder
                .AddSingleton<IExcelWriter<DatasetDefinition>, DataDefinitionExcelWriter>();
+
+            builder
+                .AddSingleton<IValidator<ExcelPackage>, DatasetWorksheetValidator>();
 
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>

@@ -554,7 +554,8 @@ namespace CalculateFunding.Services.Results.Services
 
             //Assert
             test
-                .ShouldThrowExactly<ArgumentNullException>();
+                .Should()
+                .ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -570,7 +571,8 @@ namespace CalculateFunding.Services.Results.Services
 
             //Assert
             test
-                .ShouldThrowExactly<ArgumentNullException>();
+                .Should()
+                .ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]

@@ -19,6 +19,7 @@ using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -39,6 +40,10 @@ using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.DataImporter.Validators.Models;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using OfficeOpenXml;
+using BadRequestObjectResult = Microsoft.AspNetCore.Mvc.BadRequestObjectResult;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -525,10 +530,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Metadata
                 .Returns(metaData);
 
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
             IBlobClient blobClient = CreateBlobClient();
             blobClient
                 .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
                 .Returns(blob);
+            blobClient
+               .DownloadToStreamAsync(Arg.Is(blob))
+               .Returns(memoryStream);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = Enumerable.Empty<DatasetDefinition>();
 
@@ -593,7 +603,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Metadata
                 .Returns(metaData);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -687,7 +697,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Metadata
                 .Returns(metaData);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -783,7 +793,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Metadata
                 .Returns(metaData);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -886,7 +896,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Metadata
                 .Returns(metaData);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -996,7 +1006,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Metadata
                 .Returns(metaData);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -1105,7 +1115,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Metadata
                 .Returns(metaData);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -1265,7 +1275,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Name
                 .Returns(filename);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -1452,7 +1462,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Name
                 .Returns(filename);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -1611,7 +1621,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Name
                 .Returns(filename);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -1758,7 +1768,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Name
                 .Returns(filename);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -1909,7 +1919,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Name
                 .Returns(filename);
 
-            MemoryStream memoryStream = new MemoryStream(new byte[100]);
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
@@ -2004,6 +2014,58 @@ namespace CalculateFunding.Services.Datasets.Services
             logger
                 .Received(1)
                 .Warning(Arg.Is("Failed to save dataset for id: dataset-id in search with errors Error in dataset ID for search"));
+        }
+
+        [TestMethod]
+        public async Task ValidateDataset_WhenExcelFileIsUnreadable_ReturnsBadRequestObjectResult()
+        {
+            //Arrange
+            const string blobPath = "dataset-id/v1/ds.xlsx";
+
+            GetDatasetBlobModel model = new GetDatasetBlobModel
+            {
+                DatasetId = "dataset-id",
+                Version = 1,
+                Filename = "ds.xlsx"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream httpRequestBodyStream = new MemoryStream(byteArray);
+            MemoryStream jpgFileWithXlsExtension = 
+                new MemoryStream(
+                    File.ReadAllBytes($"TestItems{Path.DirectorySeparatorChar}jpgImage.xlsx"));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(httpRequestBodyStream);
+
+            ILogger logger = CreateLogger();
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .Returns(blob);
+
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(jpgFileWithXlsExtension);
+
+            DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient);
+
+            // Act
+            IActionResult result = await service.ValidateDataset(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error("The file is not an valid Package file. If the file is encrypted, please supply the password in the constructor.");
         }
 
         [TestMethod]
@@ -2204,7 +2266,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadButDatasetDefinitionCouldNotBeFound_DoesNotProcess()
+        public void ProcessDataset_GivenPayloadButDatasetDefinitionCouldNotBeFound_DoesNotProcess()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -4295,7 +4357,8 @@ namespace CalculateFunding.Services.Datasets.Services
             IProviderRepository providerRepository = null,
             IProvidersResultsRepository providersResultsRepository = null,
             ITelemetry telemetry = null,
-            IDatasetsResiliencePolicies datasetsResiliencePolicies = null)
+            IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
+            IValidator<ExcelPackage> datasetWorksheetValidator = null)
         {
             return new DatasetService(
                 blobClient ?? CreateBlobClient(),
@@ -4314,7 +4377,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerRepository ?? CreateProviderRepository(),
                 providersResultsRepository ?? CreateProvidesrResultsRepository(),
                 telemetry ?? CreateTelemetry(),
-                datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies());
+                datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies(),
+                datasetWorksheetValidator ?? CreateDataWorksheetValidator());
         }
 
         static ICalcsRepository CreateCalcsRepository()
@@ -4423,6 +4487,20 @@ namespace CalculateFunding.Services.Datasets.Services
             return validator;
         }
 
+        static IValidator<ExcelPackage> CreateDataWorksheetValidator(ValidationResult validationResult = null)
+        {
+            if (validationResult == null)
+                validationResult = new ValidationResult();
+
+            IValidator<ExcelPackage> validator = Substitute.For<IValidator<ExcelPackage>>();
+
+            validator
+               .ValidateAsync(Arg.Any<ExcelPackage>())
+               .Returns(validationResult);
+
+            return validator;
+        }
+
         static IBlobClient CreateBlobClient()
         {
             return Substitute.For<IBlobClient>();
@@ -4451,6 +4529,20 @@ namespace CalculateFunding.Services.Datasets.Services
         static IDatasetRepository CreateDatasetsRepository()
         {
             return Substitute.For<IDatasetRepository>();
+        }
+
+        static byte[] CreateTestExcelPackage()
+        {
+            using (ExcelPackage package = new ExcelPackage())
+            {
+                ExcelWorksheet workSheet = package.Workbook.Worksheets.Add("Test Worksheet");
+
+                workSheet.Cells["A1"].Value = "1";
+                workSheet.Cells["B1"].Value = "2";
+                workSheet.Cells["C1"].Value = "3";
+
+                return package.GetAsByteArray();
+            }
         }
     }
 }

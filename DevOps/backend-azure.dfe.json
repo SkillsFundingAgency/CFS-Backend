@@ -79,6 +79,25 @@
       "metadata": {
         "description": "The size of the new Azure Redis Cache instance. "
       }
+    },
+    "AzureAdTenantId": {
+      "type": "string",
+      "metadata": {
+        "description": "The identifier of the Azure AD Tenant."
+      }
+    },
+    "AzureAdAudience": {
+      "type": "string",
+      "metadata": {
+        "description": "The identifier of the audience used by the External Api."
+      }
+    },
+    "AzureAdAuthority": {
+      "type": "string",
+      "defaultValue": "https://login.windows.net",
+      "metadata": {
+        "description": "The authority used to validate JWT Tokens."
+      }
     }
   },
   "variables": {
@@ -1807,6 +1826,18 @@
             {
               "name": "apiKeyMiddleware:apiKey",
               "value": "[parameters('ApiKey')]"
+            },
+            {
+              "name": "AzureAd:TenantId",
+              "value": "[parameters('AzureAdTenantId')]"
+            },
+            {
+              "name": "AzureAd:Audience",
+              "value": "[parameters('AzureAdAudience')]"
+            },
+            {
+              "name": "AzureAd:Authority",
+              "value": "[parameters('AzureAdAuthority')]"
             }
           ]
         }
