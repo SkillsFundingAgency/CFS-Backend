@@ -11,15 +11,15 @@ namespace IexSampleClient
     {
         // Azure Active Directory Details
         private const string Authority = "https://login.microsoftonline.com/";
-        private const string TenantId = "fad277c9-c60a-4da1-b5f3-b3b8b34a82f9";
+        private const string TenantId = "<replace>";
 
         // Azure Active Directory Client Application Details
-        private const string ClientId = "b3b2a71e-842f-4b01-9c6f-72def5020450";
-        private const string ClientSecret = "0CNLxgvaEwsJQPi2W/KnXVQ6BpQ8GidzivAl5F0rlSo=";
-        private const string AppIdUri = "https://calculatefundingserviceapidev";
+        private const string ClientId = "<replace>";
+        private const string ClientSecret = "<replace>";
+        private const string AppIdUri = "<replace>";
 
         // CFS Details
-        private const string CFS_Endpoint = "https://localhost:5009/";
+        private const string CFS_Endpoint = "<replace>";
 
         static void Main(string[] args)
         {
