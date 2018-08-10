@@ -1,7 +1,9 @@
 ﻿using CalculateFunding.Models.Specs;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace CalculateFunding.Models.Results
 {
@@ -13,14 +15,8 @@ namespace CalculateFunding.Models.Results
         }
 
         [JsonProperty("providerId")]
-        public string ProviderId
-        {
-            get
-            {
-                return Provider.Id;
-            }
-        }
-
+        public string ProviderId { get; set; }
+      
         [JsonProperty("title")]
         public string Title { get; set; }
 
@@ -28,10 +24,13 @@ namespace CalculateFunding.Models.Results
         public string Summary { get; set; }
 
         [JsonProperty("id")]
-        public string Id { get; set; }
-
-        [JsonProperty("provider")]
-        public ProviderSummary Provider { get; set; }
+        public string Id
+        {
+            get
+            {
+                return Convert.ToBase64String(Encoding.UTF8.GetBytes($"{SpecificationId}{ProviderId}{FundingStreamResult.AllocationLineResult.AllocationLine}"));
+            }
+        }
 
         [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }

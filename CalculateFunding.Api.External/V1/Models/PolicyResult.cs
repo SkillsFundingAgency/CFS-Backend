@@ -8,6 +8,8 @@ namespace CalculateFunding.Api.External.V1.Models
     {
         public PolicyResult()
         {
+            Calculations = new List<CalculationResult>();
+            SubPolicyResults = new List<PolicyResult>();
         }
 
         public PolicyResult(Policy policy, decimal totalAmount, List<CalculationResult> calculationResults)

@@ -9,11 +9,11 @@ namespace CalculateFunding.Api.External.V1.Models
         {
         }
 
-        public CalculationResult(string calculationName, ushort calculationVersionNumber, string calculationStatus, decimal calculationAmount)
+        public CalculationResult(string calculationName, ushort calculationVersionNumber, string calculationType, decimal calculationAmount)
         {
             CalculationName = calculationName;
             CalculationVersionNumber = calculationVersionNumber;
-            CalculationStatus = calculationStatus;
+            CalculationType = CalculationType;
             CalculationAmount = calculationAmount;
         }
 
@@ -21,7 +21,7 @@ namespace CalculateFunding.Api.External.V1.Models
 
         public ushort CalculationVersionNumber { get; set; }
 
-        public string CalculationStatus { get; set; }
+        public string CalculationType { get; set; }
 
         public decimal CalculationAmount { get; set; }
     }

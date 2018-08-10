@@ -87,9 +87,9 @@ namespace CalculateFunding.Api.External.V1.Services
                 },
                 Provider = new AllocationProviderModel
                 {
-                    Ukprn = publishedProviderResult.Provider.UKPRN,
-                    Upin = publishedProviderResult.Provider.UPIN,
-                    ProviderOpenDate = publishedProviderResult.Provider.DateOpened
+                    Ukprn = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.UKPRN,
+                    Upin = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.UPIN,
+                    ProviderOpenDate = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DateOpened
                 },
                 ProfilePeriods = publishedProviderResult.ProfilingPeriods?.Select(m =>
                             new ProfilePeriod

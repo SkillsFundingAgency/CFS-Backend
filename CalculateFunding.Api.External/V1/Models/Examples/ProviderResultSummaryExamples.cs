@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Text;
 using CalculateFunding.Api.External.V1.Models;
-using CalculateFunding.Models.External;
+using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Examples;
 
 namespace CalculateFunding.Api.External.V1.Controllers
@@ -10,115 +9,175 @@ namespace CalculateFunding.Api.External.V1.Controllers
     {
         public object GetExamples()
         {
-            return new ProviderResultSummary
-            {
-                Provider = new Provider { LegalName = "", Ukprn = "", ProviderOpenDate = new DateTime(2016, 4, 1) },
-                Period = new Period
-                {
-                    PeriodType = "AY",
-                    PeriodId = "AY1718",
-                    StartDate = new DateTime(2017, 9, 1),
-                    EndDate = new DateTime(2018, 8, 30)
-                },
-                FundingStreamResults = new List<FundingStreamResultSummary>
-                {
-                    new FundingStreamResultSummary
-                    {
-                        FundingStream =
-                            new FundingStream
-                            {
-                                FundingStreamCode = "YPLRE",
-                                FundingStreamName = "Academies General Annual Grant"
-                            },
-                        TotalAmount = 1500000M,
-                        Allocations = new List<AllocationResult>
-                        {
-                            new AllocationResult
-                            {
-                                AllocationLine = new AllocationLine{ AllocationLineCode = "YPE01", AllocationLineName = "School Budget Share"},
-                                AllocationAmount = 1000000M,
-                                AllocationVersionNumber = 3,
-                                AllocationStatus = "published",
-                                //SchemaVersion = 0.01M
-                            },
-                            new AllocationResult
-                            {
-                                AllocationLine = new AllocationLine{ AllocationLineCode = "YPE13", AllocationLineName = "Pupil Led Factors"},
-                                AllocationAmount = 500000M,
-                                AllocationVersionNumber = 5,
-                                AllocationStatus = "published",
-                                //SchemaVersion = 0.01M
-                            },
-                        },
-                        Policies = new List<PolicyResult>
-                        {
-                                                        new PolicyResult
-                            {
-                                Policy = new Policy
-                                {
-                                    PolicyId = "1234567890XXX0987654321",
-                                    PolicyName = "Basic entitlement",
-                                    PolicyDescription = "Policy description...."
-                                },
-                                TotalAmount = 1500000M,
-                                Calculations = new List<CalculationResult>
-                                {
-                                    new CalculationResult
-                                    {
-                                        CalculationName = "Calculation One Amount",
-                                        CalculationAmount = 500000M,
-                                        CalculationVersionNumber = 5,
-                                        CalculationStatus = "published",
-                                        //SchemaVersion = 0.01M
-                                    },
+            string sampleData = GetSampleData();
 
-                                    new CalculationResult
-                                    {
-                                        CalculationName = "Calculation Two Count",
-                                        CalculationAmount = 500000M,
-                                        CalculationVersionNumber = 8,
-                                        CalculationStatus = "published",
-                                        //SchemaVersion = 0.01M
-                                    },
+            ProviderResultSummary providerResultSummary = JsonConvert.DeserializeObject<ProviderResultSummary>(sampleData);
 
-                                    new CalculationResult
-                                    {
-                                        CalculationName = "Calculation Three Rate",
-                                        CalculationAmount = 500000M,
-                                        CalculationVersionNumber = 2,
-                                        CalculationStatus = "published",
-                                        //SchemaVersion = 0.01M
-                                    },
+            return providerResultSummary;
+        }
 
-                                }
-                               }
+        public string GetSampleData()
+        {
+            var sb = new StringBuilder();
 
-                        }
+            sb.AppendLine(@"{");
+            sb.AppendLine(@"	""TotalAmount"": 1194008.0,");
+            sb.AppendLine(@"	""Provider"": {");
+            sb.AppendLine(@"		""Ukprn"": ""106319"",");
+            sb.AppendLine(@"		""Upin"": null,");
+            sb.AppendLine(@"		""ProviderOpenDate"": null,");
+            sb.AppendLine(@"		""LegalName"": ""FLIXTON INFANT SCHOOL""");
+            sb.AppendLine(@"	},");
+            sb.AppendLine(@"	""FundingPeriodResults"": [");
+            sb.AppendLine(@"		{");
+            sb.AppendLine(@"			""Period"": {");
+            sb.AppendLine(@"				""PeriodType"": ""AY"",");
+            sb.AppendLine(@"				""PeriodId"": ""AY2017181"",");
+            sb.AppendLine(@"				""StartDate"": ""2017-08-31T23:00:00+00:00"",");
+            sb.AppendLine(@"				""EndDate"": ""2018-08-30T23:00:00+00:00""");
+            sb.AppendLine(@"			},");
+            sb.AppendLine(@"			""FundingStreamResults"": [");
+            sb.AppendLine(@"				{");
+            sb.AppendLine(@"					""FundingStream"": {");
+            sb.AppendLine(@"						""FundingStreamCode"": ""YPLRD"",");
+            sb.AppendLine(@"						""FundingStreamName"": ""Academy Programme Funds"",");
+            sb.AppendLine(@"						""AllocationLines"": null");
+            sb.AppendLine(@"					},");
+            sb.AppendLine(@"					""TotalAmount"": 1193993.0,");
+            sb.AppendLine(@"					""Allocations"": [");
+            sb.AppendLine(@"						{");
+            sb.AppendLine(@"							""AllocationLine"": {");
+            sb.AppendLine(@"								""AllocationLineCode"": ""YPD01"",");
+            sb.AppendLine(@"								""AllocationLineName"": ""Academy Programme Funds""");
+            sb.AppendLine(@"							},");
+            sb.AppendLine(@"							""AllocationVersionNumber"": 2,");
+            sb.AppendLine(@"							""AllocationStatus"": ""Approved"",");
+            sb.AppendLine(@"							""AllocationAmount"": 1193993.0,");
+            sb.AppendLine(@"							""AllocationLearnerCount"": null");
+            sb.AppendLine(@"						}");
+            sb.AppendLine(@"					],");
+            sb.AppendLine(@"					""Policies"": [");
+            sb.AppendLine(@"						{");
+            sb.AppendLine(@"							""Policy"": {");
+            sb.AppendLine(@"								""PolicyId"": ""5a806c89-493e-4b98-8a25-d623a6e06de5"",");
+            sb.AppendLine(@"								""PolicyName"": ""AB Test Policy 2007-001"",");
+            sb.AppendLine(@"								""PolicyDescription"": ""test""");
+            sb.AppendLine(@"							},");
+            sb.AppendLine(@"							""TotalAmount"": 1193993.0,");
+            sb.AppendLine(@"							""Calculations"": [");
+            sb.AppendLine(@"								{");
+            sb.AppendLine(@"									""CalculationName"": ""AB Test Calc 2007-001"",");
+            sb.AppendLine(@"									""CalculationVersionNumber"": 1,");
+            sb.AppendLine(@"									""CalculationType"": ""Funding"",");
+            sb.AppendLine(@"									""CalculationAmount"": 1193993.0");
+            sb.AppendLine(@"								},");
+            sb.AppendLine(@"								{");
+            sb.AppendLine(@"									""CalculationName"": ""Ab Number 0708-001"",");
+            sb.AppendLine(@"									""CalculationVersionNumber"": 1,");
+            sb.AppendLine(@"									""CalculationType"": ""Number"",");
+            sb.AppendLine(@"									""CalculationAmount"": 990.0");
+            sb.AppendLine(@"								}");
+            sb.AppendLine(@"							],");
+            sb.AppendLine(@"							""SubPolicyResults"": [");
+            sb.AppendLine(@"								{");
+            sb.AppendLine(@"									""Policy"": {");
+            sb.AppendLine(@"										""PolicyId"": ""5a806c89-493e-4b98-8a25-d623a6e06de5"",");
+            sb.AppendLine(@"										""PolicyName"": ""AB Test Policy 2007-001"",");
+            sb.AppendLine(@"										""PolicyDescription"": ""test""");
+            sb.AppendLine(@"									},");
+            sb.AppendLine(@"									""TotalAmount"": 0.0,");
+            sb.AppendLine(@"									""Calculations"": [");
+            sb.AppendLine(@"										{");
+            sb.AppendLine(@"											""CalculationName"": ""AB Calc 0808-001"",");
+            sb.AppendLine(@"											""CalculationVersionNumber"": 1,");
+            sb.AppendLine(@"											""CalculationType"": ""Number"",");
+            sb.AppendLine(@"											""CalculationAmount"": 52.0");
+            sb.AppendLine(@"										}");
+            sb.AppendLine(@"									],");
+            sb.AppendLine(@"									""SubPolicyResults"": []");
+            sb.AppendLine(@"								}");
+            sb.AppendLine(@"							]");
+            sb.AppendLine(@"						}");
+            sb.AppendLine(@"					]");
+            sb.AppendLine(@"				}");
+            sb.AppendLine(@"			]");
+            sb.AppendLine(@"		},");
+            sb.AppendLine(@"		{");
+            sb.AppendLine(@"			""Period"": {");
+            sb.AppendLine(@"				""PeriodType"": ""FY"",");
+            sb.AppendLine(@"				""PeriodId"": ""FY2017181"",");
+            sb.AppendLine(@"				""StartDate"": ""2017-03-31T23:00:00+00:00"",");
+            sb.AppendLine(@"				""EndDate"": ""2018-03-30T23:00:00+00:00""");
+            sb.AppendLine(@"			},");
+            sb.AppendLine(@"			""FundingStreamResults"": [");
+            sb.AppendLine(@"				{");
+            sb.AppendLine(@"					""FundingStream"": {");
+            sb.AppendLine(@"						""FundingStreamCode"": ""YPLRN"",");
+            sb.AppendLine(@"						""FundingStreamName"": ""SSF - SEN Funding"",");
+            sb.AppendLine(@"						""AllocationLines"": null");
+            sb.AppendLine(@"					},");
+            sb.AppendLine(@"					""TotalAmount"": 15.0,");
+            sb.AppendLine(@"					""Allocations"": [");
+            sb.AppendLine(@"						{");
+            sb.AppendLine(@"							""AllocationLine"": {");
+            sb.AppendLine(@"								""AllocationLineCode"": ""YPN01"",");
+            sb.AppendLine(@"								""AllocationLineName"": ""SSF - SEN Funding""");
+            sb.AppendLine(@"							},");
+            sb.AppendLine(@"							""AllocationVersionNumber"": 2,");
+            sb.AppendLine(@"							""AllocationStatus"": ""Approved"",");
+            sb.AppendLine(@"							""AllocationAmount"": 15.0,");
+            sb.AppendLine(@"							""AllocationLearnerCount"": null");
+            sb.AppendLine(@"						}");
+            sb.AppendLine(@"					],");
+            sb.AppendLine(@"					""Policies"": [");
+            sb.AppendLine(@"						{");
+            sb.AppendLine(@"							""Policy"": {");
+            sb.AppendLine(@"								""PolicyId"": ""239c8b47-89e6-4906-a3bf-866bd11da2f4"",");
+            sb.AppendLine(@"								""PolicyName"": ""Ab Test Policy 0908-001"",");
+            sb.AppendLine(@"								""PolicyDescription"": ""This is another etst policy created 9th August 2018""");
+            sb.AppendLine(@"							},");
+            sb.AppendLine(@"							""TotalAmount"": 315.0,");
+            sb.AppendLine(@"							""Calculations"": [");
+            sb.AppendLine(@"								{");
+            sb.AppendLine(@"									""CalculationName"": ""Learner Count"",");
+            sb.AppendLine(@"									""CalculationVersionNumber"": 1,");
+            sb.AppendLine(@"									""CalculationType"": ""Number"",");
+            sb.AppendLine(@"									""CalculationAmount"": 1003.0");
+            sb.AppendLine(@"								},");
+            sb.AppendLine(@"								{");
+            sb.AppendLine(@"									""CalculationName"": ""AB Test Calc 0908-001"",");
+            sb.AppendLine(@"									""CalculationVersionNumber"": 1,");
+            sb.AppendLine(@"									""CalculationType"": ""Funding"",");
+            sb.AppendLine(@"									""CalculationAmount"": 300.0");
+            sb.AppendLine(@"								},");
+            sb.AppendLine(@"								{");
+            sb.AppendLine(@"									""CalculationName"": ""AB Test Calc 0908-002"",");
+            sb.AppendLine(@"									""CalculationVersionNumber"": 1,");
+            sb.AppendLine(@"									""CalculationType"": ""Funding"",");
+            sb.AppendLine(@"									""CalculationAmount"": 15.0");
+            sb.AppendLine(@"								}");
+            sb.AppendLine(@"							],");
+            sb.AppendLine(@"							""SubPolicyResults"": [");
+            sb.AppendLine(@"								{");
+            sb.AppendLine(@"									""Policy"": {");
+            sb.AppendLine(@"										""PolicyId"": ""239c8b47-89e6-4906-a3bf-866bd11da2f4"",");
+            sb.AppendLine(@"										""PolicyName"": ""Ab Test Policy 0908-001"",");
+            sb.AppendLine(@"										""PolicyDescription"": ""This is another etst policy created 9th August 2018""");
+            sb.AppendLine(@"									},");
+            sb.AppendLine(@"									""TotalAmount"": 0.0,");
+            sb.AppendLine(@"									""Calculations"": [],");
+            sb.AppendLine(@"									""SubPolicyResults"": []");
+            sb.AppendLine(@"								}");
+            sb.AppendLine(@"							]");
+            sb.AppendLine(@"						}");
+            sb.AppendLine(@"					]");
+            sb.AppendLine(@"				}");
+            sb.AppendLine(@"			]");
+            sb.AppendLine(@"		}");
+            sb.AppendLine(@"	]");
+            sb.AppendLine(@"}");
 
-                    },
-                    new FundingStreamResultSummary
-                    {
-                        FundingStream =
-                            new FundingStream
-                            {
-                                FundingStreamCode = "YPLRP",
-                                FundingStreamName = "DSG"
-                            },
-                        TotalAmount = 500000M,
-                        Allocations = new List<AllocationResult>
-                        {
-                            new AllocationResult
-                            {
-                                AllocationLine = new AllocationLine{ AllocationLineCode = "YPP01", AllocationLineName = "DSG Allocations"},
-                                AllocationAmount = 1000000M,
-                                AllocationVersionNumber = 3,
-                                AllocationStatus = "published",
-                                //SchemaVersion = 0.01M
-                            }
-                        }
-                    },
-                }
-            };
+            return sb.ToString();
         }
     }
 }

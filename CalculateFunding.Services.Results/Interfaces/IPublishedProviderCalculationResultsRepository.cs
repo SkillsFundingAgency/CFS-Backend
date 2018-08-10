@@ -11,5 +11,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IEnumerable<PublishedProviderCalculationResultHistory>> GetPublishedProviderCalculationHistoryForSpecificationId(string specificationId);
 
         Task SavePublishedCalculationResultsHistory(IEnumerable<PublishedProviderCalculationResultHistory> publishedCalculationResultsHistory);
+
+        Task<IEnumerable<PublishedProviderCalculationResult>> GetPublishedProviderCalculationResultsBySpecificationId(string specificationId);
     }
 }

@@ -1248,6 +1248,51 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<ISpecificationsRepository>();
         }
 
+        static SpecificationCurrentVersion CreateSpecification(string specificationId)
+        {
+            return new SpecificationCurrentVersion
+            {
+                Id = specificationId,
+                Policies = new[]
+                {
+                    new Policy
+                    {
+                        Id = "policy-1",
+                        Name = "policy one",
+                        Description = "test decscription",
+                        Calculations = new[]
+                        {
+                            new Models.Specs.Calculation
+                            {
+                                Id = "calc-1"
+                            },
+                             new Models.Specs.Calculation
+                            {
+                                Id = "calc-2"
+                            }
+                        },
+                        SubPolicies = new[]
+                        {
+                            new Policy
+                            {
+                                Id = "subpolicy-1",
+                                Name = "sub policy one",
+                                Description = "test decscription",
+                                Calculations = new[]
+                                {
+                                    new Models.Specs.Calculation
+                                    {
+                                        Id = "calc-3"
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
         static DocumentEntity<ProviderResult> CreateDocumentEntity()
         {
             return new DocumentEntity<ProviderResult>
@@ -1309,23 +1354,8 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "test title 1",
                     Summary = "test summary 1",
-                    Id = "116202_dc790603-8e9a-45ac-bde1-485bc0cfb327_SSF Programme Funding",
-                    Provider = new ProviderSummary
-                    {
-                        URN = "12345",
-                        UKPRN = "1111",
-                        UPIN = "2222",
-                        EstablishmentNumber = "es123",
-                        Authority = "London",
-                        ProviderType = "test type",
-                        ProviderSubType = "test sub type",
-                        DateOpened = DateTimeOffset.Now,
-                        ProviderProfileIdType = "UKPRN",
-                        LACode = "77777",
-                        Id = "1111",
-                        Name = "test provider name 1"
-                    },
                     SpecificationId = "spec-1",
+                    ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new FundingStream
@@ -1345,7 +1375,22 @@ namespace CalculateFunding.Services.Results.Services
                                 Status = AllocationLineStatus.Held,
                                 Value = 50,
                                 Version = 1,
-                                Date = DateTimeOffset.Now
+                                Date = DateTimeOffset.Now,
+                                Provider = new ProviderSummary
+                                {
+                                    URN = "12345",
+                                    UKPRN = "1111",
+                                    UPIN = "2222",
+                                    EstablishmentNumber = "es123",
+                                    Authority = "London",
+                                    ProviderType = "test type",
+                                    ProviderSubType = "test sub type",
+                                    DateOpened = DateTimeOffset.Now,
+                                    ProviderProfileIdType = "UKPRN",
+                                    LACode = "77777",
+                                    Id = "1111",
+                                    Name = "test provider name 1"
+                                }
                             }
                         }
                     },
@@ -1359,23 +1404,8 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "test title 2",
                     Summary = "test summary 2",
-                    Id = "116202_dc790603-8e9a-45ac-bde1-485bc0cfb327_SSF Programme Funding",
-                    Provider = new ProviderSummary
-                    {
-                        URN = "12345",
-                        UKPRN = "1111",
-                        UPIN = "2222",
-                        EstablishmentNumber = "es123",
-                        Authority = "London",
-                        ProviderType = "test type",
-                        ProviderSubType = "test sub type",
-                        DateOpened = DateTimeOffset.Now,
-                        ProviderProfileIdType = "UKPRN",
-                        LACode = "77777",
-                        Id = "1111",
-                        Name = "test provider name 1"
-                    },
                     SpecificationId = "spec-1",
+                    ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new FundingStream
@@ -1395,7 +1425,22 @@ namespace CalculateFunding.Services.Results.Services
                                 Status = AllocationLineStatus.Held,
                                 Value = 100,
                                 Version = 1,
-                                Date = DateTimeOffset.Now
+                                Date = DateTimeOffset.Now,
+                                Provider = new ProviderSummary
+                                {
+                                    URN = "12345",
+                                    UKPRN = "1111",
+                                    UPIN = "2222",
+                                    EstablishmentNumber = "es123",
+                                    Authority = "London",
+                                    ProviderType = "test type",
+                                    ProviderSubType = "test sub type",
+                                    DateOpened = DateTimeOffset.Now,
+                                    ProviderProfileIdType = "UKPRN",
+                                    LACode = "77777",
+                                    Id = "1111",
+                                    Name = "test provider name 1"
+                                }
                             }
                         }
                     },
@@ -1409,23 +1454,8 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "test title 3",
                     Summary = "test summary 3",
-                    Id = "116202_dc790603-8e9a-45ac-bde1-485bc0cfb327_SSF Programme Funding",
-                    Provider = new ProviderSummary
-                    {
-                        URN = "12345",
-                        UKPRN = "1111",
-                        UPIN = "2222",
-                        EstablishmentNumber = "es123",
-                        Authority = "London",
-                        ProviderType = "test type",
-                        ProviderSubType = "test sub type",
-                        DateOpened = DateTimeOffset.Now,
-                        ProviderProfileIdType = "UKPRN",
-                        LACode = "77777",
-                        Id = "1111",
-                        Name = "test provider name 1"
-                    },
                     SpecificationId = "spec-1",
+                    ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new FundingStream
@@ -1445,7 +1475,22 @@ namespace CalculateFunding.Services.Results.Services
                                 Status = AllocationLineStatus.Held,
                                 Value = 100,
                                 Version = 1,
-                                Date = DateTimeOffset.Now
+                                Date = DateTimeOffset.Now,
+                                Provider = new ProviderSummary
+                                {
+                                    URN = "12345",
+                                    UKPRN = "1111",
+                                    UPIN = "2222",
+                                    EstablishmentNumber = "es123",
+                                    Authority = "London",
+                                    ProviderType = "test type",
+                                    ProviderSubType = "test sub type",
+                                    DateOpened = DateTimeOffset.Now,
+                                    ProviderProfileIdType = "UKPRN",
+                                    LACode = "77777",
+                                    Id = "1111",
+                                    Name = "test provider name 1"
+                                }
                             }
                         }
                     },
@@ -1466,23 +1511,8 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "test title 1",
                     Summary = "test summary 1",
-                    Id = "prov-alloc-1",
-                    Provider = new ProviderSummary
-                    {
-                        URN = "12345",
-                        UKPRN = "1111",
-                        UPIN = "2222",
-                        EstablishmentNumber = "es123",
-                        Authority = "London",
-                        ProviderType = "test type",
-                        ProviderSubType = "test sub type",
-                        DateOpened = DateTimeOffset.Now,
-                        ProviderProfileIdType = "UKPRN",
-                        LACode = "77777",
-                        Id = "1111",
-                        Name = "test provider name 1"
-                    },
                     SpecificationId = "spec-1",
+                    ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new FundingStream
@@ -1502,7 +1532,22 @@ namespace CalculateFunding.Services.Results.Services
                                 Status = AllocationLineStatus.Held,
                                 Value = 50,
                                 Version = 1,
-                                Date = DateTimeOffset.Now
+                                Date = DateTimeOffset.Now,
+                                Provider = new ProviderSummary
+                                {
+                                    URN = "12345",
+                                    UKPRN = "1111",
+                                    UPIN = "2222",
+                                    EstablishmentNumber = "es123",
+                                    Authority = "London",
+                                    ProviderType = "test type",
+                                    ProviderSubType = "test sub type",
+                                    DateOpened = DateTimeOffset.Now,
+                                    ProviderProfileIdType = "UKPRN",
+                                    LACode = "77777",
+                                    Id = "1111",
+                                    Name = "test provider name 1"
+                                }
                             }
                         }
                     },
@@ -1518,23 +1563,8 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "test title 2",
                     Summary = "test summary 2",
-                    Id = "prov-alloc-2",
-                    Provider = new ProviderSummary
-                    {
-                        URN = "12345",
-                        UKPRN = "1111-1",
-                        UPIN = "2222",
-                        EstablishmentNumber = "es123",
-                        Authority = "London",
-                        ProviderType = "test type",
-                        ProviderSubType = "test sub type",
-                        DateOpened = DateTimeOffset.Now,
-                        ProviderProfileIdType = "UKPRN",
-                        LACode = "77777",
-                        Id = "1111-1",
-                        Name = "test provider name 2"
-                    },
                     SpecificationId = "spec-1",
+                    ProviderId = "1111-1",
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new FundingStream
@@ -1554,7 +1584,22 @@ namespace CalculateFunding.Services.Results.Services
                                 Status = AllocationLineStatus.Held,
                                 Value = 100,
                                 Version = 1,
-                                Date = DateTimeOffset.Now
+                                Date = DateTimeOffset.Now,
+                                Provider = new ProviderSummary
+                                {
+                                    URN = "12345",
+                                    UKPRN = "1111-1",
+                                    UPIN = "2222",
+                                    EstablishmentNumber = "es123",
+                                    Authority = "London",
+                                    ProviderType = "test type",
+                                    ProviderSubType = "test sub type",
+                                    DateOpened = DateTimeOffset.Now,
+                                    ProviderProfileIdType = "UKPRN",
+                                    LACode = "77777",
+                                    Id = "1111-1",
+                                    Name = "test provider name 2"
+                                }
                             }
                         }
                     },
@@ -1570,23 +1615,8 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "test title 3",
                     Summary = "test summary 3",
-                    Id = "prov-alloc-3",
-                    Provider = new ProviderSummary
-                    {
-                        URN = "12345",
-                        UKPRN = "1111-2",
-                        UPIN = "2222",
-                        EstablishmentNumber = "es123",
-                        Authority = "London",
-                        ProviderType = "test type",
-                        ProviderSubType = "test sub type",
-                        DateOpened = DateTimeOffset.Now,
-                        ProviderProfileIdType = "UKPRN",
-                        LACode = "77777",
-                        Id = "1111-2",
-                        Name = "test provider name 3"
-                    },
                     SpecificationId = "spec-1",
+                    ProviderId = "1111-2",
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new FundingStream
@@ -1606,7 +1636,22 @@ namespace CalculateFunding.Services.Results.Services
                                 Status = AllocationLineStatus.Held,
                                 Value = 100,
                                 Version = 1,
-                                Date = DateTimeOffset.Now
+                                Date = DateTimeOffset.Now,
+                                Provider = new ProviderSummary
+                                {
+                                    URN = "12345",
+                                    UKPRN = "1111-2",
+                                    UPIN = "2222",
+                                    EstablishmentNumber = "es123",
+                                    Authority = "London",
+                                    ProviderType = "test type",
+                                    ProviderSubType = "test sub type",
+                                    DateOpened = DateTimeOffset.Now,
+                                    ProviderProfileIdType = "UKPRN",
+                                    LACode = "77777",
+                                    Id = "1111-2",
+                                    Name = "test provider name 3"
+                                }
                             }
                         }
                     },

@@ -272,7 +272,9 @@ namespace CalculateFunding.Services.Results.Services
                         {
                             Id = "prov-1"
                         }
-                    }
+                    },
+                    Specification = new Reference{ Id = "spec-1", Name ="spec1" },
+                    CalculationSpecification = new Reference { Id = "calc-1", Name = "calc1" }
                 }
             };
 
@@ -328,7 +330,9 @@ namespace CalculateFunding.Services.Results.Services
         public async Task PublishProviderResults_WhenCalcResultsAssembledButNoCurrent_LogsAndDoesNotSaveHistory()
         {
             // Arrange
-            string specificationId = "1";
+            string specificationId = "spec-1";
+            string calculationId = "calc-1";
+            string providerId = "prov-1";
 
             IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
             {
@@ -339,7 +343,9 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new PublishedProviderCalculationResult
                 {
-                    Id = "result-id"
+                    Specification = new Reference{ Id = specificationId, Name ="spec1" },
+                    CalculationSpecification = new Reference { Id = calculationId, Name = "calc1" },
+                    ProviderId = providerId
                 }
             };
 
@@ -379,13 +385,15 @@ namespace CalculateFunding.Services.Results.Services
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
 
+            string resultId = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{specificationId}{providerId}{calculationId}"));
+
             // Act
             await resultsService.PublishProviderResults(message);
 
             //Assert
             logger
                 .Received(1)
-                .Error("Null current object found on published calculation result for id: result-id");
+                .Error($"Null current object found on published calculation result for id: {resultId}");
 
             await
                 publishedProviderCalculationResultsRepository
@@ -397,7 +405,9 @@ namespace CalculateFunding.Services.Results.Services
         public async Task PublishProviderResults_WhenCalcResultsAssembledWithNullHistory_EnsuresSavesCalcResultsAndHistoryWithCorrectValues()
         {
             // Arrange
-            string specificationId = "1";
+            string specificationId = "spec-1";
+            string calculationId = "calc-1";
+            string providerId = "prov-1";
 
             IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
             {
@@ -408,12 +418,14 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new PublishedProviderCalculationResult
                 {
-                    Id = "id-1",
+                    Specification = new Reference{ Id = specificationId, Name ="spec1" },
+                    CalculationSpecification = new Reference { Id = calculationId, Name = "calc1" },
+                    ProviderId = providerId,
                     Current = new PublishedProviderCalculationResultCalculationVersion
                     {
                         Provider = new ProviderSummary
                         {
-                            Id = "prov-1"
+                            Id = providerId
                         },
                         CalculationType = PublishedCalculationType.Funding,
                         Author = new Reference("author-1", "author1"),
@@ -461,6 +473,8 @@ namespace CalculateFunding.Services.Results.Services
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
 
+            string resultId = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{specificationId}{providerId}{calculationId}"));
+
             // Act
             await resultsService.PublishProviderResults(message);
 
@@ -470,7 +484,7 @@ namespace CalculateFunding.Services.Results.Services
                     .Received(1)
                     .CreatePublishedCalculationResults(Arg.Is<IEnumerable<PublishedProviderCalculationResult>>(
                         m => m.Count() == 1 &&
-                        m.First().Id == "id-1" &&
+                        m.First().Id == resultId &&
                         m.First().Current.CalculationType == PublishedCalculationType.Funding &&
                         m.First().Current.Author.Id == "author-1" &&
                         m.First().Current.Author.Name == "author1" &&
@@ -485,23 +499,25 @@ namespace CalculateFunding.Services.Results.Services
                 .Received(1)
                 .SavePublishedCalculationResultsHistory(Arg.Is<IEnumerable<PublishedProviderCalculationResultHistory>>(
                     m => m.Count() == 1 &&
-                    m.First().Id == "id-1_hist" &&
+                    m.First().Id == $"{resultId}_hist" &&
                     m.First().ProviderId == "prov-1" &&
-                    m.First().CalculationnResultId == "id-1" &&
+                    m.First().CalculationnResultId == resultId &&
                     m.First().History.First().Author.Id == "author-1" &&
                     m.First().History.First().Author.Name == "author1" &&
                     m.First().History.First().Commment == "comment" &&
                     m.First().History.First().Date.Date == DateTimeOffset.Now.Date &&
                     m.First().History.First().Value == 100 &&
                     m.First().History.First().Version == 1 &&
-                    m.First().History.First().Provider.Id == "prov-1"));
+                    m.First().History.First().Provider.Id == providerId));
         }
 
         [TestMethod]
         public async Task PublishProviderResults_WhenCalcResultsAssembledWithNoHistory_EnsuresSavesCalcResultsAndHistoryWithCorrectValues()
         {
             // Arrange
-            string specificationId = "1";
+            string specificationId = "spec-1";
+            string calculationId = "calc-1";
+            string providerId = "prov-1";
 
             IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
             {
@@ -512,12 +528,14 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new PublishedProviderCalculationResult
                 {
-                    Id = "id-1",
+                    Specification = new Reference{ Id = specificationId, Name ="spec1" },
+                    CalculationSpecification = new Reference { Id = calculationId, Name = "calc1" },
+                    ProviderId = providerId,
                     Current = new PublishedProviderCalculationResultCalculationVersion
                     {
                         Provider = new ProviderSummary
                         {
-                            Id = "prov-1"
+                            Id = providerId
                         },
                         CalculationType = PublishedCalculationType.Funding,
                         Author = new Reference("author-1", "author1"),
@@ -562,6 +580,8 @@ namespace CalculateFunding.Services.Results.Services
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
 
+            string resultId = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{specificationId}{providerId}{calculationId}"));
+
             // Act
             await resultsService.PublishProviderResults(message);
 
@@ -571,7 +591,7 @@ namespace CalculateFunding.Services.Results.Services
                     .Received(1)
                     .CreatePublishedCalculationResults(Arg.Is<IEnumerable<PublishedProviderCalculationResult>>(
                         m => m.Count() == 1 && 
-                        m.First().Id == "id-1" &&
+                        m.First().Id == resultId &&
                         m.First().Current.CalculationType == PublishedCalculationType.Funding &&
                         m.First().Current.Author.Id == "author-1" &&
                         m.First().Current.Author.Name == "author1" &&
@@ -579,16 +599,16 @@ namespace CalculateFunding.Services.Results.Services
                         m.First().Current.Date.Date == DateTimeOffset.Now.Date && 
                         m.First().Current.Value == 100 &&
                         m.First().Current.Version == 1 &&
-                        m.First().Current.Provider.Id == "prov-1"));
+                        m.First().Current.Provider.Id == providerId));
 
             await
                 publishedProviderCalculationResultsRepository
                 .Received(1)
                 .SavePublishedCalculationResultsHistory(Arg.Is<IEnumerable<PublishedProviderCalculationResultHistory>>(
                     m => m.Count() == 1 &&
-                    m.First().Id == "id-1_hist" &&
+                    m.First().Id == $"{resultId}_hist" &&
                     m.First().ProviderId == "prov-1" &&
-                    m.First().CalculationnResultId == "id-1" &&
+                    m.First().CalculationnResultId == resultId &&
                     m.First().History.First().Author.Id == "author-1" &&
                     m.First().History.First().Author.Name == "author1" &&
                     m.First().History.First().Commment == "comment" &&
@@ -602,7 +622,11 @@ namespace CalculateFunding.Services.Results.Services
         public async Task PublishProviderResults_WhenCalcResultsAssembledWithHistory_EnsuresSavesCalcResultsAndHistoryWithCorrectValues()
         {
             // Arrange
-            string specificationId = "1";
+            string specificationId = "spec-1";
+            string calculationId = "calc-1";
+            string providerId = "prov-1";
+
+            string resultId = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{specificationId}{providerId}{calculationId}"));
 
             IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
             {
@@ -613,12 +637,14 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new PublishedProviderCalculationResult
                 {
-                    Id = "id-1",
+                    Specification = new Reference{ Id = specificationId, Name ="spec1" },
+                    CalculationSpecification = new Reference { Id = calculationId, Name = "calc1" },
+                    ProviderId = providerId,
                     Current = new PublishedProviderCalculationResultCalculationVersion
                     {
                         Provider = new ProviderSummary
                         {
-                            Id = "prov-1"
+                            Id = providerId
                         },
                         CalculationType = PublishedCalculationType.Funding,
                         Author = new Reference("author-2", "author2"),
@@ -634,14 +660,16 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new PublishedProviderCalculationResultHistory
                 {
-                    CalculationnResultId = "id-1",
+                    CalculationnResultId = resultId,
+                    SpecificationId = specificationId,
+                    ProviderId = providerId,
                     History = new[]
                     {
                         new PublishedProviderCalculationResultCalculationVersion
                         {
                             Provider = new ProviderSummary
                             {
-                                Id = "prov-1"
+                                Id = providerId
                             },
                             CalculationType = PublishedCalculationType.Funding,
                             Author = new Reference("author-1", "author1"),
@@ -714,14 +742,14 @@ namespace CalculateFunding.Services.Results.Services
                     m.First().History.First().Date.Date == DateTimeOffset.Now.Date &&
                     m.First().History.First().Value == 100 &&
                     m.First().History.First().Version == 1 &&
-                    m.First().History.First().Provider.Id == "prov-1" &&
+                    m.First().History.First().Provider.Id == providerId &&
                     m.First().History.ElementAt(1).Author.Id == "author-2" &&
                     m.First().History.ElementAt(1).Author.Name == "author2" &&
                     m.First().History.ElementAt(1).Commment == "comment" &&
                     m.First().History.ElementAt(1).Date.Date == DateTimeOffset.Now.Date &&
                     m.First().History.ElementAt(1).Value == 200 &&
                     m.First().History.ElementAt(1).Version == 2 &&
-                    m.First().History.ElementAt(1).Provider.Id == "prov-1"));
+                    m.First().History.ElementAt(1).Provider.Id == providerId));
         }
     }
 }

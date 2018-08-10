@@ -211,9 +211,7 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "Test 1",
-                    Id = "1",
                     Summary = "testing",
-                    Provider = new ProviderSummary { Id = "1", Authority = "Auth1", ProviderType = "PType1" },
                     FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -221,7 +219,7 @@ namespace CalculateFunding.Services.Results.Services
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
                             AllocationLine = new Models.Reference { Name = "AllocLine1" },
-                            Current = new PublishedAllocationLineResultVersion { Value = 12 }
+                            Current = new PublishedAllocationLineResultVersion { Value = 12, Provider = new ProviderSummary { Id = "1", Authority = "Auth1", ProviderType = "PType1" } }
                         }
                     }
                 }
@@ -281,9 +279,7 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "Test 1",
-                    Id = "1",
                     Summary = "testing",
-                    Provider = new ProviderSummary { Id = "1", Authority = "Auth1", ProviderType = "PType1" },
                     FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -291,16 +287,14 @@ namespace CalculateFunding.Services.Results.Services
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
                             AllocationLine = new Models.Reference { Name = "AllocLine1" },
-                            Current = new PublishedAllocationLineResultVersion { Value = 12 }
+                            Current = new PublishedAllocationLineResultVersion { Value = 12, Provider = new ProviderSummary { Id = "1", Authority = "Auth1", ProviderType = "PType1" } }
                         }
                     }
                 },
                 new PublishedProviderResult
                 {
                     Title = "Test 2",
-                    Id = "2",
                     Summary = "testing",
-                    Provider = new ProviderSummary { Id = "2", Authority = "Auth2", ProviderType = "PType2" },
                     FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -308,7 +302,7 @@ namespace CalculateFunding.Services.Results.Services
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
                             AllocationLine = new Models.Reference { Name = "AllocLine2" },
-                            Current = new PublishedAllocationLineResultVersion { Value = 15 }
+                            Current = new PublishedAllocationLineResultVersion { Value = 15, Provider = new ProviderSummary { Id = "2", Authority = "Auth2", ProviderType = "PType2" } }
                         }
                     }
                 }
@@ -368,9 +362,7 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "Test 1",
-                    Id = "1",
                     Summary = "testing",
-                    Provider = new ProviderSummary { Id = "1", Authority = "Auth1", ProviderType = "PType1" },
                     FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -378,16 +370,14 @@ namespace CalculateFunding.Services.Results.Services
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
                             AllocationLine = new Models.Reference { Name = "AllocLine1" },
-                            Current = new PublishedAllocationLineResultVersion { Value = 12 }
+                            Current = new PublishedAllocationLineResultVersion { Value = 12, Provider = new ProviderSummary { Id = "1", Authority = "Auth1", ProviderType = "PType1" } }
                         }
                     }
                 },
                 new PublishedProviderResult
                 {
                     Title = "Test 2",
-                    Id = "2",
                     Summary = "testing",
-                    Provider = new ProviderSummary { Id = "2", Authority = "Auth1", ProviderType = "PType1" },
                     FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -395,7 +385,7 @@ namespace CalculateFunding.Services.Results.Services
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
                             AllocationLine = new Models.Reference { Name = "AllocLine2" },
-                            Current = new PublishedAllocationLineResultVersion { Value = 15 }
+                            Current = new PublishedAllocationLineResultVersion { Value = 15, Provider = new ProviderSummary { Id = "2", Authority = "Auth1", ProviderType = "PType1" } }
                         }
                     }
                 }

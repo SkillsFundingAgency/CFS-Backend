@@ -15,6 +15,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
@@ -82,9 +83,8 @@ namespace CalculateFunding.Services.Results
                     {
                         PublishedProviderResult publishedProviderResult = new PublishedProviderResult
                         {
-                            Id = Guid.NewGuid().ToString("N"),
+                            ProviderId = providerResult.Provider.Id,
                             SpecificationId = specificationId,
-                            Provider = providerResult.Provider,
                             FundingStreamResult = publishedFundingStreamResult,
                             Summary = $"{providerResult.Provider.ProviderProfileIdType}: {providerResult.Provider.Id}, version {publishedFundingStreamResult.AllocationLineResult.Current.Version}",
                             Title = $"Allocation {publishedFundingStreamResult.AllocationLineResult.AllocationLine.Name} was {publishedFundingStreamResult.AllocationLineResult.Current.Status.ToString()}",
@@ -128,14 +128,20 @@ namespace CalculateFunding.Services.Results
             {
                 foreach (CalculationResult calculationResult in providerResult.CalculationResults)
                 {
-                    (Policy policy, Policy parentPolicy) = FindPolicy(calculationResult.CalculationSpecification.Id, specificationCurrentVersion.Policies);
+                    (Policy policy, Policy parentPolicy, Models.Specs.Calculation calculation) = FindPolicy(calculationResult.CalculationSpecification.Id, specificationCurrentVersion.Policies);
+
+                    if(calculation.CalculationType == Models.Specs.CalculationType.Number && !calculation.IsPublic)
+                    {
+                        continue;
+                    }
 
                     PublishedProviderCalculationResult publishedProviderCalculationResult = new PublishedProviderCalculationResult()
                     {
-                        Id = Guid.NewGuid().ToString("N"),
                         ProviderId = providerResult.Provider.Id,
                         Approved = null,
                         CalculationSpecification = calculationResult.CalculationSpecification,
+                        FundingPeriod = specificationCurrentVersion.FundingPeriod,
+                        AllocationLine = calculationResult.AllocationLine,
                         Current = new PublishedProviderCalculationResultCalculationVersion()
                         {
                             Author = author,
@@ -152,12 +158,12 @@ namespace CalculateFunding.Services.Results
 
                     if(policy != null)
                     {
-                        publishedProviderCalculationResult.Policy = new Reference(policy.Id, policy.Name);
+                        publishedProviderCalculationResult.Policy = new PolicySummary(policy.Id, policy.Name, policy.Description);
                     }
 
                     if(parentPolicy != null)
                     {
-                        publishedProviderCalculationResult.ParentPolicy = new Reference(parentPolicy.Id, parentPolicy.Name);
+                        publishedProviderCalculationResult.ParentPolicy = new PolicySummary(parentPolicy.Id, parentPolicy.Name, parentPolicy.Description);
                     }
 
                     publishedProviderCalculationResults.Add(publishedProviderCalculationResult);
@@ -167,7 +173,7 @@ namespace CalculateFunding.Services.Results
             return publishedProviderCalculationResults;
         }
 
-        private (Policy policy, Policy parentPolicy) FindPolicy(string calculationSpecificationId, IEnumerable<Policy> policies)
+        private (Policy policy, Policy parentPolicy, Models.Specs.Calculation calculation) FindPolicy(string calculationSpecificationId, IEnumerable<Policy> policies)
         {
             foreach (Policy policy in policies)
             {
@@ -175,9 +181,10 @@ namespace CalculateFunding.Services.Results
                 {
                     if (policy.Calculations != null)
                     {
-                        if (policy.Calculations.Any(c => c.Id == calculationSpecificationId))
+                        Models.Specs.Calculation calc = policy.Calculations.FirstOrDefault(c => c.Id == calculationSpecificationId);
+                        if (calc != null)
                         {
-                            return (policy, null);
+                            return (policy, null, calc);
                         }
                     }
 
@@ -185,16 +192,18 @@ namespace CalculateFunding.Services.Results
                     {
                         foreach (Policy subpolicy in policy.SubPolicies)
                         {
+                            Models.Specs.Calculation calc = subpolicy.Calculations.FirstOrDefault(c => c.Id == calculationSpecificationId);
+
                             if (subpolicy.Calculations.Any(c => c.Id == calculationSpecificationId))
                             {
-                                return (subpolicy, policy);
+                                return (subpolicy, policy, calc);
                             }
                         }
                     }
                 }
             }
 
-            return (null, null);
+            return (null, null, null);
         }
 
         private PublishedCalculationType ConvertCalculationType(Models.Calcs.CalculationType calculationType)
@@ -242,6 +251,7 @@ namespace CalculateFunding.Services.Results
                             Status = AllocationLineStatus.Held,
                             Version = 1,
                             Value = allocationLineResultGroup.Sum(m => m.Value),
+                            Provider = providerResult.Provider
                         };
 
                         publishedFundingStreamResult.AllocationLineResult = new PublishedAllocationLineResult

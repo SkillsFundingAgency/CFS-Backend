@@ -318,15 +318,15 @@ namespace CalculateFunding.Services.Results.Services
             result.Title.Should().Be("Allocation test allocation line 1 was Held");
             result.Summary.Should().Be("UKPRN: ukprn-001, version 1");
             result.Id.Should().NotBeEmpty();
-            result.Provider.URN.Should().Be("urn");
-            result.Provider.UKPRN.Should().Be("ukprn");
-            result.Provider.UPIN.Should().Be("upin");
-            result.Provider.EstablishmentNumber.Should().Be("12345");
-            result.Provider.Authority.Should().Be("authority");
-            result.Provider.ProviderType.Should().Be("prov type");
-            result.Provider.ProviderSubType.Should().Be("prov sub type");
-            result.Provider.Id.Should().Be("ukprn-001");
-            result.Provider.Name.Should().Be("prov name");
+            result.FundingStreamResult.AllocationLineResult.Current.Provider.URN.Should().Be("urn");
+            result.FundingStreamResult.AllocationLineResult.Current.Provider.UKPRN.Should().Be("ukprn");
+            result.FundingStreamResult.AllocationLineResult.Current.Provider.UPIN.Should().Be("upin");
+            result.FundingStreamResult.AllocationLineResult.Current.Provider.EstablishmentNumber.Should().Be("12345");
+            result.FundingStreamResult.AllocationLineResult.Current.Provider.Authority.Should().Be("authority");
+            result.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderType.Should().Be("prov type");
+            result.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderSubType.Should().Be("prov sub type");
+            result.FundingStreamResult.AllocationLineResult.Current.Provider.Id.Should().Be("ukprn-001");
+            result.FundingStreamResult.AllocationLineResult.Current.Provider.Name.Should().Be("prov name");
             result.SpecificationId.Should().Be("spec-id-1");
             result.FundingStreamResult.FundingStream.Id.Should().Be("fs-001");
             result.FundingStreamResult.FundingStream.Name.Should().Be("fs one");
@@ -667,7 +667,7 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = new List<ProviderResult>();
             Reference author = new Reference("a", "Author Name");
             SpecificationCurrentVersion specification = GenerateSpecificationWithPoliciesAndSubpolicies();
-
+           
             providerResults.Add(new ProviderResult()
             {
                 AllocationLineResults = new List<AllocationLineResult>(),
@@ -746,7 +746,7 @@ namespace CalculateFunding.Services.Results.Services
             // Assert
             results
                 .Should()
-                .HaveCount(6);
+                .HaveCount(5);
 
             PublishedProviderCalculationResult result = results.First();
 
@@ -783,26 +783,19 @@ namespace CalculateFunding.Services.Results.Services
             resultsList[2].ParentPolicy.Should().BeNull();
             resultsList[2].Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
 
-            resultsList[3].CalculationSpecification.Should().BeEquivalentTo(new Reference("subpolicy2Calc3", "Subpolicy 1 Calculation 3"));
+            resultsList[3].CalculationSpecification.Should().BeEquivalentTo(new Reference("calc1", "Calculation 1 - Policy 2"));
             resultsList[3].ProviderId.Should().Be("provider2");
-            resultsList[3].Current.Value.Should().Be(2.1M);
-            resultsList[3].Policy.Should().BeEquivalentTo(new Reference("subpolicy2", "SubPolicy 2"));
-            resultsList[3].ParentPolicy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
-            resultsList[3].Current.CalculationType.Should().Be(PublishedCalculationType.Number);
+            resultsList[3].Current.Value.Should().Be(2.2M);
+            resultsList[3].Policy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
+            resultsList[3].ParentPolicy.Should().BeNull();
+            resultsList[3].Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
 
-            resultsList[4].CalculationSpecification.Should().BeEquivalentTo(new Reference("calc1", "Calculation 1 - Policy 2"));
+            resultsList[4].CalculationSpecification.Should().BeEquivalentTo(new Reference("calc2", "Calculation 2 - Policy 2"));
             resultsList[4].ProviderId.Should().Be("provider2");
-            resultsList[4].Current.Value.Should().Be(2.2M);
+            resultsList[4].Current.Value.Should().Be(2.3M);
             resultsList[4].Policy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
             resultsList[4].ParentPolicy.Should().BeNull();
             resultsList[4].Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
-
-            resultsList[5].CalculationSpecification.Should().BeEquivalentTo(new Reference("calc2", "Calculation 2 - Policy 2"));
-            resultsList[5].ProviderId.Should().Be("provider2");
-            resultsList[5].Current.Value.Should().Be(2.3M);
-            resultsList[5].Policy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
-            resultsList[5].ParentPolicy.Should().BeNull();
-            resultsList[5].Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
         }
 
         static PublishedProviderResultsAssemblerService CreateAssemblerService(

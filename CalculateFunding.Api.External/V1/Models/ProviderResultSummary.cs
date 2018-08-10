@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
 
@@ -10,19 +9,13 @@ namespace CalculateFunding.Api.External.V1.Models
     {
         public ProviderResultSummary()
         {
+            FundingPeriodResults = new ProviderPeriodResultSummary[0];
         }
 
-        public ProviderResultSummary(Period period, Provider provider, List<FundingStreamResultSummary> fundingStreams)
-        {
-            Period = period;
-            Provider = provider;
-            FundingStreamResults = fundingStreams;
-        }
-
-        public Period Period { get; set; }
+        public decimal TotalAmount { get; set; }
 
         public Provider Provider { get; set; }
 
-        public List<FundingStreamResultSummary> FundingStreamResults { get; set; }
+        public ProviderPeriodResultSummary[] FundingPeriodResults { get; set; }
     }
 }

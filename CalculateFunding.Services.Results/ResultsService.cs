@@ -1,32 +1,31 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Models;
+using CalculateFunding.Models.Aggregations;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.ResultModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
-using CalculateFunding.Repositories.Common.Cosmos;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Models.Aggregations;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Models;
-using CalculateFunding.Services.Results.ResultModels;
+using System;
 using System.Collections.Concurrent;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Models.Health;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
 {
@@ -412,22 +411,6 @@ namespace CalculateFunding.Services.Results
 
             Reference author = message.GetUserDetails();
 
-            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsAssemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
-
-            try
-            {
-                await _publishedProviderResultsRepository.SavePublishedResults(publishedProviderResults.ToList());
-
-                await SavePublishedAllocationLineResultVersionHistory(publishedProviderResults, specificationId);
-
-                await UpdateAllocationNotificationsFeedIndex(publishedProviderResults);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, $"Failed to create published provider results for specification: {specificationId}");
-                throw new Exception($"Failed to create published provider results for specification: {specificationId}", ex);
-            }
-
             IEnumerable<PublishedProviderCalculationResult> publishedProviderCalcuationResults = _publishedProviderResultsAssemblerService.AssemblePublishedCalculationResults(providerResults, author, specification);
 
             try
@@ -440,6 +423,37 @@ namespace CalculateFunding.Services.Results
             {
                 _logger.Error(ex, $"Failed to create published provider calculation results for specification: {specificationId}");
                 throw new Exception($"Failed to create published provider calculation results for specification: {specificationId}", ex);
+            }
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsAssemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
+
+            try
+            {
+                await _publishedProviderResultsRepository.SavePublishedResults(publishedProviderResults.ToList());
+
+                await SavePublishedAllocationLineResultVersionHistory(publishedProviderResults, specificationId);
+
+                await UpdateAllocationNotificationsFeedIndex(publishedProviderResults, specification);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, $"Failed to create published provider results for specification: {specificationId}");
+                throw new Exception($"Failed to create published provider results for specification: {specificationId}", ex);
+            }
+        }
+
+        void AssignRelatedCalculationResultIdsToAllocationResults(IEnumerable<PublishedProviderResult> publishedProviderResults, IEnumerable<PublishedProviderCalculationResult> publishedProviderCalcuationResults)
+        {
+            foreach(PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                string fundingPeriodId = publishedProviderResult.FundingPeriod.Id;
+                string providerId = publishedProviderResult.ProviderId;
+                string specificationId = publishedProviderResult.SpecificationId;
+
+                IEnumerable<PublishedProviderCalculationResult> calcResults = publishedProviderCalcuationResults.Where(m =>
+                    m.FundingPeriod?.Id == fundingPeriodId &&
+                    m.ProviderId == providerId &&
+                    m.Specification?.Id == specificationId);
             }
         }
 
@@ -636,9 +650,9 @@ namespace CalculateFunding.Services.Results
 
             ConfirmPublishApproveModel confirmationDetails = new ConfirmPublishApproveModel
             {
-                NumberOfProviders = publishedProviderResults.Select(r => r.Provider.Id).Distinct().Count(),
-                ProviderTypes = publishedProviderResults.Select(r => r.Provider.ProviderType).Distinct().ToArray(),
-                LocalAuthorities = publishedProviderResults.Select(r => r.Provider.Authority).Distinct().ToArray(),
+                NumberOfProviders = publishedProviderResults.Select(r => r.FundingStreamResult.AllocationLineResult.Current.Provider.Id).Distinct().Count(),
+                ProviderTypes = publishedProviderResults.Select(r => r.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderType).Distinct().ToArray(),
+                LocalAuthorities = publishedProviderResults.Select(r => r.FundingStreamResult.AllocationLineResult.Current.Provider.Authority).Distinct().ToArray(),
                 FundingPeriod = publishedProviderResults.Select(r => r.FundingPeriod.Name).FirstOrDefault()
             };
 
@@ -812,22 +826,29 @@ namespace CalculateFunding.Services.Results
         {
             IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetAllNonHeldPublishedProviderResults());
 
-            try
+            if (publishedProviderResults.IsNullOrEmpty())
             {
-                if (!publishedProviderResults.IsNullOrEmpty())
-                {
-                    await UpdateAllocationNotificationsFeedIndex(publishedProviderResults);
-                }
-                else
-                {
-                    _logger.Warning("No published provider results were found to index.");
-                }
+                _logger.Warning("No published provider results were found to index.");
             }
-            catch(Exception ex)
+            else
             {
-                _logger.Error(ex, "Failed to index allocation feeds");
+                IEnumerable<string> specificationIds = publishedProviderResults.DistinctBy(m => m.SpecificationId).Select(m => m.SpecificationId);
 
-                return new InternalServerErrorResult(ex.Message);
+                foreach (string specificationId in specificationIds)
+                {
+                    SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(specificationId));
+
+                    try
+                    {
+                        await UpdateAllocationNotificationsFeedIndex(publishedProviderResults, specification);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex, "Failed to index allocation feeds");
+
+                        return new InternalServerErrorResult(ex.Message);
+                    }
+                }
             }
 
             return new NoContentResult();
@@ -842,7 +863,7 @@ namespace CalculateFunding.Services.Results
 
             IList<PublishedProviderResultModel> results = new List<PublishedProviderResultModel>();
 
-            IEnumerable<IGrouping<string, PublishedProviderResult>> providerResultsGroups = publishedProviderResults.GroupBy(m => m.Provider.Id);
+            IEnumerable<IGrouping<string, PublishedProviderResult>> providerResultsGroups = publishedProviderResults.GroupBy(m => m.ProviderId);
 
             foreach (IGrouping<string, PublishedProviderResult> providerResultGroup in providerResultsGroups)
             {
@@ -852,8 +873,8 @@ namespace CalculateFunding.Services.Results
 
                 PublishedProviderResultModel publishedProviderResultModel = new PublishedProviderResultModel
                 {
-                    ProviderId = providerResult.Provider.Id,
-                    ProviderName = providerResult.Provider.Name
+                    ProviderId = providerResult.ProviderId,
+                    ProviderName = providerResult.FundingStreamResult.AllocationLineResult.Current.Provider.Name
                 };
 
                 if (!results.Any(m => m.ProviderId == providerResultGroup.Key))
@@ -912,7 +933,7 @@ namespace CalculateFunding.Services.Results
                     continue;
                 }
 
-                IEnumerable<PublishedProviderResult> results = publishedProviderResults.Where(m => m.Provider?.Id == providerstatusModel.ProviderId);
+                IEnumerable<PublishedProviderResult> results = publishedProviderResults.Where(m => m.ProviderId == providerstatusModel.ProviderId);
 
                 if (results.IsNullOrEmpty())
                 {
@@ -987,13 +1008,15 @@ namespace CalculateFunding.Services.Results
 
             if (resultsToUpdate.Any())
             {
+                SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(specificationId));
+
                 try
                 {
                     await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(resultsToUpdate));
 
                     await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedAllocationLineResultsHistory(historyResultsToUpdate.ToList()));
 
-                    await UpdateAllocationNotificationsFeedIndex(resultsToUpdate);
+                    await UpdateAllocationNotificationsFeedIndex(resultsToUpdate, specification);
                 }
                 catch (Exception ex)
                 {
@@ -1015,8 +1038,8 @@ namespace CalculateFunding.Services.Results
                     OrganisationId = result.ProviderId,
                     AlternateOrgainisation = new AlternateOrgainisation
                     {
-                        Identifier = result.Provider.Id,
-                        IdentifierName = string.IsNullOrWhiteSpace(result.Provider.ProviderProfileIdType) ? "UKPRN" : result.Provider.ProviderProfileIdType
+                        Identifier = result.ProviderId,
+                        IdentifierName = string.IsNullOrWhiteSpace(result.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderProfileIdType) ? "UKPRN" : result.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderProfileIdType
                     }
                 },
                 FundingStreamPeriod = result.FundingPeriod.Id,
@@ -1088,7 +1111,7 @@ namespace CalculateFunding.Services.Results
             {
                 PublishedAllocationLineResult  publishedAllocationLineResult = publishedProviderResult.FundingStreamResult.AllocationLineResult;
 
-                IEnumerable<PublishedAllocationLineResultHistory> publishedAllocationLineResultHistoryList = historyResults?.Where(m => m.ProviderId == publishedProviderResult.Provider.Id);
+                IEnumerable<PublishedAllocationLineResultHistory> publishedAllocationLineResultHistoryList = historyResults?.Where(m => m.ProviderId == publishedProviderResult.ProviderId);
 
                 PublishedAllocationLineResultHistory publishedAllocationLineResultHistory = publishedAllocationLineResultHistoryList?.FirstOrDefault(m => m.AllocationResultId == publishedProviderResult.Id);
 
@@ -1096,7 +1119,7 @@ namespace CalculateFunding.Services.Results
                 {
                     publishedAllocationLineResultHistory = new PublishedAllocationLineResultHistory
                     {
-                        ProviderId = publishedProviderResult.Provider.Id,
+                        ProviderId = publishedProviderResult.ProviderId,
                         AllocationResultId = publishedProviderResult.Id,
                         SpecificationId = specificationId,
                         AllocationLine = publishedAllocationLineResult.AllocationLine,
@@ -1164,9 +1187,9 @@ namespace CalculateFunding.Services.Results
             }
         }
 
-        async Task UpdateAllocationNotificationsFeedIndex(IEnumerable<PublishedProviderResult> publishedProviderResults)
+        async Task UpdateAllocationNotificationsFeedIndex(IEnumerable<PublishedProviderResult> publishedProviderResults, SpecificationCurrentVersion specification)
         {
-            IEnumerable<AllocationNotificationFeedIndex> notifications = BuildAllocationNotificationIndexItems(publishedProviderResults);
+            IEnumerable<AllocationNotificationFeedIndex> notifications = await BuildAllocationNotificationIndexItems(publishedProviderResults, specification);
 
             if (notifications.Any())
             {
@@ -1182,18 +1205,24 @@ namespace CalculateFunding.Services.Results
             }
         }
 
-        IEnumerable<AllocationNotificationFeedIndex> BuildAllocationNotificationIndexItems(IEnumerable<PublishedProviderResult> publishedProviderResults)
+        async Task<IEnumerable<AllocationNotificationFeedIndex>> BuildAllocationNotificationIndexItems(IEnumerable<PublishedProviderResult> publishedProviderResults, SpecificationCurrentVersion specification)
         {
             Guard.ArgumentNotNull(publishedProviderResults, nameof(publishedProviderResults));
 
+            Guard.ArgumentNotNull(specification, nameof(specification));
+
             IList<AllocationNotificationFeedIndex> notifications = new List<AllocationNotificationFeedIndex>();
+
+            IEnumerable<PublishedProviderCalculationResult> calculationResults = (await _publishedProviderCalculationResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderCalculationResultsRepository.GetPublishedProviderCalculationResultsBySpecificationId(specification.Id))).ToList();
 
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
-                if (publishedProviderResult.FundingStreamResult == null || publishedProviderResult.FundingStreamResult.AllocationLineResult == null)
+                if (publishedProviderResult.FundingStreamResult == null || publishedProviderResult.FundingStreamResult.AllocationLineResult == null || publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Held)
                 {
                     continue;
                 }
+
+                IEnumerable<PublishedProviderCalculationResult> providerCalculationResults = calculationResults.Where(m => m.ProviderId == publishedProviderResult.ProviderId);
 
                 notifications.Add(new AllocationNotificationFeedIndex
                 {
@@ -1209,10 +1238,10 @@ namespace CalculateFunding.Services.Results
                     FundingPeriodId = publishedProviderResult.FundingPeriod.Id,
                     FundingPeriodStartDate = publishedProviderResult.FundingPeriod.StartDate,
                     FundingPeriodEndDate = publishedProviderResult.FundingPeriod.EndDate,
-                    ProviderId = publishedProviderResult.Provider.Id,
-                    ProviderUkPrn = publishedProviderResult.Provider.UKPRN,
-                    ProviderUpin = publishedProviderResult.Provider.UPIN,
-                    ProviderOpenDate = publishedProviderResult.Provider.DateOpened,
+                    ProviderId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Id,
+                    ProviderUkPrn = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.UKPRN,
+                    ProviderUpin = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.UPIN,
+                    ProviderOpenDate = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DateOpened,
                     AllocationLineId = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id,
                     AllocationLineName = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name,
                     AllocationVersionNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Version,
@@ -1220,16 +1249,87 @@ namespace CalculateFunding.Services.Results
                     AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue
                                             ? Convert.ToDouble(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value) : 0,
                     ProviderProfiling = JsonConvert.SerializeObject(publishedProviderResult.ProfilingPeriods),
-                    ProviderName = publishedProviderResult.Provider.Name,
-                    LaCode = publishedProviderResult.Provider.LACode,
-                    Authority = publishedProviderResult.Provider.Authority,
-                    ProviderType = publishedProviderResult.Provider.ProviderType,
-                    SubProviderType = publishedProviderResult.Provider.ProviderSubType,
-                    EstablishmentNumber = publishedProviderResult.Provider.EstablishmentNumber
+                    ProviderName = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Name,
+                    LaCode = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.LACode,
+                    Authority = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Authority,
+                    ProviderType = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderType,
+                    SubProviderType = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderSubType,
+                    EstablishmentNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.EstablishmentNumber,
+                    PolicySummaries = JsonConvert.SerializeObject(CreatePolicySummaries(providerCalculationResults, specification))
                 });
             }
 
             return notifications;
         }
+
+        IEnumerable<PublishedProviderResultsPolicySummary> CreatePolicySummaries(IEnumerable<PublishedProviderCalculationResult> calculationResults, SpecificationCurrentVersion specification)
+        {
+            IList<PublishedProviderResultsPolicySummary> policySummaries = new List<PublishedProviderResultsPolicySummary>();
+
+            foreach(Policy policy in specification.Policies)
+            {
+                PublishedProviderResultsPolicySummary publishedProviderResultsPolicySummary = new PublishedProviderResultsPolicySummary
+                {
+                    Policy = new PolicySummary(policy.Id, policy.Name, policy.Description),
+                    Calculations = AddCalculationSummaries(policy, calculationResults).ToArraySafe(),
+                };
+                
+                foreach(Policy subPolicy in policy.SubPolicies)
+                {
+                    PublishedProviderResultsPolicySummary publishedProviderResultsSubPolicySummary = new PublishedProviderResultsPolicySummary
+                    {
+                        Policy = new PolicySummary(subPolicy.Id, subPolicy.Name, subPolicy.Description),
+                        Calculations = AddCalculationSummaries(subPolicy, calculationResults).ToArraySafe(),
+                    };
+
+                    publishedProviderResultsPolicySummary.Policies = publishedProviderResultsPolicySummary.Policies.Concat(new[] { publishedProviderResultsSubPolicySummary }).ToArraySafe();
+                }
+
+                policySummaries.Add(publishedProviderResultsPolicySummary);
+
+            }
+
+            return policySummaries;
+        }
+
+        IEnumerable<PublishedProviderResultsCalculationSummary> AddCalculationSummaries(Policy policy, IEnumerable<PublishedProviderCalculationResult> calculationResults)
+        {
+            IEnumerable<PublishedProviderResultsCalculationSummary> calculationSummaries = Enumerable.Empty<PublishedProviderResultsCalculationSummary>();
+
+            if(policy.Calculations.IsNullOrEmpty())
+            {
+                return calculationSummaries;
+            }
+
+            foreach (Calculation calculation in policy.Calculations)
+            {
+                if (calculation.CalculationType == CalculationType.Number && calculation.IsPublic == false)
+                {
+                    continue;
+                }
+
+                PublishedProviderCalculationResult publishedProviderCalculationResult = calculationResults.FirstOrDefault(m => m.CalculationSpecification.Id == calculation.Id);
+
+                if (publishedProviderCalculationResult == null)
+                {
+                    _logger.Error($"Failed to find published calculation result for calculation id {calculation.Id}");
+
+                    continue;
+                }
+
+                PublishedProviderResultsCalculationSummary calculationSummary = new PublishedProviderResultsCalculationSummary
+                {
+                    Amount = publishedProviderCalculationResult.Current.Value.HasValue ? publishedProviderCalculationResult.Current.Value.Value : 0,
+                    CalculationType = publishedProviderCalculationResult.Current.CalculationType,
+                    Name = publishedProviderCalculationResult.CalculationSpecification.Name,
+                    Version = publishedProviderCalculationResult.Current.Version
+                };
+
+                calculationSummaries = calculationSummaries.Concat(new[] { calculationSummary });
+            }
+
+            return calculationSummaries;
+        }
+
     }
 }

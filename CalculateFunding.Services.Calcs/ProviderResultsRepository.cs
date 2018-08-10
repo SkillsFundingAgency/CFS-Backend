@@ -143,6 +143,8 @@ namespace CalculateFunding.Services.Calcs
                 }
             }
 
+            await _cacheProvider.KeyDeleteAsync<ProviderSummary>(cacheKey);
+
             await _cacheProvider.CreateListAsync<ProviderSummary>(providerSummaries, cacheKey);
         }
 

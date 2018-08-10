@@ -8,6 +8,8 @@ namespace CalculateFunding.Api.External.V1.Models
     {
         public FundingStreamResultSummary()
         {
+            Allocations = new List<AllocationResult>();
+            Policies = new List<PolicyResult>();
         }
 
         public FundingStreamResultSummary(FundingStream fundingStream, decimal totalAmount,

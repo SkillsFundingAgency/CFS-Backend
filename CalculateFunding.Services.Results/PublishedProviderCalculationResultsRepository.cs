@@ -53,5 +53,14 @@ namespace CalculateFunding.Services.Results
 
             return _cosmosRepository.BulkCreateAsync<PublishedProviderCalculationResultHistory>(publishedCalculationResultsHistory.Select(m => new KeyValuePair<string, PublishedProviderCalculationResultHistory>(m.ProviderId, m)));
         }
+
+        public Task<IEnumerable<PublishedProviderCalculationResult>> GetPublishedProviderCalculationResultsBySpecificationId(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            var results = _cosmosRepository.Query<PublishedProviderCalculationResult>(enableCrossPartitionQuery: true).Where(c => c.Specification.Id == specificationId);
+
+            return Task.FromResult(results.AsEnumerable());
+        }
     }
 }

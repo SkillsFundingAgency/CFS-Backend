@@ -25,6 +25,9 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("comment")]
         public string Commment { get; set; }
 
+        [JsonProperty("provider")]
+        public ProviderSummary Provider { get; set; }
+
         public PublishedAllocationLineResultVersion Clone()
         {
             // Serialise to perform a deep copy

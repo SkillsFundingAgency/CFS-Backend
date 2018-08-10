@@ -92,5 +92,46 @@ namespace CalculateFunding.Services.Results
                 Entries = searchResults?.Results.Select(m => m.Result)
             };
         }
+
+        public async Task<SearchFeed<AllocationNotificationFeedIndex>> GetFeeds(string providerId, int startYear, int endYear, IEnumerable<string> customFilters)
+        {
+            IList<string> filters = new List<string>();
+
+            filters.Add($"fundingPeriodStartYear eq {startYear}");
+            filters.Add($"fundingPeriodEndYear eq {endYear}");
+            filters.Add($"providerId eq '{providerId}'");
+
+            return await SearchFeeds(startYear, endYear, filters, customFilters);
+        }
+
+        public async Task<SearchFeed<AllocationNotificationFeedIndex>> GetLocalAuthorityFeeds(string laCode, int startYear, int endYear, IEnumerable<string> customFilters)
+        {
+            IList<string> filters = new List<string>();
+
+            filters.Add($"fundingPeriodStartYear eq {startYear}");
+            filters.Add($"fundingPeriodEndYear eq {endYear}");
+            filters.Add($"laCode eq '{laCode}'");
+
+            return await SearchFeeds(startYear, endYear, filters, customFilters);
+        }
+
+        private async Task<SearchFeed<AllocationNotificationFeedIndex>> SearchFeeds(int startYear, int endYear, IEnumerable<string> filters, IEnumerable<string> customFilters, int top = 500)
+        {
+            SearchResults<AllocationNotificationFeedIndex> searchResults = await _allocationNotificationsSearchRepositoryPolicy.ExecuteAsync(
+                () => _allocationNotificationsSearchRepository.Search("", new SearchParameters
+                {
+                    Top = top,
+                    SearchMode = SearchMode.Any,
+                    IncludeTotalResultCount = true,
+                    Filter = string.Join(" and ", filters) + (customFilters.IsNullOrEmpty() ? "" : " and (" + string.Join(" or ", customFilters) + ")"),
+                    OrderBy = DefaultOrderBy.ToList(),
+                    QueryType = QueryType.Full
+                }));
+
+            return new SearchFeed<AllocationNotificationFeedIndex>
+            {
+                Entries = searchResults?.Results.Select(m => m.Result)
+            };
+        }
     }
 }

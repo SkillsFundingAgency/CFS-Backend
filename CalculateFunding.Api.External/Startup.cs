@@ -114,6 +114,9 @@ namespace CalculateFunding.Api.External
                .AddSingleton<IAllocationNotificationFeedsService, AllocationNotificationFeedsService>();
 
             builder
+               .AddSingleton<IProviderResultsService, ProviderResultsService>();
+
+            builder
                 .AddSingleton<IAllocationsService, AllocationsService>();
 
             builder

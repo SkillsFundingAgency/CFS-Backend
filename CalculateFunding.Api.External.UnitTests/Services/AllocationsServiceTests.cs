@@ -134,13 +134,15 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
             ContentResult contentResult = result as ContentResult;
 
+            string id = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{publishedProviderResult.SpecificationId}{publishedProviderResult.ProviderId}{publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine}"));
+
             AllocationModel allocationModel = JsonConvert.DeserializeObject<AllocationModel>(contentResult.Content);
 
             allocationModel
                 .Should()
                 .NotBeNull();
 
-            allocationModel.AllocationResultId.Should().Be("1234567");
+            allocationModel.AllocationResultId.Should().Be(id);
             allocationModel.AllocationVersionNumber.Should().Be(1);
             allocationModel.AllocationStatus.Should().Be("Published");
             allocationModel.AllocationAmount.Should().Be(50);
@@ -273,11 +275,13 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
             AllocationWithHistoryModel allocationModel = JsonConvert.DeserializeObject<AllocationWithHistoryModel>(contentResult.Content);
 
+            string id = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{publishedProviderResult.SpecificationId}{publishedProviderResult.ProviderId}{publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine}"));
+
             allocationModel
                 .Should()
                 .NotBeNull();
 
-            allocationModel.AllocationResultId.Should().Be("1234567");
+            allocationModel.AllocationResultId.Should().Be(id);
             allocationModel.AllocationVersionNumber.Should().Be(1);
             allocationModel.AllocationStatus.Should().Be("Published");
             allocationModel.AllocationAmount.Should().Be(50);
@@ -316,22 +320,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             {
                 Title = "test title 1",
                 Summary = "test summary 1",
-                Id = "1234567",
-                Provider = new ProviderSummary
-                {
-                    URN = "12345",
-                    UKPRN = "1111",
-                    UPIN = "2222",
-                    EstablishmentNumber = "es123",
-                    Authority = "London",
-                    ProviderType = "test type",
-                    ProviderSubType = "test sub type",
-                    DateOpened = DateTimeOffset.Now,
-                    ProviderProfileIdType = "UKPRN",
-                    LACode = "77777",
-                    Id = "1111",
-                    Name = "test provider name 1"
-                },
+
                 SpecificationId = "spec-1",
                 FundingStreamResult = new PublishedFundingStreamResult
                 {
@@ -352,7 +341,22 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                             Status = AllocationLineStatus.Published,
                             Value = 50,
                             Version = 1,
-                            Date = DateTimeOffset.Now
+                            Date = DateTimeOffset.Now,
+                            Provider = new ProviderSummary
+                            {
+                                URN = "12345",
+                                UKPRN = "1111",
+                                UPIN = "2222",
+                                EstablishmentNumber = "es123",
+                                Authority = "London",
+                                ProviderType = "test type",
+                                ProviderSubType = "test sub type",
+                                DateOpened = DateTimeOffset.Now,
+                                ProviderProfileIdType = "UKPRN",
+                                LACode = "77777",
+                                Id = "1111",
+                                Name = "test provider name 1"
+                            },
                         }
                     }
                 },

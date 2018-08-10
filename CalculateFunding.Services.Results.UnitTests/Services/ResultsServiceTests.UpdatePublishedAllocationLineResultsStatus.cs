@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Results.Interfaces;
@@ -402,6 +403,13 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
             resultsProviderRepository
                 .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
@@ -411,7 +419,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111"), Arg.Is("AAAAA"))
                 .Returns(history);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -636,11 +644,14 @@ namespace CalculateFunding.Services.Results.Services
         public async Task UpdatePublishedAllocationLineResultsStatus_GivenAllResultsAreHeldAndAttemptToPublish_ReturnsOKObjectEnsureHistoryAdded()
         {
             //arrange
+            string specificationId = "spec-1";
+            string providerId = "1111";
+
             IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
             {
                 new UpdatePublishedAllocationLineResultStatusProviderModel
                 {
-                    ProviderId = "1111",
+                    ProviderId = providerId,
                     AllocationLineIds = new[] { "AAAAA" }
                 }
             };
@@ -683,7 +694,7 @@ namespace CalculateFunding.Services.Results.Services
             PublishedAllocationLineResultHistory history = new PublishedAllocationLineResultHistory
             {
                 SpecificationId = specificationId,
-                ProviderId = "1111",
+                ProviderId = providerId,
                 AllocationLine = new Models.Reference
                 {
                     Id = "AAAAA"
@@ -697,12 +708,19 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(publishedProviderResults);
 
             resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111"), Arg.Is("AAAAA"))
+                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is(providerId), Arg.Is("AAAAA"))
                 .Returns(history);
 
             ISearchRepository<AllocationNotificationFeedIndex> searchRepository = CreateAllocationNotificationFeedSearchRepository();
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, allocationNotificationFeedSearchRepository: searchRepository);
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -723,7 +741,7 @@ namespace CalculateFunding.Services.Results.Services
             await searchRepository
                     .Received(1)
                     .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
-                        m.First().ProviderId == "1111" &&
+                        m.First().ProviderId == providerId &&
                         m.First().Title == "Allocation test allocation line 1 was Approved" &&
                         m.First().Summary == "test summary 1" &&
                         m.First().DatePublished.HasValue == false &&
@@ -856,7 +874,14 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111-2"), Arg.Is("AAAAA"))
                 .Returns(history3);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -1009,7 +1034,14 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            ResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: resultsProviderRepository);
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            ResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: resultsProviderRepository, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -1178,7 +1210,14 @@ namespace CalculateFunding.Services.Results.Services
                 .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
                 .Returns(providerProfilingResponse);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, providerProfilingRepository: providerProfilingRepository);
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, providerProfilingRepository: providerProfilingRepository, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);

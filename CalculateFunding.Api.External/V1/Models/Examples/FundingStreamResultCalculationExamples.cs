@@ -52,7 +52,7 @@ namespace CalculateFunding.Api.External.V1.Models.Examples
                                     CalculationName = "Calculation One Amount",
                                     CalculationAmount = 500000M,
                                     CalculationVersionNumber = 5,
-                                    CalculationStatus = "published",
+                                    CalculationType = "Funding",
                                     //SchemaVersion = 0.01M
                                 },
 
@@ -61,7 +61,7 @@ namespace CalculateFunding.Api.External.V1.Models.Examples
                                     CalculationName = "Calculation Two Count",
                                     CalculationAmount = 500000M,
                                     CalculationVersionNumber = 8,
-                                    CalculationStatus = "published",
+                                    CalculationType = "Funding",
                                     //SchemaVersion = 0.01M
                                 },
 
@@ -70,7 +70,7 @@ namespace CalculateFunding.Api.External.V1.Models.Examples
                                     CalculationName = "Calculation Three Rate",
                                     CalculationAmount = 500000M,
                                     CalculationVersionNumber = 2,
-                                    CalculationStatus = "published",
+                                    CalculationType = "Funding",
                                     //SchemaVersion = 0.01M
                                 },
 
@@ -116,7 +116,7 @@ public class FundingStreamResultCalculationExamples : IExamplesProvider
                                 CalculationName = "Calculation One Amount",
                                 CalculationAmount = 500000M,
                                 CalculationVersionNumber = 5,
-                                CalculationStatus = "published",
+                                CalculationType = "Funding",
                                 //SchemaVersion = 0.01M
                             },
 
@@ -125,7 +125,7 @@ public class FundingStreamResultCalculationExamples : IExamplesProvider
                                 CalculationName = "Calculation Two Count",
                                 CalculationAmount = 500000M,
                                 CalculationVersionNumber = 8,
-                                CalculationStatus = "published",
+                                CalculationType = "Funding",
                                 //SchemaVersion = 0.01M
                             },
 
@@ -134,7 +134,7 @@ public class FundingStreamResultCalculationExamples : IExamplesProvider
                                 CalculationName = "Calculation Three Rate",
                                 CalculationAmount = 500000M,
                                 CalculationVersionNumber = 2,
-                                CalculationStatus = "published",
+                                CalculationType = "Funding",
                                 //SchemaVersion = 0.01M
                             },
 

@@ -28,6 +28,7 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("dateUpdated")]
         public DateTimeOffset? DateUpdated { get; set; }
 
+        [IsFilterable]
         [JsonProperty("fundingStreamId")]
         public string FundingStreamId { get; set; }
 
@@ -43,12 +44,34 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("fundingPeriodStartDate")]
         public DateTimeOffset FundingPeriodStartDate { get; set; }
 
+        [IsFilterable]
+        [JsonProperty("fundingPeriodStartYear")]
+        public int FundingPeriodStartYear
+        {
+            get
+            {
+                return FundingPeriodStartDate.Year;
+            }
+        }
+
         [JsonProperty("fundingPeriodEndDate")]
         public DateTimeOffset FundingPeriodEndDate { get; set; }
 
+        [IsFilterable]
+        [JsonProperty("fundingPeriodEndYear")]
+        public int FundingPeriodEndYear
+        {
+            get
+            {
+                return FundingPeriodEndDate.Year;
+            }
+        }
+
+        [IsFilterable]
         [JsonProperty("providerId")]
         public string ProviderId { get; set; }
 
+        [IsFilterable]
         [JsonProperty("providerUkprn")]
         public string ProviderUkPrn { get; set; }
 
@@ -58,6 +81,7 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("providerOpenDate")]
         public DateTimeOffset? ProviderOpenDate { get; set; }
 
+        [IsFilterable]
         [JsonProperty("allocationLineId")]
         public string AllocationLineId { get; set; }
 
@@ -101,5 +125,8 @@ namespace CalculateFunding.Models.Results
         [IsFilterable]
         [JsonProperty("establishmentNumber")]
         public string EstablishmentNumber { get; set; }
+
+        [JsonProperty("policySummaries")]
+        public string PolicySummaries { get; set; }
     }
 }

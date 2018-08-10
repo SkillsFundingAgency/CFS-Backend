@@ -12,6 +12,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -50,6 +51,10 @@ namespace CalculateFunding.Services.Results.Services
         {
             //Arrange
             IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
+            foreach (PublishedProviderResult result in results)
+            {
+                result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
+            }
 
             IPublishedProviderResultsRepository repository = CreatePublishedProviderResultsRepository();
             repository
@@ -62,7 +67,15 @@ namespace CalculateFunding.Services.Results.Services
             searchRepository.When(x => x.Index(Arg.Any<IEnumerable<AllocationNotificationFeedIndex>>()))
                             .Do(x => { throw new Exception("Error indexing"); });
 
-            ResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository, allocationNotificationFeedSearchRepository: searchRepository);
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is("spec-1"))
+                .Returns(specification);
+
+            ResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository, 
+                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
@@ -82,7 +95,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task ReIndexAllocationNotificationFeeds_GivenPublishedProviderFound_IndexesAndreturnsNoContentResult()
+        public async Task ReIndexAllocationNotificationFeeds_GivenPublishedProviderFoundBuAllHeld_DoesNotIndexReturnsContentResult()
         {
             //Arrange
             IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
@@ -95,8 +108,59 @@ namespace CalculateFunding.Services.Results.Services
             ILogger logger = CreateLogger();
 
             ISearchRepository<AllocationNotificationFeedIndex> searchRepository = CreateAllocationNotificationFeedSearchRepository();
-           
-            ResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository, allocationNotificationFeedSearchRepository: searchRepository);
+
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is("spec-1"))
+                .Returns(specification);
+
+            ResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository, 
+                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
+
+            //Assert
+            actionResult
+                .Should()
+                .BeAssignableTo<NoContentResult>();
+
+            await
+                searchRepository
+                .DidNotReceive()
+                .Index(Arg.Any<IEnumerable<AllocationNotificationFeedIndex>>());
+        }
+
+        [TestMethod]
+        public async Task ReIndexAllocationNotificationFeeds_GivenPublishedProviderFound_IndexesAndreturnsNoContentResult()
+        {
+            //Arrange
+            IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
+            foreach(PublishedProviderResult result in results)
+            {
+                result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
+            }
+
+            IPublishedProviderResultsRepository repository = CreatePublishedProviderResultsRepository();
+            repository
+                .GetAllNonHeldPublishedProviderResults()
+                .Returns(results);
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<AllocationNotificationFeedIndex> searchRepository = CreateAllocationNotificationFeedSearchRepository();
+
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is("spec-1"))
+                .Returns(specification);
+
+            ResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
+                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
