@@ -11,7 +11,6 @@ namespace CalculateFunding.Services.DataImporter
 {
     public class ExcelDatasetReader : IExcelDatasetReader
     {
-
 	    public IEnumerable<TableLoadResult> Read(Stream stream, DatasetDefinition datasetDefinition) 
 	    {
 	        ExcelPackage excel = new ExcelPackage(stream);
@@ -31,11 +30,20 @@ namespace CalculateFunding.Services.DataImporter
             }     
 	    }
 
+        public TableLoadResult Read(ExcelPackage excelPackage, DatasetDefinition datasetDefinition)
+        {
+            if (datasetDefinition.TableDefinitions.Count == 1 && excelPackage.Workbook.Worksheets.Count == 1)
+            {
+                return ConvertSheetToObjects(excelPackage.Workbook.Worksheets.First(), datasetDefinition.TableDefinitions.First());
+            }
+
+            return null;
+        }
+
         private static TableLoadResult ConvertSheetToObjects(ExcelWorksheet worksheet, TableDefinition tableDefinition)
         {
             var result = new TableLoadResult
             {
-                GlobalErrors = new List<DatasetValidationError>(),
                 TableDefinition = tableDefinition,
                 Rows = new List<RowLoadResult>()
             };
@@ -46,14 +54,6 @@ namespace CalculateFunding.Services.DataImporter
                 .OrderBy(x => x);
 
             var headerDictionary = MatchHeaderColumns(worksheet, tableDefinition);
-
-            foreach (var fieldDefinition in tableDefinition.FieldDefinitions)
-            {
-                if (fieldDefinition.Required && !headerDictionary.ContainsKey(fieldDefinition.Name))
-                {
-                    result.GlobalErrors.Add(new DatasetValidationError(fieldDefinition, 0, $"Required column '{fieldDefinition.Name}' cannot be found"));
-                }
-            }
 
             foreach (var row in rows.Skip(1))
             {
@@ -69,8 +69,7 @@ namespace CalculateFunding.Services.DataImporter
         {
             var rowResult = new RowLoadResult
             {
-                Fields = new Dictionary<string, object>(),
-                ValidationErrors = new List<DatasetValidationError>()
+                Fields = new Dictionary<string, object>()
             };
 
             foreach (var fieldDefinition in tableDefinition.FieldDefinitions)
@@ -78,26 +77,16 @@ namespace CalculateFunding.Services.DataImporter
                 if (headerDictionary.ContainsKey(fieldDefinition.Name))
                 {
                     var dataCell = worksheet.Cells[row, headerDictionary[fieldDefinition.Name]];
-                    if (dataCell.GetValue<object>() == null && fieldDefinition.Required)
-                    {
-                        rowResult.ValidationErrors.Add(new DatasetValidationError(fieldDefinition, row,
-                            $"Required field {fieldDefinition.Name} is null"));
-                    }
-                    else
-                    {
-                        if (IsFieldValid(fieldDefinition, rowResult, dataCell))
-                        {
-                            PopulateField(fieldDefinition, rowResult, dataCell);
 
-                            if (fieldDefinition.IdentifierFieldType.HasValue
-                                && fieldDefinition.IdentifierFieldType.Value != IdentifierFieldType.None
-                                && string.IsNullOrWhiteSpace(rowResult.Identifier))
-                            {
-                                rowResult.Identifier = rowResult.Fields[fieldDefinition.Name] as string;
-                                rowResult.IdentifierFieldType = fieldDefinition.IdentifierFieldType.Value;
-                            }
-                        }
+                    rowResult.Fields.Add(fieldDefinition.Name, dataCell.Value);
+                    //PopulateField(fieldDefinition, rowResult, dataCell);
 
+                    if (fieldDefinition.IdentifierFieldType.HasValue
+                        && fieldDefinition.IdentifierFieldType.Value != IdentifierFieldType.None
+                        && string.IsNullOrWhiteSpace(rowResult.Identifier))
+                    {
+                        rowResult.Identifier = rowResult.Fields[fieldDefinition.Name] as string;
+                        rowResult.IdentifierFieldType = fieldDefinition.IdentifierFieldType.Value;
                     }
                 }
             }
@@ -105,12 +94,7 @@ namespace CalculateFunding.Services.DataImporter
             return rowResult;
         }
 
-        private static bool IsFieldValid(FieldDefinition fieldDefinition, RowLoadResult rowResult, ExcelRange dataCell)
-        {
-            return true; // Matt - TODO
-        }
-
-        private static void PopulateField(FieldDefinition fieldDefinition, RowLoadResult rowResult, ExcelRange dataCell)
+        static void PopulateField(FieldDefinition fieldDefinition, RowLoadResult rowResult, ExcelRange dataCell)
         {
             switch (fieldDefinition.Type)
             {

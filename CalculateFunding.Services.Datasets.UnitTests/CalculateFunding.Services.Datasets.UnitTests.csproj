@@ -21,6 +21,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="IntegrationTestItems\1718HNStudNumbers.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestItems\1718HNStudNumbers.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  
+
+  <ItemGroup>
     <None Update="TestItems\jpgImage.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

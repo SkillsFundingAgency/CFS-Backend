@@ -8,10 +8,58 @@
         "description": "The environment key for this particular environment eg t1dv"
       }
     },
-    "ApiKey": {
+    "ApiKeyCalcs": {
       "type": "string",
       "metadata": {
-        "description": "Api key for inter services calls"
+        "description": "Api key for the Calcs Service"
+      }
+    },
+    "ApiKeyCalcEngine": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Calc Engine Service"
+      }
+    },
+    "ApiKeyDatasets": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Datasets Service"
+      }
+    },
+    "ApiKeyExternal": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the External Service"
+      }
+    },
+    "ApiKeyResults": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Results Service"
+      }
+    },
+    "ApiKeyScenarios": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Scenarios Service"
+      }
+    },
+    "ApiKeySpecs": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Specs Service"
+      }
+    },
+    "ApiKeyTestEngine": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Test Engine Service"
+      }
+    },
+    "ApiKeyUsers": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Users Service"
       }
     },
     "skuName": {
@@ -645,7 +693,7 @@
             },
             {
               "name": "calcsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyCalcs')]"
             },
             {
               "name": "calcsClient:ApiEndpoint",
@@ -653,7 +701,7 @@
             },
             {
               "name": "resultsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyResults')]"
             },
             {
               "name": "resultsClient:ApiEndpoint",
@@ -661,7 +709,7 @@
             },
             {
               "name": "specificationsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeySpecs')]"
             },
             {
               "name": "specificationsClient:ApiEndpoint",
@@ -765,7 +813,7 @@
             },
             {
               "name": "specificationsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeySpecs')]"
             },
             {
               "name": "specificationsClient:ApiEndpoint",
@@ -773,7 +821,7 @@
             },
             {
               "name": "resultsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyResults')]"
             },
             {
               "name": "resultsClient:ApiEndpoint",
@@ -889,7 +937,7 @@
             },
             {
               "name": "calcsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyCalcs')]"
             },
             {
               "name": "calcsClient:ApiEndpoint",
@@ -897,7 +945,7 @@
             },
             {
               "name": "specificationsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeySpecs')]"
             },
             {
               "name": "specificationsClient:ApiEndpoint",
@@ -957,7 +1005,7 @@
             },
             {
               "name": "calcsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyCalcs')]"
             },
             {
               "name": "calcsClient:ApiEndpoint",
@@ -965,7 +1013,7 @@
             },
             {
               "name": "scenariosClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyScenarios')]"
             },
             {
               "name": "scenariosClient:ApiEndpoint",
@@ -973,7 +1021,7 @@
             },
             {
               "name": "specificationsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeySpecs')]"
             },
             {
               "name": "specificationsClient:ApiEndpoint",
@@ -1096,7 +1144,7 @@
             },
             {
               "name": "specificationsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeySpecs')]"
             },
             {
               "name": "specificationsClient:ApiEndpoint",
@@ -1195,7 +1243,7 @@
             },
             {
               "name": "resultsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyResults')]"
             },
             {
               "name": "resultsClient:ApiEndpoint",
@@ -1357,7 +1405,7 @@
             },
             {
               "name": "calcsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyCalcs')]"
             },
             {
               "name": "calcsClient:ApiEndpoint",
@@ -1365,7 +1413,7 @@
             },
             {
               "name": "specificationsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeySpecs')]"
             },
             {
               "name": "specificationsClient:ApiEndpoint",
@@ -1525,7 +1573,7 @@
             },
             {
               "name": "calcsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyCalcs')]"
             },
             {
               "name": "calcsClient:ApiEndpoint",
@@ -1533,7 +1581,7 @@
             },
             {
               "name": "resultsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyResults')]"
             },
             {
               "name": "resultsClient:ApiEndpoint",
@@ -1541,7 +1589,7 @@
             },
             {
               "name": "specificationsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeySpecs')]"
             },
             {
               "name": "specificationsClient:ApiEndpoint",
@@ -1569,7 +1617,7 @@
             },
             {
               "name": "apiKeyMiddleware:apiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyDatasets')]"
             }
           ]
         }
@@ -1622,7 +1670,7 @@
             },
             {
               "name": "specificationsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeySpecs')]"
             },
             {
               "name": "specificationsClient:ApiEndpoint",
@@ -1630,7 +1678,7 @@
             },
             {
               "name": "resultsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyResults')]"
             },
             {
               "name": "resultsClient:ApiEndpoint",
@@ -1658,7 +1706,7 @@
             },
             {
               "name": "apiKeyMiddleware:apiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyCalcs')]"
             }
           ]
         }
@@ -1724,7 +1772,7 @@
             },
             {
               "name": "calcsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyCalcs')]"
             },
             {
               "name": "calcsClient:ApiEndpoint",
@@ -1732,7 +1780,7 @@
             },
             {
               "name": "specificationsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeySpecs')]"
             },
             {
               "name": "specificationsClient:ApiEndpoint",
@@ -1740,7 +1788,7 @@
             },
             {
               "name": "apiKeyMiddleware:apiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyCalcEngine')]"
             }
           ]
         }
@@ -1789,7 +1837,7 @@
             },
             {
               "name": "specificationsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeySpecs')]"
             },
             {
               "name": "specificationsClient:ApiEndpoint",
@@ -1797,7 +1845,7 @@
             },
             {
               "name": "resultsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyResults')]"
             },
             {
               "name": "resultsClient:ApiEndpoint",
@@ -1825,7 +1873,7 @@
             },
             {
               "name": "apiKeyMiddleware:apiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyExternal')]"
             },
             {
               "name": "AzureAd:TenantId",
@@ -1867,7 +1915,7 @@
             },
             {
               "name": "calcsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyCalcs')]"
             },
             {
               "name": "calcsClient:ApiEndpoint",
@@ -1875,7 +1923,7 @@
             },
             {
               "name": "scenariosClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyScenarios')]"
             },
             {
               "name": "scenariosClient:ApiEndpoint",
@@ -1883,7 +1931,7 @@
             },
             {
               "name": "specificationsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeySpecs')]"
             },
             {
               "name": "specificationsClient:ApiEndpoint",
@@ -1927,7 +1975,7 @@
             },
             {
               "name": "apiKeyMiddleware:apiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyTestEngine')]"
             }
           ]
         }
@@ -1983,7 +2031,7 @@
             },
             {
               "name": "specificationsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeySpecs')]"
             },
             {
               "name": "specificationsClient:ApiEndpoint",
@@ -2003,7 +2051,7 @@
             },
             {
               "name": "apiKeyMiddleware:apiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyResults')]"
             }
           ]
         }
@@ -2059,7 +2107,7 @@
             },
             {
               "name": "resultsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyResults')]"
             },
             {
               "name": "resultsClient:ApiEndpoint",
@@ -2079,7 +2127,7 @@
             },
             {
               "name": "apiKeyMiddleware:apiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeySpecs')]"
             }
           ]
         }
@@ -2123,7 +2171,7 @@
             },
             {
               "name": "calcsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyCalcs')]"
             },
             {
               "name": "calcsClient:ApiEndpoint",
@@ -2131,7 +2179,7 @@
             },
             {
               "name": "specificationsClient:ApiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeySpecs')]"
             },
             {
               "name": "specificationsClient:ApiEndpoint",
@@ -2163,7 +2211,7 @@
             },
             {
               "name": "apiKeyMiddleware:apiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyScenarios')]"
             }
           ]
         }
@@ -2220,7 +2268,7 @@
             },
             {
               "name": "apiKeyMiddleware:apiKey",
-              "value": "[parameters('ApiKey')]"
+              "value": "[parameters('ApiKeyUsers')]"
             }
           ]
         }
