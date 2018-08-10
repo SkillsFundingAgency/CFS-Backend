@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Results.Services
 
             logger
                 .Received(1)
-                .Error("No specification Id was provided");
+                .Error("No specification Id was provided to UpdateAllocationLineResultStatus");
         }
 
         [TestMethod]
@@ -82,7 +82,7 @@ namespace CalculateFunding.Services.Results.Services
 
             logger
                 .Received(1)
-                .Error("Null updateStatusModel was provided");
+                .Error("Null updateStatusModel was provided to UpdateAllocationLineResultStatus");
         }
 
         [TestMethod]
@@ -121,11 +121,11 @@ namespace CalculateFunding.Services.Results.Services
                 .Which
                 .Value
                 .Should()
-                .Be("Null or empty providers was provided in updateStatusModel");
+                .Be("Null or empty providers was provided");
 
             logger
                 .Received(1)
-                .Error("Null or empty providers was provided in updateStatusModel");
+                .Error("Null or empty providers was provided to UpdateAllocationLineResultStatus");
         }
 
         [TestMethod]

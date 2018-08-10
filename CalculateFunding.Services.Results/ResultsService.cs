@@ -632,7 +632,7 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty providers was provided");
             }
 
-            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationAndStatus(specificationId, filterCriteria);
+            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationAndStatus(specificationId, filterCriteria));
 
             ConfirmPublishApproveModel confirmationDetails = new ConfirmPublishApproveModel
             {
