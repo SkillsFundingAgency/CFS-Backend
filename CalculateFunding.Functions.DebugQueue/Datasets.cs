@@ -1,12 +1,9 @@
-﻿using CalculateFunding.Models.Datasets;
+﻿using System.Threading.Tasks;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Core.Constants;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.DebugQueue
 {

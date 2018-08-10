@@ -168,7 +168,7 @@ namespace CalculateFunding.Services.Datasets
 
             responseModel.DatasetId = datasetId;
             responseModel.BlobUrl = blobUrl;
-            responseModel.Author = request.GetUser();
+            responseModel.Author = request.GetUserOrDefault();
             responseModel.DefinitionId = model.DefinitionId;
 
             return new OkObjectResult(responseModel);
@@ -302,7 +302,7 @@ namespace CalculateFunding.Services.Datasets
 
             var datasetStream = await _blobClient.DownloadToStreamAsync(blob);
 
-            if(datasetStream == null || datasetStream.Length == 0)
+            if (datasetStream == null || datasetStream.Length == 0)
             {
                 _logger.Error($"Blob {blob.Name} contains no data");
                 return new StatusCodeResult(412);
@@ -318,15 +318,15 @@ namespace CalculateFunding.Services.Datasets
                         return validationResult;
                 }
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
-	            const string errorMessage = "File was unreadable. This could be because the correct extension type has been appended to an unsupported file.";
+                const string errorMessage = "File was unreadable. This could be because the correct extension type has been appended to an unsupported file.";
 
-				_logger.Error(exception.Message);
-	            ModelStateDictionary dictionary = new ModelStateDictionary();
-				dictionary.AddModelError("typical-model-validation-error",string.Empty);
-	            dictionary.AddModelError(nameof(model.Filename), errorMessage);
-	            return new BadRequestObjectResult(dictionary);
+                _logger.Error(exception.Message);
+                ModelStateDictionary dictionary = new ModelStateDictionary();
+                dictionary.AddModelError("typical-model-validation-error", string.Empty);
+                dictionary.AddModelError(nameof(model.Filename), errorMessage);
+                return new BadRequestObjectResult(dictionary);
             }
 
             DatasetDefinition datasetDefinition =
@@ -694,7 +694,7 @@ namespace CalculateFunding.Services.Datasets
 
             Func<ProviderSummary, string> identifierSelectorExpression = GetIdentifierSelectorExpression(identifierFieldType.Value);
 
-            IEnumerable<string> filteredIdentifiers = _providerSummaries.Select(identifierSelectorExpression);
+            IEnumerable<string> filteredIdentifiers = _providerSummaries.Select(identifierSelectorExpression).Where(x => x == fieldIdentifier);
 
             identifiers.Add(identifierFieldType.Value, new Dictionary<string, List<string>> { { fieldIdentifier, filteredIdentifiers.ToList() } });
 
@@ -886,7 +886,7 @@ namespace CalculateFunding.Services.Datasets
 
             foreach (var tableLoadResult in tableLoadResults)
             {
-                if (tableLoadResult.GlobalErrors.Any())
+                if (tableLoadResult.GlobalErrors != null && tableLoadResult.GlobalErrors.Any())
                 {
                     validationErrors.AddRange(tableLoadResult.GlobalErrors);
                 }
@@ -1112,7 +1112,7 @@ namespace CalculateFunding.Services.Datasets
             await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
                 _providersResultsRepository.UpdateCurrentProviderSourceDatasets(updateCurrentDatasets.Values, specificationId));
 
-            await _providerResultsRepositoryPolicy.ExecuteAsync(() => 
+            await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
             _providersResultsRepository.UpdateProviderSourceDatasetHistory(updateDatasetsHistory.Values, specificationId));
 
             await PopulateProviderSummariesForSpecification(specificationId, _providerSummaries);

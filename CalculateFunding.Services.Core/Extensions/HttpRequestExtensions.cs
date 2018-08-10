@@ -74,5 +74,26 @@ namespace CalculateFunding.Services.Core.Extensions
 
             return reference;
         }
+
+        public static Reference GetUserOrDefault(this HttpRequest request)
+        {
+            Reference reference = new Reference("default", "defaultName");
+
+            Claim idClaim = request.HttpContext.User.Claims.FirstOrDefault(m => m.Type == ClaimTypes.Sid);
+
+            if (idClaim != null && !string.IsNullOrWhiteSpace(idClaim.Value))
+            {
+                reference.Id = idClaim.Value;
+            }
+
+            Claim nameClaim = request.HttpContext.User.Claims.FirstOrDefault(m => m.Type == ClaimTypes.Name);
+
+            if (nameClaim != null && !string.IsNullOrWhiteSpace(nameClaim.Value))
+            {
+                reference.Name = nameClaim.Value;
+            }
+
+            return reference;
+        }
     }
 }
