@@ -604,6 +604,66 @@ namespace CalculateFunding.Services.Results
             return new OkObjectResult(publishedProviderResultModels);
         }
 
+        public async Task<IActionResult> GetConfirmationDetailsForApprovePublishProviderResults(HttpRequest request)
+        {
+            var specificationId = GetParameter(request, "specificationId");
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to GetConfirmationDetailsForApprovePublishProviderResults");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            string json = await request.GetRawBodyStringAsync();
+
+            UpdatePublishedAllocationLineResultStatusModel filterCriteria = JsonConvert.DeserializeObject<UpdatePublishedAllocationLineResultStatusModel>(json);
+
+            if (filterCriteria == null)
+            {
+                _logger.Error("Null filterCriteria was provided to GetConfirmationDetailsForApprovePublishProviderResults");
+
+                return new BadRequestObjectResult("Null filterCriteria was provided");
+            }
+
+            if (filterCriteria.Providers.IsNullOrEmpty())
+            {
+                _logger.Error("Null or empty providers was provided to GetConfirmationDetailsForApprovePublishProviderResults");
+
+                return new BadRequestObjectResult("Null or empty providers was provided");
+            }
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationAndStatus(specificationId, filterCriteria));
+
+            ConfirmPublishApproveModel confirmationDetails = new ConfirmPublishApproveModel
+            {
+                NumberOfProviders = publishedProviderResults.Select(r => r.Provider.Id).Distinct().Count(),
+                ProviderTypes = publishedProviderResults.Select(r => r.Provider.ProviderType).Distinct().ToArray(),
+                LocalAuthorities = publishedProviderResults.Select(r => r.Provider.Authority).Distinct().ToArray(),
+                FundingPeriod = publishedProviderResults.Select(r => r.FundingPeriod.Name).FirstOrDefault()
+            };
+
+            var fundingStreams = publishedProviderResults.Select(r => r.FundingStreamResult).GroupBy(r => r.FundingStream.Name);
+            decimal totalFundingAmount = 0;
+            foreach(IGrouping<string, PublishedFundingStreamResult> fundingStream in fundingStreams)
+            {
+                FundingStreamSummaryModel summary = new FundingStreamSummaryModel
+                {
+                    Name = fundingStream.Key,
+                };
+
+                foreach (PublishedFundingStreamResult result in fundingStream)
+                {
+                    summary.AllocationLines.Add(new AllocationLineSummaryModel { Name = result.AllocationLineResult.AllocationLine.Name, Value = result.AllocationLineResult.Current.Value });
+                    totalFundingAmount += result.AllocationLineResult.Current.Value ?? 0;
+                }
+
+                confirmationDetails.FundingStreams.Add(summary);
+            }
+
+            confirmationDetails.TotalFundingApproved = totalFundingAmount;
+            return new OkObjectResult(confirmationDetails);
+        }
+
         public async Task<IActionResult> UpdatePublishedAllocationLineResultsStatus(HttpRequest request)
         {
             var specificationId = GetParameter(request, "specificationId");

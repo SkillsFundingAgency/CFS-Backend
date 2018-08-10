@@ -5,6 +5,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
+using LinqKit;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -44,6 +45,31 @@ namespace CalculateFunding.Services.Results
         {
             IQueryable<PublishedProviderResult> results = _cosmosRepository.Query<PublishedProviderResult>(enableCrossPartitionQuery: true).Where(m => m.SpecificationId == specificationId);
 
+            return Task.FromResult(results.AsEnumerable());
+        }
+
+        public Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsForSpecificationAndStatus(string specificationId, UpdatePublishedAllocationLineResultStatusModel filterCriteria)
+        {
+            IQueryable<PublishedProviderResult> results = _cosmosRepository.Query<PublishedProviderResult>(enableCrossPartitionQuery: true).Where(m => m.SpecificationId == specificationId && m.FundingStreamResult.AllocationLineResult.Current.Status == filterCriteria.Status);
+
+            var providerPredicate = PredicateBuilder.New<PublishedProviderResult>(false);
+
+            foreach (var provider in filterCriteria.Providers)
+            {
+                string providerId = provider.ProviderId;
+                providerPredicate = providerPredicate.Or(p => p.ProviderId == providerId);
+
+                var allocationLinePredicate = PredicateBuilder.New<PublishedProviderResult>(false);
+                foreach (var allocationLineId in provider.AllocationLineIds)
+                {
+                    string temp = allocationLineId;
+                    allocationLinePredicate = allocationLinePredicate.Or(a => a.FundingStreamResult.AllocationLineResult.AllocationLine.Id == temp);
+                }
+
+                providerPredicate = providerPredicate.And(allocationLinePredicate);
+            }
+
+            results = results.AsExpandable().Where(providerPredicate);
             return Task.FromResult(results.AsEnumerable());
         }
 
