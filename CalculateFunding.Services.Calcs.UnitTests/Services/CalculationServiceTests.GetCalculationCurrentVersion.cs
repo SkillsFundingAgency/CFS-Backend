@@ -156,7 +156,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             cacheProvider
-                .GetAsync<CalculationCurrentVersion>(Arg.Is($"{CacheKeys.CurrentCalcluation}{CalculationId}"))
+                .GetAsync<CalculationCurrentVersion>(Arg.Is($"{CacheKeys.CurrentCalculation}{CalculationId}"))
                 .Returns(calculation);
 
             CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, cacheProvider: cacheProvider);
@@ -191,7 +191,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await cacheProvider
                 .Received(1)
-                .GetAsync<CalculationCurrentVersion>(Arg.Is($"{CacheKeys.CurrentCalcluation}{CalculationId}"));
+                .GetAsync<CalculationCurrentVersion>(Arg.Is($"{CacheKeys.CurrentCalculation}{CalculationId}"));
         }
 
         [TestMethod]
@@ -238,7 +238,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
-               .GetAsync<CalculationCurrentVersion>(Arg.Is($"{CacheKeys.CurrentCalcluation}{CalculationId}"))
+               .GetAsync<CalculationCurrentVersion>(Arg.Is($"{CacheKeys.CurrentCalculation}{CalculationId}"))
                .Returns((CalculationCurrentVersion)null);
 
             CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository, cacheProvider: cacheProvider);
@@ -274,7 +274,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await cacheProvider
                 .Received(1)
-                .GetAsync<CalculationCurrentVersion>(Arg.Is($"{CacheKeys.CurrentCalcluation}{CalculationId}"));
+                .GetAsync<CalculationCurrentVersion>(Arg.Is($"{CacheKeys.CurrentCalculation}{CalculationId}"));
         }
     }
 }
