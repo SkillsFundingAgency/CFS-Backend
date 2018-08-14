@@ -417,6 +417,263 @@ namespace CalculateFunding.Services.Results.Services
             AssertConfirmPublishApproveModel(actionResult, publishedProviderResults.Count(), 1, 1, "Period1", 1, 27);
         }
 
+        [TestMethod]
+        public async Task GetConfirmationDetailsForApprovePublishProviderResults_GivenPublishedResultsReturnsMultiple_ReturnsOkAndProviderTypesOrdered()
+        {
+            // Arrange
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            {
+                new UpdatePublishedAllocationLineResultStatusProviderModel { ProviderId = "1" },
+                new UpdatePublishedAllocationLineResultStatusProviderModel { ProviderId = "2" }
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) },
+            });
+
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
+            {
+                Status = AllocationLineStatus.Held,
+                Providers = Providers
+            };
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>
+            {
+                new PublishedProviderResult
+                {
+                    Title = "Test 1",
+                    Summary = "testing",
+                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingStreamResult = new PublishedFundingStreamResult
+                    {
+                        FundingStream = new Models.Reference { Name = "Stream1" },
+                        AllocationLineResult = new PublishedAllocationLineResult
+                        {
+                            AllocationLine = new Models.Reference { Name = "AllocLine1" },
+                            Current = new PublishedAllocationLineResultVersion { Value = 12, Provider = new ProviderSummary { Id = "1", Authority = "B Auth", ProviderType = "B PType" } }
+                        }
+                    }
+                },
+                new PublishedProviderResult
+                {
+                    Title = "Test 2",
+                    Summary = "testing",
+                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingStreamResult = new PublishedFundingStreamResult
+                    {
+                        FundingStream = new Models.Reference { Name = "Stream1" },
+                        AllocationLineResult = new PublishedAllocationLineResult
+                        {
+                            AllocationLine = new Models.Reference { Name = "AllocLine2" },
+                            Current = new PublishedAllocationLineResultVersion { Value = 15, Provider = new ProviderSummary { Id = "2", Authority = "A Auth", ProviderType = "A PType" } }
+                        }
+                    }
+                }
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
+
+            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
+            resultsProviderRepository
+                .GetPublishedProviderResultsForSpecificationAndStatus(Arg.Is(specificationId), Arg.Any<UpdatePublishedAllocationLineResultStatusModel>())
+                .Returns(publishedProviderResults);
+
+            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+
+            // Act
+            IActionResult actionResult = await resultsService.GetConfirmationDetailsForApprovePublishProviderResults(request);
+
+            // Assert
+            OkObjectResult okResult = actionResult.Should().BeOfType<OkObjectResult>().Subject;
+
+            ConfirmPublishApproveModel confDetalis = okResult.Value.Should().BeAssignableTo<ConfirmPublishApproveModel>().Subject;
+            confDetalis.ProviderTypes.Should().HaveCount(2);
+            confDetalis.ProviderTypes.ElementAt(0).Should().Be("A PType");
+            confDetalis.ProviderTypes.ElementAt(1).Should().Be("B PType");
+        }
+
+        [TestMethod]
+        public async Task GetConfirmationDetailsForApprovePublishProviderResults_GivenPublishedResultsReturnsMultiple_ReturnsOkAndAuthoritiesOrdered()
+        {
+            // Arrange
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            {
+                new UpdatePublishedAllocationLineResultStatusProviderModel { ProviderId = "1" },
+                new UpdatePublishedAllocationLineResultStatusProviderModel { ProviderId = "2" }
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) },
+            });
+
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
+            {
+                Status = AllocationLineStatus.Held,
+                Providers = Providers
+            };
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>
+            {
+                new PublishedProviderResult
+                {
+                    Title = "Test 1",
+                    Summary = "testing",
+                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingStreamResult = new PublishedFundingStreamResult
+                    {
+                        FundingStream = new Models.Reference { Name = "Stream1" },
+                        AllocationLineResult = new PublishedAllocationLineResult
+                        {
+                            AllocationLine = new Models.Reference { Name = "AllocLine1" },
+                            Current = new PublishedAllocationLineResultVersion { Value = 12, Provider = new ProviderSummary { Id = "1", Authority = "B Auth", ProviderType = "B PType" } }
+                        }
+                    }
+                },
+                new PublishedProviderResult
+                {
+                    Title = "Test 2",
+                    Summary = "testing",
+                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingStreamResult = new PublishedFundingStreamResult
+                    {
+                        FundingStream = new Models.Reference { Name = "Stream1" },
+                        AllocationLineResult = new PublishedAllocationLineResult
+                        {
+                            AllocationLine = new Models.Reference { Name = "AllocLine2" },
+                            Current = new PublishedAllocationLineResultVersion { Value = 15, Provider = new ProviderSummary { Id = "2", Authority = "A Auth", ProviderType = "A PType" } }
+                        }
+                    }
+                }
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
+
+            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
+            resultsProviderRepository
+                .GetPublishedProviderResultsForSpecificationAndStatus(Arg.Is(specificationId), Arg.Any<UpdatePublishedAllocationLineResultStatusModel>())
+                .Returns(publishedProviderResults);
+
+            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+
+            // Act
+            IActionResult actionResult = await resultsService.GetConfirmationDetailsForApprovePublishProviderResults(request);
+
+            // Assert
+            OkObjectResult okResult = actionResult.Should().BeOfType<OkObjectResult>().Subject;
+
+            ConfirmPublishApproveModel confDetalis = okResult.Value.Should().BeAssignableTo<ConfirmPublishApproveModel>().Subject;
+            confDetalis.LocalAuthorities.Should().HaveCount(2);
+            confDetalis.LocalAuthorities.ElementAt(0).Should().Be("A Auth");
+            confDetalis.LocalAuthorities.ElementAt(1).Should().Be("B Auth");
+        }
+
+        [TestMethod]
+        public async Task GetConfirmationDetailsForApprovePublishProviderResults_GivenPublishedResultsReturnsMultiple_ReturnsOkAndAllocationLinesCoalesced()
+        {
+            // Arrange
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            {
+                new UpdatePublishedAllocationLineResultStatusProviderModel { ProviderId = "1" },
+                new UpdatePublishedAllocationLineResultStatusProviderModel { ProviderId = "2" }
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) },
+            });
+
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
+            {
+                Status = AllocationLineStatus.Held,
+                Providers = Providers
+            };
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>
+            {
+                new PublishedProviderResult
+                {
+                    Title = "Test 1",
+                    Summary = "testing",
+                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingStreamResult = new PublishedFundingStreamResult
+                    {
+                        FundingStream = new Models.Reference { Name = "Stream1" },
+                        AllocationLineResult = new PublishedAllocationLineResult
+                        {
+                            AllocationLine = new Models.Reference { Name = "AllocLine1" },
+                            Current = new PublishedAllocationLineResultVersion { Value = 12, Provider = new ProviderSummary { Id = "1", Authority = "B Auth", ProviderType = "B PType" } }
+                        }
+                    }
+                },
+                new PublishedProviderResult
+                {
+                    Title = "Test 2",
+                    Summary = "testing",
+                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingStreamResult = new PublishedFundingStreamResult
+                    {
+                        FundingStream = new Models.Reference { Name = "Stream1" },
+                        AllocationLineResult = new PublishedAllocationLineResult
+                        {
+                            AllocationLine = new Models.Reference { Name = "AllocLine1" },
+                            Current = new PublishedAllocationLineResultVersion { Value = 15, Provider = new ProviderSummary { Id = "2", Authority = "A Auth", ProviderType = "A PType" } }
+                        }
+                    }
+                }
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
+
+            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
+            resultsProviderRepository
+                .GetPublishedProviderResultsForSpecificationAndStatus(Arg.Is(specificationId), Arg.Any<UpdatePublishedAllocationLineResultStatusModel>())
+                .Returns(publishedProviderResults);
+
+            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+
+            // Act
+            IActionResult actionResult = await resultsService.GetConfirmationDetailsForApprovePublishProviderResults(request);
+
+            // Assert
+            OkObjectResult okResult = actionResult.Should().BeOfType<OkObjectResult>().Subject;
+
+            ConfirmPublishApproveModel confDetalis = okResult.Value.Should().BeAssignableTo<ConfirmPublishApproveModel>().Subject;
+            confDetalis.FundingStreams.Should().HaveCount(1, "Funding Stream");
+            confDetalis.FundingStreams.First().AllocationLines.Should().HaveCount(1, "Allocation Lines");
+        }
+
         private static void AssertConfirmPublishApproveModel(IActionResult actionResult, int expectedNumProviders, int expectedNumAuthorities, int expectedNumProviderTypes, string expectedFundingPeriod, int expectedNumFundingStreams, decimal expectedTotalApproved)
         {
             OkObjectResult okResult = actionResult
