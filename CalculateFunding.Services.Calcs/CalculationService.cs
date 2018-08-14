@@ -193,7 +193,7 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("Null or empty calculation Id provided");
             }
 
-            string cacheKey = $"{CacheKeys.CurrentCalcluation}{calculationId}";
+            string cacheKey = $"{CacheKeys.CurrentCalculation}{calculationId}";
 
             CalculationCurrentVersion calculation = await _cacheProvider.GetAsync<CalculationCurrentVersion>(cacheKey);
 
@@ -538,6 +538,9 @@ namespace CalculateFunding.Services.Calcs
             }
 
             await _calculationsRepository.UpdateCalculations(calculationsToUpdate);
+
+            await _cacheProvider.RemoveAsync<List<CalculationSummaryModel>>($"{CacheKeys.CalculationsSummariesForSpecification}{specificationId}");
+            await _cacheProvider.RemoveAsync<CalculationCurrentVersion>($"{CacheKeys.CurrentCalculation}{calculationId}");
 
             IEnumerable<CalculationIndex> indexes = calculationsToUpdate.Select(m => CreateCalculationIndexItem(m, specification.Name)).ToArraySafe();
 
@@ -1107,7 +1110,7 @@ namespace CalculateFunding.Services.Calcs
             await _cacheProvider.KeyDeleteAsync<List<CalculationCurrentVersion>>($"{CacheKeys.CurrentCalculationsForSpecification}{calculation.SpecificationId}");
 
             // Set current version in cache
-            await _cacheProvider.SetAsync<CalculationCurrentVersion>($"{CacheKeys.CurrentCalcluation}{calculation.Id}", currentVersion, TimeSpan.FromDays(7), true);
+            await _cacheProvider.SetAsync<CalculationCurrentVersion>($"{CacheKeys.CurrentCalculation}{calculation.Id}", currentVersion, TimeSpan.FromDays(7), true);
         }
     }
 }

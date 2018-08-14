@@ -168,6 +168,29 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return query;
         }
 
+        public async Task<IEnumerable<dynamic>> Query<dynamic>(string sql, bool enableCrossPartitionQuery = false , int maxItemCount = 1000)
+        {
+            // Set some common query options
+            var queryOptions = new FeedOptions
+            {
+                EnableCrossPartitionQuery = enableCrossPartitionQuery,
+                MaxItemCount = maxItemCount
+            };
+
+            IEnumerable<dynamic> results = new List<dynamic>();
+
+            IDocumentQuery<dynamic> queryable = _documentClient.CreateDocumentQuery<dynamic>(_collectionUri, sql, queryOptions).AsDocumentQuery();
+
+            while (queryable.HasMoreResults)
+            {
+                FeedResponse<dynamic> queryResponse = await queryable.ExecuteNextAsync<dynamic>();
+
+                results = results.Concat(queryResponse.AsEnumerable());
+            }
+
+            return results;
+        }
+
         public IQueryable<T> RawQuery<T>(string directSql, int maxItemCount = -1, bool enableCrossPartitionQuery = false)
         {
             // Set some common query options
@@ -202,6 +225,26 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                     .AsDocumentQuery();
             }
 
+            while (queryable.HasMoreResults)
+            {
+                FeedResponse<DocumentEntity<T>> queryResponse = await queryable.ExecuteNextAsync<DocumentEntity<T>>();
+
+                allResults.AddRange(queryResponse.AsEnumerable());
+            }
+
+            return allResults;
+        }
+
+        public async Task<IEnumerable<DocumentEntity<T>>> GetAllDocumentsAsync<T>(string sql, int maxItemCount = 1000, bool enableCrossPartitionQuery = true) where T : IIdentifiable
+        {
+            FeedOptions options = new FeedOptions() { MaxItemCount = maxItemCount, EnableCrossPartitionQuery = enableCrossPartitionQuery };
+
+            List<DocumentEntity<T>> allResults = new List<DocumentEntity<T>>();
+
+            IDocumentQuery<DocumentEntity<T>> queryable = null;
+
+            queryable = _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, sql, options).AsDocumentQuery();
+          
             while (queryable.HasMoreResults)
             {
                 FeedResponse<DocumentEntity<T>> queryResponse = await queryable.ExecuteNextAsync<DocumentEntity<T>>();

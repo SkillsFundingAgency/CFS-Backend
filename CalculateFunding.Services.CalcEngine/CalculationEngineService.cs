@@ -1,36 +1,32 @@
-﻿using CalculateFunding.Services.Calculator.Interfaces;
-using Serilog;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Models.Calcs;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Models.Results;
 using System.Diagnostics;
 using System.Linq;
-using CalculateFunding.Services.Core.Interfaces.Logging;
-using Microsoft.Azure.ServiceBus;
-using CalculateFunding.Services.Core.Options;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
-using Polly;
-using CalculateFunding.Services.Core.Caching;
 using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Services.CalcEngine;
+using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Options;
 using FluentValidation;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
+using Polly;
+using Serilog;
 
 namespace CalculateFunding.Services.Calculator
 {
     public class CalculationEngineService : ICalculationEngineService
     {
-        const string UpdateCosmosResultsCollection = "dataset-events-results";
-
-        const string ExecuteTestsEventSubscription = "test-events-execute-tests";
-
         private readonly ILogger _logger;
         private readonly ICalculationEngine _calculationEngine;
         private readonly ICacheProvider _cacheProvider;
@@ -220,7 +216,7 @@ namespace CalculateFunding.Services.Calculator
                     properties.Add("providerResultsCacheKey", providerResultsCacheKey);
 
                     Stopwatch saveQueueStopwatch = Stopwatch.StartNew();
-                    await _messengerServicePolicy.ExecuteAsync(() => _messengerService.SendToQueue<string>(ExecuteTestsEventSubscription, null, properties));
+                    await _messengerServicePolicy.ExecuteAsync(() => _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.TestEngineExecuteTests, null, properties));
                     saveQueueStopwatch.Stop();
 
                     saveQueueElapsedMs = saveQueueStopwatch.ElapsedMilliseconds;

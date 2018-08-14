@@ -11,24 +11,24 @@ namespace CalculateFunding.Services.DataImporter
 {
     public class ExcelDatasetReader : IExcelDatasetReader
     {
-	    public IEnumerable<TableLoadResult> Read(Stream stream, DatasetDefinition datasetDefinition) 
-	    {
-	        ExcelPackage excel = new ExcelPackage(stream);
+        public IEnumerable<TableLoadResult> Read(Stream stream, DatasetDefinition datasetDefinition)
+        {
+            ExcelPackage excel = new ExcelPackage(stream);
 
             // If only one table defined in each then match it
-	        if (datasetDefinition.TableDefinitions.Count == 1 && excel.Workbook.Worksheets.Count == 1)
-	        {
-	           yield return ConvertSheetToObjects(excel.Workbook.Worksheets.First(), datasetDefinition.TableDefinitions.First());
+            if (datasetDefinition.TableDefinitions.Count == 1 && excel.Workbook.Worksheets.Count == 1)
+            {
+                yield return ConvertSheetToObjects(excel.Workbook.Worksheets.First(), datasetDefinition.TableDefinitions.First());
             }
-	        else
-	        {
-	            foreach (var tableDefinition in datasetDefinition.TableDefinitions)
-	            {
-	                var workSheet = excel.Workbook.Worksheets.First(x => Regex.IsMatch(x.Name, WildCardToRegular(tableDefinition.Name)));
-	                yield return ConvertSheetToObjects(workSheet, tableDefinition);
-	            }
-            }     
-	    }
+            else
+            {
+                foreach (var tableDefinition in datasetDefinition.TableDefinitions)
+                {
+                    var workSheet = excel.Workbook.Worksheets.First(x => Regex.IsMatch(x.Name, WildCardToRegular(tableDefinition.Name)));
+                    yield return ConvertSheetToObjects(workSheet, tableDefinition);
+                }
+            }
+        }
 
         public TableLoadResult Read(ExcelPackage excelPackage, DatasetDefinition datasetDefinition)
         {
@@ -78,14 +78,14 @@ namespace CalculateFunding.Services.DataImporter
                 {
                     var dataCell = worksheet.Cells[row, headerDictionary[fieldDefinition.Name]];
 
-                    rowResult.Fields.Add(fieldDefinition.Name, dataCell.Value);
-                    //PopulateField(fieldDefinition, rowResult, dataCell);
+                    //rowResult.Fields.Add(fieldDefinition.Name, dataCell.Value);
+                    PopulateField(fieldDefinition, rowResult, dataCell);
 
                     if (fieldDefinition.IdentifierFieldType.HasValue
                         && fieldDefinition.IdentifierFieldType.Value != IdentifierFieldType.None
                         && string.IsNullOrWhiteSpace(rowResult.Identifier))
                     {
-                        rowResult.Identifier = rowResult.Fields[fieldDefinition.Name] as string;
+                        rowResult.Identifier = rowResult.Fields[fieldDefinition.Name]?.ToString();
                         rowResult.IdentifierFieldType = fieldDefinition.IdentifierFieldType.Value;
                     }
                 }
@@ -111,7 +111,19 @@ namespace CalculateFunding.Services.DataImporter
                     rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<decimal>());
                     break;
                 case FieldType.DateTime:
-                    rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<DateTime>());
+                    try
+                    {
+                        string valueAsString = dataCell.GetValue<string>();
+                        if (!string.IsNullOrWhiteSpace(valueAsString))
+                        {
+                            rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<DateTime>());
+                        }
+                    }
+                    catch (InvalidCastException)
+                    {
+
+                    }
+
                     break;
                 default:
                     rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<string>());

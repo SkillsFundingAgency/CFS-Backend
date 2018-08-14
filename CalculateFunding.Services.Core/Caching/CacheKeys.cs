@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Core.Caching
 
         public static string CalculationsSummariesForSpecification { get; set; } = "calculation-summaries-for-specification:";
 
-        public static string CurrentCalcluation { get; set; } = "calculation-current:";
+        public static string CurrentCalculation { get; set; } = "calculation-current:";
 
         public static string AllProviderSummaries { get; set; } = "all-provider-summaries";
 

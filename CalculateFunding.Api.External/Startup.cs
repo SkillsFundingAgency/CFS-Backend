@@ -240,11 +240,6 @@ namespace CalculateFunding.Api.External
                 };
             });
 
-
-            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
-
-            builder.AddHealthCheckMiddleware();
-
             builder.AddHealthCheckMiddleware();
         }
     }
