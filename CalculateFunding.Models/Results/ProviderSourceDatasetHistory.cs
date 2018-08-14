@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
@@ -13,15 +12,15 @@ namespace CalculateFunding.Models.Results
         {
             get
             {
-                return $"{SpecificationId}_{DataRelationship.Id}_{Provider.Id}_History";
+                return $"{SpecificationId}_{DataRelationship.Id}_{ProviderId}_History";
             }
         }
 
         [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }
 
-        [JsonProperty("provider")]
-        public Reference Provider { get; set; }
+        [JsonProperty("providerId")]
+        public string ProviderId { get; set; }
 
         [JsonProperty("dataDefinition")]
         public Reference DataDefinition { get; set; }

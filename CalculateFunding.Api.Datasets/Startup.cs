@@ -122,9 +122,7 @@ namespace CalculateFunding.Api.Datasets
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(dbSettings);
 
-                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
-
-                return new ProvidersResultsRepository(calcsCosmosRepostory, cacheProvider);
+                return new ProvidersResultsRepository(calcsCosmosRepostory);
             });
 
             builder.AddSingleton<IDatasetRepository, DataSetsRepository>();

@@ -457,32 +457,6 @@ namespace CalculateFunding.Services.Results
             }
         }
 
-        async public Task<IActionResult> UpdateProviderSourceDataset(HttpRequest request)
-        {
-            string json = await request.GetRawBodyStringAsync();
-
-            ProviderSourceDatasetCurrent sourceDatset = JsonConvert.DeserializeObject<ProviderSourceDatasetCurrent>(json);
-
-            if (sourceDatset == null)
-            {
-                _logger.Error("Null results source dataset was provided to UpdateProviderSourceDataset");
-                throw new ArgumentNullException(nameof(sourceDatset), "Null results source dataset was provided to UpdateProviderSourceDataset");
-            }
-
-            HttpStatusCode statusCode = await _resultsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetRepository.UpsertProviderSourceDataset(sourceDatset));
-
-            if (!statusCode.IsSuccess())
-            {
-                int status = (int)statusCode;
-
-                _logger.Error($"Failed to update provider source dataset with status code: {status}");
-
-                return new StatusCodeResult(status);
-            }
-
-            return new NoContentResult();
-        }
-
         public async Task<IActionResult> GetProviderSourceDatasetsByProviderIdAndSpecificationId(HttpRequest request)
         {
             var specificationId = GetParameter(request, "specificationId");

@@ -1,12 +1,13 @@
-﻿using CalculateFunding.Models.Results;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -32,24 +33,30 @@ namespace CalculateFunding.Services.Calculator
 
             ConcurrentBag<ProviderSourceDatasetCurrent> results = new ConcurrentBag<ProviderSourceDatasetCurrent>();
 
-            int completedCount = 0;
-
-            ParallelLoopResult result = Parallel.ForEach(providerIds, new ParallelOptions() { MaxDegreeOfParallelism = _engineSettings.GetProviderSourceDatasetsDegreeOfParallelism }, async (providerId) =>
+            List<Task> allTasks = new List<Task>();
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _engineSettings.GetProviderSourceDatasetsDegreeOfParallelism);
+            foreach (string providerId in providerIds)
             {
-                string sql = $"SELECT * FROM Root r where r.documentType = '{nameof(ProviderSourceDatasetCurrent)}' and r.content.specificationId = '{specificationId}' and r.content.providerId ='{providerId}' AND r.deleted = false";
-                IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasetResults = await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>(sql, partitionEntityId: specificationId);
-                foreach (ProviderSourceDatasetCurrent repoResult in providerSourceDatasetResults)
-                {
-                    results.Add(repoResult);
-                }
-                completedCount++;
-            });
-
-            while (completedCount < providerIds.Count())
-            {
-                // TODO - fix this hack
-                await Task.Delay(20);
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            string sql = $"SELECT * FROM Root r where r.documentType = '{nameof(ProviderSourceDatasetCurrent)}' and r.content.specificationId = '{specificationId}' and r.content.providerId ='{providerId}' AND r.deleted = false";
+                            IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasetResults = await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>(sql, partitionEntityId: providerId);
+                            foreach (ProviderSourceDatasetCurrent repoResult in providerSourceDatasetResults)
+                            {
+                                results.Add(repoResult);
+                            }
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
             }
+            await Task.WhenAll(allTasks);
 
             return results.AsEnumerable();
         }

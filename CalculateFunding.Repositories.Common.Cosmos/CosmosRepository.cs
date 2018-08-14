@@ -110,7 +110,6 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
         public async Task<DocumentEntity<T>> ReadAsync<T>(string id) where T : IIdentifiable
         {
-            // Here we find the Andersen family via its LastName
             var response = await Read<T>(maxItemCount: 1).Where(x => x.Id == id).AsDocumentQuery().ExecuteNextAsync<DocumentEntity<T>>();
             return response.FirstOrDefault();
         }
@@ -126,12 +125,22 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
             if (!string.IsNullOrEmpty(directSql))
             {
-                // Here we find the Andersen family via its LastName
+                if(maxItemCount > 0)
+                {
+                    return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri,
+                    directSql,
+                    queryOptions).Take(maxItemCount).Select(x => x.Content).AsQueryable();
+                }
+
                 return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri,
                     directSql,
                     queryOptions).Select(x => x.Content).AsQueryable();
             }
-
+            if(maxItemCount > 0)
+            {
+                return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted).Take(maxItemCount).Select(x => x.Content).AsQueryable();
+            }
+            
             return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted).Select(x => x.Content).AsQueryable();
         }
 

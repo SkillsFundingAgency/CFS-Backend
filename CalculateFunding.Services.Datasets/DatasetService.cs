@@ -1006,7 +1006,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 foreach (ProviderSourceDatasetHistory datasetHistory in existingDatasetHistory)
                 {
-                    existingHistory.Add(datasetHistory.Provider.Id, datasetHistory);
+                    existingHistory.Add(datasetHistory.ProviderId, datasetHistory);
                 }
             }
 
@@ -1092,7 +1092,6 @@ namespace CalculateFunding.Services.Datasets
                         DataDefinition = new Reference(relationshipSummary.DatasetDefinition.Id, relationshipSummary.DatasetDefinition.Name),
                         DataRelationship = new Reference(relationshipSummary.Relationship.Id, relationshipSummary.Relationship.Name),
                         DatasetRelationshipSummary = new Reference(relationshipSummary.Id, relationshipSummary.Name),
-                        Provider = new Reference { Id = providerId },
                         History = new List<SourceDataset>() {
                             new SourceDataset
                             {
@@ -1101,19 +1100,20 @@ namespace CalculateFunding.Services.Datasets
                                 Date = DateTimeOffset.Now,
                                 Version = 1,
                             }
-                        }
+                        },
+                        ProviderId = providerId,
                     };
 
                     updateDatasetsHistory.Add(providerId, datasetHistory);
                 }
             }
 
+            await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
+                _providersResultsRepository.UpdateCurrentProviderSourceDatasets(updateCurrentDatasets.Values));
 
             await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
-                _providersResultsRepository.UpdateCurrentProviderSourceDatasets(updateCurrentDatasets.Values, specificationId));
+                _providersResultsRepository.UpdateProviderSourceDatasetHistory(updateDatasetsHistory.Values));
 
-            await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
-            _providersResultsRepository.UpdateProviderSourceDatasetHistory(updateDatasetsHistory.Values, specificationId));
 
             await PopulateProviderSummariesForSpecification(specificationId, _providerSummaries);
         }

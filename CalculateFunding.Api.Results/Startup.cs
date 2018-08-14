@@ -100,7 +100,7 @@ namespace CalculateFunding.Api.Results
 
                 Configuration.Bind("CosmosDbSettings", provDbSettings);
 
-                provDbSettings.CollectionName = "providersourcedatasets";
+                provDbSettings.CollectionName = "providerdatasets";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(provDbSettings);
 

@@ -21,7 +21,6 @@ namespace CalculateFunding.Services.Datasets
         const int MaxResultsCount = 1000;
 
         const string GetProviderSourceDatasets = "results/get-provider-source-datasets?providerId={0}specificationId={1}";
-        const string UpdateProviderSourceDatset = "results/update-provider-source-dataset";
         const string GetProvidersFromSearch = "results/providers-search";
 
         private readonly IResultsApiClientProxy _apiClient;
@@ -60,14 +59,6 @@ namespace CalculateFunding.Services.Datasets
             string url = string.Format(GetProviderSourceDatasets, providerId, specificationId);
 
             return _apiClient.GetAsync<IEnumerable<ProviderSourceDatasetCurrent>>(url);
-        }
-
-        public Task<HttpStatusCode> UpdateProviderSourceDataset(ProviderSourceDatasetCurrent providerSourceDataset)
-        {
-            if(providerSourceDataset == null)
-                throw new ArgumentNullException(nameof(providerSourceDataset));
-
-            return _apiClient.PostAsync(UpdateProviderSourceDatset, providerSourceDataset);
         }
 
         public Task<ProviderSearchResults> SearchProviders(SearchModel searchModel)

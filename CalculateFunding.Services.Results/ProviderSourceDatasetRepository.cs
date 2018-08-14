@@ -1,13 +1,12 @@
-﻿using CalculateFunding.Models.Health;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
 {
@@ -33,14 +32,9 @@ namespace CalculateFunding.Services.Results
             return health;
         }
 
-        public Task<HttpStatusCode> UpsertProviderSourceDataset(ProviderSourceDatasetCurrent providerSourceDataset)
-        {
-            return _cosmosRepository.CreateAsync(providerSourceDataset);
-        }
-
         public Task<IEnumerable<ProviderSourceDatasetCurrent>> GetProviderSourceDatasets(string providerId, string specificationId)
         {
-            return _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>($"SELECT * FROM Root r WHERE r.content.providerId = '{providerId}' AND r.content.specificationId = '{specificationId}' AND r.documentType = '{nameof(ProviderSourceDatasetCurrent)}' AND r.deleted = false", -1, specificationId);
+            return _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>($"SELECT * FROM Root r WHERE r.content.providerId = '{providerId}' AND r.content.specificationId = '{specificationId}' AND r.documentType = '{nameof(ProviderSourceDatasetCurrent)}' AND r.deleted = false", -1, providerId);
         }
 
         public async Task<IEnumerable<string>> GetAllScopedProviderIdsForSpecificationId(string specificationId)

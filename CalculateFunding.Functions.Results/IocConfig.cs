@@ -98,7 +98,7 @@ namespace CalculateFunding.Functions.Results
 
                 config.Bind("CosmosDbSettings", provDbSettings);
 
-                provDbSettings.CollectionName = "providersourcedatasets";
+                provDbSettings.CollectionName = "providerdatasets";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(provDbSettings);
 

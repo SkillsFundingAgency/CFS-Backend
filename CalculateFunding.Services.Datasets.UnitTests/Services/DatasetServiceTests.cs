@@ -2031,7 +2031,7 @@ namespace CalculateFunding.Services.Datasets.Services
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream httpRequestBodyStream = new MemoryStream(byteArray);
-            MemoryStream jpgFileWithXlsExtension = 
+            MemoryStream jpgFileWithXlsExtension =
                 new MemoryStream(
                     File.ReadAllBytes($"TestItems{Path.DirectorySeparatorChar}jpgImage.xlsx"));
 
@@ -2975,7 +2975,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IProviderRepository resultsRepository = CreateProviderRepository();
+            IProvidersResultsRepository resultsRepository = CreateProviderResultsRepository();
 
             DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
             {
@@ -2993,7 +2993,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
-                providerRepository: resultsRepository);
+                providerResultsRepository: resultsRepository);
 
             // Act
             Action action = () =>
@@ -3011,7 +3011,12 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 resultsRepository
                     .DidNotReceive()
-                    .UpdateProviderSourceDataset(Arg.Any<ProviderSourceDatasetCurrent>());
+                    .UpdateCurrentProviderSourceDatasets(Arg.Any<IEnumerable<ProviderSourceDatasetCurrent>>());
+
+            await
+                resultsRepository
+                    .DidNotReceive()
+                    .UpdateProviderSourceDatasetHistory(Arg.Any<IEnumerable<ProviderSourceDatasetHistory>>());
         }
 
         [TestMethod]
@@ -3091,7 +3096,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IProviderRepository resultsRepository = CreateProviderRepository();
+            IProvidersResultsRepository resultsRepository = CreateProviderResultsRepository();
 
             DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
             {
@@ -3109,7 +3114,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
-                providerRepository: resultsRepository);
+                providerResultsRepository: resultsRepository);
 
             // Act
             Action action = () =>
@@ -3127,7 +3132,12 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 resultsRepository
                     .DidNotReceive()
-                    .UpdateProviderSourceDataset(Arg.Any<ProviderSourceDatasetCurrent>());
+                    .UpdateCurrentProviderSourceDatasets(Arg.Any<IEnumerable<ProviderSourceDatasetCurrent>>());
+
+            await
+                resultsRepository
+                    .DidNotReceive()
+                    .UpdateProviderSourceDatasetHistory(Arg.Any<IEnumerable<ProviderSourceDatasetHistory>>());
         }
 
         [TestMethod]
@@ -3225,7 +3235,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IProviderRepository resultsRepository = CreateProviderRepository();
+            IProvidersResultsRepository resultsRepository = CreateProviderResultsRepository();
 
             DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
             {
@@ -3243,7 +3253,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
-                providerRepository: resultsRepository);
+                providerResultsRepository: resultsRepository);
 
             // Act
             Action action = () =>
@@ -3260,7 +3270,12 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 resultsRepository
                     .DidNotReceive()
-                    .UpdateProviderSourceDataset(Arg.Any<ProviderSourceDatasetCurrent>());
+                    .UpdateCurrentProviderSourceDatasets(Arg.Any<IEnumerable<ProviderSourceDatasetCurrent>>());
+
+            await
+                resultsRepository
+                    .DidNotReceive()
+                    .UpdateProviderSourceDatasetHistory(Arg.Any<IEnumerable<ProviderSourceDatasetHistory>>());
         }
 
         [TestMethod]
@@ -3369,7 +3384,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetAllProviderSummaries()
                 .Returns(summaries);
 
-            IProvidersResultsRepository providerResultsRepository = CreateProvidesrResultsRepository();
+            IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
             DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
             {
@@ -3387,7 +3402,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
-                providerRepository: resultsRepository, providersResultsRepository: providerResultsRepository);
+                providerRepository: resultsRepository, providerResultsRepository: providerResultsRepository);
 
             // Act
             await service.ProcessDataset(message);
@@ -3403,7 +3418,7 @@ namespace CalculateFunding.Services.Datasets.Services
                              !string.IsNullOrWhiteSpace(m.First().Id) &&
                              m.First().SpecificationId == SpecificationId &&
                              m.First().ProviderId == "123456"
-                        ), Arg.Is(SpecificationId));
+                        ));
 
             await
                 providerResultsRepository
@@ -3414,8 +3429,8 @@ namespace CalculateFunding.Services.Datasets.Services
                              m.First().DefinesScope == false &&
                              !string.IsNullOrWhiteSpace(m.First().Id) &&
                              m.First().SpecificationId == SpecificationId &&
-                             m.First().Provider.Id == "123456"
-                        ), Arg.Is(SpecificationId));
+                             m.First().ProviderId == "123456"
+                        ));
         }
 
         [TestMethod]
@@ -3525,7 +3540,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetAllProviderSummaries()
                 .Returns(summaries);
 
-            IProvidersResultsRepository providerResultsRepository = CreateProvidesrResultsRepository();
+            IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
             DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
             {
@@ -3543,7 +3558,7 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
-                providerRepository: resultsRepository, providersResultsRepository: providerResultsRepository);
+                providerRepository: resultsRepository, providerResultsRepository: providerResultsRepository);
 
             // Act
             await service.ProcessDataset(message);
@@ -3552,12 +3567,12 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 providerResultsRepository
                     .Received(1)
-                    .UpdateCurrentProviderSourceDatasets(Arg.Any<IEnumerable<ProviderSourceDatasetCurrent>>(), Arg.Is(SpecificationId));
+                    .UpdateCurrentProviderSourceDatasets(Arg.Any<IEnumerable<ProviderSourceDatasetCurrent>>());
 
             await
                 providerResultsRepository
                     .Received(1)
-                    .UpdateProviderSourceDatasetHistory(Arg.Any<IEnumerable<ProviderSourceDatasetHistory>>(), Arg.Is(SpecificationId));
+                    .UpdateProviderSourceDatasetHistory(Arg.Any<IEnumerable<ProviderSourceDatasetHistory>>());
         }
 
         [TestMethod]
@@ -4355,7 +4370,7 @@ namespace CalculateFunding.Services.Datasets.Services
             ICacheProvider cacheProvider = null,
             ICalcsRepository calcsRepository = null,
             IProviderRepository providerRepository = null,
-            IProvidersResultsRepository providersResultsRepository = null,
+            IProvidersResultsRepository providerResultsRepository = null,
             ITelemetry telemetry = null,
             IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
             IValidator<ExcelPackage> datasetWorksheetValidator = null)
@@ -4375,7 +4390,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 excelDatasetReader ?? CreateExcelDatasetReader(),
                 cacheProvider ?? CreateCacheProvider(), calcsRepository ?? CreateCalcsRepository(),
                 providerRepository ?? CreateProviderRepository(),
-                providersResultsRepository ?? CreateProvidesrResultsRepository(),
+                providerResultsRepository ?? CreateProviderResultsRepository(),
                 telemetry ?? CreateTelemetry(),
                 datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies(),
                 datasetWorksheetValidator ?? CreateDataWorksheetValidator());
@@ -4396,7 +4411,7 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<IProviderRepository>();
         }
 
-        static IProvidersResultsRepository CreateProvidesrResultsRepository()
+        static IProvidersResultsRepository CreateProviderResultsRepository()
         {
             return Substitute.For<IProvidersResultsRepository>();
         }
