@@ -651,8 +651,8 @@ namespace CalculateFunding.Services.Results
             ConfirmPublishApproveModel confirmationDetails = new ConfirmPublishApproveModel
             {
                 NumberOfProviders = publishedProviderResults.Select(r => r.FundingStreamResult.AllocationLineResult.Current.Provider.Id).Distinct().Count(),
-                ProviderTypes = publishedProviderResults.Select(r => r.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderType).Distinct().ToArray(),
-                LocalAuthorities = publishedProviderResults.Select(r => r.FundingStreamResult.AllocationLineResult.Current.Provider.Authority).Distinct().ToArray(),
+                ProviderTypes = publishedProviderResults.Select(r => r.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderType).Distinct().OrderBy(t => t).ToArray(),
+                LocalAuthorities = publishedProviderResults.Select(r => r.FundingStreamResult.AllocationLineResult.Current.Provider.Authority).Distinct().OrderBy(a => a).ToArray(),
                 FundingPeriod = publishedProviderResults.Select(r => r.FundingPeriod.Name).FirstOrDefault()
             };
 
@@ -667,7 +667,17 @@ namespace CalculateFunding.Services.Results
 
                 foreach (PublishedFundingStreamResult result in fundingStream)
                 {
-                    summary.AllocationLines.Add(new AllocationLineSummaryModel { Name = result.AllocationLineResult.AllocationLine.Name, Value = result.AllocationLineResult.Current.Value });
+                    AllocationLineSummaryModel existingAL = summary.AllocationLines.FirstOrDefault(a => a.Name == result.AllocationLineResult.AllocationLine.Name);
+
+                    if (existingAL == null)
+                    {
+                        summary.AllocationLines.Add(new AllocationLineSummaryModel { Name = result.AllocationLineResult.AllocationLine.Name, Value = result.AllocationLineResult.Current.Value });
+                    }
+                    else
+                    {
+                        existingAL.Value += result.AllocationLineResult.Current.Value;
+                    }
+
                     totalFundingAmount += result.AllocationLineResult.Current.Value ?? 0;
                 }
 
