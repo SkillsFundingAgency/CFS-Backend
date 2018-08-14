@@ -6,10 +6,13 @@ namespace CalculateFunding.Models.Datasets
     {
         public string BlobName { get; set; }
 
+        public int RowCount { get; set; }
+
         public override VersionedItem Clone()
         {
             return new DatasetVersion
             {
+                RowCount = RowCount,
                 PublishStatus = PublishStatus,
                 Version = Version,
                 Date = Date,
