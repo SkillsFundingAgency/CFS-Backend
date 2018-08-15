@@ -314,7 +314,9 @@ namespace CalculateFunding.Api.External.V1.Services
                     //AB: temporary why we dont have ukprns
                     Ukprn = !string.IsNullOrWhiteSpace(firstEntry.ProviderUkPrn) ? firstEntry.ProviderUkPrn : firstEntry.ProviderId,
                     ProviderOpenDate = firstEntry.ProviderOpenDate,
-                    LegalName = firstEntry.ProviderName?.ToUpper()
+                    LegalName = firstEntry.ProviderName?.ToUpper(),
+                    LAEstablishmentNo = firstEntry.EstablishmentNumber,
+                    LANo = firstEntry.LaCode
                 }
             };
 

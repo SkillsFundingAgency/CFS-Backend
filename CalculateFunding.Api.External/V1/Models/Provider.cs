@@ -24,5 +24,9 @@ namespace CalculateFunding.Api.External.V1.Models
         public DateTimeOffset? ProviderOpenDate { get; set; }
 
         public string LegalName { get; set; }
+
+        public string LANo { get; set; }
+
+        public string LAEstablishmentNo { get; set; }
     }
 }

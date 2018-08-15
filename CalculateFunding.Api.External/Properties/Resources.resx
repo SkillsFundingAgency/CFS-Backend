@@ -1,0 +1,336 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Sample_Provider_Results" xml:space="preserve">
+    <value>{
+  "TotalAmount": 160920.0,
+  "Provider": {
+    "Ukprn": "11111111",
+    "Upin": null,
+    "ProviderOpenDate": null,
+    "LegalName": "SAMPLE SCHOOL 1",
+    "LANo": "64",
+    "LAEstablishmentNo": "3833030"
+  },
+  "FundingPeriodResults": [
+    {
+      "Period": {
+        "PeriodType": "AY",
+        "PeriodId": "AY2018191",
+        "StartDate": "2018-08-31T23:00:00+00:00",
+        "EndDate": "2019-08-30T23:00:00+00:00"
+      },
+      "FundingStreamResults": [
+        {
+          "FundingStream": {
+            "FundingStreamCode": "PES",
+            "FundingStreamName": "PE and Sports Premium",
+            "AllocationLines": null
+          },
+          "TotalAmount": 160920.0,
+          "Allocations": [
+            {
+              "AllocationLine": {
+                "AllocationLineCode": "PES02",
+                "AllocationLineName": "Maintained Schools"
+              },
+              "AllocationVersionNumber": 2,
+              "AllocationStatus": "Approved",
+              "AllocationAmount": 160920.0,
+              "AllocationLearnerCount": null
+            }
+          ],
+          "Policies": [
+            {
+              "Policy": {
+                "PolicyId": "7ef1d53b-44e6-4c1b-aa21-1fb9e956da50",
+                "PolicyName": "Maintained Schools",
+                "PolicyDescription": "PE and Sport grant for maintained schools"
+              },
+              "TotalAmount": 160920.0,
+              "Calculations": [
+                {
+                  "CalculationName": "Maintained schools funding",
+                  "CalculationVersionNumber": 1,
+                  "CalculationType": "Funding",
+                  "CalculationAmount": 160920.0
+                },
+                {
+                  "CalculationName": "Total Eligible Pupils",
+                  "CalculationVersionNumber": 1,
+                  "CalculationType": "Number",
+                  "CalculationAmount": 108.0
+                }
+              ],
+              "SubPolicyResults": [
+                {
+                  "Policy": {
+                    "PolicyId": "7ef1d53b-44e6-4c1b-aa21-1fb9e956da50",
+                    "PolicyName": "Maintained Schools",
+                    "PolicyDescription": "PE and Sport grant for maintained schools"
+                  },
+                  "TotalAmount": 0.0,
+                  "Calculations": [],
+                  "SubPolicyResults": []
+                },
+                {
+                  "Policy": {
+                    "PolicyId": "7ef1d53b-44e6-4c1b-aa21-1fb9e956da50",
+                    "PolicyName": "Maintained Schools",
+                    "PolicyDescription": "PE and Sport grant for maintained schools"
+                  },
+                  "TotalAmount": 0.0,
+                  "Calculations": [],
+                  "SubPolicyResults": []
+                },
+                {
+                  "Policy": {
+                    "PolicyId": "7ef1d53b-44e6-4c1b-aa21-1fb9e956da50",
+                    "PolicyName": "Maintained Schools",
+                    "PolicyDescription": "PE and Sport grant for maintained schools"
+                  },
+                  "TotalAmount": 0.0,
+                  "Calculations": [],
+                  "SubPolicyResults": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}</value>
+    <comment>sample provider results data</comment>
+  </data>
+  <data name="Sample_LocalAuthority_Results" xml:space="preserve">
+    <value>{
+  "FundingPeriod": "2018-2019",
+  "LocalAuthorities": [
+    {
+      "LANo": "38",
+      "LAName": "Sandwell",
+      "Providers": [
+        {
+          "Ukprn": "1111111",
+          "LAEStab": "3332102",
+          "OrganisationName": "Sample School 1",
+          "OrganisationType": "School",
+          "OrganisationSubType": "Community",
+          "EligiblePupils": 0,
+          "AllocationValue": 161670.0,
+          "FundingPeriods": [
+            {
+              "FundingPeriod": {
+                "PeriodType": "AY",
+                "PeriodId": "AY2018191",
+                "StartDate": "2018-08-31T23:00:00+00:00",
+                "EndDate": "2019-08-30T23:00:00+00:00"
+              },
+              "Allocations": [
+                {
+                  "ProfilePeriods": [
+                    {
+                      "Period": "Oct",
+                      "Occurrence": 1,
+                      "PeriodYear": "2018",
+                      "PeriodType": "CalendarMonth",
+                      "ProfileValue": 80835.0,
+                      "DistributionPeriod": "2018-2019"
+                    },
+                    {
+                      "Period": "Apr",
+                      "Occurrence": 1,
+                      "PeriodYear": "2019",
+                      "PeriodType": "CalendarMonth",
+                      "ProfileValue": 80835.0,
+                      "DistributionPeriod": "2018-2019"
+                    }
+                  ],
+                  "AllocationLine": {
+                    "AllocationLineCode": "PES02",
+                    "AllocationLineName": "Maintained Schools"
+                  },
+                  "AllocationVersionNumber": 2,
+                  "AllocationStatus": "Approved",
+                  "AllocationAmount": 161670.0,
+                  "AllocationLearnerCount": null
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "Ukprn": "103929",
+          "LAEStab": "22222222",
+          "OrganisationName": "Sample School 12",
+          "OrganisationType": "School",
+          "OrganisationSubType": "Community",
+          "EligiblePupils": 0,
+          "AllocationValue": 164380.0,
+          "FundingPeriods": [
+            {
+              "FundingPeriod": {
+                "PeriodType": "AY",
+                "PeriodId": "AY2018191",
+                "StartDate": "2018-08-31T23:00:00+00:00",
+                "EndDate": "2019-08-30T23:00:00+00:00"
+              },
+              "Allocations": [
+                {
+                  "ProfilePeriods": [
+                    {
+                      "Period": "Oct",
+                      "Occurrence": 1,
+                      "PeriodYear": "2018",
+                      "PeriodType": "CalendarMonth",
+                      "ProfileValue": 82190.0,
+                      "DistributionPeriod": "2018-2019"
+                    },
+                    {
+                      "Period": "Apr",
+                      "Occurrence": 1,
+                      "PeriodYear": "2019",
+                      "PeriodType": "CalendarMonth",
+                      "ProfileValue": 82190.0,
+                      "DistributionPeriod": "2018-2019"
+                    }
+                  ],
+                  "AllocationLine": {
+                    "AllocationLineCode": "PES02",
+                    "AllocationLineName": "Maintained Schools"
+                  },
+                  "AllocationVersionNumber": 2,
+                  "AllocationStatus": "Approved",
+                  "AllocationAmount": 164380.0,
+                  "AllocationLearnerCount": null
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "TotalAllocation": 326050.0
+    }
+  ],
+  "TotalAllocation": 326050.0
+}</value>
+    <comment>sample local authority reaults data</comment>
+  </data>
+</root>
