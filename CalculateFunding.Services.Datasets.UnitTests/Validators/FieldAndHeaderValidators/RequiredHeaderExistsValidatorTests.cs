@@ -20,9 +20,9 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 		{
 			// Arrange
 			IList<FieldDefinition> fieldDefinitionsTestData = CreateFieldDefinitions();
-			IList<HeaderField> headerFields = new List<HeaderField>()
+			IList<string> headerFields = new List<string>()
 			{
-				new HeaderField(RequiredHeaderName)
+				RequiredHeaderName
 			};
 			RequiredHeaderExistsValidator requiredHeaderExistsValidator = new RequiredHeaderExistsValidator(fieldDefinitionsTestData);
 
@@ -48,11 +48,11 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 	    {
 		    // Arrange
 		    IList<FieldDefinition> fieldDefinitionsTestData = CreateFieldDefinitions();
-		    IList<HeaderField> headerFields = new List<HeaderField>()
+		    IList<string> headerFields = new List<string>()
 		    {
-			    new HeaderField(RequiredHeaderName),
-			    new HeaderField(RequiredHeaderRid),
-			    new HeaderField(RequiredHeaderUpin)
+			    RequiredHeaderName,
+			    RequiredHeaderRid,
+			    RequiredHeaderUpin
 		    };
 		    RequiredHeaderExistsValidator requiredHeaderExistsValidator = new RequiredHeaderExistsValidator(fieldDefinitionsTestData);
 

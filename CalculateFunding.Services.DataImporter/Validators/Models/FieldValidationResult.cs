@@ -2,7 +2,7 @@
 {
     public class FieldValidationResult
     {
-	    public FieldValidationResult(Field fieldValidated, bool isValid, ReasonForFailure reasonOfFailure)
+	    public FieldValidationResult(Field fieldValidated, ReasonForFailure reasonOfFailure)
 	    {
 		    FieldValidated = fieldValidated;
 		    ReasonOfFailure = reasonOfFailure;
@@ -16,15 +16,11 @@
 	    public enum ReasonForFailure
 	    {
 			None,
-			ProviderIdMismatchWithServiceProvider
-
-		 //   MissingRequiredFields,
-		 //   DatatypeMismatch,
-			//MaxOrMinExceeded,
-			//ProviderIdMissing,
-			//DuplicateProviderIdEntries,
-		 //   MissingProviders,
-		 //   NoProvidersInSystem
+			DataTypeMismatch,
+			MaxOrMinValueExceeded,
+			ProviderIdValueMissing,
+			DuplicateEntriesInTheProviderIdColumn,
+			ProviderIdMismatchWithServiceProvider,
 		}
     }		
 }     

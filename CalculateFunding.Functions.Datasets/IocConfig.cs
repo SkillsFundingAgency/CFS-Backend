@@ -122,13 +122,11 @@ namespace CalculateFunding.Functions.Datasets
 
                 config.Bind("CosmosDbSettings", dbSettings);
 
-                dbSettings.CollectionName = "providersourcedatasets";
+                dbSettings.CollectionName = "providerdatasets";
 
                 CosmosRepository calcsCosmosRepostory = new CosmosRepository(dbSettings);
 
-                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
-
-                return new ProvidersResultsRepository(calcsCosmosRepostory, cacheProvider);
+                return new ProvidersResultsRepository(calcsCosmosRepostory);
             });
 
             builder.AddSingleton<IDatasetRepository, DataSetsRepository>();
@@ -152,7 +150,9 @@ namespace CalculateFunding.Functions.Datasets
             builder
                .AddSingleton<ICalcsRepository, CalcsRepository>();
 
-            MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
+	        builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetItemValidator>();
+
+			MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             builder
                 .AddSingleton(dataSetsConfig.CreateMapper());
 

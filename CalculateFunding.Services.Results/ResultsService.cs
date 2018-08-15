@@ -457,32 +457,6 @@ namespace CalculateFunding.Services.Results
             }
         }
 
-        async public Task<IActionResult> UpdateProviderSourceDataset(HttpRequest request)
-        {
-            string json = await request.GetRawBodyStringAsync();
-
-            ProviderSourceDatasetCurrent sourceDatset = JsonConvert.DeserializeObject<ProviderSourceDatasetCurrent>(json);
-
-            if (sourceDatset == null)
-            {
-                _logger.Error("Null results source dataset was provided to UpdateProviderSourceDataset");
-                throw new ArgumentNullException(nameof(sourceDatset), "Null results source dataset was provided to UpdateProviderSourceDataset");
-            }
-
-            HttpStatusCode statusCode = await _resultsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetRepository.UpsertProviderSourceDataset(sourceDatset));
-
-            if (!statusCode.IsSuccess())
-            {
-                int status = (int)statusCode;
-
-                _logger.Error($"Failed to update provider source dataset with status code: {status}");
-
-                return new StatusCodeResult(status);
-            }
-
-            return new NoContentResult();
-        }
-
         public async Task<IActionResult> GetProviderSourceDatasetsByProviderIdAndSpecificationId(HttpRequest request)
         {
             var specificationId = GetParameter(request, "specificationId");
@@ -651,8 +625,8 @@ namespace CalculateFunding.Services.Results
             ConfirmPublishApproveModel confirmationDetails = new ConfirmPublishApproveModel
             {
                 NumberOfProviders = publishedProviderResults.Select(r => r.FundingStreamResult.AllocationLineResult.Current.Provider.Id).Distinct().Count(),
-                ProviderTypes = publishedProviderResults.Select(r => r.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderType).Distinct().ToArray(),
-                LocalAuthorities = publishedProviderResults.Select(r => r.FundingStreamResult.AllocationLineResult.Current.Provider.Authority).Distinct().ToArray(),
+                ProviderTypes = publishedProviderResults.Select(r => r.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderType).Distinct().OrderBy(t => t).ToArray(),
+                LocalAuthorities = publishedProviderResults.Select(r => r.FundingStreamResult.AllocationLineResult.Current.Provider.Authority).Distinct().OrderBy(a => a).ToArray(),
                 FundingPeriod = publishedProviderResults.Select(r => r.FundingPeriod.Name).FirstOrDefault()
             };
 
@@ -667,7 +641,17 @@ namespace CalculateFunding.Services.Results
 
                 foreach (PublishedFundingStreamResult result in fundingStream)
                 {
-                    summary.AllocationLines.Add(new AllocationLineSummaryModel { Name = result.AllocationLineResult.AllocationLine.Name, Value = result.AllocationLineResult.Current.Value });
+                    AllocationLineSummaryModel existingAL = summary.AllocationLines.FirstOrDefault(a => a.Name == result.AllocationLineResult.AllocationLine.Name);
+
+                    if (existingAL == null)
+                    {
+                        summary.AllocationLines.Add(new AllocationLineSummaryModel { Name = result.AllocationLineResult.AllocationLine.Name, Value = result.AllocationLineResult.Current.Value });
+                    }
+                    else
+                    {
+                        existingAL.Value += result.AllocationLineResult.Current.Value;
+                    }
+
                     totalFundingAmount += result.AllocationLineResult.Current.Value ?? 0;
                 }
 

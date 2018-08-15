@@ -253,13 +253,14 @@ namespace CalculateFunding.Services.Core.Extensions
                 throw new InvalidOperationException("Unable to lookup Application Insights Configuration key from Configuration Provider. The value returned was empty string");
             }
 
-            TelemetryClient telemtryClient = new TelemetryClient(new TelemetryConfiguration
+            TelemetryClient telemetryClient = new TelemetryClient(new TelemetryConfiguration
             {
                 InstrumentationKey = appInsightsKey,
-
             });
 
-            builder.AddSingleton(telemtryClient);
+            telemetryClient.InstrumentationKey = appInsightsKey;
+
+            builder.AddSingleton(telemetryClient);
 
             return builder;
         }

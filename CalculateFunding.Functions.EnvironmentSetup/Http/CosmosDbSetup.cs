@@ -57,7 +57,7 @@ namespace CalculateFunding.Functions.EnvironmentSetup.Http
             await CreateDatabaseAndCollection(client, "calculate-funding",
                 new DocumentCollection()
                 {
-                    Id = "providersourcedatasets",
+                    Id = "providerdatasets",
                     PartitionKey = new PartitionKeyDefinition()
                     {
                         Paths = new Collection<string>() { "/content/specificationId" }

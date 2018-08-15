@@ -6,6 +6,6 @@ namespace CalculateFunding.Services.DataImporter.Validators
 {
     public interface IHeaderValidator
     {
-	    IList<HeaderValidationResult> ValidateHeaders(IList<HeaderField> fieldDefinitions);
+	    IList<HeaderValidationResult> ValidateHeaders(IList<string> headerFields);
     }
 }

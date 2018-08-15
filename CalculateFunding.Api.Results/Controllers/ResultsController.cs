@@ -51,13 +51,6 @@ namespace CalculateFunding.Api.Results.Controllers
             return await _resultsService.GetProviderById(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/results/update-provider-source-dataset")]
-        [HttpPost]
-        public async Task<IActionResult> RunUpdateProviderSourceDataset()
-        {
-            return await _resultsService.UpdateProviderSourceDataset(ControllerContext.HttpContext.Request);
-        }
-
         [Route("api/results/get-provider-source-datasets")]
         [HttpGet]
         public async Task<IActionResult> RunGetProviderSourceDatasetsByProviderIdAndSpecificationId()

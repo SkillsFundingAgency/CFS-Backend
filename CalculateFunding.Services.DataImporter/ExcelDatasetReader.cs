@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Services.DataImporter.Validators.Models;
 using OfficeOpenXml;
 
 namespace CalculateFunding.Services.DataImporter
@@ -16,21 +17,21 @@ namespace CalculateFunding.Services.DataImporter
             ExcelPackage excel = new ExcelPackage(stream);
 
             // If only one table defined in each then match it
-            if (datasetDefinition.TableDefinitions.Count == 1 && excel.Workbook.Worksheets.Count == 1)
-            {
-                yield return ConvertSheetToObjects(excel.Workbook.Worksheets.First(), datasetDefinition.TableDefinitions.First());
+	        if (datasetDefinition.TableDefinitions.Count == 1 && excel.Workbook.Worksheets.Count == 1)
+	        {
+	           yield return ConvertSheetToObjects(excel.Workbook.Worksheets.First(), datasetDefinition.TableDefinitions.First()).TableLoadResult;
             }
-            else
-            {
-                foreach (var tableDefinition in datasetDefinition.TableDefinitions)
-                {
-                    var workSheet = excel.Workbook.Worksheets.First(x => Regex.IsMatch(x.Name, WildCardToRegular(tableDefinition.Name)));
-                    yield return ConvertSheetToObjects(workSheet, tableDefinition);
-                }
-            }
-        }
+	        else
+	        {
+	            foreach (var tableDefinition in datasetDefinition.TableDefinitions)
+	            {
+	                var workSheet = excel.Workbook.Worksheets.First(x => Regex.IsMatch(x.Name, WildCardToRegular(tableDefinition.Name)));
+	                yield return ConvertSheetToObjects(workSheet, tableDefinition).TableLoadResult;
+	            }
+            }     
+	    }
 
-        public TableLoadResult Read(ExcelPackage excelPackage, DatasetDefinition datasetDefinition)
+        public TableLoadResultWithHeaders Read(ExcelPackage excelPackage, DatasetDefinition datasetDefinition)
         {
             if (datasetDefinition.TableDefinitions.Count == 1 && excelPackage.Workbook.Worksheets.Count == 1)
             {
@@ -40,13 +41,17 @@ namespace CalculateFunding.Services.DataImporter
             return null;
         }
 
-        private static TableLoadResult ConvertSheetToObjects(ExcelWorksheet worksheet, TableDefinition tableDefinition)
+        private static TableLoadResultWithHeaders ConvertSheetToObjects(ExcelWorksheet worksheet, TableDefinition tableDefinition)
         {
-            var result = new TableLoadResult
-            {
-                TableDefinition = tableDefinition,
-                Rows = new List<RowLoadResult>()
-            };
+	        var result = new TableLoadResultWithHeaders()
+	        {
+		        TableLoadResult = new TableLoadResult
+		        {
+			        TableDefinition = tableDefinition,
+			        Rows = new List<RowLoadResult>()
+		        },
+				RetrievedHeaderFields = new List<string>()
+	        };
 
             var rows = worksheet.Cells
                 .Select(cell => cell.Start.Row)
@@ -59,10 +64,15 @@ namespace CalculateFunding.Services.DataImporter
             {
                 var rowResult = LoadRow(worksheet, tableDefinition, headerDictionary, row);
 
-                result.Rows.Add(rowResult);
+                result.TableLoadResult.Rows.Add(rowResult);
             }
 
-            return result;
+	        if (!headerDictionary.IsNullOrEmpty())
+	        {
+		        result.RetrievedHeaderFields = new List<string>(headerDictionary.Keys);
+	        }
+
+	        return result;
         }
 
         private static RowLoadResult LoadRow(ExcelWorksheet worksheet, TableDefinition tableDefinition, Dictionary<string, int> headerDictionary, int row)

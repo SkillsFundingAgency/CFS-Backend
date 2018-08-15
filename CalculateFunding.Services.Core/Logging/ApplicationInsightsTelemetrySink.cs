@@ -12,6 +12,12 @@ namespace CalculateFunding.Services.Core.Logging
         public ApplicationInsightsTelemetrySink(TelemetryClient client)
         {
             Guard.ArgumentNotNull(client, nameof(client));
+
+            if (string.IsNullOrWhiteSpace(client.InstrumentationKey))
+            {
+                throw new System.Exception("InstrumentationKey is null or empty");
+            }
+
             _client = client;
         }
 

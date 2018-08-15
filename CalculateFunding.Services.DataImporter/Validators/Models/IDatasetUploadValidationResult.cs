@@ -9,5 +9,7 @@ namespace CalculateFunding.Services.DataImporter.Validators.Models
 	    IEnumerable<FieldValidationResult> FieldValidationFailures { get; }
 
 		IEnumerable<HeaderValidationResult> HeaderValitionFailures { get; }
-	}
+
+	    bool IsValid();
+    }
 }

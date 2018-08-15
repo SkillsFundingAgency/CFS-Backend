@@ -6,11 +6,11 @@ using OfficeOpenXml.Style;
 
 namespace CalculateFunding.Services.DataImporter.ExcelFormatter
 {
-    public class ExcelFieldFormatter : IExcelFieldFormatter
+    public class ExcelFieldErrorFormatter : IExcelErrorFormatter
     {
 	    private readonly ExcelPackage _excelPackage;
 
-	    public ExcelFieldFormatter(ExcelPackage excelPackage)
+	    public ExcelFieldErrorFormatter(ExcelPackage excelPackage)
 	    {
 		    _excelPackage = excelPackage;
 	    }

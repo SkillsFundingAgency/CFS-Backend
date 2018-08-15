@@ -22,8 +22,15 @@ namespace CalculateFunding.Services.DataImporter.Validators.Extension
 			{
 				return providerSummary.URN;
 			}
-
-		    throw new ArgumentOutOfRangeException($"{nameof(identifierType)} was not one of the expected types");
+		    if (identifierType == IdentifierFieldType.Authority)
+		    {
+			    return providerSummary.Authority;
+		    }
+		    if (identifierType == IdentifierFieldType.EstablishmentNumber)
+		    {
+			    return providerSummary.EstablishmentNumber;
+		    }
+			throw new ArgumentOutOfRangeException($"{nameof(identifierType)} was not one of the expected types");
 	    }
     }
 }

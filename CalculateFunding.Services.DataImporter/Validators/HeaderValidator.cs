@@ -16,11 +16,11 @@ namespace CalculateFunding.Services.DataImporter.Validators
 		    _fieldDefinitions = fieldDefinitions;
 	    }
 		
-	    public IList<HeaderValidationResult> ValidateHeaders(IList<HeaderField> headerFields)
+	    public IList<HeaderValidationResult> ValidateHeaders(IList<string> headerFields)
 	    {
 		    return
 			    _fieldDefinitions
-				    .Where(f => headerFields.All(h => h.HeaderName != f.Name))
+				    .Where(f => headerFields.All(h => h != f.Name))
 					.Select(f => new HeaderValidationResult(f))
 				    .ToList();
 	    }

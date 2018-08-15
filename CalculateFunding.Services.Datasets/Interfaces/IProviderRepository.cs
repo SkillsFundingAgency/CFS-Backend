@@ -10,8 +10,6 @@ namespace CalculateFunding.Services.Datasets.Interfaces
     {
         Task<IEnumerable<ProviderSourceDatasetCurrent>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId);
 
-        Task<HttpStatusCode> UpdateProviderSourceDataset(ProviderSourceDatasetCurrent providerSourceDataset);
-
         Task<IEnumerable<ProviderSummary>> GetAllProviderSummaries();
     }
 }
