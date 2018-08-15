@@ -197,6 +197,8 @@ namespace CalculateFunding.Api.Datasets
                 };
             });
 
+	        builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetItemValidator>();
+
             builder.AddHealthCheckMiddleware();
         }
     }

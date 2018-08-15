@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Services.DataImporter.Validators.Models;
 using OfficeOpenXml;
 
 namespace CalculateFunding.Services.DataImporter
@@ -9,6 +10,6 @@ namespace CalculateFunding.Services.DataImporter
     {
         IEnumerable<TableLoadResult> Read(Stream stream, DatasetDefinition datasetDefinition);
 
-        TableLoadResult Read(ExcelPackage excelPackage, DatasetDefinition datasetDefinition);
+	    TableLoadResultWithHeaders Read(ExcelPackage excelPackage, DatasetDefinition datasetDefinition);
     }
 }

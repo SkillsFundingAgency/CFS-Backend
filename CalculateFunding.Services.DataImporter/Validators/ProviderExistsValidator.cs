@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.DataImporter.Validators.Extension;
 using CalculateFunding.Services.DataImporter.Validators.Models;
@@ -33,10 +29,9 @@ namespace CalculateFunding.Services.DataImporter.Validators
 				
 				if (providerSummary == null)
 				{
-					return new FieldValidationResult(field, false, FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider);
+					return new FieldValidationResult(field, FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider);
 				}
 			}
-
 		    return null;
 	    }
 	}

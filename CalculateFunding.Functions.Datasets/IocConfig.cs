@@ -150,7 +150,9 @@ namespace CalculateFunding.Functions.Datasets
             builder
                .AddSingleton<ICalcsRepository, CalcsRepository>();
 
-            MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
+	        builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetItemValidator>();
+
+			MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             builder
                 .AddSingleton(dataSetsConfig.CreateMapper());
 

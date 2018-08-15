@@ -64,6 +64,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly ITelemetry _telemetry;
         private readonly IValidator<ExcelPackage> _dataWorksheetValidator;
         private readonly Policy _providerResultsRepositoryPolicy;
+        private readonly IValidator<DatasetUploadValidationModel> _datasetUploadValidator;
 
         const string dataset_cache_key_prefix = "ds-table-rows";
 
@@ -87,7 +88,8 @@ namespace CalculateFunding.Services.Datasets
             IProvidersResultsRepository providersResultsRepository,
             ITelemetry telemetry,
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
-            IValidator<ExcelPackage> dataWorksheetValidator)
+            IValidator<ExcelPackage> dataWorksheetValidator,
+	        IValidator<DatasetUploadValidationModel> datasetUploadValidator)
         {
             _blobClient = blobClient;
             _logger = logger;
@@ -107,6 +109,7 @@ namespace CalculateFunding.Services.Datasets
             _providersResultsRepository = providersResultsRepository;
             _telemetry = telemetry;
             _dataWorksheetValidator = dataWorksheetValidator;
+	        _datasetUploadValidator = datasetUploadValidator;
 
             Guard.ArgumentNotNull(datasetsResiliencePolicies, nameof(datasetsResiliencePolicies));
 
@@ -308,28 +311,28 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(412);
             }
 
-            try
-            {
-                using (ExcelPackage excel = new ExcelPackage(datasetStream))
-                {
-                    validationResult = _dataWorksheetValidator.Validate(excel)?.PopulateModelState();
+			try
+			{
+				using (ExcelPackage excel = new ExcelPackage(datasetStream))
+				{
+					validationResult = _dataWorksheetValidator.Validate(excel)?.PopulateModelState();
 
-                    if (validationResult != null)
-                        return validationResult;
-                }
-            }
-            catch (Exception exception)
-            {
-                const string errorMessage = "File was unreadable. This could be because the correct extension type has been appended to an unsupported file.";
+					if (validationResult != null)
+						return validationResult;
+				}
+			}
+			catch (Exception exception)
+			{
+				const string errorMessage = "File was unreadable. This could be because the correct extension type has been appended to an unsupported file.";
 
-                _logger.Error(exception.Message);
-                ModelStateDictionary dictionary = new ModelStateDictionary();
-                dictionary.AddModelError("typical-model-validation-error", string.Empty);
-                dictionary.AddModelError(nameof(model.Filename), errorMessage);
-                return new BadRequestObjectResult(dictionary);
-            }
+				_logger.Error(exception.Message);
+				ModelStateDictionary dictionary = new ModelStateDictionary();
+				dictionary.AddModelError("typical-model-validation-error", string.Empty);
+				dictionary.AddModelError(nameof(model.Filename), errorMessage);
+				return new BadRequestObjectResult(dictionary);
+			}
 
-            DatasetDefinition datasetDefinition =
+			DatasetDefinition datasetDefinition =
                 (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == dataDefinitionId)).FirstOrDefault();
 
             if (datasetDefinition == null)
@@ -865,43 +868,49 @@ namespace CalculateFunding.Services.Datasets
 
         private async Task<IActionResult> ValidateTableResults(DatasetDefinition datasetDefinition, ICloudBlob blob)
         {
-            string dataset_cache_key = $"{dataset_cache_key_prefix}:{blob.Name}:{datasetDefinition.Id}";
+	        if (_providerSummaries.IsNullOrEmpty())
+		        _providerSummaries = await _providerRepository.GetAllProviderSummaries();
+
+			string dataset_cache_key = $"{dataset_cache_key_prefix}:{blob.Name}:{datasetDefinition.Id}";
 
             IEnumerable<TableLoadResult> tableLoadResults = await _cacheProvider.GetAsync<TableLoadResult[]>(dataset_cache_key);
 
-            if (tableLoadResults.IsNullOrEmpty())
+	        Stream datasetStream = null;
+
+			if (tableLoadResults.IsNullOrEmpty())
             {
-                var datasetStream = await _blobClient.DownloadToStreamAsync(blob);
+                datasetStream = await _blobClient.DownloadToStreamAsync(blob);
 
                 if (datasetStream.Length == 0)
                 {
                     _logger.Error($"Blob {blob.Name} contains no data");
                     return new StatusCodeResult(412);
                 }
-
-                tableLoadResults = _excelDatasetReader.Read(datasetStream, datasetDefinition).ToList();
+				
+		            tableLoadResults = _excelDatasetReader.Read(datasetStream, datasetDefinition).ToList();         
             }
 
-            var validationErrors = new List<DatasetValidationError>();
+	        using (var excelPackage = new ExcelPackage(datasetStream))
+	        {
+				DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(excelPackage, () => _providerSummaries, datasetDefinition);
+		        ValidationResult validationResult = _datasetUploadValidator.Validate(uploadModel);
 
-            foreach (var tableLoadResult in tableLoadResults)
-            {
-                if (tableLoadResult.GlobalErrors != null && tableLoadResult.GlobalErrors.Any())
-                {
-                    validationErrors.AddRange(tableLoadResult.GlobalErrors);
-                }
-            }
+		        if (!validationResult.IsValid)
+		        {
+					byte[] asByteArray = excelPackage.GetAsByteArray();
 
-            if (validationErrors.Any())
-            {
-                int errorCount = validationErrors.Count;
+				    await blob.UploadFromByteArrayAsync(asByteArray, 0, asByteArray.Length);
 
-                return new OkObjectResult(new DatasetValidationErrorResponse
-                {
-                    Message = $"The dataset failed to validate with {errorCount} {(errorCount == 1 ? "error" : "errors")}",
-                    FileUrl = "http://anyUrl"
-                });
-            }
+			        string blobUrl = _blobClient.GetBlobSasUrl(blob.Name, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
+
+			        ModelStateDictionary dictionary = new ModelStateDictionary();
+			        dictionary.AddModelError("excel-validation-error", string.Empty);
+			        dictionary.AddModelError("error-message", "The data source file does not match the schema rules");
+			        dictionary.AddModelError("blobUrl", blobUrl);
+					
+			        return new BadRequestObjectResult(dictionary);
+		        }
+	        }
 
             await _cacheProvider.SetAsync(dataset_cache_key, tableLoadResults.ToArraySafe(), TimeSpan.FromDays(1), false);
 

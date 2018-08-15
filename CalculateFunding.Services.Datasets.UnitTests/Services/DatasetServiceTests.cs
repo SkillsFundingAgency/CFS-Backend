@@ -44,6 +44,7 @@ using CalculateFunding.Services.DataImporter.Validators.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using OfficeOpenXml;
 using BadRequestObjectResult = Microsoft.AspNetCore.Mvc.BadRequestObjectResult;
+using ValidationResult = FluentValidation.Results.ValidationResult;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -633,7 +634,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 new DatasetValidationError { ErrorMessage = "error" }
             };
 
-            IEnumerable<TableLoadResult> tableLoadResults = new[]
+	        ValidationResult validationResult = new ValidationResult(new[]{
+		        new ValidationFailure("prop1", "any error")
+	        });
+
+	        IValidator<DatasetUploadValidationModel> datasetUploadValidator = CreateDatasetUploadValidator(validationResult);
+
+			IEnumerable <TableLoadResult> tableLoadResults = new[]
             {
                 new TableLoadResult{ GlobalErrors = errors }
             };
@@ -644,7 +651,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(tableLoadResults.ToList());
 
             DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
-                excelDatasetReader: datasetReader);
+                excelDatasetReader: datasetReader, datasetUploadValidator: datasetUploadValidator);
 
             // Act
             IActionResult result = await service.ValidateDataset(request);
@@ -652,16 +659,7 @@ namespace CalculateFunding.Services.Datasets.Services
             // Assert
             result
                 .Should()
-                .BeOfType<OkObjectResult>();
-
-            OkObjectResult okResult = result as OkObjectResult;
-
-            DatasetValidationErrorResponse resultObject = okResult.Value as DatasetValidationErrorResponse;
-
-            resultObject
-                .Message
-                .Should()
-                .Be("The dataset failed to validate with 1 error");
+                .BeOfType<BadRequestObjectResult>();
         }
 
         [TestMethod]
@@ -739,8 +737,14 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
                 .Returns(tableLoadResults.ToList());
 
-            DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
-                excelDatasetReader: datasetReader);
+	        ValidationResult validationResult = new ValidationResult(new[]{
+		        new ValidationFailure("prop1", "any error")
+	        });
+
+	        IValidator<DatasetUploadValidationModel> datasetUploadValidator = CreateDatasetUploadValidator(validationResult);
+
+			DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
+                excelDatasetReader: datasetReader, datasetUploadValidator: datasetUploadValidator);
 
             // Act
             IActionResult result = await service.ValidateDataset(request);
@@ -748,16 +752,7 @@ namespace CalculateFunding.Services.Datasets.Services
             // Assert
             result
                 .Should()
-                .BeOfType<OkObjectResult>();
-
-            OkObjectResult okResult = result as OkObjectResult;
-
-            DatasetValidationErrorResponse resultObject = okResult.Value as DatasetValidationErrorResponse;
-
-            resultObject
-                .Message
-                .Should()
-                .Be("The dataset failed to validate with 3 errors");
+                .BeOfType<BadRequestObjectResult>();
         }
 
         [TestMethod]
@@ -4373,9 +4368,11 @@ namespace CalculateFunding.Services.Datasets.Services
             IProvidersResultsRepository providerResultsRepository = null,
             ITelemetry telemetry = null,
             IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
-            IValidator<ExcelPackage> datasetWorksheetValidator = null)
+            IValidator<ExcelPackage> datasetWorksheetValidator = null,
+	        IValidator<DatasetUploadValidationModel> datasetUploadValidator = null)
         {
-            return new DatasetService(
+
+	        return new DatasetService(
                 blobClient ?? CreateBlobClient(),
                 logger ?? CreateLogger(),
                 datasetRepository ?? CreateDatasetsRepository(),
@@ -4393,7 +4390,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerResultsRepository ?? CreateProviderResultsRepository(),
                 telemetry ?? CreateTelemetry(),
                 datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies(),
-                datasetWorksheetValidator ?? CreateDataWorksheetValidator());
+                datasetWorksheetValidator ?? CreateDataWorksheetValidator(),
+	            datasetUploadValidator ?? CreateDatasetUploadValidator());
         }
 
         static ICalcsRepository CreateCalcsRepository()
@@ -4446,7 +4444,21 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<ICacheProvider>();
         }
 
-        static IValidator<CreateNewDatasetModel> CreateNewDatasetModelValidator(ValidationResult validationResult = null)
+	    static IValidator<DatasetUploadValidationModel> CreateDatasetUploadValidator(ValidationResult validationResult = null)
+	    {
+		    if (validationResult == null)
+			    validationResult = new ValidationResult();
+
+		    IValidator<DatasetUploadValidationModel> validator = Substitute.For<IValidator<DatasetUploadValidationModel>>();
+
+		    validator
+			    .Validate(Arg.Any<DatasetUploadValidationModel>())
+			    .Returns(validationResult);
+
+		    return validator;
+		}
+
+		static IValidator<CreateNewDatasetModel> CreateNewDatasetModelValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
                 validationResult = new ValidationResult();

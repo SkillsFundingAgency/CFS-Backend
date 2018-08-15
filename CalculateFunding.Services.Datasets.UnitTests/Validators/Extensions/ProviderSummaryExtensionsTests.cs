@@ -126,7 +126,7 @@ namespace CalculateFunding.Services.Datasets.Validators.Extensions
 		    // Act
 		    Action getIdentifier = () =>
 		    {
-			    providerSummaryUnderTest.GetIdentifierBasedOnIdentifierType(IdentifierFieldType.Authority);
+			    providerSummaryUnderTest.GetIdentifierBasedOnIdentifierType(IdentifierFieldType.None);
 		    };
 
 		    // Assert

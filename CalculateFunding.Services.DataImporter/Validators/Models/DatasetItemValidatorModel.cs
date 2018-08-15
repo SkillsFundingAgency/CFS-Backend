@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.DataImporter.Validators.Models
 {
     public class DatasetUploadValidationModel
     {
-	    public DatasetUploadValidationModel(ExcelPackage excelPackage, Func<IEnumerable<ProviderSummary>> providerSummaries, DatasetDefinition datasetDefinition, TableLoadResult data)
+	    public DatasetUploadValidationModel(ExcelPackage excelPackage, Func<IEnumerable<ProviderSummary>> providerSummaries, DatasetDefinition datasetDefinition)
 	    {
 		    ExcelPackage = excelPackage;
 		    ProviderSummaries = providerSummaries;
@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.DataImporter.Validators.Models
 
         public DatasetDefinition DatasetDefinition { get; set; }
 
-        public TableLoadResult Data { get; set; }
+        public TableLoadResultWithHeaders Data { get; set; }
 
         public IDatasetUploadValidationResult ValidationResult { get; set; }
     }

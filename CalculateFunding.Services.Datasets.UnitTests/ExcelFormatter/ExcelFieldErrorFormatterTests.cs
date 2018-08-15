@@ -13,7 +13,7 @@ using OfficeOpenXml.Style;
 namespace CalculateFunding.Services.Datasets.ExcelFormatter
 {
 	[TestClass]
-    public class ExcelFormatterTests
+    public class ExcelFieldErrorFormatterTests
     {
 		private const string testXlsxLocation = @"TestItems/TestCheck.xlsx";
 
@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Datasets.ExcelFormatter
 
 		    List<FieldValidationResult> fieldValidationResults =
 			    fieldsInvalidated
-				    .Select(t => new FieldValidationResult(CreateField(t.Item1, t.Item2, anyString, anyFieldDefinition), false,
+				    .Select(t => new FieldValidationResult(CreateField(t.Item1, t.Item2, anyString, anyFieldDefinition),
 					    FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider))
 				    .ToList();
 
@@ -48,8 +48,8 @@ namespace CalculateFunding.Services.Datasets.ExcelFormatter
 
 			using (var excelPackage = new ExcelPackage(testFile))
 			{
-				ExcelFieldFormatter excelFieldFormatter = new ExcelFieldFormatter(excelPackage);
-				excelFieldFormatter.FormatExcelSheetBasedOnErrors(datasetUploadValidationResult);
+				ExcelFieldErrorFormatter excelFieldErrorFormatter = new ExcelFieldErrorFormatter(excelPackage);
+				excelFieldErrorFormatter.FormatExcelSheetBasedOnErrors(datasetUploadValidationResult);
 			}
 
 		    //Assert
@@ -74,8 +74,8 @@ namespace CalculateFunding.Services.Datasets.ExcelFormatter
 
 		    using (var excelPackage = new ExcelPackage(testFile))
 		    {
-			    ExcelFieldFormatter excelFieldFormatter = new ExcelFieldFormatter(excelPackage);
-			    excelFieldFormatter.FormatExcelSheetBasedOnErrors(datasetUploadValidationResult);
+			    ExcelFieldErrorFormatter excelFieldErrorFormatter = new ExcelFieldErrorFormatter(excelPackage);
+			    excelFieldErrorFormatter.FormatExcelSheetBasedOnErrors(datasetUploadValidationResult);
 		    }
 
 		    //Assert
