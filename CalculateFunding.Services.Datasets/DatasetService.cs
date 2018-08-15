@@ -347,7 +347,7 @@ namespace CalculateFunding.Services.Datasets
                 {
                     OkObjectResult okObjectResult = actionResult as OkObjectResult;
 
-                    int rowCount = (int) okObjectResult.Value; // Convert.ToInt32 (
+                    int rowCount = (int) okObjectResult.Value;  
 
                     if (model.Version == 1)
                     {
@@ -912,8 +912,8 @@ namespace CalculateFunding.Services.Datasets
 
             await _cacheProvider.SetAsync(dataset_cache_key, tableLoadResults.ToArraySafe(), TimeSpan.FromDays(1), false);
 
-            int rowCount = tableLoadResults.Count();
-
+            int rowCount = tableLoadResults.First().Rows.Count;
+         
             return new OkObjectResult(rowCount);
         }
 
