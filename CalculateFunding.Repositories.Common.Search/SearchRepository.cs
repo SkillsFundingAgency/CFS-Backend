@@ -18,6 +18,8 @@ namespace CalculateFunding.Repositories.Common.Search
 
     public class SearchRepository<T> : ISearchRepository<T>, IDisposable where T : class
     {
+        private static readonly string[] SpecialCharacters = { "\\", "+", "-", "&&", "||", "!", "(", ")", "{", "}", "[", "]", "^", "\"", "~", "*", "?", ":", "/" };
+
         private ISearchIndexClient _searchIndexClient;
 
         private static readonly SearchParameters DefaultParameters = new SearchParameters { IncludeTotalResultCount = true };
@@ -39,13 +41,28 @@ namespace CalculateFunding.Repositories.Common.Search
                 return string.Empty;
             }
 
-            // Need to do a prefix search on each term passed in the search text, so append a wildcard character to the end of each term (breaking on spaces)
-            // Also need to remove quotation marks as we don't support that
-            string[] terms = searchText.Replace("\"", string.Empty).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            searchText = EscapeSpecialCharacters(searchText);
+            string[] terms = searchText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             StringBuilder newSearchText = new StringBuilder();
             newSearchText.Append(string.Join("* ", terms));
             newSearchText.Append("*");
             return newSearchText.ToString();
+        }
+
+        private static string EscapeSpecialCharacters(string searchText)
+        {
+            StringBuilder builder = new StringBuilder(searchText);
+
+            // Need to do a prefix search on each term passed in the search text, so append a wildcard character to the end of each term (breaking on spaces)
+            // Also need to remove quotation marks as we don't support that
+            builder.Replace("\"", string.Empty);
+
+            foreach (string character in SpecialCharacters)
+            {
+                builder.Replace(character, $"\\{character}");
+            }
+
+            return builder.ToString();
         }
 
         public async Task<(bool Ok, string Message)> IsHealthOk()
