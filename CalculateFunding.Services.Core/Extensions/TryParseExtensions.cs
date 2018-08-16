@@ -49,10 +49,33 @@ namespace CalculateFunding.Services.Core.Extensions
 
 	    public static DateTime? TryParseDateTime(this string value)
 	    {
-		    return TryParse<DateTime>(value, DateTime.TryParse);
+		    DateTime? dateTimeFromLong = TryParseDateTimeFromLong(value);
+		    return dateTimeFromLong ?? TryParse<DateTime>(value, DateTime.TryParse);
 	    }
 
-	    public static char? TryParseChar(this string value)
+	    public static DateTime? TryParseDateTimeFromLong(this string value)
+	    {
+		    return TryParse(value, (string s, out DateTime result) =>
+		    {
+			    result = DateTime.MinValue;
+				long? tryParseInt64 = TryParseInt64(value);
+			    if (tryParseInt64 != null)
+			    {
+				    try
+				    {
+					    result = new DateTime(tryParseInt64.Value);
+					    return true;
+				    }
+				    catch (Exception)
+				    {
+					    return false;
+				    }
+			    }
+			    return false;
+		    });
+	    }
+
+		public static char? TryParseChar(this string value)
 	    {
 		    return TryParse<char>(value, char.TryParse);
 	    }

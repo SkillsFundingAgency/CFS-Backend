@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
 				{
 					ExcelPackage excelPackage = validationModel.ExcelPackage;
 
-					validationModel.Data = _excelDatasetReader.Read(excelPackage, validationModel.DatasetDefinition);
+					validationModel.Data = _excelDatasetReader.Read(excelPackage, validationModel.DatasetDefinition, false);
 
 					IEnumerable<ProviderSummary> providerSummaries = validationModel.ProviderSummaries();
 
@@ -123,7 +123,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
 			{
 				IFieldValidator requiredValidator = new RequiredValidator();
 				IFieldValidator providerBlankValidator = new ProviderIdentifierBlankValidator();
-				//IFieldValidator dataTypeMismatchFieldValidator = new DatatypeMismatchFieldValidator();
+				IFieldValidator dataTypeMismatchFieldValidator = new DatatypeMismatchFieldValidator();
 				IFieldValidator providerExistsValidator = new ProviderExistsValidator(providerSummaries.ToList());
 				IFieldValidator maxAndMinFieldValidator = new MaxAndMinFieldValidator();
 
@@ -131,7 +131,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
 				{
 					providerBlankValidator,
 					requiredValidator,
-					//dataTypeMismatchFieldValidator,
+					dataTypeMismatchFieldValidator,
 					providerExistsValidator,
 					maxAndMinFieldValidator,
 					providerExistsValidator

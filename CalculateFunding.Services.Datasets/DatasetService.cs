@@ -885,9 +885,7 @@ namespace CalculateFunding.Services.Datasets
                 {
                     _logger.Error($"Blob {blob.Name} contains no data");
                     return new StatusCodeResult(412);
-                }
-				
-		            tableLoadResults = _excelDatasetReader.Read(datasetStream, datasetDefinition).ToList();         
+                }         
             }
 
 	        using (var excelPackage = new ExcelPackage(datasetStream))
@@ -911,8 +909,8 @@ namespace CalculateFunding.Services.Datasets
 			        return new BadRequestObjectResult(dictionary);
 		        }
 	        }
-
-            await _cacheProvider.SetAsync(dataset_cache_key, tableLoadResults.ToArraySafe(), TimeSpan.FromDays(1), false);
+	        tableLoadResults = _excelDatasetReader.Read(datasetStream, datasetDefinition).ToList();
+			await _cacheProvider.SetAsync(dataset_cache_key, tableLoadResults.ToArraySafe(), TimeSpan.FromDays(1), false);
 
             return new OkResult();
         }
