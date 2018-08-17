@@ -328,7 +328,7 @@ namespace CalculateFunding.Services.Datasets
             }
             catch (Exception exception)
             {
-                const string errorMessage = "File was unreadable. This could be because the correct extension type has been appended to an unsupported file.";
+                const string errorMessage = "The data source file type is invalid. Check that your file is an xls or xlsx file";
 
                 _logger.Error(exception.Message);
                 ModelStateDictionary dictionary = new ModelStateDictionary();
