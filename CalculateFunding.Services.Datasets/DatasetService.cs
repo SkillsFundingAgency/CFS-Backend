@@ -1,45 +1,44 @@
-using AutoMapper;
-using CalculateFunding.Models;
-using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.Datasets.ViewModels;
-using CalculateFunding.Models.Versioning;
-using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Datasets.Interfaces;
-using FluentValidation;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Newtonsoft.Json;
-using Serilog;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Core.Options;
-using Microsoft.Azure.ServiceBus;
-using CalculateFunding.Services.DataImporter;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Models.Results;
+using AutoMapper;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Datasets.ViewModels;
+using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
-using Polly;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Models.Health;
+using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.DataImporter.Validators.Models;
+using CalculateFunding.Services.Datasets.Interfaces;
+using FluentValidation;
 using FluentValidation.Results;
-using System.IO;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Azure.ServiceBus;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json;
 using OfficeOpenXml;
-
+using Polly;
+using Serilog;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -66,8 +65,6 @@ namespace CalculateFunding.Services.Datasets
         private readonly Policy _providerResultsRepositoryPolicy;
         private readonly IValidator<DatasetUploadValidationModel> _datasetUploadValidator;
 
-        const string dataset_cache_key_prefix = "ds-table-rows";
-
         static IEnumerable<ProviderSummary> _providerSummaries = new List<ProviderSummary>();
 
         public DatasetService(IBlobClient blobClient,
@@ -89,7 +86,7 @@ namespace CalculateFunding.Services.Datasets
             ITelemetry telemetry,
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
             IValidator<ExcelPackage> dataWorksheetValidator,
-	        IValidator<DatasetUploadValidationModel> datasetUploadValidator)
+            IValidator<DatasetUploadValidationModel> datasetUploadValidator)
         {
             _blobClient = blobClient;
             _logger = logger;
@@ -109,7 +106,7 @@ namespace CalculateFunding.Services.Datasets
             _providersResultsRepository = providersResultsRepository;
             _telemetry = telemetry;
             _dataWorksheetValidator = dataWorksheetValidator;
-	        _datasetUploadValidator = datasetUploadValidator;
+            _datasetUploadValidator = datasetUploadValidator;
 
             Guard.ArgumentNotNull(datasetsResiliencePolicies, nameof(datasetsResiliencePolicies));
 
@@ -156,7 +153,9 @@ namespace CalculateFunding.Services.Datasets
             var validationResult = (await _createNewDatasetModelValidator.ValidateAsync(model)).PopulateModelState();
 
             if (validationResult != null)
+            {
                 return validationResult;
+            }
 
             string version = "v1";
 
@@ -191,7 +190,9 @@ namespace CalculateFunding.Services.Datasets
             var validationResult = (await _datasetVersionUpdateModelValidator.ValidateAsync(model)).PopulateModelState();
 
             if (validationResult != null)
+            {
                 return validationResult;
+            }
 
             Dataset dataset = await _datasetRepository.GetDatasetByDatasetId(model.DatasetId);
             if (dataset == null)
@@ -286,7 +287,9 @@ namespace CalculateFunding.Services.Datasets
             var validationResult = (await _getDatasetBlobModelValidator.ValidateAsync(model)).PopulateModelState();
 
             if (validationResult != null)
+            {
                 return validationResult;
+            }
 
             string fullBlobName = model.ToString();
 
@@ -311,28 +314,30 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(412);
             }
 
-			try
-			{
-				using (ExcelPackage excel = new ExcelPackage(datasetStream))
-				{
-					validationResult = _dataWorksheetValidator.Validate(excel)?.PopulateModelState();
+            try
+            {
+                using (ExcelPackage excel = new ExcelPackage(datasetStream))
+                {
+                    validationResult = _dataWorksheetValidator.Validate(excel)?.PopulateModelState();
 
-					if (validationResult != null)
-						return validationResult;
-				}
-			}
-			catch (Exception exception)
-			{
-				const string errorMessage = "File was unreadable. This could be because the correct extension type has been appended to an unsupported file.";
+                    if (validationResult != null)
+                    {
+                        return validationResult;
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                const string errorMessage = "The data source file type is invalid. Check that your file is an xls or xlsx file";
 
-				_logger.Error(exception.Message);
-				ModelStateDictionary dictionary = new ModelStateDictionary();
-				dictionary.AddModelError("typical-model-validation-error", string.Empty);
-				dictionary.AddModelError(nameof(model.Filename), errorMessage);
-				return new BadRequestObjectResult(dictionary);
-			}
+                _logger.Error(exception.Message);
+                ModelStateDictionary dictionary = new ModelStateDictionary();
+                dictionary.AddModelError("typical-model-validation-error", string.Empty);
+                dictionary.AddModelError(nameof(model.Filename), errorMessage);
+                return new BadRequestObjectResult(dictionary);
+            }
 
-			DatasetDefinition datasetDefinition =
+            DatasetDefinition datasetDefinition =
                 (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == dataDefinitionId)).FirstOrDefault();
 
             if (datasetDefinition == null)
@@ -364,12 +369,7 @@ namespace CalculateFunding.Services.Datasets
                         await UpdateExistingDatasetAndAddVersion(blob, model, request.GetUser(), rowCount);
                     }
 
-                    //actionResult = new StatusCodeResult(200); //new OkResult(); // Check if this is correct
-
                     actionResult =  new OkObjectResult(datasetCreateUpdateResponseModel);
-
-                    //  actionResult = new DatasetCreateUpdateResponseModel() { };
-
                 }
                 catch (Exception exception)
                 {
@@ -865,73 +865,74 @@ namespace CalculateFunding.Services.Datasets
         private static Func<ProviderSummary, string> GetIdentifierSelectorExpression(IdentifierFieldType identifierFieldType)
         {
             if (identifierFieldType == IdentifierFieldType.URN)
+            {
                 return x => x.URN;
-
+            }
             else if (identifierFieldType == IdentifierFieldType.Authority)
+            {
                 return x => x.Authority;
-
+            }
             else if (identifierFieldType == IdentifierFieldType.EstablishmentNumber)
+            {
                 return x => x.EstablishmentNumber;
-
+            }
             else if (identifierFieldType == IdentifierFieldType.UKPRN)
+            {
                 return x => x.UKPRN;
-
+            }
             else if (identifierFieldType == IdentifierFieldType.UPIN)
+            {
                 return x => x.UPIN;
-
+            }
             else
+            {
                 return null;
+            }
         }
 
         private async Task<IActionResult> ValidateTableResults(DatasetDefinition datasetDefinition, ICloudBlob blob)
         {
-	        if (_providerSummaries.IsNullOrEmpty())
-		        _providerSummaries = await _providerRepository.GetAllProviderSummaries();
-
-			string dataset_cache_key = $"{dataset_cache_key_prefix}:{blob.Name}:{datasetDefinition.Id}";
-
-            IEnumerable<TableLoadResult> tableLoadResults = await _cacheProvider.GetAsync<TableLoadResult[]>(dataset_cache_key);
-
-	        Stream datasetStream = null;
-
-			if (tableLoadResults.IsNullOrEmpty())
+            int rowCount = 0;
+            if (_providerSummaries.IsNullOrEmpty())
             {
-                datasetStream = await _blobClient.DownloadToStreamAsync(blob);
-
+                _providerSummaries = await _providerRepository.GetAllProviderSummaries();
+            }
+            using (Stream datasetStream = await _blobClient.DownloadToStreamAsync(blob))
+            {
                 if (datasetStream.Length == 0)
                 {
                     _logger.Error($"Blob {blob.Name} contains no data");
                     return new StatusCodeResult(412);
                 }
-				
-		            tableLoadResults = _excelDatasetReader.Read(datasetStream, datasetDefinition).ToList();         
+
+              
+                using (ExcelPackage excelPackage = new ExcelPackage(datasetStream))
+                {
+                    DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(excelPackage, () => _providerSummaries, datasetDefinition);
+                    ValidationResult validationResult = _datasetUploadValidator.Validate(uploadModel);
+                    rowCount = uploadModel.Data.TableLoadResult.Rows.Count;
+                    if (!validationResult.IsValid)
+                    {
+                        excelPackage.Save();
+
+                        if (excelPackage.Stream.CanSeek)
+                        {
+                            excelPackage.Stream.Position = 0;
+                        }
+
+                        await blob.UploadFromStreamAsync(excelPackage.Stream);
+
+                        string blobUrl = _blobClient.GetBlobSasUrl(blob.Name, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
+
+                        ModelStateDictionary dictionary = new ModelStateDictionary();
+                        dictionary.AddModelError("excel-validation-error", string.Empty);
+                        dictionary.AddModelError("error-message", "The data source file does not match the schema rules");
+                        dictionary.AddModelError("blobUrl", blobUrl);
+
+                        return new BadRequestObjectResult(dictionary);
+                    }
+                }
             }
-
-	   //     using (var excelPackage = new ExcelPackage(datasetStream))
-	   //     {
-				//DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(excelPackage, () => _providerSummaries, datasetDefinition);
-		  //      ValidationResult validationResult = _datasetUploadValidator.Validate(uploadModel);
-
-		  //      if (!validationResult.IsValid)
-		  //      {
-				//	byte[] asByteArray = excelPackage.GetAsByteArray();
-
-				//    await blob.UploadFromByteArrayAsync(asByteArray, 0, asByteArray.Length);
-
-			 //       string blobUrl = _blobClient.GetBlobSasUrl(blob.Name, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
-
-			 //       ModelStateDictionary dictionary = new ModelStateDictionary();
-			 //       dictionary.AddModelError("excel-validation-error", string.Empty);
-			 //       dictionary.AddModelError("error-message", "The data source file does not match the schema rules");
-			 //       dictionary.AddModelError("blobUrl", blobUrl);
-					
-			 //       return new BadRequestObjectResult(dictionary);
-		  //      }
-	   //     }
-
-            await _cacheProvider.SetAsync(dataset_cache_key, tableLoadResults.ToArraySafe(), TimeSpan.FromDays(1), false);
-
-            int rowCount = tableLoadResults.First().Rows.Count;
          
             return new OkObjectResult(rowCount);
         }
@@ -985,7 +986,9 @@ namespace CalculateFunding.Services.Datasets
         async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, string specificationId, string relationshipId, int version)
         {
             if (_providerSummaries.IsNullOrEmpty())
+            {
                 _providerSummaries = await _providerRepository.GetAllProviderSummaries();
+            }
 
             Guard.IsNullOrWhiteSpace(relationshipId, nameof(relationshipId));
 
@@ -1005,16 +1008,15 @@ namespace CalculateFunding.Services.Datasets
                 return;
             }
 
-
-            Dictionary<string, ProviderSourceDatasetCurrent> resultsByProviderId = new Dictionary<string, ProviderSourceDatasetCurrent>();
+            ConcurrentDictionary<string, ProviderSourceDatasetCurrent> resultsByProviderId = new ConcurrentDictionary<string, ProviderSourceDatasetCurrent>();
 
             Dictionary<string, ProviderSourceDatasetCurrent> existingCurrent = new Dictionary<string, ProviderSourceDatasetCurrent>();
 
             Dictionary<string, ProviderSourceDatasetHistory> existingHistory = new Dictionary<string, ProviderSourceDatasetHistory>();
 
-            Dictionary<string, ProviderSourceDatasetHistory> updateDatasetsHistory = new Dictionary<string, ProviderSourceDatasetHistory>();
+            ConcurrentDictionary<string, ProviderSourceDatasetHistory> updateDatasetsHistory = new ConcurrentDictionary<string, ProviderSourceDatasetHistory>();
 
-            Dictionary<string, ProviderSourceDatasetCurrent> updateCurrentDatasets = new Dictionary<string, ProviderSourceDatasetCurrent>();
+            ConcurrentDictionary<string, ProviderSourceDatasetCurrent> updateCurrentDatasets = new ConcurrentDictionary<string, ProviderSourceDatasetCurrent>();
 
             IEnumerable<ProviderSourceDatasetCurrent> existingCurrentDatasets = await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
                 _providersResultsRepository.GetCurrentProviderSourceDatasets(specificationId, relationshipId));
@@ -1038,7 +1040,7 @@ namespace CalculateFunding.Services.Datasets
                 }
             }
 
-            foreach (RowLoadResult row in loadResult.Rows)
+            Parallel.ForEach(loadResult.Rows, (RowLoadResult row) =>
             {
                 IEnumerable<string> allProviderIds = GetProviderIdsForIdentifier(datasetDefinition, row);
 
@@ -1060,14 +1062,17 @@ namespace CalculateFunding.Services.Datasets
                             Rows = new List<Dictionary<string, object>>()
                         };
 
-                        resultsByProviderId.Add(providerId, sourceDataset);
+                        if (!resultsByProviderId.TryAdd(providerId, sourceDataset))
+                        {
+                            resultsByProviderId.TryGetValue(providerId, out sourceDataset);
+                        }
                     }
 
                     sourceDataset.Rows.Add(row.Fields);
                 }
-            }
+            });
 
-            foreach (var providerSourceDataset in resultsByProviderId)
+            Parallel.ForEach(resultsByProviderId, (KeyValuePair<string, ProviderSourceDatasetCurrent> providerSourceDataset) =>
             {
                 string providerId = providerSourceDataset.Key;
                 ProviderSourceDatasetCurrent sourceDataset = providerSourceDataset.Value;
@@ -1079,12 +1084,12 @@ namespace CalculateFunding.Services.Datasets
 
                     if (existingDatasetJson != latestDatasetJson)
                     {
-                        updateCurrentDatasets.Add(providerId, sourceDataset);
+                        updateCurrentDatasets.TryAdd(providerId, sourceDataset);
                     }
                 }
                 else
                 {
-                    updateCurrentDatasets.Add(providerId, sourceDataset);
+                    updateCurrentDatasets.TryAdd(providerId, sourceDataset);
                 }
 
                 ProviderSourceDatasetHistory datasetHistory = null;
@@ -1107,7 +1112,7 @@ namespace CalculateFunding.Services.Datasets
 
                         datasetHistory.History = datasetHistory.History.Concat(new[] { latestSourceDataset });
 
-                        updateDatasetsHistory.Add(providerId, datasetHistory);
+                        updateDatasetsHistory.TryAdd(providerId, datasetHistory);
                     }
                 }
                 else
@@ -1132,16 +1137,21 @@ namespace CalculateFunding.Services.Datasets
                         ProviderId = providerId,
                     };
 
-                    updateDatasetsHistory.Add(providerId, datasetHistory);
+                    updateDatasetsHistory.TryAdd(providerId, datasetHistory);
                 }
+            });
+
+            if (updateCurrentDatasets.Count > 0)
+            {
+                await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
+                _providersResultsRepository.UpdateCurrentProviderSourceDatasets(updateCurrentDatasets.Values));
             }
 
-            await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
-                _providersResultsRepository.UpdateCurrentProviderSourceDatasets(updateCurrentDatasets.Values));
-
-            await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
+            if (updateDatasetsHistory.Count > 0)
+            {
+                await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
                 _providersResultsRepository.UpdateProviderSourceDatasetHistory(updateDatasetsHistory.Values));
-
+            }
 
             await PopulateProviderSummariesForSpecification(specificationId, _providerSummaries);
         }
@@ -1171,7 +1181,8 @@ namespace CalculateFunding.Services.Datasets
 
         async Task<TableLoadResult> GetTableResult(string fullBlobName, DatasetDefinition datasetDefinition)
         {
-            string dataset_cache_key = $"{dataset_cache_key_prefix}:{fullBlobName}:{datasetDefinition.Id}";
+
+            string dataset_cache_key = $"{CacheKeys.DatasetRows}:{datasetDefinition.Id}:{GetBlobNameCacheKey(fullBlobName)}".ToLowerInvariant();
 
             IEnumerable<TableLoadResult> tableLoadResults = await _cacheProvider.GetAsync<TableLoadResult[]>(dataset_cache_key);
 
@@ -1185,16 +1196,18 @@ namespace CalculateFunding.Services.Datasets
                     throw new ArgumentException($"Failed to find blob with path: {fullBlobName}");
                 }
 
-                await blob.FetchAttributesAsync();
-                var datasetStream = await _blobClient.DownloadToStreamAsync(blob);
-
-                if (datasetStream == null || datasetStream.Length == 0)
+                using (Stream datasetStream = await _blobClient.DownloadToStreamAsync(blob))
                 {
-                    _logger.Error($"Invalid blob returned: {fullBlobName}");
-                    throw new ArgumentException($"Invalid blob returned: {fullBlobName}");
+                    if (datasetStream == null || datasetStream.Length == 0)
+                    {
+                        _logger.Error($"Invalid blob returned: {fullBlobName}");
+                        throw new ArgumentException($"Invalid blob returned: {fullBlobName}");
+                    }
+
+                    tableLoadResults = _excelDatasetReader.Read(datasetStream, datasetDefinition).ToList();
                 }
 
-                tableLoadResults = _excelDatasetReader.Read(datasetStream, datasetDefinition).ToList();
+                await _cacheProvider.SetAsync(dataset_cache_key, tableLoadResults.ToArraySafe(), TimeSpan.FromDays(7), true);
             }
 
             return tableLoadResults.FirstOrDefault();
@@ -1251,6 +1264,12 @@ namespace CalculateFunding.Services.Datasets
             }
             
             return new OkObjectResult(result);
+        }
+
+        public static string GetBlobNameCacheKey(string blobPath)
+        {
+            byte[] plainTextBytes = System.Text.Encoding.UTF8.GetBytes(blobPath.ToLowerInvariant());
+            return Convert.ToBase64String(plainTextBytes);
         }
     }
 }

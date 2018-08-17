@@ -14,8 +14,8 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 namespace CalculateFunding.Api.External.V1.Controllers
 {
     [Authorize(Roles = Constants.ExecuteApiRole)]
-    [ApiController]
-    [Route("api/providers/")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/providers/")]
     public class ProviderResultsController : Controller
     {
         private readonly IProviderResultsService _providerResultsService;

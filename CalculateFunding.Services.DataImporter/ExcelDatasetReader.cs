@@ -31,17 +31,17 @@ namespace CalculateFunding.Services.DataImporter
             }     
 	    }
 
-        public TableLoadResultWithHeaders Read(ExcelPackage excelPackage, DatasetDefinition datasetDefinition)
+        public TableLoadResultWithHeaders Read(ExcelPackage excelPackage, DatasetDefinition datasetDefinition, bool parse)
         {
             if (datasetDefinition.TableDefinitions.Count == 1 && excelPackage.Workbook.Worksheets.Count == 1)
             {
-                return ConvertSheetToObjects(excelPackage.Workbook.Worksheets.First(), datasetDefinition.TableDefinitions.First());
+                return ConvertSheetToObjects(excelPackage.Workbook.Worksheets.First(), datasetDefinition.TableDefinitions.First(), parse);
             }
 
             return null;
         }
 
-        private static TableLoadResultWithHeaders ConvertSheetToObjects(ExcelWorksheet worksheet, TableDefinition tableDefinition)
+        private static TableLoadResultWithHeaders ConvertSheetToObjects(ExcelWorksheet worksheet, TableDefinition tableDefinition, bool parse = true)
         {
 	        var result = new TableLoadResultWithHeaders()
 	        {
@@ -53,7 +53,7 @@ namespace CalculateFunding.Services.DataImporter
 				RetrievedHeaderFields = new List<string>()
 	        };
 
-            var rows = worksheet.Cells
+            IOrderedEnumerable<int> rows = worksheet.Cells
                 .Select(cell => cell.Start.Row)
                 .Distinct()
                 .OrderBy(x => x);
@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.DataImporter
 
             foreach (var row in rows.Skip(1))
             {
-                var rowResult = LoadRow(worksheet, tableDefinition, headerDictionary, row);
+                var rowResult = LoadRow(worksheet, tableDefinition, headerDictionary, row, parse);
 
                 result.TableLoadResult.Rows.Add(rowResult);
             }
@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.DataImporter
 	        return result;
         }
 
-        private static RowLoadResult LoadRow(ExcelWorksheet worksheet, TableDefinition tableDefinition, Dictionary<string, int> headerDictionary, int row)
+        private static RowLoadResult LoadRow(ExcelWorksheet worksheet, TableDefinition tableDefinition, Dictionary<string, int> headerDictionary, int row, bool shouldCheckType)
         {
             var rowResult = new RowLoadResult
             {
@@ -88,10 +88,9 @@ namespace CalculateFunding.Services.DataImporter
                 {
                     var dataCell = worksheet.Cells[row, headerDictionary[fieldDefinition.Name]];
 
-                    //rowResult.Fields.Add(fieldDefinition.Name, dataCell.Value);
-                    PopulateField(fieldDefinition, rowResult, dataCell);
+					PopulateField(fieldDefinition, rowResult, dataCell, shouldCheckType);
 
-                    if (fieldDefinition.IdentifierFieldType.HasValue
+					if (fieldDefinition.IdentifierFieldType.HasValue
                         && fieldDefinition.IdentifierFieldType.Value != IdentifierFieldType.None
                         && string.IsNullOrWhiteSpace(rowResult.Identifier))
                     {
@@ -104,41 +103,48 @@ namespace CalculateFunding.Services.DataImporter
             return rowResult;
         }
 
-        static void PopulateField(FieldDefinition fieldDefinition, RowLoadResult rowResult, ExcelRange dataCell)
+        static void PopulateField(FieldDefinition fieldDefinition, RowLoadResult rowResult, ExcelRange dataCell, bool shouldCheckType)
         {
-            switch (fieldDefinition.Type)
-            {
-                case FieldType.Boolean:
-                    rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<bool>());
-                    break;
-                case FieldType.Integer:
-                    rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<int>());
-                    break;
-                case FieldType.Float:
-                    rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<double>());
-                    break;
-                case FieldType.Decimal:
-                    rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<decimal>());
-                    break;
-                case FieldType.DateTime:
-                    try
-                    {
-                        string valueAsString = dataCell.GetValue<string>();
-                        if (!string.IsNullOrWhiteSpace(valueAsString))
-                        {
-                            rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<DateTime>());
-                        }
-                    }
-                    catch (InvalidCastException)
-                    {
+	        if (!shouldCheckType)
+	        {
+		        rowResult.Fields.Add(fieldDefinition.Name, dataCell.Value);
+			}
+	        else
+	        {
+		        switch (fieldDefinition.Type)
+		        {
+			        case FieldType.Boolean:
+				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<bool>());
+				        break;
+			        case FieldType.Integer:
+				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<int>());
+				        break;
+			        case FieldType.Float:
+				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<double>());
+				        break;
+			        case FieldType.Decimal:
+				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<decimal>());
+				        break;
+			        case FieldType.DateTime:
+				        try
+				        {
+					        string valueAsString = dataCell.GetValue<string>();
+					        if (!string.IsNullOrWhiteSpace(valueAsString))
+					        {
+						        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<DateTime>());
+					        }
+				        }
+				        catch (InvalidCastException)
+				        {
 
-                    }
+				        }
 
-                    break;
-                default:
-                    rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<string>());
-                    break;
-            }
+				        break;
+			        default:
+				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<string>());
+				        break;
+		        }
+	        }
         }
 
         private static Dictionary<string, int> MatchHeaderColumns(ExcelWorksheet worksheet, TableDefinition tableDefinition)

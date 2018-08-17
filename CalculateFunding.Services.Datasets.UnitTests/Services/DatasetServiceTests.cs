@@ -1,25 +1,4 @@
-﻿using AutoMapper;
-using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.DataImporter;
-using CalculateFunding.Services.Datasets.Interfaces;
-using FluentAssertions;
-using FluentValidation;
-using FluentValidation.Results;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Newtonsoft.Json;
-using NSubstitute;
-using Serilog;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,21 +7,39 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using Newtonsoft.Json.Linq;
-using CalculateFunding.Models.Datasets.ViewModels;
+using AutoMapper;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Core.Interfaces.Logging;
-using Microsoft.Azure.ServiceBus;
-using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.DataImporter.Validators.Models;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using CalculateFunding.Services.Datasets.Interfaces;
+using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
+using Microsoft.Extensions.Primitives;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json;
+using NSubstitute;
 using OfficeOpenXml;
+using Serilog;
 using BadRequestObjectResult = Microsoft.AspNetCore.Mvc.BadRequestObjectResult;
 using ValidationResult = FluentValidation.Results.ValidationResult;
 
@@ -2717,7 +2714,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
-            string dataset_cache_key = $"ds-table-rows:{blobPath}:{DataDefintionId}";
+            string dataset_cache_key = $"ds-table-rows:{DatasetService.GetBlobNameCacheKey(blobPath)}:{DataDefintionId}";
 
             IEnumerable<TableLoadResult> tableLoadResults = new[]
             {
@@ -2763,6 +2760,19 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
 
+            blobClient
+                .GetBlobReferenceFromServerAsync(blobPath)
+                .Returns(Substitute.For<ICloudBlob>());
+
+            Stream mockedExcelStream = Substitute.For<Stream>();
+            mockedExcelStream
+                .Length
+                .Returns(1);
+
+            blobClient
+                .DownloadToStreamAsync(Arg.Any<ICloudBlob>())
+                .Returns(mockedExcelStream);
+
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
                 .GetAsync<TableLoadResult[]>(Arg.Is(dataset_cache_key))
@@ -2775,9 +2785,18 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
+            IExcelDatasetReader excelDatasetReader = CreateExcelDatasetReader();
+            excelDatasetReader
+                .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
+                .Returns(tableLoadResults.ToArraySafe());
+
             DatasetService service = CreateDatasetService(
-                datasetRepository: datasetRepository, logger: logger,
-                calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider);
+                datasetRepository: datasetRepository,
+                logger: logger,
+                calcsRepository: calcsRepository,
+                blobClient: blobClient,
+                cacheProvider: cacheProvider,
+                excelDatasetReader: excelDatasetReader);
 
             DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
             {
@@ -2807,7 +2826,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
-            string dataset_cache_key = $"ds-table-rows:{blobPath}:{DataDefintionId}";
+            string dataset_cache_key = $"ds-table-rows:{DatasetService.GetBlobNameCacheKey(blobPath)}:{DataDefintionId}";
 
             IEnumerable<TableLoadResult> tableLoadResults = new[]
             {
@@ -2869,9 +2888,28 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
+            blobClient
+                .GetBlobReferenceFromServerAsync(blobPath)
+                .Returns(Substitute.For<ICloudBlob>());
+
+            Stream mockedExcelStream = Substitute.For<Stream>();
+            mockedExcelStream
+                .Length
+                .Returns(1);
+
+            blobClient
+                .DownloadToStreamAsync(Arg.Any<ICloudBlob>())
+                .Returns(mockedExcelStream);
+
+            IExcelDatasetReader excelDatasetReader = CreateExcelDatasetReader();
+            excelDatasetReader
+                .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
+                .Returns(tableLoadResults.ToArraySafe());
+
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
-                calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider);
+                calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
+                excelDatasetReader: excelDatasetReader);
 
             DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
             {
@@ -3394,10 +3432,33 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
                 .Returns(definitionSpecificationRelationship);
 
+            blobClient
+                .GetBlobReferenceFromServerAsync(blobPath)
+                .Returns(Substitute.For<ICloudBlob>());
+
+            Stream mockedExcelStream = Substitute.For<Stream>();
+            mockedExcelStream
+                .Length
+                .Returns(1);
+
+            blobClient
+                .DownloadToStreamAsync(Arg.Any<ICloudBlob>())
+                .Returns(mockedExcelStream);
+
+            IExcelDatasetReader excelDatasetReader = CreateExcelDatasetReader();
+            excelDatasetReader
+                .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
+                .Returns(tableLoadResults.ToArraySafe());
+
             DatasetService service = CreateDatasetService(
-                datasetRepository: datasetRepository, logger: logger,
-                calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
-                providerRepository: resultsRepository, providerResultsRepository: providerResultsRepository);
+                datasetRepository: datasetRepository, 
+                logger: logger,
+                calcsRepository: calcsRepository, 
+                blobClient: blobClient, 
+                cacheProvider: cacheProvider,
+                providerRepository: resultsRepository, 
+                providerResultsRepository: providerResultsRepository,
+                excelDatasetReader: excelDatasetReader);
 
             // Act
             await service.ProcessDataset(message);
@@ -3434,7 +3495,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
-            string dataset_cache_key = $"ds-table-rows:{blobPath}:{DataDefintionId}";
+            string dataset_cache_key = $"ds-table-rows:{DatasetService.GetBlobNameCacheKey(blobPath)}:{DataDefintionId}";
 
             IEnumerable<TableLoadResult> tableLoadResults = new[]
             {
@@ -3550,10 +3611,33 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
                 .Returns(definitionSpecificationRelationship);
 
+            blobClient
+                .GetBlobReferenceFromServerAsync(blobPath)
+                .Returns(Substitute.For<ICloudBlob>());
+
+            Stream mockedExcelStream = Substitute.For<Stream>();
+            mockedExcelStream
+                .Length
+                .Returns(1);
+
+            blobClient
+                .DownloadToStreamAsync(Arg.Any<ICloudBlob>())
+                .Returns(mockedExcelStream);
+
+            IExcelDatasetReader excelDatasetReader = CreateExcelDatasetReader();
+            excelDatasetReader
+                .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
+                .Returns(tableLoadResults.ToArraySafe());
+
             DatasetService service = CreateDatasetService(
-                datasetRepository: datasetRepository, logger: logger,
-                calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
-                providerRepository: resultsRepository, providerResultsRepository: providerResultsRepository);
+                datasetRepository: datasetRepository,
+                logger: logger,
+                calcsRepository: calcsRepository, 
+                blobClient: blobClient, 
+                cacheProvider: cacheProvider,
+                providerRepository: resultsRepository, 
+                providerResultsRepository: providerResultsRepository,
+                excelDatasetReader: excelDatasetReader);
 
             // Act
             await service.ProcessDataset(message);
@@ -4461,7 +4545,9 @@ namespace CalculateFunding.Services.Datasets.Services
 		static IValidator<CreateNewDatasetModel> CreateNewDatasetModelValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
+            {
                 validationResult = new ValidationResult();
+            }
 
             IValidator<CreateNewDatasetModel> validator = Substitute.For<IValidator<CreateNewDatasetModel>>();
 
@@ -4475,7 +4561,9 @@ namespace CalculateFunding.Services.Datasets.Services
         static IValidator<DatasetVersionUpdateModel> CreateDatasetVersionUpdateModelValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
+            {
                 validationResult = new ValidationResult();
+            }
 
             IValidator<DatasetVersionUpdateModel> validator = Substitute.For<IValidator<DatasetVersionUpdateModel>>();
 
@@ -4489,7 +4577,9 @@ namespace CalculateFunding.Services.Datasets.Services
         static IValidator<DatasetMetadataModel> CreateDatasetMetadataModelValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
+            {
                 validationResult = new ValidationResult();
+            }
 
             IValidator<DatasetMetadataModel> validator = Substitute.For<IValidator<DatasetMetadataModel>>();
 
@@ -4503,7 +4593,9 @@ namespace CalculateFunding.Services.Datasets.Services
         static IValidator<GetDatasetBlobModel> CreateGetDatasetBlobModelValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
+            {
                 validationResult = new ValidationResult();
+            }
 
             IValidator<GetDatasetBlobModel> validator = Substitute.For<IValidator<GetDatasetBlobModel>>();
 
@@ -4517,7 +4609,9 @@ namespace CalculateFunding.Services.Datasets.Services
         static IValidator<ExcelPackage> CreateDataWorksheetValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
+            {
                 validationResult = new ValidationResult();
+            }
 
             IValidator<ExcelPackage> validator = Substitute.For<IValidator<ExcelPackage>>();
 

@@ -25,8 +25,8 @@ namespace CalculateFunding.Services.DataImporter
 			    fieldDefinition.Type == FieldType.Integer && field.Value.ToString().TryParseInt64() != null ||
 			    fieldDefinition.Type == FieldType.Float && field.Value.ToString().TryParseFloat() != null ||
 			    fieldDefinition.Type == FieldType.Decimal && field.Value.ToString().TryParseDecimal() != null ||
-			    fieldDefinition.Type == FieldType.DateTime && field.Value.ToString().TryParseDateTime() != null ||
-			    fieldDefinition.Type == FieldType.String && !string.IsNullOrEmpty(field.Value.ToString()))
+				fieldDefinition.Type == FieldType.DateTime && field.Value.ToString().TryParseDateTime() != null ||
+				fieldDefinition.Type == FieldType.String && !string.IsNullOrEmpty(field.Value?.ToString()))
 			{
 				return null;
 			}

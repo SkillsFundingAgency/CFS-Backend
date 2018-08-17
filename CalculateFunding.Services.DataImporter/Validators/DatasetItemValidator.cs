@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
@@ -11,111 +13,122 @@ using OfficeOpenXml;
 
 namespace CalculateFunding.Services.DataImporter.Validators
 {
-	public class DatasetItemValidator : AbstractValidator<DatasetUploadValidationModel>
-	{
-		private readonly IExcelDatasetReader _excelDatasetReader;
-		public IHeaderValidator HeaderValidator { private get; set; }
-		public IList<IFieldValidator> FieldValidators { private get; set; }
-		public IBulkFieldValidator BulkValidator { private get; set; }
-		public IList<IExcelErrorFormatter> ExcelFieldFormatter { get; set; }
+    public class DatasetItemValidator : AbstractValidator<DatasetUploadValidationModel>
+    {
+        private readonly IExcelDatasetReader _excelDatasetReader;
+        public IHeaderValidator HeaderValidator { private get; set; }
+        public IList<IFieldValidator> FieldValidators { private get; set; }
+        public IBulkFieldValidator BulkValidator { private get; set; }
+        public IList<IExcelErrorFormatter> ExcelFieldFormatter { get; set; }
 
-		private bool _isValid = true;
+        private bool _isValid = true;
 
-		public DatasetItemValidator(IExcelDatasetReader excelDatasetReader)
-		{
-			_excelDatasetReader = excelDatasetReader;
+        public DatasetItemValidator(IExcelDatasetReader excelDatasetReader)
+        {
+            _excelDatasetReader = excelDatasetReader;
 
-			RuleFor(model => model)
-				.NotNull()
-				.Custom((validationModel, context) =>
-				{
-					ExcelPackage excelPackage = validationModel.ExcelPackage;
+            RuleFor(model => model)
+                .NotNull()
+                .Custom((validationModel, context) =>
+                {
+                    ExcelPackage excelPackage = validationModel.ExcelPackage;
 
-					validationModel.Data = _excelDatasetReader.Read(excelPackage, validationModel.DatasetDefinition);
+					validationModel.Data = _excelDatasetReader.Read(excelPackage, validationModel.DatasetDefinition, false);
 
-					IEnumerable<ProviderSummary> providerSummaries = validationModel.ProviderSummaries();
+                    IEnumerable<ProviderSummary> providerSummaries = validationModel.ProviderSummaries();
 
-					Validate(excelPackage, validationModel, providerSummaries);
+                    Validate(excelPackage, validationModel, providerSummaries);
 
-					if (!_isValid)
-					{
-						// message will not be surfaced, purely to return an invalid result.
-						context.AddFailure("Excel did not validate");
-					}
-				});
-		}
+                    if (!_isValid)
+                    {
+                        // message will not be surfaced, purely to return an invalid result.
+                        context.AddFailure("Excel did not validate");
+                    }
+                });
+        }
 
-		private void Validate(ExcelPackage excelPackage, DatasetUploadValidationModel validationModel,
-			IEnumerable<ProviderSummary> providerSummaries)
-		{
-			IList<FieldDefinition> fieldDefinitions =
-				validationModel.DatasetDefinition.TableDefinitions.First().FieldDefinitions;
+        private void Validate(ExcelPackage excelPackage, DatasetUploadValidationModel validationModel,
+            IEnumerable<ProviderSummary> providerSummaries)
+        {
+            IList<FieldDefinition> fieldDefinitions =
+                validationModel.DatasetDefinition.TableDefinitions.First().FieldDefinitions;
 
-			IHeaderValidator headerValidator = GetHeaderValidator(fieldDefinitions);
-			IList<IFieldValidator> fieldValidators = GetFieldValidators(providerSummaries);
-			IBulkFieldValidator bulkFieldValidator = GetBulkFieldValidator();
+            IHeaderValidator headerValidator = GetHeaderValidator(fieldDefinitions);
+            IList<IFieldValidator> fieldValidators = GetFieldValidators(providerSummaries);
+            IBulkFieldValidator bulkFieldValidator = GetBulkFieldValidator();
 
-			IList<IExcelErrorFormatter> excelFormatters = GetAllExcelFormatters(excelPackage);
+            IList<IExcelErrorFormatter> excelFormatters = GetAllExcelFormatters(excelPackage);
 
-			IList<HeaderValidationResult> headerValidationFailures = new List<HeaderValidationResult>();
+            IList<HeaderValidationResult> headerValidationFailures = new List<HeaderValidationResult>();
 
-			List<RowLoadResult> allRows = validationModel.Data.TableLoadResult.Rows;
-			IList<Field> allFieldsToBeValidated = RetrieveAllFields(allRows, fieldDefinitions);
+            List<RowLoadResult> allRows = validationModel.Data.TableLoadResult.Rows;
+            IList<Field> allFieldsToBeValidated = RetrieveAllFields(allRows, fieldDefinitions);
 
-			headerValidationFailures.AddRange(headerValidator.ValidateHeaders(validationModel.Data.RetrievedHeaderFields));
+            headerValidationFailures.AddRange(headerValidator.ValidateHeaders(validationModel.Data.RetrievedHeaderFields));
 
-			IList<FieldValidationResult> fieldValidationFailures = new List<FieldValidationResult>();
-			fieldValidationFailures =
-				allFieldsToBeValidated
-					.Select(field => ReturnFirstOnFailureOrDefault(fieldValidators, field))
-					.Where(validationResult => validationResult != null).ToList();
+            ConcurrentBag<FieldValidationResult> fieldValidationFailures = new ConcurrentBag<FieldValidationResult>();
 
-			IList<FieldValidationResult> bulkFieldValidationResults =
-				bulkFieldValidator
-					.ValidateAllFields(allFieldsToBeValidated);
+            Parallel.ForEach(allFieldsToBeValidated, (Field field, ParallelLoopState state) =>
+            {
+                FieldValidationResult validationResult = ReturnFirstOnFailureOrDefault(fieldValidators, field);
+                if (validationResult != null)
+                {
+                    fieldValidationFailures.Add(validationResult);
+                }
+            });
 
-			fieldValidationFailures.AddRange(bulkFieldValidationResults);
 
-			validationModel.ValidationResult = new DatasetUploadValidationResult
-			{
-				FieldValidationFailures = fieldValidationFailures,
-				HeaderValitionFailures = headerValidationFailures
-			};
+            IList<FieldValidationResult> bulkFieldValidationResults =
+                bulkFieldValidator
+                    .ValidateAllFields(allFieldsToBeValidated);
 
-			_isValid = validationModel.ValidationResult.IsValid();
+            foreach (FieldValidationResult validationResult in bulkFieldValidationResults)
+            {
+                fieldValidationFailures.Add(validationResult);
+            }
 
-			foreach (var excelErrorFormatter in excelFormatters)
-				excelErrorFormatter.FormatExcelSheetBasedOnErrors(validationModel.ValidationResult);
+            validationModel.ValidationResult = new DatasetUploadValidationResult
+            {
+                FieldValidationFailures = fieldValidationFailures,
+                HeaderValitionFailures = headerValidationFailures
+            };
 
-			excelPackage.Save();
-		}
+            _isValid = validationModel.ValidationResult.IsValid();
 
-		private IList<Field> RetrieveAllFields(List<RowLoadResult> allRows, IList<FieldDefinition> fieldDefinitions)
-		{
-			IList<Field> allFieldsToBeValidated = new List<Field>();
+            foreach (var excelErrorFormatter in excelFormatters)
+            {
+                excelErrorFormatter.FormatExcelSheetBasedOnErrors(validationModel.ValidationResult);
+            }
 
-			for (int rowIndex = 2, index = 0; index < allRows.Count; rowIndex++, index++)
-			{
-				int columnIndex = 1;
-				RowLoadResult row = allRows[index];
+            excelPackage.Save();
+        }
 
-				foreach (KeyValuePair<string, object> fieldKeyValue in row.Fields)
-				{
-					Field field = GetFieldFromKeyValuePair(fieldDefinitions, rowIndex, columnIndex, fieldKeyValue);
-					allFieldsToBeValidated.Add(field);
-					columnIndex++;
-				}
-			}
+        private IList<Field> RetrieveAllFields(List<RowLoadResult> allRows, IList<FieldDefinition> fieldDefinitions)
+        {
+            IList<Field> allFieldsToBeValidated = new List<Field>();
 
-			return allFieldsToBeValidated;
-		}
+            for (int rowIndex = 2, index = 0; index < allRows.Count; rowIndex++, index++)
+            {
+                int columnIndex = 1;
+                RowLoadResult row = allRows[index];
 
-		private Field GetFieldFromKeyValuePair(IList<FieldDefinition> fieldDefinitions, int row, int column,
-			KeyValuePair<string, object> keyValue)
-		{
-			return new Field(new DatasetUploadCellReference(row, column), keyValue.Value,
-				fieldDefinitions.FirstOrDefault(f => f.Name == keyValue.Key));
-		}
+                foreach (KeyValuePair<string, object> fieldKeyValue in row.Fields)
+                {
+                    Field field = GetFieldFromKeyValuePair(fieldDefinitions, rowIndex, columnIndex, fieldKeyValue);
+                    allFieldsToBeValidated.Add(field);
+                    columnIndex++;
+                }
+            }
+
+            return allFieldsToBeValidated;
+        }
+
+        private Field GetFieldFromKeyValuePair(IList<FieldDefinition> fieldDefinitions, int row, int column,
+            KeyValuePair<string, object> keyValue)
+        {
+            return new Field(new DatasetUploadCellReference(row, column), keyValue.Value,
+                fieldDefinitions.FirstOrDefault(f => f.Name == keyValue.Key));
+        }
 
 		private IList<IFieldValidator> GetFieldValidators(IEnumerable<ProviderSummary> providerSummaries)
 		{
@@ -123,7 +136,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
 			{
 				IFieldValidator requiredValidator = new RequiredValidator();
 				IFieldValidator providerBlankValidator = new ProviderIdentifierBlankValidator();
-				//IFieldValidator dataTypeMismatchFieldValidator = new DatatypeMismatchFieldValidator();
+				IFieldValidator dataTypeMismatchFieldValidator = new DatatypeMismatchFieldValidator();
 				IFieldValidator providerExistsValidator = new ProviderExistsValidator(providerSummaries.ToList());
 				IFieldValidator maxAndMinFieldValidator = new MaxAndMinFieldValidator();
 
@@ -131,44 +144,47 @@ namespace CalculateFunding.Services.DataImporter.Validators
 				{
 					providerBlankValidator,
 					requiredValidator,
-					//dataTypeMismatchFieldValidator,
+					dataTypeMismatchFieldValidator,
 					providerExistsValidator,
-					maxAndMinFieldValidator,
-					providerExistsValidator
-				};
-			}
+                    maxAndMinFieldValidator,
+                    providerExistsValidator
+                };
+            }
 
-			return FieldValidators;
-		}
+            return FieldValidators;
+        }
 
-		private IHeaderValidator GetHeaderValidator(IList<FieldDefinition> fieldDefinitions)
-		{
-			return HeaderValidator ?? new RequiredHeaderExistsValidator(fieldDefinitions);
-		}
+        private IHeaderValidator GetHeaderValidator(IList<FieldDefinition> fieldDefinitions)
+        {
+            return HeaderValidator ?? new RequiredHeaderExistsValidator(fieldDefinitions);
+        }
 
-		private IBulkFieldValidator GetBulkFieldValidator()
-		{
-			return BulkValidator ?? new ProviderDuplicatesExistsValidator();
-		}
+        private IBulkFieldValidator GetBulkFieldValidator()
+        {
+            return BulkValidator ?? new ProviderDuplicatesExistsValidator();
+        }
 
-		private IList<IExcelErrorFormatter> GetAllExcelFormatters(ExcelPackage excelPackage)
-		{
-			return new List<IExcelErrorFormatter>
-			{
-				new ExcelFieldErrorFormatter(excelPackage),
-				new ExcelHeaderErrorFormatter(excelPackage)
-			};
-		}
+        private IList<IExcelErrorFormatter> GetAllExcelFormatters(ExcelPackage excelPackage)
+        {
+            return new List<IExcelErrorFormatter>
+            {
+                new ExcelFieldErrorFormatter(excelPackage),
+                new ExcelHeaderErrorFormatter(excelPackage)
+            };
+        }
 
-		private FieldValidationResult ReturnFirstOnFailureOrDefault(IList<IFieldValidator> fieldValidators, Field field)
-		{
-			foreach (IFieldValidator validator in fieldValidators)
-			{
-				FieldValidationResult validationResult = validator.ValidateField(field);
-				if (validationResult != null) return validationResult;
-			}
+        private FieldValidationResult ReturnFirstOnFailureOrDefault(IList<IFieldValidator> fieldValidators, Field field)
+        {
+            foreach (IFieldValidator validator in fieldValidators)
+            {
+                FieldValidationResult validationResult = validator.ValidateField(field);
+                if (validationResult != null)
+                {
+                    return validationResult;
+                }
+            }
 
-			return null;
-		}
-	}
+            return null;
+        }
+    }
 }

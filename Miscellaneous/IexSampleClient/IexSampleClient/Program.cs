@@ -21,6 +21,7 @@ namespace IexSampleClient
         // CFS Details
         private const string CFS_Endpoint = "<replace>";
 
+
         static void Main(string[] args)
         {
             try
@@ -48,19 +49,56 @@ namespace IexSampleClient
             {
                 cfsClient.BaseAddress = new Uri(CFS_Endpoint);
 
+                cfsClient.DefaultRequestHeaders.Add("Accept", "application/json");
                 // Note: this is a simple example, should cache tokens and only refetch when expire
                 string accessToken = await GetAccessToken();
                 cfsClient.DefaultRequestHeaders.Add("Authorization", string.Format("Bearer {0}", accessToken));
 
-                Console.WriteLine("Calling CFS Endpoint");
-                HttpResponseMessage result = await cfsClient.GetAsync("/api/periods");
+                Console.WriteLine("\n\r===============================================================================================================================--");
+                Console.WriteLine("Calling CFS Funding Streams Endpoint");
+                Console.WriteLine("=====================================================================================================================================\n\r");
+                
+                HttpResponseMessage result = await cfsClient.GetAsync("api/providers/ukprn/103929/startYear/2018/endYear/2019/fundingStreams/PES/summary");
 
                 if (result.IsSuccessStatusCode)
                 {
                     string body = await result.Content.ReadAsStringAsync();
-                    List<TimePeriod> periods = JsonConvert.DeserializeObject<List<TimePeriod>>(body);
 
-                    Console.WriteLine("+ Call to the endpoint succeeded - found {0} time periods", periods.Count);
+                    Console.WriteLine(FormatJson(body));
+                }
+                else
+                {
+                    Console.WriteLine("- Call to the endpoint failed. Status Code: {0}, Reason: {1}", result.StatusCode, result.ReasonPhrase);
+                }
+
+                Console.WriteLine("\n\r====================================================================================================================================");
+                Console.WriteLine("Calling CFS Allocation lines Endpoint");
+                Console.WriteLine("========================================================================================================================================\n\r");
+                
+                result = await cfsClient.GetAsync("api/providers/ukprn/103929/startYear/2018/endYear/2019/allocationLines/PES02/summary");
+
+                if (result.IsSuccessStatusCode)
+                {
+                    string body = await result.Content.ReadAsStringAsync();
+
+                    Console.WriteLine(FormatJson(body));
+                }
+                else
+                {
+                    Console.WriteLine("- Call to the endpoint failed. Status Code: {0}, Reason: {1}", result.StatusCode, result.ReasonPhrase);
+                }
+
+                Console.WriteLine("\n\r==================================================================================================================================");
+                Console.WriteLine("Calling CFS Local authority Endpoint");
+                Console.WriteLine("========================================================================================================================================\n\r");
+               
+                result = await cfsClient.GetAsync("api/providers/laCode/38/startYear/2018/endYear/2019/allocationLines/PES02/summary");
+
+                if (result.IsSuccessStatusCode)
+                {
+                    string body = await result.Content.ReadAsStringAsync();
+
+                    Console.WriteLine(FormatJson(body));
                 }
                 else
                 {
@@ -76,6 +114,12 @@ namespace IexSampleClient
             AuthenticationResult authenticationResult = await authContext.AcquireTokenAsync(AppIdUri, clientCredential);
 
             return authenticationResult.AccessToken;
+        }
+
+        private static string FormatJson(string json)
+        {
+            dynamic parsedJson = JsonConvert.DeserializeObject(json);
+            return JsonConvert.SerializeObject(parsedJson, Formatting.Indented);
         }
     }
 }

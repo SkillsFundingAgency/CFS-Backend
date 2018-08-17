@@ -154,7 +154,7 @@ namespace CalculateFunding.Api.External.V1.Services
 
             if (string.IsNullOrEmpty(allocationLineIds))
             {
-                return new BadRequestObjectResult("Missing allocationLineIds");
+                return new BadRequestObjectResult("Missing allocation line ids");
             }
 
             string[] allocationLineIdsArray = new string[0];
@@ -178,15 +178,20 @@ namespace CalculateFunding.Api.External.V1.Services
                 return new NotFoundResult();
             }
 
-            LocalAuthorityResultsSummary localAuthorityResultsSummary = CreateLocalAuthorityResultsSummary(searchFeed, request);
+            IEnumerable<AllocationNotificationFeedIndex> entries = ValidateFeedsForLaCode(searchFeed.Entries);
+
+            if (entries.IsNullOrEmpty())
+            {
+                return new NotFoundResult();
+            }
+
+            LocalAuthorityResultsSummary localAuthorityResultsSummary = CreateLocalAuthorityResultsSummary(entries, request);
 
             return Formatter.ActionResult(request, localAuthorityResultsSummary);
         }
 
-        private LocalAuthorityResultsSummary CreateLocalAuthorityResultsSummary(SearchFeed<AllocationNotificationFeedIndex> searchFeed, HttpRequest request)
+        private LocalAuthorityResultsSummary CreateLocalAuthorityResultsSummary(IEnumerable<AllocationNotificationFeedIndex> entries, HttpRequest request)
         {
-            IEnumerable<AllocationNotificationFeedIndex> entries = searchFeed.Entries;
-
             IEnumerable<IGrouping<string, AllocationNotificationFeedIndex>> localAuthorityResultSummaryGroups = entries.GroupBy(m => m.LaCode);
 
             AllocationNotificationFeedIndex firstEntry = entries.First();
@@ -314,7 +319,9 @@ namespace CalculateFunding.Api.External.V1.Services
                     //AB: temporary why we dont have ukprns
                     Ukprn = !string.IsNullOrWhiteSpace(firstEntry.ProviderUkPrn) ? firstEntry.ProviderUkPrn : firstEntry.ProviderId,
                     ProviderOpenDate = firstEntry.ProviderOpenDate,
-                    LegalName = firstEntry.ProviderName?.ToUpper()
+                    LegalName = firstEntry.ProviderName?.ToUpper(),
+                    LAEstablishmentNo = firstEntry.EstablishmentNumber,
+                    LANo = firstEntry.LaCode
                 }
             };
 
@@ -533,6 +540,79 @@ namespace CalculateFunding.Api.External.V1.Services
 
                         continue;
                     }
+                }
+
+                validFeeds.Add(feed);
+            }
+
+            return validFeeds;
+        }
+
+        private IEnumerable<AllocationNotificationFeedIndex> ValidateFeedsForLaCode(IEnumerable<AllocationNotificationFeedIndex> feeds)
+        {
+            IList<AllocationNotificationFeedIndex> validFeeds = new List<AllocationNotificationFeedIndex>();
+
+            foreach (AllocationNotificationFeedIndex feed in feeds)
+            {
+                string logPrefix = $"Feed with id {feed.Id} contains missing data:";
+
+                if (string.IsNullOrWhiteSpace(feed.LaCode))
+                {
+                    _logger.Warning($"{logPrefix} la code");
+
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(feed.ProviderId))
+                {
+                    _logger.Warning($"{logPrefix} provider id");
+
+                    continue;
+                }
+
+                //temp until we fix ukprns
+                if (string.IsNullOrWhiteSpace(feed.ProviderUkPrn))
+                {
+                    feed.ProviderUkPrn = feed.ProviderId;
+                }
+
+                if (string.IsNullOrWhiteSpace(feed.FundingPeriodId) || string.IsNullOrWhiteSpace(feed.FundingPeriodType))
+                {
+                    _logger.Warning($"{logPrefix} funding period id or type");
+
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(feed.FundingStreamId) || string.IsNullOrWhiteSpace(feed.FundingStreamName))
+                {
+                    _logger.Warning($"{logPrefix} funding stream id or name");
+
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(feed.AllocationLineId) || string.IsNullOrWhiteSpace(feed.AllocationLineName))
+                {
+                    _logger.Warning($"{logPrefix} allocation line id or name");
+
+                    continue;
+                }
+
+                try
+                {
+                    IEnumerable<ProfilingPeriod> profiling = JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(feed.ProviderProfiling);
+
+                    if (profiling.IsNullOrEmpty())
+                    {
+                        _logger.Warning($"{logPrefix} provider profiles");
+
+                        continue;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, $"Failed to deserialize provider profiles for feed id {feed.Id}");
+
+                    continue;
                 }
 
                 validFeeds.Add(feed);
