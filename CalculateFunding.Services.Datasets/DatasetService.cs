@@ -350,7 +350,10 @@ namespace CalculateFunding.Services.Datasets
                 {
                     OkObjectResult okObjectResult = actionResult as OkObjectResult;
 
-                    int rowCount = (int) okObjectResult.Value;  
+                    int rowCount = (int) okObjectResult.Value;
+
+                    DatasetCreateUpdateResponseModel datasetCreateUpdateResponseModel = new DatasetCreateUpdateResponseModel();
+                    datasetCreateUpdateResponseModel.CurrentRowCount = rowCount;
 
                     if (model.Version == 1)
                     {
@@ -360,6 +363,13 @@ namespace CalculateFunding.Services.Datasets
                     {
                         await UpdateExistingDatasetAndAddVersion(blob, model, request.GetUser(), rowCount);
                     }
+
+                    //actionResult = new StatusCodeResult(200); //new OkResult(); // Check if this is correct
+
+                    actionResult =  new OkObjectResult(datasetCreateUpdateResponseModel);
+
+                    //  actionResult = new DatasetCreateUpdateResponseModel() { };
+
                 }
                 catch (Exception exception)
                 {
@@ -897,27 +907,27 @@ namespace CalculateFunding.Services.Datasets
 		            tableLoadResults = _excelDatasetReader.Read(datasetStream, datasetDefinition).ToList();         
             }
 
-	        using (var excelPackage = new ExcelPackage(datasetStream))
-	        {
-				DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(excelPackage, () => _providerSummaries, datasetDefinition);
-		        ValidationResult validationResult = _datasetUploadValidator.Validate(uploadModel);
+	   //     using (var excelPackage = new ExcelPackage(datasetStream))
+	   //     {
+				//DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(excelPackage, () => _providerSummaries, datasetDefinition);
+		  //      ValidationResult validationResult = _datasetUploadValidator.Validate(uploadModel);
 
-		        if (!validationResult.IsValid)
-		        {
-					byte[] asByteArray = excelPackage.GetAsByteArray();
+		  //      if (!validationResult.IsValid)
+		  //      {
+				//	byte[] asByteArray = excelPackage.GetAsByteArray();
 
-				    await blob.UploadFromByteArrayAsync(asByteArray, 0, asByteArray.Length);
+				//    await blob.UploadFromByteArrayAsync(asByteArray, 0, asByteArray.Length);
 
-			        string blobUrl = _blobClient.GetBlobSasUrl(blob.Name, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
+			 //       string blobUrl = _blobClient.GetBlobSasUrl(blob.Name, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
 
-			        ModelStateDictionary dictionary = new ModelStateDictionary();
-			        dictionary.AddModelError("excel-validation-error", string.Empty);
-			        dictionary.AddModelError("error-message", "The data source file does not match the schema rules");
-			        dictionary.AddModelError("blobUrl", blobUrl);
+			 //       ModelStateDictionary dictionary = new ModelStateDictionary();
+			 //       dictionary.AddModelError("excel-validation-error", string.Empty);
+			 //       dictionary.AddModelError("error-message", "The data source file does not match the schema rules");
+			 //       dictionary.AddModelError("blobUrl", blobUrl);
 					
-			        return new BadRequestObjectResult(dictionary);
-		        }
-	        }
+			 //       return new BadRequestObjectResult(dictionary);
+		  //      }
+	   //     }
 
             await _cacheProvider.SetAsync(dataset_cache_key, tableLoadResults.ToArraySafe(), TimeSpan.FromDays(1), false);
 
@@ -1231,8 +1241,15 @@ namespace CalculateFunding.Services.Datasets
                 PublishStatus = dataset.Content.Current.PublishStatus,
                 Version = dataset.Content.Current.Version,
                 Comment = dataset.Content.Current.Commment,
+                CurrentDataSourceRows = dataset.Content.Current.RowCount,
             };
 
+            int maxVersion = dataset.Content.History.Max(m => m.Version);
+            if(maxVersion > 1)
+            {
+                result.PreviousDataSourceRows = dataset.Content.History.First().RowCount;
+            }
+            
             return new OkObjectResult(result);
         }
     }
