@@ -2,5 +2,6 @@
   "serviceBus": {
     "maxConcurrentCalls": 1,
     "prefetchCount": 0
-  }
+  },
+  "functionTimeout": "00:30:00"
 }
