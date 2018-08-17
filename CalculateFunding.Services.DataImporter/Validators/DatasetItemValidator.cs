@@ -62,9 +62,9 @@ namespace CalculateFunding.Services.DataImporter.Validators
             IList<HeaderValidationResult> headerValidationFailures = new List<HeaderValidationResult>();
 
             List<RowLoadResult> allRows = validationModel.Data.TableLoadResult.Rows;
-            IList<Field> allFieldsToBeValidated = RetrieveAllFields(allRows, fieldDefinitions);
+            IList<Field> allFieldsToBeValidated = RetrieveAllFields(allRows, fieldDefinitions, validationModel.Data.RetrievedHeaderFields);
 
-            headerValidationFailures.AddRange(headerValidator.ValidateHeaders(validationModel.Data.RetrievedHeaderFields));
+            headerValidationFailures.AddRange(headerValidator.ValidateHeaders(validationModel.Data.RetrievedHeaderFields.Keys.ToList()));
 
             ConcurrentBag<FieldValidationResult> fieldValidationFailures = new ConcurrentBag<FieldValidationResult>();
 
@@ -103,30 +103,28 @@ namespace CalculateFunding.Services.DataImporter.Validators
             excelPackage.Save();
         }
 
-        private IList<Field> RetrieveAllFields(List<RowLoadResult> allRows, IList<FieldDefinition> fieldDefinitions)
+        private IList<Field> RetrieveAllFields(List<RowLoadResult> allRows, IList<FieldDefinition> fieldDefinitions, IDictionary<string, int> headersAndColumns)
         {
             IList<Field> allFieldsToBeValidated = new List<Field>();
 
             for (int rowIndex = 2, index = 0; index < allRows.Count; rowIndex++, index++)
             {
-                int columnIndex = 1;
                 RowLoadResult row = allRows[index];
 
                 foreach (KeyValuePair<string, object> fieldKeyValue in row.Fields)
                 {
-                    Field field = GetFieldFromKeyValuePair(fieldDefinitions, rowIndex, columnIndex, fieldKeyValue);
+                    Field field = GetFieldFromKeyValuePair(fieldDefinitions, rowIndex, fieldKeyValue, headersAndColumns);
                     allFieldsToBeValidated.Add(field);
-                    columnIndex++;
+                    
                 }
             }
 
             return allFieldsToBeValidated;
         }
 
-        private Field GetFieldFromKeyValuePair(IList<FieldDefinition> fieldDefinitions, int row, int column,
-            KeyValuePair<string, object> keyValue)
+        private Field GetFieldFromKeyValuePair(IList<FieldDefinition> fieldDefinitions, int row, KeyValuePair<string, object> keyValue, IDictionary<string, int> headersAndColumns)
         {
-            return new Field(new DatasetUploadCellReference(row, column), keyValue.Value,
+            return new Field(new DatasetUploadCellReference(row, headersAndColumns[keyValue.Key]), keyValue.Value,
                 fieldDefinitions.FirstOrDefault(f => f.Name == keyValue.Key));
         }
 
