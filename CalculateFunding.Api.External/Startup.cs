@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using AutoMapper;
+using AutoMapper.Configuration;
 using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.External.Swagger;
 using CalculateFunding.Api.External.V1.Interfaces;
@@ -23,6 +24,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Polly.Bulkhead;
+using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 
 namespace CalculateFunding.Api.External
 {
@@ -240,7 +242,10 @@ namespace CalculateFunding.Api.External
                 };
             });
 
-            builder.AddHealthCheckMiddleware();
+
+	        builder.AddAutoMapper();
+
+			builder.AddHealthCheckMiddleware();
         }
     }
 }
