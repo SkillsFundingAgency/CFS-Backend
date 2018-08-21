@@ -25,7 +25,8 @@ namespace CalculateFunding.Api.External.UnitTests
             ResolveType<AllocationNotificationsController>().Should().NotBeNull(nameof(AllocationNotificationsController));
             ResolveType<FundingStreamController>().Should().NotBeNull(nameof(FundingStreamController));
             ResolveType<ProviderResultsController>().Should().NotBeNull(nameof(ProviderResultsController));
-        }
+			ResolveType<TimePeriodsController>().Should().NotBeNull(nameof(TimePeriodsController));
+		}
 
         protected override Dictionary<string, string> AddToConfiguration()
         {

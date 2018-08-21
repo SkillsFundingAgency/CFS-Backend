@@ -1,11 +1,13 @@
 ﻿using System.Linq;
 using AutoMapper;
-using AutoMapper.Configuration;
 using CalculateFunding.Api.Common.Extensions;
+using CalculateFunding.Api.External.MappingProfiles;
 using CalculateFunding.Api.External.Swagger;
 using CalculateFunding.Api.External.V1.Interfaces;
 using CalculateFunding.Api.External.V1.Services;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
@@ -14,6 +16,11 @@ using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Specs;
+using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Services.Specs.Validators;
+using CalculateFunding.Services.Validators;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -25,6 +32,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Polly.Bulkhead;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
+using ISpecificationsRepository = CalculateFunding.Services.Results.Interfaces.ISpecificationsRepository;
+using SpecificationsRepository = CalculateFunding.Services.Results.SpecificationsRepository;
 
 namespace CalculateFunding.Api.External
 {
@@ -137,12 +146,14 @@ namespace CalculateFunding.Api.External
             builder
                .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
 
-            MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
+            MapperConfiguration resultsConfig = new MapperConfiguration(c =>
+            {
+	            c.AddProfile<DatasetsMappingProfile>();
+				c.AddProfile<ExternalApiMappingProfile>();
+            });
 
             builder
                 .AddSingleton(resultsConfig.CreateMapper());
-
-            builder.AddSpecificationsInterServiceClient(Configuration);
 
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
             {
@@ -183,7 +194,7 @@ namespace CalculateFunding.Api.External
                 return new PublishedProviderResultsRepository(resultsRepostory);
             });
 
-            builder.AddSingleton<IPublishedProviderCalculationResultsRepository, PublishedProviderCalculationResultsRepository>((ctx) =>
+			builder.AddSingleton<IPublishedProviderCalculationResultsRepository, PublishedProviderCalculationResultsRepository>((ctx) =>
             {
                 CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
 
@@ -205,7 +216,34 @@ namespace CalculateFunding.Api.External
             builder
               .AddSingleton<IProviderProfilingRepository, MockProviderProfilingRepository>();
 
-            builder.AddUserProviderFromRequest();
+	        builder.AddSingleton<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>(
+		        ctx =>
+		        {
+			        CosmosDbSettings specRepoDbSettings = new CosmosDbSettings();
+
+			        Configuration.Bind("CosmosDbSettings", specRepoDbSettings);
+
+			        specRepoDbSettings.CollectionName = "specs";
+
+			        CosmosRepository cosmosRepository = new CosmosRepository(specRepoDbSettings);
+
+			        return new Services.Specs.SpecificationsRepository(cosmosRepository);
+		        });
+
+			builder.AddSingleton<ITimePeriodsService, TimePeriodsService>();
+	        builder.AddSingleton<ISpecificationsService, SpecificationsService>();
+			builder.AddSingleton<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
+	        builder.AddSingleton<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
+	        builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
+	        builder.AddSingleton<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
+	        builder.AddSingleton<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
+			builder.AddSingleton<IValidator<PolicyEditModel>, PolicyEditModelValidator>();
+	        builder.AddSingleton<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
+	        builder.AddSingleton<IResultsRepository, ResultsRepository>();
+
+	        builder.AddResultsInterServiceClient(Configuration);
+
+			builder.AddUserProviderFromRequest();
 
             builder.AddSearch(Configuration);
 
@@ -241,10 +279,6 @@ namespace CalculateFunding.Api.External
                     PublishedProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
                 };
             });
-
-
-	        builder.AddAutoMapper();
-
 			builder.AddHealthCheckMiddleware();
         }
     }
