@@ -23,7 +23,7 @@ namespace CalculateFunding.Api.External.V1.Models
         public string PeriodType { get; set; }
 
         /// <summary>
-        /// The description of the period
+        /// The id of the period
         /// </summary>
         public string PeriodId { get; set; }
 

@@ -1055,7 +1055,8 @@ namespace CalculateFunding.Services.Results.Services
             IProviderImportMappingService providerImportMappingService = null,
             ICacheProvider cacheProvider = null,
             ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationFeedSearchRepository = null,
-            IProviderProfilingRepository providerProfilingRepository = null)
+            IProviderProfilingRepository providerProfilingRepository = null,
+            IMessengerService messengerService = null)
         {
             return new ResultsService(
                 logger ?? CreateLogger(),
@@ -1073,7 +1074,8 @@ namespace CalculateFunding.Services.Results.Services
                 providerImportMappingService ?? CreateProviderImportMappingService(),
                 cacheProvider ?? CreateCacheProvider(),
                 allocationNotificationFeedSearchRepository ?? CreateAllocationNotificationFeedSearchRepository(),
-                providerProfilingRepository ?? CreateProfilingRepository());
+                providerProfilingRepository ?? CreateProfilingRepository(),
+                messengerService ?? CreateMessengerService());
         }
 
         static IProviderProfilingRepository CreateProfilingRepository()
