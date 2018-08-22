@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
@@ -25,13 +24,19 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         public CosmosRepository(CosmosDbSettings settings)
         {
             if (string.IsNullOrWhiteSpace(settings.CollectionName))
+            {
                 throw new ArgumentNullException(nameof(settings.CollectionName));
+            }
 
             if (string.IsNullOrWhiteSpace(settings.ConnectionString))
+            {
                 throw new ArgumentNullException(nameof(settings.ConnectionString));
+            }
 
             if (string.IsNullOrWhiteSpace(settings.DatabaseName))
+            {
                 throw new ArgumentNullException(nameof(settings.DatabaseName));
+            }
 
             _collectionName = settings.CollectionName;
             _partitionKey = settings.PartitionKey;
@@ -100,17 +105,17 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return typeof(T).Name;
         }
 
-        public IQueryable<DocumentEntity<T>> Read<T>(int maxItemCount = 1000) where T : IIdentifiable
+        public IQueryable<DocumentEntity<T>> Read<T>(int itemsPerPage = 1000) where T : IIdentifiable
         {
             // Set some common query options
-            var queryOptions = new FeedOptions { MaxItemCount = maxItemCount };
+            var queryOptions = new FeedOptions { MaxItemCount = itemsPerPage };
 
             return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted);
         }
 
         public async Task<DocumentEntity<T>> ReadAsync<T>(string id) where T : IIdentifiable
         {
-            var response = await Read<T>(maxItemCount: 1).Where(x => x.Id == id).AsDocumentQuery().ExecuteNextAsync<DocumentEntity<T>>();
+            var response = await Read<T>(itemsPerPage: 1).Where(x => x.Id == id).AsDocumentQuery().ExecuteNextAsync<DocumentEntity<T>>();
             return response.FirstOrDefault();
         }
 
@@ -125,7 +130,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
             if (!string.IsNullOrEmpty(directSql))
             {
-                if(maxItemCount > 0)
+                if (maxItemCount > 0)
                 {
                     return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri,
                     directSql,
@@ -136,15 +141,15 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                     directSql,
                     queryOptions).Select(x => x.Content).AsQueryable();
             }
-            if(maxItemCount > 0)
+            if (maxItemCount > 0)
             {
                 return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted).Take(maxItemCount).Select(x => x.Content).AsQueryable();
             }
-            
+
             return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted).Select(x => x.Content).AsQueryable();
         }
 
-        public async Task<IEnumerable<T>> QueryPartitionedEntity<T>(string directSql, int maxItemCount = -1, string partitionEntityId = null) where T : IIdentifiable
+        public async Task<IEnumerable<T>> QueryPartitionedEntity<T>(string directSql, int itemsPerPage = -1, string partitionEntityId = null) where T : IIdentifiable
         {
             if (string.IsNullOrEmpty(directSql))
             {
@@ -154,7 +159,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             // Set some common query options
             var queryOptions = new FeedOptions
             {
-                MaxItemCount = maxItemCount,
+                MaxItemCount = itemsPerPage,
                 EnableCrossPartitionQuery = false,
                 PartitionKey = new PartitionKey(partitionEntityId),
             };
@@ -177,13 +182,13 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return query;
         }
 
-        public async Task<IEnumerable<dynamic>> Query<dynamic>(string sql, bool enableCrossPartitionQuery = false , int maxItemCount = 1000)
+        public async Task<IEnumerable<dynamic>> QueryDynamic<dynamic>(string sql, bool enableCrossPartitionQuery = false, int itemsPerPage = 1000)
         {
             // Set some common query options
             var queryOptions = new FeedOptions
             {
                 EnableCrossPartitionQuery = enableCrossPartitionQuery,
-                MaxItemCount = maxItemCount
+                MaxItemCount = itemsPerPage
             };
 
             IEnumerable<dynamic> results = new List<dynamic>();
@@ -200,12 +205,12 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return results;
         }
 
-        public IQueryable<T> RawQuery<T>(string directSql, int maxItemCount = -1, bool enableCrossPartitionQuery = false)
+        public IQueryable<T> RawQuery<T>(string directSql, int itemsPerPage = -1, bool enableCrossPartitionQuery = false)
         {
             // Set some common query options
             var queryOptions = new FeedOptions
             {
-                MaxItemCount = maxItemCount,
+                MaxItemCount = itemsPerPage,
                 EnableCrossPartitionQuery = enableCrossPartitionQuery
             };
 
@@ -214,15 +219,40 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                 queryOptions).AsQueryable();
         }
 
-        public async Task<IEnumerable<DocumentEntity<T>>> GetAllDocumentsAsync<T>(int maxItemCount = 1000, Expression<Func<DocumentEntity<T>, bool>> query = null, bool enableCrossPartitionQuery = true) where T : IIdentifiable
+        public async Task<IEnumerable<T>> QuerySql<T>(string directSql, int itemsPerPage = -1, bool enableCrossPartitionQuery = false) where T : IIdentifiable
         {
-            FeedOptions options = new FeedOptions() { MaxItemCount = maxItemCount, EnableCrossPartitionQuery = enableCrossPartitionQuery };
+            // Set some common query options
+            var queryOptions = new FeedOptions
+            {
+                EnableCrossPartitionQuery = enableCrossPartitionQuery,
+                MaxItemCount = itemsPerPage
+            };
+
+            List<T> results = new List<T>();
+
+            IDocumentQuery<DocumentEntity<T>> queryable = _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, directSql, queryOptions).AsDocumentQuery();
+
+            while (queryable.HasMoreResults)
+            {
+                FeedResponse<DocumentEntity<T>> queryResponse = await queryable.ExecuteNextAsync<DocumentEntity<T>>();
+
+                results.AddRange(queryResponse.Select(s=>s.Content));
+            }
+
+            return results;
+        }
+
+
+        public async Task<IEnumerable<DocumentEntity<T>>> GetAllDocumentsAsync<T>(int itemsPerPage = 1000, Expression<Func<DocumentEntity<T>, bool>> query = null, bool enableCrossPartitionQuery = true) where T : IIdentifiable
+        {
+            FeedOptions options = new FeedOptions() { MaxItemCount = itemsPerPage, EnableCrossPartitionQuery = enableCrossPartitionQuery };
 
             List<DocumentEntity<T>> allResults = new List<DocumentEntity<T>>();
 
             IDocumentQuery<DocumentEntity<T>> queryable = null;
 
-            if (query == null) {
+            if (query == null)
+            {
                 queryable = _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, options)
                     .Where(d => d.DocumentType == GetDocumentType<T>())
                     .AsDocumentQuery();
@@ -244,16 +274,16 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return allResults;
         }
 
-        public async Task<IEnumerable<DocumentEntity<T>>> GetAllDocumentsAsync<T>(string sql, int maxItemCount = 1000, bool enableCrossPartitionQuery = true) where T : IIdentifiable
+        public async Task<IEnumerable<DocumentEntity<T>>> GetAllDocumentsAsync<T>(string sql, int itemsPerPage = 1000, bool enableCrossPartitionQuery = true) where T : IIdentifiable
         {
-            FeedOptions options = new FeedOptions() { MaxItemCount = maxItemCount, EnableCrossPartitionQuery = enableCrossPartitionQuery };
+            FeedOptions options = new FeedOptions() { MaxItemCount = itemsPerPage, EnableCrossPartitionQuery = enableCrossPartitionQuery };
 
             List<DocumentEntity<T>> allResults = new List<DocumentEntity<T>>();
 
             IDocumentQuery<DocumentEntity<T>> queryable = null;
 
             queryable = _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, sql, options).AsDocumentQuery();
-          
+
             while (queryable.HasMoreResults)
             {
                 FeedResponse<DocumentEntity<T>> queryResponse = await queryable.ExecuteNextAsync<DocumentEntity<T>>();
@@ -264,10 +294,10 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return allResults;
         }
 
-        public IQueryable<DocumentEntity<T>> QueryDocuments<T>(string directSql = null, int maxItemCount = -1) where T : IIdentifiable
+        public IQueryable<DocumentEntity<T>> QueryDocuments<T>(string directSql = null, int itemsPerPage = -1) where T : IIdentifiable
         {
             // Set some common query options
-            var queryOptions = new FeedOptions { MaxItemCount = maxItemCount };
+            var queryOptions = new FeedOptions { MaxItemCount = itemsPerPage };
 
             if (!string.IsNullOrEmpty(directSql))
             {
@@ -279,10 +309,10 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).AsQueryable();
         }
 
-        public IEnumerable<string> QueryAsJson(string directSql = null, int maxItemCount = -1)
+        public IEnumerable<string> QueryAsJson(string directSql = null, int itemsPerPage = -1)
         {
             // Set some common query options
-            var queryOptions = new FeedOptions { MaxItemCount = maxItemCount };
+            var queryOptions = new FeedOptions { MaxItemCount = itemsPerPage };
 
             IEnumerable<Document> documents = _documentClient.CreateDocumentQuery<Document>(_collectionUri, directSql, queryOptions).ToArray();
             foreach (var document in documents)
@@ -331,7 +361,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         {
             DocumentEntity<T> doc = _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri).Where(d => d.Id == entity.Id).AsEnumerable().SingleOrDefault();
 
-            if(doc == null)
+            if (doc == null)
             {
                 doc = new DocumentEntity<T>(entity)
                 {
@@ -345,7 +375,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                 doc.Content = entity;
                 doc.UpdatedAt = DateTimeOffset.Now;
             }
-           
+
             var response = await _documentClient.UpsertDocumentAsync(_collectionUri, doc);
             return response.StatusCode;
         }

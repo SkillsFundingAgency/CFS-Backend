@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.DataImporter
 			        TableDefinition = tableDefinition,
 			        Rows = new List<RowLoadResult>()
 		        },
-				RetrievedHeaderFields = new List<string>()
+				RetrievedHeaderFields = new Dictionary<string, int>()
 	        };
 
             IOrderedEnumerable<int> rows = worksheet.Cells
@@ -69,7 +69,7 @@ namespace CalculateFunding.Services.DataImporter
 
 	        if (!headerDictionary.IsNullOrEmpty())
 	        {
-		        result.RetrievedHeaderFields = new List<string>(headerDictionary.Keys);
+		        result.RetrievedHeaderFields = headerDictionary;
 	        }
 
 	        return result;

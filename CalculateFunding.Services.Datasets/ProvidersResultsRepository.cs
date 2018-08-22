@@ -43,13 +43,13 @@ namespace CalculateFunding.Services.Datasets
 
         public Task<IEnumerable<ProviderSourceDatasetHistory>> GetProviderSourceDatasetHistories(string specificationId, string relationshipId)
         {
-            return _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetHistory>($"SELECT * FROM r WHERE r.content.specificationId = '{specificationId}' AND r.content.dataRelationship.id = '{relationshipId}' AND r.deleted = false AND r.documentType = '{nameof(ProviderSourceDatasetHistory)}'", -1, specificationId);
+            return _cosmosRepository.QuerySql<ProviderSourceDatasetHistory>($"SELECT * FROM r WHERE r.content.specificationId = '{specificationId}' AND r.content.dataRelationship.id = '{relationshipId}' AND r.deleted = false AND r.documentType = '{nameof(ProviderSourceDatasetHistory)}'", -1, enableCrossPartitionQuery: true);
 
         }
 
-        public Task<IEnumerable<ProviderSourceDatasetCurrent>> GetCurrentProviderSourceDatasets(string specificationId, string relationshipId)
+        public async Task<IEnumerable<ProviderSourceDatasetCurrent>> GetCurrentProviderSourceDatasets(string specificationId, string relationshipId)
         {
-            return _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>($"SELECT * FROM r WHERE r.content.specificationId = '{specificationId}' AND r.content.dataRelationship.id = '{relationshipId}' AND r.deleted = false AND r.documentType = '{nameof(ProviderSourceDatasetCurrent)}'", -1, specificationId);
+            return await _cosmosRepository.QuerySql<ProviderSourceDatasetCurrent>($"SELECT * FROM r WHERE r.content.specificationId = '{specificationId}' AND r.content.dataRelationship.id = '{relationshipId}' AND r.deleted = false AND r.documentType = '{nameof(ProviderSourceDatasetCurrent)}'", enableCrossPartitionQuery: true, itemsPerPage: 1000);
         }
 
         public async Task UpdateCurrentProviderSourceDatasets(IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets)
@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(providerSourceDatasets, nameof(providerSourceDatasets));
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 5);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
             foreach (ProviderSourceDatasetCurrent dataset in providerSourceDatasets)
             {
                 await throttler.WaitAsync();
@@ -82,7 +82,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(providerSourceDatasets, nameof(providerSourceDatasets));
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 5);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
             foreach (ProviderSourceDatasetHistory dataset in providerSourceDatasets)
             {
                 await throttler.WaitAsync();
