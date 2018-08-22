@@ -1,7 +1,9 @@
 ﻿using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -925,7 +927,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task UpdatePublishedAllocationLineResultsStatus_GivenThreeProvidersToApproveButNoProfilingReturned_ReturnsOKObjectResultCreatesThreeHistoryItemsLogsError()
+        public async Task UpdatePublishedAllocationLineResultsStatus_GivenThreeProvidersToApprove_ReturnsOKObjectResult()
         {
             //arrange
             IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
@@ -1032,8 +1034,6 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111-2"), Arg.Is("AAAAA"))
                 .Returns(history3);
 
-            ILogger logger = CreateLogger();
-
             SpecificationCurrentVersion specification = CreateSpecification(specificationId);
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -1041,183 +1041,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            ResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: resultsProviderRepository, specificationsRepository: specificationsRepository);
-
-            //Act
-            IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
-
-            //Assert
-            actionResult
-                .Should()
-                .BeOfType<OkObjectResult>();
-
-            OkObjectResult okObjectResult = actionResult as OkObjectResult;
-
-            UpdateAllocationResultsStatusCounts value = okObjectResult.Value as UpdateAllocationResultsStatusCounts;
-
-            value
-                .UpdatedAllocationLines
-                .Should()
-                .Be(1);
-
-            value
-               .UpdatedProviderIds
-               .Should()
-               .Be(3);
-
-            history1
-                 .History
-                 .Count()
-                 .Should()
-                 .Be(1);
-
-            history2
-                 .History
-                 .Count()
-                 .Should()
-                 .Be(1);
-
-            history3
-                 .History
-                 .Count()
-                 .Should()
-                 .Be(1);
-
-            logger
-                .Received(1)
-                .Error(Arg.Is("Failed to obtain profiling periods for provider: 1111 and period: fp-1"));
-        }
-
-        [TestMethod]
-        public async Task UpdatePublishedAllocationLineResultsStatus_GivenThreeProvidersToApproveButAnfdProfilingReturned_ReturnsOKObjectResult()
-        {
-            //arrange
-            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
-            {
-                new UpdatePublishedAllocationLineResultStatusProviderModel
-                {
-                    ProviderId = "1111",
-                    AllocationLineIds = new[] { "AAAAA" }
-                },
-                new UpdatePublishedAllocationLineResultStatusProviderModel
-                {
-                    ProviderId = "1111-1",
-                    AllocationLineIds = new[] { "AAAAA" }
-                },
-                new UpdatePublishedAllocationLineResultStatusProviderModel
-                {
-                    ProviderId = "1111-2",
-                    AllocationLineIds = new[] { "AAAAA" }
-                }
-            };
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) },
-            });
-
-            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
-            {
-                Providers = Providers,
-                Status = AllocationLineStatus.Approved
-            };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Sid, "authorId"),
-                new Claim(ClaimTypes.Name, "authorname")
-            };
-
-            request
-                .HttpContext.User.Claims
-                .Returns(claims.AsEnumerable());
-
-            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
-
-            PublishedAllocationLineResultHistory history1 = new PublishedAllocationLineResultHistory
-            {
-                SpecificationId = specificationId,
-                ProviderId = "1111",
-                AllocationLine = new Models.Reference
-                {
-                    Id = "AAAAA"
-                },
-                History = null
-            };
-
-            PublishedAllocationLineResultHistory history2 = new PublishedAllocationLineResultHistory
-            {
-                SpecificationId = specificationId,
-                ProviderId = "1111-1",
-                AllocationLine = new Models.Reference
-                {
-                    Id = "AAAAA"
-                },
-                History = null
-            };
-
-            PublishedAllocationLineResultHistory history3 = new PublishedAllocationLineResultHistory
-            {
-                SpecificationId = specificationId,
-                ProviderId = "1111-2",
-                AllocationLine = new Models.Reference
-                {
-                    Id = "AAAAA"
-                },
-                History = null
-            };
-
-            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
-            resultsProviderRepository
-                .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(publishedProviderResults);
-
-            resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111"), Arg.Is("AAAAA"))
-                .Returns(history1);
-
-            resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111-1"), Arg.Is("AAAAA"))
-                .Returns(history2);
-
-            resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111-2"), Arg.Is("AAAAA"))
-                .Returns(history3);
-
-            ProviderProfilingResponseModel providerProfilingResponse = new ProviderProfilingResponseModel
-            {
-                ProfilePeriods = new[]
-                {
-                    new ProfilingPeriod(),
-                    new ProfilingPeriod()
-                }
-            };
-
-            IProviderProfilingRepository providerProfilingRepository = CreateProfilingRepository();
-            providerProfilingRepository
-                .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
-                .Returns(providerProfilingResponse);
-
-            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
-                .GetCurrentSpecificationById(Arg.Is(specificationId))
-                .Returns(specification);
-
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, providerProfilingRepository: providerProfilingRepository, specificationsRepository: specificationsRepository);
+            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -1240,6 +1064,136 @@ namespace CalculateFunding.Services.Results.Services
                .UpdatedProviderIds
                .Should()
                .Be(3);
+        }
+
+        [TestMethod]
+        public async Task UpdatePublishedAllocationLineResultsStatus_GivenThreeProvidersToApprove_RequestsProviderProfileInformation()
+        {
+            //arrange
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            {
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111",
+                    AllocationLineIds = new[] { "AAAAA" }
+                },
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111-1",
+                    AllocationLineIds = new[] { "AAAAA" }
+                },
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111-2",
+                    AllocationLineIds = new[] { "AAAAA" }
+                }
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) },
+            });
+
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
+            {
+                Providers = Providers,
+                Status = AllocationLineStatus.Approved
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
+
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Sid, "authorId"),
+                new Claim(ClaimTypes.Name, "authorname")
+            };
+
+            request
+                .HttpContext.User.Claims
+                .Returns(claims.AsEnumerable());
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
+
+            PublishedAllocationLineResultHistory history1 = new PublishedAllocationLineResultHistory
+            {
+                SpecificationId = specificationId,
+                ProviderId = "1111",
+                AllocationLine = new Models.Reference
+                {
+                    Id = "AAAAA"
+                },
+                History = null
+            };
+
+            PublishedAllocationLineResultHistory history2 = new PublishedAllocationLineResultHistory
+            {
+                SpecificationId = specificationId,
+                ProviderId = "1111-1",
+                AllocationLine = new Models.Reference
+                {
+                    Id = "AAAAA"
+                },
+                History = null
+            };
+
+            PublishedAllocationLineResultHistory history3 = new PublishedAllocationLineResultHistory
+            {
+                SpecificationId = specificationId,
+                ProviderId = "1111-2",
+                AllocationLine = new Models.Reference
+                {
+                    Id = "AAAAA"
+                },
+                History = null
+            };
+
+            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
+            resultsProviderRepository
+                .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
+                .Returns(publishedProviderResults);
+
+            resultsProviderRepository
+                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111"), Arg.Is("AAAAA"))
+                .Returns(history1);
+
+            resultsProviderRepository
+                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111-1"), Arg.Is("AAAAA"))
+                .Returns(history2);
+
+            resultsProviderRepository
+                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111-2"), Arg.Is("AAAAA"))
+                .Returns(history3);
+
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, specificationsRepository: specificationsRepository, messengerService: messengerService);
+
+            //Act
+            IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
+
+            //Assertl
+            actionResult
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            await messengerService.Received(3).SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.FetchProviderProfile), Arg.Any<ProviderProfilingRequestModel>(), Arg.Any<Dictionary<string, string>>());
         }
     }
 }
