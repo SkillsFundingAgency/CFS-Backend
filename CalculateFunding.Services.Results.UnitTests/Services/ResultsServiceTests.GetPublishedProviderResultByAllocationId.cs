@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             publishedProviderResultsRepository
-                .GetPublishedProviderResultForId(Arg.Is(allocationResultId))
+                .GetPublishedProviderResultForIdInPublishedState(Arg.Is(allocationResultId))
                 .Returns((PublishedProviderResult)null);
 
             ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             publishedProviderResultsRepository
-                .GetPublishedProviderResultForId(Arg.Is(allocationResultId))
+                .GetPublishedProviderResultForIdInPublishedState(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
 
             ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
@@ -79,7 +79,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             publishedProviderResultsRepository
-                .GetPublishedProviderResultForId(Arg.Is(allocationResultId))
+                .GetPublishedProviderResultForIdInPublishedState(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
 
             ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
@@ -119,7 +119,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             publishedProviderResultsRepository
-                .GetPublishedProviderResultForId(Arg.Is(allocationResultId))
+                .GetPublishedProviderResultForIdInPublishedState(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
 
             publishedProviderResultsRepository
@@ -169,7 +169,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             publishedProviderResultsRepository
-                .GetPublishedProviderResultForId(Arg.Is(allocationResultId))
+                .GetPublishedProviderResultForIdInPublishedState(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
 
             publishedProviderResultsRepository
@@ -219,7 +219,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             publishedProviderResultsRepository
-                .GetPublishedProviderResultForId(Arg.Is(allocationResultId))
+                .GetPublishedProviderResultForIdInPublishedState(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
 
             publishedProviderResultsRepository
