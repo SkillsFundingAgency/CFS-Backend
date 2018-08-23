@@ -32,10 +32,4 @@
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="Microsoft.VisualBasic">
-      <HintPath>..\..\..\Windows\Microsoft.NET\Framework\v4.0.30319\Microsoft.VisualBasic.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>
