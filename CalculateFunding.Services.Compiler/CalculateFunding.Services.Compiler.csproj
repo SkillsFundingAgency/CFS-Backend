@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <Reference Include="Microsoft.VisualBasic">
-      <HintPath>..\..\..\Windows\Microsoft.NET\Framework64\v4.0.30319\Microsoft.VisualBasic.dll</HintPath>
+      <HintPath>..\ReferenceAssemblies\Microsoft.VisualBasic.dll</HintPath>
     </Reference>
   </ItemGroup>
 
