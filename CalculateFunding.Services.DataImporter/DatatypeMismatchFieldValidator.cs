@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.DataImporter
 	{
 		public bool PreValidate(Field field)
 		{
-			return field.Value != null;
+			return !string.IsNullOrEmpty(field.Value?.ToString());
 		}
 
 		public FieldValidationResult ValidateField(Field field)
