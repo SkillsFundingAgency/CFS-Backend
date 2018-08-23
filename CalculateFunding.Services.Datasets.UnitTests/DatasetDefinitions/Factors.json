@@ -1,0 +1,134 @@
+﻿{
+  "description": "Factors",
+  "tableDefinitions": [
+    {
+      "id": "1216000",
+      "name": "Factors",
+      "description": "Factors",
+      "fieldDefinitions": [
+        {
+          "id": "1216001",
+          "name": "UPIN",
+          "identifierFieldType": "UPIN",
+          "matchExpression": null,
+          "description": "UPIN",
+          "type": "String",
+          "required": false,
+          "min": null,
+          "max": null,
+          "mustMatch": null
+        },
+        {
+          "id": "1216002",
+          "name": "Provider Name",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "Name of the provider",
+          "type": "String",
+          "required": false,
+          "min": null,
+          "max": null,
+          "mustMatch": null
+        },
+        {
+          "id": "1216003",
+          "name": "Provider Type",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "Provider Type",
+          "type": "String",
+          "required": false,
+          "min": null,
+          "max": null,
+          "mustMatch": null
+        },
+        {
+          "id": "1216004",
+          "name": "Provider Subtype",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "Provider Subtype",
+          "type": "String",
+          "required": false,
+          "min": null,
+          "max": null,
+          "mustMatch": null
+        },
+        {
+          "id": "1216005",
+          "name": "Local Authority",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "Local Authority",
+          "type": "String",
+          "required": false,
+          "min": null,
+          "max": null,
+          "mustMatch": null
+        },
+        {
+          "id": "1216006",
+          "name": "1819 Retention Factor",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "1819 Retention Factor",
+          "type": "Decimal",
+          "required": true,
+          "min": 1,
+          "max": 100,
+          "mustMatch": null
+        },
+        {
+          "id": "1216007",
+          "name": "1819 Dis Block 1 Factor",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "1819 Dis Block 1 Factor",
+          "type": "Decimal",
+          "required": false,
+          "min": null,
+          "max": null,
+          "mustMatch": null
+        },
+        {
+          "id": "1216008",
+          "name": "1819 Dis Block 2 instances per student - ILR",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "1819 Dis Block 2 instances per student - ILR",
+          "type": "Decimal",
+          "required": false,
+          "min": null,
+          "max": null,
+          "mustMatch": null
+        },
+        {
+          "id": "1216009",
+          "name": "1819 Dis Block 2 instances per student - YPMAD",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "1819 Dis Block 2 instances per student - YPMAD",
+          "type": "Decimal",
+          "required": false,
+          "min": null,
+          "max": null,
+          "mustMatch": null
+        },
+        {
+          "id": "1216010",
+          "name": "1819 Area Cost Factor",
+          "identifierFieldType": null,
+          "matchExpression": null,
+          "description": "1819 Area Cost Factor",
+          "type": "Decimal",
+          "required": false,
+          "min": null,
+          "max": null,
+          "mustMatch": null
+        }
+      ]
+    }
+  ],
+  "id": "1215999",
+  "name": "Factors"
+}
