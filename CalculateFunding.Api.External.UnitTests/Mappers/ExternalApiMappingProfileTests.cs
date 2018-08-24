@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using AutoMapper;
 using AutoMapper.Configuration;
 using CalculateFunding.Api.External.MappingProfiles;
@@ -59,6 +61,44 @@ namespace CalculateFunding.Api.External.UnitTests.Mappers
 		    mappedPeriod.PeriodType.Should().Be(fundingPeriod.Type);
 		    mappedPeriod.PeriodId.Should().Be(fundingPeriod.Id);
 	    }
-		
+
+        [TestMethod]
+        public void Mapper_SpecFundingStreamToModelFundingStream_ShouldReturnCorrectFundingStream()
+        {
+            // Arrange
+            Mapper.Reset();
+            MapperConfigurationExpression mappings = new MapperConfigurationExpression();
+            mappings.AddProfile<ExternalApiMappingProfile>();
+            Mapper.Initialize(mappings);
+            IMapper mapperUnderTest = Mapper.Instance;
+            string allocationLineId = "Id";
+            string allocationLineName = "Name";
+
+            Models.Specs.FundingStream fundingStream = new Models.Specs.FundingStream()
+            {
+                AllocationLines = new List<Models.Specs.AllocationLine>()
+                {
+                    new Models.Specs.AllocationLine()
+                    {
+                        Id = allocationLineId,
+                        Name = allocationLineName
+                    }
+                },
+                Name = "Name",
+                Id = "id"
+            };
+
+            // Act
+            V1.Models.FundingStream mappedFundingStream = mapperUnderTest.Map<V1.Models.FundingStream>(fundingStream);
+
+            // Assert
+            mappedFundingStream.Should().NotBeNull();
+            mappedFundingStream.FundingStreamCode.Should().Be(fundingStream.Id);
+            mappedFundingStream.FundingStreamName.Should().Be(fundingStream.Name);
+            mappedFundingStream
+                .AllocationLines.Should().Contain(a => a.AllocationLineCode == allocationLineId && a.AllocationLineName == allocationLineName)
+                .Should().NotBeNull();
+        }
+
     }
 }
