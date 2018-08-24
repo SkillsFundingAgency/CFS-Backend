@@ -18,6 +18,17 @@ namespace CalculateFunding.Api.External.MappingProfiles
 				.ForMember(p => p.StartDate, mce => mce.MapFrom(fp => fp.StartDate))
 				.ForMember(p => p.EndDate, mce => mce.MapFrom(fp => fp.EndDate))
 				.ForAllOtherMembers(mce => mce.Ignore());
-		}
+
+            CreateMap<Models.Specs.AllocationLine, V1.Models.AllocationLine>()
+                .ForMember(a => a.AllocationLineCode, mce => mce.MapFrom(al => al.Id))
+                .ForMember(a => a.AllocationLineName, mce => mce.MapFrom(al => al.Name))
+                .ForAllOtherMembers(mce => mce.Ignore());
+
+            CreateMap<Models.Specs.FundingStream, V1.Models.FundingStream>()
+                .ForMember(f => f.FundingStreamCode, mce => mce.MapFrom(fs => fs.Id))
+                .ForMember(f => f.FundingStreamName, mce => mce.MapFrom(fs => fs.Name))
+                .ForMember(f => f.AllocationLines, mce => mce.MapFrom(fs => fs.AllocationLines))
+                .ForAllOtherMembers(mce => mce.Ignore());
+        }
 	}
 }
