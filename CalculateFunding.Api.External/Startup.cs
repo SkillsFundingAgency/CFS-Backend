@@ -231,6 +231,7 @@ namespace CalculateFunding.Api.External
 		        });
 
 			builder.AddSingleton<ITimePeriodsService, TimePeriodsService>();
+            builder.AddSingleton<IFundingStreamService, FundingStreamService>();
 	        builder.AddSingleton<ISpecificationsService, SpecificationsService>();
 			builder.AddSingleton<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
 	        builder.AddSingleton<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();

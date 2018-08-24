@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.External.V1.Services
 {
-    public class FundingStreamService
+    public class FundingStreamService : IFundingStreamService
     {
 
         private readonly ISpecificationsService _specService;
@@ -25,7 +25,8 @@ namespace CalculateFunding.Api.External.V1.Services
             _specService = specService;
             _mapper = mapper;
         }
-        public async Task<ActionResult> GetFundingStreams(HttpRequest request)
+
+        public async Task<IActionResult> GetFundingStreams(HttpRequest request)
         {
             IActionResult result = await _specService.GetFundingStreams(request);
 
