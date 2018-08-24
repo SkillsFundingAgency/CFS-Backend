@@ -23,6 +23,8 @@
             public const string UpdateBuildProjectRelationships = "calc-events-add-relationship-to-buildproject";
 
             public const string PublishProviderResults = "publish-provider-results";
+
+            public const string FetchProviderProfile = "fetch-provider-profile";
         }
 
         public static class TopicNames

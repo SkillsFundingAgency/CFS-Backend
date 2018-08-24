@@ -775,6 +775,104 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Information(Arg.Is($"Build compiled succesfully for calculation id {calculation.Id}"));
         }
 
+        [TestMethod]
+        public async Task Compile_GivenStringCompareInCode_CompilesCodeAndReturnsOk()
+        {
+            //Arrange
+            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = stringCompareCode,
+                SpecificationId = SpecificationId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                BuildProjectId = BuildProjectId,
+                Current = new CalculationVersion(),
+                SpecificationId = SpecificationId
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject();
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
+                new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
+                new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
+            };
+
+            sourceFileGenerator
+                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
+                .Returns(sourceFiles);
+
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
+
+            ICompilerFactory compilerFactory = new CompilerFactory(new Compiler.Languages.CSharpCompiler(logger), new Compiler.Languages.VisualBasicCompiler(logger));
+
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory);
+
+            //Act
+            IActionResult result = await service.Compile(request);
+
+            //Assert
+            OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+
+            PreviewResponse previewResponse = okResult.Value.Should().BeOfType<PreviewResponse>().Subject;
+
+            previewResponse
+                .Calculation
+                .Current
+                .SourceCode
+                .Should()
+                .Be(stringCompareCode);
+
+            previewResponse
+                .CompilerOutput
+                .Success
+                .Should()
+                .BeTrue();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Build compiled succesfully for calculation id {calculation.Id}"));
+        }
+
         static PreviewService CreateService(ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
             ILogger logger = null, IBuildProjectsRepository buildProjectsRepository = null, ICompilerFactory compilerFactory = null,
             IValidator<PreviewRequest> previewRequestValidator = null, ICalculationsRepository calculationsRepository = null)
