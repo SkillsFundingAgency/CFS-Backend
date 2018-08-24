@@ -3,6 +3,7 @@ using CalculateFunding.Api.External.V1.Interfaces;
 using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,8 @@ namespace CalculateFunding.Api.External.V1.Services
 
         public FundingStreamService(ISpecificationsService specService, IMapper mapper)
         {
+            Guard.ArgumentNotNull(specService, nameof(specService));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
             _specService = specService;
             _mapper = mapper;
         }
@@ -35,7 +38,7 @@ namespace CalculateFunding.Api.External.V1.Services
                 IEnumerable<CalculateFunding.Models.Specs.FundingStream> fundingStream = (IEnumerable<CalculateFunding.Models.Specs.FundingStream>)okObjectResult.Value;
                 if (fundingStream.IsNullOrEmpty())
                 {
-                    return new InternalServerErrorResult("Could not find any funding streams");
+                    return new OkResult();
                 }
                 else
                 {
@@ -43,7 +46,7 @@ namespace CalculateFunding.Api.External.V1.Services
                     return new OkObjectResult(mappedFundingStreams);
                 }
             }
-            return new OkObjectResult(result);
+            return result;
         }
     }
 }

@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using AutoMapper.Configuration;
 using CalculateFunding.Api.External.MappingProfiles;
-using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Api.External.V1.Services;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
@@ -81,16 +77,12 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
             FundingStreamService fundingStreamService = new FundingStreamService(mockSpecificationsService, mapper);
 
-            string internalErrorMessage = "Could not find any funding streams";
-
-            InternalServerErrorResult ds = new InternalServerErrorResult(internalErrorMessage);
-
             // Act
             IActionResult result = await fundingStreamService.GetFundingStreams(Substitute.For<HttpRequest>());
 
             // Assert
             result
-                .Should().BeOfType<InternalServerErrorResult>();
+                .Should().BeOfType<OkResult>();
         }
     }
 }

@@ -1,24 +1,14 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using CalculateFunding.Api.External.Swagger.OperationFilters;
 using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Api.External.V1.Models.Examples;
-using CalculateFunding.Models.External;
-using CsvHelper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using CalculateFunding.Services.Specs;
 using Swashbuckle.AspNetCore.Examples;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using AutoMapper;
-using CalculateFunding.Services.Specs.Interfaces;
 using System.Threading.Tasks;
-using CalculateFunding.Api.External.V1.Services;
 using CalculateFunding.Api.External.V1.Interfaces;
+using CalculateFunding.Services.Core.Helpers;
 
 namespace CalculateFunding.Api.External.V1.Controllers
 {
@@ -26,10 +16,11 @@ namespace CalculateFunding.Api.External.V1.Controllers
     [Route("api/funding-streams")]
     public class FundingStreamController : Controller
     {
-        public readonly IFundingStreamService _fundingStreamsService;
+        private readonly IFundingStreamService _fundingStreamsService;
 
         public FundingStreamController(IFundingStreamService fundingStreamService)
         {
+            Guard.ArgumentNotNull(fundingStreamService, nameof(fundingStreamService));
             _fundingStreamsService = fundingStreamService;
         }
         /// <summary>
@@ -52,9 +43,9 @@ namespace CalculateFunding.Api.External.V1.Controllers
         [SwaggerResponseHeader(200, "Last-Modified", "date", "Date the resource was last modified")]
 
 
-        public Task<IActionResult> GetFundingStreams()
+        public async Task<IActionResult> GetFundingStreams()
         {
-            return _fundingStreamsService.GetFundingStreams(Request);
+            return await _fundingStreamsService.GetFundingStreams(Request);
         }
     }
 }

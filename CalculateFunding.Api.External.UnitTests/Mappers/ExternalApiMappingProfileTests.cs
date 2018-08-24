@@ -63,7 +63,7 @@ namespace CalculateFunding.Api.External.UnitTests.Mappers
 	    }
 
         [TestMethod]
-        public void Mapper_SpecFundingStreamToModelFundingStream_ShouldReturnCorrectPeriod()
+        public void Mapper_SpecFundingStreamToModelFundingStream_ShouldReturnCorrectFundingStream()
         {
             // Arrange
             Mapper.Reset();
@@ -71,19 +71,19 @@ namespace CalculateFunding.Api.External.UnitTests.Mappers
             mappings.AddProfile<ExternalApiMappingProfile>();
             Mapper.Initialize(mappings);
             IMapper mapperUnderTest = Mapper.Instance;
-            
-            Models.Specs.AllocationLine allocation = new Models.Specs.AllocationLine()
-            {
-                Id = "Id",
-                Name = "Name"
-            };
-
-            List<Models.Specs.AllocationLine> allocationLineList = new List<Models.Specs.AllocationLine>();
-            allocationLineList.Add(allocation);
+            string allocationLineId = "Id";
+            string allocationLineName = "Name";
 
             Models.Specs.FundingStream fundingStream = new Models.Specs.FundingStream()
             {
-                AllocationLines = allocationLineList,
+                AllocationLines = new List<Models.Specs.AllocationLine>()
+                {
+                    new Models.Specs.AllocationLine()
+                    {
+                        Id = allocationLineId,
+                        Name = allocationLineName
+                    }
+                },
                 Name = "Name",
                 Id = "id"
             };
@@ -96,8 +96,7 @@ namespace CalculateFunding.Api.External.UnitTests.Mappers
             mappedFundingStream.FundingStreamCode.Should().Be(fundingStream.Id);
             mappedFundingStream.FundingStreamName.Should().Be(fundingStream.Name);
             mappedFundingStream
-                .AllocationLines
-                .Single(a => a.AllocationLineCode == allocation.Id && a.AllocationLineName == allocation.Name)
+                .AllocationLines.Should().Contain(a => a.AllocationLineCode == allocationLineId && a.AllocationLineName == allocationLineName)
                 .Should().NotBeNull();
         }
 
