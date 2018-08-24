@@ -73,5 +73,26 @@ namespace CalculateFunding.Services.Datasets.ExcelFormatter
 				}
 			}
 		}
+
+		[TestMethod]
+		public void FormatExcelSheetBasedOnErrors_GivenNoErrorInResult_ShouldNotCreateAdditionalWorksheet()
+		{
+			using (var excelPackage = new ExcelPackage())
+			{
+				// Arrange
+				IDatasetUploadValidationResult mockUploadValidationResult = Substitute.For<IDatasetUploadValidationResult>();
+				mockUploadValidationResult.HeaderValitionFailures.Returns(new List<HeaderValidationResult>());
+				mockUploadValidationResult.FieldValidationFailures.Returns(new List<FieldValidationResult>());
+				mockUploadValidationResult.IsValid().Returns(true);
+
+				// Act
+				ExcelHeaderErrorFormatter formatterUnderTest = new ExcelHeaderErrorFormatter(excelPackage);
+				formatterUnderTest.FormatExcelSheetBasedOnErrors(mockUploadValidationResult);
+
+				// Assert
+				ExcelWorksheet errorsWorkSheet = excelPackage.Workbook.Worksheets["Errors"];
+				errorsWorkSheet.Should().BeNull();
+			}
+		}
 	}
 }

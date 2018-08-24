@@ -1,5 +1,4 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using CalculateFunding.Models.Datasets.Schema;
@@ -14,7 +13,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         public static string Identifier(string value)
         {
             string className = value;
-          
+
             bool isValid = SyntaxFacts.IsValidIdentifier(className);
 
             List<string> chars = new List<string>();
@@ -45,10 +44,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     className = className.Insert(0, "_");
                 }
             }
-
-
-
-           
 
             return className.Replace(" ", String.Empty);
         }
@@ -86,6 +81,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword));
                     break;
             }
+
             return propertyType;
         }
 
@@ -93,22 +89,11 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
             var imports = SyntaxFactory.List(new[] {
                 SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System")))),
-                    SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System.Collections.Generic")))),
-
-                }
-                );
+                SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System.Collections.Generic")))),
+                SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("Microsoft.VisualBasic.CompilerServices"))))
+            });
             var str = imports.ToFullString();
             return imports;
         }
-
-        //protected static SyntaxList<ImportsStatementSyntax> StandardUsings()
-        //{
-        //    return SyntaxFactory.List(
-        //        new[]{
-        //            SyntaxFactory.SimpleImportsClause(
-        //                SyntaxFactory.IdentifierName("System")),
-        //            });
-        //}
-
     }
 }

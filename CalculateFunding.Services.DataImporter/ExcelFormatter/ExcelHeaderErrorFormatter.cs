@@ -18,18 +18,21 @@ namespace CalculateFunding.Services.DataImporter.ExcelFormatter
 
 	    public void FormatExcelSheetBasedOnErrors(IDatasetUploadValidationResult validationResult)
 	    {
-		    SheetTemplate templateReturned = ErrorSheetTemplateCreator.CreateHeaderErrorSheet(_excelPackage);
-		    List<HeaderValidationResult> headerValidationFailures = validationResult.HeaderValitionFailures.ToList();
-		    DatasetUploadCellReference errorInsertionsStartingCell = templateReturned.StartingCell;
-
-			ExcelWorksheet headerErrorsWorksheet = _excelPackage.Workbook.Worksheets[templateReturned.ExcelWorksheet.Name];
-
-
-		    for (int index = 0, rowIndex = errorInsertionsStartingCell.RowIndex; index < headerValidationFailures.Count; rowIndex++, index++)
+		    if (!validationResult.IsValid())
 		    {
-			    ExcelRange cellToInsertErrorInto = headerErrorsWorksheet.Cells[rowIndex, 1];
+			    SheetTemplate templateReturned = ErrorSheetTemplateCreator.CreateHeaderErrorSheet(_excelPackage);
+			    List<HeaderValidationResult> headerValidationFailures = validationResult.HeaderValitionFailures.ToList();
+			    DatasetUploadCellReference errorInsertionsStartingCell = templateReturned.StartingCell;
 
-			    cellToInsertErrorInto.Value = headerValidationFailures[index].FieldDefinitionValidated.Name;
+			    ExcelWorksheet headerErrorsWorksheet = _excelPackage.Workbook.Worksheets[templateReturned.ExcelWorksheet.Name];
+
+
+			    for (int index = 0, rowIndex = errorInsertionsStartingCell.RowIndex; index < headerValidationFailures.Count; rowIndex++, index++)
+			    {
+				    ExcelRange cellToInsertErrorInto = headerErrorsWorksheet.Cells[rowIndex, 1];
+
+				    cellToInsertErrorInto.Value = headerValidationFailures[index].FieldDefinitionValidated.Name;
+			    }
 		    }
 	    }
     }
