@@ -910,7 +910,10 @@ namespace CalculateFunding.Services.Datasets
                 {
                     DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(excelPackage, () => _providerSummaries, datasetDefinition);
                     ValidationResult validationResult = _datasetUploadValidator.Validate(uploadModel);
-                    rowCount = uploadModel.Data.TableLoadResult.Rows.Count;
+                    if (uploadModel.Data != null)
+                    {
+                        rowCount = uploadModel.Data.TableLoadResult.Rows.Count;
+                    }
                     if (!validationResult.IsValid)
                     {
                         excelPackage.Save();
