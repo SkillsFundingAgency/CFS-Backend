@@ -15,25 +15,22 @@ namespace CalculateFunding.Services.DataImporter.Validators
 {
     public class DatasetItemValidator : AbstractValidator<DatasetUploadValidationModel>
     {
-        private readonly IExcelDatasetReader _excelDatasetReader;
-        public IHeaderValidator HeaderValidator { private get; set; }
+	    public IHeaderValidator HeaderValidator { private get; set; }
         public IList<IFieldValidator> FieldValidators { private get; set; }
         public IBulkFieldValidator BulkValidator { private get; set; }
-        public IList<IExcelErrorFormatter> ExcelFieldFormatter { get; set; }
+        public IList<IExcelErrorFormatter> ExcelFieldFormatters { get; set; }
 
         private bool _isValid = true;
 
         public DatasetItemValidator(IExcelDatasetReader excelDatasetReader)
         {
-            _excelDatasetReader = excelDatasetReader;
-
-            RuleFor(model => model)
+	        RuleFor(model => model)
                 .NotNull()
                 .Custom((validationModel, context) =>
                 {
                     ExcelPackage excelPackage = validationModel.ExcelPackage;
 
-					validationModel.Data = _excelDatasetReader.Read(excelPackage, validationModel.DatasetDefinition, false);
+					validationModel.Data = excelDatasetReader.Read(excelPackage, validationModel.DatasetDefinition, false);
 
                     IEnumerable<ProviderSummary> providerSummaries = validationModel.ProviderSummaries();
 
@@ -50,10 +47,10 @@ namespace CalculateFunding.Services.DataImporter.Validators
         private void Validate(ExcelPackage excelPackage, DatasetUploadValidationModel validationModel,
             IEnumerable<ProviderSummary> providerSummaries)
         {
-            IList<FieldDefinition> fieldDefinitions =
-                validationModel.DatasetDefinition.TableDefinitions.First().FieldDefinitions;
+			IList<FieldDefinition> fieldDefinitions =
+				validationModel.DatasetDefinition.TableDefinitions.First().FieldDefinitions;
 
-            IHeaderValidator headerValidator = GetHeaderValidator(fieldDefinitions);
+			IHeaderValidator headerValidator = GetHeaderValidator(fieldDefinitions);
             IList<IFieldValidator> fieldValidators = GetFieldValidators(providerSummaries);
             IBulkFieldValidator bulkFieldValidator = GetBulkFieldValidator();
 
@@ -79,8 +76,7 @@ namespace CalculateFunding.Services.DataImporter.Validators
 
 
             IList<FieldValidationResult> bulkFieldValidationResults =
-                bulkFieldValidator
-                    .ValidateAllFields(allFieldsToBeValidated);
+                bulkFieldValidator.ValidateAllFields(allFieldsToBeValidated);
 
             foreach (FieldValidationResult validationResult in bulkFieldValidationResults)
             {
@@ -99,8 +95,6 @@ namespace CalculateFunding.Services.DataImporter.Validators
             {
                 excelErrorFormatter.FormatExcelSheetBasedOnErrors(validationModel.ValidationResult);
             }
-
-            excelPackage.Save();
         }
 
         private IList<Field> RetrieveAllFields(List<RowLoadResult> allRows, IList<FieldDefinition> fieldDefinitions, IDictionary<string, int> headersAndColumns)

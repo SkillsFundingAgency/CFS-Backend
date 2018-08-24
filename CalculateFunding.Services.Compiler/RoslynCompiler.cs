@@ -19,15 +19,18 @@ namespace CalculateFunding.Services.Compiler
         {
             Logger = logger;
         }
+
         public Build GenerateCode(List<SourceFile> sourcefiles)
         {
             MetadataReference[] references = {
-                AssemblyMetadata.CreateFromFile(typeof(object).Assembly.Location).GetReference()
+                AssemblyMetadata.CreateFromFile(typeof(object).Assembly.Location).GetReference(),
+                AssemblyMetadata.CreateFromFile(typeof(Microsoft.VisualBasic.Constants).Assembly.Location).GetReference()
             };
 
             using (var ms = new MemoryStream())
             {
                 var build = GenerateCode(sourcefiles, references, ms);
+
                 if (build.Success)
                 {
                     ms.Seek(0L, SeekOrigin.Begin);
@@ -35,7 +38,6 @@ namespace CalculateFunding.Services.Compiler
                     byte[] data = new byte[ms.Length];
                     ms.Read(data, 0, data.Length);
                     build.AssemblyBase64 = Convert.ToBase64String(data);
-
                 }
 
                 return build;
@@ -50,7 +52,6 @@ namespace CalculateFunding.Services.Compiler
 
             var result = Compile(references, ms, sourceFiles);
 
-
             var compilerOutput = new Build
             {
                 SourceFiles = sourceFiles,
@@ -60,12 +61,13 @@ namespace CalculateFunding.Services.Compiler
             stopwatch.Stop();
             Logger.Information($"Compilation complete success = {compilerOutput.Success} ({stopwatch.ElapsedMilliseconds}ms)");
 
-            compilerOutput.CompilerMessages = result.Diagnostics.Where(x  => x.Severity != DiagnosticSeverity.Hidden).Select(x => new CompilerMessage
-            {
-	            Message = x.GetMessage(),
-				Severity = (Severity)x.Severity,
-				Location = GetLocation(x)
-            }).ToList();
+            compilerOutput.CompilerMessages = result.Diagnostics.Where(x  => x.Severity != DiagnosticSeverity.Hidden)
+                .Select(x => new CompilerMessage {
+	                    Message = x.GetMessage(),
+				        Severity = (Severity)x.Severity,
+				        Location = GetLocation(x)
+                    })
+                .ToList();
 
             foreach (var compilerMessage in compilerOutput.CompilerMessages)
             {
@@ -82,6 +84,7 @@ namespace CalculateFunding.Services.Compiler
                         break;
                 }
             }
+
             return compilerOutput;
         }
 
@@ -99,15 +102,12 @@ namespace CalculateFunding.Services.Compiler
 
 			return new SourceLocation
 			{
-
 				Owner = owner,
 				StartLine = span.StartLinePosition.Line,
 				StartChar = span.StartLinePosition.Character,
 				EndLine = span.EndLinePosition.Line,
 				EndChar = span.EndLinePosition.Character
 			};
-
-
 	    }
 
 	    protected abstract EmitResult Compile(MetadataReference[] references, MemoryStream ms, List<SourceFile> sourceFiles);

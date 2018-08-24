@@ -7,10 +7,12 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.ResultModels;
@@ -53,6 +55,7 @@ namespace CalculateFunding.Services.Results
         private readonly Polly.Policy _providerProfilingRepositoryPolicy;
         private readonly Polly.Policy _publishedProviderCalculationResultsRepositoryPolicy;
         private readonly Polly.Policy _publishedProviderResultsRepositoryPolicy;
+        private readonly IMessengerService _messengerService;
 
         public ResultsService(ILogger logger,
             ICalculationResultsRepository resultsRepository,
@@ -69,8 +72,26 @@ namespace CalculateFunding.Services.Results
             IProviderImportMappingService providerImportMappingService,
             ICacheProvider cacheProvider,
             ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationsSearchRepository,
-            IProviderProfilingRepository providerProfilingRepository)
+            IProviderProfilingRepository providerProfilingRepository,
+            IMessengerService messengerService)
         {
+            Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
+            Guard.ArgumentNotNull(telemetry, nameof(telemetry));
+            Guard.ArgumentNotNull(providerSourceDatasetRepository, nameof(providerSourceDatasetRepository));
+            Guard.ArgumentNotNull(calculationProviderResultsSearchRepository, nameof(calculationProviderResultsSearchRepository));
+            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(publishedProviderResultsAssemblerService, nameof(publishedProviderResultsAssemblerService));
+            Guard.ArgumentNotNull(publishedProviderResultsRepository, nameof(publishedProviderResultsRepository));
+            Guard.ArgumentNotNull(publishedProviderCalculationResultsRepository, nameof(publishedProviderCalculationResultsRepository));
+            Guard.ArgumentNotNull(providerImportMappingService, nameof(providerImportMappingService));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(allocationNotificationsSearchRepository, nameof(allocationNotificationsSearchRepository));
+            Guard.ArgumentNotNull(providerProfilingRepository, nameof(providerProfilingRepository));
+            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
+
             _logger = logger;
             _resultsRepository = resultsRepository;
             _mapper = mapper;
@@ -89,10 +110,11 @@ namespace CalculateFunding.Services.Results
             _cacheProvider = cacheProvider;
             _allocationNotificationsSearchRepository = allocationNotificationsSearchRepository;
             _allocationNotificationsSearchRepositoryPolicy = resiliencePolicies.AllocationNotificationFeedSearchRepository;
-            _providerProfilingRepository = providerProfilingRepository;
-            _providerProfilingRepositoryPolicy = resiliencePolicies.ProviderProfilingRepository;
             _publishedProviderCalculationResultsRepositoryPolicy = resiliencePolicies.PublishedProviderCalculationResultsRepository;
             _publishedProviderResultsRepositoryPolicy = resiliencePolicies.PublishedProviderResultsRepository;
+            _providerProfilingRepositoryPolicy = resiliencePolicies.ProviderProfilingRepository;
+            _providerProfilingRepository = providerProfilingRepository;
+            _messengerService = messengerService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -218,7 +240,7 @@ namespace CalculateFunding.Services.Results
         {
             Guard.IsNullOrWhiteSpace(allocationResultId, nameof(allocationResultId));
 
-            PublishedProviderResult publishedProviderResult = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultForId(allocationResultId));
+            PublishedProviderResult publishedProviderResult = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultForIdInPublishedState(allocationResultId));
 
             if(publishedProviderResult == null)
             {
@@ -251,7 +273,7 @@ namespace CalculateFunding.Services.Results
         {
             Guard.IsNullOrWhiteSpace(allocationResultId, nameof(allocationResultId));
 
-            PublishedProviderResult publishedProviderResult = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultForId(allocationResultId));
+            PublishedProviderResult publishedProviderResult = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultForIdInPublishedState(allocationResultId));
 
             if (publishedProviderResult == null)
             {
@@ -690,8 +712,6 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty providers was provided");
             }
 
-            Reference author = request.GetUser();
-
             IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationId(specificationId));
 
             if (publishedProviderResults.IsNullOrEmpty())
@@ -701,7 +721,7 @@ namespace CalculateFunding.Services.Results
 
             try
             {
-                Tuple<int, int> updateCounts = await UpdateAllocationLineResultsStatus(publishedProviderResults.ToList(), updateStatusModel, author, specificationId);
+                Tuple<int, int> updateCounts = await UpdateAllocationLineResultsStatus(publishedProviderResults.ToList(), updateStatusModel, request, specificationId);
 
                 return new OkObjectResult(new UpdateAllocationResultsStatusCounts { UpdatedAllocationLines = updateCounts.Item1, UpdatedProviderIds = updateCounts.Item2 });
             }
@@ -901,7 +921,7 @@ namespace CalculateFunding.Services.Results
         }
 
         async Task<Tuple<int, int>> UpdateAllocationLineResultsStatus(IEnumerable<PublishedProviderResult> publishedProviderResults,
-            UpdatePublishedAllocationLineResultStatusModel updateStatusModel, Reference author, string specificationId)
+            UpdatePublishedAllocationLineResultStatusModel updateStatusModel, HttpRequest request, string specificationId)
         {
             IList<string> updatedAllocationLineIds = new List<string>();
             IList<string> updatedProviderIds = new List<string>();
@@ -909,6 +929,8 @@ namespace CalculateFunding.Services.Results
             List<PublishedProviderResult> resultsToUpdate = new List<PublishedProviderResult>();
 
             IEnumerable<PublishedAllocationLineResultHistory> historyResultsToUpdate = new List<PublishedAllocationLineResultHistory>();
+
+            Reference author = request.GetUser();
 
             foreach (UpdatePublishedAllocationLineResultStatusProviderModel providerstatusModel in updateStatusModel.Providers)
             {
@@ -982,7 +1004,7 @@ namespace CalculateFunding.Services.Results
 
                         if(updateStatusModel.Status == AllocationLineStatus.Approved)
                         {
-                            await GetProfilingPeriods(result);
+                            await GetProfilingPeriods(request, result);
                         }
                     }
 
@@ -1013,7 +1035,7 @@ namespace CalculateFunding.Services.Results
             return new Tuple<int, int>(updatedAllocationLineIds.Count, updatedProviderIds.Count);
         }
 
-        async Task GetProfilingPeriods(PublishedProviderResult result)
+        async Task GetProfilingPeriods(HttpRequest request, PublishedProviderResult result)
         {
             ProviderProfilingRequestModel providerProfilingRequestModel = new ProviderProfilingRequestModel
             {
@@ -1039,17 +1061,50 @@ namespace CalculateFunding.Services.Results
                 }
             };
 
-            ProviderProfilingResponseModel responseModel = await  _providerProfilingRepositoryPolicy.ExecuteAsync(() => _providerProfilingRepository.GetProviderProfilePeriods(providerProfilingRequestModel));
+            IDictionary<string, string> properties = request.BuildMessageProperties();
+            properties.Add("publishedproviderresult-id", result.Id);
+            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.FetchProviderProfile, providerProfilingRequestModel, properties);
+        }
+
+        public async Task FetchProviderProfile(Message message)
+        {
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            if (!message.UserProperties.ContainsKey("publishedproviderresult-id"))
+            {
+                _logger.Error("No Published Provider Result Id was provided to FetchProviderProfile");
+                throw new ArgumentException("Message must contain a published provider result id");
+            }
+
+            string publishedProviderResultId = message.UserProperties["publishedproviderresult-id"].ToString();
+
+            ProviderProfilingRequestModel model = message.GetPayloadAsInstanceOf<ProviderProfilingRequestModel>();
+
+            if (model == null)
+            {
+                _logger.Error("No Provider Profiling Request was present in the message");
+                throw new ArgumentException("Message must contain a provider profiling request");
+            }
+
+            PublishedProviderResult result = _publishedProviderResultsRepository.GetPublishedProviderResultForId(publishedProviderResultId);
+
+            if (result == null)
+            {
+                _logger.Error("Could not find published provider result with id '{id}'", publishedProviderResultId);
+                throw new ArgumentException($"Published provider result with id '{publishedProviderResultId}' not found");
+            }
+
+            ProviderProfilingResponseModel responseModel = await _providerProfilingRepositoryPolicy.ExecuteAsync(() => _providerProfilingRepository.GetProviderProfilePeriods(model));
 
             if (responseModel != null)
             {
                 result.ProfilingPeriods = responseModel.ProfilePeriods.ToArraySafe();
+                await _publishedProviderResultsRepository.SavePublishedResults(new[] { result });
             }
             else
             {
                 _logger.Error($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}");
             }
-
         }
 
         bool CanUpdateAllocationLineResult(PublishedAllocationLineResult allocationLineResult, AllocationLineStatus newStatus)
