@@ -55,7 +55,7 @@ namespace CalculateFunding.Api.External.V1.Controllers
         [ProducesResponseType(503)]
         public Task<IActionResult> GetNotifications(int? pageRef = null, string allocationStatuses = "")
         {
-            return _allocationFeedsService.GetNotifications(pageRef.Value, allocationStatuses, Request);
+            return _allocationFeedsService.GetNotifications(pageRef, allocationStatuses, Request);
         }
     }
 }
