@@ -113,7 +113,7 @@ namespace CalculateFunding.Api.External
             SwaggerSetup.ConfigureSwagger(app, provider);
 
             app.UseHealthCheckMiddleware();
-        }
+		}
 
         public void RegisterComponents(IServiceCollection builder)
         {
@@ -281,6 +281,6 @@ namespace CalculateFunding.Api.External
                 };
             });
 			builder.AddHealthCheckMiddleware();
-        }
+		}
     }
 }

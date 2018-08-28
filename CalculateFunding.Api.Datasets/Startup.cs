@@ -64,6 +64,8 @@ namespace CalculateFunding.Api.Datasets
 
             app.UseMiddleware<LoggedInUserMiddleware>();
 
+			app.UseMiddleware<ApiKeyMiddleware>();
+
             app.UseMvc();
 
             app.UseHealthCheckMiddleware();

@@ -47,6 +47,7 @@ namespace CalculateFunding.Api.Scenarios
             app.UseHttpsRedirection();
 
             app.UseMiddleware<LoggedInUserMiddleware>();
+	        app.UseMiddleware<ApiKeyMiddleware>();
 
             app.UseMvc();
 

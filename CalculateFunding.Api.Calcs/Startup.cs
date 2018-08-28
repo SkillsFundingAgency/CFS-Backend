@@ -60,7 +60,9 @@ namespace CalculateFunding.Api.Calcs
 
             app.UseMiddleware<LoggedInUserMiddleware>();
 
-            app.UseMvc();
+	        app.UseMiddleware<ApiKeyMiddleware>();
+
+			app.UseMvc();
 
             app.UseHealthCheckMiddleware();
         }
