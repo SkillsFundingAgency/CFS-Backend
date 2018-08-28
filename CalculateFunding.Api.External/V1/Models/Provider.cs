@@ -2,7 +2,10 @@
 
 namespace CalculateFunding.Api.External.V1.Models
 {
-    [Serializable]
+	/// <summary>
+	/// Fields are made available only if it is provided from the provider datasource
+	/// </summary>
+	[Serializable]
     public class Provider
     {
         public Provider()
