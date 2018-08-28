@@ -31,6 +31,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Api.External\CalculateFunding.Api.External.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Specs\CalculateFunding.Services.Specs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Tests.Common\CalculateFunding.Tests.Common.csproj" />
   </ItemGroup>
 

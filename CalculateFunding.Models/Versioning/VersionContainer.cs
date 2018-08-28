@@ -23,6 +23,7 @@ namespace CalculateFunding.Models.Versioning
             int maxVersion = History.Max(m => m.Version);
 
             return maxVersion + 1;
+
         }
     }
 }

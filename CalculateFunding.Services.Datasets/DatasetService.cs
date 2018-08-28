@@ -349,18 +349,27 @@ namespace CalculateFunding.Services.Datasets
 
             IActionResult actionResult = await ValidateTableResults(datasetDefinition, blob);
 
-            if (actionResult is OkResult)
+            if (actionResult is OkObjectResult)
             {
                 try
                 {
+                    OkObjectResult okObjectResult = actionResult as OkObjectResult;
+
+                    int rowCount = (int) okObjectResult.Value;
+
+                    DatasetCreateUpdateResponseModel datasetCreateUpdateResponseModel = new DatasetCreateUpdateResponseModel();
+                    datasetCreateUpdateResponseModel.CurrentRowCount = rowCount;
+
                     if (model.Version == 1)
                     {
-                        await SaveNewDatasetAndVersion(blob, datasetDefinition);
+                        await SaveNewDatasetAndVersion(blob, datasetDefinition, rowCount);
                     }
                     else
                     {
-                        await UpdateExistingDatasetAndAddVersion(blob, model, request.GetUser());
+                        await UpdateExistingDatasetAndAddVersion(blob, model, request.GetUser(), rowCount);
                     }
+
+                    actionResult =  new OkObjectResult(datasetCreateUpdateResponseModel);
                 }
                 catch (Exception exception)
                 {
@@ -709,10 +718,11 @@ namespace CalculateFunding.Services.Datasets
             return identifiers[identifierFieldType.Value];
         }
 
-        async Task SaveNewDatasetAndVersion(ICloudBlob blob, DatasetDefinition datasetDefinition)
+        async Task SaveNewDatasetAndVersion(ICloudBlob blob, DatasetDefinition datasetDefinition, int rowCount)
         {
             Guard.ArgumentNotNull(blob, nameof(blob));
             Guard.ArgumentNotNull(datasetDefinition, nameof(datasetDefinition));
+            Guard.ArgumentNotNull(rowCount, nameof(rowCount));
 
             IDictionary<string, string> metadata = blob.Metadata;
 
@@ -735,7 +745,8 @@ namespace CalculateFunding.Services.Datasets
                 Version = 1,
                 Date = DateTimeOffset.Now,
                 PublishStatus = PublishStatus.Draft,
-                BlobName = blob.Name
+                BlobName = blob.Name,
+                RowCount = rowCount,
             };
 
             Dataset dataset = new Dataset
@@ -772,7 +783,7 @@ namespace CalculateFunding.Services.Datasets
             }
         }
 
-        private async Task UpdateExistingDatasetAndAddVersion(ICloudBlob blob, GetDatasetBlobModel model, Reference author)
+        private async Task UpdateExistingDatasetAndAddVersion(ICloudBlob blob, GetDatasetBlobModel model, Reference author, int rowCount)
         {
             Guard.ArgumentNotNull(blob, nameof(blob));
 
@@ -803,6 +814,7 @@ namespace CalculateFunding.Services.Datasets
                 PublishStatus = PublishStatus.Draft,
                 BlobName = blob.Name,
                 Commment = model.Comment,
+                RowCount = rowCount,
             };
 
             dataset.Description = model.Description;
@@ -880,6 +892,7 @@ namespace CalculateFunding.Services.Datasets
 
         private async Task<IActionResult> ValidateTableResults(DatasetDefinition datasetDefinition, ICloudBlob blob)
         {
+            int rowCount = 0;
             if (_providerSummaries.IsNullOrEmpty())
             {
                 _providerSummaries = await _providerRepository.GetAllProviderSummaries();
@@ -892,11 +905,15 @@ namespace CalculateFunding.Services.Datasets
                     return new StatusCodeResult(412);
                 }
 
+              
                 using (ExcelPackage excelPackage = new ExcelPackage(datasetStream))
                 {
                     DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(excelPackage, () => _providerSummaries, datasetDefinition);
                     ValidationResult validationResult = _datasetUploadValidator.Validate(uploadModel);
-
+                    if (uploadModel.Data != null)
+                    {
+                        rowCount = uploadModel.Data.TableLoadResult.Rows.Count;
+                    }
                     if (!validationResult.IsValid)
                     {
                         excelPackage.Save();
@@ -919,8 +936,8 @@ namespace CalculateFunding.Services.Datasets
                     }
                 }
             }
-
-            return new OkResult();
+         
+            return new OkObjectResult(rowCount);
         }
 
         async Task<BuildProject> ProcessDataset(Dataset dataset, string specificationId, string relationshipId, int version)
@@ -1240,8 +1257,15 @@ namespace CalculateFunding.Services.Datasets
                 PublishStatus = dataset.Content.Current.PublishStatus,
                 Version = dataset.Content.Current.Version,
                 Comment = dataset.Content.Current.Commment,
+                CurrentDataSourceRows = dataset.Content.Current.RowCount,
             };
 
+            int maxVersion = dataset.Content.History.Max(m => m.Version);
+            if(maxVersion > 1)
+            {
+                result.PreviousDataSourceRows = dataset.Content.History.First().RowCount;
+            }
+            
             return new OkObjectResult(result);
         }
 

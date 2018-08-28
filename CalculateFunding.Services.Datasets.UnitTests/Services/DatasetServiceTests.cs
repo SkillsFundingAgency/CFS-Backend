@@ -1160,7 +1160,7 @@ namespace CalculateFunding.Services.Datasets.Services
             // Assert
             result
                 .Should()
-                .BeOfType<OkResult>();
+                .BeOfType<OkObjectResult>();
 
             // Ensure initial version is set
             await datasetRepository
@@ -1217,6 +1217,7 @@ namespace CalculateFunding.Services.Datasets.Services
             const string initialDescription = "test description";
             const string updatedDescription = "Updated description";
             const string updateComment = "Update comment";
+            const int rowcount = 20;
 
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
@@ -1341,7 +1342,7 @@ namespace CalculateFunding.Services.Datasets.Services
             // Assert
             result
                 .Should()
-                .BeOfType<OkResult>();
+                .BeOfType<OkObjectResult>();
 
             // Ensure next version is set
             await datasetRepository
