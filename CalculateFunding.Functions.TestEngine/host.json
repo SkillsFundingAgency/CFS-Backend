@@ -1,6 +1,11 @@
 ﻿{
-  "serviceBus": {
-    "maxConcurrentCalls": 1,
-    "prefetchCount": 0
-  }
+   "version" :  "2.0",
+    "extensions": {
+      "serviceBus": {
+        "messageHandlerOptions": {
+          "maxConcurrentCalls": 1
+        },
+        "prefetchCount": 0
+      }
+    }
 }
