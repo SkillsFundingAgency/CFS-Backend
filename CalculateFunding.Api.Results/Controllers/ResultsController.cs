@@ -93,6 +93,13 @@ namespace CalculateFunding.Api.Results.Controllers
             return await _resultsService.GetPublishedProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
         }
 
+        [Route("api/results/get-published-provider-results-for-funding-period-and-specification-and-funding-stream")]
+        [HttpGet]
+        public async Task<IActionResult> RunGetPublishedProviderResultsByFundingPeriodAndSpecificationAndFundingStream()
+        {
+            return await _resultsService.GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(ControllerContext.HttpContext.Request);
+        }
+
         [Route("api/results/get-confirmation-details-for-approve-publish-provider-results")]
         [HttpPost]
         public async Task<IActionResult> RunGetConfirmationDetailsForApprovePublishProviderResults()
