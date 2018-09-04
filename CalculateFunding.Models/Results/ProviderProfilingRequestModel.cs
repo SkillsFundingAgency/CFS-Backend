@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CalculateFunding.Models.Specs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,17 +10,11 @@ namespace CalculateFunding.Models.Results
     {
         public ProviderProfilingRequestModel()
         {
-            AllocationValuesByDistributionPeriod = Enumerable.Empty<AllocationPeriodValue>();
+            AllocationValueByDistributionPeriod = Enumerable.Empty<AllocationPeriodValue>();
         }
-
-        public AllocationOrganisation AllocationOrganisation { get; set; }
 
         public string FundingStreamPeriod { get; set; }
 
-        public DateTimeOffset AllocationStartDate { get; set; }
-
-        public DateTimeOffset AllocationEndDate { get; set; }
-
-        public IEnumerable<AllocationPeriodValue> AllocationValuesByDistributionPeriod { get; set; }
+        public IEnumerable<AllocationPeriodValue> AllocationValueByDistributionPeriod { get; set; }
     }
 }

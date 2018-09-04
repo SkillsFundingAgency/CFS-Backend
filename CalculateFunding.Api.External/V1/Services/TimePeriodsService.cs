@@ -29,8 +29,8 @@ namespace CalculateFunding.Api.External.V1.Services
 
 		    if (actionResult is OkObjectResult okObjectResult)
 		    {
-			    IEnumerable<FundingPeriod> periods = (IEnumerable<FundingPeriod>) okObjectResult.Value;
-			    List<Period> mappedPeriods = _mapper.Map<List<Period>>(periods);
+                IEnumerable<CalculateFunding.Models.Specs.Period> periods = (IEnumerable<CalculateFunding.Models.Specs.Period>) okObjectResult.Value;
+			    List<Models.Period> mappedPeriods = _mapper.Map<List<Models.Period>>(periods);
 				return new OkObjectResult(mappedPeriods);
 		    }
 		    return actionResult;

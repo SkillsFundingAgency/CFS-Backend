@@ -12,9 +12,8 @@ namespace CalculateFunding.Api.External.MappingProfiles
 	{
 		public ExternalApiMappingProfile()
 		{
-			CreateMap<FundingPeriod, Period>()
+			CreateMap<Models.Specs.Period, V1.Models.Period>()
 				.ForMember(p => p.PeriodId, mce => mce.MapFrom(fp => fp.Id))
-				.ForMember(p => p.PeriodType, mce => mce.MapFrom(fp => fp.Type))
 				.ForMember(p => p.StartDate, mce => mce.MapFrom(fp => fp.StartDate))
 				.ForMember(p => p.EndDate, mce => mce.MapFrom(fp => fp.EndDate))
 				.ForAllOtherMembers(mce => mce.Ignore());

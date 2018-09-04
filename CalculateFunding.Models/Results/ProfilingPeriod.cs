@@ -19,7 +19,7 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("periodType")]
         public string Type { get; set; }
 
-        [JsonProperty("periodValue")]
+        [JsonProperty("profileValue")]
         public decimal Value { get; set; }
 
         [JsonProperty("distributionPeriod")]

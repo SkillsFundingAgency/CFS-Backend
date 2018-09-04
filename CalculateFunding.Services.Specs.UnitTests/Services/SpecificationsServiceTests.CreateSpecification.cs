@@ -80,15 +80,14 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetSpecificationByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
                 .Returns((Specification)null);
 
-            FundingPeriod fundingPeriod = new FundingPeriod()
+            Period fundingPeriod = new Period()
             {
                 Id = fundingPeriodId,
-                Name = "Funding Period 1",
-                Type = "Test",
+                Name = "Funding Period 1"
             };
 
             specificationsRepository
-                .GetFundingPeriodById(Arg.Is(fundingPeriodId))
+                .GetPeriodById(Arg.Is(fundingPeriodId))
                 .Returns(fundingPeriod);
 
             FundingStream fundingStream = new FundingStream()
@@ -221,15 +220,14 @@ namespace CalculateFunding.Services.Specs.Services
                 .GetSpecificationByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
                 .Returns((Specification)null);
 
-            FundingPeriod fundingPeriod = new FundingPeriod()
+            Period fundingPeriod = new Period()
             {
                 Id = fundingPeriodId,
-                Name = "Funding Period 1",
-                Type = "Test",
+                Name = "Funding Period 1"
             };
 
             specificationsRepository
-                .GetFundingPeriodById(Arg.Is(fundingPeriodId))
+                .GetPeriodById(Arg.Is(fundingPeriodId))
                 .Returns(fundingPeriod);
 
             FundingStream fundingStream = new FundingStream()

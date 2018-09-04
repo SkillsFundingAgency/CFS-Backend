@@ -117,9 +117,17 @@ namespace CalculateFunding.Services.Core.Extensions
 
                      config.Bind("providerProfilingClient", apiOptions);
 
+                     AzureBearerTokenOptions tokenOptions = new AzureBearerTokenOptions();
+
+                     config.Bind("providerProfilingAzureBearerTokenOptions", tokenOptions);
+
+                     ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
+
                      ILogger logger = ctx.GetService<ILogger>();
 
-                     return new ProviderProfilingApiProxy(apiOptions, logger);
+                     AzureBearerTokenProvider tokenProvider = new AzureBearerTokenProvider(new AzureBearerTokenProxy(), cacheProvider, tokenOptions);
+
+                     return new ProviderProfilingApiProxy(apiOptions, tokenProvider, logger);
                  });
 
             return builder;

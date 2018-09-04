@@ -10,7 +10,13 @@ namespace CalculateFunding.Models.Specs
             AllocationLines = new List<AllocationLine>();
         }
 
+        [JsonProperty("shortName")]
+        public string ShortName { get; set; }
+
         [JsonProperty("allocationLines")]
         public List<AllocationLine> AllocationLines { get; set; }
+
+        [JsonProperty("periodType")]
+        public PeriodType PeriodType { get; set; }
     }
 }

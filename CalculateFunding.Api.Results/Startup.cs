@@ -141,7 +141,7 @@ namespace CalculateFunding.Api.Results
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
             builder
-              .AddSingleton<IProviderProfilingRepository, MockProviderProfilingRepository>();
+              .AddSingleton<IProviderProfilingRepository, ProviderProfilingRepository>();
 
             builder.AddUserProviderFromRequest();
 

@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Results
 
             string specificationId = specificationCurrentVersion.Id;
 
-            FundingPeriod fundingPeriod = await _specificationsRepository.GetFundingPeriodById(specificationCurrentVersion.FundingPeriod.Id);
+            Period fundingPeriod = await _specificationsRepository.GetFundingPeriodById(specificationCurrentVersion.FundingPeriod.Id);
 
             if (fundingPeriod == null)
             {
@@ -243,6 +243,10 @@ namespace CalculateFunding.Services.Results
                         PublishedFundingStreamResult publishedFundingStreamResult = new PublishedFundingStreamResult();
 
                         publishedFundingStreamResult.FundingStream = new Reference(fundingStreamReference.Id, fundingStreamReference.Name);
+
+                        publishedFundingStreamResult.FundingStreamPeriod = $"{fundingStream.Id}{specificationCurrentVersion.FundingPeriod.Id}";
+
+                        publishedFundingStreamResult.DistributionPeriod = $"{fundingStream.PeriodType.Id}{specificationCurrentVersion.FundingPeriod.Id}";
 
                         PublishedAllocationLineResultVersion publishedAllocationLineResultVersion = new PublishedAllocationLineResultVersion
                         {

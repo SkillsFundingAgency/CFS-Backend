@@ -146,6 +146,44 @@
       "metadata": {
         "description": "The authority used to validate JWT Tokens."
       }
+    },
+    "ProviderProfilingAzureBearerTokenUrl": {
+      "type": "string",
+      "defaultValue": "https://login.microsoftonline.com/fcsazuresfabisgov.onmicrosoft.com/oauth2/v2.0/token",
+      "metadata": {
+        "description": "Url for acquiring token"
+      }
+    },
+    "ProviderProfilingAzureBearerTokenGrantType": {
+      "type": "string",
+      "defaultValue": "client_credentials",
+      "metadata": {
+        "description": "The grant type to use for acquiring token"
+      }
+    },
+    "ProviderProfilingAzureBearerTokenScope": {
+      "type": "string",
+      "metadata": {
+        "description": "Scope required for acquiring token"
+      }
+    },
+    "ProviderProfilingAzureBearerTokenClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "Client id of the profiling application"
+      }
+    },
+    "ProviderProfilingAzureBearerTokenClientSecret": {
+      "type": "string",
+      "metadata": {
+        "description": "Client secret of the profiling application"
+      }
+    },
+    "ProviderProfilingApiUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Api url of the profiling application"
+      }
     }
   },
   "variables": {
@@ -1183,6 +1221,30 @@
             {
               "name": "AzureStorageSettings:ConnectionString",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "providerProfilingAzureBearerTokenOptions:Url",
+              "value": "[parameters('ProviderProfilingAzureBearerTokenUrl')]"
+            },
+            {
+              "name": "providerProfilingAzureBearerTokenOptions:GrantType",
+              "value": "[parameters('ProviderProfilingAzureBearerTokenGrantType')]"
+            },
+            {
+              "name": "providerProfilingAzureBearerTokenOptions:Scope",
+              "value": "[parameters('ProviderProfilingAzureBearerTokenScope')]"
+            },
+            {
+              "name": "providerProfilingAzureBearerTokenOptions:ClientId",
+              "value": "[parameters('ProviderProfilingAzureBearerTokenClientId')]"
+            },
+            {
+              "name": "providerProfilingAzureBearerTokenOptions:ClientSecret",
+              "value": "[parameters('ProviderProfilingAzureBearerTokenClientSecret')]"
+            },
+            {
+              "name": "providerProfilingClient:ApiEndpoint",
+              "value": "[parameters('ProviderProfilingApiUrl')]"
             }
           ]
         }

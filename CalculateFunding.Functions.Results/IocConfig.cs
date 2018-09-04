@@ -138,7 +138,7 @@ namespace CalculateFunding.Functions.Results
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
             builder
-              .AddSingleton<IProviderProfilingRepository, MockProviderProfilingRepository>();
+              .AddSingleton<IProviderProfilingRepository, ProviderProfilingRepository>();
 
             builder.AddSearch(config);
 
@@ -151,6 +151,8 @@ namespace CalculateFunding.Functions.Results
             builder.AddTelemetry();
 
             builder.AddSpecificationsInterServiceClient(config);
+
+            builder.AddProviderProfileServiceClient(config);
 
             builder.AddPolicySettings(config);
 

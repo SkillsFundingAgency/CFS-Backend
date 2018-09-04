@@ -576,9 +576,9 @@ namespace CalculateFunding.Api.External.V1.Services
                     feed.ProviderUkPrn = feed.ProviderId;
                 }
 
-                if (string.IsNullOrWhiteSpace(feed.FundingPeriodId) || string.IsNullOrWhiteSpace(feed.FundingPeriodType))
+                if (string.IsNullOrWhiteSpace(feed.FundingPeriodId))
                 {
-                    _logger.Warning($"{logPrefix} funding period id or type");
+                    _logger.Warning($"{logPrefix} funding period id");
 
                     continue;
                 }

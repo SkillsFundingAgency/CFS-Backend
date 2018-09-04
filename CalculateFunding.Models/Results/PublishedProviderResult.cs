@@ -39,7 +39,7 @@ namespace CalculateFunding.Models.Results
         public PublishedFundingStreamResult FundingStreamResult { get; set; }
 
         [JsonProperty("fundingPeriod")]
-        public FundingPeriod FundingPeriod { get; set; }
+        public Period FundingPeriod { get; set; }
 
         [JsonProperty("profilePeriods")]
         public ProfilingPeriod[] ProfilingPeriods { get; set; }

@@ -35,7 +35,13 @@ namespace CalculateFunding.Api.Results.UnitTests
                 { "CosmosDbSettings:DatabaseName", "calculate-funding" },
                 { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },
                 { "specificationsClient:ApiEndpoint", "https://localhost:7001/api/" },
-                { "specificationsClient:ApiKey", "Local" }
+                { "specificationsClient:ApiKey", "Local" },
+                { "providerProfilingClient:ApiEndpoint", "https://funding-profiling/" },
+                { "providerProfilingAzureBearerTokenOptions:Url", "https://wahetever-token" },
+                { "providerProfilingAzureBearerTokenOptions:GrantType", "client_credentials" },
+                { "providerProfilingAzureBearerTokenOptions:Scope", "https://wahetever-scope" },
+                { "providerProfilingAzureBearerTokenOptions:ClientId", "client-id" },
+                { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"}
             };
 
             return configData;

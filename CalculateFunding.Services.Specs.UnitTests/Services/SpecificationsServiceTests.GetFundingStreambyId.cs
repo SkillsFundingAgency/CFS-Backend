@@ -11,6 +11,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.Extensions.Primitives;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Specs.Services
 {

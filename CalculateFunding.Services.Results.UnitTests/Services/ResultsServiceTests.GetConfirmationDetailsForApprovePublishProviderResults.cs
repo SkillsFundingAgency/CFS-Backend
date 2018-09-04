@@ -212,7 +212,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "Test 1",
                     Summary = "testing",
-                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new Models.Reference { Name = "Stream1" },
@@ -280,7 +280,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "Test 1",
                     Summary = "testing",
-                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new Models.Reference { Name = "Stream1" },
@@ -295,7 +295,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "Test 2",
                     Summary = "testing",
-                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new Models.Reference { Name = "Stream2" },
@@ -363,7 +363,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "Test 1",
                     Summary = "testing",
-                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new Models.Reference { Name = "Stream1" },
@@ -378,7 +378,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "Test 2",
                     Summary = "testing",
-                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new Models.Reference { Name = "Stream1" },
@@ -444,7 +444,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "Test 1",
                     Summary = "testing",
-                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new Models.Reference { Name = "Stream1" },
@@ -459,7 +459,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "Test 2",
                     Summary = "testing",
-                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new Models.Reference { Name = "Stream1" },
@@ -530,7 +530,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "Test 1",
                     Summary = "testing",
-                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new Models.Reference { Name = "Stream1" },
@@ -545,7 +545,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "Test 2",
                     Summary = "testing",
-                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new Models.Reference { Name = "Stream1" },
@@ -616,7 +616,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "Test 1",
                     Summary = "testing",
-                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new Models.Reference { Name = "Stream1" },
@@ -631,7 +631,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Title = "Test 2",
                     Summary = "testing",
-                    FundingPeriod = new Models.Specs.FundingPeriod { Name = "Period1" },
+                    FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new Models.Reference { Name = "Stream1" },

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,8 +7,10 @@ namespace CalculateFunding.Models.Results
 {
     public class AllocationPeriodValue
     {
-        public string Period { get; set; }
+        [JsonProperty("distributionPeriod")]
+        public string DistributionPeriod { get; set; }
 
-        public decimal Value { get; set; }
+        [JsonProperty("allocationValue")]
+        public decimal AllocationValue { get; set; }
     }
 }
