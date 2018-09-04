@@ -614,6 +614,46 @@ namespace CalculateFunding.Services.Results
             return new OkObjectResult(publishedProviderResultModels);
         }
 
+        public async Task<IActionResult> GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(HttpRequest request)
+        {
+
+            var specificationId = GetParameter(request, "specificationId");
+            var fundingPeriodId = GetParameter(request, "fundingPeriodId");
+            var fundingStreamId = GetParameter(request, "fundingStreamId"); 
+
+            if(string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            if(string.IsNullOrWhiteSpace(fundingPeriodId))
+            {
+                _logger.Error("No fundingPeriod Id was provided to GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId");
+
+                return new BadRequestObjectResult("Null or empty fundingPeriod Id provided");
+            }
+
+            if(string.IsNullOrWhiteSpace(fundingStreamId))
+            {
+                _logger.Error("No fundingStream Id was provided to GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId");
+
+                return new BadRequestObjectResult("Null or empty fundingStream Id provided");
+            }
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(fundingPeriodId, specificationId, fundingStreamId));
+
+            if (publishedProviderResults.IsNullOrEmpty())
+            {
+                return new OkObjectResult(Enumerable.Empty<PublishedProviderResultModel>());
+            }
+
+            IEnumerable<PublishedProviderResultModel> publishedProviderResultModels = MapPublishedProviderResultModels(publishedProviderResults);
+
+            return new OkObjectResult(publishedProviderResultModels);
+        }
+        
+
         public async Task<IActionResult> GetConfirmationDetailsForApprovePublishProviderResults(HttpRequest request)
         {
             var specificationId = GetParameter(request, "specificationId");
