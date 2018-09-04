@@ -918,7 +918,7 @@ namespace CalculateFunding.Services.Results
                 PublishedProviderResultModel publishedProviderResultModel = new PublishedProviderResultModel
                 {
                     ProviderId = providerResult.ProviderId,
-                    ProviderName = providerResult.FundingStreamResult.AllocationLineResult.Current.Provider.Name
+                    ProviderName = providerResult.FundingStreamResult.AllocationLineResult.Current.Provider?.Name
                 };
 
                 if (!results.Any(m => m.ProviderId == providerResultGroup.Key))
@@ -1079,24 +1079,13 @@ namespace CalculateFunding.Services.Results
         {
             ProviderProfilingRequestModel providerProfilingRequestModel = new ProviderProfilingRequestModel
             {
-                AllocationOrganisation = new AllocationOrganisation
-                {
-                    OrganisationId = result.ProviderId,
-                    AlternateOrgainisation = new AlternateOrgainisation
-                    {
-                        Identifier = result.ProviderId,
-                        IdentifierName = string.IsNullOrWhiteSpace(result.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderProfileIdType) ? "UKPRN" : result.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderProfileIdType
-                    }
-                },
-                FundingStreamPeriod = result.FundingPeriod.Id,
-                AllocationStartDate = result.FundingPeriod.StartDate,
-                AllocationEndDate = result.FundingPeriod.EndDate,
-                AllocationValuesByDistributionPeriod = new[]
+                FundingStreamPeriod = result.FundingStreamResult.FundingStreamPeriod,
+                AllocationValueByDistributionPeriod = new[]
                 {
                     new AllocationPeriodValue
                     {
-                        Period = $"{ result.FundingPeriod.StartDate.Year }-{ result.FundingPeriod.EndDate.Year }",
-                        Value = (decimal)result.FundingStreamResult.AllocationLineResult.Current.Value
+                        DistributionPeriod =result.FundingStreamResult.DistributionPeriod,
+                        AllocationValue = (decimal)result.FundingStreamResult.AllocationLineResult.Current.Value
                     }
                 }
             };
@@ -1138,7 +1127,7 @@ namespace CalculateFunding.Services.Results
 
             if (responseModel != null)
             {
-                result.ProfilingPeriods = responseModel.ProfilePeriods.ToArraySafe();
+                result.ProfilingPeriods = responseModel.DeliveryProfilePeriods.ToArraySafe();
                 await _publishedProviderResultsRepository.SavePublishedResults(new[] { result });
             }
             else
@@ -1313,7 +1302,6 @@ namespace CalculateFunding.Services.Results
                     DateUpdated = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Date,
                     FundingStreamId = publishedProviderResult.FundingStreamResult.FundingStream.Id,
                     FundingStreamName = publishedProviderResult.FundingStreamResult.FundingStream.Name,
-                    FundingPeriodType = publishedProviderResult.FundingPeriod.Type,
                     FundingPeriodId = publishedProviderResult.FundingPeriod.Id,
                     FundingPeriodStartDate = publishedProviderResult.FundingPeriod.StartDate,
                     FundingPeriodEndDate = publishedProviderResult.FundingPeriod.EndDate,
