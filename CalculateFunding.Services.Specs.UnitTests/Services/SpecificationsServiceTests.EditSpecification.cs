@@ -264,7 +264,7 @@ namespace CalculateFunding.Services.Specs.Services
                 FundingPeriodId = "fp10"
             };
 
-            FundingPeriod fundingPeriod = new FundingPeriod
+            Period fundingPeriod = new Period
             {
                 Id = "fp10",
                 Name = "fp 10"
@@ -305,7 +305,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .Returns(specification);
 
             specificationsRepository
-                .GetFundingPeriodById(Arg.Is(fundingPeriod.Id))
+                .GetPeriodById(Arg.Is(fundingPeriod.Id))
                 .Returns(fundingPeriod);
 
             SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
@@ -332,7 +332,7 @@ namespace CalculateFunding.Services.Specs.Services
                 FundingPeriodId = "fp10"
             };
 
-            FundingPeriod fundingPeriod = new FundingPeriod
+            Period fundingPeriod = new Period
             {
                 Id = "fp10",
                 Name = "fp 10"
@@ -378,7 +378,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .Returns(specification);
 
             specificationsRepository
-                .GetFundingPeriodById(Arg.Is(fundingPeriod.Id))
+                .GetPeriodById(Arg.Is(fundingPeriod.Id))
                 .Returns(fundingPeriod);
 
             specificationsRepository
@@ -415,7 +415,7 @@ namespace CalculateFunding.Services.Specs.Services
                 FundingStreamIds = new[] { "fs11" }
             };
 
-            FundingPeriod fundingPeriod = new FundingPeriod
+            Period fundingPeriod = new Period
             {
                 Id = "fp10",
                 Name = "fp 10"
@@ -466,7 +466,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .Returns(specification);
 
             specificationsRepository
-                .GetFundingPeriodById(Arg.Is(fundingPeriod.Id))
+                .GetPeriodById(Arg.Is(fundingPeriod.Id))
                 .Returns(fundingPeriod);
 
             specificationsRepository
@@ -527,7 +527,7 @@ namespace CalculateFunding.Services.Specs.Services
                 FundingStreamIds = new[] { "fs11" }
             };
 
-            FundingPeriod fundingPeriod = new FundingPeriod
+            Period fundingPeriod = new Period
             {
                 Id = "fp10",
                 Name = "fp 10"
@@ -590,7 +590,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .Returns(specification);
 
             specificationsRepository
-                .GetFundingPeriodById(Arg.Is(fundingPeriod.Id))
+                .GetPeriodById(Arg.Is(fundingPeriod.Id))
                 .Returns(fundingPeriod);
 
             specificationsRepository
@@ -651,7 +651,7 @@ namespace CalculateFunding.Services.Specs.Services
                 FundingStreamIds = new[] { "fs11" }
             };
 
-            FundingPeriod fundingPeriod = new FundingPeriod
+            Period fundingPeriod = new Period
             {
                 Id = "fp10",
                 Name = "fp 10"
@@ -697,7 +697,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .Returns(specification);
 
             specificationsRepository
-                .GetFundingPeriodById(Arg.Is(fundingPeriod.Id))
+                .GetPeriodById(Arg.Is(fundingPeriod.Id))
                 .Returns(fundingPeriod);
 
             specificationsRepository
@@ -739,7 +739,7 @@ namespace CalculateFunding.Services.Specs.Services
                 FundingStreamIds = new[] { "fs11" }
             };
 
-            FundingPeriod fundingPeriod = new FundingPeriod
+            Period fundingPeriod = new Period
             {
                 Id = "FP1",
                 Name = "fp 1"
@@ -785,7 +785,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .Returns(specification);
 
             specificationsRepository
-                .GetFundingPeriodById(Arg.Is(fundingPeriod.Id))
+                .GetPeriodById(Arg.Is(fundingPeriod.Id))
                 .Returns(fundingPeriod);
 
             specificationsRepository

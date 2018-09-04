@@ -608,15 +608,15 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetFundingPeriods(HttpRequest request)
         {
-            IEnumerable<FundingPeriod> fundingPeriods = await _cacheProvider.GetAsync<FundingPeriod[]>(CacheKeys.FundingPeriods);
+            IEnumerable<Period> fundingPeriods = await _cacheProvider.GetAsync<Period[]>(CacheKeys.FundingPeriods);
 
             if (fundingPeriods.IsNullOrEmpty())
             {
-                fundingPeriods = await _specificationsRepository.GetFundingPeriods();
+                fundingPeriods = await _specificationsRepository.GetPeriods();
 
                 if (!fundingPeriods.IsNullOrEmpty())
                 {
-                    await _cacheProvider.SetAsync<FundingPeriod[]>(CacheKeys.FundingPeriods, fundingPeriods.ToArraySafe(), TimeSpan.FromDays(100), true);
+                    await _cacheProvider.SetAsync<Period[]>(CacheKeys.FundingPeriods, fundingPeriods.ToArraySafe(), TimeSpan.FromDays(100), true);
                 }
                 else
                 {
@@ -640,7 +640,7 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("Null or empty funding period id provided");
             }
 
-            FundingPeriod fundingPeriod = await _specificationsRepository.GetFundingPeriodById(fundingPeriodId);
+            Period fundingPeriod = await _specificationsRepository.GetPeriodById(fundingPeriodId);
 
             if (fundingPeriod == null)
             {
@@ -887,7 +887,7 @@ namespace CalculateFunding.Services.Specs
             if (validationResult != null)
                 return validationResult;
 
-            FundingPeriod fundingPeriod = await _specificationsRepository.GetFundingPeriodById(createModel.FundingPeriodId);
+            Period fundingPeriod = await _specificationsRepository.GetPeriodById(createModel.FundingPeriodId);
 
             Reference user = request.GetUser();
 
@@ -1008,7 +1008,7 @@ namespace CalculateFunding.Services.Specs
 
             if (editModel.FundingPeriodId != specificationVersion.FundingPeriod.Id)
             {
-                FundingPeriod fundingPeriod = await _specificationsRepository.GetFundingPeriodById(editModel.FundingPeriodId);
+                Period fundingPeriod = await _specificationsRepository.GetPeriodById(editModel.FundingPeriodId);
                 if (fundingPeriod == null)
                 {
                     return new PreconditionFailedResult($"Unable to find funding period with ID '{editModel.FundingPeriodId}'.");
@@ -1665,9 +1665,9 @@ namespace CalculateFunding.Services.Specs
             {
                 if (!fundingPeriodsYamlModel.FundingPeriods.IsNullOrEmpty())
                 {
-                    await _specificationsRepository.SaveFundingPeriods(fundingPeriodsYamlModel.FundingPeriods);
+                    await _specificationsRepository.SavePeriods(fundingPeriodsYamlModel.FundingPeriods);
 
-                    await _cacheProvider.SetAsync<FundingPeriod[]>(CacheKeys.FundingPeriods, fundingPeriodsYamlModel.FundingPeriods, TimeSpan.FromDays(100), true);
+                    await _cacheProvider.SetAsync<Period[]>(CacheKeys.FundingPeriods, fundingPeriodsYamlModel.FundingPeriods, TimeSpan.FromDays(100), true);
 
                     _logger.Information($"Upserted {fundingPeriodsYamlModel.FundingPeriods.Length} funding periods into cosomos");
                 }

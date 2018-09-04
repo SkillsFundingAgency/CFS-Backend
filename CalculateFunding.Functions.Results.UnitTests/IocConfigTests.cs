@@ -48,7 +48,14 @@ namespace CalculateFunding.Functions.Results.UnitTests
                 { "resultsClient:ApiEndpoint", "https://localhost:7005/api/" },
                 { "resultsClient:ApiKey", "Local" },
                 { "calcsClient:ApiEndpoint", "https://localhost:7002/api/" },
-                { "calcsClient:ApiKey", "Local" }
+                { "calcsClient:ApiKey", "Local" },
+                { "providerProfilingClient:ApiEndpoint", "https://funding-profiling/" },
+                { "providerProfilingAzureBearerTokenOptions:Url", "https://wahetever-token" },
+                { "providerProfilingAzureBearerTokenOptions:GrantType", "client_credentials" },
+                { "providerProfilingAzureBearerTokenOptions:Scope", "https://wahetever-scope" },
+                { "providerProfilingAzureBearerTokenOptions:ClientId", "client-id" },
+                { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"}
+
             };
 
             return configData;

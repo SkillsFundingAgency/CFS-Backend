@@ -38,16 +38,16 @@ namespace CalculateFunding.Services.Specs
             return health;
         }
 
-        public async Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId)
+        public async Task<Period> GetPeriodById(string periodId)
         {
-            DocumentEntity<FundingPeriod> fundingPeriod = await _repository.ReadAsync<FundingPeriod>(fundingPeriodId);
+            DocumentEntity<Period> period = await _repository.ReadAsync<Period>(periodId);
 
-            if(fundingPeriod == null || fundingPeriod.Content == null)
+            if(period == null || period.Content == null)
             {
                 return null;
             }
 
-            return fundingPeriod.Content;
+            return period.Content;
         }
 
         async public Task<FundingStream> GetFundingStreamById(string fundingStreamId)
@@ -120,9 +120,9 @@ namespace CalculateFunding.Services.Specs
             return Task.FromResult(specifications.AsEnumerable());
         }
 
-        public Task<IEnumerable<FundingPeriod>> GetFundingPeriods()
+        public Task<IEnumerable<Period>> GetPeriods()
         {
-            var fundingPeriods = _repository.Query<FundingPeriod>();
+            var fundingPeriods = _repository.Query<Period>();
 
             return Task.FromResult(fundingPeriods.ToList().AsEnumerable());
         }
@@ -177,9 +177,9 @@ namespace CalculateFunding.Services.Specs
             return _repository.CreateAsync<FundingStream>(fundingStream);
         }
 
-        public Task SaveFundingPeriods(IEnumerable<FundingPeriod> fundingPeriods)
+        public Task SavePeriods(IEnumerable<Period> periods)
         {
-            return _repository.BulkCreateAsync<FundingPeriod>(fundingPeriods.ToList());
+            return _repository.BulkCreateAsync<Period>(periods.ToList());
         }
 
         public Task<DocumentEntity<Specification>> GetSpecificationDocumentEntityById(string specificationId)

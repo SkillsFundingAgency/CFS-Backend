@@ -214,7 +214,7 @@ namespace CalculateFunding.Api.External
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
             builder
-              .AddSingleton<IProviderProfilingRepository, MockProviderProfilingRepository>();
+              .AddSingleton<IProviderProfilingRepository, ProviderProfilingRepository>();
 
 	        builder.AddSingleton<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>(
 		        ctx =>
@@ -257,6 +257,8 @@ namespace CalculateFunding.Api.External
             builder.AddTelemetry();
 
             builder.AddSpecificationsInterServiceClient(Configuration);
+
+            builder.AddProviderProfileServiceClient(Configuration);
 
             builder.AddPolicySettings(Configuration);
 

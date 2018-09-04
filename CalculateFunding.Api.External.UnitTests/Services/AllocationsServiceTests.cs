@@ -360,7 +360,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                         }
                     }
                 },
-                FundingPeriod = new FundingPeriod
+                FundingPeriod = new Models.Specs.Period
                 {
                     Id = "Ay12345",
                     Name = "fp-1"

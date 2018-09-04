@@ -24,20 +24,18 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 	    [TestMethod]
 	    public async Task GetTimePeriods_WhenServiceReturns200OkResult_ShouldReturnOkResultWithFundingPeriods()
 	    {
-		    // Arrange
-			FundingPeriod fundingPeriod1 = new FundingPeriod()
+            // Arrange
+            Models.Specs.Period fundingPeriod1 = new Models.Specs.Period()
 			{
 				Id = "AYCode",
 				Name = "AcademicYear",
-				Type = "AY",
 				StartDate = DateTimeOffset.MinValue,
 				EndDate = DateTimeOffset.MaxValue
 			};
-		    FundingPeriod fundingPeriod2 = new FundingPeriod()
+            Models.Specs.Period fundingPeriod2 = new Models.Specs.Period()
 		    {
 			    Id = "FYCode",
 			    Name = "FinalYear",
-			    Type = "FY",
 			    StartDate = DateTimeOffset.MinValue,
 			    EndDate = DateTimeOffset.MaxValue
 		    };
@@ -48,8 +46,8 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 		    Mapper.Initialize(mappings);
 		    IMapper mapper = Mapper.Instance;
 
-			OkObjectResult specServiceOkObjectResult = new OkObjectResult(new List<FundingPeriod>
-		    {
+            OkObjectResult specServiceOkObjectResult = new OkObjectResult(new List<Models.Specs.Period>
+            {
 			    fundingPeriod1,
 			    fundingPeriod2
 		    });
@@ -73,12 +71,14 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 		    resultCasted.Value
 			    .Should().NotBeNull()
 			    .And
-			    .Subject.Should().BeOfType<List<Period>>();
+			    .Subject.Should().BeOfType<List<V1.Models.Period>>();
 
-		    List<Period> resultPeriods = resultCasted.Value as List<Period>;
+		    List<V1.Models.Period> resultPeriods = resultCasted.Value as List<V1.Models.Period>;
 
-		    resultPeriods.Should().Contain(p => p.PeriodType == fundingPeriod1.Type);
-		    resultPeriods.Should().Contain(p => p.PeriodType == fundingPeriod2.Type);
+            resultPeriods
+                .Count
+                .Should()
+                .Be(2);
 		}
 
 		[TestMethod]

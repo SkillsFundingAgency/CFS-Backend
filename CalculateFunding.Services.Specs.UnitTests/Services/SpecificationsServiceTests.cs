@@ -239,23 +239,19 @@ namespace CalculateFunding.Services.Specs.Services
             var yaml = new StringBuilder();
 
             yaml.AppendLine(@"fundingPeriods:");
-            yaml.AppendLine(@"- type: AY");
-            yaml.AppendLine(@"  id: AY2017181");
+            yaml.AppendLine(@"- id: AY2017181");
             yaml.AppendLine(@"  name: Academic 2017/18");
             yaml.AppendLine(@"  startDate: 09/01/2017 00:00:00");
             yaml.AppendLine(@"  endDate: 08/31/2018 00:00:00");
-            yaml.AppendLine(@"- type: AY");
-            yaml.AppendLine(@"  id: AY2018191");
+            yaml.AppendLine(@"- id: AY2018191");
             yaml.AppendLine(@"  name: Academic 2018/19");
             yaml.AppendLine(@"  startDate: 09/01/2018 00:00:00");
             yaml.AppendLine(@"  endDate: 08/31/2019 00:00:00");
-            yaml.AppendLine(@"- type: FY");
-            yaml.AppendLine(@"  id: FY2017181");
+            yaml.AppendLine(@"- id: FY2017181");
             yaml.AppendLine(@"  name: Financial 2017/18");
             yaml.AppendLine(@"  startDate: 04/01/2017 00:00:00");
             yaml.AppendLine(@"  endDate: 03/31/2018 00:00:00");
-            yaml.AppendLine(@"- type: AY");
-            yaml.AppendLine(@"  id: AY2018191");
+            yaml.AppendLine(@"- id: AY2018191");
             yaml.AppendLine(@"  name: Financial 2018/19");
             yaml.AppendLine(@"  startDate: 04/01/2018 00:00:00");
             yaml.AppendLine(@"  endDate: 03/31/2019 00:00:00");
@@ -287,6 +283,55 @@ namespace CalculateFunding.Services.Specs.Services
                     FundingPeriod = new Reference("FP1", "Funding Period"),
                     PublishStatus = Models.Versioning.PublishStatus.Draft,
                     Version = 1
+                }
+            };
+        }
+
+        static IEnumerable<FundingStream> CreateFundingStreams()
+        {
+            return new []
+            {
+                new FundingStream
+                {
+                    Id = "PSG",
+                    Name = "PE and Sport Premium Grant",
+                    ShortName = "PE and Sport",
+                    PeriodType = new PeriodType
+                    {
+                        Id = "AC",
+                        StartDay = 1,
+                        StartMonth = 9,
+                        EndDay = 31,
+                        EndMonth = 8,
+                        Name = "Academies Academic Year"
+                    },
+                    AllocationLines = new List<AllocationLine>
+                    {
+                        new AllocationLine
+                        {
+                            Id = "PSG-NMSS",
+                            Name = "Non-maintained Special Schools",
+                            FundingRoute = FundingRoute.Provider,
+                            IsContractRequired = true,
+                            ShortName = "NMSS"
+                        },
+                        new AllocationLine
+                        {
+                            Id = "PSG-ACAD",
+                            Name = "Academies",
+                            FundingRoute = FundingRoute.Provider,
+                            IsContractRequired = false,
+                            ShortName = "Acad"
+                        },
+                         new AllocationLine
+                        {
+                            Id = "PSG-LAMS",
+                            Name = "Maintained Schools",
+                            FundingRoute = FundingRoute.LA,
+                            IsContractRequired = false,
+                            ShortName = "MS"
+                        }
+                    }
                 }
             };
         }

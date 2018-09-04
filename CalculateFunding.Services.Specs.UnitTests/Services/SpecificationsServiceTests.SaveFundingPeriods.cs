@@ -135,7 +135,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .When(x => x.SaveFundingPeriods(Arg.Any<FundingPeriod[]>()))
+                .When(x => x.SavePeriods(Arg.Any<Period[]>()))
                 .Do(x => { throw new Exception(); });
 
             SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
@@ -203,7 +203,7 @@ namespace CalculateFunding.Services.Specs.Services
             await
                 cacheProvider
                 .Received(1)
-                .SetAsync<FundingPeriod[]>(Arg.Is(CacheKeys.FundingPeriods), Arg.Any<FundingPeriod[]>(), Arg.Any<TimeSpan>(), Arg.Is(true));
+                .SetAsync<Period[]>(Arg.Is(CacheKeys.FundingPeriods), Arg.Any<Period[]>(), Arg.Any<TimeSpan>(), Arg.Is(true));
         }
     }
 }

@@ -53,14 +53,14 @@ namespace CalculateFunding.Services.Results
             return _apiClient.GetAsync<IEnumerable<FundingStream>>(fundingStreamsUrl);
         }
 
-        public Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId)
+        public Task<Period> GetFundingPeriodById(string fundingPeriodId)
         {
             if (string.IsNullOrWhiteSpace(fundingPeriodId))
                 throw new ArgumentNullException(nameof(fundingPeriodId));
 
             string url = $"{fundingPeriodUrl}{fundingPeriodId}";
 
-            return _apiClient.GetAsync<FundingPeriod>(url);
+            return _apiClient.GetAsync<Period>(url);
         }
     }
 }

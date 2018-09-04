@@ -1356,44 +1356,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
             logger
                 .Received(1)
-                .Warning(Arg.Is($"Feed with id {allocationNotificationFeedIndex.Id} contains missing data: funding period id or type"));
-        }
-
-        [TestMethod]
-        public async Task GetLocalAuthorityProvidersResultsForAllocations_GivenSearchResultHasMissingFundingPeriodType_ReturnsNotFoundResult()
-        {
-            //Arrange
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-
-            AllocationNotificationFeedIndex allocationNotificationFeedIndex = CreateFeedIndexes().First();
-
-            allocationNotificationFeedIndex.FundingPeriodType = null;
-
-            SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
-            {
-                Entries = new[] { allocationNotificationFeedIndex }
-            };
-
-            IAllocationNotificationsFeedsSearchService searchService = CreateSearchService();
-            searchService
-                .GetLocalAuthorityFeeds(Arg.Is(laCode), Arg.Is(startYear), Arg.Is(endYear), Arg.Any<IEnumerable<string>>())
-                .Returns(feeds);
-
-            ILogger logger = CreateLogger();
-
-            ProviderResultsService providerResultsService = CreateService(searchService, logger);
-
-            //Act
-            IActionResult result = await providerResultsService.GetLocalAuthorityProvidersResultsForAllocations(laCode, startYear, endYear, fundingStreamIds, httpRequest);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<NotFoundResult>();
-
-            logger
-                .Received(1)
-                .Warning(Arg.Is($"Feed with id {allocationNotificationFeedIndex.Id} contains missing data: funding period id or type"));
+                .Warning(Arg.Is($"Feed with id {allocationNotificationFeedIndex.Id} contains missing data: funding period id"));
         }
 
         [TestMethod]

@@ -22,14 +22,14 @@ namespace CalculateFunding.Services.Specs.Services
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
 
-            FundingPeriod[] fundingPeriods = {
-                new FundingPeriod(),
-                new FundingPeriod()
+            Period[] fundingPeriods = {
+                new Period(),
+                new Period()
             };
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
-                .GetAsync<FundingPeriod[]>(Arg.Is(CacheKeys.FundingPeriods))
+                .GetAsync<Period[]>(Arg.Is(CacheKeys.FundingPeriods))
                 .Returns(fundingPeriods);
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Specs.Services
             await
                 specificationsRepository
                 .DidNotReceive()
-                .GetFundingPeriods();
+                .GetPeriods();
         }
 
         [TestMethod]
@@ -57,8 +57,8 @@ namespace CalculateFunding.Services.Specs.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
-                .GetAsync<FundingPeriod[]>(Arg.Is(CacheKeys.FundingPeriods))
-                .Returns((FundingPeriod[])null);
+                .GetAsync<Period[]>(Arg.Is(CacheKeys.FundingPeriods))
+                .Returns((Period[])null);
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
 
@@ -74,7 +74,7 @@ namespace CalculateFunding.Services.Specs.Services
             await
                 cacheProvider
                     .DidNotReceive()
-                    .SetAsync<FundingPeriod[]>(Arg.Any<string>(), Arg.Any<FundingPeriod[]>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
+                    .SetAsync<Period[]>(Arg.Any<string>(), Arg.Any<Period[]>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
         }
 
         [TestMethod]
@@ -83,19 +83,19 @@ namespace CalculateFunding.Services.Specs.Services
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
 
-            FundingPeriod[] fundingPeriods = {
-                new FundingPeriod(),
-                new FundingPeriod()
+            Period[] fundingPeriods = {
+                new Period(),
+                new Period()
             };
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
-                .GetAsync<FundingPeriod[]>(Arg.Is(CacheKeys.FundingPeriods))
-                .Returns((FundingPeriod[])null);
+                .GetAsync<Period[]>(Arg.Is(CacheKeys.FundingPeriods))
+                .Returns((Period[])null);
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetFundingPeriods()
+                .GetPeriods()
                 .Returns(fundingPeriods);
 
             SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
@@ -110,7 +110,7 @@ namespace CalculateFunding.Services.Specs.Services
             await
                 cacheProvider
                     .Received(1)
-                    .SetAsync<FundingPeriod[]>(Arg.Any<string>(), Arg.Any<FundingPeriod[]>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
+                    .SetAsync<Period[]>(Arg.Any<string>(), Arg.Any<Period[]>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
         }
 
     }

@@ -14,6 +14,6 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         Task<SpecificationCurrentVersion> GetCurrentSpecificationById(string specificationId);
 
-        Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId);
+        Task<Period> GetFundingPeriodById(string fundingPeriodId);
     }
 }

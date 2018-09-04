@@ -101,7 +101,7 @@ namespace CalculateFunding.Services.Results.Services
             PublishedProviderResult result = new PublishedProviderResult
             {
                 ProviderId = "prov1",
-                FundingPeriod = new Models.Specs.FundingPeriod { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp1", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1), Type = "ftype 1" }
+                FundingPeriod = new Models.Specs.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp1", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) }
             };
             ProviderProfilingRequestModel requestModel = CreateProviderProfilingRequestModel();
 
@@ -136,12 +136,12 @@ namespace CalculateFunding.Services.Results.Services
             PublishedProviderResult result = new PublishedProviderResult
             {
                 ProviderId = "prov1",
-                FundingPeriod = new Models.Specs.FundingPeriod { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp1", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1), Type = "ftype 1" }
+                FundingPeriod = new Models.Specs.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp1", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) }
             };
             ProviderProfilingRequestModel requestModel = CreateProviderProfilingRequestModel();
             ProviderProfilingResponseModel profileResponse = new ProviderProfilingResponseModel
             {
-                ProfilePeriods = new List<ProfilingPeriod>
+                DeliveryProfilePeriods = new List<ProfilingPeriod>
                  {
                     new ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
                     new ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
@@ -168,7 +168,7 @@ namespace CalculateFunding.Services.Results.Services
             await service.FetchProviderProfile(message);
 
             // Assert
-            result.ProfilingPeriods.Should().BeEquivalentTo(profileResponse.ProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
+            result.ProfilingPeriods.Should().BeEquivalentTo(profileResponse.DeliveryProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
             IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { result };
             await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(savedResults => toBeSavedResults.SequenceEqual(savedResults)));
         }
@@ -177,12 +177,9 @@ namespace CalculateFunding.Services.Results.Services
         {
             return new ProviderProfilingRequestModel
             {
-                AllocationEndDate = DateTimeOffset.Now.AddDays(-2),
-                AllocationOrganisation = new AllocationOrganisation { AlternateOrgainisation = new AlternateOrgainisation { Identifier = "test", IdentifierName = "test123" }, OrganisationId = "org1" },
-                AllocationStartDate = DateTimeOffset.Now,
-                AllocationValuesByDistributionPeriod = new List<AllocationPeriodValue>
+                AllocationValueByDistributionPeriod = new List<AllocationPeriodValue>
                     {
-                        new AllocationPeriodValue{ Period = "2018", Value = 23.3M}
+                        new AllocationPeriodValue{ DistributionPeriod = "2018", AllocationValue = 23.3M}
                     },
                 FundingStreamPeriod = "2018/2019"
             };

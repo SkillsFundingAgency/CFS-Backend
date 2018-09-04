@@ -11,5 +11,11 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("allocationLineResult")]
         public PublishedAllocationLineResult AllocationLineResult { get; set; }
+
+        [JsonProperty("fundingStreamPeriod")]
+        public string FundingStreamPeriod { get; set; }
+
+        [JsonProperty("distributionPeriod")]
+        public string DistributionPeriod { get; set; }
     }
 }

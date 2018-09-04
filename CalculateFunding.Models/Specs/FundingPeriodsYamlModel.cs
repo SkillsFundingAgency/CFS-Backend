@@ -2,6 +2,6 @@
 {
     public class FundingPeriodsYamlModel
     {
-        public FundingPeriod[] FundingPeriods { get; set; }
+        public Period[] FundingPeriods { get; set; }
     }
 }

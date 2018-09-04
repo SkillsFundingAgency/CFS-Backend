@@ -1304,7 +1304,7 @@ namespace CalculateFunding.Services.Results.Services
                             }
                         }
                     },
-                    FundingPeriod = new FundingPeriod
+                    FundingPeriod = new Period
                     {
                         Id = "Ay12345",
                         Name = "fp-1"
@@ -1354,7 +1354,7 @@ namespace CalculateFunding.Services.Results.Services
                             }
                         }
                     },
-                    FundingPeriod = new FundingPeriod
+                    FundingPeriod = new Period
                     {
                         Id = "Ay12345",
                         Name = "fp-1"
@@ -1404,7 +1404,7 @@ namespace CalculateFunding.Services.Results.Services
                             }
                         }
                     },
-                    FundingPeriod = new FundingPeriod
+                    FundingPeriod = new Period
                     {
                         Id = "Ay12345",
                         Name = "fp-1"
@@ -1461,7 +1461,7 @@ namespace CalculateFunding.Services.Results.Services
                             }
                         }
                     },
-                    FundingPeriod = new FundingPeriod
+                    FundingPeriod = new Period
                     {
                         Id = "Ay12345",
                         Name = "fp-1",
@@ -1513,7 +1513,7 @@ namespace CalculateFunding.Services.Results.Services
                             }
                         }
                     },
-                    FundingPeriod = new FundingPeriod
+                    FundingPeriod = new Period
                     {
                         Id = "Ay12345",
                         Name = "fp-1",
@@ -1565,7 +1565,7 @@ namespace CalculateFunding.Services.Results.Services
                             }
                         }
                     },
-                    FundingPeriod = new FundingPeriod
+                    FundingPeriod = new Period
                     {
                         Id = "Ay12345",
                         Name = "fp-1",

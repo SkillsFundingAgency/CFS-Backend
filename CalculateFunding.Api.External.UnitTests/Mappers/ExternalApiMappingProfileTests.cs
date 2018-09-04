@@ -42,23 +42,21 @@ namespace CalculateFunding.Api.External.UnitTests.Mappers
 			Mapper.Initialize(mappings);
 		    IMapper mapperUnderTest = Mapper.Instance;
 
-		    FundingPeriod fundingPeriod = new FundingPeriod()
+            Models.Specs.Period fundingPeriod = new Models.Specs.Period()
 		    {
 			    Name = "Name",
-			    Type = "Type",
 			    Id = "Id",
 			    StartDate = DateTimeOffset.MinValue,
 			    EndDate = DateTimeOffset.MaxValue
 		    };
 
-			// Act
-		    Period mappedPeriod = mapperUnderTest.Map<Period>(fundingPeriod);
+            // Act
+            V1.Models.Period mappedPeriod = mapperUnderTest.Map<V1.Models.Period>(fundingPeriod);
 
 			// Assert
 		    mappedPeriod.Should().NotBeNull();
 		    mappedPeriod.StartDate.Should().Be(fundingPeriod.StartDate);
 		    mappedPeriod.EndDate.Should().Be(fundingPeriod.EndDate);
-		    mappedPeriod.PeriodType.Should().Be(fundingPeriod.Type);
 		    mappedPeriod.PeriodId.Should().Be(fundingPeriod.Id);
 	    }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,17 +11,11 @@ namespace CalculateFunding.Models.Results
     {
         public ProviderProfilingResponseModel()
         {
-            ProfilePeriods = Enumerable.Empty<ProfilingPeriod>();
-
-            AllocationvaluesByDistributionPeriod = Enumerable.Empty<AllocationPeriodValue>();
+            DeliveryProfilePeriods = Enumerable.Empty<ProfilingPeriod>();
         }
 
-        public AllocationOrganisation AllocationOrganisation { get; set; }
+        public ProviderProfilingRequestModel AllocationProfileRequest { get; set; }
 
-        public string FundingStreamPeriod { get; set; }
-
-        public IEnumerable<ProfilingPeriod> ProfilePeriods { get; set; }
-
-        public IEnumerable<AllocationPeriodValue> AllocationvaluesByDistributionPeriod { get; set; }
+        public IEnumerable<ProfilingPeriod> DeliveryProfilePeriods { get; set; }
     }
 }

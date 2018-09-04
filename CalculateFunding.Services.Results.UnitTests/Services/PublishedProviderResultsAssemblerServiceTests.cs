@@ -270,7 +270,8 @@ namespace CalculateFunding.Services.Results.Services
                             Id = "AAAAA",
                             Name = "test allocation line 1"
                         }
-                    }
+                    },
+                    PeriodType = new PeriodType{ Id = "AY" }
                 }
             };
 
@@ -285,12 +286,16 @@ namespace CalculateFunding.Services.Results.Services
                     new FundingStream
                     {
                         Id = "fs-001",
-                        Name = "fs one"
+                        Name = "fs one",
+                        PeriodType = new PeriodType
+                        {
+                            Id = "AY"
+                        }
                     }
                 }
             };
 
-            FundingPeriod fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
@@ -361,7 +366,8 @@ namespace CalculateFunding.Services.Results.Services
                             Id = "BBBBB",
                             Name = "test allocation line 2"
                         }
-                    }
+                    },
+                    PeriodType = new PeriodType{ Id = "AY" }
                 }
             };
 
@@ -381,7 +387,7 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            FundingPeriod fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
@@ -433,7 +439,8 @@ namespace CalculateFunding.Services.Results.Services
                             Id = "CCCCC",
                             Name = "test allocation line 3"
                         }
-                    }
+                    },
+                    PeriodType = new PeriodType{ Id = "AY" }
                 }
             };
 
@@ -453,7 +460,7 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            FundingPeriod fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
@@ -1025,15 +1032,14 @@ namespace CalculateFunding.Services.Results.Services
             return new Reference("authorId", "authorName");
         }
 
-        static FundingPeriod CreateFundingPeriod(Reference reference)
+        static Period CreateFundingPeriod(Reference reference)
         {
-            return new FundingPeriod
+            return new Period
             {
                 Id = reference.Id,
                 Name = reference.Name,
                 StartDate = DateTimeOffset.Now.AddYears(-5),
-                EndDate = DateTimeOffset.Now.AddYears(5),
-                Type = "Any-Type"
+                EndDate = DateTimeOffset.Now.AddYears(5)
             };
         }
     }

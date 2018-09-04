@@ -18,9 +18,7 @@ namespace IexSampleClient
         private const string ClientSecret = "<replace>";
         private const string AppIdUri = "<replace>";
 
-        // CFS Details
         private const string CFS_Endpoint = "<replace>";
-
 
         static void Main(string[] args)
         {
