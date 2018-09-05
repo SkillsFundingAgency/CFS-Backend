@@ -117,6 +117,62 @@ namespace CalculateFunding.Services.Results
             _messengerService = messengerService;
         }
 
+        public ResultsService(ILogger logger,
+          ICalculationResultsRepository resultsRepository,
+          IMapper mapper,
+          ISearchRepository<ProviderIndex> searchRepository,
+          ITelemetry telemetry,
+          IProviderSourceDatasetRepository providerSourceDatasetRepository,
+          ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository,
+          ISpecificationsRepository specificationsRepository,
+          IResultsResilliencePolicies resiliencePolicies,
+          IPublishedProviderResultsAssemblerService publishedProviderResultsAssemblerService,
+          IPublishedProviderResultsRepository publishedProviderResultsRepository,
+          IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository,
+          IProviderImportMappingService providerImportMappingService,
+          ICacheProvider cacheProvider,
+          ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationsSearchRepository,
+          IMessengerService messengerService)
+        {
+            Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
+            Guard.ArgumentNotNull(telemetry, nameof(telemetry));
+            Guard.ArgumentNotNull(providerSourceDatasetRepository, nameof(providerSourceDatasetRepository));
+            Guard.ArgumentNotNull(calculationProviderResultsSearchRepository, nameof(calculationProviderResultsSearchRepository));
+            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(publishedProviderResultsAssemblerService, nameof(publishedProviderResultsAssemblerService));
+            Guard.ArgumentNotNull(publishedProviderResultsRepository, nameof(publishedProviderResultsRepository));
+            Guard.ArgumentNotNull(publishedProviderCalculationResultsRepository, nameof(publishedProviderCalculationResultsRepository));
+            Guard.ArgumentNotNull(providerImportMappingService, nameof(providerImportMappingService));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(allocationNotificationsSearchRepository, nameof(allocationNotificationsSearchRepository));
+            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
+
+            _logger = logger;
+            _resultsRepository = resultsRepository;
+            _mapper = mapper;
+            _searchRepository = searchRepository;
+            _telemetry = telemetry;
+            _providerSourceDatasetRepository = providerSourceDatasetRepository;
+            _calculationProviderResultsSearchRepository = calculationProviderResultsSearchRepository;
+            _resultsRepositoryPolicy = resiliencePolicies.ResultsRepository;
+            _specificationsRepository = specificationsRepository;
+            _resultsSearchRepositoryPolicy = resiliencePolicies.ResultsSearchRepository;
+            _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsRepository;
+            _publishedProviderResultsAssemblerService = publishedProviderResultsAssemblerService;
+            _publishedProviderResultsRepository = publishedProviderResultsRepository;
+            _publishedProviderCalculationResultsRepository = publishedProviderCalculationResultsRepository;
+            _providerImportMappingService = providerImportMappingService;
+            _cacheProvider = cacheProvider;
+            _allocationNotificationsSearchRepository = allocationNotificationsSearchRepository;
+            _allocationNotificationsSearchRepositoryPolicy = resiliencePolicies.AllocationNotificationFeedSearchRepository;
+            _publishedProviderCalculationResultsRepositoryPolicy = resiliencePolicies.PublishedProviderCalculationResultsRepository;
+            _publishedProviderResultsRepositoryPolicy = resiliencePolicies.PublishedProviderResultsRepository;
+            _messengerService = messengerService;
+        }
+
         public async Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_resultsRepository).IsHealthOk();
