@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Results;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
@@ -132,12 +133,12 @@ namespace CalculateFunding.Services.Results.Services
         public async Task FetchProviderProfile_GivenFetchProviderProfileSucceeds_UpdatesPublishedProviderResult()
         {
             // Arrange
+            string specificationId = "spec-id";
             string resultId = "known";
-            PublishedProviderResult result = new PublishedProviderResult
-            {
-                ProviderId = "prov1",
-                FundingPeriod = new Models.Specs.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp1", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) }
-            };
+            PublishedProviderResult result = CreatePublishedProviderResults().First();
+            result.SpecificationId = specificationId;
+            result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
+
             ProviderProfilingRequestModel requestModel = CreateProviderProfilingRequestModel();
             ProviderProfilingResponseModel profileResponse = new ProviderProfilingResponseModel
             {
@@ -157,7 +158,16 @@ namespace CalculateFunding.Services.Results.Services
             providerProfilingRepository
                 .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
                 .Returns(Task.FromResult(profileResponse));
-            ResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository, providerProfilingRepository: providerProfilingRepository);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(CreateSpecification(specificationId));
+
+            ISearchRepository<AllocationNotificationFeedIndex> feedsSearchRepository = CreateAllocationNotificationFeedSearchRepository();
+
+            ResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerProfilingRepository: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository);
 
             var json = JsonConvert.SerializeObject(requestModel);
 
@@ -171,6 +181,8 @@ namespace CalculateFunding.Services.Results.Services
             result.ProfilingPeriods.Should().BeEquivalentTo(profileResponse.DeliveryProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
             IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { result };
             await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(savedResults => toBeSavedResults.SequenceEqual(savedResults)));
+            await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 1));
+            
         }
 
         private static ProviderProfilingRequestModel CreateProviderProfilingRequestModel()

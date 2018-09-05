@@ -1185,6 +1185,10 @@ namespace CalculateFunding.Services.Results
             {
                 result.ProfilingPeriods = responseModel.DeliveryProfilePeriods.ToArraySafe();
                 await _publishedProviderResultsRepository.SavePublishedResults(new[] { result });
+
+                SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(result.SpecificationId));
+
+                await UpdateAllocationNotificationsFeedIndex(new[] { result }, specification);
             }
             else
             {
