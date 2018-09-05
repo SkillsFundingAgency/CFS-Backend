@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Repositories.Common.Cosmos;
 using Microsoft.AspNetCore.Http;
@@ -60,7 +58,7 @@ namespace CalculateFunding.Functions.EnvironmentSetup.Http
                     Id = "providerdatasets",
                     PartitionKey = new PartitionKeyDefinition()
                     {
-                        Paths = new Collection<string>() { "/content/specificationId" }
+                        Paths = new Collection<string>() { "/content/providerId" }
                     },
                 },
                 new RequestOptions()
