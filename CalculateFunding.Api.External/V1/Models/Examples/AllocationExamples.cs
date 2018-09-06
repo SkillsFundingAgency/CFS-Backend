@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using CalculateFunding.Models.External;
+using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Examples;
 
 namespace CalculateFunding.Api.External.V1.Models.Examples
@@ -9,61 +10,9 @@ namespace CalculateFunding.Api.External.V1.Models.Examples
     {
         public object GetExamples()
         {
-            return Allocation("AY1819", new DateTime(2018, 9, 1), "63432",
-                new AllocationFundingStreamModel { FundingStreamCode = "YPLRE", FundingStreamName = "Academies General Annual Grant"},
-                new AllocationLine {AllocationLineCode = "YPE13", AllocationLineName = "Pupil Led Factors"}, 1623M,
-                340, Guid.NewGuid().ToString("N"));
+            AllocationModel allocation = JsonConvert.DeserializeObject<AllocationModel>(Properties.Resources.V1_Sample_Allocation);
 
-        }
-
-        internal static AllocationModel Allocation(string periodId, DateTime periodStartDate, string providerId,
-            AllocationFundingStreamModel fundingStream, AllocationLine allocationLine, decimal amount, int? count, string allocationResultId)
-        {
-            return new AllocationModel
-            {
-                AllocationResultId = allocationResultId,
-                FundingStream = fundingStream,
-                AllocationLine = allocationLine,
-                AllocationVersionNumber = 3,
-                AllocationStatus = "publsihed",
-                Provider = new AllocationProviderModel
-                {
-                    Ukprn = $"10000{providerId}",
-                    Upin = $"100{providerId}",
-                    ProviderOpenDate = new DateTime(2016, 9, 1),
-                },
-                Period = new Period
-                {
-                    PeriodType = "AY",
-                    PeriodId = periodId,
-                    StartDate = periodStartDate,
-                    EndDate = periodStartDate.AddDays(-1)
-                },
-                AllocationAmount = amount,
-                AllocationLearnerCount = count,
-                ProfilePeriods = new[]
-                {
-                    new ProfilePeriod
-                    {
-                        Period = "Oct",
-                        Occurrence = 1,
-                        PeriodYear = "2018",
-                        PeriodType = "CalendarMonth",
-                        ProfileValue = amount /2,
-                        DistributionPeriod = "2018-2019"
-                    },
-                    new ProfilePeriod
-                    {
-                        Period = "Apr",
-                        Occurrence = 1,
-                        PeriodYear = "2019",
-                        PeriodType = "CalendarMonth",
-                        ProfileValue = amount /2,
-                        DistributionPeriod = "2018-2019"
-                    }
-                }
-                //SchemaVersion = 0.01M
-            };
+            return allocation;
         }
     }
 }

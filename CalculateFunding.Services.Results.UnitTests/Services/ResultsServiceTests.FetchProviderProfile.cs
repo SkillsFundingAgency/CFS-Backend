@@ -95,7 +95,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task FetchProviderProfile_GivenFetchProviderProfileFails_LogsError()
+        public void FetchProviderProfile_GivenFetchProviderProfileFails_LogsErrorThrowsException()
         {
             // Arrange
             string resultId = "known";
@@ -123,10 +123,16 @@ namespace CalculateFunding.Services.Results.Services
             message.UserProperties["publishedproviderresult-id"] = resultId;
 
             // Act
-            await service.FetchProviderProfile(message);
+            Func<Task> test = async () => await service.FetchProviderProfile(message);
 
             // Assert
-            logger.Received(1).Error($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}");
+            test
+                .Should()
+                .ThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}");
         }
 
         [TestMethod]

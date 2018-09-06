@@ -5,9 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using AutoMapper.Configuration;
 using CalculateFunding.Api.External.MappingProfiles;
-using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Api.External.V1.Services;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
@@ -18,7 +16,7 @@ using NSubstitute;
 
 namespace CalculateFunding.Api.External.UnitTests.Services
 {
-	[TestClass]
+    [TestClass]
     public class TimePeriodsServiceTests
     {
 	    [TestMethod]
@@ -29,15 +27,15 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 			{
 				Id = "AYCode",
 				Name = "AcademicYear",
-				StartDate = DateTimeOffset.MinValue,
-				EndDate = DateTimeOffset.MaxValue
+				StartDate = DateTimeOffset.Now,
+				EndDate = DateTimeOffset.Now.AddYears(1)
 			};
             Models.Specs.Period fundingPeriod2 = new Models.Specs.Period()
 		    {
 			    Id = "FYCode",
 			    Name = "FinalYear",
-			    StartDate = DateTimeOffset.MinValue,
-			    EndDate = DateTimeOffset.MaxValue
+			    StartDate = DateTimeOffset.Now,
+			    EndDate = DateTimeOffset.Now.AddYears(1)
 		    };
 
 			Mapper.Reset();
@@ -79,7 +77,16 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                 .Count
                 .Should()
                 .Be(2);
-		}
+
+            resultPeriods.ElementAt(0).Id.Should().Be("AYCode");
+            resultPeriods.ElementAt(0).Name.Should().Be("AcademicYear");
+            resultPeriods.ElementAt(0).StartYear.Should().Be(DateTimeOffset.Now.Year);
+            resultPeriods.ElementAt(0).EndYear.Should().Be(DateTimeOffset.Now.Year + 1);
+            resultPeriods.ElementAt(1).Id.Should().Be("FYCode");
+            resultPeriods.ElementAt(1).Name.Should().Be("FinalYear");
+            resultPeriods.ElementAt(1).StartYear.Should().Be(DateTimeOffset.Now.Year);
+            resultPeriods.ElementAt(1).EndYear.Should().Be(DateTimeOffset.Now.Year + 1);
+        }
 
 		[TestMethod]
 		public async Task GetTimePeriods_WhenServiceReturns500InternalServerErrorResult_ShouldReturnErrorResult()

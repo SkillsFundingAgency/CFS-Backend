@@ -1277,10 +1277,13 @@ namespace CalculateFunding.Services.Results.Services
                         },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Reference
+                            AllocationLine = new AllocationLine
                             {
                                 Id = "AAAAA",
-                                Name = "test allocation line 1"
+                                Name = "test allocation line 1",
+                                ShortName = "tal1",
+                                FundingRoute = FundingRoute.LA,
+                                IsContractRequired = true
                             },
                             Current = new PublishedAllocationLineResultVersion
                             {
@@ -1327,10 +1330,13 @@ namespace CalculateFunding.Services.Results.Services
                         },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Reference
+                            AllocationLine = new AllocationLine
                             {
                                 Id = "AAAAA",
-                                Name = "test allocation line 1"
+                                Name = "test allocation line 1",
+                                ShortName = "tal1",
+                                FundingRoute = FundingRoute.LA,
+                                IsContractRequired = true
                             },
                             Current = new PublishedAllocationLineResultVersion
                             {
@@ -1377,10 +1383,13 @@ namespace CalculateFunding.Services.Results.Services
                         },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Reference
+                            AllocationLine = new AllocationLine
                             {
                                 Id = "AAAAA",
-                                Name = "test allocation line 1"
+                                Name = "test allocation line 1",
+                                ShortName = "tal1",
+                                FundingRoute = FundingRoute.LA,
+                                IsContractRequired = true
                             },
                             Current = new PublishedAllocationLineResultVersion
                             {
@@ -1430,14 +1439,27 @@ namespace CalculateFunding.Services.Results.Services
                         FundingStream = new FundingStream
                         {
                             Id = "fs-1",
-                            Name = "funding stream 1"
+                            Name = "funding stream 1",
+                            ShortName = "fs1",
+                            PeriodType = new PeriodType
+                            {
+                                Id = "pt1",
+                                Name = "period-type 1",
+                                StartDay = 1,
+                                EndDay = 31,
+                                StartMonth = 8,
+                                EndMonth = 7
+                            }
                         },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Reference
+                            AllocationLine = new AllocationLine
                             {
                                 Id = "AAAAA",
-                                Name = "test allocation line 1"
+                                Name = "test allocation line 1",
+                                ShortName = "tal1",
+                                FundingRoute = FundingRoute.LA,
+                                IsContractRequired = true
                             },
                             Current = new PublishedAllocationLineResultVersion
                             {
@@ -1482,14 +1504,27 @@ namespace CalculateFunding.Services.Results.Services
                         FundingStream = new FundingStream
                         {
                             Id = "fs-1",
-                            Name = "funding stream 1"
+                            Name = "funding stream 1",
+                            ShortName = "fs1",
+                            PeriodType = new PeriodType
+                            {
+                                Id = "pt1",
+                                Name = "period-type 1",
+                                StartDay = 1,
+                                EndDay = 31,
+                                StartMonth = 8,
+                                EndMonth = 7
+                            }
                         },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Reference
+                            AllocationLine = new AllocationLine
                             {
                                 Id = "AAAAA",
-                                Name = "test allocation line 1"
+                                Name = "test allocation line 1",
+                                ShortName = "tal1",
+                                FundingRoute = FundingRoute.LA,
+                                IsContractRequired = true
                             },
                             Current = new PublishedAllocationLineResultVersion
                             {
@@ -1533,15 +1568,28 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         FundingStream = new FundingStream
                         {
-                            Id = "fs-2",
-                            Name = "funding stream 2"
+                            Id = "fs-1",
+                            Name = "funding stream 1",
+                            ShortName = "fs1",
+                            PeriodType = new PeriodType
+                            {
+                                Id = "pt1",
+                                Name = "period-type 1",
+                                StartDay = 1,
+                                EndDay = 31,
+                                StartMonth = 8,
+                                EndMonth = 7
+                            }
                         },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Reference
+                             AllocationLine = new AllocationLine
                             {
                                 Id = "AAAAA",
-                                Name = "test allocation line 1"
+                                Name = "test allocation line 1",
+                                ShortName = "tal1",
+                                FundingRoute = FundingRoute.LA,
+                                IsContractRequired = true
                             },
                             Current = new PublishedAllocationLineResultVersion
                             {

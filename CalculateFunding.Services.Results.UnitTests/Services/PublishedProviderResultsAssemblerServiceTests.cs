@@ -263,15 +263,20 @@ namespace CalculateFunding.Services.Results.Services
                 new FundingStream
                 {
                     Id = "fs-001",
+                    Name = "fs one",
+                    ShortName = "fs1",
                     AllocationLines = new List<AllocationLine>
                     {
                         new AllocationLine
                         {
                             Id = "AAAAA",
-                            Name = "test allocation line 1"
+                            Name = "test allocation line 1",
+                            ShortName = "AA",
+                            FundingRoute = FundingRoute.LA,
+                            IsContractRequired = true
                         }
                     },
-                    PeriodType = new PeriodType{ Id = "AY" }
+                    PeriodType = new PeriodType{ Id = "AY", StartDay = 1, StartMonth = 8, EndDay = 31, EndMonth = 7, Name = "period-type" }
                 }
             };
 
@@ -335,11 +340,20 @@ namespace CalculateFunding.Services.Results.Services
             result.SpecificationId.Should().Be("spec-id-1");
             result.FundingStreamResult.FundingStream.Id.Should().Be("fs-001");
             result.FundingStreamResult.FundingStream.Name.Should().Be("fs one");
+            result.FundingStreamResult.FundingStream.ShortName.Should().Be("fs1");
+            result.FundingStreamResult.FundingStream.PeriodType.Id.Should().Be("AY");
+            result.FundingStreamResult.FundingStream.PeriodType.StartDay.Should().Be(1);
+            result.FundingStreamResult.FundingStream.PeriodType.StartMonth.Should().Be(8);
+            result.FundingStreamResult.FundingStream.PeriodType.EndDay.Should().Be(31);
+            result.FundingStreamResult.FundingStream.PeriodType.EndMonth.Should().Be(7);
+            result.FundingStreamResult.FundingStream.PeriodType.Name.Should().Be("period-type");
             result.FundingStreamResult.AllocationLineResult.AllocationLine.Id.Should().Be("AAAAA");
             result.FundingStreamResult.AllocationLineResult.AllocationLine.Name.Should().Be("test allocation line 1");
             result.FundingStreamResult.AllocationLineResult.Current.Should().NotBeNull();
             result.FundingStreamResult.AllocationLineResult.Current.Author.Id.Should().Be("authorId");
             result.FundingStreamResult.AllocationLineResult.Current.Author.Name.Should().Be("authorName");
+            result.FundingStreamResult.AllocationLineResult.AllocationLine.FundingRoute.Should().Be(FundingRoute.LA);
+            result.FundingStreamResult.AllocationLineResult.AllocationLine.IsContractRequired.Should().BeTrue();
             result.FundingPeriod.Should().BeSameAs(fundingPeriod);
         }
 

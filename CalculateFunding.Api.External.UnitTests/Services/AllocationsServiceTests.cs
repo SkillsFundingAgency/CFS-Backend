@@ -146,15 +146,14 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             allocationModel.AllocationVersionNumber.Should().Be(1);
             allocationModel.AllocationStatus.Should().Be("Published");
             allocationModel.AllocationAmount.Should().Be(50);
-            allocationModel.FundingStream.FundingStreamCode.Should().Be("fs-1");
-            allocationModel.FundingStream.FundingStreamName.Should().Be("funding stream 1");
-            allocationModel.Period.PeriodType.Should().Be("fp-1");
-            allocationModel.Period.PeriodId.Should().Be("Ay12345");
-            allocationModel.Provider.Ukprn.Should().Be("1111");
+            allocationModel.FundingStream.Id.Should().Be("fs-1");
+            allocationModel.FundingStream.Name.Should().Be("funding stream 1");
+            allocationModel.Period.Id.Should().Be("Ay12345");
+            allocationModel.Provider.UkPrn.Should().Be("1111");
             allocationModel.Provider.Upin.Should().Be("2222");
-            allocationModel.Provider.ProviderOpenDate.Should().NotBeNull();
-            allocationModel.AllocationLine.AllocationLineCode.Should().Be("AAAAA");
-            allocationModel.AllocationLine.AllocationLineName.Should().Be("test allocation line 1");
+            allocationModel.Provider.OpenDate.Should().NotBeNull();
+            allocationModel.AllocationLine.Id.Should().Be("AAAAA");
+            allocationModel.AllocationLine.Name.Should().Be("test allocation line 1");
             allocationModel.ProfilePeriods.Length.Should().Be(1);
         }
 
@@ -285,15 +284,14 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             allocationModel.AllocationVersionNumber.Should().Be(1);
             allocationModel.AllocationStatus.Should().Be("Published");
             allocationModel.AllocationAmount.Should().Be(50);
-            allocationModel.FundingStream.FundingStreamCode.Should().Be("fs-1");
-            allocationModel.FundingStream.FundingStreamName.Should().Be("funding stream 1");
-            allocationModel.Period.PeriodType.Should().Be("fp-1");
-            allocationModel.Period.PeriodId.Should().Be("Ay12345");
-            allocationModel.Provider.Ukprn.Should().Be("1111");
+            allocationModel.FundingStream.Id.Should().Be("fs-1");
+            allocationModel.FundingStream.Name.Should().Be("funding stream 1");
+            allocationModel.Period.Id.Should().Be("Ay12345");
+            allocationModel.Provider.UkPrn.Should().Be("1111");
             allocationModel.Provider.Upin.Should().Be("2222");
-            allocationModel.Provider.ProviderOpenDate.Should().NotBeNull();
-            allocationModel.AllocationLine.AllocationLineCode.Should().Be("AAAAA");
-            allocationModel.AllocationLine.AllocationLineName.Should().Be("test allocation line 1");
+            allocationModel.Provider.OpenDate.Should().NotBeNull();
+            allocationModel.AllocationLine.Id.Should().Be("AAAAA");
+            allocationModel.AllocationLine.Name.Should().Be("test allocation line 1");
             allocationModel.ProfilePeriods.Length.Should().Be(1);
             allocationModel.History.Length.Should().Be(2);
             allocationModel.History[0].AllocationVersionNumber.Should().Be(2);
@@ -324,14 +322,14 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                 SpecificationId = "spec-1",
                 FundingStreamResult = new PublishedFundingStreamResult
                 {
-                    FundingStream = new Reference
+                    FundingStream = new Models.Specs.FundingStream
                     {
                         Id = "fs-1",
                         Name = "funding stream 1"
                     },
                     AllocationLineResult = new PublishedAllocationLineResult
                     {
-                        AllocationLine = new Reference
+                        AllocationLine = new Models.Specs.AllocationLine
                         {
                             Id = "AAAAA",
                             Name = "test allocation line 1"

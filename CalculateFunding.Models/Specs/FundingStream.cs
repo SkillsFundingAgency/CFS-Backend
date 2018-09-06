@@ -8,6 +8,7 @@ namespace CalculateFunding.Models.Specs
         public FundingStream()
         {
             AllocationLines = new List<AllocationLine>();
+            PeriodType = new PeriodType();
         }
 
         [JsonProperty("shortName")]

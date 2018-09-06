@@ -215,10 +215,10 @@ namespace CalculateFunding.Services.Results.Services
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new Models.Reference { Name = "Stream1" },
+                        FundingStream = new Models.Specs.FundingStream { Name = "Stream1" },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Models.Reference { Name = "AllocLine1" },
+                            AllocationLine = new Models.Specs.AllocationLine { Name = "AllocLine1" },
                             Current = new PublishedAllocationLineResultVersion { Value = 12, Provider = new ProviderSummary { Id = "1", Authority = "Auth1", ProviderType = "PType1" } }
                         }
                     }
@@ -283,10 +283,10 @@ namespace CalculateFunding.Services.Results.Services
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new Models.Reference { Name = "Stream1" },
+                        FundingStream = new Models.Specs.FundingStream { Name = "Stream1" },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Models.Reference { Name = "AllocLine1" },
+                            AllocationLine = new Models.Specs.AllocationLine { Name = "AllocLine1" },
                             Current = new PublishedAllocationLineResultVersion { Value = 12, Provider = new ProviderSummary { Id = "1", Authority = "Auth1", ProviderType = "PType1" } }
                         }
                     }
@@ -298,10 +298,10 @@ namespace CalculateFunding.Services.Results.Services
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new Models.Reference { Name = "Stream2" },
+                        FundingStream = new Models.Specs.FundingStream { Name = "Stream2" },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Models.Reference { Name = "AllocLine2" },
+                            AllocationLine = new Models.Specs.AllocationLine { Name = "AllocLine2" },
                             Current = new PublishedAllocationLineResultVersion { Value = 15, Provider = new ProviderSummary { Id = "2", Authority = "Auth2", ProviderType = "PType2" } }
                         }
                     }
@@ -366,10 +366,10 @@ namespace CalculateFunding.Services.Results.Services
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new Models.Reference { Name = "Stream1" },
+                        FundingStream = new Models.Specs.FundingStream { Name = "Stream1" },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Models.Reference { Name = "AllocLine1" },
+                            AllocationLine = new Models.Specs.AllocationLine { Name = "AllocLine1" },
                             Current = new PublishedAllocationLineResultVersion { Value = 12, Provider = new ProviderSummary { Id = "1", Authority = "Auth1", ProviderType = "PType1" } }
                         }
                     }
@@ -381,10 +381,10 @@ namespace CalculateFunding.Services.Results.Services
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new Models.Reference { Name = "Stream1" },
+                        FundingStream = new Models.Specs.FundingStream { Name = "Stream1" },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Models.Reference { Name = "AllocLine2" },
+                            AllocationLine = new Models.Specs.AllocationLine { Name = "AllocLine2" },
                             Current = new PublishedAllocationLineResultVersion { Value = 15, Provider = new ProviderSummary { Id = "2", Authority = "Auth1", ProviderType = "PType1" } }
                         }
                     }
@@ -447,10 +447,10 @@ namespace CalculateFunding.Services.Results.Services
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new Models.Reference { Name = "Stream1" },
+                        FundingStream = new Models.Specs.FundingStream { Name = "Stream1" },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Models.Reference { Name = "AllocLine1" },
+                            AllocationLine = new Models.Specs.AllocationLine { Name = "AllocLine1" },
                             Current = new PublishedAllocationLineResultVersion { Value = 12, Provider = new ProviderSummary { Id = "1", Authority = "B Auth", ProviderType = "B PType" } }
                         }
                     }
@@ -462,10 +462,10 @@ namespace CalculateFunding.Services.Results.Services
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new Models.Reference { Name = "Stream1" },
+                        FundingStream = new Models.Specs.FundingStream { Name = "Stream1" },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Models.Reference { Name = "AllocLine2" },
+                            AllocationLine = new Models.Specs.AllocationLine { Name = "AllocLine2" },
                             Current = new PublishedAllocationLineResultVersion { Value = 15, Provider = new ProviderSummary { Id = "2", Authority = "A Auth", ProviderType = "A PType" } }
                         }
                     }
@@ -533,10 +533,10 @@ namespace CalculateFunding.Services.Results.Services
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new Models.Reference { Name = "Stream1" },
+                        FundingStream = new Models.Specs.FundingStream { Name = "Stream1" },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Models.Reference { Name = "AllocLine1" },
+                            AllocationLine = new Models.Specs.AllocationLine { Name = "AllocLine1" },
                             Current = new PublishedAllocationLineResultVersion { Value = 12, Provider = new ProviderSummary { Id = "1", Authority = "B Auth", ProviderType = "B PType" } }
                         }
                     }
@@ -548,10 +548,10 @@ namespace CalculateFunding.Services.Results.Services
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new Models.Reference { Name = "Stream1" },
+                        FundingStream = new Models.Specs.FundingStream { Name = "Stream1" },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Models.Reference { Name = "AllocLine2" },
+                            AllocationLine = new Models.Specs.AllocationLine { Name = "AllocLine2" },
                             Current = new PublishedAllocationLineResultVersion { Value = 15, Provider = new ProviderSummary { Id = "2", Authority = "A Auth", ProviderType = "A PType" } }
                         }
                     }
@@ -619,10 +619,10 @@ namespace CalculateFunding.Services.Results.Services
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new Models.Reference { Name = "Stream1" },
+                        FundingStream = new Models.Specs.FundingStream { Name = "Stream1" },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Models.Reference { Name = "AllocLine1" },
+                            AllocationLine = new Models.Specs.AllocationLine { Name = "AllocLine1" },
                             Current = new PublishedAllocationLineResultVersion { Value = 12, Provider = new ProviderSummary { Id = "1", Authority = "B Auth", ProviderType = "B PType" } }
                         }
                     }
@@ -634,10 +634,10 @@ namespace CalculateFunding.Services.Results.Services
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new Models.Reference { Name = "Stream1" },
+                        FundingStream = new Models.Specs.FundingStream { Name = "Stream1" },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Models.Reference { Name = "AllocLine1" },
+                            AllocationLine = new Models.Specs.AllocationLine { Name = "AllocLine1" },
                             Current = new PublishedAllocationLineResultVersion { Value = 15, Provider = new ProviderSummary { Id = "2", Authority = "A Auth", ProviderType = "A PType" } }
                         }
                     }

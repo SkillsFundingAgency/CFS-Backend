@@ -22,5 +22,7 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string NavVendorNo { get; set; }
         public string CrmAccountId { get; set; }
         public string LegalName { get; set; }
+        public string Status { get; set; }
+        public string DfeEstablishmentNumber { get; set; }
     }
 }

@@ -5,37 +5,25 @@ namespace CalculateFunding.Api.External.V1.Models
     [Serializable]
     public class Period
     {
-        public Period()
-        {
-        }
-
-        public Period(string periodType, string periodId, DateTime startDate, DateTime endDate)
-        {
-            PeriodType = periodType;
-            PeriodId = periodId;
-            StartDate = startDate;
-            EndDate = endDate;
-        }
-
-        /// <summary>
-        /// The type of the period
-        /// </summary>
-        public string PeriodType { get; set; }
-
         /// <summary>
         /// The id of the period
         /// </summary>
-        public string PeriodId { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
-        /// The (inclusive) start date of the period
+        /// The nameid of the period
         /// </summary>
-        public DateTimeOffset StartDate { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
-        /// The (inclusive) end date of the period
+        /// The (inclusive) start year of the period
         /// </summary>
-        public DateTimeOffset EndDate { get; set; }
+        public int StartYear { get; set; }
+
+        /// <summary>
+        /// The (inclusive) end year of the period
+        /// </summary>
+        public int EndYear { get; set; }
 
     }
 }

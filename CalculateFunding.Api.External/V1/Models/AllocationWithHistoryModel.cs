@@ -16,14 +16,14 @@ namespace CalculateFunding.Api.External.V1.Models
 
         public AllocationWithHistoryModel(AllocationModel allocationModel): 
             base(allocationModel.FundingStream, allocationModel.Period, allocationModel.Provider, allocationModel.AllocationLine, allocationModel.AllocationVersionNumber,
-                allocationModel.AllocationStatus, allocationModel.AllocationAmount, allocationModel.AllocationLearnerCount, allocationModel.AllocationResultId)
+                allocationModel.AllocationStatus, allocationModel.AllocationAmount, allocationModel.AllocationResultId)
         {
             ProfilePeriods = allocationModel.ProfilePeriods;
         }
 
         public AllocationWithHistoryModel(AllocationFundingStreamModel fundingStream, Period period, AllocationProviderModel provider, AllocationLine allocationLine,
            int allocationVersionNumber, string status, decimal allocationAmount, int? allocationLearnerCount, string allocationResultId, ProfilePeriod[] profilePeriods)
-            :base(fundingStream, period, provider, allocationLine, allocationVersionNumber, status, allocationAmount, allocationLearnerCount, allocationResultId)
+            :base(fundingStream, period, provider, allocationLine, allocationVersionNumber, status, allocationAmount, allocationResultId)
         {
             ProfilePeriods = profilePeriods;
         }

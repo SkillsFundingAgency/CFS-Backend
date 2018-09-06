@@ -13,7 +13,7 @@ using CalculateFunding.Services.Core.Helpers;
 namespace CalculateFunding.Api.External.V1.Controllers
 {
     [Authorize(Roles = Constants.ExecuteApiRole)]
-    [Route("api/funding-streams")]
+    [Route("api/v{version:apiVersion}/funding-streams")]
     public class FundingStreamController : Controller
     {
         private readonly IFundingStreamService _fundingStreamsService;
@@ -30,10 +30,10 @@ namespace CalculateFunding.Api.External.V1.Controllers
         /// <param name="Accept">The calculate funding service uses the Media Type provided in the Accept header to determine what representation of a particular resources to serve. In particular this includes the version of the resource and the wire format.</param>
         /// <returns></returns>
         [HttpGet]
-        [Produces(typeof(IEnumerable<FundingStream>))]
+        [Produces(typeof(FundingStream[]))]
         [SwaggerResponseExample(200, typeof(FundingStreamExamples))]
         [SwaggerOperation("getFundingStreams")]
-        [SwaggerOperationFilter(typeof(OperationFilter<List<FundingStream>>))]
+        [SwaggerOperationFilter(typeof(OperationFilter<FundingStream[]>))]
         [ProducesResponseType(typeof(IEnumerable<FundingStream>), 200)]
         [ProducesResponseType(304)]
         [ProducesResponseType(401)]
@@ -41,8 +41,6 @@ namespace CalculateFunding.Api.External.V1.Controllers
         [SwaggerResponseHeader(200, "ETag", "string", "An ETag of the resource")]
         [SwaggerResponseHeader(200, "Cache-Control", "string", "Caching information for the resource")]
         [SwaggerResponseHeader(200, "Last-Modified", "date", "Date the resource was last modified")]
-
-
         public async Task<IActionResult> GetFundingStreams()
         {
             return await _fundingStreamsService.GetFundingStreams(Request);

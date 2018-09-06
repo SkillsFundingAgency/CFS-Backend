@@ -1188,11 +1188,15 @@ namespace CalculateFunding.Services.Results
 
                 SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(result.SpecificationId));
 
+                Console.WriteLine("Saving profiling info");
+
                 await UpdateAllocationNotificationsFeedIndex(new[] { result }, specification);
             }
             else
             {
                 _logger.Error($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}");
+
+                throw new Exception($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}");
             }
         }
 
@@ -1362,19 +1366,31 @@ namespace CalculateFunding.Services.Results
                     DateUpdated = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Date,
                     FundingStreamId = publishedProviderResult.FundingStreamResult.FundingStream.Id,
                     FundingStreamName = publishedProviderResult.FundingStreamResult.FundingStream.Name,
+                    FundingStreamShortName = publishedProviderResult.FundingStreamResult.FundingStream.ShortName,
+                    FundingStreamPeriodId = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType?.Id,
+                    FundingStreamStartDay = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.StartDay,
+                    FundingStreamStartMonth = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.StartMonth,
+                    FundingStreamEndDay = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.EndDay,
+                    FundingStreamEndMonth = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.EndMonth,
+                    FundingStreamPeriodName = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType?.Name,
                     FundingPeriodId = publishedProviderResult.FundingPeriod.Id,
-                    FundingPeriodStartDate = publishedProviderResult.FundingPeriod.StartDate,
-                    FundingPeriodEndDate = publishedProviderResult.FundingPeriod.EndDate,
+                    FundingPeriodStartYear = publishedProviderResult.FundingPeriod.StartYear,
+                    FundingPeriodEndYear = publishedProviderResult.FundingPeriod.EndYear,
                     ProviderId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Id,
                     ProviderUkPrn = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.UKPRN,
                     ProviderUpin = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.UPIN,
+                    ProviderUrn = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.URN,
                     ProviderOpenDate = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DateOpened,
+                    ProviderClosedDate = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DateOpened,
                     AllocationLineId = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id,
                     AllocationLineName = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name,
                     AllocationVersionNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Version,
                     AllocationStatus = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status.ToString(),
                     AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue
                                             ? Convert.ToDouble(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value) : 0,
+                    AllocationLineContractRequired = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.IsContractRequired,
+                    AllocationLineFundingRoute = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.FundingRoute.ToString(),
+                    AllocationLineShortName = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.ShortName,
                     ProviderProfiling = JsonConvert.SerializeObject(publishedProviderResult.ProfilingPeriods),
                     ProviderName = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Name,
                     LaCode = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.LACode,
@@ -1382,6 +1398,10 @@ namespace CalculateFunding.Services.Results
                     ProviderType = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderType,
                     SubProviderType = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderSubType,
                     EstablishmentNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.EstablishmentNumber,
+                    CrmAccountId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.CrmAccountId,
+                    NavVendorNo = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.NavVendorNo,
+                    DfeEstablishmentNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DfeEstablishmentNumber,
+                    ProviderStatus = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Status,
                     PolicySummaries = JsonConvert.SerializeObject(CreatePolicySummaries(providerCalculationResults, specification))
                 });
             }

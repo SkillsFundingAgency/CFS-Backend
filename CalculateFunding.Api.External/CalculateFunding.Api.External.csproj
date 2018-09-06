@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="V1\Models\ProviderFundingStreamResult.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="StoreExport\allocation-lines.csv" />
     <None Remove="StoreExport\budgets.csv" />
     <None Remove="StoreExport\periods.csv" />

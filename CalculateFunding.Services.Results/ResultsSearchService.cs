@@ -209,7 +209,9 @@ namespace CalculateFunding.Services.Results
 						CrmAccountId = m.Result.CrmAccountId,
 						LegalName = m.Result.LegalName,
 						LACode = m.Result.LACode,
-						ProviderProfileIdType = m.Result.ProviderIdType
+						ProviderProfileIdType = m.Result.ProviderIdType,
+                        Status = m.Result.Status,
+                        DfeEstablishmentNumber = m.Result.DfeEstablishmentNumber
 					});
 				}
 			}
