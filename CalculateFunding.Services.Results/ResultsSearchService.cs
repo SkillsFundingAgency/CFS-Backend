@@ -211,7 +211,8 @@ namespace CalculateFunding.Services.Results
 						LACode = m.Result.LACode,
 						ProviderProfileIdType = m.Result.ProviderIdType,
                         Status = m.Result.Status,
-                        DfeEstablishmentNumber = m.Result.DfeEstablishmentNumber
+                        DfeEstablishmentNumber = m.Result.DfeEstablishmentNumber,
+                        PhaseOfEducation = m.Result.PhaseOfEducation
 					});
 				}
 			}

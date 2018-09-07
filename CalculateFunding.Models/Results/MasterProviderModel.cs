@@ -38,5 +38,9 @@ namespace CalculateFunding.Models.Results
         public string MasterUPIN { get; set; }
 
         public string MasterURN { get; set; }
+
+        public string MasterPhaseOfEducation { get; set; }
+
+        public string MasterNavendorNo { get; set; }
     }
 }

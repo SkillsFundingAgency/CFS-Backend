@@ -42,6 +42,8 @@ namespace CalculateFunding.Services.Results
                 providerIndex.URN = masterProviderModel.MasterURN;
                 providerIndex.CrmAccountId = masterProviderModel.MasterCRMAccountId;
                 providerIndex.Status = masterProviderModel.MasterProviderStatusName;
+                providerIndex.NavVendorNo = masterProviderModel.MasterNavendorNo;
+                providerIndex.PhaseOfEducation = masterProviderModel.MasterPhaseOfEducation;
 
                 return providerIndex;
             }

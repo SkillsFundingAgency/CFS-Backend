@@ -188,7 +188,8 @@ namespace CalculateFunding.Services.Calcs
                 LegalName = x.LegalName,
                 NavVendorNo = x.NavVendorNo,
                 DfeEstablishmentNumber = x.DfeEstablishmentNumber,
-                Status = x.Status
+                Status = x.Status,
+                PhaseOfEducation = x.PhaseOfEducation
             });
         }
 

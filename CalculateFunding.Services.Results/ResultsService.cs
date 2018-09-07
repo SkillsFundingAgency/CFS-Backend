@@ -1098,7 +1098,7 @@ namespace CalculateFunding.Services.Results
                     {
                         result.Title = $"Allocation {result.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {result.FundingStreamResult.AllocationLineResult.Current.Status.ToString()}";
 
-                        if(updateStatusModel.Status == AllocationLineStatus.Approved)
+                        if(updateStatusModel.Status == AllocationLineStatus.Approved || updateStatusModel.Status != AllocationLineStatus.Approved && result.ProfilingPeriods.IsNullOrEmpty())
                         {
                             await GetProfilingPeriods(request, result);
                         }
@@ -1181,10 +1181,11 @@ namespace CalculateFunding.Services.Results
 
             ProviderProfilingResponseModel responseModel = await _providerProfilingRepositoryPolicy.ExecuteAsync(() => _providerProfilingRepository.GetProviderProfilePeriods(model));
 
-            if (responseModel != null)
+            if (responseModel != null && !responseModel.DeliveryProfilePeriods.IsNullOrEmpty())
             {
                 result.ProfilingPeriods = responseModel.DeliveryProfilePeriods.ToArraySafe();
-                await _publishedProviderResultsRepository.SavePublishedResults(new[] { result });
+
+                await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(new[] { result }));
 
                 SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(result.SpecificationId));
 

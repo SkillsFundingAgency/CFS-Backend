@@ -136,6 +136,50 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        public void FetchProviderProfile_GivenFetchProviderProfileReturnsButWithEmptyDeliveryPeriods_LogsErrorThrowsException()
+        {
+            // Arrange
+            string resultId = "known";
+            PublishedProviderResult result = new PublishedProviderResult
+            {
+                ProviderId = "prov1",
+                FundingPeriod = new Models.Specs.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp1", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) }
+            };
+            ProviderProfilingRequestModel requestModel = CreateProviderProfilingRequestModel();
+
+            ProviderProfilingResponseModel providerProfilingResponseModel = new ProviderProfilingResponseModel();
+
+            ILogger logger = Substitute.For<ILogger>();
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
+            publishedProviderResultsRepository
+                .GetPublishedProviderResultForId(Arg.Is(resultId))
+                .Returns(result);
+            IProviderProfilingRepository providerProfilingRepository = Substitute.For<IProviderProfilingRepository>();
+            providerProfilingRepository
+                .GetProviderProfilePeriods(Arg.Is(requestModel))
+                .Returns(providerProfilingResponseModel);
+
+            ResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository, providerProfilingRepository: providerProfilingRepository);
+
+            var json = JsonConvert.SerializeObject(requestModel);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties["publishedproviderresult-id"] = resultId;
+
+            // Act
+            Func<Task> test = async () => await service.FetchProviderProfile(message);
+
+            // Assert
+            test
+                .Should()
+                .ThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}");
+        }
+
+        [TestMethod]
         public async Task FetchProviderProfile_GivenFetchProviderProfileSucceeds_UpdatesPublishedProviderResult()
         {
             // Arrange
