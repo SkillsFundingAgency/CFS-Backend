@@ -245,11 +245,18 @@ namespace CalculateFunding.Api.Specs.Controllers
             return _specService.GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/specs/select-for-funding")]
+        [Route("api/specs/execute-calculations")]
         [HttpPost]
-        public Task<IActionResult> RunSelectSpecificationForFunding()
+        public Task<IActionResult> ExecuteCalculations()
         {
-            return _specService.SelectSpecificationForFunding(ControllerContext.HttpContext.Request);
+	        return _specService.ExecuteCalculations(ControllerContext.HttpContext.Request);
         }
-    }
+
+	    [Route("api/specs/select-for-funding")]
+	    [HttpPost]
+	    public Task<IActionResult> RunSelectSpecificationForFunding()
+	    {
+		    return _specService.SelectSpecificationForFunding(ControllerContext.HttpContext.Request);
+	    }
+	}
 }

@@ -33,7 +33,8 @@ namespace CalculateFunding.Services.Results
 {
     public class ResultsService : IResultsService, IHealthChecker
     {
-        private readonly ILogger _logger;
+
+		private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
         private readonly ICalculationResultsRepository _resultsRepository;
         private readonly IMapper _mapper;
@@ -458,10 +459,10 @@ namespace CalculateFunding.Services.Results
 
             return new OkObjectResult(totalsModels);
         }
-
+		
         public async Task PublishProviderResults(Message message)
         {
-            Guard.ArgumentNotNull(message, nameof(message));
+	        Guard.ArgumentNotNull(message, nameof(message));
 
             if (!message.UserProperties.ContainsKey("specification-id"))
             {
@@ -469,56 +470,73 @@ namespace CalculateFunding.Services.Results
                 throw new ArgumentException("Message must contain a specification id");
             }
 
+	        int calculationProgress = 0;
+
             string specificationId = message.UserProperties["specification-id"].ToString();
+	        UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.InProgress);
 
-            IEnumerable<ProviderResult> providerResults = await GetProviderResultsBySpecificationId(specificationId);
+			IEnumerable<ProviderResult> providerResults = await GetProviderResultsBySpecificationId(specificationId);
+	        UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
-            if (providerResults.IsNullOrEmpty())
+			if (providerResults.IsNullOrEmpty())
             {
-                _logger.Error($"Provider results not found for specification id {specificationId}");
+	            UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
+				_logger.Error($"Provider results not found for specification id {specificationId}");
                 throw new ArgumentException("Could not find any provider results for specification");
             }
 
             SpecificationCurrentVersion specification = await _specificationsRepository.GetCurrentSpecificationById(specificationId);
+			UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
             if (specification == null)
             {
-                _logger.Error($"Specification not found for specification id {specificationId}");
+	            UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
+				_logger.Error($"Specification not found for specification id {specificationId}");
                 throw new ArgumentException($"Specification not found for specification id {specificationId}");
             }
 
             Reference author = message.GetUserDetails();
 
             IEnumerable<PublishedProviderCalculationResult> publishedProviderCalcuationResults = _publishedProviderResultsAssemblerService.AssemblePublishedCalculationResults(providerResults, author, specification);
+	        UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
-            try
+			try
             {
                 await _publishedProviderCalculationResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(publishedProviderCalcuationResults.ToList()));
+	            UpdateCacheForSegmentDone(specificationId, calculationProgress += 7, CalculationProgressStatus.InProgress);
 
-                await SavePublishedCalculationResultVersionHistory(publishedProviderCalcuationResults, specificationId);
+				await SavePublishedCalculationResultVersionHistory(publishedProviderCalcuationResults, specificationId);
+				UpdateCacheForSegmentDone(specificationId, calculationProgress += 10, CalculationProgressStatus.InProgress);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, $"Failed to create published provider calculation results for specification: {specificationId}");
+	            UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
+				_logger.Error(ex, $"Failed to create published provider calculation results for specification: {specificationId}");
                 throw new Exception($"Failed to create published provider calculation results for specification: {specificationId}", ex);
             }
 
             IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsAssemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
+	        UpdateCacheForSegmentDone(specificationId, calculationProgress += 53, CalculationProgressStatus.InProgress);
 
-            try
+			try
             {
                 await _publishedProviderResultsRepository.SavePublishedResults(publishedProviderResults.ToList());
+	            UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
-                await SavePublishedAllocationLineResultVersionHistory(publishedProviderResults, specificationId);
+				await SavePublishedAllocationLineResultVersionHistory(publishedProviderResults, specificationId);
+	            UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
-                await UpdateAllocationNotificationsFeedIndex(publishedProviderResults, specification);
-            }
+				await UpdateAllocationNotificationsFeedIndex(publishedProviderResults, specification);
+	            UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+			}
             catch (Exception ex)
             {
-                _logger.Error(ex, $"Failed to create published provider results for specification: {specificationId}");
+	            UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
+				_logger.Error(ex, $"Failed to create published provider results for specification: {specificationId}");
                 throw new Exception($"Failed to create published provider results for specification: {specificationId}", ex);
             }
-        }
+	        UpdateCacheForSegmentDone(specificationId, 100, CalculationProgressStatus.Finished);
+		}
 
         void AssignRelatedCalculationResultIdsToAllocationResults(IEnumerable<PublishedProviderResult> publishedProviderResults, IEnumerable<PublishedProviderCalculationResult> publishedProviderCalcuationResults)
         {
@@ -1320,7 +1338,8 @@ namespace CalculateFunding.Services.Results
             }
         }
 
-        async Task UpdateAllocationNotificationsFeedIndex(IEnumerable<PublishedProviderResult> publishedProviderResults, SpecificationCurrentVersion specification)
+        async Task 
+	        UpdateAllocationNotificationsFeedIndex(IEnumerable<PublishedProviderResult> publishedProviderResults, SpecificationCurrentVersion specification)
         {
             IEnumerable<AllocationNotificationFeedIndex> notifications = await BuildAllocationNotificationIndexItems(publishedProviderResults, specification);
 
@@ -1479,5 +1498,13 @@ namespace CalculateFunding.Services.Results
             return calculationSummaries;
         }
 
-    }
+	    private void UpdateCacheForSegmentDone(string specificationId, int percentageToSetTo, CalculationProgressStatus progressStatus, string message = null)
+	    {
+		    SpecificationCalculationExecutionStatus calculationProgress = new SpecificationCalculationExecutionStatus(specificationId, percentageToSetTo, progressStatus)
+		    {
+			    ErrorMessage = message
+		    };
+		    CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{calculationProgress.SpecificationId}", calculationProgress, _cacheProvider);
+	    }
+	}
 }
