@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Specs.Services
             //Act
             IActionResult result = await service.CheckCalculationProgressForSpecifications(request);
 
-            //Arrange
+            //Assert
             result
                 .Should()
                 .BeOfType<BadRequestObjectResult>()
@@ -69,7 +69,7 @@ namespace CalculateFunding.Services.Specs.Services
             //Act
             IActionResult result = await service.CheckCalculationProgressForSpecifications(request);
 
-            //Arrange
+            //Assert
             result
                 .Should()
                 .BeOfType<BadRequestObjectResult>();
@@ -93,8 +93,6 @@ namespace CalculateFunding.Services.Specs.Services
 
             cacheProvider.GetAsync<SpecificationCalculationProgress>($"calculationProgress-{SpecificationId}").Returns(new SpecificationCalculationProgress(SpecificationId,5,SpecificationCalculationProgress.CalculationProgressStatus.Started));
 
-            //SpecificationCalculationProgress specProgress = await cacheProvider.GetAsync<SpecificationCalculationProgress>($"calculationProgress-{SpecificationId}");
-
             ILogger logger = CreateLogger();
 
             SpecificationsService service = CreateService(logs: logger, cacheProvider: cacheProvider);
@@ -102,7 +100,7 @@ namespace CalculateFunding.Services.Specs.Services
             //Act
             IActionResult result = await service.CheckCalculationProgressForSpecifications(request);
 
-            //Arrange
+            //Assert
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
