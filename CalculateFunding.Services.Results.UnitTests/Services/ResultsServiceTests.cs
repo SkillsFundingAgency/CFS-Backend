@@ -955,6 +955,101 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        public async Task ImportProviders_GivenProvidersWithDifferentDateFormatsIndexed_ReturnsNoContentResult()
+        {
+            //Arrange
+            StringBuilder json = new StringBuilder();
+            json.AppendLine(@"[{");
+            json.AppendLine(@"        ""MasterURN"":  ""100000"",");
+            json.AppendLine(@"        ""MasterUPIN"":  """",");
+            json.AppendLine(@"        ""MasterProviderStatusName"":  ""Open"",");
+            json.AppendLine(@"        ""MasterLocalAuthorityCode"":  ""201"",");
+            json.AppendLine(@"        ""MasterDfELAEstabNo"":  ""2013614"",");
+            json.AppendLine(@"        ""MasterProviderLegalName"":  """",");
+            json.AppendLine(@"        ""MasterProviderTypeName"":  ""Voluntary aided school"",");
+            json.AppendLine(@"        ""MasterDateOpened"":  ""01-01-1920"",");
+            json.AppendLine(@"        ""MasterDfEEstabNo"":  ""3614"",");
+            json.AppendLine(@"        ""MasterUKPRN"":  ""10079319"",");
+            json.AppendLine(@"        ""MasterCRMAccountId"":  """",");
+            json.AppendLine(@"        ""MasterNavendorNo"":  """",");
+            json.AppendLine(@"        ""MasterPhaseOfEducation"":  null,");
+            json.AppendLine(@"        ""MasterProviderName"":  ""Sir John Cass\u0027s Foundation Primary School"",");
+            json.AppendLine(@"        ""MasterProviderTypeGroupName"":  ""LA maintained schools"",");
+            json.AppendLine(@"        ""MasterLocalAuthorityName"":  ""City of London"",");
+            json.AppendLine(@"        ""MasterDateClosed"":  """"");
+            json.AppendLine(@"    },");
+            json.AppendLine(@"    {");
+            json.AppendLine(@"        ""MasterURN"":  ""100001"",");
+            json.AppendLine(@"        ""MasterUPIN"":  """",");
+            json.AppendLine(@"        ""MasterProviderStatusName"":  ""Open"",");
+            json.AppendLine(@"        ""MasterLocalAuthorityCode"":  ""201"",");
+            json.AppendLine(@"        ""MasterDfELAEstabNo"":  ""2016005"",");
+            json.AppendLine(@"        ""MasterProviderLegalName"":  """",");
+            json.AppendLine(@"        ""MasterProviderTypeName"":  ""Other independent school"",");
+            json.AppendLine(@"        ""MasterDateOpened"":  ""01/01/1920"",");
+            json.AppendLine(@"        ""MasterDfEEstabNo"":  ""6005"",");
+            json.AppendLine(@"        ""MasterUKPRN"":  ""10013279"",");
+            json.AppendLine(@"        ""MasterCRMAccountId"":  """",");
+            json.AppendLine(@"        ""MasterNavendorNo"":  """",");
+            json.AppendLine(@"        ""MasterPhaseOfEducation"":  null,");
+            json.AppendLine(@"        ""MasterProviderName"":  ""City of London School for Girls"",");
+            json.AppendLine(@"        ""MasterProviderTypeGroupName"":  ""Independent schools"",");
+            json.AppendLine(@"        ""MasterLocalAuthorityName"":  ""City of London"",");
+            json.AppendLine(@"        ""MasterDateClosed"":  """"");
+            json.AppendLine(@"    }]");
+
+            byte[] byteArray = Encoding.UTF8.GetBytes(json.ToString());
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ISearchRepository<ProviderIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Index(Arg.Any<IEnumerable<ProviderIndex>>())
+                .Returns(Enumerable.Empty<IndexError>());
+
+
+            IProviderImportMappingService mappingService = CreateProviderImportMappingService();
+            mappingService
+                .Map(Arg.Any<MasterProviderModel>())
+                .Returns(new ProviderIndex());
+            mappingService
+               .Map(Arg.Any<MasterProviderModel>())
+               .Returns(new ProviderIndex());
+ 
+
+            ResultsService resultsService = CreateResultsService(searchRepository: searchRepository, providerImportMappingService: mappingService);
+
+            //Act
+            IActionResult result = await resultsService.ImportProviders(request);
+
+            //Assert
+            await
+                searchRepository
+                .Received(1)
+                .Index(Arg.Is<IEnumerable<ProviderIndex>>(m => m.Count() == 2));
+
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+
+            MasterProviderModel[] masterProviderModels = JsonConvert.DeserializeObject<MasterProviderModel[]>(json.ToString());
+
+            masterProviderModels[0]
+                .MasterDateOpened
+                .Should()
+                .NotBeNull();
+
+            masterProviderModels[1]
+               .MasterDateOpened
+               .Should()
+               .NotBeNull();
+        }
+
+        [TestMethod]
         public async Task RemoveCurrentProviders_WhenSummaryCountsExist_DeletesSummaryCounts()
         {
             //Arrange
