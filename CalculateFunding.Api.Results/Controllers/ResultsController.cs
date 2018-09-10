@@ -19,7 +19,7 @@ namespace CalculateFunding.Api.Results.Controllers
 			Guard.ArgumentNotNull(resultsSearchService, nameof(resultsSearchService));
 
 			_resultsService = resultsService;
-			_resultsSearchService = resultsSearchService;
+			_resultsSearchService = resultsSearchService; 
             _calculationProviderResultsSearchService = calculationProviderResultsSearchService;
         }
 

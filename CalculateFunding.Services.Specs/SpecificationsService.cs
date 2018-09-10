@@ -1773,6 +1773,35 @@ namespace CalculateFunding.Services.Specs
             return new NoContentResult();
         }
 
+        public async Task<IActionResult> CheckCalculationProgressForSpecifications(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out var specificationId);
+
+            if (specificationId.IsNullOrEmpty())
+            {
+                _logger.Error("There were no specifications found");
+                return new BadRequestObjectResult("There were no specifications found");
+            }
+            else
+            {
+                try
+                {
+                    SpecificationCalculationProgress specProgress = await _cacheProvider.GetAsync<SpecificationCalculationProgress>($"calculationProgress-{specificationId}");
+                    if (specProgress == null)
+                    {
+                        _logger.Error("Cache returned null, couldnt find specification - {specificationId}", specificationId);
+                        return new BadRequestObjectResult($"Couldnt find progress statement for specification-{specificationId}");
+                    }
+                    return new OkObjectResult(specProgress);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "Failed to retrieve calculation progress from cache - {specificationId}", specificationId);
+                    return new InternalServerErrorResult(ex.Message);
+                }
+            }
+        }
+
         private async Task<HttpStatusCode> UpdateSpecification(Specification specification, SpecificationVersion specificationVersion)
         {
             specification.Save(specificationVersion);

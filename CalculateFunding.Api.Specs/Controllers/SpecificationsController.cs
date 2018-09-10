@@ -251,5 +251,12 @@ namespace CalculateFunding.Api.Specs.Controllers
         {
             return _specService.SelectSpecificationForFunding(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/specs/check-calc-progress-for-spec")]
+        [HttpPost]
+        public Task<IActionResult> CheckCalculationProgressForSpecifications()
+        {
+            return _specService.CheckCalculationProgressForSpecifications(ControllerContext.HttpContext.Request);
+        }
     }
 }
