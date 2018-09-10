@@ -12,11 +12,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Results.ResultModels;
 
 namespace CalculateFunding.Services.Results.Services
 {
     public partial class ResultsServiceTests
     {
+	    private const string SpecificationId1 = "specId1";
+	    private const string RedisPrependKey = "calculation-progress:";
+
         [TestMethod]
         public void PublishProviderResults_WhenMessageIsNull_ThenArgumentNullExceptionThrown()
         {
@@ -751,5 +756,148 @@ namespace CalculateFunding.Services.Results.Services
                     m.First().History.ElementAt(1).Version == 2 &&
                     m.First().History.ElementAt(1).Provider.Id == providerId));
         }
-    }
+
+	    [TestMethod]
+	    public void PublishProviderResults_WhenNoExceptionThrown_ShouldReportProgressOnCacheCorrectly()
+	    {
+		    // Arrange
+		    string specificationId = SpecificationId1;
+		    IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
+		    {
+			    new ProviderResult()
+		    };
+
+		    ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+		    resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
+			    .Returns(Task.FromResult(providerResults));
+
+		    ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+		    specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
+			    .Returns(Task.FromResult(new SpecificationCurrentVersion()));
+
+		    IPublishedProviderResultsRepository publishedProviderResultsRepository =
+			    CreatePublishedProviderResultsRepository();
+		    publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
+			    .Returns(Task.CompletedTask);
+		    publishedProviderResultsRepository
+			    .SavePublishedAllocationLineResultsHistory(Arg.Any<IEnumerable<PublishedAllocationLineResultHistory>>())
+			    .Returns(Task.CompletedTask);
+
+		    IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository =
+			    CreatePublishedProviderCalculationResultsRepository();
+		    publishedProviderCalculationResultsRepository
+			    .CreatePublishedCalculationResults(Arg.Any<IEnumerable<PublishedProviderCalculationResult>>())
+			    .Returns(Task.CompletedTask);
+
+		    ICacheProvider mockCacheProvider = CreateCacheProvider();
+
+		    SpecificationCalculationExecutionStatus expectedProgressCall1 = CreateSpecificationCalculationProgress(c =>
+		    {
+			    c.PercentageCompleted = 0;
+			    c.CalculationProgress = CalculationProgressStatus.InProgress;
+		    });
+		    SpecificationCalculationExecutionStatus expectedProgressCall2 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 5);
+		    SpecificationCalculationExecutionStatus expectedProgressCall3 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 10);
+		    SpecificationCalculationExecutionStatus expectedProgressCall4 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 15);
+		    SpecificationCalculationExecutionStatus expectedProgressCall5 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 22);
+		    SpecificationCalculationExecutionStatus expectedProgressCall6 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 32);
+		    SpecificationCalculationExecutionStatus expectedProgressCall7 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 85);
+		    SpecificationCalculationExecutionStatus expectedProgressCall8 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 90);
+		    SpecificationCalculationExecutionStatus expectedProgressCall9 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 95);
+		    SpecificationCalculationExecutionStatus expectedProgressCall10 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 100);
+		    SpecificationCalculationExecutionStatus expectedProgressCall11 = CreateSpecificationCalculationProgress(c =>
+		    {
+			    c.PercentageCompleted = 100;
+			    c.CalculationProgress = CalculationProgressStatus.Finished;
+		    });
+
+		    ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
+			    publishedProviderResultsRepository: publishedProviderResultsRepository,
+			    specificationsRepository: specificationsRepository,
+			    publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository,
+			    cacheProvider: mockCacheProvider);
+
+		    Message message = new Message();
+		    message.UserProperties["specification-id"] = SpecificationId1;
+
+		    // Act
+		    Func<Task> publishProviderResultsAction = () => resultsService.PublishProviderResults(message);
+
+		    //Assert
+		    publishProviderResultsAction.Should().NotThrow();
+		    
+			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall1, TimeSpan.FromHours(6), false);
+			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall2, TimeSpan.FromHours(6), false);
+			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall3, TimeSpan.FromHours(6), false);
+			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall4, TimeSpan.FromHours(6), false);
+			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall5, TimeSpan.FromHours(6), false);
+			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall6, TimeSpan.FromHours(6), false);
+			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall7, TimeSpan.FromHours(6), false);
+			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall8, TimeSpan.FromHours(6), false);
+			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall9, TimeSpan.FromHours(6), false);
+			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall10, TimeSpan.FromHours(6), false);
+			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall11, TimeSpan.FromHours(6), false);
+			mockCacheProvider.Received(11).SetAsync(Arg.Any<string>(), Arg.Any<SpecificationCalculationExecutionStatus>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
+		}
+
+		[TestMethod]
+		public void PublishProviderResults_WhenAnExceptionIsThrownAtSomePoint_ThenErrorIsReportedOnCache()
+		{
+			// Arrange
+			IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
+			{
+				new ProviderResult()
+			};
+
+			ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+			resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(SpecificationId1), Arg.Is(-1))
+				.Returns(Task.FromResult(providerResults));
+
+			ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+			specificationsRepository.GetCurrentSpecificationById(Arg.Is(SpecificationId1))
+				.Returns(Task.FromResult(new SpecificationCurrentVersion()));
+
+			IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
+			publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
+				.Returns(Task.CompletedTask);
+
+			publishedProviderResultsRepository.SavePublishedAllocationLineResultsHistory(Arg.Any<IEnumerable<PublishedAllocationLineResultHistory>>())
+				.Returns(Task.CompletedTask);
+
+			IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
+			publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(Arg.Any<IEnumerable<PublishedProviderCalculationResult>>())
+				.Returns(ex => { throw new Exception("Error saving published calculation results"); });
+
+			ICacheProvider mockCacheProvider = CreateCacheProvider();
+
+			SpecificationCalculationExecutionStatus expectedErrorProgress = CreateSpecificationCalculationProgress(c =>
+			{
+				c.PercentageCompleted = 15;
+				c.CalculationProgress = CalculationProgressStatus.Error;
+			});
+
+			ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
+				publishedProviderResultsRepository: publishedProviderResultsRepository,
+				specificationsRepository: specificationsRepository,
+				publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository,
+				cacheProvider: mockCacheProvider);
+
+			Message message = new Message();
+			message.UserProperties["specification-id"] = SpecificationId1;
+
+			// Act
+			Func<Task> publishProviderAction = () => resultsService.PublishProviderResults(message);
+
+			//Assert
+			publishProviderAction.Should().ThrowExactly<Exception>();
+			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedErrorProgress, TimeSpan.FromHours(6), false);
+		}
+
+		private static SpecificationCalculationExecutionStatus CreateSpecificationCalculationProgress(Action<SpecificationCalculationExecutionStatus> defaultModelAction)
+	    {
+		    SpecificationCalculationExecutionStatus defaultModel = new SpecificationCalculationExecutionStatus(SpecificationId1, 0, CalculationProgressStatus.InProgress);
+		    defaultModelAction(defaultModel);
+		    return defaultModel;
+	    }
+	}
 }

@@ -12,7 +12,7 @@ namespace CalculateFunding.Api.External.V1.Controllers
     {
         public object GetExamples()
         {
-            ProviderResultSummary providerResultSummary = JsonConvert.DeserializeObject<ProviderResultSummary>(Properties.Resources.Sample_Provider_Results);
+            ProviderResultSummary providerResultSummary = JsonConvert.DeserializeObject<ProviderResultSummary>(Properties.Resources.V1_Sample_Provider_Results);
 
             return providerResultSummary;
         }

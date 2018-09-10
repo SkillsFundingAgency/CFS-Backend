@@ -35,37 +35,37 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("fundingStreamName")]
         public string FundingStreamName { get; set; }
 
-        [JsonProperty("fundingPeriodType")]
-        public string FundingPeriodType { get; set; }
+        [JsonProperty("fundingStreamShortName")]
+        public string FundingStreamShortName { get; set; }
+
+        [JsonProperty("fundingStreamPeriodId")]
+        public string FundingStreamPeriodId { get; set; }
+
+        [JsonProperty("fundingStreamStartDay")]
+        public int FundingStreamStartDay { get; set; }
+
+        [JsonProperty("fundingStreamStartMonth")]
+        public int FundingStreamStartMonth { get; set; }
+
+        [JsonProperty("fundingStreamEndDay")]
+        public int FundingStreamEndDay { get; set; }
+
+        [JsonProperty("fundingStreamEndMonth")]
+        public int FundingStreamEndMonth { get; set; }
+
+        [JsonProperty("fundingStreamPeriodName")]
+        public string FundingStreamPeriodName { get; set; }
 
         [JsonProperty("fundingPeriodId")]
         public string FundingPeriodId { get; set; }
 
-        [JsonProperty("fundingPeriodStartDate")]
-        public DateTimeOffset FundingPeriodStartDate { get; set; }
-
         [IsFilterable]
         [JsonProperty("fundingPeriodStartYear")]
-        public int FundingPeriodStartYear
-        {
-            get
-            {
-                return FundingPeriodStartDate.Year;
-            }
-        }
-
-        [JsonProperty("fundingPeriodEndDate")]
-        public DateTimeOffset FundingPeriodEndDate { get; set; }
+        public int FundingPeriodStartYear { get; set; }
 
         [IsFilterable]
         [JsonProperty("fundingPeriodEndYear")]
-        public int FundingPeriodEndYear
-        {
-            get
-            {
-                return FundingPeriodEndDate.Year;
-            }
-        }
+        public int FundingPeriodEndYear { get; set; }
 
         [IsFilterable]
         [JsonProperty("providerId")]
@@ -78,8 +78,14 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("providerUpin")]
         public string ProviderUpin { get; set; }
 
+        [JsonProperty("providerUrn")]
+        public string ProviderUrn { get; set; }
+
         [JsonProperty("providerOpenDate")]
         public DateTimeOffset? ProviderOpenDate { get; set; }
+
+        [JsonProperty("providerClosedDate")]
+        public DateTimeOffset? ProviderClosedDate { get; set; }
 
         [IsFilterable]
         [JsonProperty("allocationLineId")]
@@ -87,6 +93,15 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("allocationLineName")]
         public string AllocationLineName { get; set; }
+
+        [JsonProperty("allocationLineShortName")]
+        public string AllocationLineShortName { get; set; }
+
+        [JsonProperty("allocationLineFundingRoute")]
+        public string AllocationLineFundingRoute { get; set; }
+
+        [JsonProperty("allocationLineContractRequired")]
+        public bool AllocationLineContractRequired { get; set; }
 
         [JsonProperty("allocationVersionNumber")]
         public int AllocationVersionNumber { get; set; }
@@ -107,6 +122,9 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("providerName")]
         public string ProviderName { get; set; }
 
+        [JsonProperty("providerLegalName")]
+        public string ProviderLegalName { get; set; }
+
         [IsFilterable]
         [JsonProperty("laCode")]
         public string LaCode { get; set; }
@@ -126,7 +144,20 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("establishmentNumber")]
         public string EstablishmentNumber { get; set; }
 
+        [IsFilterable]
+        [JsonProperty("dfeEstablishmentNumber")]
+        public string DfeEstablishmentNumber { get; set; }
+
         [JsonProperty("policySummaries")]
         public string PolicySummaries { get; set; }
+
+        [JsonProperty("crmAccountId")]
+        public string CrmAccountId { get; set; }
+
+        [JsonProperty("navVendorNo")]
+        public string NavVendorNo { get; set; }
+
+        [JsonProperty("status")]
+        public string ProviderStatus { get; set; }
     }
 }

@@ -99,7 +99,9 @@ namespace CalculateFunding.Services.Results.Services
                 MasterProviderTypeName = "sub type",
                 MasterUKPRN = "1234",
                 MasterUPIN = "4321",
-                MasterURN = "2413"
+                MasterURN = "2413",
+                MasterNavendorNo = "12345",
+                MasterPhaseOfEducation = "0"
             };
 
             ProviderImportMappingService mappingService = new ProviderImportMappingService();
@@ -123,6 +125,8 @@ namespace CalculateFunding.Services.Results.Services
             providerIndex.UKPRN = "1234";
             providerIndex.UPIN = "4321";
             providerIndex.URN = "2413";
+            providerIndex.NavVendorNo = "12345";
+            providerIndex.PhaseOfEducation = "0";
         }
     }
 }

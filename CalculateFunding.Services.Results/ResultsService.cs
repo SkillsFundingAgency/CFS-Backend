@@ -33,7 +33,8 @@ namespace CalculateFunding.Services.Results
 {
     public class ResultsService : IResultsService, IHealthChecker
     {
-        private readonly ILogger _logger;
+
+		private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
         private readonly ICalculationResultsRepository _resultsRepository;
         private readonly IMapper _mapper;
@@ -114,6 +115,62 @@ namespace CalculateFunding.Services.Results
             _publishedProviderResultsRepositoryPolicy = resiliencePolicies.PublishedProviderResultsRepository;
             _providerProfilingRepositoryPolicy = resiliencePolicies.ProviderProfilingRepository;
             _providerProfilingRepository = providerProfilingRepository;
+            _messengerService = messengerService;
+        }
+
+        public ResultsService(ILogger logger,
+          ICalculationResultsRepository resultsRepository,
+          IMapper mapper,
+          ISearchRepository<ProviderIndex> searchRepository,
+          ITelemetry telemetry,
+          IProviderSourceDatasetRepository providerSourceDatasetRepository,
+          ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository,
+          ISpecificationsRepository specificationsRepository,
+          IResultsResilliencePolicies resiliencePolicies,
+          IPublishedProviderResultsAssemblerService publishedProviderResultsAssemblerService,
+          IPublishedProviderResultsRepository publishedProviderResultsRepository,
+          IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository,
+          IProviderImportMappingService providerImportMappingService,
+          ICacheProvider cacheProvider,
+          ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationsSearchRepository,
+          IMessengerService messengerService)
+        {
+            Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
+            Guard.ArgumentNotNull(telemetry, nameof(telemetry));
+            Guard.ArgumentNotNull(providerSourceDatasetRepository, nameof(providerSourceDatasetRepository));
+            Guard.ArgumentNotNull(calculationProviderResultsSearchRepository, nameof(calculationProviderResultsSearchRepository));
+            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(publishedProviderResultsAssemblerService, nameof(publishedProviderResultsAssemblerService));
+            Guard.ArgumentNotNull(publishedProviderResultsRepository, nameof(publishedProviderResultsRepository));
+            Guard.ArgumentNotNull(publishedProviderCalculationResultsRepository, nameof(publishedProviderCalculationResultsRepository));
+            Guard.ArgumentNotNull(providerImportMappingService, nameof(providerImportMappingService));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(allocationNotificationsSearchRepository, nameof(allocationNotificationsSearchRepository));
+            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
+
+            _logger = logger;
+            _resultsRepository = resultsRepository;
+            _mapper = mapper;
+            _searchRepository = searchRepository;
+            _telemetry = telemetry;
+            _providerSourceDatasetRepository = providerSourceDatasetRepository;
+            _calculationProviderResultsSearchRepository = calculationProviderResultsSearchRepository;
+            _resultsRepositoryPolicy = resiliencePolicies.ResultsRepository;
+            _specificationsRepository = specificationsRepository;
+            _resultsSearchRepositoryPolicy = resiliencePolicies.ResultsSearchRepository;
+            _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsRepository;
+            _publishedProviderResultsAssemblerService = publishedProviderResultsAssemblerService;
+            _publishedProviderResultsRepository = publishedProviderResultsRepository;
+            _publishedProviderCalculationResultsRepository = publishedProviderCalculationResultsRepository;
+            _providerImportMappingService = providerImportMappingService;
+            _cacheProvider = cacheProvider;
+            _allocationNotificationsSearchRepository = allocationNotificationsSearchRepository;
+            _allocationNotificationsSearchRepositoryPolicy = resiliencePolicies.AllocationNotificationFeedSearchRepository;
+            _publishedProviderCalculationResultsRepositoryPolicy = resiliencePolicies.PublishedProviderCalculationResultsRepository;
+            _publishedProviderResultsRepositoryPolicy = resiliencePolicies.PublishedProviderResultsRepository;
             _messengerService = messengerService;
         }
 
@@ -402,10 +459,10 @@ namespace CalculateFunding.Services.Results
 
             return new OkObjectResult(totalsModels);
         }
-
+		
         public async Task PublishProviderResults(Message message)
         {
-            Guard.ArgumentNotNull(message, nameof(message));
+	        Guard.ArgumentNotNull(message, nameof(message));
 
             if (!message.UserProperties.ContainsKey("specification-id"))
             {
@@ -413,56 +470,73 @@ namespace CalculateFunding.Services.Results
                 throw new ArgumentException("Message must contain a specification id");
             }
 
+	        int calculationProgress = 0;
+
             string specificationId = message.UserProperties["specification-id"].ToString();
+	        UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.InProgress);
 
-            IEnumerable<ProviderResult> providerResults = await GetProviderResultsBySpecificationId(specificationId);
+			IEnumerable<ProviderResult> providerResults = await GetProviderResultsBySpecificationId(specificationId);
+	        UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
-            if (providerResults.IsNullOrEmpty())
+			if (providerResults.IsNullOrEmpty())
             {
-                _logger.Error($"Provider results not found for specification id {specificationId}");
+	            UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
+				_logger.Error($"Provider results not found for specification id {specificationId}");
                 throw new ArgumentException("Could not find any provider results for specification");
             }
 
             SpecificationCurrentVersion specification = await _specificationsRepository.GetCurrentSpecificationById(specificationId);
+			UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
             if (specification == null)
             {
-                _logger.Error($"Specification not found for specification id {specificationId}");
+	            UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
+				_logger.Error($"Specification not found for specification id {specificationId}");
                 throw new ArgumentException($"Specification not found for specification id {specificationId}");
             }
 
             Reference author = message.GetUserDetails();
 
             IEnumerable<PublishedProviderCalculationResult> publishedProviderCalcuationResults = _publishedProviderResultsAssemblerService.AssemblePublishedCalculationResults(providerResults, author, specification);
+	        UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
-            try
+			try
             {
                 await _publishedProviderCalculationResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(publishedProviderCalcuationResults.ToList()));
+	            UpdateCacheForSegmentDone(specificationId, calculationProgress += 7, CalculationProgressStatus.InProgress);
 
-                await SavePublishedCalculationResultVersionHistory(publishedProviderCalcuationResults, specificationId);
+				await SavePublishedCalculationResultVersionHistory(publishedProviderCalcuationResults, specificationId);
+				UpdateCacheForSegmentDone(specificationId, calculationProgress += 10, CalculationProgressStatus.InProgress);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, $"Failed to create published provider calculation results for specification: {specificationId}");
+	            UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
+				_logger.Error(ex, $"Failed to create published provider calculation results for specification: {specificationId}");
                 throw new Exception($"Failed to create published provider calculation results for specification: {specificationId}", ex);
             }
 
             IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsAssemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
+	        UpdateCacheForSegmentDone(specificationId, calculationProgress += 53, CalculationProgressStatus.InProgress);
 
-            try
+			try
             {
                 await _publishedProviderResultsRepository.SavePublishedResults(publishedProviderResults.ToList());
+	            UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
-                await SavePublishedAllocationLineResultVersionHistory(publishedProviderResults, specificationId);
+				await SavePublishedAllocationLineResultVersionHistory(publishedProviderResults, specificationId);
+	            UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
-                await UpdateAllocationNotificationsFeedIndex(publishedProviderResults, specification);
-            }
+				await UpdateAllocationNotificationsFeedIndex(publishedProviderResults, specification);
+	            UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+			}
             catch (Exception ex)
             {
-                _logger.Error(ex, $"Failed to create published provider results for specification: {specificationId}");
+	            UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
+				_logger.Error(ex, $"Failed to create published provider results for specification: {specificationId}");
                 throw new Exception($"Failed to create published provider results for specification: {specificationId}", ex);
             }
-        }
+	        UpdateCacheForSegmentDone(specificationId, 100, CalculationProgressStatus.Finished);
+		}
 
         void AssignRelatedCalculationResultIdsToAllocationResults(IEnumerable<PublishedProviderResult> publishedProviderResults, IEnumerable<PublishedProviderCalculationResult> publishedProviderCalcuationResults)
         {
@@ -1042,7 +1116,7 @@ namespace CalculateFunding.Services.Results
                     {
                         result.Title = $"Allocation {result.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {result.FundingStreamResult.AllocationLineResult.Current.Status.ToString()}";
 
-                        if(updateStatusModel.Status == AllocationLineStatus.Approved)
+                        if(updateStatusModel.Status == AllocationLineStatus.Approved || updateStatusModel.Status != AllocationLineStatus.Approved && result.ProfilingPeriods.IsNullOrEmpty())
                         {
                             await GetProfilingPeriods(request, result);
                         }
@@ -1125,14 +1199,23 @@ namespace CalculateFunding.Services.Results
 
             ProviderProfilingResponseModel responseModel = await _providerProfilingRepositoryPolicy.ExecuteAsync(() => _providerProfilingRepository.GetProviderProfilePeriods(model));
 
-            if (responseModel != null)
+            if (responseModel != null && !responseModel.DeliveryProfilePeriods.IsNullOrEmpty())
             {
                 result.ProfilingPeriods = responseModel.DeliveryProfilePeriods.ToArraySafe();
-                await _publishedProviderResultsRepository.SavePublishedResults(new[] { result });
+
+                await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(new[] { result }));
+
+                SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(result.SpecificationId));
+
+                Console.WriteLine("Saving profiling info");
+
+                await UpdateAllocationNotificationsFeedIndex(new[] { result }, specification);
             }
             else
             {
                 _logger.Error($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}");
+
+                throw new Exception($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}");
             }
         }
 
@@ -1255,7 +1338,8 @@ namespace CalculateFunding.Services.Results
             }
         }
 
-        async Task UpdateAllocationNotificationsFeedIndex(IEnumerable<PublishedProviderResult> publishedProviderResults, SpecificationCurrentVersion specification)
+        async Task 
+	        UpdateAllocationNotificationsFeedIndex(IEnumerable<PublishedProviderResult> publishedProviderResults, SpecificationCurrentVersion specification)
         {
             IEnumerable<AllocationNotificationFeedIndex> notifications = await BuildAllocationNotificationIndexItems(publishedProviderResults, specification);
 
@@ -1302,19 +1386,31 @@ namespace CalculateFunding.Services.Results
                     DateUpdated = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Date,
                     FundingStreamId = publishedProviderResult.FundingStreamResult.FundingStream.Id,
                     FundingStreamName = publishedProviderResult.FundingStreamResult.FundingStream.Name,
+                    FundingStreamShortName = publishedProviderResult.FundingStreamResult.FundingStream.ShortName,
+                    FundingStreamPeriodId = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType?.Id,
+                    FundingStreamStartDay = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.StartDay,
+                    FundingStreamStartMonth = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.StartMonth,
+                    FundingStreamEndDay = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.EndDay,
+                    FundingStreamEndMonth = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.EndMonth,
+                    FundingStreamPeriodName = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType?.Name,
                     FundingPeriodId = publishedProviderResult.FundingPeriod.Id,
-                    FundingPeriodStartDate = publishedProviderResult.FundingPeriod.StartDate,
-                    FundingPeriodEndDate = publishedProviderResult.FundingPeriod.EndDate,
+                    FundingPeriodStartYear = publishedProviderResult.FundingPeriod.StartYear,
+                    FundingPeriodEndYear = publishedProviderResult.FundingPeriod.EndYear,
                     ProviderId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Id,
                     ProviderUkPrn = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.UKPRN,
                     ProviderUpin = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.UPIN,
+                    ProviderUrn = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.URN,
                     ProviderOpenDate = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DateOpened,
+                    ProviderClosedDate = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DateOpened,
                     AllocationLineId = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id,
                     AllocationLineName = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name,
                     AllocationVersionNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Version,
                     AllocationStatus = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status.ToString(),
                     AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue
                                             ? Convert.ToDouble(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value) : 0,
+                    AllocationLineContractRequired = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.IsContractRequired,
+                    AllocationLineFundingRoute = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.FundingRoute.ToString(),
+                    AllocationLineShortName = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.ShortName,
                     ProviderProfiling = JsonConvert.SerializeObject(publishedProviderResult.ProfilingPeriods),
                     ProviderName = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Name,
                     LaCode = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.LACode,
@@ -1322,6 +1418,10 @@ namespace CalculateFunding.Services.Results
                     ProviderType = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderType,
                     SubProviderType = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderSubType,
                     EstablishmentNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.EstablishmentNumber,
+                    CrmAccountId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.CrmAccountId,
+                    NavVendorNo = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.NavVendorNo,
+                    DfeEstablishmentNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DfeEstablishmentNumber,
+                    ProviderStatus = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Status,
                     PolicySummaries = JsonConvert.SerializeObject(CreatePolicySummaries(providerCalculationResults, specification))
                 });
             }
@@ -1398,5 +1498,13 @@ namespace CalculateFunding.Services.Results
             return calculationSummaries;
         }
 
-    }
+	    private void UpdateCacheForSegmentDone(string specificationId, int percentageToSetTo, CalculationProgressStatus progressStatus, string message = null)
+	    {
+		    SpecificationCalculationExecutionStatus calculationProgress = new SpecificationCalculationExecutionStatus(specificationId, percentageToSetTo, progressStatus)
+		    {
+			    ErrorMessage = message
+		    };
+		    CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{calculationProgress.SpecificationId}", calculationProgress, _cacheProvider);
+	    }
+	}
 }

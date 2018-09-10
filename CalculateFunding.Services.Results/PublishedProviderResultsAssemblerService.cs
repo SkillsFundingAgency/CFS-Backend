@@ -240,13 +240,14 @@ namespace CalculateFunding.Services.Results
 
                     if (allocationLine != null)
                     {
-                        PublishedFundingStreamResult publishedFundingStreamResult = new PublishedFundingStreamResult();
+                        PublishedFundingStreamResult publishedFundingStreamResult = new PublishedFundingStreamResult
+                        {
+                            FundingStream = fundingStream,
 
-                        publishedFundingStreamResult.FundingStream = new Reference(fundingStreamReference.Id, fundingStreamReference.Name);
+                            FundingStreamPeriod = $"{fundingStream.Id}{specificationCurrentVersion.FundingPeriod.Id}",
 
-                        publishedFundingStreamResult.FundingStreamPeriod = $"{fundingStream.Id}{specificationCurrentVersion.FundingPeriod.Id}";
-
-                        publishedFundingStreamResult.DistributionPeriod = $"{fundingStream.PeriodType.Id}{specificationCurrentVersion.FundingPeriod.Id}";
+                            DistributionPeriod = $"{fundingStream.PeriodType.Id}{specificationCurrentVersion.FundingPeriod.Id}"
+                        };
 
                         PublishedAllocationLineResultVersion publishedAllocationLineResultVersion = new PublishedAllocationLineResultVersion
                         {
@@ -260,11 +261,7 @@ namespace CalculateFunding.Services.Results
 
                         publishedFundingStreamResult.AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new Reference
-                            {
-                                Name = allocationLine.Name,
-                                Id = allocationLine.Id
-                            },
+                            AllocationLine = allocationLine,
                             Current = publishedAllocationLineResultVersion
                         };
 

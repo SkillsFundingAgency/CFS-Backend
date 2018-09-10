@@ -215,13 +215,26 @@ namespace CalculateFunding.Api.External.V1.Services
                 {
                     LocalAuthorityProviderResultSummary resultSummary = new LocalAuthorityProviderResultSummary
                     {
-                        //temp until we sort out ukprns
-                        Ukprn = string.IsNullOrWhiteSpace(feedIndex.ProviderUkPrn) ? feedIndex.ProviderId : feedIndex.ProviderUkPrn ,
-                        LAEStab = feedIndex.EstablishmentNumber,
-                        OrganisationName = feedIndex.ProviderName,
-                        OrganisationType = feedIndex.ProviderType,
-                        OrganisationSubType = feedIndex.SubProviderType,
-                        EligiblePupils = feedIndex.AllocationLearnerCount
+                        Provider = new AllocationProviderModel
+                        {
+                            ProviderId = feedIndex.ProviderId,
+                            Name = feedIndex.ProviderName,
+                            LegalName = feedIndex.ProviderLegalName,
+                            UkPrn = feedIndex.ProviderUkPrn,
+                            Upin = feedIndex.ProviderUpin,
+                            Urn = feedIndex.ProviderUrn,
+                            DfeEstablishmentNumber = feedIndex.DfeEstablishmentNumber,
+                            EstablishmentNumber = feedIndex.EstablishmentNumber,
+                            LaCode = feedIndex.LaCode,
+                            LocalAuthority = feedIndex.Authority,
+                            Type = feedIndex.ProviderType,
+                            SubType = feedIndex.SubProviderType,
+                            OpenDate = feedIndex.ProviderOpenDate,
+                            CloseDate = feedIndex.ProviderClosedDate,
+                            CrmAccountId = feedIndex.CrmAccountId,
+                            NavVendorNo = feedIndex.NavVendorNo,
+                            Status = feedIndex.ProviderStatus
+                        }
                     };
 
                     IEnumerable<IGrouping<string, AllocationNotificationFeedIndex>> fundingPeriodResultSummaryGroups = localAuthorityResultSummaryGroup.GroupBy(m => m.FundingPeriodId);
@@ -232,18 +245,33 @@ namespace CalculateFunding.Api.External.V1.Services
 
                         FundingPeriodResultSummary fundingPeriodResultSummary = new FundingPeriodResultSummary
                         {
-                            FundingPeriod = new Period
+                            Period = new Period
                             {
-                                PeriodId = fundingPeriodFeedIndex.FundingPeriodId,
-                                StartDate = fundingPeriodFeedIndex.FundingPeriodStartDate,
-                                EndDate = fundingPeriodFeedIndex.FundingPeriodEndDate,
-                                PeriodType = fundingPeriodFeedIndex.FundingPeriodType
+                                Id = fundingPeriodFeedIndex.FundingPeriodId,
+                                Name = fundingPeriodFeedIndex.FundingStreamPeriodName,
+                                StartYear = fundingPeriodFeedIndex.FundingPeriodStartYear,
+                                EndYear = fundingPeriodFeedIndex.FundingPeriodEndYear
+                            },
+                            FundingStream = new AllocationFundingStreamModel
+                            {
+                                Id = feedIndex.FundingStreamId,
+                                Name = feedIndex.FundingStreamName,
+                                ShortName = feedIndex.FundingStreamShortName,
+                                PeriodType = new AllocationFundingStreamPeriodTypeModel
+                                {
+                                    Id = feedIndex.FundingStreamPeriodId,
+                                    Name = feedIndex.FundingStreamPeriodName,
+                                    StartDay = feedIndex.FundingStreamStartDay,
+                                    StartMonth = feedIndex.FundingStreamStartMonth,
+                                    EndDay = feedIndex.FundingStreamEndDay,
+                                    EndMonth = feedIndex.FundingStreamEndMonth
+                                }
                             }
                         };
 
                         foreach (AllocationNotificationFeedIndex allocationFeedIndex in fundingPeriodResultSummaryGroup)
                         {
-                            if (allocationFeedIndex.ProviderId != resultSummary.Ukprn)
+                            if (allocationFeedIndex.ProviderId != resultSummary.Provider.ProviderId)
                             {
                                 continue;
                             }
@@ -252,8 +280,11 @@ namespace CalculateFunding.Api.External.V1.Services
                             {
                                 AllocationLine = new AllocationLine
                                 {
-                                    AllocationLineCode = allocationFeedIndex.AllocationLineId,
-                                    AllocationLineName = allocationFeedIndex.AllocationLineName
+                                    Id = allocationFeedIndex.AllocationLineId,
+                                    Name = allocationFeedIndex.AllocationLineName,
+                                    ShortName = allocationFeedIndex.AllocationLineShortName,
+                                    FundingRoute = allocationFeedIndex.AllocationLineFundingRoute,
+                                    ContractRequired = allocationFeedIndex.AllocationLineContractRequired ? "Y" : "N"
                                 },
                                 AllocationStatus = allocationFeedIndex.AllocationStatus,
                                 AllocationVersionNumber = (ushort)allocationFeedIndex.AllocationVersionNumber,
@@ -314,14 +345,24 @@ namespace CalculateFunding.Api.External.V1.Services
 
             ProviderResultSummary providerResutSummary = new ProviderResultSummary
             {
-                Provider = new Provider
+                Provider = new AllocationProviderModel
                 {
-                    //AB: temporary why we dont have ukprns
-                    Ukprn = !string.IsNullOrWhiteSpace(firstEntry.ProviderUkPrn) ? firstEntry.ProviderUkPrn : firstEntry.ProviderId,
-                    ProviderOpenDate = firstEntry.ProviderOpenDate,
-                    LegalName = firstEntry.ProviderName?.ToUpper(),
-                    LAEstablishmentNo = firstEntry.EstablishmentNumber,
-                    LANo = firstEntry.LaCode
+                    Name = firstEntry.ProviderName,
+                    LegalName = firstEntry.ProviderLegalName,
+                    UkPrn = firstEntry.ProviderUkPrn,
+                    Upin = firstEntry.ProviderUpin,
+                    Urn = firstEntry.ProviderUrn,
+                    DfeEstablishmentNumber = firstEntry.DfeEstablishmentNumber,
+                    EstablishmentNumber = firstEntry.EstablishmentNumber,
+                    LaCode = firstEntry.LaCode,
+                    LocalAuthority = firstEntry.Authority,
+                    Type = firstEntry.ProviderType,
+                    SubType = firstEntry.SubProviderType,
+                    OpenDate = firstEntry.ProviderOpenDate,
+                    CloseDate = firstEntry.ProviderClosedDate,
+                    CrmAccountId = firstEntry.CrmAccountId,
+                    NavVendorNo = firstEntry.NavVendorNo,
+                    Status = firstEntry.ProviderStatus
                 }
             };
 
@@ -333,10 +374,10 @@ namespace CalculateFunding.Api.External.V1.Services
                 {
                     Period = new Period
                     {
-                        PeriodType = firstPeriodEntry.FundingPeriodType,
-                        PeriodId = firstPeriodEntry.FundingPeriodId,
-                        StartDate = firstPeriodEntry.FundingPeriodStartDate,
-                        EndDate = firstPeriodEntry.FundingPeriodEndDate
+                        Id = firstPeriodEntry.FundingPeriodId,
+                        Name = firstPeriodEntry.FundingStreamPeriodName,
+                        StartYear = firstPeriodEntry.FundingPeriodStartYear,
+                        EndYear = firstPeriodEntry.FundingPeriodEndYear
                     }
                 };
 
@@ -348,10 +389,20 @@ namespace CalculateFunding.Api.External.V1.Services
 
                     FundingStreamResultSummary fundingStreamResultSummary = new FundingStreamResultSummary
                     {
-                        FundingStream = new FundingStream
+                        FundingStream = new AllocationFundingStreamModel
                         {
-                            FundingStreamCode = feedIndex.FundingStreamId,
-                            FundingStreamName = feedIndex.FundingStreamName
+                            Id = feedIndex.FundingStreamId,
+                            Name = feedIndex.FundingStreamName,
+                            ShortName = feedIndex.FundingStreamShortName,
+                            PeriodType = new AllocationFundingStreamPeriodTypeModel
+                            {
+                                Id = feedIndex.FundingStreamPeriodId,
+                                Name = feedIndex.FundingStreamPeriodName,
+                                StartDay = feedIndex.FundingStreamStartDay,
+                                StartMonth = feedIndex.FundingStreamStartMonth,
+                                EndDay = feedIndex.FundingStreamEndDay,
+                                EndMonth = feedIndex.FundingStreamEndMonth
+                            }
                         }
                     };
 
@@ -361,12 +412,17 @@ namespace CalculateFunding.Api.External.V1.Services
                         {
                             AllocationLine = new AllocationLine
                             {
-                                AllocationLineCode = allocationFeedIndex.AllocationLineId,
-                                AllocationLineName = allocationFeedIndex.AllocationLineName
+                                Id = allocationFeedIndex.AllocationLineId,
+                                Name = allocationFeedIndex.AllocationLineName,
+                                ShortName = allocationFeedIndex.AllocationLineShortName,
+                                FundingRoute = allocationFeedIndex.AllocationLineFundingRoute,
+                                ContractRequired = allocationFeedIndex.AllocationLineContractRequired ? "Y" : "N"
                             },
                             AllocationVersionNumber = (ushort)allocationFeedIndex.AllocationVersionNumber,
                             AllocationStatus = allocationFeedIndex.AllocationStatus,
-                            AllocationAmount = Convert.ToDecimal(allocationFeedIndex.AllocationAmount)
+                            AllocationAmount = Convert.ToDecimal(allocationFeedIndex.AllocationAmount),
+                            ProfilePeriods = JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(allocationFeedIndex.ProviderProfiling).Select(
+                                    m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod)).ToArraySafe()
                         });
                     }
 
@@ -472,9 +528,9 @@ namespace CalculateFunding.Api.External.V1.Services
                     feed.ProviderUkPrn = feed.ProviderId;
                 }
 
-                if(string.IsNullOrWhiteSpace(feed.FundingPeriodId) || string.IsNullOrWhiteSpace(feed.FundingPeriodType))
+                if(string.IsNullOrWhiteSpace(feed.FundingPeriodId))
                 {
-                    _logger.Warning($"{logPrefix} funding period id or type");
+                    _logger.Warning($"{logPrefix} funding period id");
 
                     continue;
                 }

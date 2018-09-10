@@ -15,13 +15,12 @@ namespace CalculateFunding.Api.External.V1.Models
         public FundingStreamResultSummary(FundingStream fundingStream, decimal totalAmount,
             List<AllocationResult> allocations, List<PolicyResult> policies)
         {
-            FundingStream = fundingStream;
             TotalAmount = totalAmount;
             Allocations = allocations;
             Policies = policies;
         }
 
-        public FundingStream FundingStream { get; set; }
+        public AllocationFundingStreamModel FundingStream { get; set; }
 
         public decimal TotalAmount { get; set; }
 

@@ -7,18 +7,10 @@ namespace CalculateFunding.Models.Converters
 {
     public class DateTimeOffsetConverter : DateTimeConverterBase
     {
-        private string _format = "dd/MM/yyyy";
-
-        public DateTimeOffsetConverter(string format)
-        {
-            _format = format;
-        }
-
-        public DateTimeOffsetConverter(){}
-
+       
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            writer.WriteValue(((DateTimeOffset)value).ToString(_format));
+            writer.WriteValue(((DateTimeOffset)value).ToString("dd/MM/yyyy"));
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -32,7 +24,11 @@ namespace CalculateFunding.Models.Converters
 
             DateTimeOffset result;
 
-            if (DateTimeOffset.TryParseExact(date, _format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+            if (DateTimeOffset.TryParseExact(date, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+            {
+                return result;
+            }
+            else if (DateTimeOffset.TryParseExact(date, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
             {
                 return result;
             }

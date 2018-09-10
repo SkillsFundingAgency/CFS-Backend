@@ -1,9 +1,4 @@
-﻿using CalculateFunding.Models.External;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
+﻿using System;
 
 namespace CalculateFunding.Api.External.V1.Models
 {
@@ -16,22 +11,27 @@ namespace CalculateFunding.Api.External.V1.Models
     {
         public AllocationFundingStreamModel()
         {
-        }
-
-        public AllocationFundingStreamModel(string fundingStreamCode, string fundingStreamName)
-        {
-            FundingStreamCode = fundingStreamCode;
-            FundingStreamName = fundingStreamName;
+            PeriodType = new AllocationFundingStreamPeriodTypeModel();
         }
 
         /// <summary>
         /// The identifier for the funding stream
         /// </summary>
-        public string FundingStreamCode { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
-        /// The description of the funding stream
+        /// The name of the funding stream
         /// </summary>
-        public string FundingStreamName { get; set; }
+        public string Name { get; set; }
+
+        /// <summary>
+        /// The short name of the funding stream
+        /// </summary>
+        public string ShortName { get; set; }
+
+        /// <summary>
+        /// The type of period assigned
+        /// </summary>
+        public AllocationFundingStreamPeriodTypeModel PeriodType { get; set; }
     }
 }

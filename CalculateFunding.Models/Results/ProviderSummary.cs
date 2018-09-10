@@ -17,7 +17,10 @@ namespace CalculateFunding.Models.Results
 		[JsonProperty("establishmentNumber")]
 		public string EstablishmentNumber { get; set; }
 
-		[JsonProperty("authority")]
+        [JsonProperty("dfeEstablishmentNumber")]
+        public string DfeEstablishmentNumber { get; set; }
+
+        [JsonProperty("authority")]
 		public string Authority { get; set; }
 
 		[JsonProperty("providerType")]
@@ -28,6 +31,9 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("dateOpened")]
         public DateTimeOffset? DateOpened { get; set; }
+
+        [JsonProperty("dateClosed")]
+        public DateTimeOffset? DateClosed { get; set; }
 
         [JsonProperty("providerProfileIdType")]
         public string ProviderProfileIdType { get; set; }
@@ -43,5 +49,11 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("legalName")]
         public string LegalName { get; set; }
+
+        [JsonProperty("status")]
+        public string Status { get; set; }
+
+        [JsonProperty("phaseOfEducation")]
+        public string PhaseOfEducation { get; set; }
     }
 }

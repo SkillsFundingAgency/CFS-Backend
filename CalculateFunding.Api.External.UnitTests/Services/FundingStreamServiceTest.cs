@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using AutoMapper.Configuration;
 using CalculateFunding.Api.External.MappingProfiles;
+using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Api.External.V1.Services;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
@@ -20,21 +22,31 @@ namespace CalculateFunding.Api.External.UnitTests.Services
         [TestMethod]
         public async Task GetFundingStreams_WhenServiceReturnsOkResult_ShouldReturnOkResultWithFundingStreams()
         {
-            // Arrange
-            Models.Specs.AllocationLine allocation = new Models.Specs.AllocationLine()
-            {
-                Id = "Id",
-                Name = "Name"
-            };
-
-            List<Models.Specs.AllocationLine> allocationLineList = new List<Models.Specs.AllocationLine>();
-            allocationLineList.Add(allocation);
-
             Models.Specs.FundingStream fundingStream = new Models.Specs.FundingStream()
             {
-                AllocationLines = allocationLineList,
-                Id = "Id",
-                Name = "Name"
+                AllocationLines = new List<Models.Specs.AllocationLine>()
+                {
+                    new Models.Specs.AllocationLine()
+                    {
+                        Id = "id",
+                        Name = "name",
+                        ShortName = "short-name",
+                        FundingRoute = Models.Specs.FundingRoute.LA,
+                        IsContractRequired = true
+                    }
+                },
+                Name = "name",
+                Id = "id",
+                ShortName = "short-name",
+                PeriodType = new Models.Specs.PeriodType
+                {
+                    Id = "p1",
+                    Name = "period 1",
+                    StartDay = 1,
+                    EndDay = 31,
+                    StartMonth = 8,
+                    EndMonth = 7
+                }
             };
 
             Mapper.Reset();
@@ -43,7 +55,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             Mapper.Initialize(mappings);
             IMapper mapper = Mapper.Instance;
 
-            OkObjectResult specServiceOkObjectResult = new OkObjectResult(new List<Models.Specs.FundingStream>
+            OkObjectResult specServiceOkObjectResult = new OkObjectResult(new []
             {
                 fundingStream
             });
@@ -61,6 +73,27 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                 .Should().NotBeNull()
                 .And
                 .Subject.Should().BeOfType<OkObjectResult>();
+
+            OkObjectResult okObjectResult = result as OkObjectResult;
+
+            IEnumerable<FundingStream> fundingStreamResults = okObjectResult.Value as IEnumerable<FundingStream>;
+
+            fundingStreamResults.Count().Should().Be(1);
+
+            fundingStreamResults.First().Name.Should().Be("name");
+            fundingStreamResults.First().Id.Should().Be("id");
+            fundingStreamResults.First().ShortName.Should().Be("short-name");
+            fundingStreamResults.First().PeriodType.Id.Should().Be("p1");
+            fundingStreamResults.First().PeriodType.Name.Should().Be("period 1");
+            fundingStreamResults.First().PeriodType.StartDay.Should().Be(1);
+            fundingStreamResults.First().PeriodType.StartMonth.Should().Be(8);
+            fundingStreamResults.First().PeriodType.EndDay.Should().Be(31);
+            fundingStreamResults.First().PeriodType.EndMonth.Should().Be(7);
+            fundingStreamResults.First().AllocationLines.First().Id.Should().Be("id");
+            fundingStreamResults.First().AllocationLines.First().Name.Should().Be("name");
+            fundingStreamResults.First().AllocationLines.First().ShortName.Should().Be("short-name");
+            fundingStreamResults.First().AllocationLines.First().FundingRoute.Should().Be("LA");
+            fundingStreamResults.First().AllocationLines.First().ContractRequired.Should().Be("Y");
         }
 
         [TestMethod]

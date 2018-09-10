@@ -12,7 +12,6 @@ using System.Net;
 using FluentValidation;
 using CalculateFunding.Services.Core.Extensions;
 using Serilog;
-using CalculateFunding.Services.Core.Options;
 using System;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Models.Specs.Messages;
@@ -28,9 +27,9 @@ using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Helpers;
 using System.Collections.Concurrent;
-using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Models.Health;
+using Microsoft.Extensions.Primitives;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -1684,7 +1683,37 @@ namespace CalculateFunding.Services.Specs
             return new OkResult();
         }
 
-        public async Task<IActionResult> SelectSpecificationForFunding(HttpRequest request)
+		public async Task<IActionResult> ExecuteCalculations(HttpRequest request)
+		{
+			request.Query.TryGetValue("specificationIds", out StringValues specificationIds);
+			string specificationIdsRetrieved = specificationIds.FirstOrDefault();
+			if (specificationIdsRetrieved.IsNullOrEmpty())
+			{
+				return new BadRequestObjectResult("Null or empty specification ids parameter was provided");
+			}
+
+			string[] specificationIdsAsArray = specificationIdsRetrieved.Split(',');
+			foreach (string specificationId in specificationIdsAsArray)
+			{
+				Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+				if (specification == null)
+				{
+					return new BadRequestObjectResult($"Specification {specificationId} - was not found");
+				}
+			}
+			IEnumerable<Task> calculationTasks = specificationIdsAsArray.Select(specificationId => CalculateSpecification(request, specificationId));
+			try
+			{
+				await Task.WhenAll(calculationTasks.ToArray());
+			}
+			catch (Exception e)
+			{
+				return new InternalServerErrorResult(e.Message);
+			}
+			return new NoContentResult();
+		}
+
+		public async Task<IActionResult> SelectSpecificationForFunding(HttpRequest request)
         {
             request.Query.TryGetValue("specificationId", out var specId);
 
@@ -1738,21 +1767,7 @@ namespace CalculateFunding.Services.Specs
                     throw new Exception(error);
                 }
 
-                try
-                {
-                    IDictionary<string, string> properties = request.BuildMessageProperties();
-                    properties.Add("specification-id", specificationId);
-
-                    await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.PublishProviderResults,
-                        null,
-                        properties);
-                }
-                catch (Exception)
-                {
-                    string error = $"Failed to queue publishing of provider results for specification id: {specificationId}";
-                    _logger.Error(error);
-                    throw new Exception(error);
-                }
+                await CalculateSpecification(request, specificationId);
             }
             catch(Exception ex)
             {
@@ -1772,6 +1787,26 @@ namespace CalculateFunding.Services.Specs
 
             return new NoContentResult();
         }
+
+	    private async Task CalculateSpecification(HttpRequest request, string specificationId)
+	    {
+		    try
+		    {
+			    IDictionary<string, string> properties = request.BuildMessageProperties();
+			    properties.Add("specification-id", specificationId);
+			    UpdateCacheWithCalculationStarted(specificationId);
+				await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.PublishProviderResults,
+				    null,
+				    properties);
+		    }
+		    catch (Exception)
+		    {
+			    string error = $"Failed to queue publishing of provider results for specification id: {specificationId}";
+			    UpdateCacheWithCalculationError(specificationId, error);
+				_logger.Error(error);
+			    throw new Exception(error);
+		    }
+	    }
 
         public async Task<IActionResult> CheckCalculationProgressForSpecifications(HttpRequest request)
         {
@@ -1825,6 +1860,22 @@ namespace CalculateFunding.Services.Specs
 
             return result;
         }
+
+	    private void UpdateCacheWithCalculationStarted(string specificationId)
+	    {
+		    SpecificationCalculationExecutionStatus statusToCache = new SpecificationCalculationExecutionStatus(specificationId, 0, CalculationProgressStatus.NotStarted);
+		    CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{specificationId}", statusToCache, _cacheProvider);
+		}
+
+	    private void UpdateCacheWithCalculationError(string specificationId, string errorMessage)
+	    {
+		    SpecificationCalculationExecutionStatus statusToCache =
+			    new SpecificationCalculationExecutionStatus(specificationId, 0, CalculationProgressStatus.Error)
+			    {
+				    ErrorMessage = errorMessage
+			    };
+		    CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{specificationId}", statusToCache, _cacheProvider);
+		}
 
         private async Task ClearSpecificationCacheItems(string fundingPeriodId)
         {

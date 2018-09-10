@@ -2,27 +2,35 @@
 
 namespace CalculateFunding.Api.External.V1.Models
 {
+    /// <summary>
+    /// Represents an allocation line
+    /// </summary>
     [Serializable]
     public class AllocationLine
     {
-        public AllocationLine()
-        {
-        }
-
-        public AllocationLine(string allocationLineCode, string allocationLineName)
-        {
-            AllocationLineCode = allocationLineCode;
-            AllocationLineName = allocationLineName;
-        }
-
         /// <summary>
         /// The identifier for the allocation line
         /// </summary>
-        public string AllocationLineCode { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
-        /// The description of the allocation line
+        /// The name of the allocation line
         /// </summary>
-        public string AllocationLineName { get; set; }
+        public string Name { get; set; }
+
+        /// <summary>
+        /// The short name of the allocation line
+        /// </summary>
+        public string ShortName { get; set; }
+
+        /// <summary>
+        /// The funding route of the allocation line
+        /// </summary>
+        public string FundingRoute { get; set; }
+
+        /// <summary>
+        /// Check if contract is required for allocation line
+        /// </summary>
+        public string ContractRequired { get; set; }
     }
 }

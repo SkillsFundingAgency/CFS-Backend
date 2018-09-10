@@ -198,7 +198,18 @@ namespace CalculateFunding.Services.Results.Services
                        m.First().Authority == "London" &&
                        m.First().ProviderType == "test type" &&
                        m.First().SubProviderType == "test sub type" &&
-                       m.First().EstablishmentNumber == "es123"
+                       m.First().EstablishmentNumber == "es123" &&
+                       m.First().FundingPeriodStartYear == DateTime.Now.Year &&
+                       m.First().FundingPeriodEndYear == DateTime.Now.Year + 1 &&
+                       m.First().FundingStreamStartDay == 1 &&
+                       m.First().FundingStreamStartMonth == 8 &&
+                       m.First().FundingStreamEndDay == 31 &&
+                       m.First().FundingStreamEndMonth == 7 &&
+                       m.First().FundingStreamPeriodName == "period-type 1" &&
+                       m.First().FundingStreamPeriodId == "pt1" &&
+                       m.First().AllocationLineContractRequired == true &&
+                       m.First().AllocationLineFundingRoute == "LA" &&
+                       m.First().AllocationLineShortName == "tal1"
            ));
         }
     }

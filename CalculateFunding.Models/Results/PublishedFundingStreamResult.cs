@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using CalculateFunding.Models.Specs;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,7 +8,7 @@ namespace CalculateFunding.Models.Results
     public class PublishedFundingStreamResult
     {
         [JsonProperty("fundingStream")]
-        public Reference FundingStream { get; set; }
+        public FundingStream FundingStream { get; set; }
 
         [JsonProperty("allocationLineResult")]
         public PublishedAllocationLineResult AllocationLineResult { get; set; }
