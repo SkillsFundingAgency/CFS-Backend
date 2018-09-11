@@ -87,7 +87,7 @@ namespace CalculateFunding.Services.Calculator
             var providerCalResults = calculationResults.ToDictionary(x => x.Calculation?.Id);
             stopwatch.Stop();
 
-            if(providerCalResults.Count > 0)
+            if (providerCalResults.Count > 0)
             {
                 _logger.Debug($"{providerCalResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalResults.Count: 0.0000}ms)");
             }
@@ -121,13 +121,22 @@ namespace CalculateFunding.Services.Calculator
                     {
                         result.CalculationSpecification = calculationResult.CalculationSpecification;
                         if (calculationResult.AllocationLine != null)
+                        {
                             result.AllocationLine = calculationResult.AllocationLine;
+                        }
 
                         result.PolicySpecifications = calculationResult.PolicySpecifications;
+
+                        // The default for the calculation is to return Decimal.MinValue - if this is the case, then subsitute a 0 value as the result, instead of the negative number.
                         if (calculationResult.Value != decimal.MinValue)
                         {
                             result.Value = calculationResult.Value;
                         }
+                        else
+                        {
+                            result.Value = 0;
+                        }
+
                         result.Exception = calculationResult.Exception;
                     }
 

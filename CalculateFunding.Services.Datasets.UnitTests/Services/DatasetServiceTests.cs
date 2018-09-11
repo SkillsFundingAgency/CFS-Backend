@@ -631,13 +631,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 new DatasetValidationError { ErrorMessage = "error" }
             };
 
-	        ValidationResult validationResult = new ValidationResult(new[]{
-		        new ValidationFailure("prop1", "any error")
-	        });
+            ValidationResult validationResult = new ValidationResult(new[]{
+                new ValidationFailure("prop1", "any error")
+            });
 
-	        IValidator<DatasetUploadValidationModel> datasetUploadValidator = CreateDatasetUploadValidator(validationResult);
+            IValidator<DatasetUploadValidationModel> datasetUploadValidator = CreateDatasetUploadValidator(validationResult);
 
-			IEnumerable <TableLoadResult> tableLoadResults = new[]
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
             {
                 new TableLoadResult{ GlobalErrors = errors }
             };
@@ -734,13 +734,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
                 .Returns(tableLoadResults.ToList());
 
-	        ValidationResult validationResult = new ValidationResult(new[]{
-		        new ValidationFailure("prop1", "any error")
-	        });
+            ValidationResult validationResult = new ValidationResult(new[]{
+                new ValidationFailure("prop1", "any error")
+            });
 
-	        IValidator<DatasetUploadValidationModel> datasetUploadValidator = CreateDatasetUploadValidator(validationResult);
+            IValidator<DatasetUploadValidationModel> datasetUploadValidator = CreateDatasetUploadValidator(validationResult);
 
-			DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
+            DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
                 excelDatasetReader: datasetReader, datasetUploadValidator: datasetUploadValidator);
 
             // Act
@@ -3411,7 +3411,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IEnumerable<ProviderSummary> summaries = new[] { new ProviderSummary { UPIN = "123456" } };
+            IEnumerable<ProviderSummary> summaries = new[]
+            {
+                new ProviderSummary { Id = "123",  UPIN = "123456" },
+            };
 
             IProviderRepository resultsRepository = CreateProviderRepository();
             resultsRepository
@@ -3452,12 +3455,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(tableLoadResults.ToArraySafe());
 
             DatasetService service = CreateDatasetService(
-                datasetRepository: datasetRepository, 
+                datasetRepository: datasetRepository,
                 logger: logger,
-                calcsRepository: calcsRepository, 
-                blobClient: blobClient, 
+                calcsRepository: calcsRepository,
+                blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerRepository: resultsRepository, 
+                providerRepository: resultsRepository,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader);
 
@@ -3474,7 +3477,7 @@ namespace CalculateFunding.Services.Datasets.Services
                              m.First().DefinesScope == false &&
                              !string.IsNullOrWhiteSpace(m.First().Id) &&
                              m.First().SpecificationId == SpecificationId &&
-                             m.First().ProviderId == "123456"
+                             m.First().ProviderId == "123"
                         ));
 
             await
@@ -3486,7 +3489,7 @@ namespace CalculateFunding.Services.Datasets.Services
                              m.First().DefinesScope == false &&
                              !string.IsNullOrWhiteSpace(m.First().Id) &&
                              m.First().SpecificationId == SpecificationId &&
-                             m.First().ProviderId == "123456"
+                             m.First().ProviderId == "123"
                         ));
         }
 
@@ -3590,7 +3593,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IEnumerable<ProviderSummary> summaries = new[] { new ProviderSummary { UPIN = "123456" }, new ProviderSummary { UPIN = "222333" } };
+            IEnumerable<ProviderSummary> summaries = new[]
+            {
+                new ProviderSummary { Id = "123",  UPIN = "123456" },
+                new ProviderSummary { Id = "456", UPIN = "222333" },
+            };
 
             IProviderRepository resultsRepository = CreateProviderRepository();
             resultsRepository
@@ -3633,10 +3640,10 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(
                 datasetRepository: datasetRepository,
                 logger: logger,
-                calcsRepository: calcsRepository, 
-                blobClient: blobClient, 
+                calcsRepository: calcsRepository,
+                blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerRepository: resultsRepository, 
+                providerRepository: resultsRepository,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader);
 
@@ -4454,10 +4461,10 @@ namespace CalculateFunding.Services.Datasets.Services
             ITelemetry telemetry = null,
             IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
             IValidator<ExcelPackage> datasetWorksheetValidator = null,
-	        IValidator<DatasetUploadValidationModel> datasetUploadValidator = null)
+            IValidator<DatasetUploadValidationModel> datasetUploadValidator = null)
         {
 
-	        return new DatasetService(
+            return new DatasetService(
                 blobClient ?? CreateBlobClient(),
                 logger ?? CreateLogger(),
                 datasetRepository ?? CreateDatasetsRepository(),
@@ -4476,7 +4483,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 telemetry ?? CreateTelemetry(),
                 datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies(),
                 datasetWorksheetValidator ?? CreateDataWorksheetValidator(),
-	            datasetUploadValidator ?? CreateDatasetUploadValidator());
+                datasetUploadValidator ?? CreateDatasetUploadValidator());
         }
 
         static ICalcsRepository CreateCalcsRepository()
@@ -4529,21 +4536,23 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<ICacheProvider>();
         }
 
-	    static IValidator<DatasetUploadValidationModel> CreateDatasetUploadValidator(ValidationResult validationResult = null)
-	    {
-		    if (validationResult == null)
-			    validationResult = new ValidationResult();
+        static IValidator<DatasetUploadValidationModel> CreateDatasetUploadValidator(ValidationResult validationResult = null)
+        {
+            if (validationResult == null)
+            {
+                validationResult = new ValidationResult();
+            }
 
-		    IValidator<DatasetUploadValidationModel> validator = Substitute.For<IValidator<DatasetUploadValidationModel>>();
+            IValidator<DatasetUploadValidationModel> validator = Substitute.For<IValidator<DatasetUploadValidationModel>>();
 
-		    validator
-			    .Validate(Arg.Any<DatasetUploadValidationModel>())
-			    .Returns(validationResult);
+            validator
+                .Validate(Arg.Any<DatasetUploadValidationModel>())
+                .Returns(validationResult);
 
-		    return validator;
-		}
+            return validator;
+        }
 
-		static IValidator<CreateNewDatasetModel> CreateNewDatasetModelValidator(ValidationResult validationResult = null)
+        static IValidator<CreateNewDatasetModel> CreateNewDatasetModelValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
             {
