@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 .WithMembers(SyntaxFactory.SingletonList<StatementSyntax>(
             SyntaxFactory.ClassBlock(
                 SyntaxFactory.ClassStatement(
-                        Identifier("Calculations")
+                        GenerateIdentifier("Calculations")
                     )
                     
                     .WithModifiers(
@@ -78,7 +78,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 builder.AppendLine($"<Description(Description := \"{calc.Description?.Replace("\"","\"\"")}\")>");
             }
 
-            builder.AppendLine($"Public Function {Identifier(calc.Name)} As Decimal");
+            builder.AppendLine($"Public Function {GenerateIdentifier(calc.Name)} As Decimal");
 	        builder.AppendLine($"#ExternalSource(\"{calc.Id}|{calc.Name}\", 1)");
 			builder.Append(calc.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode);
             builder.AppendLine();
@@ -94,10 +94,10 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         private static StatementSyntax GetStandardProperties()
         {
-            return SyntaxFactory.PropertyStatement(Identifier("Datasets"))
+            return SyntaxFactory.PropertyStatement(GenerateIdentifier("Datasets"))
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
 	            .WithAsClause(
-		            SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(Identifier("Datasets"))));
+		            SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(GenerateIdentifier("Datasets"))));
 		}
 
 

@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 				    {
 				        var @class = SyntaxFactory.ClassBlock(
 				            SyntaxFactory.ClassStatement(
-				                    $"{Identifier(dataset.DatasetDefinition.Name)}Dataset"
+				                    $"{GenerateIdentifier(dataset.DatasetDefinition.Name)}Dataset"
 				                )
 				                .WithModifiers(
 				                    SyntaxFactory.TokenList(
@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 				            .WithMembers(
 				                SyntaxFactory.SingletonList<StatementSyntax>(@class))
 				            .NormalizeWhitespace();
-				        yield return new SourceFile { FileName = $"Datasets/{Identifier(dataset.DatasetDefinition.Name)}.vb", SourceCode = syntaxTree.ToFullString() };
+				        yield return new SourceFile { FileName = $"Datasets/{GenerateIdentifier(dataset.DatasetDefinition.Name)}.vb", SourceCode = syntaxTree.ToFullString() };
 				        typesCreated.Add(dataset.DatasetDefinition.Name);
 				    }
 
@@ -95,7 +95,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             var builder = new StringBuilder();
             builder.AppendLine($"<Field(Id := \"{fieldDefinition.Id}\", Name := \"{fieldDefinition.Name}\")>");
             builder.AppendLine($"<Description(Description := \"{fieldDefinition.Description?.Replace("\"", "\"\"")}\")>");
-            builder.AppendLine($"Public Property {Identifier(fieldDefinition.Name)}() As {Identifier($"{propertyType}")}");
+            builder.AppendLine($"Public Property {GenerateIdentifier(fieldDefinition.Name)}() As {GenerateIdentifier($"{propertyType}")}");
             var tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
             return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
                 .FirstOrDefault();
@@ -112,8 +112,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             }
 
             builder.AppendLine(datasetRelationship.DataGranularity == DataGranularity.SingleRowPerProvider
-                ? $"Public Property {Identifier(datasetRelationship.Name)}() As {Identifier($"{datasetRelationship.DatasetDefinition.Name}Dataset")}"
-                : $"Public Property {Identifier(datasetRelationship.Name)}() As System.Collections.Generic.List(Of {Identifier($"{datasetRelationship.DatasetDefinition.Name}Dataset")})");
+                ? $"Public Property {GenerateIdentifier(datasetRelationship.Name)}() As {GenerateIdentifier($"{datasetRelationship.DatasetDefinition.Name}Dataset")}"
+                : $"Public Property {GenerateIdentifier(datasetRelationship.Name)}() As System.Collections.Generic.List(Of {GenerateIdentifier($"{datasetRelationship.DatasetDefinition.Name}Dataset")})");
 
             var tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
             return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()

@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         public override string GetIdentifier(string name)
         {
-            return VisualBasicTypeGenerator.Identifier(name);
+            return VisualBasicTypeGenerator.GenerateIdentifier(name);
         }
     }
 }
