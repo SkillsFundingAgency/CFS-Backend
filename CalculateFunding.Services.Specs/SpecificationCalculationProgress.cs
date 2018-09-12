@@ -26,32 +26,5 @@ namespace CalculateFunding.Services
 			Error,
 			Finished
 		}
-        //public void test(List<CalculationProgressStatus> status)
-        //{
-
-        //   // status.Count()
-        //    foreach (var row in status)
-        //    {
-                
-        //    }
-        //}
-        //public void ProcessRequest(HttpContext context)
-        //{
-        //    context.Response.ContentType = "text/plain";
-
-        //    if (context.Cache["_cache"] != null)
-        //    {
-        //        if (context.Cache["_cache"].ToString() == "stop")
-        //        {
-        //            context.Response.WriteAsync("stop");
-        //        }
-        //        else
-        //        {
-        //            context.Response.WriteAsync(context.Cache["_cache"].ToString());
-        //        }
-        //    }
-        //    else
-        //        context.Response.WriteAsync((-2).ToString());
-        //}
 	}
 }

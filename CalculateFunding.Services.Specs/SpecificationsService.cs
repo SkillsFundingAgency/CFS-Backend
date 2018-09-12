@@ -1810,11 +1810,15 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> CheckCalculationProgressForSpecifications(HttpRequest request)
         {
+            if (request.Query.IsNullOrEmpty())
+            {
+                _logger.Error("The http request query came back is empty or null");
+                return new BadRequestObjectResult("the request query is empty or null");
+            }
             request.Query.TryGetValue("specificationId", out var specificationId);
-
             if (specificationId.IsNullOrEmpty())
             {
-                _logger.Error("There were no specifications found");
+                _logger.Error("The http request query did not return any string values of the query collection (specificationid's)");
                 return new BadRequestObjectResult("There were no specifications found");
             }
             else
