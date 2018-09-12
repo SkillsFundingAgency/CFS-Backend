@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.DataImporter
 
         public TableLoadResultWithHeaders Read(ExcelPackage excelPackage, DatasetDefinition datasetDefinition, bool parse)
         {
-             if (datasetDefinition.TableDefinitions.Count == 1 && excelPackage.Workbook.Worksheets.Count == 1)
+             if (datasetDefinition.TableDefinitions.Count == 1 && excelPackage.Workbook.Worksheets.Count > 0)
             {
                 return ConvertSheetToObjects(excelPackage.Workbook.Worksheets.First(), datasetDefinition.TableDefinitions.First(), parse);
             }
