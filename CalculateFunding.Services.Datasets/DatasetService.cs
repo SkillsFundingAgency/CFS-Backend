@@ -636,7 +636,20 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<IActionResult> RegenerateProviderSourceDatasets(HttpRequest httpRequest)
         {
-            IEnumerable<DefinitionSpecificationRelationship> relationships = await _datasetRepository.GetAllDefinitionSpecificationsRelationships();
+            httpRequest.Query.TryGetValue("specificationId", out var specificationIdValues);
+
+            string specificationId = specificationIdValues.FirstOrDefault();
+
+            IEnumerable<DefinitionSpecificationRelationship> relationships;
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                relationships = await _datasetRepository.GetAllDefinitionSpecificationsRelationships(); ;
+            }
+            else
+            {
+                relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(r => r.Specification.Id == specificationId);
+            }
 
             Dictionary<string, Dataset> datasets = new Dictionary<string, Dataset>();
 
