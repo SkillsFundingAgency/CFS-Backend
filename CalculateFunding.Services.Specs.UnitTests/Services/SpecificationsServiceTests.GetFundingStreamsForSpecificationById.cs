@@ -104,7 +104,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .BeOfType<OkObjectResult>()
                 .Which
                 .Value
-                .ShouldBeEquivalentTo(expectedFundingStreams.AsEnumerable());
+                .Should().BeEquivalentTo(expectedFundingStreams.AsEnumerable());
 
             await specificationsRepository
                 .Received(1)

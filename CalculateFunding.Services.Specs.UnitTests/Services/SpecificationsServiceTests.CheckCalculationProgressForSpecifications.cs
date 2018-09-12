@@ -1,4 +1,6 @@
-﻿using CalculateFunding.Services.Core.Interfaces.Caching;
+﻿using CalculateFunding.Models;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
@@ -17,7 +19,63 @@ namespace CalculateFunding.Services.Specs.Services
     public partial class SpecificationsServiceTests
     {
         [TestMethod]
-        public async Task CheckCalculationProgressForSpecifications_WhenSpecificationIdsAreNull_ReturnsBadRequestObjectResult()
+        public async Task CheckCalculationProgressForSpecifications_WhenHttpRequestIsNull_ReturnsBadRequestObjectResult()
+        {
+            //Arrange
+            HttpRequest request = null;
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            //Act
+            IActionResult result = await service.CheckCalculationProgressForSpecifications(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("The request is null");
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("The http request came back as null"));
+        }
+
+        [TestMethod]
+        public async Task CheckCalculationProgressForSpecifications_WhenTheHttpRequestQueryIsNull_ReturnsBadRequestObjectResult()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            request.Query.Returns(x => null);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger);
+
+            //Act
+            IActionResult result = await service.CheckCalculationProgressForSpecifications(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("the request query is empty or null");
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("The http request query came back is empty or null"));
+        }
+
+        [TestMethod]
+        public async Task CheckCalculationProgressForSpecifications_WhenQueryStringValuesAreEmpty_ReturnsBadRequestObjectResult()
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -42,11 +100,11 @@ namespace CalculateFunding.Services.Specs.Services
                 .Which
                 .Value
                 .Should()
-                .Be("There were no specifications found");
+                .Be("the request query is empty or null");
 
             logger
                 .Received(1)
-                .Error(Arg.Is("There were no specifications found"));
+                .Error(Arg.Is("The http request query came back is empty or null"));
         }
 
         [TestMethod]
@@ -76,7 +134,7 @@ namespace CalculateFunding.Services.Specs.Services
         }
 
         [TestMethod]
-        public async Task CheckCalculationProgressForSpecifications_WhenCacheisOk_ReturnOkObjectResult()
+        public async Task CheckCalculationProgressForSpecifications_WhenCacheisOk_ReturnsOkObjectResult()
         {
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -91,7 +149,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             ICacheProvider cacheProvider = Substitute.For<ICacheProvider>();
 
-            cacheProvider.GetAsync<SpecificationCalculationProgress>($"calculationProgress-{SpecificationId}").Returns(new SpecificationCalculationProgress(SpecificationId,5,SpecificationCalculationProgress.CalculationProgressStatus.Started));
+            cacheProvider.GetAsync<SpecificationCalculationExecutionStatus>($"calculationProgress-{SpecificationId}").Returns(new SpecificationCalculationExecutionStatus(SpecificationId,5,CalculationProgressStatus.InProgress));
 
             ILogger logger = CreateLogger();
 
@@ -104,6 +162,35 @@ namespace CalculateFunding.Services.Specs.Services
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
+        }
+        [TestMethod]
+        public async Task CheckCalculationProgressForSpecifications_WhenCacheisCorrupted_ReturnsBadRequestObjectResult()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) },
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ICacheProvider cacheProvider = Substitute.For<ICacheProvider>();
+
+            cacheProvider.GetAsync<SpecificationCalculationExecutionStatus>($"calculationProgress-{SpecificationId}").Returns<SpecificationCalculationExecutionStatus>(x => { throw new Exception(); });
+
+            ILogger logger = CreateLogger();
+
+            SpecificationsService service = CreateService(logs: logger, cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult result =  await service.CheckCalculationProgressForSpecifications(request);
+            //Assert
+            result
+                .Should()
+                .BeOfType<InternalServerErrorResult>();
         }
     }
 }
