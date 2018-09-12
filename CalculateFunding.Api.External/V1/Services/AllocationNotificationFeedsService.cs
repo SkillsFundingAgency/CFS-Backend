@@ -27,7 +27,7 @@ namespace CalculateFunding.Api.External.V1.Services
             _feedsService = feedsService;
         }
 
-        public async Task<IActionResult> GetNotifications(int? pageRef, string allocationStatuses, HttpRequest request)
+        public async Task<IActionResult> GetNotifications(int? pageRef, string allocationStatuses, int? pageSize, HttpRequest request)
         {
             if (!pageRef.HasValue)
             {
@@ -39,6 +39,16 @@ namespace CalculateFunding.Api.External.V1.Services
                 return new BadRequestObjectResult("Page ref should be at least 1");
             }
 
+            if (!pageSize.HasValue)
+            {
+                pageSize = MaxRecords;
+            }
+
+            if(pageSize < 1 || pageSize > 500)
+            {
+                return new BadRequestObjectResult($"Page size should be more that zero and less than or equal to {MaxRecords}");
+            }
+
             string[] statusesArray = statusesArray = new[] { "Published" };
 
             if (!string.IsNullOrWhiteSpace(allocationStatuses))
@@ -46,7 +56,7 @@ namespace CalculateFunding.Api.External.V1.Services
                 statusesArray = allocationStatuses.Split(",");
             }
 
-            SearchFeed<AllocationNotificationFeedIndex> searchFeed = await _feedsService.GetFeeds(pageRef.Value, MaxRecords, statusesArray);
+            SearchFeed<AllocationNotificationFeedIndex> searchFeed = await _feedsService.GetFeeds(pageRef.Value, pageSize.Value, statusesArray);
 
             if(searchFeed == null || searchFeed.TotalCount == 0)
             {
@@ -64,7 +74,9 @@ namespace CalculateFunding.Api.External.V1.Services
 
             string allocationTrimmedRequestPath = trimmedRequestPath.Replace("notifications", "");
 
-            string notificationsUrl = $"{request.Scheme}://{request.Host.Value}{trimmedRequestPath}/{{0}}{(request.QueryString.HasValue ? request.QueryString.Value : "")}";
+            string queryString = BuildQueryStringForformatting(request);
+
+            string notificationsUrl = $"{request.Scheme}://{request.Host.Value}{trimmedRequestPath}notifications{(!string.IsNullOrWhiteSpace(queryString) ? "?" + queryString : "")}";
 
             AtomFeed<AllocationModel> atomFeed = new AtomFeed<AllocationModel>
             {
@@ -164,6 +176,32 @@ namespace CalculateFunding.Api.External.V1.Services
             }
 
             return atomFeed;
+        }
+
+        private string BuildQueryStringForformatting(HttpRequest request)
+        {
+            string queryString = "";
+
+            IQueryCollection requestQuery = request.Query;
+
+            foreach (var item in requestQuery)
+            {
+                if (item.Key == "pageRef")
+                {
+                    queryString += "pageRef={0}&";
+                }
+                else
+                {
+                    queryString += $"{item.Key}={item.Value}&";
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(queryString))
+            {
+                queryString = queryString.Remove(queryString.Length - 1);
+            }
+
+            return queryString;
         }
     }
 }

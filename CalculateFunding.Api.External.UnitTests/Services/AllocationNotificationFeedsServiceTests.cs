@@ -16,6 +16,7 @@ using Microsoft.Extensions.Primitives;
 using CalculateFunding.Models.External.AtomItems;
 using Newtonsoft.Json;
 using CalculateFunding.Api.External.V1.Models;
+using Microsoft.AspNetCore.Http.Internal;
 
 namespace CalculateFunding.Api.External.UnitTests.Services
 {
@@ -33,7 +34,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             HttpRequest request = Substitute.For<HttpRequest>();
 
             //Act
-            IActionResult result = await service.GetNotifications(null, "", request);
+            IActionResult result = await service.GetNotifications(null, "", null, request);
 
             //Assert
             await
@@ -53,7 +54,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             HttpRequest request = Substitute.For<HttpRequest>();
 
             //Act
-            IActionResult result = await service.GetNotifications(3, "", request);
+            IActionResult result = await service.GetNotifications(3, "", null, request);
 
             //Assert
             await
@@ -73,7 +74,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             HttpRequest request = Substitute.For<HttpRequest>();
 
             //Act
-            IActionResult result = await service.GetNotifications(3, "Published,Approved", request);
+            IActionResult result = await service.GetNotifications(3, "Published,Approved", null, request);
 
             //Assert
             await
@@ -91,7 +92,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             HttpRequest request = Substitute.For<HttpRequest>();
 
             //Act
-            IActionResult result = await service.GetNotifications(-1, "", request);
+            IActionResult result = await service.GetNotifications(-1, "", null, request);
 
             //Assert
             result
@@ -101,6 +102,48 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                 .Value
                 .Should()
                 .Be("Page ref should be at least 1");
+        }
+
+        [TestMethod]
+        public async Task GetNotifications_GivenInvallidPageSizeOfZero_ReturnsBadRequest()
+        {
+            //Arrange
+            AllocationNotificationFeedsService service = CreateService();
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            //Act
+            IActionResult result = await service.GetNotifications(1, "", 0, request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("Page size should be more that zero and less than or equal to 500");
+        }
+
+        [TestMethod]
+        public async Task GetNotifications_GivenInvallidPageSizeOfThousand_ReturnsBadRequest()
+        {
+            //Arrange
+            AllocationNotificationFeedsService service = CreateService();
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            //Act
+            IActionResult result = await service.GetNotifications(1, "", 1000, request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("Page size should be more that zero and less than or equal to 500");
         }
 
         [TestMethod]
@@ -119,7 +162,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             HttpRequest request = Substitute.For<HttpRequest>();
 
             //Act
-            IActionResult result = await service.GetNotifications(3, "Published,Approved", request);
+            IActionResult result = await service.GetNotifications(3, "Published,Approved", null, request);
 
             //Assert
             result
@@ -141,7 +184,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
             IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
             feedsSearchService
-                .GetFeeds(Arg.Is(3), Arg.Is(500), Arg.Any<IEnumerable<string>>())
+                .GetFeeds(Arg.Is(3), Arg.Is(2), Arg.Any<IEnumerable<string>>())
                 .Returns(feeds);
 
             AllocationNotificationFeedsService service = CreateService(feedsSearchService);
@@ -149,15 +192,23 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             IHeaderDictionary headerDictionary = new HeaderDictionary();
             headerDictionary.Add("Accept", new StringValues("application/json"));
 
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "pageRef", new StringValues("3") },
+                { "allocationStatuses", new StringValues("Published,Approved") },
+                { "pageSize", new StringValues("2") }
+            });
+
             HttpRequest request = Substitute.For<HttpRequest>();
             request.Scheme.Returns("https");
-            request.Path.Returns(new PathString("/api/v1/test/3"));
+            request.Path.Returns(new PathString("/api/v1/test"));
             request.Host.Returns(new HostString("wherever.naf:12345"));
-            request.QueryString.Returns(new QueryString("?allocationStatuses=Published,Approved"));
+            request.QueryString.Returns(new QueryString("?pageRef=3&pageSize=2&allocationStatuses=Published,Approved"));
             request.Headers.Returns(headerDictionary);
+            request.Query.Returns(queryStringValues);
 
             //Act
-            IActionResult result = await service.GetNotifications(3, "Published,Approved", request);
+            IActionResult result = await service.GetNotifications(3, "Published,Approved", 2, request);
 
             //Assert
             result
@@ -174,11 +225,11 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             atomFeed.Id.Should().NotBeEmpty();
             atomFeed.Title.Should().Be("Calculate Funding Service Allocation Feed");
             atomFeed.Author.Name.Should().Be("Calculate Funding Service");
-            atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v1/test/3?allocationStatuses=Published,Approved");
-            atomFeed.Link.First(m => m.Rel == "first").Href.Should().Be("https://wherever.naf:12345/api/v1/test/1?allocationStatuses=Published,Approved");
-            atomFeed.Link.First(m => m.Rel == "last").Href.Should().Be("https://wherever.naf:12345/api/v1/test/1?allocationStatuses=Published,Approved");
-            atomFeed.Link.First(m => m.Rel == "previous").Href.Should().Be("https://wherever.naf:12345/api/v1/test/2?allocationStatuses=Published,Approved");
-            atomFeed.Link.First(m => m.Rel == "next").Href.Should().Be("https://wherever.naf:12345/api/v1/test/3?allocationStatuses=Published,Approved");
+            atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v1notifications?pageRef=3&allocationStatuses=Published,Approved&pageSize=2");
+            atomFeed.Link.First(m => m.Rel == "first").Href.Should().Be("https://wherever.naf:12345/api/v1notifications?pageRef=1&allocationStatuses=Published,Approved&pageSize=2");
+            atomFeed.Link.First(m => m.Rel == "last").Href.Should().Be("https://wherever.naf:12345/api/v1notifications?pageRef=1&allocationStatuses=Published,Approved&pageSize=2");
+            atomFeed.Link.First(m => m.Rel == "previous").Href.Should().Be("https://wherever.naf:12345/api/v1notifications?pageRef=2&allocationStatuses=Published,Approved&pageSize=2");
+            atomFeed.Link.First(m => m.Rel == "next").Href.Should().Be("https://wherever.naf:12345/api/v1notifications?pageRef=3&allocationStatuses=Published,Approved&pageSize=2");
             atomFeed.AtomEntry.Count.Should().Be(3);
             atomFeed.AtomEntry.ElementAt(0).Id.Should().Be("id-1");
             atomFeed.AtomEntry.ElementAt(0).Title.Should().Be("test title 1");
@@ -330,7 +381,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             request.QueryString.Returns(new QueryString("?allocationStatuses=Published,Approved"));
 
             //Act
-            IActionResult result = await service.GetNotifications(3, "Published,Approved", request);
+            IActionResult result = await service.GetNotifications(3, "Published,Approved", null, request);
 
             //Assert
             result
