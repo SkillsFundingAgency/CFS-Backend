@@ -201,6 +201,11 @@ namespace CalculateFunding.Api.External.V1.Services
                 queryString = queryString.Remove(queryString.Length - 1);
             }
 
+            if (!queryString.Contains("pageRef"))
+            {
+                queryString += "&pageRef={0}";
+            }
+
             return queryString;
         }
     }
