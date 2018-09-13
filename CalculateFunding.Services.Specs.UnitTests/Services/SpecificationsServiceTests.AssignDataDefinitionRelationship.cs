@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             //Assert
             test
-                .ShouldThrowExactly<ArgumentNullException>();
+                .Should().ThrowExactly<ArgumentNullException>();
 
             logger
                 .Received()
@@ -70,7 +70,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             //Assert
             test
-                .ShouldThrowExactly<InvalidModelException>();
+                .Should().ThrowExactly<InvalidModelException>();
         }
 
         [TestMethod]
@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             //Assert
             test
-                .ShouldThrowExactly<InvalidModelException>();
+                .Should().ThrowExactly<InvalidModelException>();
         }
 
         [TestMethod]
@@ -132,7 +132,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             //Assert
             test
-                .ShouldThrowExactly<Exception>();
+                .Should().ThrowExactly<Exception>();
 
             logger
                 .Received()
@@ -183,7 +183,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             //Assert
             test
-                .ShouldThrowExactly<FailedToIndexSearchException>();
+                .Should().ThrowExactly<FailedToIndexSearchException>();
         }
 
         [TestMethod]

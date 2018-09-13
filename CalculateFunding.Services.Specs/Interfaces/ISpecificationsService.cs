@@ -69,5 +69,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
 	    Task<IActionResult> ExecuteCalculations(HttpRequest request);
 
         Task<IActionResult> GetFundingPeriodById(HttpRequest request);
+
+        Task<IActionResult> CheckCalculationProgressForSpecifications(HttpRequest request);
     }
 }

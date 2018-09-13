@@ -226,7 +226,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .Should()
                 .BeOfType<CalculationCurrentVersion>()
                 .Which
-                .ShouldBeEquivalentTo<CalculationCurrentVersion>(new CalculationCurrentVersion()
+                .Should().BeEquivalentTo<CalculationCurrentVersion>(new CalculationCurrentVersion()
                 {
                     PolicyName = "Pol2",
                     PolicyId = "pol2",

@@ -1808,7 +1808,40 @@ namespace CalculateFunding.Services.Specs
 		    }
 	    }
 
-	    private async Task<HttpStatusCode> UpdateSpecification(Specification specification, SpecificationVersion specificationVersion)
+        public async Task<IActionResult> CheckCalculationProgressForSpecifications(HttpRequest request)
+        {
+            if(request == null)
+            {
+                _logger.Error("The http request came back as null");
+                return new BadRequestObjectResult("The request is null");
+            }
+
+            if (request.Query == null)
+            {
+                _logger.Error("The http request query came back is empty or null");
+                return new BadRequestObjectResult("the request query is empty or null");
+            }
+
+            request.Query.TryGetValue("specificationId", out var specificationId);
+
+            try
+            {
+                SpecificationCalculationExecutionStatus specProgress = await _cacheProvider.GetAsync<SpecificationCalculationExecutionStatus>($"calculationProgress-{specificationId}");
+                if (specProgress == null)
+                {
+                    _logger.Error("Cache returned null, couldnt find specification - {specificationId}", specificationId);
+                    return new BadRequestObjectResult($"Couldnt find progress statement for specification-{specificationId}");
+                }
+                return new OkObjectResult(specProgress);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to retrieve calculation progress from cache - {specificationId}", specificationId);
+                return new InternalServerErrorResult(ex.Message);
+            }
+        }
+
+        private async Task<HttpStatusCode> UpdateSpecification(Specification specification, SpecificationVersion specificationVersion)
         {
             specification.Save(specificationVersion);
             HttpStatusCode result = await _specificationsRepository.UpdateSpecification(specification);
