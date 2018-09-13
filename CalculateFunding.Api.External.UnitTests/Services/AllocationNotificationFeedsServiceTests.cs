@@ -225,11 +225,11 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             atomFeed.Id.Should().NotBeEmpty();
             atomFeed.Title.Should().Be("Calculate Funding Service Allocation Feed");
             atomFeed.Author.Name.Should().Be("Calculate Funding Service");
-            atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v1notifications?pageRef=3&allocationStatuses=Published,Approved&pageSize=2");
-            atomFeed.Link.First(m => m.Rel == "first").Href.Should().Be("https://wherever.naf:12345/api/v1notifications?pageRef=1&allocationStatuses=Published,Approved&pageSize=2");
-            atomFeed.Link.First(m => m.Rel == "last").Href.Should().Be("https://wherever.naf:12345/api/v1notifications?pageRef=1&allocationStatuses=Published,Approved&pageSize=2");
-            atomFeed.Link.First(m => m.Rel == "previous").Href.Should().Be("https://wherever.naf:12345/api/v1notifications?pageRef=2&allocationStatuses=Published,Approved&pageSize=2");
-            atomFeed.Link.First(m => m.Rel == "next").Href.Should().Be("https://wherever.naf:12345/api/v1notifications?pageRef=3&allocationStatuses=Published,Approved&pageSize=2");
+            atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=3&allocationStatuses=Published,Approved&pageSize=2");
+            atomFeed.Link.First(m => m.Rel == "first").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=1&allocationStatuses=Published,Approved&pageSize=2");
+            atomFeed.Link.First(m => m.Rel == "last").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=1&allocationStatuses=Published,Approved&pageSize=2");
+            atomFeed.Link.First(m => m.Rel == "previous").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=2&allocationStatuses=Published,Approved&pageSize=2");
+            atomFeed.Link.First(m => m.Rel == "next").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=3&allocationStatuses=Published,Approved&pageSize=2");
             atomFeed.AtomEntry.Count.Should().Be(3);
             atomFeed.AtomEntry.ElementAt(0).Id.Should().Be("id-1");
             atomFeed.AtomEntry.ElementAt(0).Title.Should().Be("test title 1");
@@ -409,11 +409,11 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             atomFeed.Id.Should().NotBeEmpty();
             atomFeed.Title.Should().Be("Calculate Funding Service Allocation Feed");
             atomFeed.Author.Name.Should().Be("Calculate Funding Service");
-            atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v1notifications?allocationStatuses=Published,Approved&pageSize=2&pageRef=3");
-            atomFeed.Link.First(m => m.Rel == "first").Href.Should().Be("https://wherever.naf:12345/api/v1notifications?allocationStatuses=Published,Approved&pageSize=2&pageRef=1");
-            atomFeed.Link.First(m => m.Rel == "last").Href.Should().Be("https://wherever.naf:12345/api/v1notifications?allocationStatuses=Published,Approved&pageSize=2&pageRef=1");
-            atomFeed.Link.First(m => m.Rel == "previous").Href.Should().Be("https://wherever.naf:12345/api/v1notifications?allocationStatuses=Published,Approved&pageSize=2&pageRef=2");
-            atomFeed.Link.First(m => m.Rel == "next").Href.Should().Be("https://wherever.naf:12345/api/v1notifications?allocationStatuses=Published,Approved&pageSize=2&pageRef=3");
+            atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?allocationStatuses=Published,Approved&pageSize=2&pageRef=3");
+            atomFeed.Link.First(m => m.Rel == "first").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?allocationStatuses=Published,Approved&pageSize=2&pageRef=1");
+            atomFeed.Link.First(m => m.Rel == "last").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?allocationStatuses=Published,Approved&pageSize=2&pageRef=1");
+            atomFeed.Link.First(m => m.Rel == "previous").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?allocationStatuses=Published,Approved&pageSize=2&pageRef=2");
+            atomFeed.Link.First(m => m.Rel == "next").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?allocationStatuses=Published,Approved&pageSize=2&pageRef=3");
         }
 
         [TestMethod]

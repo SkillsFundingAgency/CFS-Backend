@@ -76,7 +76,7 @@ namespace CalculateFunding.Api.External.V1.Services
 
             string queryString = BuildQueryStringForformatting(request);
 
-            string notificationsUrl = $"{request.Scheme}://{request.Host.Value}{trimmedRequestPath}notifications{(!string.IsNullOrWhiteSpace(queryString) ? "?" + queryString : "")}";
+            string notificationsUrl = $"{request.Scheme}://{request.Host.Value}{trimmedRequestPath}/notifications{(!string.IsNullOrWhiteSpace(queryString) ? "?" + queryString : "")}";
 
             AtomFeed<AllocationModel> atomFeed = new AtomFeed<AllocationModel>
             {
