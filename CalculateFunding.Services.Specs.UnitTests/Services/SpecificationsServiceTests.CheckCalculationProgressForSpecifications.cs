@@ -82,10 +82,10 @@ namespace CalculateFunding.Services.Specs.Services
 
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
-                
+
             });
             request.Query.Returns(queryStringValues);
-            
+
             ILogger logger = CreateLogger();
 
             SpecificationsService service = CreateService(logs: logger);
@@ -96,15 +96,7 @@ namespace CalculateFunding.Services.Specs.Services
             //Assert
             result
                 .Should()
-                .BeOfType<BadRequestObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .Be("the request query is empty or null");
-
-            logger
-                .Received(1)
-                .Error(Arg.Is("The http request query came back is empty or null"));
+                .BeOfType<BadRequestObjectResult>();
         }
 
         [TestMethod]
