@@ -410,7 +410,7 @@ namespace CalculateFunding.Services.Calcs
 
             string specificationId = specificationVersionComparison.Id;
 
-            IEnumerable<Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
+            IEnumerable<Calculation> calculations = (await _calculationsRepository.GetCalculationsBySpecificationId(specificationId)).ToArraySafe();
 
             if (calculations.IsNullOrEmpty())
             {
