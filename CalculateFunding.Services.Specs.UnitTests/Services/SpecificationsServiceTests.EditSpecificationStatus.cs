@@ -26,6 +26,7 @@ using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Models.Versioning;
+using CalculateFunding.Services.Core.Interfaces;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -363,7 +364,7 @@ namespace CalculateFunding.Services.Specs.Services
             ILogger logger = CreateLogger();
 
             Specification specification = CreateSpecification();
-
+            
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
 
             specificationsRepository
@@ -376,8 +377,16 @@ namespace CalculateFunding.Services.Specs.Services
 
             ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
 
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            newSpecVersion.PublishStatus = PublishStatus.Approved;
+
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
+
             SpecificationsService service = CreateService(
-                logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository);
+                logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository, specificationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.EditSpecificationStatus(request);
@@ -405,6 +414,11 @@ namespace CalculateFunding.Services.Specs.Services
                 searchRepository
                 .Received(1)
                 .Index(Arg.Is<IEnumerable<SpecificationIndex>>(m => m.First().Status == "Approved"));
+
+            await
+                versionRepository
+                 .Received(1)
+                 .SaveVersion(Arg.Is(newSpecVersion));
         }
 
         [TestMethod]
@@ -520,7 +534,10 @@ namespace CalculateFunding.Services.Specs.Services
             ILogger logger = CreateLogger();
 
             Specification specification = CreateSpecification();
-            specification.Current.PublishStatus = PublishStatus.Approved;
+
+            SpecificationVersion specificationVersion = specification.Current;
+
+            specificationVersion.PublishStatus = PublishStatus.Approved;
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
 
@@ -534,8 +551,16 @@ namespace CalculateFunding.Services.Specs.Services
 
             ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
 
+            SpecificationVersion newSpecVersion = specificationVersion.Clone() as SpecificationVersion;
+            newSpecVersion.PublishStatus = PublishStatus.Updated;
+
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
+
             SpecificationsService service = CreateService(
-                logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository);
+                logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository, specificationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.EditSpecificationStatus(request);
@@ -563,6 +588,11 @@ namespace CalculateFunding.Services.Specs.Services
                 searchRepository
                 .Received(1)
                 .Index(Arg.Is<IEnumerable<SpecificationIndex>>(m => m.First().Status == "Updated"));
+
+            await
+                versionRepository
+                 .Received(1)
+                 .SaveVersion(Arg.Is(newSpecVersion));
         }
     }
 }

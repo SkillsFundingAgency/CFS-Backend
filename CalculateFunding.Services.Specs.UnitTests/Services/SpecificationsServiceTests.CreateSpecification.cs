@@ -22,6 +22,7 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Models;
+using CalculateFunding.Services.Core.Interfaces;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -39,11 +40,13 @@ namespace CalculateFunding.Services.Specs.Services
             ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
 
             IMapper mapper = CreateImplementedMapper();
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
 
             SpecificationsService specificationsService = CreateService(
                 specificationsRepository: specificationsRepository,
                 searchRepository: searchRepository,
-                mapper: mapper);
+                mapper: mapper,
+                specificationVersionRepository: versionRepository);
 
             SpecificationCreateModel specificationCreateModel = new SpecificationCreateModel()
             {
@@ -112,7 +115,12 @@ namespace CalculateFunding.Services.Specs.Services
                 FundingStreams = new List<Reference>() { new Reference(FundingStreamId, "Funding Stream 1") },
                 Name = "Specification Name",
                 Version = 1,
+                SpecificationId = SpecificationId
             };
+
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>())
+                .Returns(specificationVersion);
 
             DocumentEntity<Specification> createdSpecification = new DocumentEntity<Specification>()
             {
@@ -120,11 +128,7 @@ namespace CalculateFunding.Services.Specs.Services
                 {
                     Name = "Specification Name",
                     Id = "createdSpec",
-                    Current = specificationVersion,
-                    History = new List<SpecificationVersion>()
-                     {
-                          specificationVersion,
-                     },
+                    Current = specificationVersion
                 },
             };
 
@@ -163,6 +167,19 @@ namespace CalculateFunding.Services.Specs.Services
                 !string.IsNullOrWhiteSpace(c.First().Id) &&
                 c.First().Name == specificationCreateModel.Name
                 ));
+
+            await versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is<SpecificationVersion>(
+                       m => !string.IsNullOrWhiteSpace(m.EntityId) &&
+                       m.PublishStatus == Models.Versioning.PublishStatus.Draft &&
+                       m.Description == "Specification Description" &&
+                       m.FundingPeriod.Id == "fp1" &&
+                       m.FundingPeriod.Name == "Funding Period 1" &&
+                       m.FundingStreams.Any() &&
+                       m.Name == "Specification Name" &&
+                       m.Version == 1
+                   ));
         }
 
         [TestMethod]

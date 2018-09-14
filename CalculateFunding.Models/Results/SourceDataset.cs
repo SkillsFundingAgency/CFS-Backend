@@ -6,6 +6,20 @@ namespace CalculateFunding.Models.Results
 {
     public class SourceDataset : VersionedItem
     {
+        //AB: These 2 properties are not required yet, will be updated during the story
+
+        [JsonProperty("id")]
+        public override string Id
+        {
+            get { return ""; }
+        }
+
+        [JsonProperty("entityId")]
+        public override string EntityId
+        {
+            get { return ""; }
+        }
+
         [JsonProperty("dataset")]
         public VersionReference Dataset { get; set; }
         [JsonProperty("rows")]

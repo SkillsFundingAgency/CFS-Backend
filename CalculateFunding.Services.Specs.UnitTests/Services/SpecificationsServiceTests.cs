@@ -15,6 +15,7 @@ using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Services.Core.Interfaces;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -50,7 +51,8 @@ namespace CalculateFunding.Services.Specs.Services
             IValidator<SpecificationEditModel> specificationEditModelValidator = null,
             IValidator<PolicyEditModel> policyEditModelValidator = null,
             IValidator<CalculationEditModel> calculationEditModelValidator = null,
-            IResultsRepository resultsRepository = null)
+            IResultsRepository resultsRepository = null,
+            IVersionRepository<SpecificationVersion> specificationVersionRepository = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(),
                 specificationsRepository ?? CreateSpecificationsRepository(),
@@ -65,7 +67,13 @@ namespace CalculateFunding.Services.Specs.Services
                 specificationEditModelValidator ?? CreateEditSpecificationValidator(),
                 policyEditModelValidator ?? CreateEditPolicyValidator(),
                 calculationEditModelValidator ?? CreateEditCalculationValidator(),
-                resultsRepository ?? CreateResultsRepository());
+                resultsRepository ?? CreateResultsRepository(),
+                specificationVersionRepository ?? CreateVersionRepository());
+        }
+
+        static IVersionRepository<SpecificationVersion> CreateVersionRepository()
+        {
+            return Substitute.For<IVersionRepository<SpecificationVersion>>();
         }
 
         static IResultsRepository CreateResultsRepository()

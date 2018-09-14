@@ -25,6 +25,8 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Models.Versioning;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -483,8 +485,19 @@ namespace CalculateFunding.Services.Specs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            newSpecVersion.Name = specificationEditModel.Name;
+            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
+            newSpecVersion.FundingStreams = new[] { new FundingStream { Id = "fs11" } };
+
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
+
             SpecificationsService service = CreateService(
-                logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository, cacheProvider: cacheProvider, messengerService: messengerService);
+                logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository, 
+                cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.EditSpecification(request);
@@ -514,6 +527,139 @@ namespace CalculateFunding.Services.Specs.Services
                                     m.Current.Name == "new spec name" &&
                                     m.Previous.Name == "Spec name"
                                     ), Arg.Any<IDictionary<string, string>>());
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(newSpecVersion));
+        }
+
+        [TestMethod]
+        public async Task EditSpecification_GivenChanges_CreatesNewVersion()
+        {
+            //Arrange
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel
+            {
+                FundingPeriodId = "fp10",
+                Name = "new spec name",
+                FundingStreamIds = new[] { "fs11" }
+            };
+
+            Period fundingPeriod = new Period
+            {
+                Id = "fp10",
+                Name = "fp 10"
+            };
+
+            IEnumerable<FundingStream> fundingStreams = new[]
+            {
+                new FundingStream{
+                    AllocationLines = new List<AllocationLine>
+                    {
+                        new AllocationLine { Id = "al1", Name = "al2"}
+                    }
+                }
+            };
+
+            string json = JsonConvert.SerializeObject(specificationEditModel);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpContext context = Substitute.For<HttpContext>();
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) },
+            });
+
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
+
+            request
+                .HttpContext
+                .Returns(context);
+
+            ILogger logger = CreateLogger();
+
+            Specification specification = CreateSpecification();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            specificationsRepository
+                .GetPeriodById(Arg.Is(fundingPeriod.Id))
+                .Returns(fundingPeriod);
+
+            specificationsRepository
+                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
+                .Returns(fundingStreams);
+
+            specificationsRepository
+                .UpdateSpecification(Arg.Any<Specification>())
+                .Returns(HttpStatusCode.OK);
+
+            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            newSpecVersion.Name = specificationEditModel.Name;
+            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
+            newSpecVersion.FundingStreams = new[] { new FundingStream { Id = "fs11" } };
+
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
+
+            SpecificationsService service = CreateService(
+                logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository,
+                cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository);
+
+            //Act
+            IActionResult result = await service.EditSpecification(request);
+
+            //Arrange
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
+                            m => m.First().Id == SpecificationId &&
+                            m.First().Name == "new spec name" &&
+                            m.First().FundingPeriodId == "fp10" &&
+                            m.First().FundingStreamIds.Count() == 1
+                        ));
+
+            await
+                cacheProvider
+                    .Received(1)
+                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{specification.Id}"));
+
+            await
+                messengerService
+                    .Received(1)
+                    .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.EditSpecification),
+                                Arg.Is<SpecificationVersionComparisonModel>(
+                                    m => m.Id == SpecificationId &&
+                                    m.Current.Name == "new spec name" &&
+                                    m.Previous.Name == "Spec name"
+                                    ), Arg.Any<IDictionary<string, string>>());
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(newSpecVersion));
         }
 
         [TestMethod]
@@ -607,8 +753,19 @@ namespace CalculateFunding.Services.Specs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            newSpecVersion.Name = specificationEditModel.Name;
+            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
+            newSpecVersion.FundingStreams = new[] { new FundingStream { Id = "fs11" } };
+
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
+
             SpecificationsService service = CreateService(
-                logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository, cacheProvider: cacheProvider, messengerService: messengerService);
+                logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository, 
+                cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.EditSpecification(request);
@@ -638,6 +795,11 @@ namespace CalculateFunding.Services.Specs.Services
                                     m.Current.Name == "new spec name" &&
                                     m.Previous.Name == "Spec name"
                                     ), Arg.Any<IDictionary<string, string>>());
+
+            await
+               versionRepository
+                .Received(1)
+                .SaveVersion(Arg.Is(newSpecVersion));
         }
 
         [TestMethod]
@@ -710,8 +872,15 @@ namespace CalculateFunding.Services.Specs.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
+
             SpecificationsService service = CreateService(
-                logs: logger, specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+                logs: logger, specificationsRepository: specificationsRepository, cacheProvider: cacheProvider, specificationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.EditSpecification(request);
@@ -726,6 +895,11 @@ namespace CalculateFunding.Services.Specs.Services
                 cacheProvider
                     .Received(1)
                     .RemoveAsync<List<SpecificationSummary>>(Arg.Is($"{CacheKeys.SpecificationSummariesByFundingPeriodId}fp10"));
+
+            await
+                versionRepository
+                 .Received(1)
+                 .SaveVersion(Arg.Is(newSpecVersion));
         }
 
         [TestMethod]
@@ -798,8 +972,15 @@ namespace CalculateFunding.Services.Specs.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
+
             SpecificationsService service = CreateService(
-                logs: logger, specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+                logs: logger, specificationsRepository: specificationsRepository, cacheProvider: cacheProvider, specificationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.EditSpecification(request);
@@ -814,6 +995,11 @@ namespace CalculateFunding.Services.Specs.Services
                 cacheProvider
                     .DidNotReceive()
                     .RemoveAsync<List<SpecificationSummary>>(Arg.Is($"{CacheKeys.SpecificationSummariesByFundingPeriodId}fp1"));
+
+            await
+                versionRepository
+                 .Received(1)
+                 .SaveVersion(Arg.Is(newSpecVersion));
         }
 
     }

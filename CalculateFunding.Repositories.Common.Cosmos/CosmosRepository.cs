@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
+using CalculateFunding.Repositories.Common.Cosmos.Interfaces;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
@@ -12,7 +13,7 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Repositories.Common.Cosmos
 {
-    public class CosmosRepository : IDisposable
+    public class CosmosRepository : ICosmosRepository, IDisposable
     {
         private readonly string _collectionName;
         private readonly string _partitionKey;

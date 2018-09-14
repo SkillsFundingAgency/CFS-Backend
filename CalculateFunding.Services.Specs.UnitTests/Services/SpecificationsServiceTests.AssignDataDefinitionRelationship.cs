@@ -18,6 +18,7 @@ using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Models.Exceptions;
 using Microsoft.Azure.ServiceBus;
 using System.Linq;
+using CalculateFunding.Services.Core.Interfaces;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -176,7 +177,16 @@ namespace CalculateFunding.Services.Specs.Services
                 .Index(Arg.Any<List<SpecificationIndex>>())
                 .Returns(errors);
 
-            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, searchRepository: searchRepository);
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
+
+
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, 
+                searchRepository: searchRepository, specificationVersionRepository: versionRepository);
 
             //Act
             Func<Task> test = async () => await service.AssignDataDefinitionRelationship(message);
@@ -225,8 +235,15 @@ namespace CalculateFunding.Services.Specs.Services
 
             ILogger logger = CreateLogger();
 
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
+
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository,
-                searchRepository: searchRepository, logs: logger);
+                searchRepository: searchRepository, logs: logger, specificationVersionRepository: versionRepository);
 
             //Act
             await service.AssignDataDefinitionRelationship(message);

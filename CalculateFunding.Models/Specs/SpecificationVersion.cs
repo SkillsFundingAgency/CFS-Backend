@@ -9,8 +9,23 @@ namespace CalculateFunding.Models.Specs
 {
     public class SpecificationVersion : VersionedItem
     {
+        [JsonProperty("id")]
+        public override string Id
+        {
+            get { return $"{SpecificationId}_version_{Version}"; }
+        }
+
+        [JsonProperty("entityId")]
+        public override string EntityId
+        {
+            get { return $"{SpecificationId}"; }
+        }
+
         [JsonProperty("name")]
         public string Name { get; set; }
+
+        [JsonProperty("specificationId")]
+        public string SpecificationId { get; set; }
 
         [JsonProperty("fundingPeriod")]
         public Reference FundingPeriod { get; set; }

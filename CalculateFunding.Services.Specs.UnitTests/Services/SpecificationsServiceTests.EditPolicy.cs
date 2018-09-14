@@ -20,6 +20,7 @@ using System.Net;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Interfaces;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -577,7 +578,17 @@ namespace CalculateFunding.Services.Specs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, messengerService: messengerService);
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            newSpecVersion.Policies = newSpecVersion.Policies.Concat(new[] { specification.Current.Policies.First().SubPolicies.First() });
+            newSpecVersion.Policies.First().SubPolicies = Enumerable.Empty<Policy>();
+            
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
+
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, 
+                messengerService: messengerService, specificationVersionRepository: versionRepository);
 
             // Act
             IActionResult result = await specificationsService.EditPolicy(request);
@@ -602,6 +613,11 @@ namespace CalculateFunding.Services.Specs.Services
               .Any()
               .Should()
               .BeFalse();
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(newSpecVersion));
         }
 
         [TestMethod]
@@ -672,7 +688,17 @@ namespace CalculateFunding.Services.Specs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, messengerService: messengerService);
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            newSpecVersion.Policies.Last().SubPolicies = newSpecVersion.Policies.Concat(new[] { specification.Current.Policies.First().SubPolicies.First() });
+            newSpecVersion.Policies.First().SubPolicies = Enumerable.Empty<Policy>();
+
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
+
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, 
+                messengerService: messengerService, specificationVersionRepository: versionRepository);
 
             // Act
             IActionResult result = await specificationsService.EditPolicy(request);

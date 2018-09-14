@@ -6,6 +6,19 @@ namespace CalculateFunding.Models.Scenarios
 {
     public class TestScenarioVersion : VersionedItem
     {
+        //AB: These 2 properties are not required yet, will be updated during the story
+        [JsonProperty("id")]
+        public override string Id
+        {
+            get { return ""; }
+        }
+
+        [JsonProperty("entityId")]
+        public override string EntityId
+        {
+            get { return ""; }
+        }
+
         [JsonProperty("gherkin")]
         public string Gherkin { get; set; }
 

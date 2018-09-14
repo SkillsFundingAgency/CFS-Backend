@@ -28,6 +28,7 @@ using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Caching;
 using System.Linq;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Interfaces;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -416,7 +417,16 @@ namespace CalculateFunding.Services.Specs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, cacheProvider: cacheProvider, messengerService: messengerService);
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            newSpecVersion.Policies.ElementAt(1).Calculations = new[] { new Calculation { Id = CalculationId, Name = "new calc name" } };
+
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
+
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, 
+                cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository);
 
             // Act
             IActionResult result = await specificationsService.EditCalculation(request);
@@ -503,7 +513,16 @@ namespace CalculateFunding.Services.Specs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, cacheProvider: cacheProvider, messengerService: messengerService);
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            newSpecVersion.Policies.First().SubPolicies.First().Calculations = new[] { new Calculation { Id = CalculationId, Name = "new calc name" } };
+
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
+
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, 
+                cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository);
 
             // Act
             IActionResult result = await specificationsService.EditCalculation(request);
@@ -533,6 +552,11 @@ namespace CalculateFunding.Services.Specs.Services
                                    m => m.CalculationId == CalculationId &&
                                         m.SpecificationId == SpecificationId
                                    ), Arg.Any<IDictionary<string, string>>());
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(newSpecVersion));
         }
     }
 }

@@ -56,7 +56,7 @@ namespace IexSampleClient
                 Console.WriteLine("Calling CFS Funding Streams Endpoint");
                 Console.WriteLine("=====================================================================================================================================\n\r");
                 
-                HttpResponseMessage result = await cfsClient.GetAsync("api/providers/ukprn/103929/startYear/2018/endYear/2019/fundingStreams/PES/summary");
+                HttpResponseMessage result = await cfsClient.GetAsync("api/v1/providers/ukprn/10000061/startYear/2018/endYear/2019/fundingStreams/PSG/summary");
 
                 if (result.IsSuccessStatusCode)
                 {
