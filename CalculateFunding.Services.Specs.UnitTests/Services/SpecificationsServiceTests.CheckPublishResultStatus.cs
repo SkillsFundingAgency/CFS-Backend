@@ -11,7 +11,6 @@ using NSubstitute;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Specs.Services
@@ -29,7 +28,7 @@ namespace CalculateFunding.Services.Specs.Services
             SpecificationsService service = CreateService(logs: logger);
 
             //Act
-            IActionResult result = await service.CheckCalculationProgressForSpecifications(request);
+            IActionResult result = await service.CheckPublishResultStatus(request);
 
             //Assert
             result
@@ -42,7 +41,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             logger
                 .Received(1)
-                .Error(Arg.Is("The http request came back as null"));
+                .Error(Arg.Is("The http request is null"));
         }
 
         [TestMethod]
@@ -58,7 +57,7 @@ namespace CalculateFunding.Services.Specs.Services
             SpecificationsService service = CreateService(logs: logger);
 
             //Act
-            IActionResult result = await service.CheckCalculationProgressForSpecifications(request);
+            IActionResult result = await service.CheckPublishResultStatus(request);
 
             //Assert
             result
@@ -71,7 +70,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             logger
                 .Received(1)
-                .Error(Arg.Is("The http request query came back is empty or null"));
+                .Error(Arg.Is("The http request query is empty or null"));
         }
 
         [TestMethod]
@@ -91,7 +90,7 @@ namespace CalculateFunding.Services.Specs.Services
             SpecificationsService service = CreateService(logs: logger);
 
             //Act
-            IActionResult result = await service.CheckCalculationProgressForSpecifications(request);
+            IActionResult result = await service.CheckPublishResultStatus(request);
 
             //Assert
             result
@@ -117,7 +116,7 @@ namespace CalculateFunding.Services.Specs.Services
             SpecificationsService service = CreateService(logs: logger);
 
             //Act
-            IActionResult result = await service.CheckCalculationProgressForSpecifications(request);
+            IActionResult result = await service.CheckPublishResultStatus(request);
 
             //Assert
             result
@@ -148,7 +147,7 @@ namespace CalculateFunding.Services.Specs.Services
             SpecificationsService service = CreateService(logs: logger, cacheProvider: cacheProvider);
 
             //Act
-            IActionResult result = await service.CheckCalculationProgressForSpecifications(request);
+            IActionResult result = await service.CheckPublishResultStatus(request);
 
             //Assert
             result
@@ -178,7 +177,7 @@ namespace CalculateFunding.Services.Specs.Services
             SpecificationsService service = CreateService(logs: logger, cacheProvider: cacheProvider);
 
             //Act
-            IActionResult result =  await service.CheckCalculationProgressForSpecifications(request);
+            IActionResult result =  await service.CheckPublishResultStatus(request);
             //Assert
             result
                 .Should()

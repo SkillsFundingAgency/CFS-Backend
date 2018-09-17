@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Specs;
@@ -36,7 +35,7 @@ namespace CalculateFunding.Services.Specs.Services
 			}));
 
 			// Act
-			IActionResult actionResultReturned = await specificationsService.ExecuteCalculations(httpRequest);
+			IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
 
 			// Assert
 			actionResultReturned.Should().BeOfType<BadRequestObjectResult>();
@@ -68,7 +67,7 @@ namespace CalculateFunding.Services.Specs.Services
 			}));
 
 			// Act
-			IActionResult actionResultReturned = await specificationsService.ExecuteCalculations(httpRequest);
+			IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
 
 			// Assert
 			actionResultReturned.Should().BeOfType<NoContentResult>();
@@ -95,7 +94,7 @@ namespace CalculateFunding.Services.Specs.Services
 			}));
 
 			// Act
-			IActionResult actionResultReturned = await specificationsService.ExecuteCalculations(httpRequest);
+			IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
 
 			// Assert
 			actionResultReturned.Should().BeOfType<InternalServerErrorResult>();
@@ -121,7 +120,7 @@ namespace CalculateFunding.Services.Specs.Services
 			}));
 
 			// Act
-			IActionResult actionResultReturned = await specificationsService.ExecuteCalculations(httpRequest);
+			IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
 
 			// Assert
 			actionResultReturned.Should().BeOfType<BadRequestObjectResult>();
@@ -155,7 +154,7 @@ namespace CalculateFunding.Services.Specs.Services
 			}));
 
 			// Act
-			IActionResult actionResultReturned = await specificationsService.ExecuteCalculations(httpRequest);
+			IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
 
 			// Assert
 			actionResultReturned.Should().BeOfType<InternalServerErrorResult>();
