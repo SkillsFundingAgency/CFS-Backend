@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Versioning;
+﻿using CalculateFunding.Models.Specs;
+using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ namespace CalculateFunding.Models.Results
     public class PublishedAllocationLineResult
     {
         [JsonProperty("allocationLine")]
-        public Reference AllocationLine { get; set; }
+        public AllocationLine AllocationLine { get; set; }
 
         [JsonProperty("current")]
         public PublishedAllocationLineResultVersion Current { get; set; }

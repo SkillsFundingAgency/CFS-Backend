@@ -1,8 +1,7 @@
+using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Datasets.Controllers
 {
@@ -179,6 +178,13 @@ namespace CalculateFunding.Api.Datasets.Controllers
         public Task<IActionResult> RunGetDatasetSchemaSasUrl()
         {
             return _definitionService.GetDatasetSchemaSasUrl(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/datasets/regenerate-providersourcedatasets")]
+        [HttpPost]
+        public Task<IActionResult> RunRegenerateProviderSourceDatasets()
+        {
+            return _datasetService.RegenerateProviderSourceDatasets(ControllerContext.HttpContext.Request);
         }
     }
 }

@@ -80,5 +80,8 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("status")]
         public string Status { get; set; }
+
+        [JsonProperty("phaseOfEducation")]
+        public string PhaseOfEducation { get; set; }
     }
 }

@@ -70,6 +70,10 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> SelectSpecificationForFunding(HttpRequest request);
 
+	    Task<IActionResult> RefreshPublishedResults(HttpRequest request);
+
         Task<IActionResult> GetFundingPeriodById(HttpRequest request);
+
+        Task<IActionResult> CheckPublishResultStatus(HttpRequest request);
     }
 }

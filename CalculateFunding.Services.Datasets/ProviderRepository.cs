@@ -103,7 +103,14 @@ namespace CalculateFunding.Services.Datasets
                 ProviderSubType = x.ProviderSubType,
                 EstablishmentNumber = x.EstablishmentNumber,
                 ProviderType = x.ProviderType,
-                LACode = x.LACode
+                DateOpened = x.OpenDate,
+                DateClosed = x.CloseDate,
+                LACode = x.LACode,
+                CrmAccountId = x.CrmAccountId,
+                LegalName = x.LegalName,
+                NavVendorNo = x.NavVendorNo,
+                DfeEstablishmentNumber = x.DfeEstablishmentNumber,
+                Status = x.Status
             });
         }
 

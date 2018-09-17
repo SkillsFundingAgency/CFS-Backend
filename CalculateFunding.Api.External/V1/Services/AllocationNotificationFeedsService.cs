@@ -27,7 +27,7 @@ namespace CalculateFunding.Api.External.V1.Services
             _feedsService = feedsService;
         }
 
-        public async Task<IActionResult> GetNotifications(int? pageRef, string allocationStatuses, HttpRequest request)
+        public async Task<IActionResult> GetNotifications(int? pageRef, string allocationStatuses, int? pageSize, HttpRequest request)
         {
             if (!pageRef.HasValue)
             {
@@ -39,6 +39,16 @@ namespace CalculateFunding.Api.External.V1.Services
                 return new BadRequestObjectResult("Page ref should be at least 1");
             }
 
+            if (!pageSize.HasValue)
+            {
+                pageSize = MaxRecords;
+            }
+
+            if(pageSize < 1 || pageSize > 500)
+            {
+                return new BadRequestObjectResult($"Page size should be more that zero and less than or equal to {MaxRecords}");
+            }
+
             string[] statusesArray = statusesArray = new[] { "Published" };
 
             if (!string.IsNullOrWhiteSpace(allocationStatuses))
@@ -46,7 +56,7 @@ namespace CalculateFunding.Api.External.V1.Services
                 statusesArray = allocationStatuses.Split(",");
             }
 
-            SearchFeed<AllocationNotificationFeedIndex> searchFeed = await _feedsService.GetFeeds(pageRef.Value, MaxRecords, statusesArray);
+            SearchFeed<AllocationNotificationFeedIndex> searchFeed = await _feedsService.GetFeeds(pageRef.Value, pageSize.Value, statusesArray);
 
             if(searchFeed == null || searchFeed.TotalCount == 0)
             {
@@ -64,7 +74,9 @@ namespace CalculateFunding.Api.External.V1.Services
 
             string allocationTrimmedRequestPath = trimmedRequestPath.Replace("notifications", "");
 
-            string notificationsUrl = $"{request.Scheme}://{request.Host.Value}{trimmedRequestPath}/{{0}}{(request.QueryString.HasValue ? request.QueryString.Value : "")}";
+            string queryString = BuildQueryStringForformatting(request);
+
+            string notificationsUrl = $"{request.Scheme}://{request.Host.Value}{trimmedRequestPath}/notifications{(!string.IsNullOrWhiteSpace(queryString) ? "?" + queryString : "")}";
 
             AtomFeed<AllocationModel> atomFeed = new AtomFeed<AllocationModel>
             {
@@ -72,7 +84,8 @@ namespace CalculateFunding.Api.External.V1.Services
                 Title = "Calculate Funding Service Allocation Feed",
                 Author = new AtomAuthor
                 {
-                    Name = "Calculate Funding Service"
+                    Name = "Calculate Funding Service",
+                    Email = "calculate-funding@education.gov.uk"
                 },
                 Updated = DateTimeOffset.Now,
                 Rights = "Copyright (C) 2018 Department for Education",
@@ -97,38 +110,63 @@ namespace CalculateFunding.Api.External.V1.Services
                     Published = feedIndex.DatePublished,
                     Updated = feedIndex.DateUpdated.Value,
                     Version = feedIndex.AllocationVersionNumber.ToString(),
-                    Link = feedIndex.AllocationStatus == "Published" ? new AtomLink("Allocation", $"{ request.Scheme }://{request.Host.Value}{allocationTrimmedRequestPath}{feedIndex.Id}") : null,
+                    Link = feedIndex.AllocationStatus == "Published" ? new AtomLink("Allocation", $"{ request.Scheme }://{request.Host.Value}{allocationTrimmedRequestPath}/{feedIndex.Id}") : null,
                     Content = new AtomContent<AllocationModel>
                     {
                         Allocation = new AllocationModel
                         {
                             FundingStream = new AllocationFundingStreamModel
                             {
-                                FundingStreamCode = feedIndex.FundingStreamId,
-                                FundingStreamName = feedIndex.FundingStreamName
+                                Id = feedIndex.FundingStreamId,
+                                Name = feedIndex.FundingStreamName,
+                                ShortName = feedIndex.FundingStreamShortName,
+                                PeriodType = new AllocationFundingStreamPeriodTypeModel
+                                {
+                                    Id = feedIndex.FundingStreamPeriodId,
+                                    Name = feedIndex.FundingStreamPeriodName,
+                                    StartDay = feedIndex.FundingStreamStartDay,
+                                    StartMonth = feedIndex.FundingStreamStartMonth,
+                                    EndDay = feedIndex.FundingStreamEndDay,
+                                    EndMonth = feedIndex.FundingStreamEndMonth
+                                }
                             },
                             Period = new Period
                             {
-                                PeriodType = feedIndex.FundingPeriodType,
-                                PeriodId = feedIndex.FundingPeriodId,
-                                StartDate = feedIndex.FundingPeriodStartDate,
-                                EndDate = feedIndex.FundingPeriodEndDate
+                                Id = feedIndex.FundingPeriodId,
+                                Name = feedIndex.FundingStreamPeriodName,
+                                StartYear = feedIndex.FundingPeriodStartYear,
+                                EndYear = feedIndex.FundingPeriodEndYear
                             },
                             Provider = new AllocationProviderModel
                             {
-                                Ukprn = feedIndex.ProviderUkPrn,
+                                Name = feedIndex.ProviderName,
+                                LegalName = feedIndex.ProviderLegalName,
+                                UkPrn = feedIndex.ProviderUkPrn,
                                 Upin = feedIndex.ProviderUpin,
-                                ProviderOpenDate = feedIndex.ProviderOpenDate
+                                Urn = feedIndex.ProviderUrn,
+                                DfeEstablishmentNumber = feedIndex.DfeEstablishmentNumber,
+                                EstablishmentNumber = feedIndex.EstablishmentNumber,
+                                LaCode = feedIndex.LaCode,
+                                LocalAuthority = feedIndex.Authority,
+                                Type = feedIndex.ProviderType,
+                                SubType = feedIndex.SubProviderType,
+                                OpenDate = feedIndex.ProviderOpenDate,
+                                CloseDate = feedIndex.ProviderClosedDate,
+                                CrmAccountId = feedIndex.CrmAccountId,
+                                NavVendorNo = feedIndex.NavVendorNo,
+                                Status = feedIndex.ProviderStatus
                             },
                             AllocationLine = new AllocationLine
                             {
-                                AllocationLineCode = feedIndex.AllocationLineId,
-                                AllocationLineName = feedIndex.AllocationLineName
+                                Id = feedIndex.AllocationLineId,
+                                Name = feedIndex.AllocationLineName,
+                                ShortName = feedIndex.AllocationLineShortName,
+                                FundingRoute = feedIndex.AllocationLineFundingRoute,
+                                ContractRequired = feedIndex.AllocationLineContractRequired ? "Y" : "N"
                             },
                             AllocationVersionNumber = feedIndex.AllocationVersionNumber,
                             AllocationStatus = feedIndex.AllocationStatus,
                             AllocationAmount = (decimal)feedIndex.AllocationAmount,
-                            AllocationLearnerCount = feedIndex.AllocationLearnerCount,
                             AllocationResultId = feedIndex.Id,
                             ProfilePeriods = JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(feedIndex.ProviderProfiling).Select(
                                     m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod)).ToArraySafe()
@@ -138,6 +176,37 @@ namespace CalculateFunding.Api.External.V1.Services
             }
 
             return atomFeed;
+        }
+
+        private string BuildQueryStringForformatting(HttpRequest request)
+        {
+            string queryString = "";
+
+            IQueryCollection requestQuery = request.Query;
+
+            foreach (var item in requestQuery)
+            {
+                if (item.Key == "pageRef")
+                {
+                    queryString += "pageRef={0}&";
+                }
+                else
+                {
+                    queryString += $"{item.Key}={item.Value}&";
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(queryString))
+            {
+                queryString = queryString.Remove(queryString.Length - 1);
+            }
+
+            if (!queryString.Contains("pageRef"))
+            {
+                queryString += "&pageRef={0}";
+            }
+
+            return queryString;
         }
     }
 }

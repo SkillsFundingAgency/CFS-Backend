@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="V1\Models\ProviderFundingStreamResult.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="StoreExport\allocation-lines.csv" />
     <None Remove="StoreExport\budgets.csv" />
     <None Remove="StoreExport\periods.csv" />
@@ -58,7 +62,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="2.4.0" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.Examples" Version="2.9.0" />

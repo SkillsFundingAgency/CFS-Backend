@@ -355,7 +355,7 @@ namespace CalculateFunding.Services.Datasets
                 {
                     OkObjectResult okObjectResult = actionResult as OkObjectResult;
 
-                    int rowCount = (int) okObjectResult.Value;
+                    int rowCount = (int)okObjectResult.Value;
 
                     DatasetCreateUpdateResponseModel datasetCreateUpdateResponseModel = new DatasetCreateUpdateResponseModel();
                     datasetCreateUpdateResponseModel.CurrentRowCount = rowCount;
@@ -369,7 +369,7 @@ namespace CalculateFunding.Services.Datasets
                         await UpdateExistingDatasetAndAddVersion(blob, model, request.GetUser(), rowCount);
                     }
 
-                    actionResult =  new OkObjectResult(datasetCreateUpdateResponseModel);
+                    actionResult = new OkObjectResult(datasetCreateUpdateResponseModel);
                 }
                 catch (Exception exception)
                 {
@@ -636,7 +636,20 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<IActionResult> RegenerateProviderSourceDatasets(HttpRequest httpRequest)
         {
-            IEnumerable<DefinitionSpecificationRelationship> relationships = await _datasetRepository.GetAllDefinitionSpecificationsRelationships();
+            httpRequest.Query.TryGetValue("specificationId", out var specificationIdValues);
+
+            string specificationId = specificationIdValues.FirstOrDefault();
+
+            IEnumerable<DefinitionSpecificationRelationship> relationships;
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                relationships = await _datasetRepository.GetAllDefinitionSpecificationsRelationships(); ;
+            }
+            else
+            {
+                relationships = await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(r => r.Specification.Id == specificationId);
+            }
 
             Dictionary<string, Dataset> datasets = new Dictionary<string, Dataset>();
 
@@ -680,7 +693,7 @@ namespace CalculateFunding.Services.Datasets
                         string identifier = row.Fields[field.Name]?.ToString();
                         if (!string.IsNullOrWhiteSpace(identifier))
                         {
-                            var lookup = GetDictionaryForIdentifierType(field.IdentifierFieldType, identifier);
+                            Dictionary<string, List<string>> lookup = GetDictionaryForIdentifierType(field.IdentifierFieldType, identifier);
                             if (lookup.TryGetValue(identifier, out List<string> providerIds))
                             {
                                 return providerIds;
@@ -698,24 +711,26 @@ namespace CalculateFunding.Services.Datasets
             return new string[0];
         }
 
-        private static Dictionary<string, List<string>> GetDictionaryForIdentifierType(IdentifierFieldType? identifierFieldType, string fieldIdentifier)
+        /// <summary>
+        /// Gets list of Provider IDs from the given Identifier Type and Identifier Value
+        /// </summary>
+        /// <param name="identifierFieldType">Identifier Type</param>
+        /// <param name="fieldIdentifierValue">Identifier ID - eg UPIN value</param>
+        /// <returns>List of Provider IDs matching the given identifiers</returns>
+        private static Dictionary<string, List<string>> GetDictionaryForIdentifierType(IdentifierFieldType? identifierFieldType, string fieldIdentifierValue)
         {
-            var identifierMaps = new Dictionary<IdentifierFieldType, Dictionary<string, List<string>>>();
-
             if (!identifierFieldType.HasValue)
             {
                 return new Dictionary<string, List<string>>();
             }
 
-            Dictionary<IdentifierFieldType, Dictionary<string, List<string>>> identifiers = new Dictionary<IdentifierFieldType, Dictionary<string, List<string>>>();
-
+            // Expression to filter ProviderSummaries - this selects which field on the ProviderSummary to filter on, eg UPIN
             Func<ProviderSummary, string> identifierSelectorExpression = GetIdentifierSelectorExpression(identifierFieldType.Value);
 
-            IEnumerable<string> filteredIdentifiers = _providerSummaries.Select(identifierSelectorExpression).Where(x => x == fieldIdentifier);
+            // Find ProviderIds from the list of all providers - given the field and value of the ID
+            IEnumerable<string> filteredIdentifiers = _providerSummaries.Where(x => identifierSelectorExpression(x) == fieldIdentifierValue).Select(m => m.Id);
 
-            identifiers.Add(identifierFieldType.Value, new Dictionary<string, List<string>> { { fieldIdentifier, filteredIdentifiers.ToList() } });
-
-            return identifiers[identifierFieldType.Value];
+            return new Dictionary<string, List<string>> { { fieldIdentifierValue, filteredIdentifiers.ToList() } };
         }
 
         async Task SaveNewDatasetAndVersion(ICloudBlob blob, DatasetDefinition datasetDefinition, int rowCount)
@@ -905,7 +920,7 @@ namespace CalculateFunding.Services.Datasets
                     return new StatusCodeResult(412);
                 }
 
-              
+
                 using (ExcelPackage excelPackage = new ExcelPackage(datasetStream))
                 {
                     DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(excelPackage, () => _providerSummaries, datasetDefinition);
@@ -936,7 +951,7 @@ namespace CalculateFunding.Services.Datasets
                     }
                 }
             }
-         
+
             return new OkObjectResult(rowCount);
         }
 
@@ -1047,9 +1062,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 IEnumerable<string> allProviderIds = GetProviderIdsForIdentifier(datasetDefinition, row);
 
-                IEnumerable<string> providerIds = allProviderIds.Where(x => x == row.Identifier).ToList();
-
-                foreach (string providerId in providerIds)
+                foreach (string providerId in allProviderIds)
                 {
                     if (!resultsByProviderId.TryGetValue(providerId, out ProviderSourceDatasetCurrent sourceDataset))
                     {
@@ -1261,11 +1274,11 @@ namespace CalculateFunding.Services.Datasets
             };
 
             int maxVersion = dataset.Content.History.Max(m => m.Version);
-            if(maxVersion > 1)
+            if (maxVersion > 1)
             {
                 result.PreviousDataSourceRows = dataset.Content.History.First().RowCount;
             }
-            
+
             return new OkObjectResult(result);
         }
 

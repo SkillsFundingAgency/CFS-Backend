@@ -12,8 +12,10 @@ using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Specs;
@@ -154,6 +156,19 @@ namespace CalculateFunding.Api.External
 
             builder
                 .AddSingleton(resultsConfig.CreateMapper());
+
+            builder.AddSingleton<IVersionRepository<SpecificationVersion>, VersionRepository<SpecificationVersion>>((ctx) =>
+            {
+                CosmosDbSettings specsVersioningDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", specsVersioningDbSettings);
+
+                specsVersioningDbSettings.CollectionName = "specs";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(specsVersioningDbSettings);
+
+                return new VersionRepository<SpecificationVersion>(resultsRepostory);
+            });
 
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
             {

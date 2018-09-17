@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .BeOfType<OkObjectResult>()
                 .Which
                 .Value
-                .ShouldBeEquivalentTo(new SpecificationSummary()
+                .Should().BeEquivalentTo(new SpecificationSummary()
                 {
                     Id = specification.Id,
                     Name = "Spec Name",
@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .BeOfType<OkObjectResult>()
                 .Which
                 .Value
-                .ShouldBeEquivalentTo(new SpecificationSummary()
+                .Should().BeEquivalentTo(new SpecificationSummary()
                 {
                     Id = specification.Id,
                     Name = "Spec Name",

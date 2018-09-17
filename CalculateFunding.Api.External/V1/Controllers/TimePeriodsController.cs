@@ -13,7 +13,7 @@ namespace CalculateFunding.Api.External.V1.Controllers
 {
 	[Authorize(Roles = Constants.ExecuteApiRole)]
 	[Produces("application/vnd.sfa.allocation.1+json")]
-    [Route("api/periods")]
+    [Route("api/v{version:apiVersion}/periods")]
     public class TimePeriodsController : Controller
     {
 	    private readonly ITimePeriodsService _timePeriodsService;
@@ -28,11 +28,11 @@ namespace CalculateFunding.Api.External.V1.Controllers
         /// </summary>
         /// <returns>A list of time periods </returns>
         [HttpGet]
-        [Produces(typeof(List<Period>))]
+        [Produces(typeof(Period[]))]
         [SwaggerResponseExample(200, typeof(PeriodExamples))]
         [SwaggerOperation("getTimePeriods")]
-        [SwaggerOperationFilter(typeof(OperationFilter<List<Period>>))]
-        [ProducesResponseType(typeof(List<Period>), 200)]
+        [SwaggerOperationFilter(typeof(OperationFilter<Period[]>))]
+        [ProducesResponseType(typeof(IEnumerable<Period>), 200)]
         [ProducesResponseType(401)]
         [ProducesResponseType(500)]
 

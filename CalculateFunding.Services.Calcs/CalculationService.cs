@@ -1,4 +1,11 @@
-﻿using CalculateFunding.Models;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Code;
@@ -28,13 +35,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -410,7 +410,7 @@ namespace CalculateFunding.Services.Calcs
 
             string specificationId = specificationVersionComparison.Id;
 
-            IEnumerable<Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
+            IEnumerable<Calculation> calculations = (await _calculationsRepository.GetCalculationsBySpecificationId(specificationId)).ToArraySafe();
 
             if (calculations.IsNullOrEmpty())
             {
@@ -555,9 +555,9 @@ namespace CalculateFunding.Services.Calcs
             {
                 IEnumerable<Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(comparison.SpecificationId);
 
-                string existingFunctionName = VisualBasicTypeGenerator.Identifier(comparison.Previous.Name);
+                string existingFunctionName = VisualBasicTypeGenerator.GenerateIdentifier(comparison.Previous.Name);
                 string sourceFieldRegex = $"\\b({existingFunctionName})\\((\\s)*\\)";
-                string newFunctionReplacement = $"{VisualBasicTypeGenerator.Identifier(comparison.Current.Name)}()";
+                string newFunctionReplacement = $"{VisualBasicTypeGenerator.GenerateIdentifier(comparison.Current.Name)}()";
 
                 foreach (Calculation calculation in calculations)
                 {
@@ -774,7 +774,9 @@ namespace CalculateFunding.Services.Calcs
             HttpStatusCode statusCode = await _calculationsRepository.UpdateCalculation(calculation);
 
             if (!statusCode.IsSuccess())
+            {
                 return new StatusCodeResult((int)statusCode);
+            }
 
             await UpdateBuildProject(calculation.SpecificationId);
 
@@ -921,10 +923,10 @@ namespace CalculateFunding.Services.Calcs
             ConcurrentBag<CalculationStatusCountsModel> statusCountModels = new ConcurrentBag<CalculationStatusCountsModel>();
 
             IList<Task> statusCountsTasks = new List<Task>();
-          
+
             foreach (string specificationId in specifications.SpecificationIds)
             {
-                statusCountsTasks.Add(Task.Run(async() =>
+                statusCountsTasks.Add(Task.Run(async () =>
                 {
                     StatusCounts statusCounts = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetStatusCounts(specificationId));
 
@@ -943,7 +945,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 await TaskHelper.WhenAllAndThrow(statusCountsTasks.ToArray());
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new InternalServerErrorResult($"An error occurred when obtaining calculation steps with the follwing message: \n {ex.Message}");
             }

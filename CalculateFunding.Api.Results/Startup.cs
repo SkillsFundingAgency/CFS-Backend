@@ -6,8 +6,10 @@ using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Proxies.External;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Proxies.External;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Builder;
@@ -25,7 +27,6 @@ namespace CalculateFunding.Api.Results
         {
             Configuration = configuration;
         }
-
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -139,9 +140,6 @@ namespace CalculateFunding.Api.Results
 
             builder
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
-
-            builder
-              .AddSingleton<IProviderProfilingRepository, ProviderProfilingRepository>();
 
             builder.AddUserProviderFromRequest();
 

@@ -12,7 +12,6 @@ using System.Net;
 using FluentValidation;
 using CalculateFunding.Services.Core.Extensions;
 using Serilog;
-using CalculateFunding.Services.Core.Options;
 using System;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Models.Specs.Messages;
@@ -28,9 +27,10 @@ using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Helpers;
 using System.Collections.Concurrent;
-using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Models.Health;
+using CalculateFunding.Services.Core.Interfaces;
+using Microsoft.Extensions.Primitives;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -50,6 +50,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IValidator<PolicyEditModel> _policyEditModelValidator;
         private readonly IValidator<CalculationEditModel> _calculationEditModelValidator;
         private readonly IResultsRepository _resultsRepository;
+        private readonly IVersionRepository<SpecificationVersion> _specificationVersionRepository;
 
         public SpecificationsService(
             IMapper mapper,
@@ -65,7 +66,8 @@ namespace CalculateFunding.Services.Specs
             IValidator<SpecificationEditModel> specificationEditModelValidator,
             IValidator<PolicyEditModel> policyEditModelValidator,
             IValidator<CalculationEditModel> calculationEditModelValidator,
-            IResultsRepository resultsRepository)
+            IResultsRepository resultsRepository,
+            IVersionRepository<SpecificationVersion> specificationVersionRepository)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -80,6 +82,7 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(specificationEditModelValidator, nameof(specificationEditModelValidator));
             Guard.ArgumentNotNull(policyEditModelValidator, nameof(policyEditModelValidator));
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
+            Guard.ArgumentNotNull(specificationVersionRepository, nameof(specificationVersionRepository));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -95,6 +98,7 @@ namespace CalculateFunding.Services.Specs
             _policyEditModelValidator = policyEditModelValidator;
             _calculationEditModelValidator = calculationEditModelValidator;
             _resultsRepository = resultsRepository;
+            _specificationVersionRepository = specificationVersionRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -801,6 +805,8 @@ namespace CalculateFunding.Services.Specs
 
             policy.LastUpdated = DateTimeOffset.Now;
 
+            SpecificationVersion previousSpecificationVersion = specification.Current;
+
             SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
 
             if (!string.IsNullOrWhiteSpace(createModel.ParentPolicyId))
@@ -818,7 +824,7 @@ namespace CalculateFunding.Services.Specs
                    : specificationVersion.Policies.Concat(new[] { policy }));
             }
 
-            HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion);
+            HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
 
             if (statusCode != HttpStatusCode.OK)
                 return new StatusCodeResult((int)statusCode);
@@ -903,7 +909,7 @@ namespace CalculateFunding.Services.Specs
                 newParentPolicy.SubPolicies = newParentPolicy.SubPolicies.Concat(new[] { policy });
             }
 
-            HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion);
+            HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
 
             if (statusCode != HttpStatusCode.OK)
                 return new StatusCodeResult((int)statusCode);
@@ -938,7 +944,7 @@ namespace CalculateFunding.Services.Specs
                 Name = createModel.Name,
                 Id = Guid.NewGuid().ToString(),
             };
-            specification.Init();
+            //specification.Init();
 
             SpecificationVersion specificationVersion = new SpecificationVersion
             {
@@ -948,6 +954,9 @@ namespace CalculateFunding.Services.Specs
                 Policies = new List<Policy>(),
                 DataDefinitionRelationshipIds = new List<string>(),
                 Author = user,
+                SpecificationId = specification.Id,
+                Version = 1,
+                Date = DateTimeOffset.Now.ToLocalTime()
             };
 
             List<Reference> fundingStreams = new List<Reference>();
@@ -971,7 +980,7 @@ namespace CalculateFunding.Services.Specs
 
             specificationVersion.FundingStreams = fundingStreams;
 
-            specification.Save(specificationVersion);
+            specification.Current = specificationVersion;
 
             DocumentEntity<Specification> repositoryCreateResult = await _specificationsRepository.CreateSpecification(specification);
 
@@ -996,10 +1005,13 @@ namespace CalculateFunding.Services.Specs
                 }
             });
 
+            specificationVersion = await _specificationVersionRepository.CreateVersion(specificationVersion);
+
+            await _specificationVersionRepository.SaveVersion(specificationVersion);
+
             await ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id);
 
             SpecificationCurrentVersion result = ConvertSpecificationToCurrentVersion(repositoryCreateResult, fundingStreamObjects);
-
 
             return new OkObjectResult(result);
         }
@@ -1043,6 +1055,7 @@ namespace CalculateFunding.Services.Specs
             specificationVersion.Name = editModel.Name;
             specificationVersion.Description = editModel.Description;
             specificationVersion.Author = user;
+            specificationVersion.SpecificationId = specificationId;
 
             specification.Name = editModel.Name;
 
@@ -1091,7 +1104,7 @@ namespace CalculateFunding.Services.Specs
                 RemoveMissingAllocationLineAssociations(allocationLines, specificationVersion.Policies);
             }
 
-            HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion);
+            HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
             if (!statusCode.IsSuccess())
                 return new StatusCodeResult((int)statusCode);
 
@@ -1165,20 +1178,24 @@ namespace CalculateFunding.Services.Specs
 
             Reference user = request.GetUser();
 
+            SpecificationVersion previousSpecificationVersion = specification.Current;
+
             SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
 
             HttpStatusCode statusCode;
 
             if (editStatusModel.PublishStatus == PublishStatus.Approved)
             {
-                statusCode = await PublishSpecification(specification);
+                specificationVersion.PublishStatus = PublishStatus.Approved;
+
+                statusCode = await PublishSpecification(specification, specificationVersion, previousSpecificationVersion);
             }
             else
             {
 
                 specificationVersion.PublishStatus = editStatusModel.PublishStatus;
 
-                statusCode = await UpdateSpecification(specification, specificationVersion);
+                statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
             }
 
             if (!statusCode.IsSuccess())
@@ -1292,6 +1309,8 @@ namespace CalculateFunding.Services.Specs
                 return new PreconditionFailedResult($"Specification not found for specification id {createModel.SpecificationId}");
             }
 
+            SpecificationVersion previousSpecificationVersion = specification.Current;
+
             SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
 
             Policy policy = specificationVersion.GetPolicy(createModel.PolicyId);
@@ -1331,7 +1350,7 @@ namespace CalculateFunding.Services.Specs
                 ? new[] { calculation }
                 : policy.Calculations.Concat(new[] { calculation }));
 
-            HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion);
+            HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
             if (statusCode != HttpStatusCode.OK)
             {
                 _logger.Error($"Failed to update specification when creating a calc with status {statusCode}");
@@ -1494,7 +1513,7 @@ namespace CalculateFunding.Services.Specs
                 }
             }
 
-            HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion);
+            HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
             if (statusCode != HttpStatusCode.OK)
             {
                 _logger.Error($"Failed to update specification when creating a calc with status {statusCode}");
@@ -1535,6 +1554,8 @@ namespace CalculateFunding.Services.Specs
                     throw new InvalidModelException(relationshipMessage.GetType().ToString(), new[] { $"Specification could not be found for id {specificationId}" });
                 }
 
+                SpecificationVersion previousSpecificationVersion = specification.Current;
+
                 SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
 
                 if (specificationVersion.DataDefinitionRelationshipIds.IsNullOrEmpty())
@@ -1543,7 +1564,7 @@ namespace CalculateFunding.Services.Specs
                 if (!specificationVersion.DataDefinitionRelationshipIds.Contains(relationshipId))
                     specificationVersion.DataDefinitionRelationshipIds = specificationVersion.DataDefinitionRelationshipIds.Concat(new[] { relationshipId });
 
-                HttpStatusCode status = await UpdateSpecification(specification, specificationVersion);
+                HttpStatusCode status = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
 
                 if (!status.IsSuccess())
                 {
@@ -1726,7 +1747,37 @@ namespace CalculateFunding.Services.Specs
             return new OkResult();
         }
 
-        public async Task<IActionResult> SelectSpecificationForFunding(HttpRequest request)
+		public async Task<IActionResult> RefreshPublishedResults(HttpRequest request)
+		{
+			request.Query.TryGetValue("specificationIds", out StringValues specificationIds);
+			string specificationIdsRetrieved = specificationIds.FirstOrDefault();
+			if (specificationIdsRetrieved.IsNullOrEmpty())
+			{
+				return new BadRequestObjectResult("Null or empty specification ids parameter was provided");
+			}
+
+			string[] specificationIdsAsArray = specificationIdsRetrieved.Split(',');
+			foreach (string specificationId in specificationIdsAsArray)
+			{
+				Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+				if (specification == null)
+				{
+					return new BadRequestObjectResult($"Specification {specificationId} - was not found");
+				}
+			}
+			IEnumerable<Task> calculationTasks = specificationIdsAsArray.Select(specificationId => CalculateSpecification(request, specificationId));
+			try
+			{
+				await Task.WhenAll(calculationTasks.ToArray());
+			}
+			catch (Exception e)
+			{
+				return new InternalServerErrorResult(e.Message);
+			}
+			return new NoContentResult();
+		}
+
+		public async Task<IActionResult> SelectSpecificationForFunding(HttpRequest request)
         {
             request.Query.TryGetValue("specificationId", out var specId);
 
@@ -1780,21 +1831,7 @@ namespace CalculateFunding.Services.Specs
                     throw new Exception(error);
                 }
 
-                try
-                {
-                    IDictionary<string, string> properties = request.BuildMessageProperties();
-                    properties.Add("specification-id", specificationId);
-
-                    await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.PublishProviderResults,
-                        null,
-                        properties);
-                }
-                catch (Exception)
-                {
-                    string error = $"Failed to queue publishing of provider results for specification id: {specificationId}";
-                    _logger.Error(error);
-                    throw new Exception(error);
-                }
+                await CalculateSpecification(request, specificationId);
             }
             catch(Exception ex)
             {
@@ -1815,29 +1852,109 @@ namespace CalculateFunding.Services.Specs
             return new NoContentResult();
         }
 
-        private async Task<HttpStatusCode> UpdateSpecification(Specification specification, SpecificationVersion specificationVersion)
+	    private async Task CalculateSpecification(HttpRequest request, string specificationId)
+	    {
+		    try
+		    {
+			    IDictionary<string, string> properties = request.BuildMessageProperties();
+			    properties.Add("specification-id", specificationId);
+			    UpdateCacheWithCalculationStarted(specificationId);
+				await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.PublishProviderResults,
+				    null,
+				    properties);
+		    }
+		    catch (Exception)
+		    {
+			    string error = $"Failed to queue publishing of provider results for specification id: {specificationId}";
+			    UpdateCacheWithCalculationError(specificationId, error);
+				_logger.Error(error);
+			    throw new Exception(error);
+		    }
+	    }
+
+        public async Task<IActionResult> CheckPublishResultStatus(HttpRequest request)
         {
-            specification.Save(specificationVersion);
+            if(request == null)
+            {
+                _logger.Error("The http request is null");
+                return new BadRequestObjectResult("The request is null");
+            }
+
+            if (request.Query == null)
+            {
+                _logger.Error("The http request query is empty or null");
+                return new BadRequestObjectResult("the request query is empty or null");
+            }
+
+            request.Query.TryGetValue("specificationId", out var specificationId);
+
+            try
+            {
+                SpecificationCalculationExecutionStatus specProgress = await _cacheProvider.GetAsync<SpecificationCalculationExecutionStatus>($"calculationProgress-{specificationId}");
+                if (specProgress == null)
+                {
+                    _logger.Error("Cache returned null, couldn't find specification - {specificationId}", specificationId);
+                    return new BadRequestObjectResult($"Couldn't find progress statement for specification - {specificationId}");
+                }
+                return new OkObjectResult(specProgress);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to retrieve calculation progress from cache - {specificationId}", specificationId);
+                return new InternalServerErrorResult(ex.Message);
+            }
+        }
+
+        private async Task<HttpStatusCode> UpdateSpecification(Specification specification, SpecificationVersion specificationVersion, SpecificationVersion previousVersion)
+        {
+            specificationVersion = await _specificationVersionRepository.CreateVersion(specificationVersion, previousVersion);
+
+            specification.Current = specificationVersion;
+
             HttpStatusCode result = await _specificationsRepository.UpdateSpecification(specification);
+
             if (result == HttpStatusCode.OK)
             {
+                await _specificationVersionRepository.SaveVersion(specificationVersion);
+
                 await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
             }
 
             return result;
         }
 
-        private async Task<HttpStatusCode> PublishSpecification(Specification specification)
+        private async Task<HttpStatusCode> PublishSpecification(Specification specification, SpecificationVersion specificationVersion, SpecificationVersion previousVersion)
         {
-            specification.Publish();
+            specificationVersion = await _specificationVersionRepository.CreateVersion(specificationVersion, previousVersion);
+
+            specification.Current = specificationVersion;
+            
             HttpStatusCode result = await _specificationsRepository.UpdateSpecification(specification);
             if (result == HttpStatusCode.OK)
             {
+                await _specificationVersionRepository.SaveVersion(specificationVersion);
+
                 await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
             }
 
             return result;
         }
+
+	    private void UpdateCacheWithCalculationStarted(string specificationId)
+	    {
+		    SpecificationCalculationExecutionStatus statusToCache = new SpecificationCalculationExecutionStatus(specificationId, 0, CalculationProgressStatus.NotStarted);
+		    CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{specificationId}", statusToCache, _cacheProvider);
+		}
+
+	    private void UpdateCacheWithCalculationError(string specificationId, string errorMessage)
+	    {
+		    SpecificationCalculationExecutionStatus statusToCache =
+			    new SpecificationCalculationExecutionStatus(specificationId, 0, CalculationProgressStatus.Error)
+			    {
+				    ErrorMessage = errorMessage
+			    };
+		    CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{specificationId}", statusToCache, _cacheProvider);
+		}
 
         private async Task ClearSpecificationCacheItems(string fundingPeriodId)
         {

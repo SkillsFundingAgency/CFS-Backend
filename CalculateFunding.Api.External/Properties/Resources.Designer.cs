@@ -62,57 +62,193 @@ namespace CalculateFunding.Api.External.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to {
-        ///  &quot;FundingPeriod&quot;: &quot;2018-2019&quot;,
-        ///  &quot;LocalAuthorities&quot;: [
-        ///    {
-        ///      &quot;LANo&quot;: &quot;38&quot;,
-        ///      &quot;LAName&quot;: &quot;Sandwell&quot;,
-        ///      &quot;Providers&quot;: [
-        ///        {
-        ///          &quot;Ukprn&quot;: &quot;1111111&quot;,
-        ///          &quot;LAEStab&quot;: &quot;3332102&quot;,
-        ///          &quot;OrganisationName&quot;: &quot;Sample School 1&quot;,
-        ///          &quot;OrganisationType&quot;: &quot;School&quot;,
-        ///          &quot;OrganisationSubType&quot;: &quot;Community&quot;,
-        ///          &quot;EligiblePupils&quot;: 0,
-        ///          &quot;AllocationValue&quot;: 161670.0,
-        ///          &quot;FundingPeriods&quot;: [
-        ///            {
-        ///              &quot;FundingPeriod&quot;: {
-        ///        [rest of string was truncated]&quot;;.
+        ///	&quot;AllocationResultId&quot;: &quot;OWU0Mzk3NTctODVlNi00YjMzLWI3ZTYtNjY1ZDQ2MWJiY2VmMTA2NzQ5KFBTRy0wMDMsIE1haW50YWluZWQgU2Nob29scyk=&quot;,
+        ///	&quot;FundingStream&quot;: {
+        ///		&quot;Id&quot;: &quot;PSG&quot;,
+        ///		&quot;Name&quot;: &quot;PE and Sport Premium Grant&quot;,
+        ///		&quot;ShortName&quot;: &quot;PE and Sport&quot;,
+        ///		&quot;PeriodType&quot;: {
+        ///			&quot;Id&quot;: &quot;AY&quot;,
+        ///			&quot;Name&quot;: &quot;AY&quot;,
+        ///			&quot;StartDay&quot;: 1,
+        ///			&quot;StartMonth&quot;: 8,
+        ///			&quot;EndDay&quot;: 31,
+        ///			&quot;EndMonth&quot;: 7
+        ///		}
+        ///	},
+        ///	&quot;Period&quot;: {
+        ///		&quot;Id&quot;: &quot;1819&quot;,
+        ///		&quot;Name&quot;: &quot;2018/19&quot;,
+        ///		&quot;StartYear&quot;: 2018,
+        ///		&quot;EndYear&quot;: 2019
+        ///	},
+        ///	&quot;Provider&quot;: {
+        ///		&quot;Name&quot;: &quot;Test Schoo [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string Sample_LocalAuthority_Results {
+        internal static string V1_Sample_Allocation {
             get {
-                return ResourceManager.GetString("Sample_LocalAuthority_Results", resourceCulture);
+                return ResourceManager.GetString("V1_Sample_Allocation", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to {
-        ///  &quot;TotalAmount&quot;: 160920.0,
-        ///  &quot;Provider&quot;: {
-        ///    &quot;Ukprn&quot;: &quot;11111111&quot;,
-        ///    &quot;Upin&quot;: null,
-        ///    &quot;ProviderOpenDate&quot;: null,
-        ///    &quot;LegalName&quot;: &quot;SAMPLE SCHOOL 1&quot;,
-        ///    &quot;LANo&quot;: &quot;64&quot;,
-        ///    &quot;LAEstablishmentNo&quot;: &quot;3833030&quot;
-        ///  },
-        ///  &quot;FundingPeriodResults&quot;: [
-        ///    {
-        ///      &quot;Period&quot;: {
-        ///        &quot;PeriodType&quot;: &quot;AY&quot;,
-        ///        &quot;PeriodId&quot;: &quot;AY2018191&quot;,
-        ///        &quot;StartDate&quot;: &quot;2018-08-31T23:00:00+00:00&quot;,
-        ///        &quot;EndDate&quot;: &quot;2019-08-30T23:00:00+00:00&quot;
-        ///      },
-        ///      &quot;FundingStreamResults&quot;: [
-        ///        {
-        ///          &quot;FundingS [rest of string was truncated]&quot;;.
+        ///	&quot;Id&quot;: &quot;689c6b524d81453f821d8708519c86cc&quot;,
+        ///	&quot;Title&quot;: &quot;Calculate Funding Service Allocation Feed&quot;,
+        ///	&quot;Author&quot;: {
+        ///		&quot;Email&quot;: &quot;calculate-funding@education.gov.uk&quot;,
+        ///		&quot;Name&quot;: &quot;Calculate Funding Service&quot;
+        ///	},
+        ///	&quot;Updated&quot;: &quot;2018-09-06T08:10:03.4240706+01:00&quot;,
+        ///	&quot;Rights&quot;: &quot;Copyright (C) 2018 Department for Education&quot;,
+        ///	&quot;Link&quot;: [
+        ///		{
+        ///			&quot;Href&quot;: &quot;https://dummy-url/api/v1/allocations/1?pageRef=1&amp;allocationStatuses=Published&quot;,
+        ///			&quot;Rel&quot;: &quot;self&quot;
+        ///		},
+        ///		{
+        ///			&quot;Href&quot;: &quot;https://dummy-url/api/v1/allocations/1?pa [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string Sample_Provider_Results {
+        internal static string V1_Sample_Allocation_Feeds {
             get {
-                return ResourceManager.GetString("Sample_Provider_Results", resourceCulture);
+                return ResourceManager.GetString("V1_Sample_Allocation_Feeds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///	&quot;History&quot;: [
+        ///		{
+        ///			&quot;Status&quot;: &quot;Published&quot;,
+        ///			&quot;AllocationAmount&quot;: 5000.0,
+        ///			&quot;AllocationVersionNumber&quot;: 3,
+        ///			&quot;Date&quot;: &quot;2018-09-05T10:45:50.3750937+01:00&quot;,
+        ///			&quot;Comment&quot;: null,
+        ///			&quot;Author&quot;: &quot;Adam.Bryant@citizenazuresfabisgov.onmicrosoft.com Adam.Bryant&quot;
+        ///		},
+        ///		{
+        ///			&quot;Status&quot;: &quot;Approved&quot;,
+        ///			&quot;AllocationAmount&quot;: 5000.0,
+        ///			&quot;AllocationVersionNumber&quot;: 2,
+        ///			&quot;Date&quot;: &quot;2018-09-05T08:35:25.3265352+01:00&quot;,
+        ///			&quot;Comment&quot;: null,
+        ///			&quot;Author&quot;: &quot;Adam.Bryant@citizenazuresfabisgov.onmicrosoft.com Adam.Bryant [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string V1_Sample_Allocation_With_History {
+            get {
+                return ResourceManager.GetString("V1_Sample_Allocation_With_History", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [
+        ///	{
+        ///		&quot;id&quot;: &quot;PSG&quot;,
+        ///		&quot;name&quot;: &quot;PE and Sport Premium Grant&quot;,
+        ///		&quot;shortName&quot;: &quot;PE and Sport&quot;,
+        ///		&quot;periodType&quot;: {
+        ///			&quot;id&quot;: &quot;AY&quot;,
+        ///			&quot;name&quot;: &quot;Schools Academic Year&quot;,
+        ///			&quot;startDay&quot;: 1,
+        ///			&quot;startMonth&quot;: 8,
+        ///			&quot;endDay&quot;: 31,
+        ///			&quot;endMonth&quot;: 7
+        ///		},
+        ///		&quot;allocationLines&quot;: [
+        ///			{
+        ///				&quot;id&quot;: &quot;PSG-001&quot;,
+        ///				&quot;name&quot;: &quot;Non-maintained Special Schools&quot;,
+        ///				&quot;shortName&quot;: &quot;NMSS&quot;,
+        ///				&quot;fundingRoute&quot;: &quot;Provider&quot;,
+        ///				&quot;contractRequired&quot;: &quot;Y&quot;
+        ///			},
+        ///			{
+        ///				&quot;id&quot;: &quot;PSG-002&quot;,
+        ///				&quot;name&quot;: &quot;Academies&quot;,
+        ///				&quot;shortName [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string V1_Sample_FundingStreams {
+            get {
+                return ResourceManager.GetString("V1_Sample_FundingStreams", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///	&quot;FundingPeriod&quot;: &quot;2018-2019&quot;,
+        ///	&quot;LocalAuthorities&quot;: [
+        ///		{
+        ///			&quot;LANo&quot;: &quot;130&quot;,
+        ///			&quot;LAName&quot;: &quot;Lancashire&quot;,
+        ///			&quot;Providers&quot;: [
+        ///				{
+        ///					&quot;Provider&quot;: {
+        ///						&quot;Name&quot;: &quot;Test School 1&quot;,
+        ///						&quot;LegalName&quot;: &quot;&quot;,
+        ///						&quot;UkPrn&quot;: &quot;119570&quot;,
+        ///						&quot;Upin&quot;: &quot;&quot;,
+        ///						&quot;Urn&quot;: &quot;119570&quot;,
+        ///						&quot;DfeEstablishmentNumber&quot;: &quot;3586&quot;,
+        ///						&quot;EstablishmentNumber&quot;: &quot;8883586&quot;,
+        ///						&quot;LaCode&quot;: &quot;130&quot;,
+        ///						&quot;LocalAuthority&quot;: &quot;Lancashire&quot;,
+        ///						&quot;Type&quot;: &quot;School&quot;,
+        ///						&quot;SubType&quot;: &quot;Voluntary&quot;,
+        ///						&quot;OpenDate&quot;: null,
+        ///				 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string V1_Sample_LocalAuthority_Results {
+            get {
+                return ResourceManager.GetString("V1_Sample_LocalAuthority_Results", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [
+        ///  {
+        ///    &quot;id&quot;: &quot;1819&quot;,
+        ///    &quot;name&quot;: &quot;18/19&quot;,
+        ///    &quot;startYear&quot;: 18,
+        ///    &quot;endYear&quot;: 19
+        ///  }
+        ///].
+        /// </summary>
+        internal static string V1_Sample_Periods {
+            get {
+                return ResourceManager.GetString("V1_Sample_Periods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///	&quot;TotalAmount&quot;: 5000.0,
+        ///	&quot;Provider&quot;: {
+        ///		&quot;Name&quot;: &quot;Test School 1&quot;,
+        ///		&quot;LegalName&quot;: &quot;&quot;,
+        ///		&quot;UkPrn&quot;: &quot;106749&quot;,
+        ///		&quot;Upin&quot;: &quot;&quot;,
+        ///		&quot;Urn&quot;: &quot;106749&quot;,
+        ///		&quot;DfeEstablishmentNumber&quot;: &quot;2187&quot;,
+        ///		&quot;EstablishmentNumber&quot;: &quot;3712187&quot;,
+        ///		&quot;LaCode&quot;: &quot;58&quot;,
+        ///		&quot;LocalAuthority&quot;: &quot;Doncaster&quot;,
+        ///		&quot;Type&quot;: &quot;School&quot;,
+        ///		&quot;SubType&quot;: &quot;Community&quot;,
+        ///		&quot;OpenDate&quot;: null,
+        ///		&quot;CloseDate&quot;: null,
+        ///		&quot;CrmAccountId&quot;: &quot;&quot;,
+        ///		&quot;NavVendorNo&quot;: &quot;&quot;,
+        ///		&quot;Status&quot;: &quot;Inactive&quot;
+        ///	},
+        ///	&quot;FundingPeriodResults&quot;: [
+        ///		{
+        ///			&quot;Period&quot;: {
+        ///				&quot;Id&quot;: &quot;1819&quot;,
+        ///			 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string V1_Sample_Provider_Results {
+            get {
+                return ResourceManager.GetString("V1_Sample_Provider_Results", resourceCulture);
             }
         }
     }

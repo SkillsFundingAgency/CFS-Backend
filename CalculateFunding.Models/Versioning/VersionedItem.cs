@@ -4,8 +4,20 @@ using Newtonsoft.Json;
 namespace CalculateFunding.Models.Versioning
 {
 
-    public abstract class VersionedItem
+    public abstract class VersionedItem : IIdentifiable
     {
+        [JsonProperty("id")]
+        public abstract string Id
+        {
+            get;
+        }
+
+        [JsonProperty("entityId")]
+        public abstract string EntityId
+        {
+            get;
+        }
+
         [JsonProperty("version")]
 
         public int Version { get; set; }

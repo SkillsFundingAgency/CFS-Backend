@@ -10,7 +10,7 @@ namespace CalculateFunding.Api.External.V1.Controllers
     {
         public object GetExamples()
         {
-            LocalAuthorityResultsSummary summary = JsonConvert.DeserializeObject<LocalAuthorityResultsSummary>(Properties.Resources.Sample_LocalAuthority_Results);
+            LocalAuthorityResultsSummary summary = JsonConvert.DeserializeObject<LocalAuthorityResultsSummary>(Properties.Resources.V1_Sample_LocalAuthority_Results);
             return summary;
         }
     }

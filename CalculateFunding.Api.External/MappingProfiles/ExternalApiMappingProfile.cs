@@ -12,22 +12,20 @@ namespace CalculateFunding.Api.External.MappingProfiles
 	{
 		public ExternalApiMappingProfile()
 		{
-			CreateMap<Models.Specs.Period, V1.Models.Period>()
-				.ForMember(p => p.PeriodId, mce => mce.MapFrom(fp => fp.Id))
-				.ForMember(p => p.StartDate, mce => mce.MapFrom(fp => fp.StartDate))
-				.ForMember(p => p.EndDate, mce => mce.MapFrom(fp => fp.EndDate))
-				.ForAllOtherMembers(mce => mce.Ignore());
+            CreateMap<Models.Specs.Period, V1.Models.Period>()
+                .ForMember(p => p.Id, mce => mce.MapFrom(fp => fp.Id))
+                .ForMember(p => p.StartYear, mce => mce.MapFrom(fp => fp.StartYear))
+                .ForMember(p => p.EndYear, mce => mce.MapFrom(fp => fp.EndYear));
 
             CreateMap<Models.Specs.AllocationLine, V1.Models.AllocationLine>()
-                .ForMember(a => a.AllocationLineCode, mce => mce.MapFrom(al => al.Id))
-                .ForMember(a => a.AllocationLineName, mce => mce.MapFrom(al => al.Name))
-                .ForAllOtherMembers(mce => mce.Ignore());
+                .ForMember(a => a.Id, mce => mce.MapFrom(al => al.Id))
+                .ForMember(a => a.ContractRequired, mce => mce.MapFrom(al => al.IsContractRequired ? "Y" : "N"))
+                .ForMember(a => a.Name, mce => mce.MapFrom(al => al.Name));
 
             CreateMap<Models.Specs.FundingStream, V1.Models.FundingStream>()
-                .ForMember(f => f.FundingStreamCode, mce => mce.MapFrom(fs => fs.Id))
-                .ForMember(f => f.FundingStreamName, mce => mce.MapFrom(fs => fs.Name))
-                .ForMember(f => f.AllocationLines, mce => mce.MapFrom(fs => fs.AllocationLines))
-                .ForAllOtherMembers(mce => mce.Ignore());
+                .ForMember(f => f.Id, mce => mce.MapFrom(fs => fs.Id))
+                .ForMember(f => f.Name, mce => mce.MapFrom(fs => fs.Name))
+                .ForMember(f => f.AllocationLines, mce => mce.MapFrom(fs => fs.AllocationLines));
         }
 	}
 }

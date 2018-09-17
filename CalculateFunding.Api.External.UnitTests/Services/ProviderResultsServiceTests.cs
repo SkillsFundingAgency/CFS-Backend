@@ -208,44 +208,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
             logger
                 .Received(1)
-                .Warning(Arg.Is($"Feed with id {allocationNotificationFeedIndex.Id} contains missing data: funding period id or type"));
-        }
-
-        [TestMethod]
-        public async Task GetProviderResultsForAllocations_GivenSearchResultHasMissingFundingPeriodType_ReturnsNotFoundResult()
-        {
-            //Arrange
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-
-            AllocationNotificationFeedIndex allocationNotificationFeedIndex = CreateFeedIndexes().First();
-
-            allocationNotificationFeedIndex.FundingPeriodType = null;
-
-            SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
-            {
-                Entries = new[] { allocationNotificationFeedIndex }
-            };
-
-            IAllocationNotificationsFeedsSearchService searchService = CreateSearchService();
-            searchService
-                .GetFeeds(Arg.Is(providerId), Arg.Is(startYear), Arg.Is(endYear), Arg.Any<IEnumerable<string>>())
-                .Returns(feeds);
-
-            ILogger logger = CreateLogger();
-
-            ProviderResultsService providerResultsService = CreateService(searchService, logger);
-
-            //Act
-            IActionResult result = await providerResultsService.GetProviderResultsForAllocations(providerId, startYear, endYear, allocationLineIds, httpRequest);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<NotFoundResult>();
-
-            logger
-                .Received(1)
-                .Warning(Arg.Is($"Feed with id {allocationNotificationFeedIndex.Id} contains missing data: funding period id or type"));
+                .Warning(Arg.Is($"Feed with id {allocationNotificationFeedIndex.Id} contains missing data: funding period id"));
         }
 
         [TestMethod]
@@ -546,17 +509,17 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             ProviderResultSummary providerResultSummary = JsonConvert.DeserializeObject<ProviderResultSummary>(contentResult.Content);
 
             providerResultSummary.TotalAmount.Should().Be(130);
-            providerResultSummary.Provider.Ukprn.Should().Be("1111");
+            providerResultSummary.Provider.UkPrn.Should().Be("1111");
             providerResultSummary.FundingPeriodResults.Count().Should().Be(3);
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.FundingStreamCode.Should().Be("fs-1");
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.FundingStreamName.Should().Be("fs 1");
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.Id.Should().Be("fs-1");
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.Name.Should().Be("fs 1");
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().TotalAmount = 10;
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.AllocationLineCode.Should().Be("al-1");
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.AllocationLineName.Should().Be("al 1");
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.Id.Should().Be("al-1");
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.Name.Should().Be("al 1");
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationVersionNumber.Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationStatus.Should().Be("Published");
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationAmount.Should().Be(10);
@@ -566,12 +529,12 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.First().TotalAmount.Should().Be(300);
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.First().SubPolicyResults.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.First().Calculations.Count().Should().Be(3);
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.FundingStreamCode.Should().Be("fs-2");
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.FundingStreamName.Should().Be("fs 2");
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.Id.Should().Be("fs-2");
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.Name.Should().Be("fs 2");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().TotalAmount = 100;
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.AllocationLineCode.Should().Be("al-2");
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.AllocationLineName.Should().Be("al 2");
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.Id.Should().Be("al-2");
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.Name.Should().Be("al 2");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationVersionNumber.Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationStatus.Should().Be("Published");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationAmount.Should().Be(100);
@@ -581,12 +544,12 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.First().TotalAmount.Should().Be(300);
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.First().SubPolicyResults.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.First().Calculations.Count().Should().Be(3);
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.FundingStreamCode.Should().Be("fs-3");
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.FundingStreamName.Should().Be("fs 3");
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.Id.Should().Be("fs-3");
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.Name.Should().Be("fs 3");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().TotalAmount = 20;
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.AllocationLineCode.Should().Be("al-3");
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.AllocationLineName.Should().Be("al 3");
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.Id.Should().Be("al-3");
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.Name.Should().Be("al 3");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationVersionNumber.Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationStatus.Should().Be("Approved");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationAmount.Should().Be(20);
@@ -782,44 +745,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
             logger
                 .Received(1)
-                .Warning(Arg.Is($"Feed with id {allocationNotificationFeedIndex.Id} contains missing data: funding period id or type"));
-        }
-
-        [TestMethod]
-        public async Task GetProviderResultsForFundingStreams_GivenSearchResultHasMissingFundingPeriodType_ReturnsNotFoundResult()
-        {
-            //Arrange
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-
-            AllocationNotificationFeedIndex allocationNotificationFeedIndex = CreateFeedIndexes().First();
-
-            allocationNotificationFeedIndex.FundingPeriodType = null;
-
-            SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
-            {
-                Entries = new[] { allocationNotificationFeedIndex }
-            };
-
-            IAllocationNotificationsFeedsSearchService searchService = CreateSearchService();
-            searchService
-                .GetFeeds(Arg.Is(providerId), Arg.Is(startYear), Arg.Is(endYear), Arg.Any<IEnumerable<string>>())
-                .Returns(feeds);
-
-            ILogger logger = CreateLogger();
-
-            ProviderResultsService providerResultsService = CreateService(searchService, logger);
-
-            //Act
-            IActionResult result = await providerResultsService.GetProviderResultsForFundingStreams(providerId, startYear, endYear, fundingStreamIds, httpRequest);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<NotFoundResult>();
-
-            logger
-                .Received(1)
-                .Warning(Arg.Is($"Feed with id {allocationNotificationFeedIndex.Id} contains missing data: funding period id or type"));
+                .Warning(Arg.Is($"Feed with id {allocationNotificationFeedIndex.Id} contains missing data: funding period id"));
         }
 
         [TestMethod]
@@ -1083,17 +1009,33 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             ProviderResultSummary providerResultSummary = JsonConvert.DeserializeObject<ProviderResultSummary>(contentResult.Content);
 
             providerResultSummary.TotalAmount.Should().Be(130);
-            providerResultSummary.Provider.Ukprn.Should().Be("1111");
+            providerResultSummary.Provider.UkPrn.Should().Be("1111");
             providerResultSummary.FundingPeriodResults.Count().Should().Be(3);
+            providerResultSummary.Provider.Name.Should().Be("Provider 1");
+            providerResultSummary.Provider.LegalName.Should().Be("legal 1");
+            providerResultSummary.Provider.UkPrn.Should().Be("1111");
+            providerResultSummary.Provider.Upin.Should().Be("0001");
+            providerResultSummary.Provider.Urn.Should().Be("01");
+            providerResultSummary.Provider.DfeEstablishmentNumber.Should().Be("dfe-1");
+            providerResultSummary.Provider.EstablishmentNumber.Should().Be("e-1");
+            providerResultSummary.Provider.LaCode.Should().Be("123");
+            providerResultSummary.Provider.LocalAuthority.Should().Be("LA 1");
+            providerResultSummary.Provider.Type.Should().Be("Provider Type 1");
+            providerResultSummary.Provider.SubType.Should().Be("Sub Provider Type 1");
+            providerResultSummary.Provider.CrmAccountId.Should().Be("crm-1");
+            providerResultSummary.Provider.NavVendorNo.Should().Be("nv-1");
+            providerResultSummary.Provider.Status.Should().Be("Active");
+            providerResultSummary.Provider.OpenDate.Should().NotBeNull();
+            providerResultSummary.Provider.CloseDate.Should().NotBeNull();
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.FundingStreamCode.Should().Be("fs-1");
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.FundingStreamName.Should().Be("fs 1");
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.Id.Should().Be("fs-1");
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.Name.Should().Be("fs 1");
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().TotalAmount = 10;
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.AllocationLineCode.Should().Be("al-1");
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.AllocationLineName.Should().Be("al 1");
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.Id.Should().Be("al-1");
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.Name.Should().Be("al 1");
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationVersionNumber.Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationStatus.Should().Be("Published");
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationAmount.Should().Be(10);
@@ -1103,12 +1045,24 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.First().TotalAmount.Should().Be(300);
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.First().SubPolicyResults.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.First().Calculations.Count().Should().Be(3);
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.FundingStreamCode.Should().Be("fs-2");
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.FundingStreamName.Should().Be("fs 2");
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.ShortName.Should().Be("fs-short-1");
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.PeriodType.Id.Should().Be("fspi-1");
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.PeriodType.Name.Should().Be("fspi1");
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.PeriodType.StartDay.Should().Be(1);
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.PeriodType.StartMonth.Should().Be(8);
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.PeriodType.EndDay.Should().Be(31);
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.PeriodType.EndMonth.Should().Be(7);
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.Id.Should().Be("al-1");
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.Name.Should().Be("al 1");
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.ShortName.Should().Be("short-al1");
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.FundingRoute.Should().Be("LA");
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.ContractRequired.Should().Be("Y");
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.Id.Should().Be("fs-2");
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.Name.Should().Be("fs 2");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().TotalAmount = 100;
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.AllocationLineCode.Should().Be("al-2");
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.AllocationLineName.Should().Be("al 2");
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.Id.Should().Be("al-2");
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.Name.Should().Be("al 2");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationVersionNumber.Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationStatus.Should().Be("Published");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationAmount.Should().Be(100);
@@ -1118,12 +1072,24 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.First().TotalAmount.Should().Be(300);
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.First().SubPolicyResults.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.First().Calculations.Count().Should().Be(3);
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.FundingStreamCode.Should().Be("fs-3");
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.FundingStreamName.Should().Be("fs 3");
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.ShortName.Should().Be("fs-short-2");
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.PeriodType.Id.Should().Be("fspi-2");
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.PeriodType.Name.Should().Be("fspi2");
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.PeriodType.StartDay.Should().Be(1);
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.PeriodType.StartMonth.Should().Be(8);
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.PeriodType.EndDay.Should().Be(31);
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.PeriodType.EndMonth.Should().Be(7);
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.Id.Should().Be("al-2");
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.Name.Should().Be("al 2");
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.ShortName.Should().Be("short-al2");
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.FundingRoute.Should().Be("LA");
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.ContractRequired.Should().Be("Y");
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.Id.Should().Be("fs-3");
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.Name.Should().Be("fs 3");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().TotalAmount = 20;
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.AllocationLineCode.Should().Be("al-3");
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.AllocationLineName.Should().Be("al 3");
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.Id.Should().Be("al-3");
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.Name.Should().Be("al 3");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationVersionNumber.Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationStatus.Should().Be("Approved");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationAmount.Should().Be(20);
@@ -1133,6 +1099,19 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Policies.First().TotalAmount.Should().Be(300);
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Policies.First().SubPolicyResults.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Policies.First().Calculations.Count().Should().Be(3);
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.ShortName.Should().Be("fs-short-3");
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.PeriodType.Id.Should().Be("fspi-3");
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.PeriodType.Name.Should().Be("fspi3");
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.PeriodType.StartDay.Should().Be(1);
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.PeriodType.StartMonth.Should().Be(8);
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.PeriodType.EndDay.Should().Be(31);
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.PeriodType.EndMonth.Should().Be(7);
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.Id.Should().Be("al-3");
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.Name.Should().Be("al 3");
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.ShortName.Should().Be("short-al3");
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.FundingRoute.Should().Be("LA");
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.ContractRequired.Should().Be("Y");
+
 
             await
                 searchService
@@ -1624,45 +1603,72 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             localAuthorityResultSummary.LocalAuthorities.First().LANo.Should().Be("123");
             localAuthorityResultSummary.LocalAuthorities.First().LAName.Should().Be("LA 1");
             localAuthorityResultSummary.LocalAuthorities.First().Providers.Count().Should().Be(3);
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).Ukprn.Should().Be("1111");
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).OrganisationName.Should().Be("Provider 1");
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).OrganisationType.Should().Be("Provider Type 1");
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).OrganisationSubType.Should().Be("Sub Provider Type 1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).Provider.UkPrn.Should().Be("1111");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).Provider.Name.Should().Be("Provider 1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).Provider.Type.Should().Be("Provider Type 1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).Provider.SubType.Should().Be("Sub Provider Type 1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).Provider.LegalName.Should().Be("legal 1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).Provider.Upin.Should().Be("0001");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).Provider.Urn.Should().Be("01");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).Provider.DfeEstablishmentNumber.Should().Be("dfe-1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).Provider.EstablishmentNumber.Should().Be("e-1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).Provider.LaCode.Should().Be("123");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).Provider.LocalAuthority.Should().Be("LA 1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).Provider.CrmAccountId.Should().Be("crm-1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).Provider.NavVendorNo.Should().Be("nv-1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).Provider.Status.Should().Be("Active");
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).AllocationValue.Should().Be(10);
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.Count().Should().Be(3);
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.First().FundingPeriod.PeriodId.Should().Be("fp-1");
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.First().FundingPeriod.PeriodType.Should().Be("fp type 1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.First().Period.Id.Should().Be("fp-1");
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.First().Allocations.Count().Should().Be(1);
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.First().Allocations.First().AllocationLine.AllocationLineCode.Should().Be("al-1");
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.First().Allocations.First().AllocationLine.AllocationLineName.Should().Be("al 1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.First().Allocations.First().AllocationLine.Id.Should().Be("al-1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.First().Allocations.First().AllocationLine.Name.Should().Be("al 1");
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.First().Allocations.First().AllocationVersionNumber.Should().Be(1);
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.First().Allocations.First().AllocationStatus.Should().Be("Published");
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.First().Allocations.First().AllocationAmount.Should().Be(10);
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).Ukprn.Should().Be("2222");
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).OrganisationName.Should().Be("Provider 2");
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).OrganisationType.Should().Be("Provider Type 1");
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).OrganisationSubType.Should().Be("Sub Provider Type 1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).Provider.UkPrn.Should().Be("2222");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).Provider.Name.Should().Be("Provider 2");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).Provider.Type.Should().Be("Provider Type 1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).Provider.SubType.Should().Be("Sub Provider Type 1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).Provider.LegalName.Should().Be("legal 2");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).Provider.Upin.Should().Be("0002");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).Provider.Urn.Should().Be("02");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).Provider.DfeEstablishmentNumber.Should().Be("dfe-2");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).Provider.EstablishmentNumber.Should().Be("e-2");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).Provider.LaCode.Should().Be("123");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).Provider.LocalAuthority.Should().Be("LA 1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).Provider.CrmAccountId.Should().Be("crm-2");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).Provider.NavVendorNo.Should().Be("nv-2");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).Provider.Status.Should().Be("Active");
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).AllocationValue.Should().Be(100);
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).FundingPeriods.Count().Should().Be(3);
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).FundingPeriods.ElementAt(1).FundingPeriod.PeriodId.Should().Be("fp-2");
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).FundingPeriods.ElementAt(1).FundingPeriod.PeriodType.Should().Be("fp type 2");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).FundingPeriods.ElementAt(1).Period.Id.Should().Be("fp-2");
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).FundingPeriods.ElementAt(1).Allocations.Count().Should().Be(1);
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).FundingPeriods.ElementAt(1).Allocations.First().AllocationLine.AllocationLineCode.Should().Be("al-2");
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).FundingPeriods.ElementAt(1).Allocations.First().AllocationLine.AllocationLineName.Should().Be("al 2");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).FundingPeriods.ElementAt(1).Allocations.First().AllocationLine.Id.Should().Be("al-2");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).FundingPeriods.ElementAt(1).Allocations.First().AllocationLine.Name.Should().Be("al 2");
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).FundingPeriods.ElementAt(1).Allocations.First().AllocationVersionNumber.Should().Be(1);
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).FundingPeriods.ElementAt(1).Allocations.First().AllocationStatus.Should().Be("Published");
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).FundingPeriods.ElementAt(1).Allocations.First().AllocationAmount.Should().Be(100);
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).Ukprn.Should().Be("3333");
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).OrganisationName.Should().Be("Provider 3");
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).OrganisationType.Should().Be("Provider Type 1");
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).OrganisationSubType.Should().Be("Sub Provider Type 1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).Provider.UkPrn.Should().Be("3333");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).Provider.Name.Should().Be("Provider 3");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).Provider.Type.Should().Be("Provider Type 1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).Provider.SubType.Should().Be("Sub Provider Type 1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).Provider.LegalName.Should().Be("legal 3");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).Provider.Upin.Should().Be("0003");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).Provider.Urn.Should().Be("03");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).Provider.DfeEstablishmentNumber.Should().Be("dfe-3");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).Provider.EstablishmentNumber.Should().Be("e-3");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).Provider.LaCode.Should().Be("123");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).Provider.LocalAuthority.Should().Be("LA 1");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).Provider.CrmAccountId.Should().Be("crm-3");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).Provider.NavVendorNo.Should().Be("nv-3");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).Provider.Status.Should().Be("Active");
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).AllocationValue.Should().Be(20);
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).FundingPeriods.Count().Should().Be(3);
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).FundingPeriods.ElementAt(2).FundingPeriod.PeriodId.Should().Be("fp-3");
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).FundingPeriods.ElementAt(2).FundingPeriod.PeriodType.Should().Be("fp type 3");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).FundingPeriods.ElementAt(2).Period.Id.Should().Be("fp-3");
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).FundingPeriods.ElementAt(2).Allocations.Count().Should().Be(1);
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).FundingPeriods.ElementAt(2).Allocations.First().AllocationLine.AllocationLineCode.Should().Be("al-3");
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).FundingPeriods.ElementAt(2).Allocations.First().AllocationLine.AllocationLineName.Should().Be("al 3");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).FundingPeriods.ElementAt(2).Allocations.First().AllocationLine.Id.Should().Be("al-3");
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).FundingPeriods.ElementAt(2).Allocations.First().AllocationLine.Name.Should().Be("al 3");
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).FundingPeriods.ElementAt(2).Allocations.First().AllocationVersionNumber.Should().Be(1);
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).FundingPeriods.ElementAt(2).Allocations.First().AllocationStatus.Should().Be("Approved");
             localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(2).FundingPeriods.ElementAt(2).Allocations.First().AllocationAmount.Should().Be(20);
@@ -1701,10 +1707,9 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                          AllocationStatus = "Published",
                          AllocationVersionNumber = 1,
                          DateUpdated = DateTimeOffset.Now,
-                         FundingPeriodEndDate = DateTimeOffset.Now.AddYears(1),
+                         FundingPeriodEndYear = DateTimeOffset.Now.AddYears(1).Year,
                          FundingPeriodId = "fp-1",
-                         FundingPeriodStartDate = DateTimeOffset.Now,
-                         FundingPeriodType = "fp type 1",
+                         FundingPeriodStartYear = DateTimeOffset.Now.Year,
                          FundingStreamId = "fs-1",
                          FundingStreamName = "fs 1",
                          Id = "id-1",
@@ -1718,6 +1723,25 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                          Authority = "LA 1",
                          Summary = "test summary 1",
                          Title = "test title 1",
+                         AllocationLineContractRequired = true,
+                         AllocationLineFundingRoute = "LA",
+                         AllocationLineShortName = "short-al1",
+                         CrmAccountId = "crm-1",
+                         DfeEstablishmentNumber = "dfe-1",
+                         EstablishmentNumber = "e-1",
+                         FundingStreamEndDay = 31,
+                         FundingStreamEndMonth = 7,
+                         FundingStreamPeriodId = "fspi-1",
+                         FundingStreamPeriodName = "fspi1",
+                         FundingStreamShortName = "fs-short-1",
+                         FundingStreamStartDay = 1,
+                         FundingStreamStartMonth = 8,
+                         NavVendorNo = "nv-1",
+                         ProviderClosedDate = DateTimeOffset.Now,
+                         ProviderLegalName = "legal 1",
+                         ProviderOpenDate = DateTimeOffset.Now,
+                         ProviderStatus = "Active",
+                         ProviderUrn = "01",
                          ProviderProfiling = CreateProfiles(),
                          PolicySummaries = CreatePolicySummaries()
                     },
@@ -1730,10 +1754,9 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                          AllocationStatus = "Published",
                          AllocationVersionNumber = 1,
                          DateUpdated = DateTimeOffset.Now,
-                         FundingPeriodEndDate = DateTimeOffset.Now.AddYears(1),
+                         FundingPeriodEndYear = DateTimeOffset.Now.AddYears(1).Year,
                          FundingPeriodId = "fp-2",
-                         FundingPeriodStartDate = DateTimeOffset.Now,
-                         FundingPeriodType = "fp type 2",
+                         FundingPeriodStartYear = DateTimeOffset.Now.Year,
                          FundingStreamId = "fs-2",
                          FundingStreamName = "fs 2",
                          Id = "id-2",
@@ -1747,6 +1770,25 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                          Authority = "LA 1",
                          Summary = "test summary 2",
                          Title = "test title 2",
+                         AllocationLineContractRequired = true,
+                         AllocationLineFundingRoute = "LA",
+                         AllocationLineShortName = "short-al2",
+                         CrmAccountId = "crm-2",
+                         DfeEstablishmentNumber = "dfe-2",
+                         EstablishmentNumber = "e-2",
+                         FundingStreamEndDay = 31,
+                         FundingStreamEndMonth = 7,
+                         FundingStreamPeriodId = "fspi-2",
+                         FundingStreamPeriodName = "fspi2",
+                         FundingStreamShortName = "fs-short-2",
+                         FundingStreamStartDay = 1,
+                         FundingStreamStartMonth = 8,
+                         NavVendorNo = "nv-2",
+                         ProviderClosedDate = DateTimeOffset.Now,
+                         ProviderLegalName = "legal 2",
+                         ProviderOpenDate = DateTimeOffset.Now,
+                         ProviderStatus = "Active",
+                         ProviderUrn = "02",
                          ProviderProfiling = CreateProfiles(),
                          PolicySummaries = CreatePolicySummaries()
                     },
@@ -1759,10 +1801,9 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                          AllocationStatus = "Approved",
                          AllocationVersionNumber = 1,
                          DateUpdated = DateTimeOffset.Now,
-                         FundingPeriodEndDate = DateTimeOffset.Now.AddYears(1),
+                         FundingPeriodEndYear = DateTimeOffset.Now.AddYears(1).Year,
                          FundingPeriodId = "fp-3",
-                         FundingPeriodStartDate = DateTimeOffset.Now,
-                         FundingPeriodType = "fp type 3",
+                         FundingPeriodStartYear = DateTimeOffset.Now.Year,
                          FundingStreamId = "fs-3",
                          FundingStreamName = "fs 3",
                          Id = "id-3",
@@ -1776,6 +1817,25 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                          Authority = "LA 1",
                          Summary = "test summary 3",
                          Title = "test title 3",
+                         AllocationLineContractRequired = true,
+                         AllocationLineFundingRoute = "LA",
+                         AllocationLineShortName = "short-al3",
+                         CrmAccountId = "crm-3",
+                         DfeEstablishmentNumber = "dfe-3",
+                         EstablishmentNumber = "e-3",
+                         FundingStreamEndDay = 31,
+                         FundingStreamEndMonth = 7,
+                         FundingStreamPeriodId = "fspi-3",
+                         FundingStreamPeriodName = "fspi3",
+                         FundingStreamShortName = "fs-short-3",
+                         FundingStreamStartDay = 1,
+                         FundingStreamStartMonth = 8,
+                         NavVendorNo = "nv-3",
+                         ProviderClosedDate = DateTimeOffset.Now,
+                         ProviderLegalName = "legal 3",
+                         ProviderOpenDate = DateTimeOffset.Now,
+                         ProviderStatus = "Active",
+                         ProviderUrn = "03",
                          ProviderProfiling = CreateProfiles(),
                          PolicySummaries = CreatePolicySummaries()
                     }

@@ -7,16 +7,7 @@ namespace CalculateFunding.Api.External.V1.Models
     {
         public AllocationResult()
         {
-        }
-
-        public AllocationResult(AllocationLine allocationLine, ushort allocationVersionNumber, string allocationStatus,
-            decimal aLlocationAmount, uint? allocationLearnerCount)
-        {
-            AllocationLine = allocationLine;
-            AllocationVersionNumber = allocationVersionNumber;
-            AllocationStatus = allocationStatus;
-            AllocationAmount = aLlocationAmount;
-            AllocationLearnerCount = allocationLearnerCount;
+            ProfilePeriods = new ProfilePeriod[0];
         }
 
         public AllocationLine AllocationLine { get; set; }
@@ -27,6 +18,6 @@ namespace CalculateFunding.Api.External.V1.Models
 
         public decimal AllocationAmount { get; set; }
 
-        public uint? AllocationLearnerCount { get; set; }
+        public ProfilePeriod[] ProfilePeriods { get; set; }
     }
 }

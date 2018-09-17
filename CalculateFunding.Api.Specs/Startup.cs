@@ -4,8 +4,11 @@ using CalculateFunding.Api.Common.Middleware;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
@@ -76,6 +79,19 @@ namespace CalculateFunding.Api.Specs
                 .AddSingleton<ISpecificationsSearchService, SpecificationsSearchService>()
                 .AddSingleton<IHealthChecker, SpecificationsSearchService>();
             builder.AddSingleton<IResultsRepository, ResultsRepository>();
+
+            builder.AddSingleton<IVersionRepository<SpecificationVersion>, VersionRepository<SpecificationVersion>>((ctx) =>
+            {
+                CosmosDbSettings specsVersioningDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", specsVersioningDbSettings);
+
+                specsVersioningDbSettings.CollectionName = "specs";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(specsVersioningDbSettings);
+
+                return new VersionRepository<SpecificationVersion>(resultsRepostory);
+            });
 
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
 

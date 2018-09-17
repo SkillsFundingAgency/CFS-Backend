@@ -14,7 +14,7 @@ namespace CalculateFunding.Api.External.V1.Models
 
         public decimal TotalAmount { get; set; }
 
-        public Provider Provider { get; set; }
+        public AllocationProviderModel Provider { get; set; }
 
         public ProviderPeriodResultSummary[] FundingPeriodResults { get; set; }
     }

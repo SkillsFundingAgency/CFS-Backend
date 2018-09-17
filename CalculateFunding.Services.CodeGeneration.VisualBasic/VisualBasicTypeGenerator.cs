@@ -10,9 +10,21 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
     public abstract class VisualBasicTypeGenerator
     {
-        public static string Identifier(string value)
+        public static string GenerateIdentifier(string value)
         {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
             string className = value;
+
+            className = className.Replace("<", "LessThan");
+            className = className.Replace(">", "GreaterThan");
+            className = className.Replace("%", "Percent");
+            className = className.Replace("£", "Pound");
+            className = className.Replace("=", "Equals");
+            className = className.Replace("+", "Plus");
 
             bool isValid = SyntaxFacts.IsValidIdentifier(className);
 
@@ -50,7 +62,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         public static string IdentifierCamelCase(string value)
         {
-            var titleCase = Identifier(value);
+            var titleCase = GenerateIdentifier(value);
             return Char.ToLowerInvariant(titleCase[0]) + titleCase.Substring(1);
         }
 

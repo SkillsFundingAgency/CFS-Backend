@@ -14,6 +14,9 @@ using CalculateFunding.Services.Validators;
 using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Models;
+using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.Core.Services;
 
 namespace CalculateFunding.Functions.Specs
 {
@@ -51,6 +54,19 @@ namespace CalculateFunding.Functions.Specs
             builder.AddSingleton<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
             builder.AddSingleton<ISpecificationsSearchService, SpecificationsSearchService>();
             builder.AddSingleton<IResultsRepository, ResultsRepository>();
+
+            builder.AddSingleton<IVersionRepository<SpecificationVersion>, VersionRepository<SpecificationVersion>>((ctx) =>
+            {
+                CosmosDbSettings specsVersioningDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", specsVersioningDbSettings);
+
+                specsVersioningDbSettings.CollectionName = "specs";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(specsVersioningDbSettings);
+
+                return new VersionRepository<SpecificationVersion>(resultsRepostory);
+            });
 
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
 

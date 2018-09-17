@@ -1,19 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using AutoMapper;
 using AutoMapper.Configuration;
 using CalculateFunding.Api.External.MappingProfiles;
-using CalculateFunding.Api.External.V1.Models;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Tests.Common;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CalculateFunding.Api.External.UnitTests.Mappers
 {
-	[TestClass]
+    [TestClass]
     public class ExternalApiMappingProfileTests
     {
 	    [TestMethod]
@@ -55,10 +50,11 @@ namespace CalculateFunding.Api.External.UnitTests.Mappers
 
 			// Assert
 		    mappedPeriod.Should().NotBeNull();
-		    mappedPeriod.StartDate.Should().Be(fundingPeriod.StartDate);
-		    mappedPeriod.EndDate.Should().Be(fundingPeriod.EndDate);
-		    mappedPeriod.PeriodId.Should().Be(fundingPeriod.Id);
-	    }
+		    mappedPeriod.StartYear.Should().Be(fundingPeriod.StartYear);
+		    mappedPeriod.EndYear.Should().Be(fundingPeriod.EndYear);
+		    mappedPeriod.Id.Should().Be(fundingPeriod.Id);
+            mappedPeriod.Name.Should().Be(fundingPeriod.Name);
+        }
 
         [TestMethod]
         public void Mapper_SpecFundingStreamToModelFundingStream_ShouldReturnCorrectFundingStream()
@@ -71,6 +67,7 @@ namespace CalculateFunding.Api.External.UnitTests.Mappers
             IMapper mapperUnderTest = Mapper.Instance;
             string allocationLineId = "Id";
             string allocationLineName = "Name";
+            string allocationLineShortName = "short-name";
 
             Models.Specs.FundingStream fundingStream = new Models.Specs.FundingStream()
             {
@@ -79,11 +76,24 @@ namespace CalculateFunding.Api.External.UnitTests.Mappers
                     new Models.Specs.AllocationLine()
                     {
                         Id = allocationLineId,
-                        Name = allocationLineName
+                        Name = allocationLineName,
+                        ShortName = allocationLineShortName,
+                        FundingRoute = Models.Specs.FundingRoute.LA,
+                        IsContractRequired = true
                     }
                 },
                 Name = "Name",
-                Id = "id"
+                Id = "id",
+                ShortName = "short-name",
+                PeriodType = new Models.Specs.PeriodType
+                {
+                    Id = "p1",
+                    Name = "period 1",
+                    StartDay = 1,
+                    EndDay = 31,
+                    StartMonth = 8,
+                    EndMonth = 7
+                }
             };
 
             // Act
@@ -91,10 +101,21 @@ namespace CalculateFunding.Api.External.UnitTests.Mappers
 
             // Assert
             mappedFundingStream.Should().NotBeNull();
-            mappedFundingStream.FundingStreamCode.Should().Be(fundingStream.Id);
-            mappedFundingStream.FundingStreamName.Should().Be(fundingStream.Name);
-            mappedFundingStream
-                .AllocationLines.Should().Contain(a => a.AllocationLineCode == allocationLineId && a.AllocationLineName == allocationLineName)
+            mappedFundingStream.Id.Should().Be(fundingStream.Id);
+            mappedFundingStream.Name.Should().Be(fundingStream.Name);
+            mappedFundingStream.ShortName.Should().Be(fundingStream.ShortName);
+            mappedFundingStream.PeriodType.Id.Should().Be("p1");
+            mappedFundingStream.PeriodType.Name.Should().Be("period 1");
+            mappedFundingStream.PeriodType.StartDay.Should().Be(1);
+            mappedFundingStream.PeriodType.StartMonth.Should().Be(8);
+            mappedFundingStream.PeriodType.EndDay.Should().Be(31);
+            mappedFundingStream.PeriodType.EndMonth.Should().Be(7);
+            mappedFundingStream.AllocationLines.Should().Contain(
+                a => a.Id == allocationLineId && 
+                a.Name == allocationLineName && a.ShortName == 
+                allocationLineShortName && 
+                a.FundingRoute == "LA" &&
+                a.ContractRequired == "Y")
                 .Should().NotBeNull();
         }
 

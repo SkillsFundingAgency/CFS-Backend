@@ -1,5 +1,11 @@
-﻿namespace CalculateFunding.Api.External.V1.Models
+﻿using System;
+
+namespace CalculateFunding.Api.External.V1.Models
 {
+    /// <summary>
+    /// Represents a profiling period
+    /// </summary>
+    [Serializable]
     public class ProfilePeriod
     {
         public ProfilePeriod()
@@ -17,16 +23,34 @@
             DistributionPeriod = distributionPeriod;
         }
 
+        /// <summary>
+        /// The period name
+        /// </summary>
         public string Period { get; set; }
 
+        /// <summary>
+        /// The occurrence of the period
+        /// </summary>
         public int Occurrence { get; set; }
 
+        /// <summary>
+        /// The period year
+        /// </summary>
         public string PeriodYear { get; set; }
 
+        /// <summary>
+        /// The period type
+        /// </summary>
         public string PeriodType { get; set; }
 
+        /// <summary>
+        /// The period value
+        /// </summary>
         public decimal ProfileValue { get; set; }
 
+        /// <summary>
+        /// The distribution period
+        /// </summary>
         public string DistributionPeriod { get; set; }
     }
 }

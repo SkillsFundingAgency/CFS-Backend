@@ -6,6 +6,19 @@ namespace CalculateFunding.Models.Calcs
 
     public class CalculationVersion : VersionedItem
     {
+        //AB: These 2 properties are not required yet, will be updated during the story
+        [JsonProperty("id")]
+        public override string Id
+        {
+            get { return ""; }
+        }
+
+        [JsonProperty("entityId")]
+        public override string EntityId
+        {
+            get { return ""; }
+        }
+
         [JsonProperty("decimalPlaces")]
         public int DecimalPlaces { get; set; }
 

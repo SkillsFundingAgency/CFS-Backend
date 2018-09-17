@@ -16,6 +16,8 @@ namespace CalculateFunding.Services.Core.Caching
 
         public const string FundingPeriods = "funding-periods";
 
+	    public const string CalculationProgress = "calculation-progress:";
+
         public static string SpecificationSummaryById { get; set; } = "specification-summary:";
 
         public static string SpecificationCurrentVersionById { get; set; } = "specification-current-version:";

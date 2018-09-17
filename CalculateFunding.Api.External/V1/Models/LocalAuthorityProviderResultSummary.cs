@@ -9,18 +9,7 @@ namespace CalculateFunding.Api.External.V1.Models
         {
             FundingPeriods = new FundingPeriodResultSummary[0];
         }
-
-        public string Ukprn { get; set; }
-
-        public string LAEStab { get; set; }
-
-        public string OrganisationName { get; set; }
-
-        public string OrganisationType { get; set; }
-
-        public string OrganisationSubType { get; set; }
-
-        public int EligiblePupils { get; set; }
+        public AllocationProviderModel Provider { get; set; }
 
         public decimal AllocationValue { get; set; }
 

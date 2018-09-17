@@ -265,5 +265,19 @@ namespace CalculateFunding.Api.Specs.Controllers
         {
             return _specService.SelectSpecificationForFunding(ControllerContext.HttpContext.Request);
         }
-    }
+
+        [Route("api/specs/check-publish-result-status")]
+        [HttpPost]
+        public Task<IActionResult> RunCheckPublishResultStatus()
+        {
+            return _specService.CheckPublishResultStatus(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/specs/refresh-published-results")]
+        [HttpPost]
+        public Task<IActionResult> RunRefreshPublishedResults()
+        {
+	        return _specService.RefreshPublishedResults(ControllerContext.HttpContext.Request);
+        }
+	}
 }
