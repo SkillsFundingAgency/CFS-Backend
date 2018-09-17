@@ -1705,7 +1705,7 @@ namespace CalculateFunding.Services.Specs
             return new OkResult();
         }
 
-		public async Task<IActionResult> ExecuteCalculations(HttpRequest request)
+		public async Task<IActionResult> RefreshPublishedResults(HttpRequest request)
 		{
 			request.Query.TryGetValue("specificationIds", out StringValues specificationIds);
 			string specificationIdsRetrieved = specificationIds.FirstOrDefault();
@@ -1830,17 +1830,17 @@ namespace CalculateFunding.Services.Specs
 		    }
 	    }
 
-        public async Task<IActionResult> CheckCalculationProgressForSpecifications(HttpRequest request)
+        public async Task<IActionResult> CheckPublishResultStatus(HttpRequest request)
         {
             if(request == null)
             {
-                _logger.Error("The http request came back as null");
+                _logger.Error("The http request is null");
                 return new BadRequestObjectResult("The request is null");
             }
 
             if (request.Query == null)
             {
-                _logger.Error("The http request query came back is empty or null");
+                _logger.Error("The http request query is empty or null");
                 return new BadRequestObjectResult("the request query is empty or null");
             }
 
@@ -1851,8 +1851,8 @@ namespace CalculateFunding.Services.Specs
                 SpecificationCalculationExecutionStatus specProgress = await _cacheProvider.GetAsync<SpecificationCalculationExecutionStatus>($"calculationProgress-{specificationId}");
                 if (specProgress == null)
                 {
-                    _logger.Error("Cache returned null, couldnt find specification - {specificationId}", specificationId);
-                    return new BadRequestObjectResult($"Couldnt find progress statement for specification-{specificationId}");
+                    _logger.Error("Cache returned null, couldn't find specification - {specificationId}", specificationId);
+                    return new BadRequestObjectResult($"Couldn't find progress statement for specification - {specificationId}");
                 }
                 return new OkObjectResult(specProgress);
             }

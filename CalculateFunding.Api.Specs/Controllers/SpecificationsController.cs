@@ -252,18 +252,18 @@ namespace CalculateFunding.Api.Specs.Controllers
             return _specService.SelectSpecificationForFunding(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/specs/check-calc-progress-for-spec")]
+        [Route("api/specs/check-publish-result-status")]
         [HttpPost]
-        public Task<IActionResult> CheckCalculationProgressForSpecifications()
+        public Task<IActionResult> RunCheckPublishResultStatus()
         {
-            return _specService.CheckCalculationProgressForSpecifications(ControllerContext.HttpContext.Request);
+            return _specService.CheckPublishResultStatus(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/specs/execute-calculations")]
+        [Route("api/specs/refresh-published-results")]
         [HttpPost]
-        public Task<IActionResult> ExecuteCalculations()
+        public Task<IActionResult> RunRefreshPublishedResults()
         {
-	        return _specService.ExecuteCalculations(ControllerContext.HttpContext.Request);
+	        return _specService.RefreshPublishedResults(ControllerContext.HttpContext.Request);
         }
 	}
 }
