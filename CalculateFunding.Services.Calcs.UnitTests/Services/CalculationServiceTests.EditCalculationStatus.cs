@@ -3,6 +3,7 @@ using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
@@ -486,6 +487,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Calculation calculation = CreateCalculation();
 
+            CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
+            calculationVersion.PublishStatus = PublishStatus.Approved;
+
             ICalculationsRepository CalculationsRepository = CreateCalculationsRepository();
 
             CalculationsRepository
@@ -496,7 +500,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .UpdateCalculation(Arg.Any<Calculation>())
                 .Returns(HttpStatusCode.OK);
 
-
             Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary();
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
@@ -506,8 +509,14 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
             CalculationService service = CreateCalculationService(
-                logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository, specificationRepository: specificationRepository);
+                logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository, 
+                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.UpdateCalculationStatus(request);
@@ -660,6 +669,9 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = CreateCalculation();
             calculation.Current.PublishStatus = PublishStatus.Approved;
 
+            CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
+            calculationVersion.PublishStatus = PublishStatus.Updated;
+
             ICalculationsRepository CalculationsRepository = CreateCalculationsRepository();
 
             CalculationsRepository
@@ -679,8 +691,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
                 .Returns(specificationSummary);
 
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
             CalculationService service = CreateCalculationService(
-                logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository, specificationRepository: specificationRepository);
+                logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository, 
+                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.UpdateCalculationStatus(request);

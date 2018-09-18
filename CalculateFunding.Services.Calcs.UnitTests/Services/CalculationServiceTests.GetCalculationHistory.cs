@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
@@ -54,12 +55,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetVersionHistory(Arg.Is(CalculationId))
+            IVersionRepository<CalculationVersion> versionsRepository = CreateCalculationVersionRepository();
+            versionsRepository
+                .GetVersions(Arg.Is(CalculationId))
                 .Returns((IEnumerable<CalculationVersion>)null);
 
-            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository);
+            CalculationService service = CreateCalculationService(logger: logger, calculationVersionRepository: versionsRepository);
 
             //Act
             IActionResult result = await service.GetCalculationHistory(request);
@@ -96,12 +97,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetVersionHistory(Arg.Is(CalculationId))
+            IVersionRepository<CalculationVersion> versionsRepository = CreateCalculationVersionRepository();
+            versionsRepository
+                .GetVersions(Arg.Is(CalculationId))
                 .Returns(versions);
 
-            CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository);
+            CalculationService service = CreateCalculationService(logger: logger, calculationVersionRepository: versionsRepository);
 
             //Act
             IActionResult result = await service.GetCalculationHistory(request);

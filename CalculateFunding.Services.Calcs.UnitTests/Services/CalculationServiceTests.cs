@@ -8,6 +8,7 @@ using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
@@ -39,7 +40,8 @@ namespace CalculateFunding.Services.Calcs.Services
             ICodeMetadataGeneratorService codeMetadataGenerator = null,
             ISpecificationRepository specificationRepository = null,
             ICacheProvider cacheProvider = null,
-            ICalcsResilliencePolicies resilliencePolicies = null)
+            ICalcsResilliencePolicies resilliencePolicies = null,
+            IVersionRepository<CalculationVersion> calculationVersionRepository = null)
         {
             return new CalculationService
                 (calculationsRepository ?? CreateCalculationsRepository(),
@@ -54,7 +56,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 codeMetadataGenerator ?? CreateCodeMetadataGenerator(),
                 specificationRepository ?? CreateSpecificationRepository(),
                 cacheProvider ?? CreateCacheProvider(),
-                resilliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies());
+                resilliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
+                calculationVersionRepository ?? CreateCalculationVersionRepository());
+        }
+
+        static IVersionRepository<CalculationVersion> CreateCalculationVersionRepository()
+        {
+            return Substitute.For<IVersionRepository<CalculationVersion>>();
         }
 
         static ICalculationsRepository CreateCalculationsRepository()

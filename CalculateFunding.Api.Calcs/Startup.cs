@@ -15,8 +15,10 @@ using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -118,6 +120,19 @@ namespace CalculateFunding.Api.Calcs
 
             builder
                 .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
+
+            builder.AddSingleton<IVersionRepository<CalculationVersion>, VersionRepository<CalculationVersion>>((ctx) =>
+            {
+                CosmosDbSettings calcsVersioningDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", calcsVersioningDbSettings);
+
+                calcsVersioningDbSettings.CollectionName = "calcs";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(calcsVersioningDbSettings);
+
+                return new VersionRepository<CalculationVersion>(resultsRepostory);
+            });
 
             builder.AddUserProviderFromRequest();
 
