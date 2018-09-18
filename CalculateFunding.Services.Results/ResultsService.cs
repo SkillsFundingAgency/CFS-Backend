@@ -1040,6 +1040,7 @@ namespace CalculateFunding.Services.Results
         {
             IList<string> updatedAllocationLineIds = new List<string>();
             IList<string> updatedProviderIds = new List<string>();
+            IList<PublishedProviderResult> resultsToProfile = new List<PublishedProviderResult>();
 
             List<PublishedProviderResult> resultsToUpdate = new List<PublishedProviderResult>();
 
@@ -1111,6 +1112,7 @@ namespace CalculateFunding.Services.Results
                     }
                 }
 
+                
                 if (isUpdated)
                 { 
                     foreach(PublishedProviderResult result in results)
@@ -1119,7 +1121,7 @@ namespace CalculateFunding.Services.Results
 
                         if(updateStatusModel.Status == AllocationLineStatus.Approved || updateStatusModel.Status != AllocationLineStatus.Approved && result.ProfilingPeriods.IsNullOrEmpty())
                         {
-                            await GetProfilingPeriods(request, result);
+                            resultsToProfile.Add(result);
                         }
                     }
 
@@ -1145,6 +1147,11 @@ namespace CalculateFunding.Services.Results
 
                     throw new Exception("Failed when updating allocation line results");
                 }
+            }
+
+            foreach(PublishedProviderResult resultToProfile in resultsToProfile)
+            {
+                await GetProfilingPeriods(request, resultToProfile);
             }
 
             return new Tuple<int, int>(updatedAllocationLineIds.Count, updatedProviderIds.Count);
