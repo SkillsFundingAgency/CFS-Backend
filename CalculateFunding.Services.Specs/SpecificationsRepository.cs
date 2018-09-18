@@ -113,6 +113,19 @@ namespace CalculateFunding.Services.Specs
             return Task.FromResult(specifications);   
         }
 
+        public Task<IEnumerable<Specification>> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId)
+        {
+            IQueryable<Specification> specificationsQuery =
+              _repository.Query<Specification>()
+                  .Where(m => m.IsSelectedForFunding  && m.Current.FundingPeriod.Id == fundingPeriodId);
+
+            IEnumerable<Specification> specifications = specificationsQuery.AsEnumerable().ToList();
+
+            specifications = specifications.Where(m => m.Current.FundingPeriod.Id == fundingPeriodId);
+
+            return Task.FromResult(specifications);
+        }
+
         public Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(string sql)
         {
             var specifications = _repository.RawQuery<T>(sql);

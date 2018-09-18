@@ -16,6 +16,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<Specification> GetSpecificationById(string specificationId);
         Task<DocumentEntity<Specification>> GetSpecificationDocumentEntityById(string specificationId);
         Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query = null);
+        Task<IEnumerable<Specification>> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId);
         Task<IEnumerable<Specification>> GetSpecifications();
         Task<IEnumerable<Period>> GetPeriods();
         Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query);

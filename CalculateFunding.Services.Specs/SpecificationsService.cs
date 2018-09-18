@@ -420,6 +420,14 @@ namespace CalculateFunding.Services.Specs
                     await _specificationsRepository.GetSpecificationsByQuery(c => c.IsSelectedForFunding && c.Current.FundingPeriod.Id == fundingPeriodId)
                     ).Select(s => _mapper.Map<SpecificationSummary>(s));
 
+
+            if (!specifications.Any())
+            {
+                _logger.Information($"Specification was not found for funding period: {fundingPeriodId}");
+
+                return new NotFoundResult();
+            }
+
             return new OkObjectResult(specifications);
         }
 
