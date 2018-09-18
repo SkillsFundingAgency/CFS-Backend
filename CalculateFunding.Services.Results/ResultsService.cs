@@ -1151,6 +1151,8 @@ namespace CalculateFunding.Services.Results
 
         async Task GetProfilingPeriods(HttpRequest request, PublishedProviderResult result)
         {
+            _logger.Information($"Sending new provider profiling message for result id {result.Id} and provider {result.ProviderId}");
+
             ProviderProfilingRequestModel providerProfilingRequestModel = new ProviderProfilingRequestModel
             {
                 FundingStreamPeriod = result.FundingStreamResult.FundingStreamPeriod,
@@ -1166,7 +1168,11 @@ namespace CalculateFunding.Services.Results
 
             IDictionary<string, string> properties = request.BuildMessageProperties();
             properties.Add("publishedproviderresult-id", result.Id);
+
             await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.FetchProviderProfile, providerProfilingRequestModel, properties);
+
+            _logger.Information($"Sent new provider profiling message for result id {result.Id} and provider {result.ProviderId}");
+
         }
 
         public async Task FetchProviderProfile(Message message)
@@ -1197,6 +1203,8 @@ namespace CalculateFunding.Services.Results
                 throw new ArgumentException($"Published provider result with id '{publishedProviderResultId}' not found");
             }
 
+            _logger.Information($"Received new provider profiling message for result id {result.Id} and provider {result.ProviderId}");
+
             ProviderProfilingResponseModel responseModel = await _providerProfilingRepositoryPolicy.ExecuteAsync(() => _providerProfilingRepository.GetProviderProfilePeriods(model));
 
             if (responseModel != null && !responseModel.DeliveryProfilePeriods.IsNullOrEmpty())
@@ -1206,9 +1214,7 @@ namespace CalculateFunding.Services.Results
                 await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(new[] { result }));
 
                 SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(result.SpecificationId));
-
-                Console.WriteLine("Saving profiling info");
-
+               
                 await UpdateAllocationNotificationsFeedIndex(new[] { result }, specification);
             }
             else

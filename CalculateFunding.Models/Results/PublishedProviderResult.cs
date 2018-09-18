@@ -28,7 +28,7 @@ namespace CalculateFunding.Models.Results
         {
             get
             {
-                return Convert.ToBase64String(Encoding.UTF8.GetBytes($"{SpecificationId}{ProviderId}{FundingStreamResult.AllocationLineResult.AllocationLine}"));
+                return Convert.ToBase64String(Encoding.UTF8.GetBytes($"{SpecificationId}{ProviderId}{FundingStreamResult.AllocationLineResult.AllocationLine.Id}"));
             }
         }
 
