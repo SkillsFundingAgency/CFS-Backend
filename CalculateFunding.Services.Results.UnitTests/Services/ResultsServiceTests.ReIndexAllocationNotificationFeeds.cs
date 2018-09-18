@@ -54,6 +54,7 @@ namespace CalculateFunding.Services.Results.Services
             foreach (PublishedProviderResult result in results)
             {
                 result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
+                result.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
             IPublishedProviderResultsRepository repository = CreatePublishedProviderResultsRepository();
@@ -141,6 +142,7 @@ namespace CalculateFunding.Services.Results.Services
             foreach(PublishedProviderResult result in results)
             {
                 result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
+                result.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
             IPublishedProviderResultsRepository repository = CreatePublishedProviderResultsRepository();
@@ -192,7 +194,7 @@ namespace CalculateFunding.Services.Results.Services
                        m.First().AllocationLineName == "test allocation line 1" &&
                        m.First().AllocationVersionNumber == 1 &&
                        m.First().AllocationAmount == (double)50.0 &&
-                       m.First().ProviderProfiling == "[]" &&
+                       m.First().ProviderProfiling == "[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]" &&
                        m.First().ProviderName == "test provider name 1" &&
                        m.First().LaCode == "77777" &&
                        m.First().Authority == "London" &&

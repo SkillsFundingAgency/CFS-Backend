@@ -1,6 +1,7 @@
 using AutoMapper;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Aggregations;
+using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
@@ -1215,7 +1216,7 @@ namespace CalculateFunding.Services.Results
 
                 SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(result.SpecificationId));
                
-                await UpdateAllocationNotificationsFeedIndex(new[] { result }, specification);
+                await UpdateAllocationNotificationsFeedIndex(new[] { result }, specification, true);
             }
             else
             {
@@ -1345,9 +1346,9 @@ namespace CalculateFunding.Services.Results
         }
 
         async Task 
-	        UpdateAllocationNotificationsFeedIndex(IEnumerable<PublishedProviderResult> publishedProviderResults, SpecificationCurrentVersion specification)
+	        UpdateAllocationNotificationsFeedIndex(IEnumerable<PublishedProviderResult> publishedProviderResults, SpecificationCurrentVersion specification, bool checkProfiling = false)
         {
-            IEnumerable<AllocationNotificationFeedIndex> notifications = await BuildAllocationNotificationIndexItems(publishedProviderResults, specification);
+            IEnumerable<AllocationNotificationFeedIndex> notifications = await BuildAllocationNotificationIndexItems(publishedProviderResults, specification, checkProfiling);
 
             if (notifications.Any())
             {
@@ -1363,7 +1364,7 @@ namespace CalculateFunding.Services.Results
             }
         }
 
-        async Task<IEnumerable<AllocationNotificationFeedIndex>> BuildAllocationNotificationIndexItems(IEnumerable<PublishedProviderResult> publishedProviderResults, SpecificationCurrentVersion specification)
+        async Task<IEnumerable<AllocationNotificationFeedIndex>> BuildAllocationNotificationIndexItems(IEnumerable<PublishedProviderResult> publishedProviderResults, SpecificationCurrentVersion specification, bool checkProfiling = false)
         {
             Guard.ArgumentNotNull(publishedProviderResults, nameof(publishedProviderResults));
 
@@ -1378,6 +1379,21 @@ namespace CalculateFunding.Services.Results
                 if (publishedProviderResult.FundingStreamResult == null || publishedProviderResult.FundingStreamResult.AllocationLineResult == null || publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Held)
                 {
                     continue;
+                }
+
+                string providerProfiles = "[]";
+
+                if (checkProfiling && publishedProviderResult.ProfilingPeriods.IsNullOrEmpty())
+                {
+                    string message = $"Provider result with id {publishedProviderResult.Id} and provider id {publishedProviderResult.ProviderId} contains no profiling periods";
+
+                    _logger.Error(message);
+
+                    throw new MissingProviderProfilesException(publishedProviderResult.Id, publishedProviderResult.ProviderId);
+                }
+                else
+                {
+                    providerProfiles = JsonConvert.SerializeObject(publishedProviderResult.ProfilingPeriods);
                 }
 
                 IEnumerable<PublishedProviderCalculationResult> providerCalculationResults = calculationResults.Where(m => m.ProviderId == publishedProviderResult.ProviderId);
@@ -1417,7 +1433,7 @@ namespace CalculateFunding.Services.Results
                     AllocationLineContractRequired = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.IsContractRequired,
                     AllocationLineFundingRoute = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.FundingRoute.ToString(),
                     AllocationLineShortName = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.ShortName,
-                    ProviderProfiling = JsonConvert.SerializeObject(publishedProviderResult.ProfilingPeriods),
+                    ProviderProfiling = providerProfiles,
                     ProviderName = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Name,
                     LaCode = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.LACode,
                     Authority = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Authority,
