@@ -82,22 +82,28 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task CreateCalculation_GivenValidCalculation_ButFailedToSave_DoesNotUpdateSearch()
         {
             //Arrange
+            Calculation calculation = CreateCalculation();
 
-            Calculation calculation = new Calculation { Id = CalculationId };
+            IEnumerable<Calculation> calculations = new[]
+            {
+                calculation
+            };
 
             string json = JsonConvert.SerializeObject(calculation);
-
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
             message.UserProperties.Add("user-id", UserId);
             message.UserProperties.Add("user-name", Username);
 
-
             ICalculationsRepository repository = CreateCalculationsRepository();
             repository
                 .CreateDraftCalculation(Arg.Any<Calculation>())
                 .Returns(HttpStatusCode.BadRequest);
+            
+            repository
+                .GetCalculationsBySpecificationId(Arg.Is("any-spec-id"))
+                .Returns(calculations);
 
             ILogger logger = CreateLogger();
 
@@ -141,6 +147,64 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository
                     .DidNotReceive()
                     .Index(Arg.Any<List<CalculationIndex>>());
+        }
+
+        [TestMethod]
+        public async Task CreateCalculation_CreatingCalculationWithTheExcistingSpecificationId_ThrowsException()
+        {
+            //Arrange
+
+            Calculation calculation = CreateCalculation();
+
+            IEnumerable<Calculation> calculations = new[]
+            {
+                calculation
+            };
+            string json = JsonConvert.SerializeObject(calculation);
+
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            message.UserProperties.Add("user-id", UserId);
+            message.UserProperties.Add("user-name", Username);
+
+            
+            ICalculationsRepository repository = CreateCalculationsRepository();
+            repository
+                .CreateDraftCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.Created);
+
+            repository
+                .GetCalculationsBySpecificationId(Arg.Is("any-spec-id"))
+                .Returns(calculations);
+
+            repository.GetCalculationByCalculationSpecificationId(Arg.Is("any-calc-id"))
+                .Returns(calculation);
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            CalculationService service = CreateCalculationService(calculationsRepository: repository, logger: logger, searchRepository: searchRepository, specificationRepository: specificationRepository);
+
+            //Act
+            Func<Task> test = async () => await service.CreateCalculation(message);
+
+            //Assert
+            test
+              .ShouldThrowExactly<InvalidOperationException>();
+
         }
 
         [TestMethod]
