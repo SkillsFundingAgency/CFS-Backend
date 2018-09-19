@@ -70,7 +70,7 @@ namespace CalculateFunding.Services.Specs.Services
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
                 .GetSpecificationsByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
-                .Returns((IEnumerable<Specification>)null);
+                .Returns((Enumerable.Empty<Specification>()));
 
             SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
 
