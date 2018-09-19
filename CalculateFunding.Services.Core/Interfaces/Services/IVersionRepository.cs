@@ -13,5 +13,7 @@ namespace CalculateFunding.Services.Core.Interfaces
         Task SaveVersion(T newVersion);
 
         Task<IEnumerable<T>> GetVersions(string entityId);
+
+        Task SaveVersions(IEnumerable<T> newVersions);
     }
 }

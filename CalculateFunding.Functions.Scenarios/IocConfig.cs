@@ -1,8 +1,11 @@
 ﻿using System;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Scenarios;
+using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Scenarios;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using CalculateFunding.Services.Scenarios.Validators;
@@ -46,6 +49,19 @@ namespace CalculateFunding.Functions.Scenarios
 
             builder
                .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
+
+            builder.AddSingleton<IVersionRepository<TestScenarioVersion>, VersionRepository<TestScenarioVersion>>((ctx) =>
+            {
+                CosmosDbSettings scenariosVersioningDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", scenariosVersioningDbSettings);
+
+                scenariosVersioningDbSettings.CollectionName = "tests";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(scenariosVersioningDbSettings);
+
+                return new VersionRepository<TestScenarioVersion>(resultsRepostory);
+            });
 
             builder.AddCalcsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);

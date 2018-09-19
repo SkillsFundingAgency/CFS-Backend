@@ -10,14 +10,17 @@ namespace CalculateFunding.Models.Scenarios
         [JsonProperty("id")]
         public override string Id
         {
-            get { return ""; }
+            get { return $"{TestScenarioId}_version_{Version}"; }
         }
 
         [JsonProperty("entityId")]
         public override string EntityId
         {
-            get { return ""; }
+            get { return $"{TestScenarioId}"; }
         }
+
+        [JsonProperty("testScenarioId")]
+        public string TestScenarioId { get; set; }
 
         [JsonProperty("gherkin")]
         public string Gherkin { get; set; }
