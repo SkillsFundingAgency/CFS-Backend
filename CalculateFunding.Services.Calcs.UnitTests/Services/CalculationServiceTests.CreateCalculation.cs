@@ -150,7 +150,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task CreateCalculation_CreatingCalculationWithTheExcistingSpecificationId_ThrowsException()
+        public async Task CreateCalculation_CreatingCalculationWithTheExistingSpecificationId_ThrowsException()
         {
             //Arrange
 
@@ -203,8 +203,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-              .ShouldThrowExactly<InvalidOperationException>();
-
+              .ShouldThrowExactly<InvalidOperationException>()
+              .WithMessage($"The calculation with the same id {calculation.CalculationSpecification.Id} has already been created");
         }
 
         [TestMethod]
