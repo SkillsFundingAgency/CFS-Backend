@@ -558,6 +558,28 @@
         },
         {
           "type": "queues",
+          "name": "dataset-validate",
+          "apiVersion": "2017-04-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "lockDuration": "PT5M",
+            "maxSizeInMegabytes": 2048,
+            "requiresDuplicateDetection": false,
+            "requiresSession": false,
+            "defaultMessageTimeToLive": "P1D",
+            "deadLetteringOnMessageExpiration": false,
+            "enableBatchedOperations": true,
+            "duplicateDetectionHistoryTimeWindow": "PT10M",
+            "maxDeliveryCount": 5,
+            "enablePartitioning": false,
+            "enableExpress": false
+          },
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ]
+        },
+        {
+          "type": "queues",
           "name": "calc-events-create-draft",
           "apiVersion": "2017-04-01",
           "location": "[resourceGroup().location]",
