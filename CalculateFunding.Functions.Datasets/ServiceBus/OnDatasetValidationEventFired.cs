@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -15,6 +16,8 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
         [FunctionName("on-dataset-validation-event")]
         public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.ValidateDataset, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
+            CultureInfo.CurrentCulture = new CultureInfo("en-GB");
+
             var config = ConfigHelper.AddConfig();
 
             using (var scope = IocConfig.Build(config).CreateScope())

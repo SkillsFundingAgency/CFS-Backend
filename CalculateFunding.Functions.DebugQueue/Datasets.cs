@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Globalization;
+using System.Threading.Tasks;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Core.Constants;
 using Microsoft.Azure.ServiceBus;
@@ -12,6 +13,7 @@ namespace CalculateFunding.Functions.DebugQueue
         [FunctionName("on-dataset-event")]
         public static async Task RunPublishProviderResults([QueueTrigger(ServiceBusConstants.QueueNames.ProcessDataset, Connection = "AzureConnectionString")] string item, TraceWriter log)
         {
+            CultureInfo.CurrentCulture = new CultureInfo("en-GB");
             Message message = Helpers.ConvertToMessage<Dataset>(item);
 
             await Functions.Datasets.ServiceBus.OnDatasetEvent.Run(message);
@@ -22,6 +24,7 @@ namespace CalculateFunding.Functions.DebugQueue
         [FunctionName("on-dataset-validation-event")]
         public static async Task RunValidateDatasetEvent([QueueTrigger(ServiceBusConstants.QueueNames.ValidateDataset, Connection = "AzureConnectionString")] string item, TraceWriter log)
         {
+            CultureInfo.CurrentCulture = new CultureInfo("en-GB");
             Message message = Helpers.ConvertToMessage<GetDatasetBlobModel>(item);
 
             await Functions.Datasets.ServiceBus.OnDatasetValidationEvent.Run(message);
