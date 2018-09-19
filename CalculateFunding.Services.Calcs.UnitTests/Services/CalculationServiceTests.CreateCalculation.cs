@@ -155,7 +155,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
 
             Calculation calculation = CreateCalculation();
-
+            
             IEnumerable<Calculation> calculations = new[]
             {
                 calculation
