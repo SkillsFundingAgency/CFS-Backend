@@ -2,6 +2,7 @@
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -21,8 +22,10 @@ namespace CalculateFunding.Services.Calcs.Services
             // Arrange
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
 
-            CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository, specificationRepository: specificationRepository);
+            CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository, 
+                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository);
 
             const string specificationId = "specId";
             const string calculationId = "updatedCalc";
@@ -54,19 +57,18 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = "Calculation to Update",
                 SpecificationId = specificationId,
                 FundingPeriod = new Reference("fp1", "Funding Period"),
-                History = new List<CalculationVersion>(),
                 CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
                 CalculationType = CalculationType.Funding,
                 Description = "Calculation Description",
                 BuildProjectId = "bpC1",
                 Policies = new List<Reference>(),
+                Current = new CalculationVersion()
+                {
+                    SourceCode = "Return 10",
+                    DecimalPlaces = 6,
+                }
             };
-            calc1.Save(new CalculationVersion()
-            {
-                SourceCode = "Return 10",
-                DecimalPlaces = 6,
-            });
-
+            
             calculations.Add(calc1);
 
             Calculation calc2 = new Calculation()
@@ -75,20 +77,18 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = "Calling Calculation To Update",
                 SpecificationId = specificationId,
                 FundingPeriod = new Reference("fp1", "Funding Period"),
-                History = new List<CalculationVersion>(),
                 CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
                 CalculationType = CalculationType.Funding,
                 Description = "Calculation Description",
                 BuildProjectId = "bpC1",
                 Policies = new List<Reference>(),
+                Current = new CalculationVersion()
+                {
+                    SourceCode = "Return OriginalName()",
+                    DecimalPlaces = 6,
+                }
             };
-            calc2.Save(new CalculationVersion()
-            {
-                SourceCode = "Return OriginalName()",
-                DecimalPlaces = 6,
-            });
-
-
+            
             calculations.Add(calc2);
 
             calculationsRepository
@@ -112,6 +112,16 @@ namespace CalculateFunding.Services.Calcs.Services
             specificationRepository
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(specification);
+
+            CalculationVersion calculationVersion = new CalculationVersion
+            {
+                SourceCode = "Return CalculationToUpdate()",
+                Version = 2
+            };
+
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
 
             // Act
             IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationSpecificationChange(comparison, user);
@@ -146,8 +156,10 @@ namespace CalculateFunding.Services.Calcs.Services
             // Arrange
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
 
-            CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository, specificationRepository: specificationRepository);
+            CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository, 
+                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository);
 
             const string specificationId = "specId";
             const string calculationId = "updatedCalc";
@@ -179,19 +191,18 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = "Calculation to Update",
                 SpecificationId = specificationId,
                 FundingPeriod = new Reference("fp1", "Funding Period"),
-                History = new List<CalculationVersion>(),
                 CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
                 CalculationType = CalculationType.Funding,
                 Description = "Calculation Description",
                 BuildProjectId = "bpC1",
                 Policies = new List<Reference>(),
+                Current = new CalculationVersion()
+                {
+                    SourceCode = "Return 10",
+                    DecimalPlaces = 6,
+                }
             };
-            calc1.Save(new CalculationVersion()
-            {
-                SourceCode = "Return 10",
-                DecimalPlaces = 6,
-            });
-
+            
             calculations.Add(calc1);
 
             Calculation calc2 = new Calculation()
@@ -200,19 +211,18 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = "Calling Calculation To Update",
                 SpecificationId = specificationId,
                 FundingPeriod = new Reference("fp1", "Funding Period"),
-                History = new List<CalculationVersion>(),
                 CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
                 CalculationType = CalculationType.Funding,
                 Description = "Calculation Description",
                 BuildProjectId = "bpC1",
                 Policies = new List<Reference>(),
+                Current = new CalculationVersion()
+                {
+                    SourceCode = "Return OriginalName()",
+                    DecimalPlaces = 6,
+                }
             };
-            calc2.Save(new CalculationVersion()
-            {
-                SourceCode = "Return OriginalName()",
-                DecimalPlaces = 6,
-            });
-
+            
             calculations.Add(calc2);
 
             calculationsRepository
@@ -236,6 +246,16 @@ namespace CalculateFunding.Services.Calcs.Services
             specificationRepository
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(specification);
+
+            CalculationVersion calculationVersion = new CalculationVersion
+            {
+                SourceCode = "Return CalculationToUpdate()",
+                Version = 2
+            };
+
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
 
             // Act
             IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationSpecificationChange(comparison, user);
@@ -270,8 +290,10 @@ namespace CalculateFunding.Services.Calcs.Services
             // Arrange
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
 
-            CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository, specificationRepository: specificationRepository);
+            CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository, 
+                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository);
 
             const string specificationId = "specId";
             const string calculationId = "updatedCalc";
@@ -303,19 +325,18 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = "Calculation to Update",
                 SpecificationId = specificationId,
                 FundingPeriod = new Reference("fp1", "Funding Period"),
-                History = new List<CalculationVersion>(),
                 CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
                 CalculationType = CalculationType.Funding,
                 Description = "Calculation Description",
                 BuildProjectId = "bpC1",
                 Policies = new List<Reference>(),
+                Current = new CalculationVersion()
+                {
+                    SourceCode = "Return 10",
+                    DecimalPlaces = 6,
+                }
             };
-            calc1.Save(new CalculationVersion()
-            {
-                SourceCode = "Return 10",
-                DecimalPlaces = 6,
-            });
-
+            
             calculations.Add(calc1);
 
             Calculation calc2 = new Calculation()
@@ -324,20 +345,18 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = "Calling Calculation To Update",
                 SpecificationId = specificationId,
                 FundingPeriod = new Reference("fp1", "Funding Period"),
-                History = new List<CalculationVersion>(),
                 CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
                 CalculationType = CalculationType.Funding,
                 Description = "Calculation Description",
                 BuildProjectId = "bpC1",
                 Policies = new List<Reference>(),
+                Current = new CalculationVersion()
+                {
+                    SourceCode = "Return 50",
+                    DecimalPlaces = 6,
+                }
             };
-            calc2.Save(new CalculationVersion()
-            {
-                SourceCode = "Return 50",
-                DecimalPlaces = 6,
-            });
-
-
+            
             calculations.Add(calc2);
 
             calculationsRepository
@@ -361,6 +380,16 @@ namespace CalculateFunding.Services.Calcs.Services
             specificationRepository
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(specification);
+
+            CalculationVersion calculationVersion = new CalculationVersion
+            {
+                SourceCode = "Return CalculationToUpdate()",
+                Version = 2
+            };
+
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
 
             // Act
             IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationSpecificationChange(comparison, user);

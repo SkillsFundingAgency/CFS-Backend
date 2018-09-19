@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.CodeGeneration;
+using CalculateFunding.Services.Core.Interfaces;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -182,12 +183,20 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
                 .Returns(specificationSummary);
 
+            CalculationVersion calculationVersion = calculation.Current as CalculationVersion;
+            
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
-                specificationRepository: specificationRepository);
+                specificationRepository: specificationRepository,
+                calculationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -197,9 +206,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Should()
                 .BeOfType<OkObjectResult>();
 
-            logger
-                .Received(1)
-                .Information(Arg.Is($"History for {CalculationId} was null or empty and needed recreating."));
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(calculationVersion));
         }
 
         [TestMethod]
@@ -312,12 +322,25 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
                 .Returns(specificationSummary);
 
+            CalculationVersion calculationVersion = new CalculationVersion
+            {
+                Date = DateTimeOffset.Now.ToLocalTime(),
+                PublishStatus = PublishStatus.Draft,
+                Version = 1
+            };
+
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
-                specificationRepository: specificationRepository);
+                specificationRepository: specificationRepository,
+                calculationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -330,6 +353,11 @@ namespace CalculateFunding.Services.Calcs.Services
             logger
                 .Received(1)
                 .Warning(Arg.Is($"Current for {CalculationId} was null and needed recreating."));
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(calculationVersion));
         }
 
         [TestMethod]
@@ -392,12 +420,20 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
                 .Returns(specificationSummary);
 
+            CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
+
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
-                specificationRepository: specificationRepository);
+                specificationRepository: specificationRepository,
+                calculationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -415,6 +451,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsRepository
                     .Received(1)
                     .CreateBuildProject(Arg.Any<BuildProject>());
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(calculationVersion));
         }
 
         [TestMethod]
@@ -480,12 +521,20 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
                 .Returns(specificationSummary);
 
+            CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
+
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
-                specificationRepository: specificationRepository);
+                specificationRepository: specificationRepository,
+                calculationVersionRepository: versionRepository);
 
             // Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -503,6 +552,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsRepository
                     .Received(1)
                     .CreateBuildProject(Arg.Any<BuildProject>());
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(calculationVersion));
         }
 
         [TestMethod]
@@ -573,12 +627,20 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
                 .Returns(specificationSummary);
 
+            CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
+
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
-                specificationRepository: specificationRepository);
+                specificationRepository: specificationRepository,
+                calculationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -591,6 +653,11 @@ namespace CalculateFunding.Services.Calcs.Services
             logger
                 .Received(1)
                 .Warning(Arg.Is($"Build project for specification {calculation.SpecificationId} could not be found, creating a new one"));
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(calculationVersion));
         }
 
         [TestMethod]
@@ -695,13 +762,21 @@ namespace CalculateFunding.Services.Calcs.Services
             sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic)
                 .Returns(sourceFileGenerator);
 
+            CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
+
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
                 specificationRepository: specificationRepository,
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
-                sourceFileGeneratorProvider: sourceFileGeneratorProvider);
+                sourceFileGeneratorProvider: sourceFileGeneratorProvider,
+                calculationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -718,6 +793,11 @@ namespace CalculateFunding.Services.Calcs.Services
             await calculationsRepository
                 .Received(1)
                 .UpdateCalculation(Arg.Is<Calculation>(c => c.Description == specCalculation.Description));
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(calculationVersion));
         }
 
         [TestMethod]
@@ -840,13 +920,21 @@ namespace CalculateFunding.Services.Calcs.Services
             sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic)
                 .Returns(sourceFileGenerator);
 
+            CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
+
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
                 specificationRepository: specificationRepository,
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
-                sourceFileGeneratorProvider: sourceFileGeneratorProvider);
+                sourceFileGeneratorProvider: sourceFileGeneratorProvider,
+                calculationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -871,6 +959,11 @@ namespace CalculateFunding.Services.Calcs.Services
             await calculationsRepository
                 .Received(1)
                 .UpdateCalculation(Arg.Is<Calculation>(c => c.Description == specCalculation1.Description));
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(calculationVersion));
         }
 
         [TestMethod]
@@ -941,12 +1034,20 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
                 .Returns(specificationSummary);
 
+            CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
+
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
                buildProjectsRepository: buildProjectsRepository,
                searchRepository: searchRepository,
-               specificationRepository: specificationRepository);
+               specificationRepository: specificationRepository,
+               calculationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -959,6 +1060,11 @@ namespace CalculateFunding.Services.Calcs.Services
             logger
                 .Received(1)
                 .Warning(Arg.Is($"Build project for specification {calculation.SpecificationId} could not be found, creating a new one"));
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(calculationVersion));
         }
 
         [TestMethod]
@@ -973,6 +1079,8 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             Calculation calculation = CreateCalculation();
+
+            CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
 
             SaveSourceCodeVersion model = new SaveSourceCodeVersion
             {
@@ -1029,11 +1137,17 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
                 .Returns(specificationSummary);
 
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
             CalculationService service = CreateCalculationService(logger: logger,
                 calculationsRepository: calculationsRepository,
                buildProjectsRepository: buildProjectsRepository,
                searchRepository: searchRepository,
-               specificationRepository: specificationRepository);
+               specificationRepository: specificationRepository,
+               calculationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1047,6 +1161,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository
                     .Received(1)
                     .Index(Arg.Any<IList<CalculationIndex>>());
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(calculationVersion));
         }
 
         [TestMethod]
@@ -1120,12 +1239,21 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
                 .Returns(specificationSummary);
 
+            CalculationVersion calculationVersion = calculation.Current as CalculationVersion;
+            calculationVersion.PublishStatus = PublishStatus.Updated;
+
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
                buildProjectsRepository: buildProjectsRepository,
                searchRepository: searchRepository,
-               specificationRepository: specificationRepository);
+               specificationRepository: specificationRepository,
+               calculationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1145,6 +1273,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository
                 .Received(1)
                 .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(calculationVersion));
         }
 
         [TestMethod]
@@ -1225,13 +1358,22 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
                 .Returns(specificationSummary);
 
+            CalculationVersion calculationVersion = calculation.Current as CalculationVersion;
+            calculationVersion.PublishStatus = PublishStatus.Updated;
+
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
                buildProjectsRepository: buildProjectsRepository,
                searchRepository: searchRepository,
                messengerService: messengerService,
-               specificationRepository: specificationRepository);
+               specificationRepository: specificationRepository,
+               calculationVersionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1258,6 +1400,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     .SendToQueue(Arg.Is("calc-events-instruct-generate-allocations"),
                         Arg.Is((string)null),
                         Arg.Any<IDictionary<string, string>>());
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(calculationVersion));
         }
 
         [TestMethod]

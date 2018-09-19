@@ -902,8 +902,7 @@ namespace CalculateFunding.Services.Specs
                 Name = createModel.Name,
                 Id = Guid.NewGuid().ToString(),
             };
-            //specification.Init();
-
+            
             SpecificationVersion specificationVersion = new SpecificationVersion
             {
                 Name = createModel.Name,

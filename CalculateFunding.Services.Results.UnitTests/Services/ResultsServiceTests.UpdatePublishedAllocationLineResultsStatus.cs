@@ -391,6 +391,11 @@ namespace CalculateFunding.Services.Results.Services
                 .Current
                 .Status = AllocationLineStatus.Approved;
 
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+            }
+
             PublishedAllocationLineResultHistory history = new PublishedAllocationLineResultHistory
             {
                 SpecificationId = specificationId,
@@ -693,6 +698,11 @@ namespace CalculateFunding.Services.Results.Services
 
             IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
 
+            foreach(PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+            }
+
             PublishedAllocationLineResultHistory history = new PublishedAllocationLineResultHistory
             {
                 SpecificationId = specificationId,
@@ -758,7 +768,7 @@ namespace CalculateFunding.Services.Results.Services
                         m.First().AllocationVersionNumber == 1 &&
                         m.First().AllocationStatus == "Approved" &&
                         m.First().AllocationAmount == (double)50.0 &&
-                        m.First().ProviderProfiling == "[]" &&
+                        m.First().ProviderProfiling == "[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]" &&
                         m.First().ProviderName == "test provider name 1" &&
                         m.First().LaCode == "77777" &&
                         m.First().Authority == "London" &&
@@ -825,6 +835,11 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(claims.AsEnumerable());
 
             IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
+
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+            }
 
             PublishedAllocationLineResultHistory history1 = new PublishedAllocationLineResultHistory
             {
@@ -984,6 +999,11 @@ namespace CalculateFunding.Services.Results.Services
 
             IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
 
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+            }
+
             PublishedAllocationLineResultHistory history1 = new PublishedAllocationLineResultHistory
             {
                 SpecificationId = specificationId,
@@ -1124,6 +1144,11 @@ namespace CalculateFunding.Services.Results.Services
 
             IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
 
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+            }
+
             PublishedAllocationLineResultHistory history1 = new PublishedAllocationLineResultHistory
             {
                 SpecificationId = specificationId,
@@ -1194,6 +1219,6 @@ namespace CalculateFunding.Services.Results.Services
                 .BeOfType<OkObjectResult>();
 
             await messengerService.Received(3).SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.FetchProviderProfile), Arg.Any<ProviderProfilingRequestModel>(), Arg.Any<Dictionary<string, string>>());
-        }
+        } 
     }
 }

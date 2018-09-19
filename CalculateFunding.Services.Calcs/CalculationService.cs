@@ -25,6 +25,7 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
@@ -53,6 +54,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICacheProvider _cacheProvider;
         private readonly ITelemetry _telemetry;
         private readonly Polly.Policy _calculationRepositoryPolicy;
+        private readonly IVersionRepository<CalculationVersion> _calculationVersionRepository;
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
@@ -67,11 +69,19 @@ namespace CalculateFunding.Services.Calcs
             ICodeMetadataGeneratorService codeMetadataGenerator,
             ISpecificationRepository specificationRepository,
             ICacheProvider cacheProvider,
-            ICalcsResilliencePolicies resilliencePolicies)
+            ICalcsResilliencePolicies resilliencePolicies,
+            IVersionRepository<CalculationVersion> calculationVersionRepository)
         {
             Guard.ArgumentNotNull(codeMetadataGenerator, nameof(codeMetadataGenerator));
             Guard.ArgumentNotNull(specificationRepository, nameof(specificationRepository));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
+            Guard.ArgumentNotNull(calculationValidator, nameof(calculationValidator));
+            Guard.ArgumentNotNull(compilerFactory, nameof(compilerFactory));
+            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
+            Guard.ArgumentNotNull(calculationVersionRepository, nameof(calculationVersionRepository));
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -86,6 +96,7 @@ namespace CalculateFunding.Services.Calcs
             _specsRepository = specificationRepository;
             _cacheProvider = cacheProvider;
             _calculationRepositoryPolicy = resilliencePolicies.CalculationsRepository;
+            _calculationVersionRepository = calculationVersionRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -132,7 +143,7 @@ namespace CalculateFunding.Services.Calcs
         {
             request.Query.TryGetValue("calculationId", out var calcId);
 
-            var calculationId = calcId.FirstOrDefault();
+            string calculationId = calcId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(calculationId))
             {
@@ -141,9 +152,9 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("Null or empty calculation Id provided");
             }
 
-            IEnumerable<CalculationVersion> history = await _calculationsRepository.GetVersionHistory(calculationId);
+            IEnumerable<CalculationVersion> history = await _calculationVersionRepository.GetVersions(calculationId);
 
-            if (history == null)
+            if (history.IsNullOrEmpty())
             {
                 _logger.Information($"A calculation was not found for calculation id {calculationId}");
 
@@ -168,9 +179,23 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("A null or invalid compare model was provided for comparing models");
             }
 
-            IEnumerable<CalculationVersion> versions = await _calculationsRepository.GetCalculationVersions(compareModel);
+            IEnumerable<CalculationVersion> allVersions = await _calculationVersionRepository.GetVersions(compareModel.CalculationId);
 
-            if (versions == null)
+            if (allVersions.IsNullOrEmpty())
+            {
+                _logger.Information($"No history was not found for calculation id {compareModel.CalculationId}");
+
+                return new NotFoundResult();
+            }
+
+            IList<CalculationVersion> versions = new List<CalculationVersion>();
+
+            foreach (var version in compareModel.Versions)
+            {
+                versions.Add(allVersions.FirstOrDefault(m => m.Version == version));
+            }
+
+            if (!versions.Any())
             {
                 _logger.Information($"A calculation was not found for calculation id {compareModel.CalculationId}");
 
@@ -351,28 +376,18 @@ namespace CalculateFunding.Services.Calcs
                     throw new InvalidModelException(typeof(CalculationService).ToString(), new[] { $"Specification with ID '{calculation.SpecificationId}' not found" });
                 }
 
-                calculation.Current = new CalculationVersion
+                CalculationVersion calculationVersion = new CalculationVersion
                 {
                     PublishStatus = PublishStatus.Draft,
                     Author = user,
-                    Date = DateTimeOffset.Now,
+                    Date = DateTimeOffset.Now.ToLocalTime(),
                     Version = 1,
                     DecimalPlaces = 6,
-                    SourceCode = CodeGenerationConstants.VisualBasicDefaultSourceCode
+                    SourceCode = CodeGenerationConstants.VisualBasicDefaultSourceCode,
+                    CalculationId = calculation.Id
                 };
 
-                calculation.History = new List<CalculationVersion>
-                {
-                    new CalculationVersion
-                    {
-                        PublishStatus = PublishStatus.Draft,
-                        Author = user,
-                        Date = DateTimeOffset.Now,
-                        Version = 1,
-                        DecimalPlaces = 6,
-                        SourceCode = CodeGenerationConstants.VisualBasicDefaultSourceCode
-                    }
-                };
+                calculation.Current = calculationVersion;
 
                 Calculation calculationDuplicateCheck = await _calculationsRepository.GetCalculationByCalculationSpecificationId(calculation.CalculationSpecification.Id);
 
@@ -387,6 +402,8 @@ namespace CalculateFunding.Services.Calcs
                 if (result.IsSuccess())
                 {
                     _logger.Information($"Calculation with id: {calculation.Id} was succesfully saved to Cosmos Db");
+
+                    await _calculationVersionRepository.SaveVersion(calculationVersion);
 
                     await UpdateSearch(calculation, specificationSummary.Name);
 
@@ -621,7 +638,13 @@ namespace CalculateFunding.Services.Calcs
             CalculationVersion calculationVersion;
             if (calculation.Current == null)
             {
-                calculationVersion = new CalculationVersion();
+                calculationVersion = new CalculationVersion
+                {
+                    Date = DateTimeOffset.Now.ToLocalTime(),
+                    Author = user,
+                    PublishStatus = PublishStatus.Draft,
+                    Version = 1
+                };                
             }
             else
             {
@@ -630,6 +653,7 @@ namespace CalculateFunding.Services.Calcs
 
             calculationVersion.DecimalPlaces = 6;
             calculationVersion.SourceCode = sourceCodeVersion.SourceCode;
+            calculationVersion.CalculationId = calculationId;       
 
             UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, user);
 
@@ -658,30 +682,23 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(calculationVersion, nameof(calculationVersion));
             Guard.ArgumentNotNull(user, nameof(user));
 
-            if (calculation.History.IsNullOrEmpty())
-            {
-                _logger.Information($"History for {calculation.Id} was null or empty and needed recreating.");
-                calculation.History = new List<CalculationVersion>();
-            }
-
-            int nextVersionNumber = calculation.GetNextVersion();
-
             if (calculation.Current == null)
             {
                 _logger.Warning($"Current for {calculation.Id} was null and needed recreating.");
-                calculation.Current = new CalculationVersion();
+                calculation.Current = calculationVersion;
             }
+
+            CalculationVersion previousCalculationVersion = calculation.Current;
 
             calculationVersion.Author = user;
 
-            calculation.Save(calculationVersion);
+            HttpStatusCode statusCode = await UpdateCalculation(calculation, calculationVersion, previousCalculationVersion);
 
-            HttpStatusCode statusCode = await _calculationsRepository.UpdateCalculation(calculation);
             if (statusCode != HttpStatusCode.OK)
             {
                 throw new InvalidOperationException($"Update calculation returned status code '{statusCode}' instead of OK");
             }
-
+            
             BuildProject buildProject = await UpdateBuildProject(calculation.SpecificationId);
 
             Models.Specs.SpecificationSummary specificationSummary = await _specsRepository.GetSpecificationSummaryById(calculation.SpecificationId);
@@ -767,19 +784,13 @@ namespace CalculateFunding.Services.Calcs
 
             Reference user = request.GetUser();
 
+            CalculationVersion previousCalculationVersion = calculation.Current;
+
             CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
 
-            if (editStatusModel.PublishStatus == PublishStatus.Approved)
-            {
-                calculation.Publish();
-            }
-            else
-            {
-                calculationVersion.PublishStatus = editStatusModel.PublishStatus;
-                calculation.Save(calculationVersion);
-            }
+            calculationVersion.PublishStatus = editStatusModel.PublishStatus;
 
-            HttpStatusCode statusCode = await _calculationsRepository.UpdateCalculation(calculation);
+            HttpStatusCode statusCode = await UpdateCalculation(calculation, calculationVersion, previousCalculationVersion);
 
             if (!statusCode.IsSuccess())
             {
@@ -796,6 +807,7 @@ namespace CalculateFunding.Services.Calcs
             };
 
             CalculationCurrentVersion currentVersion = GetCurrentVersionFromCalculation(calculation);
+
             await UpdateCalculationInCache(calculation, currentVersion);
 
             return new OkObjectResult(result);
@@ -1122,5 +1134,20 @@ namespace CalculateFunding.Services.Calcs
             // Set current version in cache
             await _cacheProvider.SetAsync<CalculationCurrentVersion>($"{CacheKeys.CurrentCalculation}{calculation.Id}", currentVersion, TimeSpan.FromDays(7), true);
         }
+
+        private async Task<HttpStatusCode> UpdateCalculation(Calculation calculation, CalculationVersion calculationVersion, CalculationVersion previousVersion)
+        {
+            calculationVersion = await _calculationVersionRepository.CreateVersion(calculationVersion, previousVersion);
+
+            calculation.Current = calculationVersion;
+
+            HttpStatusCode result = await _calculationsRepository.UpdateCalculation(calculation);
+            if (result == HttpStatusCode.OK)
+            {
+                await _calculationVersionRepository.SaveVersion(calculationVersion);
+            }
+
+            return result;
+       }
     }
 }

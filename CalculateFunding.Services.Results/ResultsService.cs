@@ -1,6 +1,7 @@
 using AutoMapper;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Aggregations;
+using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
@@ -1039,6 +1040,7 @@ namespace CalculateFunding.Services.Results
         {
             IList<string> updatedAllocationLineIds = new List<string>();
             IList<string> updatedProviderIds = new List<string>();
+            IList<PublishedProviderResult> resultsToProfile = new List<PublishedProviderResult>();
 
             List<PublishedProviderResult> resultsToUpdate = new List<PublishedProviderResult>();
 
@@ -1110,6 +1112,7 @@ namespace CalculateFunding.Services.Results
                     }
                 }
 
+                
                 if (isUpdated)
                 { 
                     foreach(PublishedProviderResult result in results)
@@ -1118,7 +1121,7 @@ namespace CalculateFunding.Services.Results
 
                         if(updateStatusModel.Status == AllocationLineStatus.Approved || updateStatusModel.Status != AllocationLineStatus.Approved && result.ProfilingPeriods.IsNullOrEmpty())
                         {
-                            await GetProfilingPeriods(request, result);
+                            resultsToProfile.Add(result);
                         }
                     }
 
@@ -1146,11 +1149,18 @@ namespace CalculateFunding.Services.Results
                 }
             }
 
+            foreach(PublishedProviderResult resultToProfile in resultsToProfile)
+            {
+                await GetProfilingPeriods(request, resultToProfile);
+            }
+
             return new Tuple<int, int>(updatedAllocationLineIds.Count, updatedProviderIds.Count);
         }
 
         async Task GetProfilingPeriods(HttpRequest request, PublishedProviderResult result)
         {
+            _logger.Information($"Sending new provider profiling message for result id {result.Id} and provider {result.ProviderId}");
+
             ProviderProfilingRequestModel providerProfilingRequestModel = new ProviderProfilingRequestModel
             {
                 FundingStreamPeriod = result.FundingStreamResult.FundingStreamPeriod,
@@ -1166,7 +1176,11 @@ namespace CalculateFunding.Services.Results
 
             IDictionary<string, string> properties = request.BuildMessageProperties();
             properties.Add("publishedproviderresult-id", result.Id);
+
             await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.FetchProviderProfile, providerProfilingRequestModel, properties);
+
+            _logger.Information($"Sent new provider profiling message for result id {result.Id} and provider {result.ProviderId}");
+
         }
 
         public async Task FetchProviderProfile(Message message)
@@ -1197,6 +1211,8 @@ namespace CalculateFunding.Services.Results
                 throw new ArgumentException($"Published provider result with id '{publishedProviderResultId}' not found");
             }
 
+            _logger.Information($"Received new provider profiling message for result id {result.Id} and provider {result.ProviderId}");
+
             ProviderProfilingResponseModel responseModel = await _providerProfilingRepositoryPolicy.ExecuteAsync(() => _providerProfilingRepository.GetProviderProfilePeriods(model));
 
             if (responseModel != null && !responseModel.DeliveryProfilePeriods.IsNullOrEmpty())
@@ -1206,10 +1222,8 @@ namespace CalculateFunding.Services.Results
                 await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(new[] { result }));
 
                 SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(result.SpecificationId));
-
-                Console.WriteLine("Saving profiling info");
-
-                await UpdateAllocationNotificationsFeedIndex(new[] { result }, specification);
+               
+                await UpdateAllocationNotificationsFeedIndex(new[] { result }, specification, true);
             }
             else
             {
@@ -1339,9 +1353,9 @@ namespace CalculateFunding.Services.Results
         }
 
         async Task 
-	        UpdateAllocationNotificationsFeedIndex(IEnumerable<PublishedProviderResult> publishedProviderResults, SpecificationCurrentVersion specification)
+	        UpdateAllocationNotificationsFeedIndex(IEnumerable<PublishedProviderResult> publishedProviderResults, SpecificationCurrentVersion specification, bool checkProfiling = false)
         {
-            IEnumerable<AllocationNotificationFeedIndex> notifications = await BuildAllocationNotificationIndexItems(publishedProviderResults, specification);
+            IEnumerable<AllocationNotificationFeedIndex> notifications = await BuildAllocationNotificationIndexItems(publishedProviderResults, specification, checkProfiling);
 
             if (notifications.Any())
             {
@@ -1357,7 +1371,7 @@ namespace CalculateFunding.Services.Results
             }
         }
 
-        async Task<IEnumerable<AllocationNotificationFeedIndex>> BuildAllocationNotificationIndexItems(IEnumerable<PublishedProviderResult> publishedProviderResults, SpecificationCurrentVersion specification)
+        async Task<IEnumerable<AllocationNotificationFeedIndex>> BuildAllocationNotificationIndexItems(IEnumerable<PublishedProviderResult> publishedProviderResults, SpecificationCurrentVersion specification, bool checkProfiling = false)
         {
             Guard.ArgumentNotNull(publishedProviderResults, nameof(publishedProviderResults));
 
@@ -1372,6 +1386,21 @@ namespace CalculateFunding.Services.Results
                 if (publishedProviderResult.FundingStreamResult == null || publishedProviderResult.FundingStreamResult.AllocationLineResult == null || publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Held)
                 {
                     continue;
+                }
+
+                string providerProfiles = "[]";
+
+                if (checkProfiling && publishedProviderResult.ProfilingPeriods.IsNullOrEmpty())
+                {
+                    string message = $"Provider result with id {publishedProviderResult.Id} and provider id {publishedProviderResult.ProviderId} contains no profiling periods";
+
+                    _logger.Error(message);
+
+                    throw new MissingProviderProfilesException(publishedProviderResult.Id, publishedProviderResult.ProviderId);
+                }
+                else
+                {
+                    providerProfiles = JsonConvert.SerializeObject(publishedProviderResult.ProfilingPeriods);
                 }
 
                 IEnumerable<PublishedProviderCalculationResult> providerCalculationResults = calculationResults.Where(m => m.ProviderId == publishedProviderResult.ProviderId);
@@ -1411,7 +1440,7 @@ namespace CalculateFunding.Services.Results
                     AllocationLineContractRequired = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.IsContractRequired,
                     AllocationLineFundingRoute = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.FundingRoute.ToString(),
                     AllocationLineShortName = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.ShortName,
-                    ProviderProfiling = JsonConvert.SerializeObject(publishedProviderResult.ProfilingPeriods),
+                    ProviderProfiling = providerProfiles,
                     ProviderName = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Name,
                     LaCode = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.LACode,
                     Authority = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Authority,

@@ -270,13 +270,7 @@ namespace CalculateFunding.Services.Calcs.Services
                        m.Current.Author.Name == Username &&
                        m.Current.Date.Date == DateTimeOffset.Now.Date &&
                        m.Current.Version == 1 &&
-                       m.Current.DecimalPlaces == 6 &&
-                       m.History.First().PublishStatus == PublishStatus.Draft &&
-                       m.History.First().Author.Id == UserId &&
-                       m.History.First().Author.Name == Username &&
-                       m.History.First().Date.Date == DateTimeOffset.Now.Date &&
-                       m.History.First().Version == 1 &&
-                       m.History.First().DecimalPlaces == 6
+                       m.Current.DecimalPlaces == 6
                    ));
 
             await
@@ -363,13 +357,7 @@ namespace CalculateFunding.Services.Calcs.Services
                        m.Current.Author.Name == Username &&
                        m.Current.Date.Date == DateTimeOffset.Now.Date &&
                        m.Current.Version == 1 &&
-                       m.Current.DecimalPlaces == 6 &&
-                       m.History.First().PublishStatus == PublishStatus.Draft &&
-                       m.History.First().Author.Id == UserId &&
-                       m.History.First().Author.Name == Username &&
-                       m.History.First().Date.Date == DateTimeOffset.Now.Date &&
-                       m.History.First().Version == 1 &&
-                       m.History.First().DecimalPlaces == 6
+                       m.Current.DecimalPlaces == 6
                    ));
 
             await

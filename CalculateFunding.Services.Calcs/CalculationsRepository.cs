@@ -62,33 +62,6 @@ namespace CalculateFunding.Services.Calcs
             return Task.FromResult(calculations.AsEnumerable().FirstOrDefault());
         }
 
-        async public Task<IEnumerable<CalculationVersion>> GetVersionHistory(string calculationId)
-        {
-            Calculation calculation = await GetCalculationById(calculationId);
-
-            if (calculation == null)
-                return null;
-
-            return !calculation.History.IsNullOrEmpty() ? calculation.History : new List<CalculationVersion>();
-        }
-
-        async public Task<IEnumerable<CalculationVersion>> GetCalculationVersions(CalculationVersionsCompareModel compareModel)
-        {
-            Calculation calculation = await GetCalculationById(compareModel.CalculationId);
-
-            if (calculation == null)
-                return null;
-
-            IList<CalculationVersion> versions = new List<CalculationVersion>();
-
-            foreach(var version in compareModel.Versions)
-            {
-                versions.Add(calculation.History.FirstOrDefault(m => m.Version == version));
-            }
-
-            return versions;
-        }
-
         public Task<HttpStatusCode> UpdateCalculation(Calculation calculation)
         {
             return _cosmosRepository.UpdateAsync(calculation);

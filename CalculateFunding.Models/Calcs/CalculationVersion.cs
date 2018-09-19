@@ -6,17 +6,16 @@ namespace CalculateFunding.Models.Calcs
 
     public class CalculationVersion : VersionedItem
     {
-        //AB: These 2 properties are not required yet, will be updated during the story
         [JsonProperty("id")]
         public override string Id
         {
-            get { return ""; }
+            get { return $"{CalculationId}_version_{Version}"; }
         }
 
         [JsonProperty("entityId")]
         public override string EntityId
         {
-            get { return ""; }
+            get { return $"{CalculationId}"; }
         }
 
         [JsonProperty("decimalPlaces")]
@@ -24,6 +23,9 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("sourceCode")]
         public string SourceCode { get; set; }
+
+        [JsonProperty("calculationId")]
+        public string CalculationId { get; set; }
 
         public override VersionedItem Clone()
         {
@@ -35,7 +37,8 @@ namespace CalculateFunding.Models.Calcs
                 Date = Date,
                 Author = Author,
                 Commment = Commment,
-                DecimalPlaces = DecimalPlaces
+                DecimalPlaces = DecimalPlaces,
+                CalculationId = CalculationId
             };
         }
     }
