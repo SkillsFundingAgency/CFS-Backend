@@ -19,7 +19,9 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<IActionResult> ValidateDataset(HttpRequest request);
 
-	    Task ProcessDataset(Message message);
+        Task ValidateDataset(Message message);
+
+        Task ProcessDataset(Message message);
 
         Task<IActionResult> GetDatasetsByDefinitionId(HttpRequest request);
 
@@ -30,5 +32,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> ProcessDataset(HttpRequest request);
 
         Task<IActionResult> RegenerateProviderSourceDatasets(HttpRequest httpRequest);
+
+        Task<IActionResult> GetValidateDatasetStatus(HttpRequest httpRequest);
     }
 }

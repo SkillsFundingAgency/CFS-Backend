@@ -44,8 +44,8 @@ namespace CalculateFunding.Services.Calculator
                 {
                     var result = new CalculationResult
                     {
-	                    Calculation = GetReference(attributes, "Calculation"),
-						CalculationSpecification = GetReference(attributes, "CalculationSpecification"),
+                        Calculation = GetReference(attributes, "Calculation"),
+                        CalculationSpecification = GetReference(attributes, "CalculationSpecification"),
                         AllocationLine = GetReference(attributes, "AllocationLine"),
                         PolicySpecifications = GetReferences(attributes, "PolicySpecification").ToList()
                     };
@@ -121,7 +121,7 @@ namespace CalculateFunding.Services.Calculator
                         setter.SetValue(_datasetsInstance, list);
                     }
                 }
-               
+
             }
 
             // Add default object for any missing datasets to help reduce null exceptions
@@ -138,7 +138,7 @@ namespace CalculateFunding.Services.Calculator
                 var result = executeMethod.Item2;
                 try
                 {
-                    result.Value = (decimal) executeMethod.Item1.Invoke(_instance, null);
+                    result.Value = (decimal)executeMethod.Item1.Invoke(_instance, null);
                 }
                 catch (Exception e)
                 {

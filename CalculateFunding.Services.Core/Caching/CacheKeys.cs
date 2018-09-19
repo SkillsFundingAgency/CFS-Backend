@@ -41,5 +41,7 @@ namespace CalculateFunding.Services.Core.Caching
         public static string UserByUsername { get; set; } = "user";
 
         public static string DatasetRows { get; set; } = "ds-table-rows";
+
+        public static string DatasetValidationStatus { get; set; } = "ds-validation-status";
     }
 }

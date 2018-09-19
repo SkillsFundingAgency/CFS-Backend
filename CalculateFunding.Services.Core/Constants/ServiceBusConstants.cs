@@ -14,9 +14,9 @@
 
             public const string AddDefinitionRelationshipToSpecification = "spec-events-add-definition-relationship";
 
-            //public const string ProviderDatasetResults = "dataset-events-results";
-
             public const string ProcessDataset = "dataset-events-datasets";
+
+            public const string ValidateDataset = "dataset-validate";
 
             public const string CreateDraftCalculation = "calc-events-create-draft";
 

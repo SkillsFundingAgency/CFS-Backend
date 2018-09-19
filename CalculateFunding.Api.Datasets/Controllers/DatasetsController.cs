@@ -186,5 +186,12 @@ namespace CalculateFunding.Api.Datasets.Controllers
         {
             return _datasetService.RegenerateProviderSourceDatasets(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/datasets/get-dataset-validate-status")]
+        [HttpGet]
+        public Task<IActionResult> RunGetValidateDatasetStatus()
+        {
+            return _datasetService.GetValidateDatasetStatus(ControllerContext.HttpContext.Request);
+        }
     }
 }

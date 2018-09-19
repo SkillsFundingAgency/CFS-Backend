@@ -32,7 +32,6 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
@@ -272,23 +271,46 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(result ?? Enumerable.Empty<DatasetViewModel>());
         }
 
-        async public Task<IActionResult> ValidateDataset(HttpRequest request)
+        public async Task<IActionResult> GetValidateDatasetStatus(HttpRequest request)
+        {
+            request.Query.TryGetValue("operationId", out var operationIdParse);
+
+            string operationId = operationIdParse.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(operationId))
+            {
+                _logger.Error($"No {nameof(operationIdParse)} was provided to {nameof(GetValidateDatasetStatus)}");
+
+                return new BadRequestObjectResult($"Null or empty {nameof(operationIdParse)} provided");
+            }
+
+            DatasetValidationStatusModel status = await _cacheProvider.GetAsync<DatasetValidationStatusModel>($"{CacheKeys.DatasetValidationStatus}:{operationId}");
+            if (status == null)
+            {
+                return new NotFoundObjectResult("Unable to find Dataset Validation Status");
+            }
+
+            return new OkObjectResult(status);
+        }
+
+        public async Task<IActionResult> ValidateDataset(HttpRequest request)
         {
             string json = await request.GetRawBodyStringAsync();
 
             GetDatasetBlobModel model = JsonConvert.DeserializeObject<GetDatasetBlobModel>(json);
-
             if (model == null)
             {
                 _logger.Error("Null model name was provided to ValidateDataset");
                 return new BadRequestObjectResult("Null model name was provided");
             }
 
-            var validationResult = (await _getDatasetBlobModelValidator.ValidateAsync(model)).PopulateModelState();
+            ValidationResult validationResult = (await _getDatasetBlobModelValidator.ValidateAsync(model));
 
-            if (validationResult != null)
+            if (validationResult != null && (!validationResult.IsValid || validationResult.Errors.Count > 0))
             {
-                return validationResult;
+                _logger.Error($"{nameof(GetDatasetBlobModel)} model error: {0}", validationResult.Errors);
+
+                return validationResult.PopulateModelState();
             }
 
             string fullBlobName = model.ToString();
@@ -298,44 +320,20 @@ namespace CalculateFunding.Services.Datasets
             if (blob == null)
             {
                 _logger.Error($"Failed to find blob with path: {fullBlobName}");
-                return new StatusCodeResult(412);
+                return new PreconditionFailedResult($"Failed to find blob with path: {fullBlobName}");
             }
 
             await blob.FetchAttributesAsync();
-
-            string dataDefinitionId = blob.Metadata["dataDefinitionId"];
-
-
-            var datasetStream = await _blobClient.DownloadToStreamAsync(blob);
+            Stream datasetStream = await _blobClient.DownloadToStreamAsync(blob);
 
             if (datasetStream == null || datasetStream.Length == 0)
             {
                 _logger.Error($"Blob {blob.Name} contains no data");
-                return new StatusCodeResult(412);
+                return new PreconditionFailedResult($"Blob {blob.Name} contains no data");
             }
 
-            try
-            {
-                using (ExcelPackage excel = new ExcelPackage(datasetStream))
-                {
-                    validationResult = _dataWorksheetValidator.Validate(excel)?.PopulateModelState();
+            string dataDefinitionId = blob.Metadata["dataDefinitionId"];
 
-                    if (validationResult != null)
-                    {
-                        return validationResult;
-                    }
-                }
-            }
-            catch (Exception exception)
-            {
-                const string errorMessage = "The data source file type is invalid. Check that your file is an xls or xlsx file";
-
-                _logger.Error(exception.Message);
-                ModelStateDictionary dictionary = new ModelStateDictionary();
-                dictionary.AddModelError("typical-model-validation-error", string.Empty);
-                dictionary.AddModelError(nameof(model.Filename), errorMessage);
-                return new BadRequestObjectResult(dictionary);
-            }
 
             DatasetDefinition datasetDefinition =
                 (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == dataDefinitionId)).FirstOrDefault();
@@ -344,41 +342,222 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
 
-                return new StatusCodeResult(412);
+                return new PreconditionFailedResult($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
             }
 
-            IActionResult actionResult = await ValidateTableResults(datasetDefinition, blob);
-
-            if (actionResult is OkObjectResult)
+            DatasetValidationStatusModel responseModel = new DatasetValidationStatusModel()
             {
+                OperationId = Guid.NewGuid().ToString(),
+            };
+
+            if (blob.Metadata.ContainsKey("datasetId"))
+            {
+                responseModel.DatasetId = blob.Metadata["datasetId"];
+                model.DatasetId = blob.Metadata["datasetId"];
+            }
+
+            IDictionary<string, string> messageProperties = CreateMessageProperties(request);
+            messageProperties.Add("operation-id", responseModel.OperationId);
+
+            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.ValidateDataset, model, messageProperties);
+
+            await _cacheProvider.SetAsync<DatasetValidationStatusModel>($"{CacheKeys.DatasetValidationStatus}:{responseModel.OperationId}", responseModel);
+
+            return new OkObjectResult(responseModel);
+        }
+
+        public async Task ValidateDataset(Message message)
+        {
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            Reference user = message.GetUserDetails();
+
+            GetDatasetBlobModel model = message.GetPayloadAsInstanceOf<GetDatasetBlobModel>();
+
+            string operationId = null;
+            if (message.UserProperties.ContainsKey("operation-id"))
+            {
+                operationId = message.UserProperties["operation-id"]?.ToString();
+            }
+
+            if (string.IsNullOrWhiteSpace(operationId))
+            {
+                _logger.Error($"Operation ID was null or empty string on the message from {nameof(ValidateDataset)}");
+
+                return;
+            }
+
+            await SetValidationStatus(operationId, DatasetValidationStatus.Processing);
+
+            if (model == null)
+            {
+                _logger.Error("Null model was provided to ValidateDataset");
+
+                await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, "Null model was provided to ValidateDataset");
+
+                return;
+            }
+
+            ValidationResult validationResult = (await _getDatasetBlobModelValidator.ValidateAsync(model));
+
+            if (validationResult != null && (!validationResult.IsValid || validationResult.Errors.Count > 0))
+            {
+                _logger.Error($"{nameof(GetDatasetBlobModel)} model error: {0}", validationResult.Errors);
+                await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"{nameof(GetDatasetBlobModel)} model error", ConvertToErrorDictionary(validationResult));
+
+                return;
+            }
+
+            string fullBlobName = model.ToString();
+
+            ICloudBlob blob = await _blobClient.GetBlobReferenceFromServerAsync(fullBlobName);
+            if (blob == null)
+            {
+                _logger.Error($"Failed to find blob with path: {fullBlobName}");
+
+                await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"Failed to find blob with path: {fullBlobName}");
+                return;
+            }
+
+            await blob.FetchAttributesAsync();
+
+            string dataDefinitionId = blob.Metadata["dataDefinitionId"];
+
+            using (Stream datasetStream = await _blobClient.DownloadToStreamAsync(blob))
+            {
+                if (datasetStream == null || datasetStream.Length == 0)
+                {
+                    _logger.Error($"Blob {blob.Name} contains no data");
+
+                    await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"Blob {blob.Name} contains no data");
+                    return;
+                }
+
                 try
                 {
-                    OkObjectResult okObjectResult = actionResult as OkObjectResult;
+                    await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingExcelWorkbook);
 
-                    int rowCount = (int)okObjectResult.Value;
-
-                    DatasetCreateUpdateResponseModel datasetCreateUpdateResponseModel = new DatasetCreateUpdateResponseModel();
-                    datasetCreateUpdateResponseModel.CurrentRowCount = rowCount;
-
-                    if (model.Version == 1)
+                    using (ExcelPackage excel = new ExcelPackage(datasetStream))
                     {
-                        await SaveNewDatasetAndVersion(blob, datasetDefinition, rowCount);
-                    }
-                    else
-                    {
-                        await UpdateExistingDatasetAndAddVersion(blob, model, request.GetUser(), rowCount);
-                    }
+                        validationResult = _dataWorksheetValidator.Validate(excel);
 
-                    actionResult = new OkObjectResult(datasetCreateUpdateResponseModel);
+                        if (validationResult != null && (!validationResult.IsValid || validationResult.Errors.Count > 0))
+                        {
+                            await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
+                            return;
+                        }
+                    }
                 }
                 catch (Exception exception)
                 {
-                    _logger.Error(exception, "Failed to save the dataset or dataset version");
-                    return new InternalServerErrorResult($"Failed to save the dataset or dataset version. {exception.Message}");
+                    const string errorMessage = "The data source file type is invalid. Check that your file is an xls or xlsx file";
+
+                    _logger.Error(exception, errorMessage);
+
+                    validationResult = new ValidationResult();
+                    validationResult.Errors.Add(new ValidationFailure("typical-model-validation-error", string.Empty));
+                    validationResult.Errors.Add(new ValidationFailure(nameof(model.Filename), errorMessage));
+
+                    await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
+
+                    return;
+                }
+
+
+                DatasetDefinition datasetDefinition =
+                    (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == dataDefinitionId)).FirstOrDefault();
+
+                if (datasetDefinition == null)
+                {
+                    string errorMessage = $"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}";
+                    _logger.Error(errorMessage);
+
+                    await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, errorMessage);
+                    return;
+                }
+
+                await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingTableResults);
+
+                (IDictionary<string, IEnumerable<string>> validationFailures, int rowCount) = await ValidateTableResults(datasetDefinition, blob);
+
+                if (validationFailures.Count == 0)
+                {
+                    try
+                    {
+                        DatasetCreateUpdateResponseModel datasetCreateUpdateResponseModel = new DatasetCreateUpdateResponseModel
+                        {
+                            CurrentRowCount = rowCount
+                        };
+
+                        await SetValidationStatus(operationId, DatasetValidationStatus.SavingResults);
+
+                        Dataset dataset;
+
+                        if (model.Version == 1)
+                        {
+                            dataset = await SaveNewDatasetAndVersion(blob, datasetDefinition, rowCount);
+                        }
+                        else
+                        {
+                            dataset = await UpdateExistingDatasetAndAddVersion(blob, model, user, rowCount);
+                        }
+
+                        await SetValidationStatus(operationId, DatasetValidationStatus.Validated, datasetId: dataset.Id);
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.Error(exception, "Failed to save the dataset or dataset version during validation");
+
+                        await SetValidationStatus(operationId, DatasetValidationStatus.ExceptionThrown, exception.Message);
+                        throw;
+                    }
+                }
+                else
+                {
+                    await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, validationFailures: validationFailures);
+                }
+            }
+        }
+
+        private IDictionary<string, IEnumerable<string>> ConvertToErrorDictionary(ValidationResult validationResult)
+        {
+            Dictionary<string, IEnumerable<string>> result = new Dictionary<string, IEnumerable<string>>();
+
+            if (validationResult != null)
+            {
+                foreach (ValidationFailure validationFailure in validationResult.Errors)
+                {
+                    List<string> errorMessages;
+                    if (!result.ContainsKey(validationFailure.PropertyName))
+                    {
+                        errorMessages = new List<string>();
+                        result.Add(validationFailure.PropertyName, errorMessages);
+                    }
+                    else
+                    {
+                        errorMessages = result[validationFailure.PropertyName] as List<string>;
+                    }
+
+                    errorMessages.Add(validationFailure.ErrorMessage);
                 }
             }
 
-            return actionResult;
+            return result;
+        }
+
+        private async Task SetValidationStatus(string operationId, DatasetValidationStatus currentOperation, string errorMessage = null, IDictionary<string, IEnumerable<string>> validationFailures = null, string datasetId = null)
+        {
+            DatasetValidationStatusModel status = new DatasetValidationStatusModel()
+            {
+                OperationId = operationId,
+                CurrentOperation = currentOperation,
+                ErrorMessage = errorMessage,
+                ValidationFailures = validationFailures,
+                LastUpdated = DateTimeOffset.Now,
+                DatasetId = datasetId,
+            };
+
+            await _cacheProvider.SetAsync<DatasetValidationStatusModel>($"{CacheKeys.DatasetValidationStatus}:{status.OperationId}", status);
         }
 
         async public Task<IActionResult> ProcessDataset(HttpRequest request)
@@ -733,7 +912,7 @@ namespace CalculateFunding.Services.Datasets
             return new Dictionary<string, List<string>> { { fieldIdentifierValue, filteredIdentifiers.ToList() } };
         }
 
-        async Task SaveNewDatasetAndVersion(ICloudBlob blob, DatasetDefinition datasetDefinition, int rowCount)
+        private async Task<Dataset> SaveNewDatasetAndVersion(ICloudBlob blob, DatasetDefinition datasetDefinition, int rowCount)
         {
             Guard.ArgumentNotNull(blob, nameof(blob));
             Guard.ArgumentNotNull(datasetDefinition, nameof(datasetDefinition));
@@ -783,7 +962,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error($"Failed to save dataset for id: {metadataModel.DatasetId} with status code {statusCode.ToString()}");
 
-                throw new Exception($"Failed to save dataset for id: {metadataModel.DatasetId} with status code {statusCode.ToString()}");
+                throw new InvalidOperationException($"Failed to save dataset for id: {metadataModel.DatasetId} with status code {statusCode.ToString()}");
             }
 
             IEnumerable<IndexError> indexErrors = await IndexDatasetInSearch(dataset);
@@ -794,11 +973,13 @@ namespace CalculateFunding.Services.Datasets
 
                 _logger.Error($"Failed to save dataset for id: {metadataModel.DatasetId} in search with errors {errors}");
 
-                throw new Exception($"Failed to save dataset for id: {metadataModel.DatasetId} in search with errors {errors}");
+                throw new InvalidOperationException($"Failed to save dataset for id: {metadataModel.DatasetId} in search with errors {errors}");
             }
+
+            return dataset;
         }
 
-        private async Task UpdateExistingDatasetAndAddVersion(ICloudBlob blob, GetDatasetBlobModel model, Reference author, int rowCount)
+        private async Task<Dataset> UpdateExistingDatasetAndAddVersion(ICloudBlob blob, GetDatasetBlobModel model, Reference author, int rowCount)
         {
             Guard.ArgumentNotNull(blob, nameof(blob));
 
@@ -811,14 +992,14 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Warning($"Failed to retrieve dataset for id: {model.DatasetId} response was null");
 
-                throw new Exception($"Failed to retrieve dataset for id: {model.DatasetId} response was null");
+                throw new InvalidOperationException($"Failed to retrieve dataset for id: {model.DatasetId} response was null");
             }
 
             if (model.Version != dataset.GetNextVersion())
             {
-                _logger.Error($"Failed to save dataset for id: {model.DatasetId} due to version mismatch. Expected next version to be {dataset.GetNextVersion()} but request provided '{model.Version}'");
+                _logger.Error($"Failed to save dataset or dataset version for id: {model.DatasetId} due to version mismatch. Expected next version to be {dataset.GetNextVersion()} but request provided '{model.Version}'");
 
-                throw new Exception($"Failed to save dataset for id: {model.DatasetId} due to version mismatch. Expected next version to be {dataset.GetNextVersion()} but request provided '{model.Version}'");
+                throw new InvalidOperationException($"Failed to save dataset or dataset version for id: {model.DatasetId} due to version mismatch. Expected next version to be {dataset.GetNextVersion()} but request provided '{model.Version}'");
             }
 
             DatasetVersion newVersion = new DatasetVersion
@@ -842,7 +1023,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Warning($"Failed to save dataset for id: {model.DatasetId} with status code {statusCode.ToString()}");
 
-                throw new Exception($"Failed to save dataset for id: {model.DatasetId} with status code {statusCode.ToString()}");
+                throw new InvalidOperationException($"Failed to save dataset for id: {model.DatasetId} with status code {statusCode.ToString()}");
             }
 
             IEnumerable<IndexError> indexErrors = await IndexDatasetInSearch(dataset);
@@ -853,8 +1034,10 @@ namespace CalculateFunding.Services.Datasets
 
                 _logger.Warning($"Failed to save dataset for id: {model.DatasetId} in search with errors {errors}");
 
-                throw new Exception($"Failed to save dataset for id: {model.DatasetId} in search with errors {errors}");
+                throw new InvalidOperationException($"Failed to save dataset for id: {model.DatasetId} in search with errors {errors}");
             }
+
+            return dataset;
         }
 
         private Task<IEnumerable<IndexError>> IndexDatasetInSearch(Dataset dataset)
@@ -905,54 +1088,55 @@ namespace CalculateFunding.Services.Datasets
             }
         }
 
-        private async Task<IActionResult> ValidateTableResults(DatasetDefinition datasetDefinition, ICloudBlob blob)
+        private async Task<(IDictionary<string, IEnumerable<string>> validationFailures, int providersProcessed)> ValidateTableResults(DatasetDefinition datasetDefinition, ICloudBlob blob)
         {
             int rowCount = 0;
             if (_providerSummaries.IsNullOrEmpty())
             {
                 _providerSummaries = await _providerRepository.GetAllProviderSummaries();
             }
+
+            Dictionary<string, IEnumerable<string>> validationFailures = new Dictionary<string, IEnumerable<string>>();
+
             using (Stream datasetStream = await _blobClient.DownloadToStreamAsync(blob))
             {
                 if (datasetStream.Length == 0)
                 {
                     _logger.Error($"Blob {blob.Name} contains no data");
-                    return new StatusCodeResult(412);
+                    validationFailures.Add(nameof(GetDatasetBlobModel.Filename), new string[] { $"Blob {blob.Name} contains no data" });
                 }
-
-
-                using (ExcelPackage excelPackage = new ExcelPackage(datasetStream))
+                else
                 {
-                    DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(excelPackage, () => _providerSummaries, datasetDefinition);
-                    ValidationResult validationResult = _datasetUploadValidator.Validate(uploadModel);
-                    if (uploadModel.Data != null)
+                    using (ExcelPackage excelPackage = new ExcelPackage(datasetStream))
                     {
-                        rowCount = uploadModel.Data.TableLoadResult.Rows.Count;
-                    }
-                    if (!validationResult.IsValid)
-                    {
-                        excelPackage.Save();
-
-                        if (excelPackage.Stream.CanSeek)
+                        DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(excelPackage, () => _providerSummaries, datasetDefinition);
+                        ValidationResult validationResult = _datasetUploadValidator.Validate(uploadModel);
+                        if (uploadModel.Data != null)
                         {
-                            excelPackage.Stream.Position = 0;
+                            rowCount = uploadModel.Data.TableLoadResult.Rows.Count;
                         }
+                        if (!validationResult.IsValid)
+                        {
+                            excelPackage.Save();
 
-                        await blob.UploadFromStreamAsync(excelPackage.Stream);
+                            if (excelPackage.Stream.CanSeek)
+                            {
+                                excelPackage.Stream.Position = 0;
+                            }
 
-                        string blobUrl = _blobClient.GetBlobSasUrl(blob.Name, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
+                            await blob.UploadFromStreamAsync(excelPackage.Stream);
 
-                        ModelStateDictionary dictionary = new ModelStateDictionary();
-                        dictionary.AddModelError("excel-validation-error", string.Empty);
-                        dictionary.AddModelError("error-message", "The data source file does not match the schema rules");
-                        dictionary.AddModelError("blobUrl", blobUrl);
+                            string blobUrl = _blobClient.GetBlobSasUrl(blob.Name, DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
 
-                        return new BadRequestObjectResult(dictionary);
+                            validationFailures.Add("excel-validation-error", new string[] { string.Empty });
+                            validationFailures.Add("error-message", new string[] { "The data source file does not match the schema rules" });
+                            validationFailures.Add("blobUrl", new string[] { blobUrl });
+                        }
                     }
                 }
             }
 
-            return new OkObjectResult(rowCount);
+            return (validationFailures, rowCount);
         }
 
         async Task<BuildProject> ProcessDataset(Dataset dataset, string specificationId, string relationshipId, int version)
@@ -1286,6 +1470,20 @@ namespace CalculateFunding.Services.Datasets
         {
             byte[] plainTextBytes = System.Text.Encoding.UTF8.GetBytes(blobPath.ToLowerInvariant());
             return Convert.ToBase64String(plainTextBytes);
+        }
+
+        IDictionary<string, string> CreateMessageProperties(HttpRequest request)
+        {
+            Reference user = request.GetUser();
+
+            IDictionary<string, string> properties = new Dictionary<string, string>();
+            if (user != null)
+            {
+                properties.Add("user-id", user.Id);
+                properties.Add("user-name", user.Name);
+            }
+
+            return properties;
         }
     }
 }

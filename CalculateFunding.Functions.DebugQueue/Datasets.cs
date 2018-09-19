@@ -18,5 +18,15 @@ namespace CalculateFunding.Functions.DebugQueue
 
             log.Info($"C# Queue trigger function processed: {item}");
         }
+
+        [FunctionName("on-dataset-validation-event")]
+        public static async Task RunValidateDatasetEvent([QueueTrigger(ServiceBusConstants.QueueNames.ValidateDataset, Connection = "AzureConnectionString")] string item, TraceWriter log)
+        {
+            Message message = Helpers.ConvertToMessage<GetDatasetBlobModel>(item);
+
+            await Functions.Datasets.ServiceBus.OnDatasetValidationEvent.Run(message);
+
+            log.Info($"C# Queue trigger function processed: {item}");
+        }
     }
 }

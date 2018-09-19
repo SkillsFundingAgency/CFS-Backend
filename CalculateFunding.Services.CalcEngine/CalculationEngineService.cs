@@ -43,7 +43,6 @@ namespace CalculateFunding.Services.Calculator
         private readonly Policy _calculationsRepositoryPolicy;
         private readonly IValidator<ICalculatorResiliencePolicies> _calculatorResiliencePoliciesValidator;
 
-
         public CalculationEngineService(
             ILogger logger,
             ICalculationEngine calculationEngine,
@@ -54,14 +53,14 @@ namespace CalculateFunding.Services.Calculator
             IProviderResultsRepository providerResultsRepository,
             ICalculationsRepository calculationsRepository,
             EngineSettings engineSettings,
-            ICalculatorResiliencePolicies resiliencePolicies, 
+            ICalculatorResiliencePolicies resiliencePolicies,
             IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator)
         {
             _calculatorResiliencePoliciesValidator = calculatorResiliencePoliciesValidator;
 
             CalculationEngineServiceValidator.ValidateConstruction(_calculatorResiliencePoliciesValidator,
                 engineSettings, resiliencePolicies, calculationsRepository);
-            
+
             _logger = logger;
             _calculationEngine = calculationEngine;
             _cacheProvider = cacheProvider;
@@ -96,7 +95,9 @@ namespace CalculateFunding.Services.Calculator
             message.PartitionKey = Guid.NewGuid().ToString();
 
             foreach (var property in properties)
+            {
                 message.UserProperties.Add(property.Key, property.Value);
+            }
 
             await GenerateAllocations(message);
 
@@ -183,7 +184,9 @@ namespace CalculateFunding.Services.Calculator
                     var result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets);
 
                     if (result != null)
+                    {
                         providerResults.Add(result);
+                    }
                 });
                 calculationStopwatch.Stop();
 
@@ -212,7 +215,7 @@ namespace CalculateFunding.Services.Calculator
                     IDictionary<string, string> properties = message.BuildMessageProperties();
 
                     properties.Add("specificationId", specificationId);
-                   
+
                     properties.Add("providerResultsCacheKey", providerResultsCacheKey);
 
                     Stopwatch saveQueueStopwatch = Stopwatch.StartNew();
