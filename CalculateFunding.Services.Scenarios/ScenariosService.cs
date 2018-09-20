@@ -11,6 +11,7 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Services;
@@ -41,6 +42,7 @@ namespace CalculateFunding.Services.Scenarios
         private readonly ICacheProvider _cacheProvider;
         private readonly IMessengerService _messengerService;
         private readonly IBuildProjectRepository _buildProjectRepository;
+        private readonly IVersionRepository<TestScenarioVersion> _versionRepository;
 
         public ScenariosService(
             ILogger logger,
@@ -50,7 +52,8 @@ namespace CalculateFunding.Services.Scenarios
             ISearchRepository<ScenarioIndex> searchRepository,
             ICacheProvider cacheProvider,
             IMessengerService messengerService,
-            IBuildProjectRepository buildProjectRepository)
+            IBuildProjectRepository buildProjectRepository,
+            IVersionRepository<TestScenarioVersion> versionRepository)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(scenariosRepository, nameof(scenariosRepository));
@@ -59,6 +62,8 @@ namespace CalculateFunding.Services.Scenarios
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
+            Guard.ArgumentNotNull(buildProjectRepository, nameof(buildProjectRepository));
+            Guard.ArgumentNotNull(versionRepository, nameof(versionRepository));
 
             _scenariosRepository = scenariosRepository;
             _logger = logger;
@@ -69,6 +74,7 @@ namespace CalculateFunding.Services.Scenarios
             _messengerService = messengerService;
             _buildProjectRepository = buildProjectRepository;
             _cacheProvider = cacheProvider;
+            _versionRepository = versionRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -125,18 +131,30 @@ namespace CalculateFunding.Services.Scenarios
                 return new StatusCodeResult(412);
             }
 
+            Reference user = request.GetUser();
+
             if (testScenario == null)
             {
+                string Id = Guid.NewGuid().ToString();
+
                 testScenario = new TestScenario
                 {
+                    Id = Id,
                     SpecificationId = specification.Id,
-                    Id = Guid.NewGuid().ToString(),
                     Name = scenarioVersion.Name,
-
-                    History = new List<TestScenarioVersion>(),
-                    Current = new TestScenarioVersion()
+                    Current = new TestScenarioVersion
+                    {
+                        Date = DateTimeOffset.Now.ToLocalTime(),
+                        TestScenarioId = Id,
+                        PublishStatus = PublishStatus.Draft,
+                        Version = 1,
+                        Author = user,
+                        Gherkin = scenarioVersion.Scenario,
+                        Description = scenarioVersion.Description,
+                        FundingPeriodId = specification.FundingPeriod.Id,
+                        FundingStreamIds = specification.FundingStreams.Select(s => s.Id).ToArraySafe(),
+                    }
                 };
-                testScenario.Init();
             }
             else
             {
@@ -144,22 +162,21 @@ namespace CalculateFunding.Services.Scenarios
 
                 saveAsVersion = !string.Equals(scenarioVersion.Scenario, testScenario.Current.Gherkin) ||
                     scenarioVersion.Description != testScenario.Current.Description;
-            }
 
-            if (saveAsVersion == true)
-            {
-                Reference user = request.GetUser();
+                TestScenarioVersion newVersion = testScenario.Current.Clone() as TestScenarioVersion;
 
-                TestScenarioVersion newVersion = new TestScenarioVersion
+                if (saveAsVersion == true)
                 {
-                    Author = user,
-                    Gherkin = scenarioVersion.Scenario,
-                    Description = scenarioVersion.Description,
-                    FundingStreamIds = specification.FundingStreams.Select(s => s.Id),
-                    FundingPeriodId = specification.FundingPeriod.Id,
-                };
+                    newVersion.Author = user;
+                    newVersion.Gherkin = scenarioVersion.Scenario;
+                    newVersion.Description = scenarioVersion.Description;
+                    newVersion.FundingStreamIds = specification.FundingStreams.Select(s => s.Id).ToArraySafe();
+                    newVersion.FundingPeriodId = specification.FundingPeriod.Id;
 
-                testScenario.Save(newVersion);
+                    newVersion = await _versionRepository.CreateVersion(newVersion, testScenario.Current);
+
+                    testScenario.Current = newVersion;
+                }
             }
 
             HttpStatusCode statusCode = await _scenariosRepository.SaveTestScenario(testScenario);
@@ -170,6 +187,8 @@ namespace CalculateFunding.Services.Scenarios
 
                 return new StatusCodeResult((int)statusCode);
             }
+
+            await _versionRepository.SaveVersion(testScenario.Current);
 
             ScenarioIndex scenarioIndex = CreateScenarioIndexFromScenario(testScenario, specification);
 
@@ -281,21 +300,25 @@ namespace CalculateFunding.Services.Scenarios
 
             IList<ScenarioIndex> scenarioIndexes = new List<ScenarioIndex>();
 
+            IList<TestScenarioVersion> scenarioVersions = new List<TestScenarioVersion>();
+
             foreach (TestScenario scenario in scenarios)
             {
-                scenario.History.Add(scenario.Current);
-
-                scenario.Current = new TestScenarioVersion
+                TestScenarioVersion newVersion = new TestScenarioVersion
                 {
                     FundingPeriodId = specificationVersionComparison.Current.FundingPeriod.Id,
                     FundingStreamIds = specificationVersionComparison.Current.FundingStreams.Select(m => m.Id),
                     Author = scenario.Current.Author,
-                    Date = DateTime.Now,
                     Gherkin = scenario.Current.Gherkin,
                     Description = scenario.Current.Description,
-                    PublishStatus = scenario.Current.PublishStatus,
-                    Version = scenario.GetNextVersion()
+                    PublishStatus = scenario.Current.PublishStatus
                 };
+
+                newVersion = await _versionRepository.CreateVersion(newVersion, scenario.Current);
+
+                scenario.Current = newVersion;
+
+                scenarioVersions.Add(newVersion);
 
                 ScenarioIndex scenarioIndex = CreateScenarioIndexFromScenario(scenario, new SpecificationSummary
                 {
@@ -310,6 +333,7 @@ namespace CalculateFunding.Services.Scenarios
 
             await TaskHelper.WhenAllAndThrow(
                 _scenariosRepository.SaveTestScenarios(scenarios),
+                _versionRepository.SaveVersions(scenarioVersions),
                 _searchRepository.Index(scenarioIndexes)
                 );
         }
@@ -365,9 +389,15 @@ namespace CalculateFunding.Services.Scenarios
                 {
                     TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
                     testScenarioVersion.Gherkin = result;
-                    testScenario.Save(testScenarioVersion);
+
+                    testScenarioVersion = await _versionRepository.CreateVersion(testScenarioVersion, testScenario.Current);
+
+                    testScenario.Current = testScenarioVersion;
 
                     await _scenariosRepository.SaveTestScenario(testScenario);
+
+                    await _versionRepository.SaveVersion(testScenarioVersion);
+
                     await _cacheProvider.RemoveAsync<GherkinParseResult>($"{CacheKeys.GherkinParseResult}{testScenario.Id}");
 
                     updateCount++;

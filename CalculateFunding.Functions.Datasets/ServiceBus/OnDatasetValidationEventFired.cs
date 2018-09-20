@@ -11,10 +11,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Functions.Datasets.ServiceBus
 {
-    public static class OnDatasetEvent
+    public static class OnDatasetValidationEvent
     {
-        [FunctionName("on-dataset-event")]
-        public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.ProcessDataset, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        [FunctionName("on-dataset-validation-event")]
+        public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.ValidateDataset, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
             CultureInfo.CurrentCulture = new CultureInfo("en-GB");
 
@@ -29,11 +29,11 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
                 try
                 {
                     correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await datasetService.ProcessDataset(message);
+                    await datasetService.ValidateDataset(message);
                 }
                 catch (Exception exception)
                 {
-                    logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.ProcessDataset}");
+                    logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.ValidateDataset}");
                     throw;
                 }
 

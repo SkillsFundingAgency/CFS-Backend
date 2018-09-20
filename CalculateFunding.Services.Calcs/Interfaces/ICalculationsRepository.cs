@@ -14,10 +14,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
 	    Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId);
 
-		Task<IEnumerable<CalculationVersion>> GetVersionHistory(string calculationId);
-
-        Task<IEnumerable<CalculationVersion>> GetCalculationVersions(CalculationVersionsCompareModel compareModel);
-
         Task<HttpStatusCode> UpdateCalculation(Calculation calculation);
 
         Task<IEnumerable<Calculation>> GetAllCalculations();

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -18,6 +19,18 @@ namespace CalculateFunding.Services.Core.Extensions
             }
 
             return null;
+        }
+
+        public static IDictionary<string, string> GetResultDictionary(this ValidationResult validationResult)
+        {
+            Dictionary<string, string> result = new Dictionary<string, string>();
+            if (!validationResult.IsValid)
+            {
+                foreach (ValidationFailure error in validationResult.Errors)
+                    result.Add(error.PropertyName, error.ErrorMessage);
+            }
+
+            return result;
         }
     }
 }

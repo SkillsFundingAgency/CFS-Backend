@@ -15,5 +15,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos.Interfaces
         Task<HttpStatusCode> CreateAsync<T>(T entity, string partitionKey = null) where T : IIdentifiable;
 
         IQueryable<dynamic> DynamicQuery<dynamic>(string sql, bool enableCrossPartitionQuery = false);
+
+        Task BulkCreateAsync<T>(IList<T> entities, int degreeOfParallelism = 5) where T : IIdentifiable;
     }
 }

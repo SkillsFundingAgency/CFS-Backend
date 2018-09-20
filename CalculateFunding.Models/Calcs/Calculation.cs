@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Calcs
 {
-    public class Calculation : VersionContainer<CalculationVersion>
+    public class Calculation : Reference
     {
         [JsonProperty("calculationSpecification")]
         public Reference CalculationSpecification { get; set; }
@@ -41,5 +39,8 @@ namespace CalculateFunding.Models.Calcs
         /// </summary>
         [JsonIgnore]
         public string Description { get; set; }
+
+        [JsonProperty("current")]
+        public CalculationVersion Current { get; set; }
     }
 }

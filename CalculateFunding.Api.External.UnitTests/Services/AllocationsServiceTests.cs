@@ -134,7 +134,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
             ContentResult contentResult = result as ContentResult;
 
-            string id = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{publishedProviderResult.SpecificationId}{publishedProviderResult.ProviderId}{publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine}"));
+            string id = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{publishedProviderResult.SpecificationId}{publishedProviderResult.ProviderId}{publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id}"));
 
             AllocationModel allocationModel = JsonConvert.DeserializeObject<AllocationModel>(contentResult.Content);
 
@@ -274,7 +274,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
             AllocationWithHistoryModel allocationModel = JsonConvert.DeserializeObject<AllocationWithHistoryModel>(contentResult.Content);
 
-            string id = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{publishedProviderResult.SpecificationId}{publishedProviderResult.ProviderId}{publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine}"));
+            string id = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{publishedProviderResult.SpecificationId}{publishedProviderResult.ProviderId}{publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id}"));
 
             allocationModel
                 .Should()

@@ -27,6 +27,12 @@ namespace CalculateFunding.Services.Core.Services
             return _cosmosRepository.CreateAsync<T>(newVersion);
         }
 
+        public Task SaveVersions(IEnumerable<T> newVersions)
+        {
+            Guard.ArgumentNotNull(newVersions, nameof(newVersions));
+            return _cosmosRepository.BulkCreateAsync<T>(newVersions.ToList());
+        }
+
         public async Task<T> CreateVersion(T newVersion, T currentVersion = null)
         {
             Guard.ArgumentNotNull(newVersion, nameof(newVersion));

@@ -26,15 +26,14 @@ namespace CalculateFunding.Api.External.V1.Controllers
         /// <summary>
         /// Retrieves notifications of allocation events. These may be the creation, updating or publication of allocations.
         /// </summary>
-        /// <param name="pageRef">Optional page number of notification results, which by default is **1**. Please see the links in the atom feed for available pages</param>
-        /// <param name="pageSize">Optional paging size for returned entries (default is 500)
+        /// <param name="pageRef">Optional page number of notification results. Please see the links in the atom feed for available pages</param>
+        /// <param name="pageSize">Optional page size (number of items returning for each page</param>
         /// <param name="allocationStatuses">
-        /// Optional comma seperated list of statuses of notification results, by default this is **Published**. Please see the links in the atom feed for available pages
+        /// Optional comma seperated list of statuses of notification results, by default this is **Published**. Please see the table in the atom feed for available statuses
         /// ### Allocation Statuses available in the system
         ///
-        ///| Status    | Visible to Api      | Visible to Provider&#160; | Description&#160;                                                                                                                                                                            |
+        ///| Status    | Visible to Api      | Visible to Provider | Description                                                                                                                                                                            |
         ///|-------    |----------------     |---------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-        ///| Held      | No                  | No                        | This is the draft status of the allocation created initially when our specification is chosen to allocate funding for that time period. This status can also be set manually if for some reason they want to stop a previously approved/published allocation from being available|
         ///| Approved  | Yes                 | No                        | This status means the approver has reviewed the allocation internally using Calculate Funding Service and are happy that the result is accurate. There are business reasons they want to delay releasing this information to the provider. (i.e. wait for all the providers in a local authority to be approved)|
         ///| Updated   | Yes                 | No                        | This status means result of this calculation has been changed and new version of calculation is available.|
         ///| Published | Yes                 | Yes                       | This status indicates ESFA are happy for the funding (both money and information about that funding) are good to be made external to the provider.|

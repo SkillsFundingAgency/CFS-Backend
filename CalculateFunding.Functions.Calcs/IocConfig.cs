@@ -22,6 +22,8 @@ using CalculateFunding.Repositories.Common.Cosmos;
 using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Models;
+using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Services;
 
 namespace CalculateFunding.Functions.Calcs
 {
@@ -116,6 +118,19 @@ namespace CalculateFunding.Functions.Calcs
 
             builder
                 .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
+
+            builder.AddSingleton<IVersionRepository<CalculationVersion>, VersionRepository<CalculationVersion>>((ctx) =>
+            {
+                CosmosDbSettings calcsVersioningDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", calcsVersioningDbSettings);
+
+                calcsVersioningDbSettings.CollectionName = "calcs";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(calcsVersioningDbSettings);
+
+                return new VersionRepository<CalculationVersion>(resultsRepostory);
+            });
 
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {

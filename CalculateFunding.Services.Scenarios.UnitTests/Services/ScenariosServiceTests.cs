@@ -29,6 +29,7 @@ using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Models.Gherkin;
+using CalculateFunding.Services.Core.Interfaces;
 
 namespace CalculateFunding.Services.Scenarios.Services
 {
@@ -322,7 +323,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 Id = scenarioid,
                 SpecificationId = specificationId,
                 Name = name,
-                History = new List<TestScenarioVersion>(),
                 Current = new TestScenarioVersion()
                 {
                     Description = description,
@@ -347,10 +347,18 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(specification);
 
+            TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
+
+            IVersionRepository<TestScenarioVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
+                .Returns(testScenarioVersion);
+
             ScenariosService service = CreateScenariosService(logger: logger,
                 scenariosRepository: scenariosRepository,
                 searchRepository: searchrepository,
-                specificationsRepository: specificationsRepository);
+                specificationsRepository: specificationsRepository,
+                versionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.SaveVersion(request);
@@ -375,6 +383,10 @@ namespace CalculateFunding.Services.Scenarios.Services
                                  m.First().LastUpdatedDate.HasValue &&
                                  m.First().LastUpdatedDate.Value.Date == DateTime.Now.Date));
 
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(testScenarioVersion));
         }
 
         [TestMethod]
@@ -418,10 +430,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 Id = scenarioid,
                 SpecificationId = specificationId,
                 Name = name,
-                History = new List<TestScenarioVersion>
-                {
-                    testScenarioVersion
-                },
                 Current = testScenarioVersion
             };
 
@@ -453,12 +461,6 @@ namespace CalculateFunding.Services.Scenarios.Services
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
-
-            testScenario
-                .History
-                .Count
-                .Should()
-                .Be(1);
         }
 
         [TestMethod]
@@ -503,10 +505,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 Id = scenarioid,
                 SpecificationId = specificationId,
                 Name = name,
-                History = new List<TestScenarioVersion>
-                {
-                    testScenarioVersion
-                },
                 Current = testScenarioVersion
             };
 
@@ -526,10 +524,16 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .GetSpecificationSummaryById(Arg.Is(specification.Id))
                 .Returns(specification);
 
+            IVersionRepository<TestScenarioVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
+                .Returns(testScenarioVersion);
+
             ScenariosService service = CreateScenariosService(logger: logger,
                 scenariosRepository: scenariosRepository,
                 searchRepository: searchrepository,
-                specificationsRepository: specificationsRepository);
+                specificationsRepository: specificationsRepository,
+                versionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.SaveVersion(request);
@@ -539,15 +543,14 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .Should()
                 .BeOfType<OkObjectResult>();
 
-            testScenario
-                .History
-                .Count
-                .Should()
-                .Be(2);
-
             await scenariosRepository
                 .Received(1)
                 .GetCurrentTestScenarioById(Arg.Is(scenarioid));
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(testScenarioVersion));
         }
 
         [TestMethod]
@@ -592,10 +595,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 Id = scenarioid,
                 SpecificationId = specificationId,
                 Name = name,
-                History = new List<TestScenarioVersion>
-                {
-                    testScenarioVersion
-                },
                 Current = testScenarioVersion
             };
 
@@ -615,10 +614,15 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .GetSpecificationSummaryById(Arg.Is(specification.Id))
                 .Returns(specification);
 
+            IVersionRepository<TestScenarioVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
+                .Returns(testScenarioVersion);
+
             ScenariosService service = CreateScenariosService(logger: logger,
                 scenariosRepository: scenariosRepository,
                 searchRepository: searchrepository,
-                specificationsRepository: specificationsRepository);
+                specificationsRepository: specificationsRepository, versionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.SaveVersion(request);
@@ -628,15 +632,14 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .Should()
                 .BeOfType<OkObjectResult>();
 
-            testScenario
-                .History
-                .Count
-                .Should()
-                .Be(2);
-
             await scenariosRepository
                 .Received(1)
                 .GetCurrentTestScenarioById(Arg.Is(scenarioid));
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(testScenarioVersion));
         }
 
         [TestMethod]
@@ -916,14 +919,13 @@ namespace CalculateFunding.Services.Scenarios.Services
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
             ILogger logger = CreateLogger();
-
+            
             IEnumerable<TestScenario> scenarios = new[]
             {
                 new TestScenario
                 {
                     Id = "scenario-id",
                     Name = "scenario",
-                    History = new List<TestScenarioVersion>(),
                     SpecificationId = specificationId,
                     Current = new TestScenarioVersion
                     {
@@ -941,9 +943,17 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .GetTestScenariosBySpecificationId(Arg.Is(specificationId))
                 .Returns(scenarios);
 
+            TestScenarioVersion testScenarioVersion = scenarios.First().Current.Clone() as TestScenarioVersion;
+            testScenarioVersion.Version = 2;
+
+            IVersionRepository<TestScenarioVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
+                .Returns(testScenarioVersion);
+
             ISearchRepository<ScenarioIndex> searchRepository = CreateSearchRepository();
 
-            ScenariosService service = CreateScenariosService(logger, scenarioRepository, searchRepository: searchRepository);
+            ScenariosService service = CreateScenariosService(logger, scenarioRepository, searchRepository: searchRepository, versionRepository: versionRepository);
 
             //Act
             await service.UpdateScenarioForSpecification(message);
@@ -955,13 +965,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .Version
                 .Should()
                 .Be(2);
-
-            scenarios
-               .First()
-               .History
-               .Count
-               .Should()
-               .Be(1);
 
             await
                 scenarioRepository
@@ -978,6 +981,11 @@ namespace CalculateFunding.Services.Scenarios.Services
                         m.First().Description == scenarios.First().Current.Description &&
                         m.First().SpecificationId == scenarios.First().SpecificationId
                    ));
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersions(Arg.Is<IEnumerable<TestScenarioVersion>>(m => m.First() == testScenarioVersion));
         }
 
         [TestMethod]
@@ -991,7 +999,8 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
             ICacheProvider cacheProvider = CreateCacheProvider();
-            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, cacheProvider: cacheProvider);
+            IVersionRepository<TestScenarioVersion> versionRepository = CreateVersionRepository();
+            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, cacheProvider: cacheProvider, versionRepository: versionRepository);
 
             CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
             {
@@ -1031,10 +1040,17 @@ namespace CalculateFunding.Services.Scenarios.Services
                            Gherkin = initialGherkin2,
 
                       },
-                       Id = "ts2",
-                        SpecificationId = comparison.SpecificationId,
+                      Id = "ts2",
+                      SpecificationId = comparison.SpecificationId,
                  }
             };
+
+            TestScenarioVersion testScenarioVersion = testScenarios.ElementAt(1).Current.Clone() as TestScenarioVersion;
+            testScenarioVersion.Gherkin = expectedChangedGherkin;
+            
+            versionRepository
+                .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
+                .Returns(testScenarioVersion);
 
             scenariosRepository
                 .GetTestScenariosBySpecificationId(Arg.Is(comparison.SpecificationId))
@@ -1080,7 +1096,9 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
             ICacheProvider cacheProvider = CreateCacheProvider();
-            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, cacheProvider: cacheProvider);
+            IVersionRepository<TestScenarioVersion> versionRepository = CreateVersionRepository();
+
+            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, cacheProvider: cacheProvider, versionRepository: versionRepository);
 
             CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
             {
@@ -1139,6 +1157,16 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .GetTestScenariosBySpecificationId(Arg.Is(comparison.SpecificationId))
                 .Returns(testScenarios);
 
+            TestScenarioVersion testScenarioVersion1 = testScenarios.ElementAt(0).Current.Clone() as TestScenarioVersion;
+            testScenarioVersion1.Gherkin = expectedChangedGherkin;
+            
+            TestScenarioVersion testScenarioVersion2 = testScenarios.ElementAt(1).Current.Clone() as TestScenarioVersion;
+            testScenarioVersion2.Gherkin = expectedChangedGherkin2;
+
+            versionRepository
+                .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
+                .Returns(testScenarioVersion1, testScenarioVersion2);
+                
             // Act
             int updateCount = await service.UpdateTestScenarioCalculationGherkin(comparison);
 
@@ -1186,7 +1214,9 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
             ICacheProvider cacheProvider = CreateCacheProvider();
-            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, cacheProvider : cacheProvider);
+            IVersionRepository<TestScenarioVersion> versionRepository = CreateVersionRepository();
+
+            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, cacheProvider : cacheProvider, versionRepository: versionRepository);
 
             CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
             {
@@ -1235,6 +1265,13 @@ namespace CalculateFunding.Services.Scenarios.Services
             scenariosRepository
                 .GetTestScenariosBySpecificationId(Arg.Is(comparison.SpecificationId))
                 .Returns(testScenarios);
+
+            TestScenarioVersion testScenarioVersion = testScenarios.ElementAt(1).Current.Clone() as TestScenarioVersion;
+            testScenarioVersion.Gherkin = expectedChangedGherkin;
+
+            versionRepository
+                .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
+                .Returns(testScenarioVersion);
 
             // Act
             int updateCount = await service.UpdateTestScenarioCalculationGherkin(comparison);
@@ -1561,11 +1598,18 @@ namespace CalculateFunding.Services.Scenarios.Services
 
         static ScenariosService CreateScenariosService(ILogger logger = null, IScenariosRepository scenariosRepository = null,
            ISpecificationsRepository specificationsRepository = null, IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator = null,
-           ISearchRepository<ScenarioIndex> searchRepository = null, ICacheProvider cacheProvider = null, IMessengerService messengerService = null, IBuildProjectRepository buildProjectRepository = null)
+           ISearchRepository<ScenarioIndex> searchRepository = null, ICacheProvider cacheProvider = null, IMessengerService messengerService = null, 
+           IBuildProjectRepository buildProjectRepository = null, IVersionRepository<TestScenarioVersion> versionRepository = null)
         {
             return new ScenariosService(logger ?? CreateLogger(), scenariosRepository ?? CreateScenariosRepository(), specificationsRepository ?? CreateSpecificationsRepository(),
                 createNewTestScenarioVersionValidator ?? CreateValidator(), searchRepository ?? CreateSearchRepository(),
-                cacheProvider ?? CreateCacheProvider(), messengerService ?? CreateMessengerService(), buildProjectRepository ?? CreateBuildProjectRepository());
+                cacheProvider ?? CreateCacheProvider(), messengerService ?? CreateMessengerService(), buildProjectRepository ?? CreateBuildProjectRepository(),
+                versionRepository ?? CreateVersionRepository());
+        }
+
+        static IVersionRepository<TestScenarioVersion> CreateVersionRepository()
+        {
+            return Substitute.For<IVersionRepository<TestScenarioVersion>>();
         }
 
         static ILogger CreateLogger()

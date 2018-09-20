@@ -17,6 +17,7 @@ using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Caching;
@@ -398,14 +399,11 @@ namespace CalculateFunding.Services.Datasets.Services
             // Assert
             result
                 .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = result as StatusCodeResult;
-
-            statusCodeResult
-                .StatusCode
+                .BeOfType<PreconditionFailedResult>()
+                .Which
+                .Value
                 .Should()
-                .Be(412);
+                .Be($"Failed to find blob with path: {blobPath}");
 
             logger
                 .Received(1)
@@ -481,14 +479,11 @@ namespace CalculateFunding.Services.Datasets.Services
             // Assert
             result
                 .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = result as StatusCodeResult;
-
-            statusCodeResult
-                .StatusCode
+                .BeOfType<PreconditionFailedResult>()
+                .Which
+                .Value
                 .Should()
-                .Be(412);
+                .Be($"Blob {blobPath} contains no data");
 
             logger
                 .Received(1)
@@ -553,14 +548,11 @@ namespace CalculateFunding.Services.Datasets.Services
             // Assert
             result
                 .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = result as StatusCodeResult;
-
-            statusCodeResult
-                .StatusCode
+                .BeOfType<PreconditionFailedResult>()
+                .Which
+                .Value
                 .Should()
-                .Be(412);
+                .Be($"Unable to find a data definition for id: {DataDefintionId}, for blob: {blobPath}");
 
             logger
                 .Received(1)
@@ -569,10 +561,11 @@ namespace CalculateFunding.Services.Datasets.Services
 
 
         [TestMethod]
-        public async Task ValidateDataset_GivenTableResultsContainsOneError_ReturnsOKResultWithMessage()
+        public async Task OnValidateDataset_GivenTableResultsContainsOneError_ReturnsOKResultWithMessage()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
+            const string operationId = "operationId";
 
             GetDatasetBlobModel model = new GetDatasetBlobModel
             {
@@ -582,12 +575,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+            Message message = new Message(byteArray);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
+            message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
 
@@ -647,204 +637,132 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
                 .Returns(tableLoadResults.ToList());
 
-            DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
-                excelDatasetReader: datasetReader, datasetUploadValidator: datasetUploadValidator);
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            DatasetService service = CreateDatasetService(
+                logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                excelDatasetReader: datasetReader,
+                datasetUploadValidator: datasetUploadValidator,
+                cacheProvider: cacheProvider);
 
             // Act
-            IActionResult result = await service.ValidateDataset(request);
+            Func<Task> result = async () => { await service.ValidateDataset(message); };
 
             // Assert
             result
-                .Should()
-                .BeOfType<BadRequestObjectResult>();
-        }
+               .ShouldNotThrow();
 
-        [TestMethod]
-        public async Task ValidateDataset_GivenTableResultsContainsThreeErrors_ReturnsOKResultWithMessage()
-        {
-            //Arrange
-            const string blobPath = "dataset-id/v1/ds.xlsx";
-
-            GetDatasetBlobModel model = new GetDatasetBlobModel
-            {
-                DatasetId = "dataset-id",
-                Version = 1,
-                Filename = "ds.xlsx"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            ILogger logger = CreateLogger();
-
-            IDictionary<string, string> metaData = new Dictionary<string, string>
-            {
-                { "dataDefinitionId", DataDefintionId }
-            };
-
-            ICloudBlob blob = Substitute.For<ICloudBlob>();
-            blob
-                .Metadata
-                .Returns(metaData);
-
-            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
-
-            IBlobClient blobClient = CreateBlobClient();
-            blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
-                .Returns(blob);
-            blobClient
-                .DownloadToStreamAsync(Arg.Is(blob))
-                .Returns(memoryStream);
-
-            DatasetDefinition datasetDefinition = new DatasetDefinition
-            {
-                Id = DataDefintionId
-            };
-
-            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
-            {
-                datasetDefinition
-            };
-
-            IDatasetRepository datasetRepository = CreateDatasetsRepository();
-            datasetRepository
-                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
-                .Returns(datasetDefinitions);
-
-            List<DatasetValidationError> errors = new List<DatasetValidationError>
-            {
-                new DatasetValidationError { ErrorMessage = "error" },
-                new DatasetValidationError { ErrorMessage = "error" },
-                new DatasetValidationError { ErrorMessage = "error" }
-            };
-
-            IEnumerable<TableLoadResult> tableLoadResults = new[]
-            {
-                new TableLoadResult{ GlobalErrors = errors }
-            };
-
-            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
-            datasetReader
-                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
-                .Returns(tableLoadResults.ToList());
-
-            ValidationResult validationResult = new ValidationResult(new[]{
-                new ValidationFailure("prop1", "any error")
-            });
-
-            IValidator<DatasetUploadValidationModel> datasetUploadValidator = CreateDatasetUploadValidator(validationResult);
-
-            DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
-                excelDatasetReader: datasetReader, datasetUploadValidator: datasetUploadValidator);
-
-            // Act
-            IActionResult result = await service.ValidateDataset(request);
-
-            // Assert
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>();
-        }
-
-        [TestMethod]
-        public async Task ValidateDataset_GivenTableResultsContainNoErrorsButFailsToSave_ReturnsStatusCode500()
-        {
-            //Arrange
-            const string blobPath = "dataset-id/v1/ds.xlsx";
-
-            GetDatasetBlobModel model = new GetDatasetBlobModel
-            {
-                DatasetId = "dataset-id",
-                Version = 1,
-                Filename = "ds.xlsx"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            ILogger logger = CreateLogger();
-
-            IDictionary<string, string> metaData = new Dictionary<string, string>
-            {
-                { "dataDefinitionId", DataDefintionId }
-            };
-
-            ICloudBlob blob = Substitute.For<ICloudBlob>();
-            blob
-                .Metadata
-                .Returns(metaData);
-
-            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
-
-            IBlobClient blobClient = CreateBlobClient();
-            blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
-                .Returns(blob);
-            blobClient
-                .DownloadToStreamAsync(Arg.Is(blob))
-                .Returns(memoryStream);
-
-            DatasetDefinition datasetDefinition = new DatasetDefinition
-            {
-                Id = DataDefintionId
-            };
-
-            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
-            {
-                datasetDefinition
-            };
-
-            IDatasetRepository datasetRepository = CreateDatasetsRepository();
-            datasetRepository
-                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
-                .Returns(datasetDefinitions);
-
-            IEnumerable<TableLoadResult> tableLoadResults = new[]
-            {
-                new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
-            };
-
-            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
-            datasetReader
-                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
-                .Returns(tableLoadResults.ToList());
-
-            ValidationResult validationResult = new ValidationResult(new[] { new ValidationFailure("any", "error") });
-
-            IValidator<DatasetMetadataModel> datasetMetaDataModelValidator = CreateDatasetMetadataModelValidator(validationResult);
-
-            DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
-                excelDatasetReader: datasetReader, datasetMetadataModelValidator: datasetMetaDataModelValidator);
-
-            // Act
-            IActionResult result = await service.ValidateDataset(request);
-
-            // Assert
-            result
-                .Should()
-                .BeOfType<InternalServerErrorResult>()
-                .Which
-                .Value
-                .Should().Be("Failed to save the dataset or dataset version. Invalid metadata on blob: ");
-
-            logger
+            await cacheProvider
                 .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is("Failed to save the dataset or dataset version"));
+                .SetAsync(Arg.Is($"{CacheKeys.DatasetValidationStatus}:{operationId}"), Arg.Is<DatasetValidationStatusModel>(v =>
+                v.OperationId == operationId &&
+                v.ValidationFailures.Count == 3));
         }
 
         [TestMethod]
-        public async Task ValidateDataset_GivenTableResultsAndMetadatValidatesButFailsToSave_ReturnsInternalServerError()
+        public async Task OnValidateDataset_GivenTableResultsContainsThreeErrors_ReturnsOKResultWithMessage()
+        {
+            //Arrange
+            const string blobPath = "dataset-id/v1/ds.xlsx";
+            const string operationId = "operationId";
+
+            GetDatasetBlobModel model = new GetDatasetBlobModel
+            {
+                DatasetId = "dataset-id",
+                Version = 1,
+                Filename = "ds.xlsx"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            Message message = new Message(byteArray);
+
+            message.UserProperties.Add("operation-id", operationId);
+
+            ILogger logger = CreateLogger();
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", DataDefintionId }
+            };
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = DataDefintionId
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(datasetDefinitions);
+
+            List<DatasetValidationError> errors = new List<DatasetValidationError>
+            {
+                new DatasetValidationError { ErrorMessage = "error" },
+                new DatasetValidationError { ErrorMessage = "error" },
+                new DatasetValidationError { ErrorMessage = "error" }
+            };
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult{ GlobalErrors = errors }
+            };
+
+            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
+            datasetReader
+                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
+                .Returns(tableLoadResults.ToList());
+
+            ValidationResult validationResult = new ValidationResult(new[]{
+                new ValidationFailure("prop1", "any error")
+            });
+
+            IValidator<DatasetUploadValidationModel> datasetUploadValidator = CreateDatasetUploadValidator(validationResult);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
+                excelDatasetReader: datasetReader, datasetUploadValidator: datasetUploadValidator,
+                cacheProvider: cacheProvider);
+
+            // Act
+            Func<Task> result = async () => { await service.ValidateDataset(message); };
+
+
+            // Assert
+            result
+                .ShouldNotThrow();
+
+            await cacheProvider
+                .Received(1)
+                .SetAsync(Arg.Is($"{CacheKeys.DatasetValidationStatus}:{operationId}"), Arg.Is<DatasetValidationStatusModel>(v =>
+                v.OperationId == operationId &&
+                v.ValidationFailures.Count == 3));
+        }
+
+        [TestMethod]
+        public void OnValidateDataset_GivenTableResultsAndMetadatValidatesButFailsToSave_ReturnsInternalServerError()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -855,6 +773,7 @@ namespace CalculateFunding.Services.Datasets.Services
             const string datasetId = "dataset-id";
             const string name = "name";
             const string description = "test description";
+            const string operationId = "operationId";
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
                 {
@@ -874,12 +793,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+            Message message = new Message(byteArray);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
+            message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
 
@@ -930,19 +846,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 excelDatasetReader: datasetReader);
 
             // Act
-            IActionResult result = await service.ValidateDataset(request);
+            Func<Task> result = async () => { await service.ValidateDataset(message); };
 
             // Assert
             result
-                .Should()
-                .BeOfType<InternalServerErrorResult>();
-
-            InternalServerErrorResult statusCodeResult = result as InternalServerErrorResult;
-
-            statusCodeResult
-                .StatusCode
-                .Should()
-                .Be(500);
+                .ShouldThrow<InvalidOperationException>()
+                .WithMessage($"Failed to save dataset for id: {datasetId} with status code InternalServerError");
 
             logger
                 .Received(1)
@@ -950,11 +859,11 @@ namespace CalculateFunding.Services.Datasets.Services
 
             logger
                 .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is("Failed to save the dataset or dataset version"));
+                .Error(Arg.Any<Exception>(), Arg.Is("Failed to save the dataset or dataset version during validation"));
         }
 
         [TestMethod]
-        public async Task ValidateDataset_GivenTableResultsAndMetadatValidatesButFailsToSaveToSearch_ReturnsInternalServerError()
+        public void OnValidateDataset_GivenTableResultsAndMetadatValidatesButFailsToSaveToSearch_ReturnsInternalServerError()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -965,6 +874,7 @@ namespace CalculateFunding.Services.Datasets.Services
             const string datasetId = "dataset-id";
             const string name = "name";
             const string description = "test description";
+            const string operationId = "operationId";
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
                 {
@@ -984,12 +894,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+            Message message = new Message(byteArray);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
+            message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
 
@@ -1051,19 +958,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 excelDatasetReader: datasetReader, searchRepository: searchRepository);
 
             // Act
-            IActionResult result = await service.ValidateDataset(request);
+            Func<Task> result = async () => { await service.ValidateDataset(message); };
 
             // Assert
             result
-                .Should()
-                .BeOfType<InternalServerErrorResult>()
-                .Which
-                .Value
-                .Should().Be("Failed to save the dataset or dataset version. Failed to save dataset for id: dataset-id in search with errors ");
+                .ShouldThrow<InvalidOperationException>()
+                .WithMessage("Failed to save dataset for id: dataset-id in search with errors ");
         }
 
         [TestMethod]
-        public async Task ValidateDataset_GivenTableResultsAndMetadataValidatesAndSavesWhenFirstDatasetVersionReturnsOKResult()
+        public async Task OnValidateDataset_GivenTableResultsAndMetadataValidatesAndSavesWhenFirstDatasetVersionReturnsOKResult()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -1074,6 +978,7 @@ namespace CalculateFunding.Services.Datasets.Services
             const string datasetId = "dataset-id";
             const string name = "name";
             const string description = "updated description";
+            const string operationId = "operationId";
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
                 {
@@ -1093,12 +998,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+            Message message = new Message(byteArray);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
+            message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
 
@@ -1155,12 +1057,11 @@ namespace CalculateFunding.Services.Datasets.Services
                  searchRepository: searchRepository);
 
             // Act
-            IActionResult result = await service.ValidateDataset(request);
+            Func<Task> result = async () => { await service.ValidateDataset(message); };
 
             // Assert
             result
-                .Should()
-                .BeOfType<OkObjectResult>();
+                .ShouldNotThrow();
 
             // Ensure initial version is set
             await datasetRepository
@@ -1201,7 +1102,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task ValidateDataset_GivenTableResultsAndMetadataValidatesAndSavesWhenUpdatingExistingDatasetReturnsOKResult()
+        public async Task OnValidateDataset_GivenTableResultsAndMetadataValidatesAndSavesWhenUpdatingExistingDatasetReturnsOKResult()
         {
             //Arrange
             const int newDatasetVersion = 2;
@@ -1218,7 +1119,7 @@ namespace CalculateFunding.Services.Datasets.Services
             const string updatedDescription = "Updated description";
             const string updateComment = "Update comment";
             const int rowcount = 20;
-
+            const string operationId = "operationId";
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
                 {
@@ -1240,22 +1141,11 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+            Message message = new Message(byteArray);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Sid, authorId),
-                new Claim(ClaimTypes.Name, authorName)
-            };
-
-            request
-                .HttpContext.User.Claims
-                .Returns(claims.AsEnumerable());
+            message.UserProperties.Add("operation-id", operationId);
+            message.UserProperties.Add("user-id", authorId);
+            message.UserProperties.Add("user-name", authorName);
 
             ILogger logger = CreateLogger();
 
@@ -1337,12 +1227,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(existingDataset);
 
             // Act
-            IActionResult result = await service.ValidateDataset(request);
+            Func<Task> result = async () => { await service.ValidateDataset(message); };
 
             // Assert
             result
-                .Should()
-                .BeOfType<OkObjectResult>();
+                .ShouldNotThrow();
 
             // Ensure next version is set
             await datasetRepository
@@ -1389,7 +1278,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task ValidateDataset_GivenTableResultsAndMetadataValidatesAndProvidedVersionIsNotDeterminedToBeNext_ThenExceptionIsThrown()
+        public void OnValidateDataset_GivenTableResultsAndMetadataValidatesAndProvidedVersionIsNotDeterminedToBeNext_ThenExceptionIsThrown()
         {
             //Arrange
             const int providedNewDatasetVersion = 2;
@@ -1405,7 +1294,7 @@ namespace CalculateFunding.Services.Datasets.Services
             const string initialDescription = "test description";
             const string updatedDescription = "Updated description";
             const string updateComment = "Update comment";
-
+            const string operationId = "operationId";
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
                 {
@@ -1427,22 +1316,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+            Message message = new Message(byteArray);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Sid, authorId),
-                new Claim(ClaimTypes.Name, authorName)
-            };
-
-            request
-                .HttpContext.User.Claims
-                .Returns(claims.AsEnumerable());
+            message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
 
@@ -1532,23 +1408,20 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(existingDataset);
 
             // Act
-            IActionResult result = await service.ValidateDataset(request);
+            Func<Task> result = async () => { await service.ValidateDataset(message); };
 
             // Assert
             result
-               .Should()
-               .BeOfType<InternalServerErrorResult>()
-               .Which
-               .Value
-               .Should().Be("Failed to save the dataset or dataset version. Failed to save dataset for id: dataset-id due to version mismatch. Expected next version to be 3 but request provided '2'");
+               .ShouldThrow<InvalidOperationException>()
+               .WithMessage("Failed to save dataset or dataset version for id: dataset-id due to version mismatch. Expected next version to be 3 but request provided '2'");
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Failed to save dataset for id: {model.DatasetId} due to version mismatch. Expected next version to be 3 but request provided '2'"));
+                .Error(Arg.Is($"Failed to save dataset or dataset version for id: {model.DatasetId} due to version mismatch. Expected next version to be 3 but request provided '2'"));
         }
 
         [TestMethod]
-        public async Task ValidateDataset_GivenTableResultsAndMetadataValidatesAndExistingDatasetIsNull_ThenExceptionIsThrown()
+        public void OnValidateDataset_GivenTableResultsAndMetadataValidatesAndExistingDatasetIsNull_ThenExceptionIsThrown()
         {
             //Arrange
             const int providedNewDatasetVersion = 2;
@@ -1564,7 +1437,7 @@ namespace CalculateFunding.Services.Datasets.Services
             const string initialDescription = "test description";
             const string updatedDescription = "Updated description";
             const string updateComment = "Update comment";
-
+            const string operationId = "operationID";
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
                 {
@@ -1586,22 +1459,8 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Sid, authorId),
-                new Claim(ClaimTypes.Name, authorName)
-            };
-
-            request
-                .HttpContext.User.Claims
-                .Returns(claims.AsEnumerable());
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
 
@@ -1679,15 +1538,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(existingDataset);
 
             // Act
-            IActionResult result = await service.ValidateDataset(request);
+            Func<Task> action = async () => { await service.ValidateDataset(message); };
 
             // Assert
-            result
-               .Should()
-               .BeOfType<InternalServerErrorResult>()
-               .Which
-               .Value
-               .Should().Be("Failed to save the dataset or dataset version. Failed to retrieve dataset for id: dataset-id response was null");
+
+            action
+                .ShouldThrow<InvalidOperationException>()
+                .WithMessage($"Failed to retrieve dataset for id: {model.DatasetId} response was null");
 
             logger
                 .Received(1)
@@ -1695,7 +1552,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task ValidateDataset_GivenTableResultsAndMetadataValidatesAndSaveDatasetFails_ThenErrorIsReturned()
+        public void OnValidateDataset_GivenTableResultsAndMetadataValidatesAndSaveDatasetFails_ThenErrorIsReturned()
         {
             //Arrange
             const int newDatasetVersion = 2;
@@ -1711,7 +1568,7 @@ namespace CalculateFunding.Services.Datasets.Services
             const string initialDescription = "test description";
             const string updatedDescription = "Updated description";
             const string updateComment = "Update comment";
-
+            const string operationId = "operationId";
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
                 {
@@ -1733,22 +1590,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+            Message message = new Message(byteArray);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Sid, authorId),
-                new Claim(ClaimTypes.Name, authorName)
-            };
-
-            request
-                .HttpContext.User.Claims
-                .Returns(claims.AsEnumerable());
+            message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
 
@@ -1830,15 +1674,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(existingDataset);
 
             // Act
-            IActionResult result = await service.ValidateDataset(request);
+            Func<Task> result = async () => { await service.ValidateDataset(message); };
 
             // Assert
             result
-                .Should()
-                .BeOfType<InternalServerErrorResult>()
-                .Which
-                .Value
-                .Should().Be("Failed to save the dataset or dataset version. Failed to save dataset for id: dataset-id with status code InternalServerError");
+                .ShouldThrow<InvalidOperationException>()
+                .WithMessage("Failed to save dataset for id: dataset-id with status code InternalServerError");
 
             logger
                 .Received(1)
@@ -1846,7 +1687,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task ValidateDataset_GivenTableResultsAndMetadataValidatesAndSavesWhenUpdatingSearchThenErrorIsThrown()
+        public async Task OnValidateDataset_GivenTableResultsAndMetadataValidatesAndSavesWhenUpdatingSearchThenErrorIsThrown()
         {
             //Arrange
             const int newDatasetVersion = 2;
@@ -1862,7 +1703,7 @@ namespace CalculateFunding.Services.Datasets.Services
             const string initialDescription = "test description";
             const string updatedDescription = "Updated description";
             const string updateComment = "Update comment";
-
+            const string operationId = "operationId";
 
             IDictionary<string, string> metaData = new Dictionary<string, string>
                 {
@@ -1884,22 +1725,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+            Message message = new Message(byteArray);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Sid, authorId),
-                new Claim(ClaimTypes.Name, authorName)
-            };
-
-            request
-                .HttpContext.User.Claims
-                .Returns(claims.AsEnumerable());
+            message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
 
@@ -1994,71 +1822,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(indexErrors);
 
             // Act
-            IActionResult result = await service.ValidateDataset(request);
+            Func<Task> result = async () => { await service.ValidateDataset(message); };
 
             // Assert
             result
-                .Should()
-                .BeOfType<InternalServerErrorResult>()
-                .Which
-                .Value
-                .Should().Be("Failed to save the dataset or dataset version. Failed to save dataset for id: dataset-id in search with errors Error in dataset ID for search");
+                .ShouldThrow<InvalidOperationException>()
+                .WithMessage("Failed to save dataset for id: dataset-id in search with errors Error in dataset ID for search");
 
             logger
                 .Received(1)
                 .Warning(Arg.Is("Failed to save dataset for id: dataset-id in search with errors Error in dataset ID for search"));
-        }
-
-        [TestMethod]
-        public async Task ValidateDataset_WhenExcelFileIsUnreadable_ReturnsBadRequestObjectResult()
-        {
-            //Arrange
-            const string blobPath = "dataset-id/v1/ds.xlsx";
-
-            GetDatasetBlobModel model = new GetDatasetBlobModel
-            {
-                DatasetId = "dataset-id",
-                Version = 1,
-                Filename = "ds.xlsx"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream httpRequestBodyStream = new MemoryStream(byteArray);
-            MemoryStream jpgFileWithXlsExtension =
-                new MemoryStream(
-                    File.ReadAllBytes($"TestItems{Path.DirectorySeparatorChar}jpgImage.xlsx"));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(httpRequestBodyStream);
-
-            ILogger logger = CreateLogger();
-
-            ICloudBlob blob = Substitute.For<ICloudBlob>();
-
-            IBlobClient blobClient = CreateBlobClient();
-            blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
-                .Returns(blob);
-
-            blobClient
-                .DownloadToStreamAsync(Arg.Is(blob))
-                .Returns(jpgFileWithXlsExtension);
-
-            DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient);
-
-            // Act
-            IActionResult result = await service.ValidateDataset(request);
-
-            // Assert
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>();
-
-            logger
-                .Received(1)
-                .Error("The file is not an valid Package file. If the file is encrypted, please supply the password in the constructor.");
         }
 
         [TestMethod]

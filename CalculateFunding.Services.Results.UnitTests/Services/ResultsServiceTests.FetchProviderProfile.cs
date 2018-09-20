@@ -102,7 +102,9 @@ namespace CalculateFunding.Services.Results.Services
             PublishedProviderResult result = new PublishedProviderResult
             {
                 ProviderId = "prov1",
-                FundingPeriod = new Models.Specs.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp1", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) }
+                FundingPeriod = new Models.Specs.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp1", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) },
+                FundingStreamResult = new PublishedFundingStreamResult { AllocationLineResult = new PublishedAllocationLineResult { AllocationLine = new Models.Specs.AllocationLine { Id = "al-1" } } },
+                SpecificationId = "spec1"
             };
             ProviderProfilingRequestModel requestModel = CreateProviderProfilingRequestModel();
 
@@ -143,8 +145,11 @@ namespace CalculateFunding.Services.Results.Services
             PublishedProviderResult result = new PublishedProviderResult
             {
                 ProviderId = "prov1",
-                FundingPeriod = new Models.Specs.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp1", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) }
+                FundingPeriod = new Models.Specs.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp1", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) },
+                SpecificationId = "spec1",
+                FundingStreamResult = new PublishedFundingStreamResult { AllocationLineResult = new PublishedAllocationLineResult { AllocationLine = new Models.Specs.AllocationLine { Id = "al-1" } } }
             };
+
             ProviderProfilingRequestModel requestModel = CreateProviderProfilingRequestModel();
 
             ProviderProfilingResponseModel providerProfilingResponseModel = new ProviderProfilingResponseModel();
@@ -232,6 +237,8 @@ namespace CalculateFunding.Services.Results.Services
             IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { result };
             await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(savedResults => toBeSavedResults.SequenceEqual(savedResults)));
             await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 1));
+
+            logger.Received(1).Information(Arg.Is($"Received new provider profiling message for result id {result.Id} and provider {result.ProviderId}"));
             
         }
 
