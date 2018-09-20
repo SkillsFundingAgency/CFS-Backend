@@ -1022,9 +1022,9 @@ namespace CalculateFunding.Services.Results
                                             AllocationLineName = alr.AllocationLine.Name,
                                             FundingAmount = alr.Current.Value,
                                             Status = alr.Current.Status,
-                                            LastUpdated = alr.Current.Date
+                                            LastUpdated = alr.Current.Date,
+                                            Authority = alr.Current.Provider.Authority
                                         }
-
                                     )
                         } });
                     }

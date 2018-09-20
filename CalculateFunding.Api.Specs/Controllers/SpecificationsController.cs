@@ -70,6 +70,20 @@ namespace CalculateFunding.Api.Specs.Controllers
             return _specService.GetSpecificationsSelectedForFunding(ControllerContext.HttpContext.Request);
         }
 
+        [Route("api/specs/specifications-selected-for-funding-by-period")]
+        [HttpGet]
+        public Task<IActionResult> RunGetSpecificationsSelectedForFundingByPeriod()
+        {
+            return _specService.GetSpecificationsSelectedForFundingByPeriod(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/specs/funding-streams-selected-for-funding-by-specification")]
+        [HttpGet]
+        public Task<IActionResult> RunGetFundingStreamsSelectedForFundingBySpecification()
+        {
+            return _specService.GetFundingStreamsSelectedForFundingBySpecification(ControllerContext.HttpContext.Request);
+        }
+
         [Route("api/specs/specifications-by-year")]
         [HttpGet]
         public Task<IActionResult> RunSpecificationsByYear()

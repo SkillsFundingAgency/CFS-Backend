@@ -13,6 +13,10 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetSpecificationsSelectedForFunding(HttpRequest request);
 
+        Task<IActionResult> GetSpecificationsSelectedForFundingByPeriod(HttpRequest request);
+
+        Task<IActionResult> GetFundingStreamsSelectedForFundingBySpecification(HttpRequest request);
+
         Task<IActionResult> GetSpecificationSummaries(HttpRequest request);
 
         Task<IActionResult> EditCalculation(HttpRequest request);

@@ -403,6 +403,56 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specifications);
         }
 
+        public async Task<IActionResult> GetSpecificationsSelectedForFundingByPeriod(HttpRequest request)
+        {
+            request.Query.TryGetValue("fundingPeriodId", out var yearId);
+
+            string fundingPeriodId = yearId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(fundingPeriodId))
+            {
+                _logger.Error("No funding period was provided to GetSpecificationsSelectedForFundingPeriod");
+
+                return new BadRequestObjectResult("Null or empty funding period provided");
+            }
+
+            IEnumerable<SpecificationSummary> specifications = (
+                    await _specificationsRepository.GetSpecificationsByQuery(c => c.IsSelectedForFunding && c.Current.FundingPeriod.Id == fundingPeriodId)
+                    ).Select(s => _mapper.Map<SpecificationSummary>(s));
+
+
+            if (!specifications.Any())
+            {
+                _logger.Information($"Specification was not found for funding period: {fundingPeriodId}");
+
+                return new NotFoundResult();
+            }
+
+            return new OkObjectResult(specifications);
+        }
+
+ 
+        public async Task<IActionResult> GetFundingStreamsSelectedForFundingBySpecification(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out var specId);
+
+            string specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification id was provided to GetFundingStreamsSelectedForFundingBySpecification");
+
+                return new BadRequestObjectResult("Null or empty specification id was provided");
+            }
+
+            IEnumerable<FundingStream> fundingStreams = (
+                    await _specificationsRepository.GetSpecificationsByQuery(c => c.IsSelectedForFunding && c.Id == specificationId)
+                    ).Select(s => _mapper.Map<FundingStream>(s));
+
+            return new OkObjectResult(fundingStreams);
+        }
+
+
         public async Task<IActionResult> GetSpecificationByName(HttpRequest request)
         {
             request.Query.TryGetValue("specificationName", out var specName);

@@ -14,6 +14,8 @@ namespace CalculateFunding.Services.Results.ResultModels
         public AllocationLineStatus Status { get; set; }
 
         public DateTimeOffset? LastUpdated { get; set; }
+
+        public string Authority { get; set; }
     }
     
 }
