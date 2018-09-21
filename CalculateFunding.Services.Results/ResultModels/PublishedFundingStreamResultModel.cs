@@ -58,6 +58,14 @@ namespace CalculateFunding.Services.Results.ResultModels
             }
         }
 
+        public int NumberUpdated
+        {
+            get
+            {
+                return AllocationLineResults.IsNullOrEmpty() ? 0 : AllocationLineResults.Count(m => m.Status == AllocationLineStatus.Updated);
+            }
+        }
+
         public int TotalAllocationLines
         {
             get
