@@ -78,7 +78,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 builder.AppendLine($"<Description(Description := \"{calc.Description?.Replace("\"","\"\"")}\")>");
             }
 
-            builder.AppendLine($"Public Function {GenerateIdentifier(calc.Name)} As Decimal");
+            builder.AppendLine($"Public Function {GenerateIdentifier(calc.Name)} As System.Nullable(Of Decimal)");
 	        builder.AppendLine($"#ExternalSource(\"{calc.Id}|{calc.Name}\", 1)");
 			builder.Append(calc.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode);
             builder.AppendLine();

@@ -39,7 +39,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-              .ShouldThrowExactly<InvalidModelException>();
+              .Should().ThrowExactly<InvalidModelException>();
         }
 
         [TestMethod]

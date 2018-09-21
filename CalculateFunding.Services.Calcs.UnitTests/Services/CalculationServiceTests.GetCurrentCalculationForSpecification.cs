@@ -113,31 +113,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Should()
                 .BeAssignableTo<IEnumerable<CalculationCurrentVersion>>()
                 .Which
-                .ShouldAllBeEquivalentTo(new List<CalculationCurrentVersion>()
-                {
-                    new CalculationCurrentVersion()
-                    {
-                        Id ="one",
-                        Name ="Calculation Name",
-                        SourceCode = "Return 10",
-                        Author = new Reference("userId", "User Name"),
-                        CalculationSpecification = new Reference("specId", "Calculation Specification ID"),
-                        CalculationType = "Funding",
-                        Version = 1,
-                        PublishStatus = PublishStatus.Draft,
-                    },
-                    new CalculationCurrentVersion()
-                    {
-                        Id ="two",
-                        Name ="Calculation Name Two",
-                        SourceCode = "Return 50",
-                        PublishStatus = PublishStatus.Approved,
-                        Author = new Reference("userId", "User Name"),
-                        CalculationSpecification = new Reference("specId", "Calculation Specification ID"),
-                        CalculationType = "Number",
-                        Version = 5,
-                    }
-                });
+                .Should()
+                    .Contain(m => m.Id == "one" && m.Name == "Calculation Name" && m.SourceCode == "Return 10" && m.CalculationType == "Funding" && m.Version == 1 && m.PublishStatus == PublishStatus.Draft)
+                    .And.Contain(m => m.Id == "two" && m.Name == "Calculation Name Two" && m.SourceCode == "Return 50" && m.PublishStatus == PublishStatus.Approved && m.CalculationType == "Number" && m.Version == 5);
 
             await calculationsRepository
                 .Received(0)
@@ -233,39 +211,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Should()
                 .BeAssignableTo<IEnumerable<CalculationCurrentVersion>>()
                 .Which
-                .ShouldAllBeEquivalentTo(new List<CalculationCurrentVersion>()
-                {
-                    new CalculationCurrentVersion()
-                    {
-                        Id ="one",
-                        Name ="Calculation Name",
-                        SourceCode = "Return 10",
-                        Author = new Reference("userId", "User Name"),
-                        CalculationSpecification = new Reference("specId", "Calculation Specification ID"),
-                        CalculationType = "Funding",
-                        Version = 1,
-                        FundingPeriodId = "fp1",
-                        FundingPeriodName = "Funding Period 1",
-                        Date = calc1DateTime,
-                        SpecificationId = specificationId,
-                        PublishStatus = PublishStatus.Draft,
-                    },
-                    new CalculationCurrentVersion()
-                    {
-                        Id ="two",
-                        Name ="Calculation Name Two",
-                        SourceCode = "Return 50",
-                        Author = new Reference("userId", "User Name"),
-                        CalculationSpecification = new Reference("specId", "Calculation Specification ID"),
-                        CalculationType = "Number",
-                        Version = 5,
-                        FundingPeriodId = "fp2",
-                        FundingPeriodName = "Funding Period Two",
-                        Date = calc2DateTime,
-                        SpecificationId = specificationId,
-                        PublishStatus = PublishStatus.Approved,
-                    }
-                });
+                .Should()
+                    .Contain(m => m.Id == "one" && m.Name == "Calculation Name" && m.SourceCode == "Return 10" && m.CalculationType == "Funding" && m.Version == 1 && m.FundingPeriodId == "fp1" && m.FundingPeriodName == "Funding Period 1" && m.Date == calc1DateTime && m.SpecificationId == specificationId && m.PublishStatus == PublishStatus.Draft)
+                    .And.Contain(m => m.Id == "two" && m.Name == "Calculation Name Two" && m.SourceCode == "Return 50" && m.CalculationType == "Number" && m.Version == 5 && m.FundingPeriodId == "fp2" && m.FundingPeriodName == "Funding Period Two" && m.Date == calc2DateTime && m.SpecificationId == specificationId && m.PublishStatus == PublishStatus.Approved);
 
             await calculationsRepository
                 .Received(1)
