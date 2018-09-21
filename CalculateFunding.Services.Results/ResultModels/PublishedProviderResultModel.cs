@@ -61,6 +61,14 @@ namespace CalculateFunding.Services.Results.ResultModels
             }
         }
 
+        public int NumberUpdated
+        {
+            get
+            {
+                return FundingStreamResults.IsNullOrEmpty() ? 0 : FundingStreamResults.Sum(m => m.NumberUpdated);
+            }
+        }
+
         public DateTimeOffset? LastUpdated
         {
             get
