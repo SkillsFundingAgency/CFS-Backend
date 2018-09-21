@@ -370,10 +370,6 @@ namespace CalculateFunding.Services.Datasets
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            Reference user = message.GetUserDetails();
-
-            GetDatasetBlobModel model = message.GetPayloadAsInstanceOf<GetDatasetBlobModel>();
-
             string operationId = null;
             if (message.UserProperties.ContainsKey("operation-id"))
             {
@@ -389,6 +385,7 @@ namespace CalculateFunding.Services.Datasets
 
             await SetValidationStatus(operationId, DatasetValidationStatus.Processing);
 
+            GetDatasetBlobModel model = message.GetPayloadAsInstanceOf<GetDatasetBlobModel>();
             if (model == null)
             {
                 _logger.Error("Null model was provided to ValidateDataset");
@@ -399,10 +396,16 @@ namespace CalculateFunding.Services.Datasets
             }
 
             ValidationResult validationResult = (await _getDatasetBlobModelValidator.ValidateAsync(model));
-
-            if (validationResult != null && (!validationResult.IsValid || validationResult.Errors.Count > 0))
+            if (validationResult == null)
             {
-                _logger.Error($"{nameof(GetDatasetBlobModel)} model error: {0}", validationResult.Errors);
+                _logger.Error($"{nameof(GetDatasetBlobModel)} validation result returned null");
+                await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"{nameof(GetDatasetBlobModel)} validation result returned null");
+
+                return;
+            }
+            else if (!validationResult.IsValid || validationResult.Errors.Count > 0)
+            {
+                _logger.Error($"{nameof(GetDatasetBlobModel)} model error: {{0}}", validationResult.Errors);
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"{nameof(GetDatasetBlobModel)} model error", ConvertToErrorDictionary(validationResult));
 
                 return;
@@ -420,8 +423,6 @@ namespace CalculateFunding.Services.Datasets
             }
 
             await blob.FetchAttributesAsync();
-
-            string dataDefinitionId = blob.Metadata["dataDefinitionId"];
 
             using (Stream datasetStream = await _blobClient.DownloadToStreamAsync(blob))
             {
@@ -463,7 +464,7 @@ namespace CalculateFunding.Services.Datasets
                     return;
                 }
 
-
+                string dataDefinitionId = blob.Metadata["dataDefinitionId"];
                 DatasetDefinition datasetDefinition =
                     (await _datasetRepository.GetDatasetDefinitionsByQuery(m => m.Id == dataDefinitionId)).FirstOrDefault();
 
@@ -499,6 +500,8 @@ namespace CalculateFunding.Services.Datasets
                         }
                         else
                         {
+                            Reference user = message.GetUserDetails();
+
                             dataset = await UpdateExistingDatasetAndAddVersion(blob, model, user, rowCount);
                         }
 
