@@ -203,7 +203,14 @@ namespace CalculateFunding.Api.External.V1.Services
 
             if (!queryString.Contains("pageRef"))
             {
-                queryString += "&pageRef={0}";
+                if (requestQuery.AnyWithNullCheck())
+                {
+                    queryString += "&pageRef={0}";
+                }
+                else
+                {
+                    queryString += "pageRef={0}";
+                }
             }
 
             return queryString;
