@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Calculator
             return _allocationFactory.CreateAllocationModel(assembly);
         }
 
-        async public Task<IEnumerable<ProviderResult>> GenerateAllocations(BuildProject buildProject, IEnumerable<ProviderSummary> providers, Func<string, string, Task<IEnumerable<ProviderSourceDatasetCurrent>>> getProviderSourceDatasets)
+        async public Task<IEnumerable<ProviderResult>> GenerateAllocations(BuildProject buildProject, IEnumerable<ProviderSummary> providers, Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> getProviderSourceDatasets)
         {
             var assembly = Assembly.Load(Convert.FromBase64String(buildProject.Build.AssemblyBase64));
 
@@ -52,11 +52,11 @@ namespace CalculateFunding.Services.Calculator
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets = getProviderSourceDatasets(provider.Id, buildProject.SpecificationId).Result;
+                IEnumerable<ProviderSourceDataset> providerSourceDatasets = getProviderSourceDatasets(provider.Id, buildProject.SpecificationId).Result;
 
                 if (providerSourceDatasets == null)
                 {
-                    providerSourceDatasets = Enumerable.Empty<ProviderSourceDatasetCurrent>();
+                    providerSourceDatasets = Enumerable.Empty<ProviderSourceDataset>();
                 }
 
                 var result = CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerSourceDatasets.ToList());
@@ -70,14 +70,14 @@ namespace CalculateFunding.Services.Calculator
             return providerResults;
         }
 
-        public ProviderResult CalculateProviderResults(IAllocationModel model, BuildProject buildProject, IEnumerable<CalculationSummaryModel> calculations, ProviderSummary provider, IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets)
+        public ProviderResult CalculateProviderResults(IAllocationModel model, BuildProject buildProject, IEnumerable<CalculationSummaryModel> calculations, ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             IEnumerable<CalculationResult> calculationResults;
             try
             {
-                calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDatasetCurrent>()).ToArray();
+                calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>()).ToArray();
             }
             catch (Exception ex)
             {

@@ -167,19 +167,19 @@ namespace CalculateFunding.Services.Calculator
 
                 Stopwatch providerSourceDatasetsStopwatch = Stopwatch.StartNew();
 
-                List<ProviderSourceDatasetCurrent> providerSourceDatasets = new List<ProviderSourceDatasetCurrent>(await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIdList, specificationId)));
+                List<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>(await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIdList, specificationId)));
 
                 providerSourceDatasetsStopwatch.Stop();
 
                 if (providerSourceDatasets == null)
                 {
-                    providerSourceDatasets = new List<ProviderSourceDatasetCurrent>();
+                    providerSourceDatasets = new List<ProviderSourceDataset>();
                 }
 
                 Stopwatch calculationStopwatch = Stopwatch.StartNew();
                 Parallel.ForEach(partitionedSummaries, new ParallelOptions { MaxDegreeOfParallelism = _engineSettings.CalculateProviderResultsDegreeOfParallelism }, provider =>
                 {
-                    IEnumerable<ProviderSourceDatasetCurrent> providerDatasets = providerSourceDatasets.Where(m => m.ProviderId == provider.Id);
+                    IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.ProviderId == provider.Id);
 
                     var result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets);
 

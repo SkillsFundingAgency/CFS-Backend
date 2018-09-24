@@ -20,6 +20,7 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
@@ -65,6 +66,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IValidator<DatasetUploadValidationModel> _datasetUploadValidator;
 
         static IEnumerable<ProviderSummary> _providerSummaries = new List<ProviderSummary>();
+        private readonly IVersionRepository<ProviderSourceDatasetVersion> _sourceDatasetsVersionRepository;
 
         public DatasetService(IBlobClient blobClient,
             ILogger logger,
@@ -85,7 +87,8 @@ namespace CalculateFunding.Services.Datasets
             ITelemetry telemetry,
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
             IValidator<ExcelPackage> dataWorksheetValidator,
-            IValidator<DatasetUploadValidationModel> datasetUploadValidator)
+            IValidator<DatasetUploadValidationModel> datasetUploadValidator,
+            IVersionRepository<ProviderSourceDatasetVersion> sourceDatasetsVersionRepository)
         {
             _blobClient = blobClient;
             _logger = logger;
@@ -110,6 +113,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(datasetsResiliencePolicies, nameof(datasetsResiliencePolicies));
 
             _providerResultsRepositoryPolicy = datasetsResiliencePolicies.ProviderResultsRepository;
+            _sourceDatasetsVersionRepository = sourceDatasetsVersionRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -222,7 +226,6 @@ namespace CalculateFunding.Services.Datasets
 
             return new OkObjectResult(responseModel);
         }
-
 
         async public Task<IActionResult> GetDatasetByName(HttpRequest request)
         {
@@ -601,9 +604,11 @@ namespace CalculateFunding.Services.Datasets
 
             BuildProject buildProject = null;
 
+            Reference user = request.GetUser();
+
             try
             {
-                buildProject = await ProcessDataset(dataset, specificationId, relationshipId, relationship.DatasetVersion.Version);
+                buildProject = await ProcessDataset(dataset, specificationId, relationshipId, relationship.DatasetVersion.Version, user);
             }
             catch (Exception exception)
             {
@@ -693,9 +698,11 @@ namespace CalculateFunding.Services.Datasets
 
             BuildProject buildProject = null;
 
+            Reference user = message.GetUserDetails();
+
             try
             {
-                buildProject = await ProcessDataset(dataset, specificationId, relationshipId, relationship.DatasetVersion.Version);
+                buildProject = await ProcessDataset(dataset, specificationId, relationshipId, relationship.DatasetVersion.Version, user);
             }
             catch (Exception exception)
             {
@@ -1142,7 +1149,7 @@ namespace CalculateFunding.Services.Datasets
             return (validationFailures, rowCount);
         }
 
-        async Task<BuildProject> ProcessDataset(Dataset dataset, string specificationId, string relationshipId, int version)
+        async Task<BuildProject> ProcessDataset(Dataset dataset, string specificationId, string relationshipId, int version, Reference user)
         {
             string dataDefinitionId = dataset.Definition.Id;
 
@@ -1183,12 +1190,12 @@ namespace CalculateFunding.Services.Datasets
                 throw new Exception($"Failed to load table result");
             }
 
-            await PersistDataset(loadResult, dataset, datasetDefinition, buildProject, specificationId, relationshipId, version);
+            await PersistDataset(loadResult, dataset, datasetDefinition, buildProject, specificationId, relationshipId, version, user);
 
             return buildProject;
         }
 
-        async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, string specificationId, string relationshipId, int version)
+        async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, string specificationId, string relationshipId, int version, Reference user)
         {
             if (_providerSummaries.IsNullOrEmpty())
             {
@@ -1197,7 +1204,7 @@ namespace CalculateFunding.Services.Datasets
 
             Guard.IsNullOrWhiteSpace(relationshipId, nameof(relationshipId));
 
-            IList<ProviderSourceDatasetCurrent> providerSourceDatasets = new List<ProviderSourceDatasetCurrent>();
+            IList<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>();
 
             if (buildProject.DatasetRelationships == null)
             {
@@ -1213,37 +1220,22 @@ namespace CalculateFunding.Services.Datasets
                 return;
             }
 
-            ConcurrentDictionary<string, ProviderSourceDatasetCurrent> resultsByProviderId = new ConcurrentDictionary<string, ProviderSourceDatasetCurrent>();
+            Dictionary<string, ProviderSourceDataset> existingCurrent = new Dictionary<string, ProviderSourceDataset>();
 
-            Dictionary<string, ProviderSourceDatasetCurrent> existingCurrent = new Dictionary<string, ProviderSourceDatasetCurrent>();
-
-            Dictionary<string, ProviderSourceDatasetHistory> existingHistory = new Dictionary<string, ProviderSourceDatasetHistory>();
-
-            ConcurrentDictionary<string, ProviderSourceDatasetHistory> updateDatasetsHistory = new ConcurrentDictionary<string, ProviderSourceDatasetHistory>();
-
-            ConcurrentDictionary<string, ProviderSourceDatasetCurrent> updateCurrentDatasets = new ConcurrentDictionary<string, ProviderSourceDatasetCurrent>();
-
-            IEnumerable<ProviderSourceDatasetCurrent> existingCurrentDatasets = await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
+            IEnumerable<ProviderSourceDataset> existingCurrentDatasets = await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
                 _providersResultsRepository.GetCurrentProviderSourceDatasets(specificationId, relationshipId));
-
-            IEnumerable<ProviderSourceDatasetHistory> existingDatasetHistory = await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
-                _providersResultsRepository.GetProviderSourceDatasetHistories(specificationId, relationshipId));
 
             if (existingCurrentDatasets.AnyWithNullCheck())
             {
-                foreach (ProviderSourceDatasetCurrent currentDataset in existingCurrentDatasets)
+                foreach (ProviderSourceDataset currentDataset in existingCurrentDatasets)
                 {
                     existingCurrent.Add(currentDataset.ProviderId, currentDataset);
                 }
             }
 
-            if (existingDatasetHistory.AnyWithNullCheck())
-            {
-                foreach (ProviderSourceDatasetHistory datasetHistory in existingDatasetHistory)
-                {
-                    existingHistory.Add(datasetHistory.ProviderId, datasetHistory);
-                }
-            }
+            ConcurrentDictionary<string, ProviderSourceDataset> resultsByProviderId = new ConcurrentDictionary<string, ProviderSourceDataset>();
+
+            ConcurrentDictionary<string, ProviderSourceDataset> updateCurrentDatasets = new ConcurrentDictionary<string, ProviderSourceDataset>();
 
             Parallel.ForEach(loadResult.Rows, (RowLoadResult row) =>
             {
@@ -1251,9 +1243,9 @@ namespace CalculateFunding.Services.Datasets
 
                 foreach (string providerId in allProviderIds)
                 {
-                    if (!resultsByProviderId.TryGetValue(providerId, out ProviderSourceDatasetCurrent sourceDataset))
+                    if (!resultsByProviderId.TryGetValue(providerId, out ProviderSourceDataset sourceDataset))
                     {
-                        sourceDataset = new ProviderSourceDatasetCurrent
+                        sourceDataset = new ProviderSourceDataset
                         {
                             DataGranularity = relationshipSummary.DataGranularity,
                             SpecificationId = specificationId,
@@ -1262,7 +1254,18 @@ namespace CalculateFunding.Services.Datasets
                             DataRelationship = new Reference(relationshipSummary.Relationship.Id, relationshipSummary.Relationship.Name),
                             DatasetRelationshipSummary = new Reference(relationshipSummary.Id, relationshipSummary.Name),
                             ProviderId = providerId,
-                            Rows = new List<Dictionary<string, object>>()
+                        };
+
+                        sourceDataset.Current = new ProviderSourceDatasetVersion
+                        {
+                            Rows = new List<Dictionary<string, object>>(),
+                            Dataset = new VersionReference(dataset.Id, dataset.Name, version),
+                            Date = DateTimeOffset.Now.ToLocalTime(),
+                            ProviderId = providerId,
+                            Version = 1,
+                            PublishStatus = PublishStatus.Draft,
+                            ProviderSourceDatasetId = sourceDataset.Id,
+                            Author = user
                         };
 
                         if (!resultsByProviderId.TryAdd(providerId, sourceDataset))
@@ -1270,90 +1273,61 @@ namespace CalculateFunding.Services.Datasets
                             resultsByProviderId.TryGetValue(providerId, out sourceDataset);
                         }
                     }
-
-                    sourceDataset.Rows.Add(row.Fields);
+                    sourceDataset.Current.Rows.Add(row.Fields);
                 }
             });
 
-            Parallel.ForEach(resultsByProviderId, (KeyValuePair<string, ProviderSourceDatasetCurrent> providerSourceDataset) =>
+            ConcurrentBag<ProviderSourceDatasetVersion> historyToSave = new ConcurrentBag<ProviderSourceDatasetVersion>();
+
+            Parallel.ForEach(resultsByProviderId, (KeyValuePair<string, ProviderSourceDataset> providerSourceDataset) =>
             {
                 string providerId = providerSourceDataset.Key;
-                ProviderSourceDatasetCurrent sourceDataset = providerSourceDataset.Value;
+                ProviderSourceDataset sourceDataset = providerSourceDataset.Value;
+
+                ProviderSourceDatasetVersion newVersion = null;
 
                 if (existingCurrent.ContainsKey(providerId))
                 {
-                    string existingDatasetJson = JsonConvert.SerializeObject(existingCurrent[providerId]);
-                    string latestDatasetJson = JsonConvert.SerializeObject(sourceDataset);
+                    newVersion = existingCurrent[providerId].Current.Clone() as ProviderSourceDatasetVersion;
+                    
+                    string existingDatasetJson = JsonConvert.SerializeObject(existingCurrent[providerId].Current.Rows);
+                    string latestDatasetJson = JsonConvert.SerializeObject(sourceDataset.Current.Rows);
 
                     if (existingDatasetJson != latestDatasetJson)
                     {
+                        newVersion = _sourceDatasetsVersionRepository.CreateVersion(newVersion, existingCurrent[providerId].Current).Result;
+                        newVersion.Author = user;
+                        newVersion.Rows = sourceDataset.Current.Rows;
+
+                        sourceDataset.Current = newVersion;
+
                         updateCurrentDatasets.TryAdd(providerId, sourceDataset);
+
+                        historyToSave.Add(newVersion);
                     }
                 }
                 else
                 {
+                    newVersion = sourceDataset.Current;
+
                     updateCurrentDatasets.TryAdd(providerId, sourceDataset);
-                }
 
-                ProviderSourceDatasetHistory datasetHistory = null;
-                if (existingHistory.TryGetValue(providerId, out datasetHistory))
-                {
-                    // Only update if the row values change
-                    string existingSourceDatasetJson = JsonConvert.SerializeObject(datasetHistory.History?.LastOrDefault().Rows);
-
-                    string currentSourceDatasetJson = JsonConvert.SerializeObject(providerSourceDataset.Value.Rows);
-
-                    if (existingSourceDatasetJson != currentSourceDatasetJson)
-                    {
-                        SourceDataset latestSourceDataset = new SourceDataset
-                        {
-                            Dataset = new VersionReference(dataset.Id, dataset.Name, version),
-                            Rows = providerSourceDataset.Value.Rows,
-                            Date = DateTimeOffset.Now,
-                            Version = datasetHistory.GetNextVersion(),
-                        };
-
-                        datasetHistory.History = datasetHistory.History.Concat(new[] { latestSourceDataset });
-
-                        updateDatasetsHistory.TryAdd(providerId, datasetHistory);
-                    }
-                }
-                else
-                {
-                    datasetHistory = new ProviderSourceDatasetHistory()
-                    {
-                        DataGranularity = relationshipSummary.DataGranularity,
-                        SpecificationId = specificationId,
-                        DefinesScope = relationshipSummary.DefinesScope,
-                        DataDefinition = new Reference(relationshipSummary.DatasetDefinition.Id, relationshipSummary.DatasetDefinition.Name),
-                        DataRelationship = new Reference(relationshipSummary.Relationship.Id, relationshipSummary.Relationship.Name),
-                        DatasetRelationshipSummary = new Reference(relationshipSummary.Id, relationshipSummary.Name),
-                        History = new List<SourceDataset>() {
-                            new SourceDataset
-                            {
-                                Dataset  = new VersionReference(dataset.Id, dataset.Name, version),
-                                Rows = providerSourceDataset.Value.Rows,
-                                Date = DateTimeOffset.Now,
-                                Version = 1,
-                            }
-                        },
-                        ProviderId = providerId,
-                    };
-
-                    updateDatasetsHistory.TryAdd(providerId, datasetHistory);
+                    historyToSave.Add(newVersion);
                 }
             });
 
             if (updateCurrentDatasets.Count > 0)
             {
+                _logger.Information($"Saving {updateCurrentDatasets.Count()} updated source datasets");
+
                 await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
                 _providersResultsRepository.UpdateCurrentProviderSourceDatasets(updateCurrentDatasets.Values));
             }
 
-            if (updateDatasetsHistory.Count > 0)
+            if (historyToSave.Any())
             {
-                await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
-                _providersResultsRepository.UpdateProviderSourceDatasetHistory(updateDatasetsHistory.Values));
+                _logger.Information($"Saving {historyToSave.Count()} items to history");
+                await _sourceDatasetsVersionRepository.SaveVersions(historyToSave);
             }
 
             await PopulateProviderSummariesForSpecification(specificationId, _providerSummaries);

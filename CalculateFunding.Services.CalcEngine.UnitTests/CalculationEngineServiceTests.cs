@@ -67,7 +67,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDatasetCurrent>>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>())
                 .Returns(new List<CalculationResult>());
 
             calculationEngineServiceTestsHelper
@@ -94,7 +94,7 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDatasetCurrent>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>())
                 .Returns((ProviderResult) null);
 
             calculationEngineServiceTestsHelper
@@ -137,7 +137,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDatasetCurrent>>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>())
                 .Returns(new List<CalculationResult>());
 
             calculationEngineServiceTestsHelper
@@ -164,7 +164,7 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDatasetCurrent>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>())
                 .Returns(new ProviderResult()
                 {
 
@@ -190,7 +190,7 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
-                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDatasetCurrent>>());
+                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>());
 
             calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
@@ -217,7 +217,7 @@ namespace CalculateFunding.Services.Calculator
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
-                .Execute(Arg.Any<List<ProviderSourceDatasetCurrent>>())
+                .Execute(Arg.Any<List<ProviderSourceDataset>>())
                 .Returns(new List<CalculationResult>());
 
             calculationEngineServiceTestsHelper
@@ -244,7 +244,7 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDatasetCurrent>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>())
                 .Returns(new ProviderResult()
                 {
 
@@ -271,7 +271,7 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
-                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDatasetCurrent>>());
+                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>());
 
             calculationEngineServiceTestsHelper
                 .MockProviderResultRepo

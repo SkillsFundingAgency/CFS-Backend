@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests.Vocab
 
             };
 
-            IEnumerable<ProviderSourceDatasetCurrent> datasets = new List<ProviderSourceDatasetCurrent>();
+            IEnumerable<ProviderSourceDataset> datasets = new List<ProviderSourceDataset>();
 
             AndProviderIs andProviderIs = new AndProviderIs { ProviderId = "p1", Operator = ComparisonOperator.EqualTo };
 
@@ -53,7 +53,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests.Vocab
 
             };
 
-            IEnumerable<ProviderSourceDatasetCurrent> datasets = new List<ProviderSourceDatasetCurrent>();
+            IEnumerable<ProviderSourceDataset> datasets = new List<ProviderSourceDataset>();
 
             AndProviderIs andProviderIs = new AndProviderIs { ProviderId = "p2", Operator = ComparisonOperator.EqualTo };
 

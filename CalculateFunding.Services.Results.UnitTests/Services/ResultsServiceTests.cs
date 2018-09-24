@@ -631,7 +631,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            IEnumerable<ProviderSourceDatasetCurrent> providerSources = new[] { new ProviderSourceDatasetCurrent(), new ProviderSourceDatasetCurrent() };
+            IEnumerable<ProviderSourceDataset> providerSources = new[] { new ProviderSourceDataset(), new ProviderSourceDataset() };
 
             IProviderSourceDatasetRepository providerSourceDatasetRepository = CreateProviderSourceDatasetRepository();
             providerSourceDatasetRepository
@@ -650,7 +650,7 @@ namespace CalculateFunding.Services.Results.Services
 
             OkObjectResult okResult = result as OkObjectResult;
 
-            IEnumerable<ProviderSourceDatasetCurrent> sourceDatasets = okResult.Value as IEnumerable<ProviderSourceDatasetCurrent>;
+            IEnumerable<ProviderSourceDataset> sourceDatasets = okResult.Value as IEnumerable<ProviderSourceDataset>;
 
             sourceDatasets
                 .Count()

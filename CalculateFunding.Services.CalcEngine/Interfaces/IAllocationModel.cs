@@ -5,6 +5,6 @@ namespace CalculateFunding.Services.Calculator.Interfaces
 {
     public interface IAllocationModel
     {
-        IEnumerable<CalculationResult> Execute(List<ProviderSourceDatasetCurrent> datasets);
+        IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets);
     }
 }

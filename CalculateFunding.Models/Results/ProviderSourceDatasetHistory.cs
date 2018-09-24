@@ -38,7 +38,7 @@ namespace CalculateFunding.Models.Results
         public bool DefinesScope { get; set; }
 
         [JsonProperty("history")]
-        public IEnumerable<SourceDataset> History { get; set; } = Enumerable.Empty<SourceDataset>();
+        public IEnumerable<ProviderSourceDatasetVersion> History { get; set; } = Enumerable.Empty<ProviderSourceDatasetVersion>();
 
         public int GetNextVersion()
         {

@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
@@ -48,7 +50,8 @@ namespace CalculateFunding.Services.Datasets.Services
             ITelemetry telemetry = null,
             IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
             IValidator<ExcelPackage> datasetWorksheetValidator = null,
-            IValidator<DatasetUploadValidationModel> datasetUploadValidator = null)
+            IValidator<DatasetUploadValidationModel> datasetUploadValidator = null,
+            IVersionRepository<ProviderSourceDatasetVersion> versionRepository = null)
         {
 
             return new DatasetService(
@@ -70,7 +73,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 telemetry ?? CreateTelemetry(),
                 datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies(),
                 datasetWorksheetValidator ?? CreateDataWorksheetValidator(),
-                datasetUploadValidator ?? CreateDatasetUploadValidator());
+                datasetUploadValidator ?? CreateDatasetUploadValidator(),
+                versionRepository ?? CreateVersionRepository());
+        }
+
+        protected static IVersionRepository<ProviderSourceDatasetVersion> CreateVersionRepository()
+        {
+            return Substitute.For<IVersionRepository<ProviderSourceDatasetVersion>>();
         }
 
         protected static ICalcsRepository CreateCalcsRepository()

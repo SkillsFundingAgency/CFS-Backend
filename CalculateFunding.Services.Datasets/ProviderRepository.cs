@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Datasets
             return health;
         }
 
-        public Task<IEnumerable<ProviderSourceDatasetCurrent>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId)
+        public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId)
         {
             if (string.IsNullOrWhiteSpace(providerId))
                 throw new ArgumentNullException(nameof(providerId));
@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Datasets
 
             string url = string.Format(GetProviderSourceDatasets, providerId, specificationId);
 
-            return _apiClient.GetAsync<IEnumerable<ProviderSourceDatasetCurrent>>(url);
+            return _apiClient.GetAsync<IEnumerable<ProviderSourceDataset>>(url);
         }
 
         public Task<ProviderSearchResults> SearchProviders(SearchModel searchModel)

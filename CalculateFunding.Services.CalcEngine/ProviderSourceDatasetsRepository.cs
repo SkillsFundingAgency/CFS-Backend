@@ -22,16 +22,16 @@ namespace CalculateFunding.Services.Calculator
             _engineSettings = engineSettings;
         }
 
-        public async Task<IEnumerable<ProviderSourceDatasetCurrent>> GetProviderSourceDatasetsByProviderIdsAndSpecificationId(IEnumerable<string> providerIds, string specificationId)
+        public async Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdsAndSpecificationId(IEnumerable<string> providerIds, string specificationId)
         {
             if (providerIds.IsNullOrEmpty())
             {
-                return Enumerable.Empty<ProviderSourceDatasetCurrent>();
+                return Enumerable.Empty<ProviderSourceDataset>();
             }
 
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            ConcurrentBag<ProviderSourceDatasetCurrent> results = new ConcurrentBag<ProviderSourceDatasetCurrent>();
+            ConcurrentBag<ProviderSourceDataset> results = new ConcurrentBag<ProviderSourceDataset>();
 
             List<Task> allTasks = new List<Task>();
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _engineSettings.GetProviderSourceDatasetsDegreeOfParallelism);
@@ -43,9 +43,9 @@ namespace CalculateFunding.Services.Calculator
                     {
                         try
                         {
-                            string sql = $"SELECT * FROM Root r where r.documentType = '{nameof(ProviderSourceDatasetCurrent)}' and r.content.specificationId = '{specificationId}' and r.content.providerId ='{providerId}' AND r.deleted = false";
-                            IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasetResults = await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>(sql, partitionEntityId: providerId);
-                            foreach (ProviderSourceDatasetCurrent repoResult in providerSourceDatasetResults)
+                            string sql = $"SELECT * FROM Root r where r.documentType = '{nameof(ProviderSourceDataset)}' and r.content.specificationId = '{specificationId}' and r.content.providerId ='{providerId}' AND r.deleted = false";
+                            IEnumerable<ProviderSourceDataset> providerSourceDatasetResults = await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>(sql, partitionEntityId: providerId);
+                            foreach (ProviderSourceDataset repoResult in providerSourceDatasetResults)
                             {
                                 results.Add(repoResult);
                             }

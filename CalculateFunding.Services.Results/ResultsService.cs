@@ -572,7 +572,7 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty provider Id provided");
             }
 
-            IEnumerable<ProviderSourceDatasetCurrent> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetRepository.GetProviderSourceDatasets(providerId, specificationId));
+            IEnumerable<ProviderSourceDataset> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetRepository.GetProviderSourceDatasets(providerId, specificationId));
 
             return new OkObjectResult(providerResults);
         }

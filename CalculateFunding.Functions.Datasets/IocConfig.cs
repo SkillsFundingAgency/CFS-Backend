@@ -4,15 +4,18 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.DataImporter.Validators;
 using CalculateFunding.Services.DataImporter.Validators.Models;
@@ -155,6 +158,19 @@ namespace CalculateFunding.Functions.Datasets
 			MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             builder
                 .AddSingleton(dataSetsConfig.CreateMapper());
+
+            builder.AddSingleton<IVersionRepository<ProviderSourceDatasetVersion>, VersionRepository<ProviderSourceDatasetVersion>>((ctx) =>
+            {
+                CosmosDbSettings ProviderSourceDatasetVersioningDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", ProviderSourceDatasetVersioningDbSettings);
+
+                ProviderSourceDatasetVersioningDbSettings.CollectionName = "providerdatasets";
+
+                CosmosRepository cosmosRepository = new CosmosRepository(ProviderSourceDatasetVersioningDbSettings);
+
+                return new VersionRepository<ProviderSourceDatasetVersion>(cosmosRepository);
+            });
 
             builder.AddCalcsInterServiceClient(config);
             builder.AddResultsInterServiceClient(config);

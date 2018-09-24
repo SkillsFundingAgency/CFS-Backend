@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<IEnumerable<string>> GetAllProviderIdsForSpecificationid(string specificationId)
         {
-            IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets = await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDatasetCurrent>($"SELECT * FROM r WHERE r.content.specificationId = '{specificationId}' AND r.deleted = false AND r.documentType = '{nameof(ProviderSourceDatasetCurrent)}'", -1, specificationId);
+            IEnumerable<ProviderSourceDataset> providerSourceDatasets = await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>($"SELECT * FROM r WHERE r.content.specificationId = '{specificationId}' AND r.deleted = false AND r.documentType = '{nameof(ProviderSourceDataset)}'", -1, specificationId);
 
             return providerSourceDatasets.Select(m => m.ProviderId).Distinct();
         }
@@ -47,18 +47,18 @@ namespace CalculateFunding.Services.Datasets
 
         }
 
-        public async Task<IEnumerable<ProviderSourceDatasetCurrent>> GetCurrentProviderSourceDatasets(string specificationId, string relationshipId)
+        public async Task<IEnumerable<ProviderSourceDataset>> GetCurrentProviderSourceDatasets(string specificationId, string relationshipId)
         {
-            return await _cosmosRepository.QuerySql<ProviderSourceDatasetCurrent>($"SELECT * FROM r WHERE r.content.specificationId = '{specificationId}' AND r.content.dataRelationship.id = '{relationshipId}' AND r.deleted = false AND r.documentType = '{nameof(ProviderSourceDatasetCurrent)}'", enableCrossPartitionQuery: true, itemsPerPage: 1000);
+            return await _cosmosRepository.QuerySql<ProviderSourceDataset>($"SELECT * FROM r WHERE r.content.specificationId = '{specificationId}' AND r.content.dataRelationship.id = '{relationshipId}' AND r.deleted = false AND r.documentType = '{nameof(ProviderSourceDataset)}'", enableCrossPartitionQuery: true, itemsPerPage: 1000);
         }
 
-        public async Task UpdateCurrentProviderSourceDatasets(IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets)
+        public async Task UpdateCurrentProviderSourceDatasets(IEnumerable<ProviderSourceDataset> providerSourceDatasets)
         {
             Guard.ArgumentNotNull(providerSourceDatasets, nameof(providerSourceDatasets));
 
             List<Task> allTasks = new List<Task>();
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
-            foreach (ProviderSourceDatasetCurrent dataset in providerSourceDatasets)
+            foreach (ProviderSourceDataset dataset in providerSourceDatasets)
             {
                 await throttler.WaitAsync();
                 allTasks.Add(
@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Datasets
                     {
                         try
                         {
-                            await _cosmosRepository.CreateAsync(new KeyValuePair<string, ProviderSourceDatasetCurrent>(dataset.ProviderId, dataset));
+                            await _cosmosRepository.CreateAsync(new KeyValuePair<string, ProviderSourceDataset>(dataset.ProviderId, dataset));
                         }
                         finally
                         {
