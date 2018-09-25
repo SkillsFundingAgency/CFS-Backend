@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using CalculateFunding.Models.Datasets.Schema;
+﻿using CalculateFunding.Models.Datasets.Schema;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
-    public class ProviderSourceDatasetCurrent : IIdentifiable
+    public class ProviderSourceDataset : IIdentifiable
     {
         [JsonProperty("id")]
         public string Id
@@ -38,11 +35,8 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("definesScope")]
         public bool DefinesScope { get; set; }
 
-        // Not included to reduce updates to Current - if the row values are not changed, then no need to write to cosmos. Can look this value up from relationship if required.
-        //[JsonProperty("dataset")]
-        //public VersionReference Dataset { get; set; }
+        [JsonProperty("current")]
+        public ProviderSourceDatasetVersion Current { get; set; }
 
-        [JsonProperty("rows")]
-        public List<Dictionary<string, object>> Rows { get; set; }
     }
 }

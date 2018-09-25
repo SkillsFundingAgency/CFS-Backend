@@ -91,6 +91,14 @@
         "description": "Describes plan's instance count"
       }
     },
+    "searchReplicas": {
+      "type": "int",
+      "defaultValue": 2,
+      "minValue": 1,
+      "metadata": {
+        "description": "Total number of replicas for search"
+      }
+    },
     "cacheSKUName": {
       "type": "string",
       "allowedValues": [
@@ -255,7 +263,7 @@
         "sku": {
           "name": "standard"
         },
-        "replicaCount": 1,
+        "replicaCount": "[parameters('searchReplicas')]",
         "partitionCount": 1
       }
     },

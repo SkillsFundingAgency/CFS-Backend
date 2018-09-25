@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         Task<PublishedAllocationLineResultHistory> GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(string specificationId, string providerId, string allocationLineId);
 
-        PublishedProviderResult GetPublishedProviderResultForId(string id);
+        Task<PublishedProviderResult> GetPublishedProviderResultForId(string id, string providerId);
 
         Task<PublishedProviderResult> GetPublishedProviderResultForIdInPublishedState(string id);
 

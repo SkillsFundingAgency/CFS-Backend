@@ -1,55 +1,30 @@
-﻿using CalculateFunding.Models;
-using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Health;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Services.Results.Interfaces;
-using Newtonsoft.Json;
-using Serilog;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Models;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Results.Interfaces;
+using Serilog;
 
 namespace CalculateFunding.Services.Results
 {
-    public class PublishedProviderResultsAssemblerService : IPublishedProviderResultsAssemblerService, IHealthChecker
+    public class PublishedProviderResultsAssemblerService : IPublishedProviderResultsAssemblerService
     {
         private readonly ISpecificationsRepository _specificationsRepository;
-        private readonly ICacheProvider _cacheProvider;
         private readonly ILogger _logger;
 
         public PublishedProviderResultsAssemblerService(
             ISpecificationsRepository specificationsRepository,
-            ICacheProvider cacheProvider,
             ILogger logger)
         {
-            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
 
             _specificationsRepository = specificationsRepository;
-            _cacheProvider = cacheProvider;
             _logger = logger;
-        }
-
-        public async Task<ServiceHealth> IsHealthOk()
-        {
-            var cacheHealth = await _cacheProvider.IsHealthOk();
-
-            ServiceHealth health = new ServiceHealth()
-            {
-                Name = nameof(PublishedProviderResultsAssemblerService)
-            };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
-
-            return health;
         }
 
         public async Task<IEnumerable<PublishedProviderResult>> AssemblePublishedProviderResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion)
@@ -71,34 +46,27 @@ namespace CalculateFunding.Services.Results
 
             ConcurrentBag<PublishedProviderResult> publishedProviderResults = new ConcurrentBag<PublishedProviderResult>();
 
-            IList<Task> assembleTasks = new List<Task>();
+            IEnumerable<FundingStream> allFundingStreams = await GetAllFundingStreams();
 
-            foreach (ProviderResult providerResult in providerResults)
+            Parallel.ForEach(providerResults, (providerResult) =>
             {
-                assembleTasks.Add(Task.Run(async () =>
+                IEnumerable<PublishedFundingStreamResult> publishedFundingStreamResults = AssembleFundingStreamResults(providerResult, specificationCurrentVersion, author, allFundingStreams);
+
+                foreach (PublishedFundingStreamResult publishedFundingStreamResult in publishedFundingStreamResults)
                 {
-                    IEnumerable<PublishedFundingStreamResult> publishedFundingStreamResults = await AssembleFundingStreamResults(providerResult, specificationCurrentVersion, author);
-
-                    foreach (PublishedFundingStreamResult publishedFundingStreamResult in publishedFundingStreamResults)
+                    PublishedProviderResult publishedProviderResult = new PublishedProviderResult
                     {
-                        PublishedProviderResult publishedProviderResult = new PublishedProviderResult
-                        {
-                            ProviderId = providerResult.Provider.Id,
-                            SpecificationId = specificationId,
-                            FundingStreamResult = publishedFundingStreamResult,
-                            Summary = $"{providerResult.Provider.ProviderProfileIdType}: {providerResult.Provider.Id}, version {publishedFundingStreamResult.AllocationLineResult.Current.Version}",
-                            Title = $"Allocation {publishedFundingStreamResult.AllocationLineResult.AllocationLine.Name} was {publishedFundingStreamResult.AllocationLineResult.Current.Status.ToString()}",
-                            FundingPeriod = fundingPeriod
-                        };
+                        ProviderId = providerResult.Provider.Id,
+                        SpecificationId = specificationId,
+                        FundingStreamResult = publishedFundingStreamResult,
+                        Summary = $"{providerResult.Provider.ProviderProfileIdType}: {providerResult.Provider.Id}, version {publishedFundingStreamResult.AllocationLineResult.Current.Version}",
+                        Title = $"Allocation {publishedFundingStreamResult.AllocationLineResult.AllocationLine.Name} was {publishedFundingStreamResult.AllocationLineResult.Current.Status.ToString()}",
+                        FundingPeriod = fundingPeriod
+                    };
 
-                        publishedProviderResults.Add(publishedProviderResult);
-                    }
-
-                }));
-
-            }
-
-            await TaskHelper.WhenAllAndThrow(assembleTasks.ToArray());
+                    publishedProviderResults.Add(publishedProviderResult);
+                }
+            });
 
             return publishedProviderResults;
         }
@@ -130,7 +98,7 @@ namespace CalculateFunding.Services.Results
                 {
                     (Policy policy, Policy parentPolicy, Models.Specs.Calculation calculation) = FindPolicy(calculationResult.CalculationSpecification.Id, specificationCurrentVersion.Policies);
 
-                    if(calculation.CalculationType == Models.Specs.CalculationType.Number && !calculation.IsPublic)
+                    if (calculation.CalculationType == Models.Specs.CalculationType.Number && !calculation.IsPublic)
                     {
                         continue;
                     }
@@ -156,12 +124,12 @@ namespace CalculateFunding.Services.Results
                         Specification = new Reference(specification.Id, specification.Name)
                     };
 
-                    if(policy != null)
+                    if (policy != null)
                     {
                         publishedProviderCalculationResult.Policy = new PolicySummary(policy.Id, policy.Name, policy.Description);
                     }
 
-                    if(parentPolicy != null)
+                    if (parentPolicy != null)
                     {
                         publishedProviderCalculationResult.ParentPolicy = new PolicySummary(parentPolicy.Id, parentPolicy.Name, parentPolicy.Description);
                     }
@@ -219,10 +187,8 @@ namespace CalculateFunding.Services.Results
             }
         }
 
-        private async Task<IEnumerable<PublishedFundingStreamResult>> AssembleFundingStreamResults(ProviderResult providerResult, SpecificationCurrentVersion specificationCurrentVersion, Reference author)
+        private IEnumerable<PublishedFundingStreamResult> AssembleFundingStreamResults(ProviderResult providerResult, SpecificationCurrentVersion specificationCurrentVersion, Reference author, IEnumerable<FundingStream> allFundingStreams)
         {
-            IEnumerable<FundingStream> allFundingStreams = await GetAllFundingStreams();
-
             IList<PublishedFundingStreamResult> publishedFundingStreamResults = new List<PublishedFundingStreamResult>();
 
             foreach (Reference fundingStreamReference in specificationCurrentVersion.FundingStreams)
@@ -230,11 +196,16 @@ namespace CalculateFunding.Services.Results
                 FundingStream fundingStream = allFundingStreams.FirstOrDefault(m => m.Id == fundingStreamReference.Id);
 
                 if (fundingStream == null)
+                {
                     throw new Exception($"Failed to find a funding stream for id: {fundingStreamReference.Id}");
+                }
 
-                IEnumerable<IGrouping<string, AllocationLineResult>> allocationLineGroups = providerResult.AllocationLineResults.GroupBy(m => m.AllocationLine.Id);
+                IEnumerable<IGrouping<string, CalculationResult>> allocationLineGroups = providerResult
+                    .CalculationResults
+                    .Where(c => c.CalculationType == Models.Calcs.CalculationType.Funding && c.Value.HasValue && c.AllocationLine != null && !string.IsNullOrWhiteSpace(c.AllocationLine.Id))
+                    .GroupBy(m => m.AllocationLine.Id);
 
-                foreach (IGrouping<string, AllocationLineResult> allocationLineResultGroup in allocationLineGroups)
+                foreach (IGrouping<string, CalculationResult> allocationLineResultGroup in allocationLineGroups)
                 {
                     AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == allocationLineResultGroup.Key);
 
@@ -275,18 +246,12 @@ namespace CalculateFunding.Services.Results
 
         private async Task<IEnumerable<FundingStream>> GetAllFundingStreams()
         {
-            IEnumerable<FundingStream> allFundingStreams = await _cacheProvider.GetAsync<FundingStream[]>(CacheKeys.AllFundingStreams);
+
+            IEnumerable<FundingStream> allFundingStreams = await _specificationsRepository.GetFundingStreams();
 
             if (allFundingStreams.IsNullOrEmpty())
             {
-                allFundingStreams = await _specificationsRepository.GetFundingStreams();
-
-                if (allFundingStreams.IsNullOrEmpty())
-                {
-                    throw new Exception("Failed to get all funding streams");
-                }
-
-                await _cacheProvider.SetAsync<FundingStream[]>(CacheKeys.AllFundingStreams, allFundingStreams.ToArray());
+                throw new Exception("Failed to get all funding streams");
             }
 
             return allFundingStreams;

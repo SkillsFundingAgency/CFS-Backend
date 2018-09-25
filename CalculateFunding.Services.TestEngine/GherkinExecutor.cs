@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.TestRunner
             return health;
         }
 
-        public async Task<IEnumerable<ScenarioResult>> Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDatasetCurrent> datasets, 
+        public async Task<IEnumerable<ScenarioResult>> Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets, 
             IEnumerable<TestScenario> testScenarios, BuildProject buildProject)
         {
 

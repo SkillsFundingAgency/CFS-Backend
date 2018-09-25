@@ -417,6 +417,65 @@ namespace CalculateFunding.Api.External.UnitTests.Services
         }
 
         [TestMethod]
+        public async Task GetNotifications_GivenSearchFeedRetunsNoResultsWhenNoQueryParameters_EnsuresAtomLinksCorrect()
+        {
+            //Arrange
+            SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
+            {
+                PageRef = 3,
+                Top = 500,
+                TotalCount = 3,
+                Entries = CreateFeedIndexes()
+            };
+
+            IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
+            feedsSearchService
+                .GetFeeds(Arg.Is(3), Arg.Is(2), Arg.Any<IEnumerable<string>>())
+                .Returns(feeds);
+
+            AllocationNotificationFeedsService service = CreateService(feedsSearchService);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary.Add("Accept", new StringValues("application/json"));
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "allocationStatuses", new StringValues("Published,Approved") },
+                { "pageSize", new StringValues("2") }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request.Scheme.Returns("https");
+            request.Path.Returns(new PathString("/api/v1/test"));
+            request.Host.Returns(new HostString("wherever.naf:12345"));
+            request.Headers.Returns(headerDictionary);
+
+            //Act
+            IActionResult result = await service.GetNotifications(3, "Published,Approved", 2, request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<ContentResult>();
+
+            ContentResult contentResult = result as ContentResult;
+            AtomFeed<AllocationModel> atomFeed = JsonConvert.DeserializeObject<AtomFeed<AllocationModel>>(contentResult.Content);
+
+            atomFeed
+                .Should()
+                .NotBeNull();
+
+            atomFeed.Id.Should().NotBeEmpty();
+            atomFeed.Title.Should().Be("Calculate Funding Service Allocation Feed");
+            atomFeed.Author.Name.Should().Be("Calculate Funding Service");
+            atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=3");
+            atomFeed.Link.First(m => m.Rel == "first").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=1");
+            atomFeed.Link.First(m => m.Rel == "last").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=1");
+            atomFeed.Link.First(m => m.Rel == "previous").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=2");
+            atomFeed.Link.First(m => m.Rel == "next").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=3");
+        }
+
+        [TestMethod]
         public async Task GetNotifications_GivenAcceptHeaderNotSupplied_ReturnsBadRequest()
         {
             //Arrange
