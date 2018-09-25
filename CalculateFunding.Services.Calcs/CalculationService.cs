@@ -389,6 +389,14 @@ namespace CalculateFunding.Services.Calcs
 
                 calculation.Current = calculationVersion;
 
+                Calculation calculationDuplicateCheck = await _calculationsRepository.GetCalculationByCalculationSpecificationId(calculation.CalculationSpecification.Id);
+
+                if (calculationDuplicateCheck != null)
+                {
+                    _logger.Error($"The calculation with the same id {calculation.CalculationSpecification.Id} has already been created");
+                    throw new InvalidOperationException($"The calculation with the same id {calculation.CalculationSpecification.Id} has already been created");
+                }
+
                 HttpStatusCode result = await _calculationsRepository.CreateDraftCalculation(calculation);
 
                 if (result.IsSuccess())
