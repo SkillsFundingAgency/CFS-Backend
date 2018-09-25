@@ -636,7 +636,7 @@ namespace CalculateFunding.Services.Calcs
                     Author = user,
                     PublishStatus = PublishStatus.Draft,
                     Version = 1
-                };                
+                };
             }
             else
             {
@@ -645,7 +645,7 @@ namespace CalculateFunding.Services.Calcs
 
             calculationVersion.DecimalPlaces = 6;
             calculationVersion.SourceCode = sourceCodeVersion.SourceCode;
-            calculationVersion.CalculationId = calculationId;       
+            calculationVersion.CalculationId = calculationId;
 
             UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, user);
 
@@ -690,7 +690,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 throw new InvalidOperationException($"Update calculation returned status code '{statusCode}' instead of OK");
             }
-            
+
             BuildProject buildProject = await UpdateBuildProject(calculation.SpecificationId);
 
             Models.Specs.SpecificationSummary specificationSummary = await _specsRepository.GetSpecificationSummaryById(calculation.SpecificationId);
@@ -1140,6 +1140,6 @@ namespace CalculateFunding.Services.Calcs
             }
 
             return result;
-       }
+        }
     }
 }
