@@ -281,7 +281,7 @@ namespace CalculateFunding.Services.Results.Services
             result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
 
             IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
-            requestModel.First().providerId = result.ProviderId;
+            requestModel.First().ProviderId = result.ProviderId;
             requestModel.First().AllocationLineResultId = result.Id;
 
             ProviderProfilingResponseModel profileResponse = new ProviderProfilingResponseModel
@@ -400,9 +400,9 @@ namespace CalculateFunding.Services.Results.Services
 
             IEnumerable<FetchProviderProfilingMessageItem> requestModel = new[]
             {
-                new FetchProviderProfilingMessageItem { providerId = results.ElementAt(0).ProviderId, AllocationLineResultId = results.ElementAt(0).Id },
-                new FetchProviderProfilingMessageItem { providerId = results.ElementAt(1).ProviderId, AllocationLineResultId = results.ElementAt(1).Id },
-                new FetchProviderProfilingMessageItem { providerId = results.ElementAt(2).ProviderId, AllocationLineResultId = results.ElementAt(2).Id }
+                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(0).ProviderId, AllocationLineResultId = results.ElementAt(0).Id },
+                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(1).ProviderId, AllocationLineResultId = results.ElementAt(1).Id },
+                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(2).ProviderId, AllocationLineResultId = results.ElementAt(2).Id }
             };
 
             ResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
@@ -487,9 +487,9 @@ namespace CalculateFunding.Services.Results.Services
 
             IEnumerable<FetchProviderProfilingMessageItem> requestModel = new[]
             {
-                new FetchProviderProfilingMessageItem { providerId = results.ElementAt(0).ProviderId, AllocationLineResultId = results.ElementAt(0).Id },
-                new FetchProviderProfilingMessageItem { providerId = results.ElementAt(1).ProviderId, AllocationLineResultId = results.ElementAt(1).Id },
-                new FetchProviderProfilingMessageItem { providerId = results.ElementAt(2).ProviderId, AllocationLineResultId = results.ElementAt(2).Id }
+                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(0).ProviderId, AllocationLineResultId = results.ElementAt(0).Id },
+                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(1).ProviderId, AllocationLineResultId = results.ElementAt(1).Id },
+                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(2).ProviderId, AllocationLineResultId = results.ElementAt(2).Id }
             };
 
             ResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
@@ -534,7 +534,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new FetchProviderProfilingMessageItem
                 {
-                    providerId = "prov1",
+                    ProviderId = "prov1",
                     AllocationLineResultId = "result1"
                 }
             };

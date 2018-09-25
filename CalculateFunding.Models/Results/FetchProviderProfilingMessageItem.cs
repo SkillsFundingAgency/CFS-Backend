@@ -8,6 +8,6 @@ namespace CalculateFunding.Models.Results
     {
         public string AllocationLineResultId { get; set; }
 
-        public string providerId { get; set; }
+        public string ProviderId { get; set; }
     }
 }
