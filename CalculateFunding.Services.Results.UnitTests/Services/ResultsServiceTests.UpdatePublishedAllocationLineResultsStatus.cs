@@ -5,6 +5,7 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.ResultModels;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
@@ -243,7 +244,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
             resultsProviderRepository
-                .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(CreatePublishedProviderResults());
             resultsProviderRepository
                 .When(x => x.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>()))
@@ -309,7 +310,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
             resultsProviderRepository
-                .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(CreatePublishedProviderResults());
 
             ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
@@ -419,7 +420,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
             resultsProviderRepository
-                .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
 
             resultsProviderRepository
@@ -515,7 +516,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
             resultsProviderRepository
-                .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
 
             resultsProviderRepository
@@ -615,7 +616,7 @@ namespace CalculateFunding.Services.Results.Services
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
 
             resultsProviderRepository
-                .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
 
             resultsProviderRepository
@@ -716,7 +717,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
             resultsProviderRepository
-                .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
 
             resultsProviderRepository
@@ -876,7 +877,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
             resultsProviderRepository
-                .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
 
             resultsProviderRepository
@@ -1039,7 +1040,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
             resultsProviderRepository
-                .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
 
             resultsProviderRepository
@@ -1184,7 +1185,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
             resultsProviderRepository
-                .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
 
             resultsProviderRepository
@@ -1218,7 +1219,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Should()
                 .BeOfType<OkObjectResult>();
 
-            await messengerService.Received(3).SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.FetchProviderProfile), Arg.Any<ProviderProfilingRequestModel>(), Arg.Any<Dictionary<string, string>>());
+            await messengerService.Received(1).SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.FetchProviderProfile), Arg.Any<IEnumerable<ProviderProfileMessageItem>>(), Arg.Any<Dictionary<string, string>>());
         } 
     }
 }
