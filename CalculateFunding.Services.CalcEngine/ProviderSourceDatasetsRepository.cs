@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.Calculator
                         }
                     }));
             }
-            await Task.WhenAll(allTasks);
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
             return results.AsEnumerable();
         }

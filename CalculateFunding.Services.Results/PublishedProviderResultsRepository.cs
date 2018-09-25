@@ -80,13 +80,17 @@ namespace CalculateFunding.Services.Results
             return Task.FromResult(results.AsEnumerable());
         }
 
-        public PublishedProviderResult GetPublishedProviderResultForId(string id)
+        public async Task<PublishedProviderResult> GetPublishedProviderResultForId(string id, string providerId)
         {
             Guard.IsNullOrWhiteSpace(id, nameof(id));
 
-            IQueryable<PublishedProviderResult> results = _cosmosRepository.Query<PublishedProviderResult>(enableCrossPartitionQuery: true).Where(m => m.Id == id);
+            Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
 
-            return results.AsEnumerable().FirstOrDefault();
+            string sql = $"select * from root c where c.id = \"{id}\" and c.documentType = \"PublishedProviderResult\" and c.deleted = false";
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = await _cosmosRepository.QueryPartitionedEntity<PublishedProviderResult>(sql, 1, partitionEntityId: providerId);
+
+            return publishedProviderResults.FirstOrDefault();
         }
 
         public Task<PublishedProviderResult> GetPublishedProviderResultForIdInPublishedState(string id)

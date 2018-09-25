@@ -29,6 +29,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
 {
@@ -1186,45 +1194,126 @@ namespace CalculateFunding.Services.Results
 
         public async Task FetchProviderProfile(Message message)
         {
+            Stopwatch profilingStopWatch = Stopwatch.StartNew();
+        
             Guard.ArgumentNotNull(message, nameof(message));
 
-            if (!message.UserProperties.ContainsKey("publishedproviderresult-id"))
+            if (!message.UserProperties.ContainsKey("specification-id"))
             {
-                _logger.Error("No Published Provider Result Id was provided to FetchProviderProfile");
-                throw new ArgumentException("Message must contain a published provider result id");
+                _logger.Error("No specification id was present on the message");
+                throw new ArgumentException("Message must contain a specification id in user properties");
             }
 
-            string publishedProviderResultId = message.UserProperties["publishedproviderresult-id"].ToString();
+            string specificationId = message.UserProperties["specification-id"].ToString();
 
-            ProviderProfilingRequestModel model = message.GetPayloadAsInstanceOf<ProviderProfilingRequestModel>();
+            IEnumerable<FetchProviderProfilingMessageItem> data = message.GetPayloadAsInstanceOf<IEnumerable<FetchProviderProfilingMessageItem>>();
 
-            if (model == null)
+            if (data.IsNullOrEmpty())
             {
-                _logger.Error("No Provider Profiling Request was present in the message");
-                throw new ArgumentException("Message must contain a provider profiling request");
+                _logger.Error("No allocation result profiling items were present in the message");
+                throw new ArgumentException("Message must contain a collection of allocation results profiling items");
+            }
+            
+            SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(specificationId));
+
+            if(specification == null)
+            {
+                _logger.Error($"A specification could not be found with id {specificationId}");
+
+                throw new ArgumentException($"Could not find a specification with id {specificationId}");
             }
 
-            PublishedProviderResult result = _publishedProviderResultsRepository.GetPublishedProviderResultForId(publishedProviderResultId);
+            ConcurrentBag<PublishedProviderResult> publishedProviderResults = new ConcurrentBag<PublishedProviderResult>();
+
+            IList<Task> profilingTasks = new List<Task>();
+
+            long totalMsForProfilingApi = 0;
+
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+            foreach (FetchProviderProfilingMessageItem profilingItem in data)
+            {
+                await throttler.WaitAsync();
+                profilingTasks.Add(
+                    Task.Run(() =>
+                    {
+                        try
+                        {
+                            (PublishedProviderResult publishedProviderResult, long timeInMs) profilingResult = ProfileResult(profilingItem).Result;
+
+                            publishedProviderResults.Add(profilingResult.publishedProviderResult);
+
+                            totalMsForProfilingApi += profilingResult.timeInMs;
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+            
+            await TaskHelper.WhenAllAndThrow(profilingTasks.ToArray());
+
+            if (!publishedProviderResults.IsNullOrEmpty())
+            {
+                await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(publishedProviderResults));
+
+                await UpdateAllocationNotificationsFeedIndex(publishedProviderResults, specification, true);
+            }
+
+            profilingStopWatch.Stop();
+
+            int batchSize = data.Count();
+
+            IDictionary<string, double> metrics = new Dictionary<string, double>()
+                    {
+                        { "profiling-batch-size-count", batchSize },
+                        { "profiling-run-timeInMs", profilingStopWatch.ElapsedMilliseconds },
+                        { "average-time-for-profiling-api", (long)(totalMsForProfilingApi / batchSize) }
+                    };
+
+            _telemetry.TrackEvent("ProviderProfilingProcessed",
+                    new Dictionary<string, string>()
+                    {
+                        { "specificationId" , specificationId }                      
+                    },
+                    metrics
+                );
+        }
+
+        private async Task<(PublishedProviderResult, long)> ProfileResult(FetchProviderProfilingMessageItem messageItem)
+        {
+            PublishedProviderResult result = await _publishedProviderResultsRepository.GetPublishedProviderResultForId(messageItem.AllocationLineResultId, messageItem.providerId);
 
             if (result == null)
             {
-                _logger.Error("Could not find published provider result with id '{id}'", publishedProviderResultId);
-                throw new ArgumentException($"Published provider result with id '{publishedProviderResultId}' not found");
+                _logger.Error("Could not find published provider result with id '{id}'", messageItem.AllocationLineResultId);
+                throw new ArgumentException($"Published provider result with id '{messageItem.AllocationLineResultId}' not found");
             }
 
-            _logger.Information($"Received new provider profiling message for result id {result.Id} and provider {result.ProviderId}");
+            ProviderProfilingRequestModel providerProfilingRequestModel = new ProviderProfilingRequestModel
+            {
+                FundingStreamPeriod = result.FundingStreamResult.FundingStreamPeriod,
+                AllocationValueByDistributionPeriod = new[]
+                {
+                        new AllocationPeriodValue
+                        {
+                            DistributionPeriod =result.FundingStreamResult.DistributionPeriod,
+                            AllocationValue = (decimal)result.FundingStreamResult.AllocationLineResult.Current.Value
+                        }
+                    }
+            };
 
-            ProviderProfilingResponseModel responseModel = await _providerProfilingRepositoryPolicy.ExecuteAsync(() => _providerProfilingRepository.GetProviderProfilePeriods(model));
+            Stopwatch profilingApiStopWatch = Stopwatch.StartNew();
+
+            ProviderProfilingResponseModel responseModel = await _providerProfilingRepositoryPolicy.ExecuteAsync(() => _providerProfilingRepository.GetProviderProfilePeriods(providerProfilingRequestModel));
+
+            profilingApiStopWatch.Stop();
 
             if (responseModel != null && !responseModel.DeliveryProfilePeriods.IsNullOrEmpty())
             {
                 result.ProfilingPeriods = responseModel.DeliveryProfilePeriods.ToArraySafe();
 
-                await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(new[] { result }));
-
-                SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(result.SpecificationId));
-
-                await UpdateAllocationNotificationsFeedIndex(new[] { result }, specification, true);
+                return (result, profilingApiStopWatch.ElapsedMilliseconds);
             }
             else
             {
