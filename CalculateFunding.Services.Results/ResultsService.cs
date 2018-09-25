@@ -1170,7 +1170,7 @@ namespace CalculateFunding.Services.Results
             int startPosition = 0;
             while (startPosition < resultsToProfile.Count())
             {
-                IEnumerable<ProviderProfileMessageItem> batchOfResultsToProfile = resultsToProfile.Skip(startPosition).Take(batchSize).Select(r => new ProviderProfileMessageItem { AllocationLineResultId = r.Id, ProviderId = r.ProviderId });
+                IEnumerable<FetchProviderProfilingMessageItem> batchOfResultsToProfile = resultsToProfile.Skip(startPosition).Take(batchSize).Select(r => new FetchProviderProfilingMessageItem { AllocationLineResultId = r.Id, ProviderId = r.ProviderId });
 
                 _logger.Information($"Sending new provider profiling message for {batchOfResultsToProfile.Count()} results");
 
@@ -1275,7 +1275,7 @@ namespace CalculateFunding.Services.Results
 
         private async Task<(PublishedProviderResult, long)> ProfileResult(FetchProviderProfilingMessageItem messageItem)
         {
-            PublishedProviderResult result = await _publishedProviderResultsRepository.GetPublishedProviderResultForId(messageItem.AllocationLineResultId, messageItem.providerId);
+            PublishedProviderResult result = await _publishedProviderResultsRepository.GetPublishedProviderResultForId(messageItem.AllocationLineResultId, messageItem.ProviderId);
 
             if (result == null)
             {

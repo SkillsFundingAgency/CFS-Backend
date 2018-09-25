@@ -1219,7 +1219,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Should()
                 .BeOfType<OkObjectResult>();
 
-            await messengerService.Received(1).SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.FetchProviderProfile), Arg.Any<IEnumerable<ProviderProfileMessageItem>>(), Arg.Any<Dictionary<string, string>>());
+            await messengerService.Received(1).SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.FetchProviderProfile), Arg.Any<IEnumerable<FetchProviderProfilingMessageItem>>(), Arg.Any<Dictionary<string, string>>());
         } 
     }
 }
