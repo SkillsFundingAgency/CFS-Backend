@@ -30,12 +30,16 @@ namespace CalculateFunding.Services.Calculator
 
             //Assert
             calcResults.Any().Should().BeTrue();
-            calcResults.Count().Should().Be(2);
-            calcResults.ElementAt(0).Value.Should().Be(15);
-            calcResults.ElementAt(1).Value.Should().BeNull();
+            calcResults.Count().Should().Be(6);
+            calcResults.ElementAt(0).Value.Should().Be(59);
+            calcResults.ElementAt(1).Value.Should().Be(112);
+            calcResults.ElementAt(2).Value.Should().BeLessThan(1);
+            calcResults.ElementAt(3).Value.Should().Be(11);
+            calcResults.ElementAt(4).Value.Should().Be(10079319);
+            calcResults.ElementAt(5).Value.Should().BeNull();
         }
 
-        [Ignore]
+        //[Ignore]
         [TestMethod]
         public void Execute_GivenAssembly_EnsuresBindingOfDataset()
         {
@@ -119,7 +123,7 @@ namespace CalculateFunding.Services.Calculator
             Assert.AreEqual(instance.Datasets.ABPE2109001.FullTimePupilsAged10HosptialSchoolsDualRegistrations, 0);
         }
 
-        [Ignore]
+        //[Ignore]
         [TestMethod]
         public void Execute_GivenAssembly_EnsuresBindingOfProvider()
         {
