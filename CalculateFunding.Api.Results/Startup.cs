@@ -6,10 +6,8 @@ using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Proxies.External;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Core.Proxies.External;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Builder;
@@ -52,7 +50,7 @@ namespace CalculateFunding.Api.Results
             app.UseHttpsRedirection();
 
             app.UseMiddleware<LoggedInUserMiddleware>();
-	        app.UseMiddleware<ApiKeyMiddleware>();
+            app.UseMiddleware<ApiKeyMiddleware>();
 
             app.UseMvc();
 

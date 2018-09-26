@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             //Arrange
             IEnumerable<ProviderResult> providerResults = new ProviderResult[0];
             IEnumerable<TestScenario> scenarios = new TestScenario[0];
-            IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets = new ProviderSourceDatasetCurrent[0];
+            IEnumerable<ProviderSourceDataset> providerSourceDatasets = new ProviderSourceDataset[0];
             IEnumerable<TestScenarioResult> testScenarioResults = new TestScenarioResult[0];
             SpecificationSummary specificationSummary = new SpecificationSummary();
             BuildProject buildProject = new BuildProject();
@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             //Arrange
             IEnumerable<ProviderResult> providerResults = new[] { new ProviderResult() };
             IEnumerable<TestScenario> scenarios = new TestScenario[0];
-            IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets = new ProviderSourceDatasetCurrent[0];
+            IEnumerable<ProviderSourceDataset> providerSourceDatasets = new ProviderSourceDataset[0];
             IEnumerable<TestScenarioResult> testScenarioResults = new TestScenarioResult[0];
             SpecificationSummary specificationSummary = new SpecificationSummary();
             BuildProject buildProject = new BuildProject();
@@ -85,7 +85,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             //Arrange
             IEnumerable<ProviderResult> providerResults = new[] { new ProviderResult { Provider = new ProviderSummary { Id = ProviderId }, SpecificationId = SpecificationId } };
             IEnumerable<TestScenario> scenarios = new[] { new TestScenario() };
-            IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets = new ProviderSourceDatasetCurrent[0];
+            IEnumerable<ProviderSourceDataset> providerSourceDatasets = new ProviderSourceDataset[0];
             IEnumerable<TestScenarioResult> testScenarioResults = new TestScenarioResult[0];
             SpecificationSummary specificationSummary = new SpecificationSummary();
             BuildProject buildProject = new BuildProject();
@@ -116,7 +116,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             IEnumerable<ProviderResult> providerResults = new[] { providerResult };
             IEnumerable<TestScenario> scenarios = new[] { new TestScenario() };
-            IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets = new ProviderSourceDatasetCurrent[0];
+            IEnumerable<ProviderSourceDataset> providerSourceDatasets = new ProviderSourceDataset[0];
             IEnumerable<TestScenarioResult> testScenarioResults = new TestScenarioResult[0];
             SpecificationSummary specificationSummary = new SpecificationSummary { Id = SpecificationId, Name = "spec-name" };
             BuildProject buildProject = new BuildProject();
@@ -130,7 +130,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             IGherkinExecutor gherkinExecutor = CreateGherkinExecutor();
             gherkinExecutor
-                .Execute(Arg.Any<ProviderResult>(), Arg.Any<IEnumerable<ProviderSourceDatasetCurrent>>(), Arg.Any<IEnumerable<TestScenario>>(), Arg.Any<BuildProject>())
+                .Execute(Arg.Any<ProviderResult>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<TestScenario>>(), Arg.Any<BuildProject>())
                 .Returns(scenarioResults);
 
             TestEngine testEngine = CreateTestEngine(gherkinExecutor, logger);

@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests.Vocab
 
             };
 
-            IEnumerable<ProviderSourceDatasetCurrent> datasets = new List<ProviderSourceDatasetCurrent>();
+            IEnumerable<ProviderSourceDataset> datasets = new List<ProviderSourceDataset>();
 
             GivenSourceField givenSourceField = new GivenSourceField
             {

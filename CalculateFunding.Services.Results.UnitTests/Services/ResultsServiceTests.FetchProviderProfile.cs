@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
@@ -31,7 +32,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void FetchProviderProfile_GivenNoPublishedProviderResultId_ThrowsArgumentException()
+        public void FetchProviderProfile_GivenNoSpecificationId_ThrowsArgumentException()
         {
             // Arrange
             ILogger logger = Substitute.For<ILogger>();
@@ -46,8 +47,8 @@ namespace CalculateFunding.Services.Results.Services
             Func<Task> action = () => service.FetchProviderProfile(message);
 
             // Assert
-            action.Should().Throw<ArgumentException>().And.Message.Should().Be("Message must contain a published provider result id");
-            logger.Received(1).Error("No Published Provider Result Id was provided to FetchProviderProfile");
+            action.Should().Throw<ArgumentException>().And.Message.Should().Be("Message must contain a specification id in user properties");
+            logger.Received(1).Error("No specification id was present on the message");
         }
 
         [TestMethod]
@@ -57,72 +58,134 @@ namespace CalculateFunding.Services.Results.Services
             ILogger logger = Substitute.For<ILogger>();
             ResultsService service = CreateResultsService(logger: logger);
             Message message = new Message();
-            message.UserProperties["publishedproviderresult-id"] = "test";
+            message.UserProperties["specification-id"] = "test";
 
             // Act
             Func<Task> action = () => service.FetchProviderProfile(message);
 
             // Assert
-            action.Should().Throw<ArgumentException>().And.Message.Should().Be("Message must contain a provider profiling request");
-            logger.Received(1).Error("No Provider Profiling Request was present in the message");
+            action.Should().Throw<ArgumentException>().And.Message.Should().Be("Message must contain a collection of allocation results profiling items");
+            logger.Received(1).Error("No allocation result profiling items were present in the message");
+        }
+
+        [TestMethod]
+        public void FetchProviderProfile_GivenSpecificationIdButSpecificationNotFound_ThrowsArgumentException()
+        {
+            // Arrange
+            ILogger logger = Substitute.For<ILogger>();
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            
+            ResultsService service = CreateResultsService(logger: logger, specificationsRepository: specificationsRepository);
+
+            IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
+            var json = JsonConvert.SerializeObject(requestModel);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties["specification-id"] = "spec1";
+
+            // Act
+            Func<Task> action = () => service.FetchProviderProfile(message);
+
+            // Assert
+            action.Should().Throw<ArgumentException>().And.Message.Should().Be("Could not find a specification with id spec1");
+            logger.Received(1).Error("A specification could not be found with id spec1");
         }
 
         [TestMethod]
         public void FetchProviderProfile_GivenInvalidPublishedProviderResultId_ThrowsArgumentException()
         {
             // Arrange
-            string resultId = "unknown";
-
+            string resultId = "result1";
+ 
             ILogger logger = Substitute.For<ILogger>();
             IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
             publishedProviderResultsRepository
-                .GetPublishedProviderResultForId(Arg.Is(resultId))
+                .GetPublishedProviderResultForId(Arg.Is(resultId), Arg.Any<string>())
                 .Returns((PublishedProviderResult)null);
-            ResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository);
 
-            ProviderProfilingRequestModel requestModel = CreateProviderProfilingRequestModel();
+            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
+            {
+                Id = specificationId
+            };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            ResultsService service = CreateResultsService(
+                logger: logger, 
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                specificationsRepository: specificationsRepository);
+
+            IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
             var json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message.UserProperties["publishedproviderresult-id"] = resultId;
+            message.UserProperties["specification-id"] = specificationId;
 
             // Act
             Func<Task> action = () => service.FetchProviderProfile(message);
 
             // Assert
             action.Should().Throw<ArgumentException>().And.Message.Should().Be($"Published provider result with id '{resultId}' not found");
-            logger.Received(1).Error("Could not find published provider result with id '{id}'", resultId);
         }
 
         [TestMethod]
         public void FetchProviderProfile_GivenFetchProviderProfileFails_LogsErrorThrowsException()
         {
             // Arrange
-            string resultId = "known";
+            string resultId = "result1";
             PublishedProviderResult result = new PublishedProviderResult
             {
                 ProviderId = "prov1",
                 FundingPeriod = new Models.Specs.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp1", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) },
-                FundingStreamResult = new PublishedFundingStreamResult { AllocationLineResult = new PublishedAllocationLineResult { AllocationLine = new Models.Specs.AllocationLine { Id = "al-1" } } },
+                FundingStreamResult = new PublishedFundingStreamResult
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult
+                        {
+                               AllocationLine = new Models.Specs.AllocationLine { Id = "al-1" },
+                               Current = new PublishedAllocationLineResultVersion { Value = 100 }
+                        },
+                        FundingStreamPeriod = "fundingperiod",
+                        DistributionPeriod = "dist1"
+                    },
+                   
+                    
                 SpecificationId = "spec1"
             };
-            ProviderProfilingRequestModel requestModel = CreateProviderProfilingRequestModel();
+            IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
 
             ILogger logger = Substitute.For<ILogger>();
             IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
             publishedProviderResultsRepository
-                .GetPublishedProviderResultForId(Arg.Is(resultId))
+                .GetPublishedProviderResultForId(Arg.Is(resultId), Arg.Is(result.ProviderId))
                 .Returns(result);
             IProviderProfilingRepository providerProfilingRepository = Substitute.For<IProviderProfilingRepository>();
             providerProfilingRepository
-                .GetProviderProfilePeriods(Arg.Is(requestModel))
+                .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
                 .Returns(Task.FromResult<ProviderProfilingResponseModel>(null));
-            ResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository, providerProfilingRepository: providerProfilingRepository);
 
+            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
+            {
+                Id = specificationId
+            };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            ResultsService service = CreateResultsService(
+                logger: logger, 
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerProfilingRepository: providerProfilingRepository,
+                specificationsRepository: specificationsRepository);
+           
             var json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message.UserProperties["publishedproviderresult-id"] = resultId;
+            message.UserProperties["specification-id"] = specificationId;
 
             // Act
             Func<Task> test = async () => await service.FetchProviderProfile(message);
@@ -141,35 +204,60 @@ namespace CalculateFunding.Services.Results.Services
         public void FetchProviderProfile_GivenFetchProviderProfileReturnsButWithEmptyDeliveryPeriods_LogsErrorThrowsException()
         {
             // Arrange
-            string resultId = "known";
+            string resultId = "result1";
             PublishedProviderResult result = new PublishedProviderResult
             {
                 ProviderId = "prov1",
                 FundingPeriod = new Models.Specs.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp1", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) },
-                SpecificationId = "spec1",
-                FundingStreamResult = new PublishedFundingStreamResult { AllocationLineResult = new PublishedAllocationLineResult { AllocationLine = new Models.Specs.AllocationLine { Id = "al-1" } } }
+                FundingStreamResult = new PublishedFundingStreamResult
+                {
+                    AllocationLineResult = new PublishedAllocationLineResult
+                    {
+                        AllocationLine = new Models.Specs.AllocationLine { Id = "al-1" },
+                        Current = new PublishedAllocationLineResultVersion { Value = 100 }
+                    },
+                    FundingStreamPeriod = "fundingperiod",
+                    DistributionPeriod = "dist1"
+                },
+
+
+                SpecificationId = "spec1"
             };
 
-            ProviderProfilingRequestModel requestModel = CreateProviderProfilingRequestModel();
+            IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
 
             ProviderProfilingResponseModel providerProfilingResponseModel = new ProviderProfilingResponseModel();
 
             ILogger logger = Substitute.For<ILogger>();
             IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
             publishedProviderResultsRepository
-                .GetPublishedProviderResultForId(Arg.Is(resultId))
+                .GetPublishedProviderResultForId(Arg.Is(resultId), Arg.Is(result.ProviderId))
                 .Returns(result);
             IProviderProfilingRepository providerProfilingRepository = Substitute.For<IProviderProfilingRepository>();
             providerProfilingRepository
-                .GetProviderProfilePeriods(Arg.Is(requestModel))
+                .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
                 .Returns(providerProfilingResponseModel);
 
-            ResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository, providerProfilingRepository: providerProfilingRepository);
+            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
+            {
+                Id = specificationId
+            };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            ResultsService service = CreateResultsService(
+                logger: logger, 
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerProfilingRepository: providerProfilingRepository,
+                specificationsRepository: specificationsRepository);
 
             var json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message.UserProperties["publishedproviderresult-id"] = resultId;
+            message.UserProperties["specification-id"] = specificationId;
 
             // Act
             Func<Task> test = async () => await service.FetchProviderProfile(message);
@@ -188,13 +276,14 @@ namespace CalculateFunding.Services.Results.Services
         public async Task FetchProviderProfile_GivenFetchProviderProfileSucceeds_UpdatesPublishedProviderResult()
         {
             // Arrange
-            string specificationId = "spec-id";
-            string resultId = "known";
             PublishedProviderResult result = CreatePublishedProviderResults().First();
             result.SpecificationId = specificationId;
             result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
 
-            ProviderProfilingRequestModel requestModel = CreateProviderProfilingRequestModel();
+            IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
+            requestModel.First().ProviderId = result.ProviderId;
+            requestModel.First().AllocationLineResultId = result.Id;
+
             ProviderProfilingResponseModel profileResponse = new ProviderProfilingResponseModel
             {
                 DeliveryProfilePeriods = new List<ProfilingPeriod>
@@ -207,7 +296,7 @@ namespace CalculateFunding.Services.Results.Services
             ILogger logger = Substitute.For<ILogger>();
             IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
             publishedProviderResultsRepository
-                .GetPublishedProviderResultForId(Arg.Is(resultId))
+                .GetPublishedProviderResultForId(Arg.Is(result.Id), Arg.Is(result.ProviderId))
                 .Returns(result);
             IProviderProfilingRepository providerProfilingRepository = Substitute.For<IProviderProfilingRepository>();
             providerProfilingRepository
@@ -221,13 +310,18 @@ namespace CalculateFunding.Services.Results.Services
 
             ISearchRepository<AllocationNotificationFeedIndex> feedsSearchRepository = CreateAllocationNotificationFeedSearchRepository();
 
+            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
+            {
+                Id = specificationId
+            };
+
             ResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository, 
                 providerProfilingRepository: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository);
 
             var json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message.UserProperties["publishedproviderresult-id"] = resultId;
+            message.UserProperties["specification-id"] = specificationId;
 
             // Act
             await service.FetchProviderProfile(message);
@@ -237,9 +331,189 @@ namespace CalculateFunding.Services.Results.Services
             IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { result };
             await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(savedResults => toBeSavedResults.SequenceEqual(savedResults)));
             await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 1));
+            await providerProfilingRepository.Received(1).GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>
+                m.AllocationValueByDistributionPeriod.First().AllocationValue == 50                  
+            ));
+        }
 
-            logger.Received(1).Information(Arg.Is($"Received new provider profiling message for result id {result.Id} and provider {result.ProviderId}"));
+        [TestMethod]
+        public async Task FetchProviderProfile_GivenFetchProviderWithBatchOf3ProfileSucceeds_UpdatesPublishedProviderResult()
+        {
+            // Arrange
+            IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
+
+            foreach(PublishedProviderResult result in results)
+            {
+                result.SpecificationId = specificationId;
+                result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
+            }
             
+            ProviderProfilingResponseModel profileResponse1 = new ProviderProfilingResponseModel
+            {
+                DeliveryProfilePeriods = new List<ProfilingPeriod>
+                 {
+                    new ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
+                    new ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
+                 }
+            };
+
+            ProviderProfilingResponseModel profileResponse2 = new ProviderProfilingResponseModel
+            {
+                DeliveryProfilePeriods = new List<ProfilingPeriod>
+                 {
+                    new ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 52190.0M, DistributionPeriod = "2018-2019" },
+                    new ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 52190.0M, DistributionPeriod = "2018-2019" }
+                 }
+            };
+
+            ProviderProfilingResponseModel profileResponse3 = new ProviderProfilingResponseModel
+            {
+                DeliveryProfilePeriods = new List<ProfilingPeriod>
+                 {
+                    new ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 32190.0M, DistributionPeriod = "2018-2019" },
+                    new ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 32190.0M, DistributionPeriod = "2018-2019" }
+                 }
+            };
+
+            ILogger logger = Substitute.For<ILogger>();
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
+            publishedProviderResultsRepository
+                .GetPublishedProviderResultForId(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(results.ElementAt(0), results.ElementAt(1), results.ElementAt(2));
+
+            IProviderProfilingRepository providerProfilingRepository = Substitute.For<IProviderProfilingRepository>();
+            providerProfilingRepository
+                .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
+                .Returns(profileResponse1, profileResponse2, profileResponse3);
+            
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(CreateSpecification(specificationId));
+
+            ISearchRepository<AllocationNotificationFeedIndex> feedsSearchRepository = CreateAllocationNotificationFeedSearchRepository();
+
+            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
+            {
+                Id = specificationId
+            };
+
+            IEnumerable<FetchProviderProfilingMessageItem> requestModel = new[]
+            {
+                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(0).ProviderId, AllocationLineResultId = results.ElementAt(0).Id },
+                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(1).ProviderId, AllocationLineResultId = results.ElementAt(1).Id },
+                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(2).ProviderId, AllocationLineResultId = results.ElementAt(2).Id }
+            };
+
+            ResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
+                providerProfilingRepository: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository);
+
+            var json = JsonConvert.SerializeObject(requestModel);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties["specification-id"] = specificationId;
+
+            // Act
+            await service.FetchProviderProfile(message);
+
+            // Assert
+            results.ElementAt(0).ProfilingPeriods.Should().NotBeNullOrEmpty();
+            results.ElementAt(1).ProfilingPeriods.Should().NotBeNullOrEmpty();
+            results.ElementAt(2).ProfilingPeriods.Should().NotBeNullOrEmpty();
+            IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { results.ElementAt(0), results.ElementAt(1), results.ElementAt(2) };
+            
+            await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(m => m.Count() == 3));
+            await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 3));
+            await providerProfilingRepository.Received(1).GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>
+                m.AllocationValueByDistributionPeriod.First().AllocationValue == 50
+            ));
+            await providerProfilingRepository.Received(2).GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>
+                m.AllocationValueByDistributionPeriod.First().AllocationValue == 100
+            ));
+        }
+
+        [TestMethod]
+        public async Task FetchProviderProfile_GivenFetchProviderWithBatchOf3ButOneFailsToProfile_DoesnotUpdateResults()
+        {
+            // Arrange
+            IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
+
+            foreach (PublishedProviderResult result in results)
+            {
+                result.SpecificationId = specificationId;
+                result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
+            }
+
+            ProviderProfilingResponseModel profileResponse1 = new ProviderProfilingResponseModel
+            {
+                DeliveryProfilePeriods = new List<ProfilingPeriod>
+                 {
+                    new ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
+                    new ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
+                 }
+            };
+
+            ProviderProfilingResponseModel profileResponse2 = new ProviderProfilingResponseModel
+            {
+                DeliveryProfilePeriods = new List<ProfilingPeriod>
+                 {
+                    new ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 52190.0M, DistributionPeriod = "2018-2019" },
+                    new ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 52190.0M, DistributionPeriod = "2018-2019" }
+                 }
+            };
+  
+            ILogger logger = Substitute.For<ILogger>();
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
+            publishedProviderResultsRepository
+                .GetPublishedProviderResultForId(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(results.ElementAt(0), results.ElementAt(1), results.ElementAt(2));
+
+            IProviderProfilingRepository providerProfilingRepository = Substitute.For<IProviderProfilingRepository>();
+            providerProfilingRepository
+                .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
+                .Returns(profileResponse1, profileResponse2, null);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(CreateSpecification(specificationId));
+
+            ISearchRepository<AllocationNotificationFeedIndex> feedsSearchRepository = CreateAllocationNotificationFeedSearchRepository();
+
+            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
+            {
+                Id = specificationId
+            };
+
+            IEnumerable<FetchProviderProfilingMessageItem> requestModel = new[]
+            {
+                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(0).ProviderId, AllocationLineResultId = results.ElementAt(0).Id },
+                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(1).ProviderId, AllocationLineResultId = results.ElementAt(1).Id },
+                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(2).ProviderId, AllocationLineResultId = results.ElementAt(2).Id }
+            };
+
+            ResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
+                providerProfilingRepository: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository);
+
+            var json = JsonConvert.SerializeObject(requestModel);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties["specification-id"] = specificationId;
+
+            // Act
+            Func<Task> test = () => service.FetchProviderProfile(message);
+
+            // Assert
+            test
+               .Should()
+               .ThrowExactly<Exception>()
+               .Which
+               .Message
+               .Should()
+               .NotBeNullOrWhiteSpace();
+
+            await publishedProviderResultsRepository.DidNotReceive().SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+            await feedsSearchRepository.DidNotReceive().Index(Arg.Any<IEnumerable<AllocationNotificationFeedIndex>>());
         }
 
         private static ProviderProfilingRequestModel CreateProviderProfilingRequestModel()
@@ -251,6 +525,18 @@ namespace CalculateFunding.Services.Results.Services
                         new AllocationPeriodValue{ DistributionPeriod = "2018", AllocationValue = 23.3M}
                     },
                 FundingStreamPeriod = "2018/2019"
+            };
+        }
+
+        private static IEnumerable<FetchProviderProfilingMessageItem> CreateProfilingMessageItems()
+        {
+            return new[]
+            {
+                new FetchProviderProfilingMessageItem
+                {
+                    ProviderId = "prov1",
+                    AllocationLineResultId = "result1"
+                }
             };
         }
     }

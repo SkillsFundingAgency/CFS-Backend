@@ -389,6 +389,14 @@ namespace CalculateFunding.Services.Calcs
 
                 calculation.Current = calculationVersion;
 
+                Calculation calculationDuplicateCheck = await _calculationsRepository.GetCalculationByCalculationSpecificationId(calculation.CalculationSpecification.Id);
+
+                if (calculationDuplicateCheck != null)
+                {
+                    _logger.Error($"The calculation with the same id {calculation.CalculationSpecification.Id} has already been created");
+                    throw new InvalidOperationException($"The calculation with the same id {calculation.CalculationSpecification.Id} has already been created");
+                }
+
                 HttpStatusCode result = await _calculationsRepository.CreateDraftCalculation(calculation);
 
                 if (result.IsSuccess())
@@ -636,7 +644,7 @@ namespace CalculateFunding.Services.Calcs
                     Author = user,
                     PublishStatus = PublishStatus.Draft,
                     Version = 1
-                };                
+                };
             }
             else
             {
@@ -645,7 +653,7 @@ namespace CalculateFunding.Services.Calcs
 
             calculationVersion.DecimalPlaces = 6;
             calculationVersion.SourceCode = sourceCodeVersion.SourceCode;
-            calculationVersion.CalculationId = calculationId;       
+            calculationVersion.CalculationId = calculationId;
 
             UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, user);
 
@@ -690,7 +698,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 throw new InvalidOperationException($"Update calculation returned status code '{statusCode}' instead of OK");
             }
-            
+
             BuildProject buildProject = await UpdateBuildProject(calculation.SpecificationId);
 
             Models.Specs.SpecificationSummary specificationSummary = await _specsRepository.GetSpecificationSummaryById(calculation.SpecificationId);
@@ -1140,6 +1148,6 @@ namespace CalculateFunding.Services.Calcs
             }
 
             return result;
-       }
+        }
     }
 }

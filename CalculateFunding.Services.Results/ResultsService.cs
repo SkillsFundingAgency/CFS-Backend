@@ -1,3 +1,10 @@
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Aggregations;
@@ -28,6 +35,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
@@ -35,7 +43,7 @@ namespace CalculateFunding.Services.Results
     public class ResultsService : IResultsService, IHealthChecker
     {
 
-		private readonly ILogger _logger;
+        private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
         private readonly ICalculationResultsRepository _resultsRepository;
         private readonly IMapper _mapper;
@@ -181,7 +189,6 @@ namespace CalculateFunding.Services.Results
             var searchRepoHealth = await _searchRepository.IsHealthOk();
             ServiceHealth providerSourceDatasetRepoHealth = await ((IHealthChecker)_providerSourceDatasetRepository).IsHealthOk();
             var calcSearchRepoHealth = await _calculationProviderResultsSearchRepository.IsHealthOk();
-            ServiceHealth providerResultsAssemblerHeatlh = await ((IHealthChecker)_publishedProviderResultsAssemblerService).IsHealthOk();
             ServiceHealth providerRepoHealth = await ((IHealthChecker)_publishedProviderResultsRepository).IsHealthOk();
             var cacheHealth = await _cacheProvider.IsHealthOk();
 
@@ -193,7 +200,6 @@ namespace CalculateFunding.Services.Results
             health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
             health.Dependencies.AddRange(providerSourceDatasetRepoHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth { HealthOk = calcSearchRepoHealth.Ok, DependencyName = _calculationProviderResultsSearchRepository.GetType().GetFriendlyName(), Message = calcSearchRepoHealth.Message });
-            health.Dependencies.AddRange(providerResultsAssemblerHeatlh.Dependencies);
             health.Dependencies.AddRange(providerRepoHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
 
@@ -258,7 +264,9 @@ namespace CalculateFunding.Services.Results
             ProviderIndex provider = await _resultsRepositoryPolicy.ExecuteAsync(() => _searchRepository.SearchById(providerId, IdFieldOverride: "providerId"));
 
             if (provider == null)
+            {
                 return new NotFoundResult();
+            }
 
             return new OkObjectResult(provider);
         }
@@ -300,7 +308,7 @@ namespace CalculateFunding.Services.Results
 
             PublishedProviderResult publishedProviderResult = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultForIdInPublishedState(allocationResultId));
 
-            if(publishedProviderResult == null)
+            if (publishedProviderResult == null)
             {
                 return null;
             }
@@ -309,14 +317,14 @@ namespace CalculateFunding.Services.Results
             {
                 PublishedAllocationLineResultHistory history = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedAllocationLineResultHistoryForId(allocationResultId));
 
-                if(history == null)
+                if (history == null)
                 {
                     return null;
                 }
 
                 PublishedAllocationLineResultVersion resultVersion = history.History.FirstOrDefault(m => m.Version == version.Value);
 
-                if(resultVersion == null)
+                if (resultVersion == null)
                 {
                     return null;
                 }
@@ -460,10 +468,10 @@ namespace CalculateFunding.Services.Results
 
             return new OkObjectResult(totalsModels);
         }
-		
+
         public async Task PublishProviderResults(Message message)
         {
-	        Guard.ArgumentNotNull(message, nameof(message));
+            Guard.ArgumentNotNull(message, nameof(message));
 
             if (!message.UserProperties.ContainsKey("specification-id"))
             {
@@ -471,77 +479,77 @@ namespace CalculateFunding.Services.Results
                 throw new ArgumentException("Message must contain a specification id");
             }
 
-	        int calculationProgress = 0;
+            int calculationProgress = 0;
 
             string specificationId = message.UserProperties["specification-id"].ToString();
-	        UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.InProgress);
+            UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.InProgress);
 
-			IEnumerable<ProviderResult> providerResults = await GetProviderResultsBySpecificationId(specificationId);
-	        UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+            IEnumerable<ProviderResult> providerResults = await GetProviderResultsBySpecificationId(specificationId);
+            UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
-			if (providerResults.IsNullOrEmpty())
+            if (providerResults.IsNullOrEmpty())
             {
-	            UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
-				_logger.Error($"Provider results not found for specification id {specificationId}");
+                UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
+                _logger.Error($"Provider results not found for specification id {specificationId}");
                 throw new ArgumentException("Could not find any provider results for specification");
             }
 
             SpecificationCurrentVersion specification = await _specificationsRepository.GetCurrentSpecificationById(specificationId);
-			UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+            UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
             if (specification == null)
             {
-	            UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
-				_logger.Error($"Specification not found for specification id {specificationId}");
+                UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
+                _logger.Error($"Specification not found for specification id {specificationId}");
                 throw new ArgumentException($"Specification not found for specification id {specificationId}");
             }
 
             Reference author = message.GetUserDetails();
 
             IEnumerable<PublishedProviderCalculationResult> publishedProviderCalcuationResults = _publishedProviderResultsAssemblerService.AssemblePublishedCalculationResults(providerResults, author, specification);
-	        UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+            UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
-			try
+            try
             {
                 await _publishedProviderCalculationResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(publishedProviderCalcuationResults.ToList()));
-	            UpdateCacheForSegmentDone(specificationId, calculationProgress += 7, CalculationProgressStatus.InProgress);
+                UpdateCacheForSegmentDone(specificationId, calculationProgress += 7, CalculationProgressStatus.InProgress);
 
-				await SavePublishedCalculationResultVersionHistory(publishedProviderCalcuationResults, specificationId);
-				UpdateCacheForSegmentDone(specificationId, calculationProgress += 10, CalculationProgressStatus.InProgress);
+                await SavePublishedCalculationResultVersionHistory(publishedProviderCalcuationResults, specificationId);
+                UpdateCacheForSegmentDone(specificationId, calculationProgress += 10, CalculationProgressStatus.InProgress);
             }
             catch (Exception ex)
             {
-	            UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
-				_logger.Error(ex, $"Failed to create published provider calculation results for specification: {specificationId}");
+                UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
+                _logger.Error(ex, $"Failed to create published provider calculation results for specification: {specificationId}");
                 throw new Exception($"Failed to create published provider calculation results for specification: {specificationId}", ex);
             }
 
             IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsAssemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
-	        UpdateCacheForSegmentDone(specificationId, calculationProgress += 53, CalculationProgressStatus.InProgress);
+            UpdateCacheForSegmentDone(specificationId, calculationProgress += 53, CalculationProgressStatus.InProgress);
 
-			try
+            try
             {
                 await _publishedProviderResultsRepository.SavePublishedResults(publishedProviderResults.ToList());
-	            UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+                UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
-				await SavePublishedAllocationLineResultVersionHistory(publishedProviderResults, specificationId);
-	            UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+                await SavePublishedAllocationLineResultVersionHistory(publishedProviderResults, specificationId);
+                UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
-				await UpdateAllocationNotificationsFeedIndex(publishedProviderResults, specification);
-	            UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
-			}
+                await UpdateAllocationNotificationsFeedIndex(publishedProviderResults, specification);
+                UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+            }
             catch (Exception ex)
             {
-	            UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
-				_logger.Error(ex, $"Failed to create published provider results for specification: {specificationId}");
+                UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
+                _logger.Error(ex, $"Failed to create published provider results for specification: {specificationId}");
                 throw new Exception($"Failed to create published provider results for specification: {specificationId}", ex);
             }
-	        UpdateCacheForSegmentDone(specificationId, 100, CalculationProgressStatus.Finished);
-		}
+            UpdateCacheForSegmentDone(specificationId, 100, CalculationProgressStatus.Finished);
+        }
 
         void AssignRelatedCalculationResultIdsToAllocationResults(IEnumerable<PublishedProviderResult> publishedProviderResults, IEnumerable<PublishedProviderCalculationResult> publishedProviderCalcuationResults)
         {
-            foreach(PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
                 string fundingPeriodId = publishedProviderResult.FundingPeriod.Id;
                 string providerId = publishedProviderResult.ProviderId;
@@ -572,7 +580,7 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty provider Id provided");
             }
 
-            IEnumerable<ProviderSourceDatasetCurrent> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetRepository.GetProviderSourceDatasets(providerId, specificationId));
+            IEnumerable<ProviderSourceDataset> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetRepository.GetProviderSourceDatasets(providerId, specificationId));
 
             return new OkObjectResult(providerResults);
         }
@@ -694,22 +702,22 @@ namespace CalculateFunding.Services.Results
 
             var specificationId = GetParameter(request, "specificationId");
             var fundingPeriodId = GetParameter(request, "fundingPeriodId");
-            var fundingStreamId = GetParameter(request, "fundingStreamId"); 
+            var fundingStreamId = GetParameter(request, "fundingStreamId");
 
-            if(string.IsNullOrWhiteSpace(specificationId))
+            if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("No specification Id was provided to GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId");
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            if(string.IsNullOrWhiteSpace(fundingPeriodId))
+            if (string.IsNullOrWhiteSpace(fundingPeriodId))
             {
                 _logger.Error("No fundingPeriod Id was provided to GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId");
 
                 return new BadRequestObjectResult("Null or empty fundingPeriod Id provided");
             }
 
-            if(string.IsNullOrWhiteSpace(fundingStreamId))
+            if (string.IsNullOrWhiteSpace(fundingStreamId))
             {
                 _logger.Error("No fundingStream Id was provided to GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId");
 
@@ -727,7 +735,7 @@ namespace CalculateFunding.Services.Results
 
             return new OkObjectResult(publishedProviderResultModels);
         }
-        
+
 
         public async Task<IActionResult> GetConfirmationDetailsForApprovePublishProviderResults(HttpRequest request)
         {
@@ -769,7 +777,7 @@ namespace CalculateFunding.Services.Results
 
             var fundingStreams = publishedProviderResults.Select(r => r.FundingStreamResult).GroupBy(r => r.FundingStream.Name);
             decimal totalFundingAmount = 0;
-            foreach(IGrouping<string, PublishedFundingStreamResult> fundingStream in fundingStreams)
+            foreach (IGrouping<string, PublishedFundingStreamResult> fundingStream in fundingStreams)
             {
                 FundingStreamSummaryModel summary = new FundingStreamSummaryModel
                 {
@@ -827,7 +835,8 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty providers was provided");
             }
 
-            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationId(specificationId));
+            IEnumerable<string> providerIds = updateStatusModel.Providers.Select(p => p.ProviderId).Distinct();
+            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationIdAndProviderId(specificationId, providerIds));
 
             if (publishedProviderResults.IsNullOrEmpty())
             {
@@ -1009,7 +1018,7 @@ namespace CalculateFunding.Services.Results
 
                     PublishedFundingStreamResult fundingStreamResult = fundingStreamResultsGroup.First();
 
-                    if(!publishedProviderResultModel.FundingStreamResults.Any(m => m.FundingStreamId == fundingStreamResultsGroup.Key))
+                    if (!publishedProviderResultModel.FundingStreamResults.Any(m => m.FundingStreamId == fundingStreamResultsGroup.Key))
                     {
                         publishedProviderResultModel.FundingStreamResults = publishedProviderResultModel.FundingStreamResults.Concat(new[] { new PublishedFundingStreamResultModel
                         {
@@ -1035,7 +1044,7 @@ namespace CalculateFunding.Services.Results
             return results;
         }
 
-        async Task<Tuple<int, int>> UpdateAllocationLineResultsStatus(IEnumerable<PublishedProviderResult> publishedProviderResults,
+        private async Task<Tuple<int, int>> UpdateAllocationLineResultsStatus(IEnumerable<PublishedProviderResult> publishedProviderResults,
             UpdatePublishedAllocationLineResultStatusModel updateStatusModel, HttpRequest request, string specificationId)
         {
             IList<string> updatedAllocationLineIds = new List<string>();
@@ -1075,7 +1084,8 @@ namespace CalculateFunding.Services.Results
                 {
                     IEnumerable<PublishedAllocationLineResult> allocationLineResults = publishedAllocationLineResults.Where(m => m.AllocationLine.Id == allocationLineResultId);
 
-                    foreach(PublishedAllocationLineResult allocationLineResult in allocationLineResults){
+                    foreach (PublishedAllocationLineResult allocationLineResult in allocationLineResults)
+                    {
 
                         if (CanUpdateAllocationLineResult(allocationLineResult, updateStatusModel.Status))
                         {
@@ -1087,7 +1097,7 @@ namespace CalculateFunding.Services.Results
 
                             if (historyResult != null)
                             {
-                                if(historyResult.History == null)
+                                if (historyResult.History == null)
                                 {
                                     historyResult.History = Enumerable.Empty<PublishedAllocationLineResultVersion>();
                                 }
@@ -1112,14 +1122,14 @@ namespace CalculateFunding.Services.Results
                     }
                 }
 
-                
+
                 if (isUpdated)
-                { 
-                    foreach(PublishedProviderResult result in results)
+                {
+                    foreach (PublishedProviderResult result in results)
                     {
                         result.Title = $"Allocation {result.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {result.FundingStreamResult.AllocationLineResult.Current.Status.ToString()}";
 
-                        if(updateStatusModel.Status == AllocationLineStatus.Approved || updateStatusModel.Status != AllocationLineStatus.Approved && result.ProfilingPeriods.IsNullOrEmpty())
+                        if(updateStatusModel.Status == AllocationLineStatus.Approved)
                         {
                             resultsToProfile.Add(result);
                         }
@@ -1149,81 +1159,154 @@ namespace CalculateFunding.Services.Results
                 }
             }
 
-            foreach(PublishedProviderResult resultToProfile in resultsToProfile)
-            {
-                await GetProfilingPeriods(request, resultToProfile);
-            }
+            await GetProfilingPeriods(request, resultsToProfile, specificationId);
 
             return new Tuple<int, int>(updatedAllocationLineIds.Count, updatedProviderIds.Count);
         }
 
-        async Task GetProfilingPeriods(HttpRequest request, PublishedProviderResult result)
+        private async Task GetProfilingPeriods(HttpRequest request, IEnumerable<PublishedProviderResult> resultsToProfile, string specificationId)
         {
-            _logger.Information($"Sending new provider profiling message for result id {result.Id} and provider {result.ProviderId}");
+            int batchSize = 100;
+            int startPosition = 0;
+            while (startPosition < resultsToProfile.Count())
+            {
+                IEnumerable<FetchProviderProfilingMessageItem> batchOfResultsToProfile = resultsToProfile.Skip(startPosition).Take(batchSize).Select(r => new FetchProviderProfilingMessageItem { AllocationLineResultId = r.Id, ProviderId = r.ProviderId });
+
+                _logger.Information($"Sending new provider profiling message for {batchOfResultsToProfile.Count()} results");
+
+                IDictionary<string, string> properties = request.BuildMessageProperties();
+                properties["specification-id"] = specificationId;
+
+                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.FetchProviderProfile, batchOfResultsToProfile, properties);
+
+                _logger.Information($"Sent new provider profiling message for {batchOfResultsToProfile.Count()} results");
+
+                startPosition += batchOfResultsToProfile.Count();
+            }
+        }
+
+        public async Task FetchProviderProfile(Message message)
+        {
+            Stopwatch profilingStopWatch = Stopwatch.StartNew();
+        
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            if (!message.UserProperties.ContainsKey("specification-id"))
+            {
+                _logger.Error("No specification id was present on the message");
+                throw new ArgumentException("Message must contain a specification id in user properties");
+            }
+
+            string specificationId = message.UserProperties["specification-id"].ToString();
+
+            IEnumerable<FetchProviderProfilingMessageItem> data = message.GetPayloadAsInstanceOf<IEnumerable<FetchProviderProfilingMessageItem>>();
+
+            if (data.IsNullOrEmpty())
+            {
+                _logger.Error("No allocation result profiling items were present in the message");
+                throw new ArgumentException("Message must contain a collection of allocation results profiling items");
+            }
+            
+            SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(specificationId));
+
+            if(specification == null)
+            {
+                _logger.Error($"A specification could not be found with id {specificationId}");
+
+                throw new ArgumentException($"Could not find a specification with id {specificationId}");
+            }
+
+            ConcurrentBag<PublishedProviderResult> publishedProviderResults = new ConcurrentBag<PublishedProviderResult>();
+
+            IList<Task> profilingTasks = new List<Task>();
+
+            long totalMsForProfilingApi = 0;
+
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+            foreach (FetchProviderProfilingMessageItem profilingItem in data)
+            {
+                await throttler.WaitAsync();
+                profilingTasks.Add(
+                    Task.Run(() =>
+                    {
+                        try
+                        {
+                            (PublishedProviderResult publishedProviderResult, long timeInMs) profilingResult = ProfileResult(profilingItem).Result;
+
+                            publishedProviderResults.Add(profilingResult.publishedProviderResult);
+
+                            totalMsForProfilingApi += profilingResult.timeInMs;
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+            
+            await TaskHelper.WhenAllAndThrow(profilingTasks.ToArray());
+
+            if (!publishedProviderResults.IsNullOrEmpty())
+            {
+                await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(publishedProviderResults));
+
+                await UpdateAllocationNotificationsFeedIndex(publishedProviderResults, specification, true);
+            }
+
+            profilingStopWatch.Stop();
+
+            int batchSize = data.Count();
+
+            IDictionary<string, double> metrics = new Dictionary<string, double>()
+                    {
+                        { "profiling-batch-size-count", batchSize },
+                        { "profiling-run-timeInMs", profilingStopWatch.ElapsedMilliseconds },
+                        { "average-time-for-profiling-api", (long)(totalMsForProfilingApi / batchSize) }
+                    };
+
+            _telemetry.TrackEvent("ProviderProfilingProcessed",
+                    new Dictionary<string, string>()
+                    {
+                        { "specificationId" , specificationId }                      
+                    },
+                    metrics
+                );
+        }
+
+        private async Task<(PublishedProviderResult, long)> ProfileResult(FetchProviderProfilingMessageItem messageItem)
+        {
+            PublishedProviderResult result = await _publishedProviderResultsRepository.GetPublishedProviderResultForId(messageItem.AllocationLineResultId, messageItem.ProviderId);
+
+            if (result == null)
+            {
+                _logger.Error("Could not find published provider result with id '{id}'", messageItem.AllocationLineResultId);
+                throw new ArgumentException($"Published provider result with id '{messageItem.AllocationLineResultId}' not found");
+            }
 
             ProviderProfilingRequestModel providerProfilingRequestModel = new ProviderProfilingRequestModel
             {
                 FundingStreamPeriod = result.FundingStreamResult.FundingStreamPeriod,
                 AllocationValueByDistributionPeriod = new[]
                 {
-                    new AllocationPeriodValue
-                    {
-                        DistributionPeriod =result.FundingStreamResult.DistributionPeriod,
-                        AllocationValue = (decimal)result.FundingStreamResult.AllocationLineResult.Current.Value
+                        new AllocationPeriodValue
+                        {
+                            DistributionPeriod =result.FundingStreamResult.DistributionPeriod,
+                            AllocationValue = (decimal)result.FundingStreamResult.AllocationLineResult.Current.Value
+                        }
                     }
-                }
             };
 
-            IDictionary<string, string> properties = request.BuildMessageProperties();
-            properties.Add("publishedproviderresult-id", result.Id);
+            Stopwatch profilingApiStopWatch = Stopwatch.StartNew();
 
-            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.FetchProviderProfile, providerProfilingRequestModel, properties);
+            ProviderProfilingResponseModel responseModel = await _providerProfilingRepositoryPolicy.ExecuteAsync(() => _providerProfilingRepository.GetProviderProfilePeriods(providerProfilingRequestModel));
 
-            _logger.Information($"Sent new provider profiling message for result id {result.Id} and provider {result.ProviderId}");
-
-        }
-
-        public async Task FetchProviderProfile(Message message)
-        {
-            Guard.ArgumentNotNull(message, nameof(message));
-
-            if (!message.UserProperties.ContainsKey("publishedproviderresult-id"))
-            {
-                _logger.Error("No Published Provider Result Id was provided to FetchProviderProfile");
-                throw new ArgumentException("Message must contain a published provider result id");
-            }
-
-            string publishedProviderResultId = message.UserProperties["publishedproviderresult-id"].ToString();
-
-            ProviderProfilingRequestModel model = message.GetPayloadAsInstanceOf<ProviderProfilingRequestModel>();
-
-            if (model == null)
-            {
-                _logger.Error("No Provider Profiling Request was present in the message");
-                throw new ArgumentException("Message must contain a provider profiling request");
-            }
-
-            PublishedProviderResult result = _publishedProviderResultsRepository.GetPublishedProviderResultForId(publishedProviderResultId);
-
-            if (result == null)
-            {
-                _logger.Error("Could not find published provider result with id '{id}'", publishedProviderResultId);
-                throw new ArgumentException($"Published provider result with id '{publishedProviderResultId}' not found");
-            }
-
-            _logger.Information($"Received new provider profiling message for result id {result.Id} and provider {result.ProviderId}");
-
-            ProviderProfilingResponseModel responseModel = await _providerProfilingRepositoryPolicy.ExecuteAsync(() => _providerProfilingRepository.GetProviderProfilePeriods(model));
+            profilingApiStopWatch.Stop();
 
             if (responseModel != null && !responseModel.DeliveryProfilePeriods.IsNullOrEmpty())
             {
                 result.ProfilingPeriods = responseModel.DeliveryProfilePeriods.ToArraySafe();
 
-                await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(new[] { result }));
-
-                SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(result.SpecificationId));
-               
-                await UpdateAllocationNotificationsFeedIndex(new[] { result }, specification, true);
+                return (result, profilingApiStopWatch.ElapsedMilliseconds);
             }
             else
             {
@@ -1274,7 +1357,7 @@ namespace CalculateFunding.Services.Results
 
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
-                PublishedAllocationLineResult  publishedAllocationLineResult = publishedProviderResult.FundingStreamResult.AllocationLineResult;
+                PublishedAllocationLineResult publishedAllocationLineResult = publishedProviderResult.FundingStreamResult.AllocationLineResult;
 
                 IEnumerable<PublishedAllocationLineResultHistory> publishedAllocationLineResultHistoryList = historyResults?.Where(m => m.ProviderId == publishedProviderResult.ProviderId);
 
@@ -1311,7 +1394,7 @@ namespace CalculateFunding.Services.Results
 
             foreach (PublishedProviderCalculationResult publishedProviderCalculationResult in publishedProviderCalculationResults)
             {
-               
+
                 IEnumerable<PublishedProviderCalculationResultHistory> publishedCalculationResultHistoryList = historyResults?.Where(m => m.ProviderId == publishedProviderCalculationResult.ProviderId);
 
                 PublishedProviderCalculationResultHistory publishedCalculationResultHistory = publishedCalculationResultHistoryList?.FirstOrDefault(m => m.CalculationnResultId == publishedProviderCalculationResult.Id);
@@ -1352,8 +1435,8 @@ namespace CalculateFunding.Services.Results
             }
         }
 
-        async Task 
-	        UpdateAllocationNotificationsFeedIndex(IEnumerable<PublishedProviderResult> publishedProviderResults, SpecificationCurrentVersion specification, bool checkProfiling = false)
+        async Task
+            UpdateAllocationNotificationsFeedIndex(IEnumerable<PublishedProviderResult> publishedProviderResults, SpecificationCurrentVersion specification, bool checkProfiling = false)
         {
             IEnumerable<AllocationNotificationFeedIndex> notifications = await BuildAllocationNotificationIndexItems(publishedProviderResults, specification, checkProfiling);
 
@@ -1379,7 +1462,22 @@ namespace CalculateFunding.Services.Results
 
             IList<AllocationNotificationFeedIndex> notifications = new List<AllocationNotificationFeedIndex>();
 
-            IEnumerable<PublishedProviderCalculationResult> calculationResults = (await _publishedProviderCalculationResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderCalculationResultsRepository.GetPublishedProviderCalculationResultsBySpecificationId(specification.Id))).ToList();
+            Stopwatch fetchCalcResultsStopwatch = new Stopwatch();
+            fetchCalcResultsStopwatch.Start();
+            IEnumerable<string> providerIds = publishedProviderResults.Select(r => r.ProviderId).Distinct();
+            IEnumerable<PublishedProviderCalculationResult> calculationResults = (await _publishedProviderCalculationResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderCalculationResultsRepository.GetPublishedProviderCalculationResultsBySpecificationIdAndProviderId(specification.Id, providerIds))).ToList();
+            fetchCalcResultsStopwatch.Stop();
+            _telemetry.TrackEvent("Fetching Published Calculation Results",
+                new Dictionary<string, string>
+                {
+                    { "specificationId", specification.Id }
+                },
+                new Dictionary<string, double>
+                {
+                    { "provider-batch-size", providerIds.Count() },
+                    { "calculation-results-found", calculationResults.Count() },
+                    { "duration", fetchCalcResultsStopwatch.ElapsedMilliseconds }
+                });
 
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
@@ -1462,15 +1560,15 @@ namespace CalculateFunding.Services.Results
         {
             IList<PublishedProviderResultsPolicySummary> policySummaries = new List<PublishedProviderResultsPolicySummary>();
 
-            foreach(Policy policy in specification.Policies)
+            foreach (Policy policy in specification.Policies)
             {
                 PublishedProviderResultsPolicySummary publishedProviderResultsPolicySummary = new PublishedProviderResultsPolicySummary
                 {
                     Policy = new PolicySummary(policy.Id, policy.Name, policy.Description),
                     Calculations = AddCalculationSummaries(policy, calculationResults).ToArraySafe(),
                 };
-                
-                foreach(Policy subPolicy in policy.SubPolicies)
+
+                foreach (Policy subPolicy in policy.SubPolicies)
                 {
                     PublishedProviderResultsPolicySummary publishedProviderResultsSubPolicySummary = new PublishedProviderResultsPolicySummary
                     {
@@ -1492,7 +1590,7 @@ namespace CalculateFunding.Services.Results
         {
             IEnumerable<PublishedProviderResultsCalculationSummary> calculationSummaries = Enumerable.Empty<PublishedProviderResultsCalculationSummary>();
 
-            if(policy.Calculations.IsNullOrEmpty())
+            if (policy.Calculations.IsNullOrEmpty())
             {
                 return calculationSummaries;
             }
@@ -1527,13 +1625,13 @@ namespace CalculateFunding.Services.Results
             return calculationSummaries;
         }
 
-	    private void UpdateCacheForSegmentDone(string specificationId, int percentageToSetTo, CalculationProgressStatus progressStatus, string message = null)
-	    {
-		    SpecificationCalculationExecutionStatus calculationProgress = new SpecificationCalculationExecutionStatus(specificationId, percentageToSetTo, progressStatus)
-		    {
-			    ErrorMessage = message
-		    };
-		    CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{calculationProgress.SpecificationId}", calculationProgress, _cacheProvider);
-	    }
-	}
+        private void UpdateCacheForSegmentDone(string specificationId, int percentageToSetTo, CalculationProgressStatus progressStatus, string message = null)
+        {
+            SpecificationCalculationExecutionStatus calculationProgress = new SpecificationCalculationExecutionStatus(specificationId, percentageToSetTo, progressStatus)
+            {
+                ErrorMessage = message
+            };
+            CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{calculationProgress.SpecificationId}", calculationProgress, _cacheProvider);
+        }
+    }
 }

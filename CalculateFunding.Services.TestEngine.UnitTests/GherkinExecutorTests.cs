@@ -26,9 +26,9 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             //Arrange
             ProviderResult providerResult = new ProviderResult();
 
-            IEnumerable<ProviderSourceDatasetCurrent> datasets = new[]
+            IEnumerable<ProviderSourceDataset> datasets = new[]
             {
-                new ProviderSourceDatasetCurrent()
+                new ProviderSourceDataset()
             };
 
             IEnumerable<TestScenario> testScenarios = new[]
@@ -71,9 +71,9 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             //Arrange
             ProviderResult providerResult = new ProviderResult();
 
-            IEnumerable<ProviderSourceDatasetCurrent> datasets = new[]
+            IEnumerable<ProviderSourceDataset> datasets = new[]
             {
-                new ProviderSourceDatasetCurrent()
+                new ProviderSourceDataset()
             };
 
             IEnumerable<TestScenario> testScenarios = new[]
@@ -137,9 +137,9 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             //Arrange
             ProviderResult providerResult = new ProviderResult();
 
-            IEnumerable<ProviderSourceDatasetCurrent> datasets = new[]
+            IEnumerable<ProviderSourceDataset> datasets = new[]
             {
-                new ProviderSourceDatasetCurrent()
+                new ProviderSourceDataset()
             };
 
             IEnumerable<TestScenario> testScenarios = new[]
@@ -226,9 +226,9 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             //Arrange
             ProviderResult providerResult = new ProviderResult();
 
-            IEnumerable<ProviderSourceDatasetCurrent> datasets = new[]
+            IEnumerable<ProviderSourceDataset> datasets = new[]
             {
-                new ProviderSourceDatasetCurrent()
+                new ProviderSourceDataset()
             };
 
             IEnumerable<TestScenario> testScenarios = new[]
@@ -309,9 +309,9 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             //Arrange
             ProviderResult providerResult = new ProviderResult();
 
-            IEnumerable<ProviderSourceDatasetCurrent> datasets = new[]
+            IEnumerable<ProviderSourceDataset> datasets = new[]
             {
-                new ProviderSourceDatasetCurrent()
+                new ProviderSourceDataset()
             };
 
             IEnumerable<TestScenario> testScenarios = new[]
@@ -401,9 +401,9 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             //Arrange
             ProviderResult providerResult = new ProviderResult();
 
-            IEnumerable<ProviderSourceDatasetCurrent> datasets = new[]
+            IEnumerable<ProviderSourceDataset> datasets = new[]
             {
-                new ProviderSourceDatasetCurrent()
+                new ProviderSourceDataset()
             };
 
             IEnumerable<TestScenario> testScenarios = new[]

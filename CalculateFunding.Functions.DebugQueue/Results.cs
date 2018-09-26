@@ -3,6 +3,7 @@ using CalculateFunding.Services.Core.Constants;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.DebugQueue
@@ -22,7 +23,7 @@ namespace CalculateFunding.Functions.DebugQueue
         [FunctionName("on-fetch-provider-profile")]
         public static async Task RunFetchProviderProfile([QueueTrigger(ServiceBusConstants.QueueNames.FetchProviderProfile, Connection = "AzureConnectionString")] string item, TraceWriter log)
         {
-            Message message = Helpers.ConvertToMessage<ProviderProfilingRequestModel>(item);
+            Message message = Helpers.ConvertToMessage<IEnumerable<FetchProviderProfilingMessageItem>>(item);
 
             await Functions.Results.ServiceBus.OnFetchProviderProfileEvent.Run(message);
 

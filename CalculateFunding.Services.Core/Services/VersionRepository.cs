@@ -93,7 +93,7 @@ namespace CalculateFunding.Services.Core.Services
 
             string query = $"SELECT VALUE Max(c.content.version) FROM c where c.content.entityId = \"{ entityId }\" and c.documentType = \"{ typeof(T).Name }\" and c.deleted = false";
 
-            dynamic[] resultsArray = _cosmosRepository.DynamicQuery<dynamic>(query).ToArray();
+            dynamic[] resultsArray = _cosmosRepository.DynamicQuery<dynamic>(query, true).ToArray();
 
             if (resultsArray.IsNullOrEmpty())
             {

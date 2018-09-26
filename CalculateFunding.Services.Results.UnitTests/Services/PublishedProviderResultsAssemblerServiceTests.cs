@@ -1,17 +1,15 @@
-﻿using CalculateFunding.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -119,70 +117,10 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(CreateFundingPeriod(new Reference("fp1", "funding period 1")));
 
             specificationsRepository
-                .GetFundingStreams()
-                .Returns(fundingStreams);
+                    .GetFundingStreams()
+                    .Returns(fundingStreams);
 
-            ICacheProvider cacheProvider = CreateCacheProvider();
-
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository, cacheProvider);
-
-            //Act
-            Func<Task> test = async () => await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
-
-            //Assert
-            test
-                .Should()
-                .ThrowExactly<Exception>()
-                .Which
-                .Message
-                .Should()
-                .Be($"Failed to find a funding stream for id: fs-1");
-
-            await
-                cacheProvider
-                    .Received(1)
-                    .SetAsync<FundingStream[]>(Arg.Is(CacheKeys.AllFundingStreams), Arg.Is<FundingStream[]>(m => m.First().Id == "fs-001"));
-        }
-
-        [TestMethod]
-        public async Task AssemblePublishedProviderResults_ButUnableToFindFundingStreamForProvidedFundingStreamIdWhenReturnedFromCache_ThrowsException()
-        {
-            //Arrange
-            IEnumerable<ProviderResult> providerResults = CreateProviderResults();
-
-            IEnumerable<FundingStream> fundingStreams = new[]
-            {
-                new FundingStream
-                {
-                    Id = "fs-001"
-                }
-            };
-
-            Reference author = CreateAuthor();
-
-            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
-            {
-                FundingPeriod = new Reference("fp1", "funding period 1"),
-                FundingStreams = new[]
-                {
-                    new FundingStream
-                    {
-                        Id = "fs-1"
-                    }
-                }
-            };
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
-                .GetFundingPeriodById(Arg.Is("fp1"))
-                .Returns(CreateFundingPeriod(new Reference("fp1", "funding period 1")));
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .GetAsync<FundingStream[]>(Arg.Is(CacheKeys.AllFundingStreams))
-                .Returns(fundingStreams.ToArray());
-
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository, cacheProvider);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
 
             //Act
             Func<Task> test = async () => await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -198,7 +136,7 @@ namespace CalculateFunding.Services.Results.Services
 
             await
                 specificationsRepository
-                .DidNotReceive()
+                .Received(1)
                 .GetFundingStreams();
         }
 
@@ -235,12 +173,11 @@ namespace CalculateFunding.Services.Results.Services
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(CreateFundingPeriod(new Reference("fp1", "funding period 1")));
 
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .GetAsync<FundingStream[]>(Arg.Is(CacheKeys.AllFundingStreams))
-                .Returns(fundingStreams.ToArray());
+            specificationsRepository
+                 .GetFundingStreams()
+                 .Returns(fundingStreams);
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository, cacheProvider);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -307,12 +244,12 @@ namespace CalculateFunding.Services.Results.Services
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(fundingPeriod);
 
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .GetAsync<FundingStream[]>(Arg.Is(CacheKeys.AllFundingStreams))
-                .Returns(fundingStreams.ToArray());
+            specificationsRepository
+                .GetFundingStreams()
+                .Returns(fundingStreams);
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository, cacheProvider);
+
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -358,10 +295,667 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task AssemblePublishedProviderResults_AndTwoAllocationLineFoundForFundingStream__EnsuresTwoResultsAssembled()
+        public async Task AssemblePublishedProviderResults_WithSingleNullValuedFundingResult_ReturnsNoResults()
         {
             //Arrange
-            IEnumerable<ProviderResult> providerResults = CreateProviderResults();
+            IEnumerable<ProviderResult> providerResults = new[] {
+                new ProviderResult
+            {
+                SpecificationId = "spec-id",
+                CalculationResults = new List<CalculationResult>
+                    {
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
+                            Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
+                            Value = null,
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            AllocationLine = new Reference("AAAAA", "test allocation line 1"),
+
+                        },
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
+                            Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
+                            Value = 10,
+                            CalculationType = Models.Calcs.CalculationType.Number
+                        }
+                    },
+                AllocationLineResults = new List<AllocationLineResult>
+                {
+                    new AllocationLineResult
+                    {
+                        AllocationLine = new Reference
+                        {
+                            Id = "AAAAA",
+                            Name = "test allocation line 1"
+                        },
+                        Value = 50
+                    },
+                    new AllocationLineResult
+                    {
+                        AllocationLine = new Reference
+                        {
+                            Id = "BBBBB",
+                            Name = "test allocation line 2"
+                        },
+                        Value = 100
+                    }
+                },
+                Provider = new ProviderSummary
+                {
+                    Id = "ukprn-001",
+                    Name = "prov name",
+                    ProviderType = "prov type",
+                    ProviderSubType = "prov sub type",
+                    Authority = "authority",
+                    UKPRN = "ukprn",
+                    UPIN = "upin",
+                    URN = "urn",
+                    EstablishmentNumber = "12345",
+                    DateOpened = DateTime.Now.AddDays(-7),
+                    ProviderProfileIdType = "UKPRN"
+                }
+            }
+            };
+
+
+            IEnumerable<FundingStream> fundingStreams = new[]
+            {
+                new FundingStream
+                {
+                    Id = "fs-001",
+                    Name = "fs one",
+                    ShortName = "fs1",
+                    AllocationLines = new List<AllocationLine>
+                    {
+                        new AllocationLine
+                        {
+                            Id = "AAAAA",
+                            Name = "test allocation line 1",
+                            ShortName = "AA",
+                            FundingRoute = FundingRoute.LA,
+                            IsContractRequired = true
+                        }
+                    },
+                    PeriodType = new PeriodType{ Id = "AY", StartDay = 1, StartMonth = 8, EndDay = 31, EndMonth = 7, Name = "period-type" }
+                }
+            };
+
+            Reference author = CreateAuthor();
+
+            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
+            {
+                Id = "spec-id-1",
+                FundingPeriod = new Reference("fp1", "funding period 1"),
+                FundingStreams = new[]
+                {
+                    new FundingStream
+                    {
+                        Id = "fs-001",
+                        Name = "fs one",
+                        PeriodType = new PeriodType
+                        {
+                            Id = "AY"
+                        }
+                    }
+                }
+            };
+
+            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetFundingPeriodById(Arg.Is("fp1"))
+                .Returns(fundingPeriod);
+
+            specificationsRepository
+                            .GetFundingStreams()
+                            .Returns(fundingStreams);
+
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+
+            //Act
+            IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
+
+            //Assert
+            results
+                .Count()
+                .Should()
+                .Be(0);
+        }
+
+        [TestMethod]
+        public async Task AssemblePublishedProviderResults_WithMultipleNullValuedFundingResult_ReturnsNoResults()
+        {
+            //Arrange
+            IEnumerable<ProviderResult> providerResults = new[] {
+                new ProviderResult
+            {
+                SpecificationId = "spec-id",
+                CalculationResults = new List<CalculationResult>
+                    {
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
+                            Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
+                            Value = null,
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            AllocationLine = new Reference("AAAAA", "test allocation line 1"),
+
+                        },
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
+                            Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
+                            Value = 10,
+                            CalculationType = Models.Calcs.CalculationType.Number
+                        },
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-3", Name = "calc spec name 3"},
+                            Calculation = new Reference { Id = "calc-id-3", Name = "calc name 3" },
+                            Value = null,
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            AllocationLine = new Reference("AAAAA", "test allocation line 1"),
+
+                        },
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-4", Name = "calc spec name 4"},
+                            Calculation = new Reference { Id = "calc-id-4", Name = "calc name 4" },
+                            Value = null,
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            AllocationLine = new Reference("AAAAA", "test allocation line 1"),
+
+                        },
+                    },
+                AllocationLineResults = new List<AllocationLineResult>
+                {
+                    new AllocationLineResult
+                    {
+                        AllocationLine = new Reference
+                        {
+                            Id = "AAAAA",
+                            Name = "test allocation line 1"
+                        },
+                        Value = 50
+                    },
+                    new AllocationLineResult
+                    {
+                        AllocationLine = new Reference
+                        {
+                            Id = "BBBBB",
+                            Name = "test allocation line 2"
+                        },
+                        Value = 100
+                    }
+                },
+                Provider = new ProviderSummary
+                {
+                    Id = "ukprn-001",
+                    Name = "prov name",
+                    ProviderType = "prov type",
+                    ProviderSubType = "prov sub type",
+                    Authority = "authority",
+                    UKPRN = "ukprn",
+                    UPIN = "upin",
+                    URN = "urn",
+                    EstablishmentNumber = "12345",
+                    DateOpened = DateTime.Now.AddDays(-7),
+                    ProviderProfileIdType = "UKPRN"
+                }
+            }
+            };
+
+
+            IEnumerable<FundingStream> fundingStreams = new[]
+            {
+                new FundingStream
+                {
+                    Id = "fs-001",
+                    Name = "fs one",
+                    ShortName = "fs1",
+                    AllocationLines = new List<AllocationLine>
+                    {
+                        new AllocationLine
+                        {
+                            Id = "AAAAA",
+                            Name = "test allocation line 1",
+                            ShortName = "AA",
+                            FundingRoute = FundingRoute.LA,
+                            IsContractRequired = true
+                        }
+                    },
+                    PeriodType = new PeriodType{ Id = "AY", StartDay = 1, StartMonth = 8, EndDay = 31, EndMonth = 7, Name = "period-type" }
+                }
+            };
+
+            Reference author = CreateAuthor();
+
+            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
+            {
+                Id = "spec-id-1",
+                FundingPeriod = new Reference("fp1", "funding period 1"),
+                FundingStreams = new[]
+                {
+                    new FundingStream
+                    {
+                        Id = "fs-001",
+                        Name = "fs one",
+                        PeriodType = new PeriodType
+                        {
+                            Id = "AY"
+                        }
+                    }
+                }
+            };
+
+            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetFundingPeriodById(Arg.Is("fp1"))
+                .Returns(fundingPeriod);
+
+            specificationsRepository
+                .GetFundingStreams()
+                .Returns(fundingStreams);
+
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+
+            //Act
+            IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
+
+            //Assert
+            results
+                .Count()
+                .Should()
+                .Be(0);
+        }
+
+        [TestMethod]
+        public async Task AssemblePublishedProviderResults_WithMultipleFundingCalculationsContainingNullsAndValues_ReturnsSumOfValues()
+        {
+            //Arrange
+            IEnumerable<ProviderResult> providerResults = new[] {
+                new ProviderResult
+            {
+                SpecificationId = "spec-id",
+                CalculationResults = new List<CalculationResult>
+                    {
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
+                            Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
+                            Value = null,
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            AllocationLine = new Reference("AAAAA", "test allocation line 1"),
+
+                        },
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
+                            Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
+                            Value = 10,
+                            CalculationType = Models.Calcs.CalculationType.Number
+                        },
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-3", Name = "calc spec name 3"},
+                            Calculation = new Reference { Id = "calc-id-3", Name = "calc name 3" },
+                            Value = 25,
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            AllocationLine = new Reference("AAAAA", "test allocation line 1"),
+
+                        },
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-4", Name = "calc spec name 4"},
+                            Calculation = new Reference { Id = "calc-id-4", Name = "calc name 4" },
+                            Value = 27,
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            AllocationLine = new Reference("AAAAA", "test allocation line 1"),
+
+                        },
+                    },
+                AllocationLineResults = new List<AllocationLineResult>
+                {
+                    new AllocationLineResult
+                    {
+                        AllocationLine = new Reference
+                        {
+                            Id = "AAAAA",
+                            Name = "test allocation line 1"
+                        },
+                        Value = 50
+                    },
+                    new AllocationLineResult
+                    {
+                        AllocationLine = new Reference
+                        {
+                            Id = "BBBBB",
+                            Name = "test allocation line 2"
+                        },
+                        Value = 100
+                    }
+                },
+                Provider = new ProviderSummary
+                {
+                    Id = "ukprn-001",
+                    Name = "prov name",
+                    ProviderType = "prov type",
+                    ProviderSubType = "prov sub type",
+                    Authority = "authority",
+                    UKPRN = "ukprn",
+                    UPIN = "upin",
+                    URN = "urn",
+                    EstablishmentNumber = "12345",
+                    DateOpened = DateTime.Now.AddDays(-7),
+                    ProviderProfileIdType = "UKPRN"
+                }
+            }
+            };
+
+
+            IEnumerable<FundingStream> fundingStreams = new[]
+            {
+                new FundingStream
+                {
+                    Id = "fs-001",
+                    Name = "fs one",
+                    ShortName = "fs1",
+                    AllocationLines = new List<AllocationLine>
+                    {
+                        new AllocationLine
+                        {
+                            Id = "AAAAA",
+                            Name = "test allocation line 1",
+                            ShortName = "AA",
+                            FundingRoute = FundingRoute.LA,
+                            IsContractRequired = true
+                        }
+                    },
+                    PeriodType = new PeriodType{ Id = "AY", StartDay = 1, StartMonth = 8, EndDay = 31, EndMonth = 7, Name = "period-type" }
+                }
+            };
+
+            Reference author = CreateAuthor();
+
+            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
+            {
+                Id = "spec-id-1",
+                FundingPeriod = new Reference("fp1", "funding period 1"),
+                FundingStreams = new[]
+                {
+                    new FundingStream
+                    {
+                        Id = "fs-001",
+                        Name = "fs one",
+                        PeriodType = new PeriodType
+                        {
+                            Id = "AY"
+                        }
+                    }
+                }
+            };
+
+            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetFundingPeriodById(Arg.Is("fp1"))
+                .Returns(fundingPeriod);
+
+            specificationsRepository
+                .GetFundingStreams()
+                .Returns(fundingStreams);
+
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+
+            //Act
+            IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
+
+            //Assert
+            results
+                .Count()
+                .Should()
+                .Be(1);
+
+            results
+                .First()
+                .FundingStreamResult
+                .AllocationLineResult
+                .AllocationLine
+                .Id
+                .Should()
+                .Be("AAAAA");
+
+            results
+                .First()
+                .FundingStreamResult
+                .AllocationLineResult
+                .Current
+                .Value
+                .Should()
+                .Be(52);
+        }
+
+        [TestMethod]
+        public async Task AssemblePublishedProviderResults_WithMultipleFundingCalculationsContainingNullsAndValuesAndMultipleAllocationLines_ReturnsSumOfValuesForEachAllocationLine()
+        {
+            //Arrange
+            IEnumerable<ProviderResult> providerResults = new[] {
+                new ProviderResult
+            {
+                SpecificationId = "spec-id",
+                CalculationResults = new List<CalculationResult>
+                    {
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
+                            Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
+                            Value = null,
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            AllocationLine = new Reference("AAAAA", "test allocation line 1"),
+
+                        },
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
+                            Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
+                            Value = 10,
+                            CalculationType = Models.Calcs.CalculationType.Number
+                        },
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-3", Name = "calc spec name 3"},
+                            Calculation = new Reference { Id = "calc-id-3", Name = "calc name 3" },
+                            Value = 12345,
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            AllocationLine = new Reference("BBBBB", "test allocation line 2"),
+
+                        },
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-4", Name = "calc spec name 4"},
+                            Calculation = new Reference { Id = "calc-id-4", Name = "calc name 4" },
+                            Value = 27,
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            AllocationLine = new Reference("AAAAA", "test allocation line 1"),
+
+                        },
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-5", Name = "calc spec name 5"},
+                            Calculation = new Reference { Id = "calc-id-5", Name = "calc name 5" },
+                            Value = 27,
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            AllocationLine = new Reference("AAAAA", "test allocation line 1"),
+
+                        },
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-6", Name = "calc spec name 6"},
+                            Calculation = new Reference { Id = "calc-id-6", Name = "calc name 6" },
+                            Value = 79,
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            AllocationLine = new Reference("BBBBB", "test allocation line 2"),
+
+                        },
+                    },
+                AllocationLineResults = new List<AllocationLineResult>
+                {
+                    new AllocationLineResult
+                    {
+                        AllocationLine = new Reference
+                        {
+                            Id = "AAAAA",
+                            Name = "test allocation line 1"
+                        },
+                        Value = 50
+                    },
+                    new AllocationLineResult
+                    {
+                        AllocationLine = new Reference
+                        {
+                            Id = "BBBBB",
+                            Name = "test allocation line 2"
+                        },
+                        Value = 100
+                    }
+                },
+                Provider = new ProviderSummary
+                {
+                    Id = "ukprn-001",
+                    Name = "prov name",
+                    ProviderType = "prov type",
+                    ProviderSubType = "prov sub type",
+                    Authority = "authority",
+                    UKPRN = "ukprn",
+                    UPIN = "upin",
+                    URN = "urn",
+                    EstablishmentNumber = "12345",
+                    DateOpened = DateTime.Now.AddDays(-7),
+                    ProviderProfileIdType = "UKPRN"
+                }
+            }
+            };
+
+
+            IEnumerable<FundingStream> fundingStreams = new[]
+            {
+                new FundingStream
+                {
+                    Id = "fs-001",
+                    Name = "fs one",
+                    ShortName = "fs1",
+                    AllocationLines = new List<AllocationLine>
+                    {
+                        new AllocationLine
+                        {
+                            Id = "AAAAA",
+                            Name = "test allocation line 1",
+                            ShortName = "AA",
+                            FundingRoute = FundingRoute.LA,
+                            IsContractRequired = true
+                        },
+                        new AllocationLine
+                        {
+                            Id = "BBBBB",
+                            Name = "test allocation line 2",
+                            ShortName = "BB",
+                            FundingRoute = FundingRoute.LA,
+                            IsContractRequired = true
+                        }
+                    },
+                    PeriodType = new PeriodType{ Id = "AY", StartDay = 1, StartMonth = 8, EndDay = 31, EndMonth = 7, Name = "period-type" }
+                }
+            };
+
+            Reference author = CreateAuthor();
+
+            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
+            {
+                Id = "spec-id-1",
+                FundingPeriod = new Reference("fp1", "funding period 1"),
+                FundingStreams = new[]
+                {
+                    new FundingStream
+                    {
+                        Id = "fs-001",
+                        Name = "fs one",
+                        PeriodType = new PeriodType
+                        {
+                            Id = "AY"
+                        }
+                    }
+                }
+            };
+
+            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetFundingPeriodById(Arg.Is("fp1"))
+                .Returns(fundingPeriod);
+
+            specificationsRepository
+                .GetFundingStreams()
+                .Returns(fundingStreams);
+
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+
+            //Act
+            IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
+
+            //Assert
+            results
+                .Count()
+                .Should()
+                .Be(2);
+
+            results
+                .First()
+                .FundingStreamResult
+                .AllocationLineResult
+                .AllocationLine
+                .Id
+                .Should()
+                .Be("AAAAA");
+
+            results
+                .First()
+                .FundingStreamResult
+                .AllocationLineResult
+                .Current
+                .Value
+                .Should()
+                .Be(54);
+
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>(results);
+            publishedProviderResults[1]
+                .FundingStreamResult
+                .AllocationLineResult
+                .AllocationLine
+                .Id
+                .Should()
+                .Be("BBBBB");
+
+            publishedProviderResults[1]
+                .FundingStreamResult
+                .AllocationLineResult
+                .Current
+                .Value
+                .Should()
+                .Be(12424);
+
+        }
+
+        [TestMethod]
+        public async Task AssemblePublishedProviderResults_AndTwoAllocationLineFoundForFundingStream__EnsuresTwoResultsAssembled()
+        {
+            IEnumerable<ProviderResult> providerResults = CreateProviderResultsWithTwoCalcsReturningTwoAllocationLines();
 
             IEnumerable<FundingStream> fundingStreams = new[]
             {
@@ -408,12 +1002,11 @@ namespace CalculateFunding.Services.Results.Services
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(fundingPeriod);
 
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .GetAsync<FundingStream[]>(Arg.Is(CacheKeys.AllFundingStreams))
-                .Returns(fundingStreams.ToArray());
+            specificationsRepository
+                .GetFundingStreams()
+                .Returns(fundingStreams);
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository, cacheProvider);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -423,13 +1016,38 @@ namespace CalculateFunding.Services.Results.Services
                 .Count()
                 .Should()
                 .Be(2);
+
+            List<PublishedProviderResult> publishedProviderResults = results.ToList();
+
+            PublishedAllocationLineResultVersion allocationLine1 = results.Where(f => f.FundingStreamResult.AllocationLineResult.AllocationLine.Id == "AAAAA").Select(c => c.FundingStreamResult.AllocationLineResult.Current).SingleOrDefault();
+
+            allocationLine1
+            .Should()
+            .NotBeNull();
+
+            allocationLine1
+                .Value
+                .Should()
+                .Be(123);
+
+            PublishedAllocationLineResultVersion allocationLine2 = results.Where(f => f.FundingStreamResult.AllocationLineResult.AllocationLine.Id == "BBBBB").Select(c => c.FundingStreamResult.AllocationLineResult.Current).SingleOrDefault();
+
+            allocationLine2
+            .Should()
+            .NotBeNull();
+
+            allocationLine2
+                .Value
+                .Should()
+                .Be(10);
+
         }
 
         [TestMethod]
-        public async Task AssemblePublishedProviderResults_WhenThreeAllocatioLinesProvidedButOnlyFindsTwoInResults__CreatesTwoAssembledResults()
+        public async Task AssemblePublishedProviderResults_WhenThreeAllocatioLinesProvidedButOnlyFindsTwoInResults_CreatesTwoAssembledResults()
         {
             //Arrange
-            IEnumerable<ProviderResult> providerResults = CreateProviderResults();
+            IEnumerable<ProviderResult> providerResults = CreateProviderResultsWithTwoCalcsReturningTwoAllocationLines();
 
             IEnumerable<FundingStream> fundingStreams = new[]
             {
@@ -481,12 +1099,11 @@ namespace CalculateFunding.Services.Results.Services
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(fundingPeriod);
 
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .GetAsync<FundingStream[]>(Arg.Is(CacheKeys.AllFundingStreams))
-                .Returns(fundingStreams.ToArray());
+            specificationsRepository
+                 .GetFundingStreams()
+                 .Returns(fundingStreams);
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository, cacheProvider);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -688,7 +1305,7 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = new List<ProviderResult>();
             Reference author = new Reference("a", "Author Name");
             SpecificationCurrentVersion specification = GenerateSpecificationWithPoliciesAndSubpolicies();
-           
+
             providerResults.Add(new ProviderResult()
             {
                 AllocationLineResults = new List<AllocationLineResult>(),
@@ -820,22 +1437,16 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         static PublishedProviderResultsAssemblerService CreateAssemblerService(
-            ISpecificationsRepository specificationsRepository = null, ICacheProvider cacheProvider = null, ILogger logger = null)
+            ISpecificationsRepository specificationsRepository = null, ILogger logger = null)
         {
             return new PublishedProviderResultsAssemblerService(
                 specificationsRepository ?? CreateSpecificationsRepository(),
-                cacheProvider ?? CreateCacheProvider(),
                 logger ?? CreateLogger());
         }
 
         static ISpecificationsRepository CreateSpecificationsRepository()
         {
             return Substitute.For<ISpecificationsRepository>();
-        }
-
-        static ICacheProvider CreateCacheProvider()
-        {
-            return Substitute.For<ICacheProvider>();
         }
 
         static ILogger CreateLogger()
@@ -856,7 +1467,8 @@ namespace CalculateFunding.Services.Results.Services
                             CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
                             Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                             Value = 123,
-                            CalculationType = Models.Calcs.CalculationType.Funding
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            AllocationLine = new Reference("AAAAA","test allocation line 1"),
                         },
                         new CalculationResult
                         {
@@ -1039,6 +1651,78 @@ namespace CalculateFunding.Services.Results.Services
 
             specification.Policies = policies;
             return specification;
+        }
+
+        private static IEnumerable<ProviderResult> CreateProviderResultsWithTwoCalcsReturningTwoAllocationLines()
+        {
+            //Arrange
+            return new[] {
+                new ProviderResult
+            {
+                SpecificationId = "spec-id",
+                CalculationResults = new List<CalculationResult>
+                    {
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
+                            Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
+                            Value = 123,
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            AllocationLine = new Reference("AAAAA","test allocation line 1"),
+                        },
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
+                            Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
+                            Value = 10,
+                            CalculationType = Models.Calcs.CalculationType.Number
+                        },
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-3", Name = "calc spec name 3"},
+                            Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
+                            Value = 10,
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            AllocationLine = new Reference("BBBBB","test allocation line 2"),
+                        }
+                    },
+                AllocationLineResults = new List<AllocationLineResult>
+                {
+                    new AllocationLineResult
+                    {
+                        AllocationLine = new Reference
+                        {
+                            Id = "AAAAA",
+                            Name = "test allocation line 1"
+                        },
+                        Value = 50
+                    },
+                    new AllocationLineResult
+                    {
+                        AllocationLine = new Reference
+                        {
+                            Id = "BBBBB",
+                            Name = "test allocation line 2"
+                        },
+                        Value = 100
+                    }
+                },
+                Provider = new ProviderSummary
+                {
+                    Id = "ukprn-001",
+                    Name = "prov name",
+                    ProviderType = "prov type",
+                    ProviderSubType = "prov sub type",
+                    Authority = "authority",
+                    UKPRN = "ukprn",
+                    UPIN = "upin",
+                    URN = "urn",
+                    EstablishmentNumber = "12345",
+                    DateOpened = DateTime.Now.AddDays(-7),
+                    ProviderProfileIdType = "UKPRN"
+                }
+            }
+            };
         }
 
         static Reference CreateAuthor()

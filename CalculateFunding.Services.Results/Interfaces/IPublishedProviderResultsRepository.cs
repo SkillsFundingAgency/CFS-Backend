@@ -12,6 +12,8 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsForSpecificationId(string specificationId);
 
+        Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsForSpecificationIdAndProviderId(string specificationId, IEnumerable<string> providerIds);
+
         Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(string fundingPeriod, string specificationId, string fundingStreamId);
 
         Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsForSpecificationAndStatus(string specificationId, UpdatePublishedAllocationLineResultStatusModel filterCriteria);
@@ -22,7 +24,7 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         Task<PublishedAllocationLineResultHistory> GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(string specificationId, string providerId, string allocationLineId);
 
-        PublishedProviderResult GetPublishedProviderResultForId(string id);
+        Task<PublishedProviderResult> GetPublishedProviderResultForId(string id, string providerId);
 
         Task<PublishedProviderResult> GetPublishedProviderResultForIdInPublishedState(string id);
 

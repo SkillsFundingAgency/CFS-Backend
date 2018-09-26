@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.TestRunner
         }
 
         public async Task<IEnumerable<TestScenarioResult>> RunTests(IEnumerable<TestScenario> testScenarios, IEnumerable<ProviderResult> providerResults,
-            IEnumerable<ProviderSourceDatasetCurrent> sourceDatasets, IEnumerable<TestScenarioResult> currentResults, SpecificationSummary specification, BuildProject buildProject)
+            IEnumerable<ProviderSourceDataset> sourceDatasets, IEnumerable<TestScenarioResult> currentResults, SpecificationSummary specification, BuildProject buildProject)
         {
             Guard.ArgumentNotNull(testScenarios, nameof(testScenarios));
             Guard.ArgumentNotNull(providerResults, nameof(providerResults));
@@ -102,7 +102,7 @@ namespace CalculateFunding.Services.TestRunner
         }
 
         async Task<IEnumerable<ScenarioResult>> RunTests(IEnumerable<TestScenario> testScenarios, ProviderResult providerResult,
-            IEnumerable<ProviderSourceDatasetCurrent> providerSourceDatasets, BuildProject buildProject)
+            IEnumerable<ProviderSourceDataset> providerSourceDatasets, BuildProject buildProject)
         {
             List<ScenarioResult> scenarioResults = new List<ScenarioResult>();
 

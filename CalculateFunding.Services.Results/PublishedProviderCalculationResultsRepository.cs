@@ -5,8 +5,10 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
@@ -62,5 +64,41 @@ namespace CalculateFunding.Services.Results
 
             return Task.FromResult(results.AsEnumerable());
         }
+
+        public async Task<IEnumerable<PublishedProviderCalculationResult>> GetPublishedProviderCalculationResultsBySpecificationIdAndProviderId(string specificationId, IEnumerable<string> providerIds)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            ConcurrentBag<PublishedProviderCalculationResult> results = new ConcurrentBag<PublishedProviderCalculationResult>();
+
+            List<Task> allTasks = new List<Task>();
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+            foreach (string providerId in providerIds)
+            {
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            string sql = $"select * from root c where c.content.specification.id = \"{specificationId}\" and c.documentType = \"PublishedProviderCalculationResult\" and c.content.providerId = \"{providerId}\" and c.deleted = false";
+
+                            IEnumerable<PublishedProviderCalculationResult> publishedCalcResults = await _cosmosRepository.QueryPartitionedEntity<PublishedProviderCalculationResult>(sql, partitionEntityId: providerId);
+                            foreach (PublishedProviderCalculationResult result in publishedCalcResults)
+                            {
+                                results.Add(result);
+                            }
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
+
+            return results;
+        }
+
     }
 }

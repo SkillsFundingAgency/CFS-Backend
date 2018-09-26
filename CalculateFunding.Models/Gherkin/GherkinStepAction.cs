@@ -9,12 +9,12 @@ namespace CalculateFunding.Models.Gherkin
 
     public interface IStepAction
     {
-        GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDatasetCurrent> datasets);
+        GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets);
     }
 
     public abstract class GherkinStepAction : IStepAction
     {
-        public abstract GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDatasetCurrent> datasets);
+        public abstract GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets);
         protected bool TestLogic(object expectedValue, object actualValue, ComparisonOperator logic)
         {
             var expected = expectedValue as IComparable;
@@ -40,14 +40,14 @@ namespace CalculateFunding.Models.Gherkin
             }
         }
 
-        protected static object GetActualValue(IEnumerable<ProviderSourceDatasetCurrent> datasets, string datasetRelationshipName, string fieldName)
+        protected static object GetActualValue(IEnumerable<ProviderSourceDataset> datasets, string datasetRelationshipName, string fieldName)
         {
             object actualValue = null;
 
-            ProviderSourceDatasetCurrent providerSourceDataset = datasets.Where(d => d.DataRelationship.Name == datasetRelationshipName).FirstOrDefault();
+            ProviderSourceDataset providerSourceDataset = datasets.Where(d => d.DataRelationship.Name == datasetRelationshipName).FirstOrDefault();
             if (providerSourceDataset != null)
             {
-                var rows = providerSourceDataset.Rows;
+                var rows = providerSourceDataset.Current.Rows;
 
                 if (rows.Count > 0)
                 {

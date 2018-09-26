@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
-    public class CalculationResult 
+    public class CalculationResult
     {
         [JsonProperty("calculation")]
         public Reference Calculation { get; set; }
