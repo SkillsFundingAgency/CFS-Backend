@@ -10,5 +10,15 @@ namespace System
         {
             return Regex.Replace(text, "E[+|-](\\d)+", replaceWith);
         }
+
+        public static string EmptyIfNull(this string text)
+        {
+            if(text != null)
+            {
+                return text;
+            }
+
+            return "";
+        }
     }
 }

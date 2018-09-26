@@ -77,7 +77,7 @@ namespace CalculateFunding.Services.Calculator
             IEnumerable<CalculationResult> calculationResults;
             try
             {
-                calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>()).ToArray();
+                calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider).ToArray();
             }
             catch (Exception ex)
             {

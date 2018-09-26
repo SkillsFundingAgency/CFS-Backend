@@ -1,10 +1,8 @@
 ﻿Public Class BaseCalculation
 
-    Public Property Provider() as Provider
-
 #Region "Legacy Store Support"
 
-    public Property rid as String
+    Public Property rid as String
     Public Property currentscenario As Scenario
 
     Public Sub Print(Of T) (value As T, name As String, rid As String)
