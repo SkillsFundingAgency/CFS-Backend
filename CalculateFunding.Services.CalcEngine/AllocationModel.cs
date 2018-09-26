@@ -31,8 +31,7 @@ namespace CalculateFunding.Services.Calculator
                 }
             }
 
-
-            var executeMethods = allocationType.GetMethods().Where(x => x.ReturnType == typeof(decimal));
+            var executeMethods = allocationType.GetMethods().Where(x => x.ReturnType == typeof(Nullable<decimal>));
             foreach (var executeMethod in executeMethods)
             {
 
@@ -138,7 +137,7 @@ namespace CalculateFunding.Services.Calculator
                 var result = executeMethod.Item2;
                 try
                 {
-                    result.Value = (decimal)executeMethod.Item1.Invoke(_instance, null);
+                    result.Value = (decimal?)executeMethod.Item1.Invoke(_instance, null);
                 }
                 catch (Exception e)
                 {
