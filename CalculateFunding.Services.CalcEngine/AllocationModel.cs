@@ -6,6 +6,7 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calculator.Interfaces;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -15,12 +16,13 @@ namespace CalculateFunding.Services.Calculator
         private readonly Dictionary<string, PropertyInfo> _datasetSetters = new Dictionary<string, PropertyInfo>();
         private readonly object _instance;
         private readonly object _datasetsInstance;
+        private readonly object _providerInstance;
 
         public AllocationModel(Type allocationType, Dictionary<string, Type> datasetTypes)
         {
             DatasetTypes = datasetTypes;
-            var datasetsSetter = allocationType.GetProperty("Datasets");
-            var datasetType = datasetsSetter.PropertyType;
+            PropertyInfo datasetsSetter = allocationType.GetProperty("Datasets");
+            Type datasetType = datasetsSetter.PropertyType;
             foreach (var relationshipProperty in datasetType.GetProperties().Where(x => x.CanWrite).ToArray())
             {
                 var relationshipAttribute = relationshipProperty.GetCustomAttributesData()
@@ -31,11 +33,12 @@ namespace CalculateFunding.Services.Calculator
                 }
             }
 
+            PropertyInfo providerSetter = allocationType.GetProperty("Provider");
+            Type providerType = providerSetter.PropertyType;
 
             var executeMethods = allocationType.GetMethods().Where(x => x.ReturnType == typeof(decimal));
             foreach (var executeMethod in executeMethods)
             {
-
                 var parameters = executeMethod.GetParameters();
 
                 var attributes = executeMethod.GetCustomAttributesData();
@@ -60,6 +63,15 @@ namespace CalculateFunding.Services.Calculator
             _instance = Activator.CreateInstance(allocationType);
             _datasetsInstance = Activator.CreateInstance(datasetType);
             datasetsSetter.SetValue(_instance, _datasetsInstance);
+            _providerInstance = Activator.CreateInstance(providerType);
+        }
+
+        public object Instance
+        {
+            get
+            {
+                return _instance;
+            }
         }
 
         public Type GetDatasetType(string datasetName)
@@ -70,7 +82,6 @@ namespace CalculateFunding.Services.Calculator
             }
             throw new NotImplementedException($"{datasetName} is not defined");
         }
-
 
         public object CreateDataset(string datasetName)
         {
@@ -91,7 +102,7 @@ namespace CalculateFunding.Services.Calculator
 
         private Dictionary<string, Type> DatasetTypes { get; }
 
-        public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets)
+        public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary)
         {
             var datasetNamesUsed = new HashSet<string>();
             foreach (var dataset in datasets)
@@ -121,9 +132,13 @@ namespace CalculateFunding.Services.Calculator
                         setter.SetValue(_datasetsInstance, list);
                     }
                 }
-
             }
 
+            PropertyInfo providerSetter = _instance.GetType().GetProperty("Provider"); 
+
+            object provider = PopulateProvider(providerSummary, providerSetter);
+            providerSetter.SetValue(_instance, provider);
+           
             // Add default object for any missing datasets to help reduce null exceptions
             foreach (var key in _datasetSetters.Keys.Where(x => !datasetNamesUsed.Contains(x)))
             {
@@ -132,7 +147,7 @@ namespace CalculateFunding.Services.Calculator
                     setter.SetValue(_datasetsInstance, Activator.CreateInstance(setter.PropertyType));
                 }
             }
-
+        
             foreach (var executeMethod in _methods)
             {
                 var result = executeMethod.Item2;
@@ -146,6 +161,76 @@ namespace CalculateFunding.Services.Calculator
                 }
                 yield return result;
             }
+        }
+
+        private object PopulateProvider(ProviderSummary providerSummary, PropertyInfo providerSetter)
+        {
+            Type type = providerSetter.PropertyType;
+
+            object data = Activator.CreateInstance(type);
+
+            foreach (var property in type.GetProperties().Where(x => x.CanWrite).ToArray())
+            {
+                
+                switch (property.Name)
+                {
+                    case "DateOpened":
+                        property.SetValue(data, providerSummary.DateOpened.HasValue ? providerSummary.DateOpened.Value.Date : (DateTime?)null);
+                        break;
+                    case "ProviderType":
+                        property.SetValue(data, providerSummary.ProviderType.EmptyIfNull());
+                        break;
+                    case "ProviderSubType":
+                        property.SetValue(data, providerSummary.ProviderSubType.EmptyIfNull());
+                        break;
+                    case "Name":
+                        property.SetValue(data, providerSummary.Name.EmptyIfNull());
+                        break;
+                    case "UKPRN":
+                        property.SetValue(data, providerSummary.UKPRN.EmptyIfNull());
+                        break;
+                    case "URN":
+                        property.SetValue(data, providerSummary.URN.EmptyIfNull());
+                        break;
+                    case "UPIN":
+                        property.SetValue(data, providerSummary.UPIN.EmptyIfNull());
+                        break;
+                    case "DfeEstablishmentNumber":
+                        property.SetValue(data, providerSummary.DfeEstablishmentNumber.EmptyIfNull());
+                        break;
+                    case "EstablishmentNumber":
+                        property.SetValue(data, providerSummary.EstablishmentNumber.EmptyIfNull());
+                        break;
+                    case "LegalName":
+                        property.SetValue(data, providerSummary.LegalName.EmptyIfNull());
+                        break;
+                    case "Authority":
+                        property.SetValue(data, providerSummary.Authority.EmptyIfNull());
+                        break;
+                    case "DateClosed":
+                        property.SetValue(data, providerSummary.DateClosed.HasValue ? providerSummary.DateClosed.Value.Date : (DateTime?)null);
+                        break;
+                    case "LACode":
+                        property.SetValue(data, providerSummary.LACode.EmptyIfNull());
+                        break;
+                    case "CrmAccountId":
+                        property.SetValue(data, providerSummary.CrmAccountId.EmptyIfNull());
+                        break;
+                    case "NavVendorNo":
+                        property.SetValue(data, providerSummary.NavVendorNo.EmptyIfNull());
+                        break;
+                    case "Status":
+                        property.SetValue(data, providerSummary.Status.EmptyIfNull());
+                        break;
+                    case "PhaseOfEducation":
+                        property.SetValue(data, providerSummary.PhaseOfEducation.EmptyIfNull());
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return data;
         }
 
         private object PopulateRow(Type type, Dictionary<string, object> row)
@@ -184,7 +269,6 @@ namespace CalculateFunding.Services.Calculator
             }
             return data;
         }
-
 
         private static IEnumerable<Reference> GetReferences(IList<CustomAttributeData> attributes, string attributeName)
         {

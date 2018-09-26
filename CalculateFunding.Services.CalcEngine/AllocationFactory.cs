@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Services.Calculator.Interfaces;
+﻿using CalculateFunding.Models.Results;
+using CalculateFunding.Services.Calculator.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;

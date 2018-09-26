@@ -40,7 +40,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         private static IEnumerable<StatementSyntax> Methods(BuildProject buildProject, IEnumerable<Calculation> calculations)
         {
-            yield return GetStandardProperties();
+            yield return GetDatasetProperties();
+            yield return GetProviderProperties();
             if (calculations != null)
             {
                 foreach (var calc in calculations)
@@ -92,7 +93,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 .FirstOrDefault();
         }
 
-        private static StatementSyntax GetStandardProperties()
+        private static StatementSyntax GetDatasetProperties()
         {
             return SyntaxFactory.PropertyStatement(GenerateIdentifier("Datasets"))
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
@@ -100,6 +101,12 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 		            SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(GenerateIdentifier("Datasets"))));
 		}
 
-
+        private static StatementSyntax GetProviderProperties()
+        {
+            return SyntaxFactory.PropertyStatement(GenerateIdentifier("Provider"))
+                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                .WithAsClause(
+                    SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(GenerateIdentifier("Provider"))));
+        }
     }
 }
