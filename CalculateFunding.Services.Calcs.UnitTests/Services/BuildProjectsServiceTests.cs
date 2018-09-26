@@ -23,6 +23,9 @@ using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using System.Linq;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.Compiler.Languages;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -45,50 +48,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-                .ShouldThrowExactly<ArgumentNullException>();
+                .Should().ThrowExactly<ArgumentNullException>();
         }
-
-        //[TestMethod]
-        //public void UpdateAllocations_GivenNullPayload_ThrowsArgumentNullException()
-        //{
-        //    //Arrange
-        //    Message message = new Message(new byte[0]);
-
-        //    BuildProjectsService buildProjectsService = CreateBuildProjectsService();
-
-        //    //Act
-        //    Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
-
-        //    //Assert
-        //    test
-        //        .ShouldThrowExactly<ArgumentNullException>();
-        //}
-
-        //[TestMethod]
-        //public void UpdateAllocations_GivenSpecificationIdIsNullOrEmptyString_ThrowsArgumentException()
-        //{
-        //    //Arrange
-        //    BuildProject payload = new BuildProject();
-
-        //    var json = JsonConvert.SerializeObject(payload);
-
-        //    Message message = new Message(Encoding.UTF8.GetBytes(json));
-        //    message
-        //        .UserProperties.Add("specification-id", null);
-
-        //    BuildProjectsService buildProjectsService = CreateBuildProjectsService();
-
-        //    //Act
-        //    Func<Task> test = () => buildProjectsService.UpdateAllocations(message);
-
-        //    //Assert
-        //    test
-        //        .ShouldThrowExactly<Exception>()
-        //        .Which
-        //        .Message
-        //        .Should()
-        //        .Be("Specification was null or empty string");
-        //}
 
         [TestMethod]
         public void UpdateBuildProjectRelationships_GivenNullMessage_ThrowsArgumentNullException()
@@ -103,7 +64,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-                .ShouldThrowExactly<ArgumentNullException>();
+                .Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -119,7 +80,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-                .ShouldThrowExactly<ArgumentNullException>();
+                .Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -139,7 +100,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-                .ShouldThrowExactly<KeyNotFoundException>();
+                .Should().ThrowExactly<KeyNotFoundException>();
         }
 
         [TestMethod]
@@ -161,7 +122,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-                .ShouldThrowExactly<ArgumentNullException>();
+                .Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -188,7 +149,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-                .ShouldThrowExactly<Exception>();
+                .Should().ThrowExactly<Exception>();
         }
 
         [TestMethod]
@@ -217,7 +178,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-                .ShouldThrowExactly<Exception>();
+                .Should().ThrowExactly<Exception>();
         }
 
         [TestMethod]
@@ -272,7 +233,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task UpdateBuildProjectRelationships_GivenRelationship_CompilesAndUpdates()
+        public async Task UpdateBuildProjectRelationships_GivenRelationship_CompilesAndUpdates()
         {
             //Arrange
             const string relationshipName = "test--name";
@@ -364,7 +325,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-                .ShouldThrowExactly<Exception>();
+                .Should().ThrowExactly<Exception>();
         }
 
         [TestMethod]
@@ -401,7 +362,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-                .ShouldThrowExactly<Exception>();
+                .Should().ThrowExactly<Exception>();
         }
 
         [TestMethod]
@@ -440,7 +401,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-                .ShouldThrowExactly<Exception>();
+                .Should().ThrowExactly<Exception>();
         }
 
         [TestMethod]
@@ -577,7 +538,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task GetBuildProjectBySpecificationId_GivenNoSpecificationId_ReturnsBadRequest()
+        public async Task GetBuildProjectBySpecificationId_GivenNoSpecificationId_ReturnsBadRequest()
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -600,7 +561,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task GetBuildProjectBySpecificationId_GivenButBuildProjectNotFound_ReturnsNotFound()
+        public async Task GetBuildProjectBySpecificationId_GivenButBuildProjectNotFound_ReturnsNotFound()
         {
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -630,7 +591,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task GetBuildProjectBySpecificationId_GivenButBuildProjectFound_ReturnsOKResult()
+        public async Task GetBuildProjectBySpecificationId_GivenButBuildProjectFound_ReturnsOKResult()
         {
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -664,27 +625,205 @@ namespace CalculateFunding.Services.Calcs.Services
                 .BeAssignableTo<OkObjectResult>();
         }
 
-        static BuildProjectsService CreateBuildProjectsService(
-            IBuildProjectsRepository buildProjectsRepository = null, 
+        [TestMethod]
+        public void CompileBuildProject_WhenBuildingBasicCalculation_ThenCompilesOk()
+        {
+            // Arrange
+            string specificationId = "test-spec1";
+            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            {
+                new Models.Calcs.Calculation
+                {
+                    Id = "calcId1",
+                    Name = "calc 1",
+                    Description = "test calc",
+                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Models.Reference>
+                    {
+                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                    },
+                    Current = new CalculationVersion
+                    {
+                         SourceCode = "return 10"
+                    }
+                }
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            // Act
+            Func<Task> action = async () => await buildProjectsService.CompileBuildProject(buildProject);
+
+            // Assert
+            action.Should().NotThrow();
+            buildProject.Build.Success.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void CompileBuildProject_WhenBuildingCalculationWithMinimumDetail_ThenCompilesOk()
+        {
+            // Arrange
+            string specificationId = "test-spec1";
+            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            {
+                new Models.Calcs.Calculation
+                {
+                    Id = "calcId1",
+                    Name = "calc 1"
+                }
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            // Act
+            Func<Task> action = async () => await buildProjectsService.CompileBuildProject(buildProject);
+
+            // Assert
+            action.Should().NotThrow();
+            buildProject.Build.Success.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void CompileBuildProject_WhenBuildingCalculationWithCodeError_ThenFailsToCompiles()
+        {
+            // Arrange
+            string specificationId = "test-spec1";
+            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            {
+                new Models.Calcs.Calculation
+                {
+                    Id = "calcId1",
+                    Name = "calc 1",
+                    Current = new CalculationVersion
+                    {
+                        SourceCode = "return \"abc\""
+                    }
+                }
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            // Act
+            Func<Task> action = async () => await buildProjectsService.CompileBuildProject(buildProject);
+
+            // Assert
+            action.Should().NotThrow();
+            buildProject.Build.Success.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void CompileBuildProject_WhenBuildingCalculationUsingExcludeFunction_ThenCompilesSuccessfully()
+        {
+            // Arrange
+            string specificationId = "test-spec1";
+            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            {
+                new Models.Calcs.Calculation
+                {
+                    Id = "calcId1",
+                    Name = "calc 1",
+                    Current = new CalculationVersion
+                    {
+                        SourceCode = "return Exclude()"
+                    }
+                }
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            // Act
+            Func<Task> action = async () => await buildProjectsService.CompileBuildProject(buildProject);
+
+            // Assert
+            action.Should().NotThrow();
+            buildProject.Build.Success.Should().BeTrue();
+        }
+
+        private BuildProjectsService CreateBuildProjectsServiceWithRealCompiler(IBuildProjectsRepository buildProjectsRepository, ICalculationsRepository calculationsRepository)
+        {
+            ILogger logger = CreateLogger();
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
+            sourceFileGeneratorProvider.CreateSourceFileGenerator(Arg.Is(TargetLanguage.VisualBasic)).Returns(new VisualBasicSourceFileGenerator(logger));
+            VisualBasicCompiler vbCompiler = new VisualBasicCompiler(logger);
+            CompilerFactory compilerFactory = new CompilerFactory(null, vbCompiler);
+
+            return CreateBuildProjectsService(buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, calculationsRepository: calculationsRepository, logger: logger, compilerFactory: compilerFactory);
+        }
+
+        private static BuildProjectsService CreateBuildProjectsService(
+            IBuildProjectsRepository buildProjectsRepository = null,
             IMessengerService messengerService = null,
-            ILogger logger = null, 
+            ILogger logger = null,
             ITelemetry telemetry = null,
-            IProviderResultsRepository providerResultsRepository = null, 
-            ISpecificationRepository specificationsRepository = null, 
+            IProviderResultsRepository providerResultsRepository = null,
+            ISpecificationRepository specificationsRepository = null,
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
             ICompilerFactory compilerFactory = null,
-            ICacheProvider caheProvider = null, 
+            ICacheProvider caheProvider = null,
             ICalculationService calculationService = null,
             ICalculationsRepository calculationsRepository = null)
         {
             return new BuildProjectsService(
                 buildProjectsRepository ?? CreateBuildProjectsRepository(),
                 messengerService ?? CreateMessengerService(),
-                logger ?? CreateLogger(), 
+                logger ?? CreateLogger(),
                 telemetry ?? CreateTelemetry(),
-                providerResultsRepository ?? CreateProviderResultsRepository(), 
+                providerResultsRepository ?? CreateProviderResultsRepository(),
                 specificationsRepository ?? CreateSpecificationRepository(),
-                sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(), 
+                sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(),
                 compilerFactory ?? CreateCompilerfactory(),
                 caheProvider ?? CreateCacheProvider(),
                 calculationService ?? CreateCalculationService(),
@@ -692,9 +831,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 );
         }
 
-        static Message CreateMessage(string specificationId = SpecificationId)
+        private static Message CreateMessage(string specificationId = SpecificationId)
         {
-
             dynamic anyObject = new { specificationId };
 
             string json = JsonConvert.SerializeObject(anyObject);
@@ -702,57 +840,57 @@ namespace CalculateFunding.Services.Calcs.Services
             return new Message(Encoding.UTF8.GetBytes(json));
         }
 
-        static ISourceFileGeneratorProvider CreateSourceFileGeneratorProvider()
+        private static ISourceFileGeneratorProvider CreateSourceFileGeneratorProvider()
         {
             return Substitute.For<ISourceFileGeneratorProvider>();
         }
 
-        static ICompilerFactory CreateCompilerfactory()
+        private static ICompilerFactory CreateCompilerfactory()
         {
             return Substitute.For<ICompilerFactory>();
         }
 
-        static ICalculationService CreateCalculationService()
+        private static ICalculationService CreateCalculationService()
         {
             return Substitute.For<ICalculationService>();
         }
 
-        static ITelemetry CreateTelemetry()
+        private static ITelemetry CreateTelemetry()
         {
             return Substitute.For<ITelemetry>();
         }
 
-        static ILogger CreateLogger()
+        private static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
         }
 
-        static ICacheProvider CreateCacheProvider()
+        private static ICacheProvider CreateCacheProvider()
         {
             return Substitute.For<ICacheProvider>();
         }
 
-        static IMessengerService CreateMessengerService()
+        private static IMessengerService CreateMessengerService()
         {
             return Substitute.For<IMessengerService>();
         }
 
-        static IBuildProjectsRepository CreateBuildProjectsRepository()
+        private static IBuildProjectsRepository CreateBuildProjectsRepository()
         {
             return Substitute.For<IBuildProjectsRepository>();
         }
 
-        static Interfaces.IProviderResultsRepository CreateProviderResultsRepository()
+        private static Interfaces.IProviderResultsRepository CreateProviderResultsRepository()
         {
             return Substitute.For<Interfaces.IProviderResultsRepository>();
         }
 
-        static ISpecificationRepository CreateSpecificationRepository()
+        private static ISpecificationRepository CreateSpecificationRepository()
         {
             return Substitute.For<ISpecificationRepository>();
         }
 
-        static ICalculationsRepository CreateCalculationsRepository()
+        private static ICalculationsRepository CreateCalculationsRepository()
         {
             return Substitute.For<ICalculationsRepository>();
         }

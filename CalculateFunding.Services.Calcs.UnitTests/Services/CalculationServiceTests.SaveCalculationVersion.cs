@@ -1498,7 +1498,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             resultFunc
-                .ShouldThrow<InvalidOperationException>()
+                .Should().Throw<InvalidOperationException>()
                 .Which
                 .Message
                 .Should()

@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-              .ShouldThrowExactly<InvalidModelException>();
+              .Should().ThrowExactly<InvalidModelException>();
         }
 
         [TestMethod]
@@ -203,7 +203,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-              .ShouldThrowExactly<InvalidOperationException>()
+              .Should().ThrowExactly<InvalidOperationException>()
               .WithMessage($"The calculation with the same id {calculation.CalculationSpecification.Id} has already been created");
         }
 

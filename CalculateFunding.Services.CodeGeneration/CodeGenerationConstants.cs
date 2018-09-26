@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.CodeGeneration
                 source.AppendLine(@"' currentScenario ");
                 source.AppendLine(@"' rid ");
                 source.AppendLine(@" ");
-                source.AppendLine(@"' If Decimal.MinValue is returned it will exclude the result of this calculation for this provider");
+                source.AppendLine(@"' To exclude a result then Return Exclude()");
                 source.AppendLine(@"");
                 source.AppendLine(@"Return Decimal.MinValue");
 

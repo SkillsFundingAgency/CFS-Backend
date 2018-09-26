@@ -170,7 +170,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .BeOfType<OkObjectResult>()
                 .Which
                 .Value
-                .ShouldBeEquivalentTo(new CalculationCurrentVersion
+                .Should().BeEquivalentTo(new CalculationCurrentVersion
                 {
                     Author = new Reference(UserId, Username),
                     Date = lastModifiedDate,
@@ -252,7 +252,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .BeOfType<OkObjectResult>()
                 .Which
                 .Value
-                .ShouldBeEquivalentTo(new CalculationCurrentVersion
+                .Should().BeEquivalentTo(new CalculationCurrentVersion
                 {
                     Author = new Reference(UserId, Username),
                     Date = lastModifiedDate,

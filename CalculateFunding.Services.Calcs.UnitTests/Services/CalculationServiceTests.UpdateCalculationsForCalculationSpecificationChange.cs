@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-              .ShouldThrowExactly<InvalidModelException>();
+              .Should().ThrowExactly<InvalidModelException>();
         }
 
         [TestMethod]
@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-              .ShouldThrowExactly<InvalidModelException>();
+              .Should().ThrowExactly<InvalidModelException>();
         }
 
         [TestMethod]
@@ -81,7 +81,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-              .ShouldThrowExactly<InvalidModelException>();
+              .Should().ThrowExactly<InvalidModelException>();
         }
 
         [TestMethod]
@@ -142,7 +142,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-              .ShouldThrowExactly<Exception>()
+              .Should().ThrowExactly<Exception>()
               .Which
               .Message
               .Should()
@@ -210,7 +210,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             test
-              .ShouldThrowExactly<Exception>()
+              .Should().ThrowExactly<Exception>()
               .Which
               .Message
               .Should()

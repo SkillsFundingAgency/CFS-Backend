@@ -17,10 +17,10 @@
         Return value
     End Function
 
-    Public Sub Exclude (rid As String)
-        
-    End Sub
-
 #End Region
+
+    Public Function Exclude() As System.Nullable(Of Decimal)
+        Return Nothing
+    End Function
 
 End Class
