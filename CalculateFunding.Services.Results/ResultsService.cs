@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Models;
@@ -29,14 +30,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
 {
@@ -484,7 +477,9 @@ namespace CalculateFunding.Services.Results
             string specificationId = message.UserProperties["specification-id"].ToString();
             UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.InProgress);
 
+            Stopwatch getCalculationResultsStopwatch = Stopwatch.StartNew();
             IEnumerable<ProviderResult> providerResults = await GetProviderResultsBySpecificationId(specificationId);
+            getCalculationResultsStopwatch.Stop();
             UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
             if (providerResults.IsNullOrEmpty())
@@ -494,7 +489,10 @@ namespace CalculateFunding.Services.Results
                 throw new ArgumentException("Could not find any provider results for specification");
             }
 
+            Stopwatch getSpecificationStopwatch = Stopwatch.StartNew();
             SpecificationCurrentVersion specification = await _specificationsRepository.GetCurrentSpecificationById(specificationId);
+            getSpecificationStopwatch.Stop();
+
             UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
             if (specification == null)
@@ -506,15 +504,26 @@ namespace CalculateFunding.Services.Results
 
             Reference author = message.GetUserDetails();
 
+            Stopwatch assemblePublishedCalculationResults = Stopwatch.StartNew();
             IEnumerable<PublishedProviderCalculationResult> publishedProviderCalcuationResults = _publishedProviderResultsAssemblerService.AssemblePublishedCalculationResults(providerResults, author, specification);
+            assemblePublishedCalculationResults.Stop();
+
             UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+
+            Stopwatch saveCalculationResultsStopwatch = new Stopwatch();
+            Stopwatch saveCalculationResultsHistoryStopwatch = new Stopwatch();
 
             try
             {
+                // This call is really slow, as no checking is done to see if the documents need to be written again, this should be addressed when doing the versioning story
+                saveCalculationResultsStopwatch.Start();
                 await _publishedProviderCalculationResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(publishedProviderCalcuationResults.ToList()));
+                saveCalculationResultsStopwatch.Stop();
                 UpdateCacheForSegmentDone(specificationId, calculationProgress += 7, CalculationProgressStatus.InProgress);
 
+                saveCalculationResultsHistoryStopwatch.Start();
                 await SavePublishedCalculationResultVersionHistory(publishedProviderCalcuationResults, specificationId);
+                saveCalculationResultsHistoryStopwatch.Stop();
                 UpdateCacheForSegmentDone(specificationId, calculationProgress += 10, CalculationProgressStatus.InProgress);
             }
             catch (Exception ex)
@@ -524,27 +533,145 @@ namespace CalculateFunding.Services.Results
                 throw new Exception($"Failed to create published provider calculation results for specification: {specificationId}", ex);
             }
 
+            Stopwatch assemblePublishedProviderResultsStopwatch = Stopwatch.StartNew();
             IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsAssemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
+            assemblePublishedProviderResultsStopwatch.Stop();
             UpdateCacheForSegmentDone(specificationId, calculationProgress += 53, CalculationProgressStatus.InProgress);
 
-            try
-            {
-                await _publishedProviderResultsRepository.SavePublishedResults(publishedProviderResults.ToList());
-                UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+            Stopwatch existingPublishedProviderResultsStopwatch = Stopwatch.StartNew();
+            IEnumerable<PublishedProviderResultExisting> existingPublishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetExistingPublishedProviderResultsForSpecificationId(specificationId));
+            existingPublishedProviderResultsStopwatch.Stop();
 
-                await SavePublishedAllocationLineResultVersionHistory(publishedProviderResults, specificationId);
-                UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+            List<PublishedProviderResult> publishedProviderResultsToSave = new List<PublishedProviderResult>();
 
-                await UpdateAllocationNotificationsFeedIndex(publishedProviderResults, specification);
-                UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
-            }
-            catch (Exception ex)
+            Stopwatch assembleSaveAndExcludeStopwatch = Stopwatch.StartNew();
+            (IEnumerable<PublishedProviderResult> newOrUpdatedPublishedProviderResults, IEnumerable<PublishedProviderResultExisting> existingRecordsToZero) = _publishedProviderResultsAssemblerService.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingPublishedProviderResults);
+            assembleSaveAndExcludeStopwatch.Stop();
+
+            if (newOrUpdatedPublishedProviderResults.AnyWithNullCheck())
             {
-                UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
-                _logger.Error(ex, $"Failed to create published provider results for specification: {specificationId}");
-                throw new Exception($"Failed to create published provider results for specification: {specificationId}", ex);
+                publishedProviderResultsToSave.AddRange(newOrUpdatedPublishedProviderResults);
             }
+
+            // When the assembly doesn't return an allocation line result for a provider and it already exists, set to value to 0 and update the status to Updated
+            Stopwatch existingRecordsToZeroStopwatch = Stopwatch.StartNew();
+            if (existingRecordsToZero.AnyWithNullCheck())
+            {
+                IEnumerable<PublishedProviderResult> recordsToZero = await FetchAndCheckExistingRecordsToZero(existingRecordsToZero);
+                if (recordsToZero.AnyWithNullCheck())
+                {
+                    publishedProviderResultsToSave.AddRange(recordsToZero);
+                }
+            }
+            existingPublishedProviderResultsStopwatch.Stop();
+
+            Stopwatch savePublishedResultsStopwatch = new Stopwatch();
+            Stopwatch savePublishedResultsHistoryStopwatch = new Stopwatch();
+            Stopwatch savePublishedResultsSearchStopwatch = new Stopwatch();
+
+            if (publishedProviderResultsToSave.Any())
+            {
+                try
+                {
+                    savePublishedResultsStopwatch.Start();
+                    await _publishedProviderResultsRepository.SavePublishedResults(publishedProviderResultsToSave);
+                    savePublishedResultsStopwatch.Stop();
+                    UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+
+                    savePublishedResultsHistoryStopwatch.Start();
+                    await SavePublishedAllocationLineResultVersionHistory(publishedProviderResultsToSave, specificationId);
+                    savePublishedResultsHistoryStopwatch.Stop();
+                    UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+
+                    savePublishedResultsSearchStopwatch.Start();
+                    await UpdateAllocationNotificationsFeedIndex(publishedProviderResultsToSave, specification);
+                    savePublishedResultsSearchStopwatch.Stop();
+                    UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+                }
+                catch (Exception ex)
+                {
+                    UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
+                    _logger.Error(ex, $"Failed to create published provider results for specification: {specificationId}");
+                    throw new Exception($"Failed to create published provider results for specification: {specificationId}", ex);
+                }
+            }
+
             UpdateCacheForSegmentDone(specificationId, 100, CalculationProgressStatus.Finished);
+
+            IDictionary<string, double> metrics = new Dictionary<string, double>()
+                    {
+                        { "publishproviderresults-getCalculationResultsMs", getCalculationResultsStopwatch.ElapsedMilliseconds },
+                        { "publishproviderresults-getSpecificationMs", getSpecificationStopwatch.ElapsedMilliseconds },
+                        { "publishproviderresults-assemblePublishedCalculationResultsMs", assemblePublishedCalculationResults.ElapsedMilliseconds },
+                        { "publishproviderresults-assemblePublishedCalculationResultsTotal", publishedProviderCalcuationResults.Count() },
+                        { "publishproviderresults-saveCalculationResultsMs", saveCalculationResultsStopwatch.ElapsedMilliseconds },
+                        { "publishproviderresults-saveCalculationResultsHistoryMs", saveCalculationResultsHistoryStopwatch.ElapsedMilliseconds },
+                        { "publishproviderresults-assemblePublishedProviderResultsMs", assemblePublishedProviderResultsStopwatch.ElapsedMilliseconds },
+                        { "publishproviderresults-existingPublishedProviderResultsMs", existingPublishedProviderResultsStopwatch.ElapsedMilliseconds },
+                        { "publishproviderresults-assembleSaveAndExcludeMs", assembleSaveAndExcludeStopwatch.ElapsedMilliseconds },
+                        { "publishproviderresults-savePublishedResultsCount", publishedProviderResultsToSave.Count },
+                    };
+
+            if (publishedProviderResultsToSave.Any())
+            {
+                metrics.Add("publishproviderresults-savePublishedResultsMs", savePublishedResultsStopwatch.ElapsedMilliseconds);
+                metrics.Add("publishproviderresults-savePublishedResultsHistoryMs", savePublishedResultsHistoryStopwatch.ElapsedMilliseconds);
+                metrics.Add("publishproviderresults-savePublishedResultsSearchMs", savePublishedResultsSearchStopwatch.ElapsedMilliseconds);
+            }
+
+            if (existingRecordsToZero.AnyWithNullCheck())
+            {
+                metrics.Add("publishproviderresults-existingRecordsToZeroMs", existingRecordsToZeroStopwatch.ElapsedMilliseconds);
+                metrics.Add("publishproviderresults-existingRecordsToZeroTotal", existingRecordsToZero.Count());
+            }
+
+            _telemetry.TrackEvent("PublishProviderResults",
+            new Dictionary<string, string>()
+            {
+                { "specificationId" , specificationId },
+            },
+            metrics
+        );
+        }
+
+        private async Task<IEnumerable<PublishedProviderResult>> FetchAndCheckExistingRecordsToZero(IEnumerable<PublishedProviderResultExisting> existingRecordsToZero)
+        {
+            // Don't set records to zero if they already have that value
+            existingRecordsToZero = existingRecordsToZero.Where(r => r.Value != 0);
+
+            ConcurrentBag<PublishedProviderResult> results = new ConcurrentBag<PublishedProviderResult>();
+
+            List<Task> allTasks = new List<Task>();
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+            foreach (PublishedProviderResultExisting existing in existingRecordsToZero)
+            {
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            PublishedProviderResult existingResult = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultForId(existing.Id, existing.ProviderId));
+                            if (existingResult != null)
+                            {
+                                existingResult.FundingStreamResult.AllocationLineResult.Current.Value = 0;
+                                if (existingResult.FundingStreamResult.AllocationLineResult.Current.Status != AllocationLineStatus.Held)
+                                {
+                                    existingResult.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Updated;
+                                }
+
+                                results.Add(existingResult);
+                            }
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
+
+            return results;
         }
 
         void AssignRelatedCalculationResultIdsToAllocationResults(IEnumerable<PublishedProviderResult> publishedProviderResults, IEnumerable<PublishedProviderCalculationResult> publishedProviderCalcuationResults)
@@ -1129,7 +1256,7 @@ namespace CalculateFunding.Services.Results
                     {
                         result.Title = $"Allocation {result.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {result.FundingStreamResult.AllocationLineResult.Current.Status.ToString()}";
 
-                        if(updateStatusModel.Status == AllocationLineStatus.Approved)
+                        if (updateStatusModel.Status == AllocationLineStatus.Approved)
                         {
                             resultsToProfile.Add(result);
                         }
@@ -1188,7 +1315,7 @@ namespace CalculateFunding.Services.Results
         public async Task FetchProviderProfile(Message message)
         {
             Stopwatch profilingStopWatch = Stopwatch.StartNew();
-        
+
             Guard.ArgumentNotNull(message, nameof(message));
 
             if (!message.UserProperties.ContainsKey("specification-id"))
@@ -1206,10 +1333,10 @@ namespace CalculateFunding.Services.Results
                 _logger.Error("No allocation result profiling items were present in the message");
                 throw new ArgumentException("Message must contain a collection of allocation results profiling items");
             }
-            
+
             SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(specificationId));
 
-            if(specification == null)
+            if (specification == null)
             {
                 _logger.Error($"A specification could not be found with id {specificationId}");
 
@@ -1243,7 +1370,7 @@ namespace CalculateFunding.Services.Results
                         }
                     }));
             }
-            
+
             await TaskHelper.WhenAllAndThrow(profilingTasks.ToArray());
 
             if (!publishedProviderResults.IsNullOrEmpty())
@@ -1267,7 +1394,7 @@ namespace CalculateFunding.Services.Results
             _telemetry.TrackEvent("ProviderProfilingProcessed",
                     new Dictionary<string, string>()
                     {
-                        { "specificationId" , specificationId }                      
+                        { "specificationId" , specificationId }
                     },
                     metrics
                 );

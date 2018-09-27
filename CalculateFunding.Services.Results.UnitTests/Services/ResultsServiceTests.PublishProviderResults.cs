@@ -1,26 +1,25 @@
-﻿using CalculateFunding.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Results.ResultModels;
 
 namespace CalculateFunding.Services.Results.Services
 {
     public partial class ResultsServiceTests
     {
-	    private const string SpecificationId1 = "specId1";
-	    private const string RedisPrependKey = "calculation-progress:";
+        private const string SpecificationId1 = "specId1";
+        private const string RedisPrependKey = "calculation-progress:";
 
         [TestMethod]
         public void PublishProviderResults_WhenMessageIsNull_ThenArgumentNullExceptionThrown()
@@ -111,6 +110,11 @@ namespace CalculateFunding.Services.Results.Services
                 new ProviderResult()
             };
 
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>()
+            {
+                new PublishedProviderResult(),
+            };
+
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
                 .Returns(Task.FromResult(providerResults));
@@ -120,9 +124,18 @@ namespace CalculateFunding.Services.Results.Services
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
                 .Returns(ex => { throw new Exception("Error saving published results"); });
-            ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
+
+            IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
+
+            assembler
+                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
+                .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
+
+            ResultsService resultsService = CreateResultsService(
+                resultsRepository: resultsRepository,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                specificationsRepository: specificationsRepository);
+                specificationsRepository: specificationsRepository,
+                publishedProviderResultsAssemblerService: assembler);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -147,6 +160,29 @@ namespace CalculateFunding.Services.Results.Services
                 new ProviderResult()
             };
 
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>()
+            {
+                new PublishedProviderResult()
+                {
+                    ProviderId = "1",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = new AllocationLine()
+                            {
+                                Id = "AAAAA",
+                                Name = "Allocation line 1",
+                            },
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Value = 1,
+                            }
+                        }
+                    }
+                },
+            };
+
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
                 .Returns(Task.FromResult(providerResults));
@@ -158,9 +194,19 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(Task.CompletedTask);
             publishedProviderResultsRepository.SavePublishedAllocationLineResultsHistory(Arg.Any<IEnumerable<PublishedAllocationLineResultHistory>>())
                 .Returns(ex => { throw new Exception("Error saving published results version history"); });
-            ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
+
+            IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
+
+            assembler
+                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
+                .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
+
+
+            ResultsService resultsService = CreateResultsService(
+                resultsRepository: resultsRepository,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                specificationsRepository: specificationsRepository);
+                specificationsRepository: specificationsRepository,
+                publishedProviderResultsAssemblerService: assembler);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -548,7 +594,7 @@ namespace CalculateFunding.Services.Results.Services
                         Value = 100,
                         Date = DateTimeOffset.Now,
                         Commment = "comment"
-                    } 
+                    }
                 }
             };
 
@@ -595,13 +641,13 @@ namespace CalculateFunding.Services.Results.Services
                 publishedProviderCalculationResultsRepository
                     .Received(1)
                     .CreatePublishedCalculationResults(Arg.Is<IEnumerable<PublishedProviderCalculationResult>>(
-                        m => m.Count() == 1 && 
+                        m => m.Count() == 1 &&
                         m.First().Id == resultId &&
                         m.First().Current.CalculationType == PublishedCalculationType.Funding &&
                         m.First().Current.Author.Id == "author-1" &&
                         m.First().Current.Author.Name == "author1" &&
                         m.First().Current.Commment == "comment" &&
-                        m.First().Current.Date.Date == DateTimeOffset.Now.Date && 
+                        m.First().Current.Date.Date == DateTimeOffset.Now.Date &&
                         m.First().Current.Value == 100 &&
                         m.First().Current.Version == 1 &&
                         m.First().Current.Provider.Id == providerId));
@@ -757,147 +803,447 @@ namespace CalculateFunding.Services.Results.Services
                     m.First().History.ElementAt(1).Provider.Id == providerId));
         }
 
-	    [TestMethod]
-	    public void PublishProviderResults_WhenNoExceptionThrown_ShouldReportProgressOnCacheCorrectly()
-	    {
-		    // Arrange
-		    string specificationId = SpecificationId1;
-		    IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
-		    {
-			    new ProviderResult()
-		    };
+        [TestMethod]
+        public void PublishProviderResults_WhenNoExceptionThrown_ShouldReportProgressOnCacheCorrectly()
+        {
+            // Arrange
+            string specificationId = SpecificationId1;
+            IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
+            {
+                new ProviderResult()
+            };
 
-		    ICalculationResultsRepository resultsRepository = CreateResultsRepository();
-		    resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
-			    .Returns(Task.FromResult(providerResults));
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>()
+            {
+                new PublishedProviderResult()
+                {
+                    ProviderId = "1",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = new AllocationLine()
+                            {
+                                Id = "AAAAA",
+                                Name = "Allocation line 1",
+                            },
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Value = 1,
+                            }
+                        }
+                    }
+                },
+            };
 
-		    ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-		    specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
-			    .Returns(Task.FromResult(new SpecificationCurrentVersion()));
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
+                .Returns(Task.FromResult(providerResults));
 
-		    IPublishedProviderResultsRepository publishedProviderResultsRepository =
-			    CreatePublishedProviderResultsRepository();
-		    publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
-			    .Returns(Task.CompletedTask);
-		    publishedProviderResultsRepository
-			    .SavePublishedAllocationLineResultsHistory(Arg.Any<IEnumerable<PublishedAllocationLineResultHistory>>())
-			    .Returns(Task.CompletedTask);
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(Task.FromResult(new SpecificationCurrentVersion()));
 
-		    IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository =
-			    CreatePublishedProviderCalculationResultsRepository();
-		    publishedProviderCalculationResultsRepository
-			    .CreatePublishedCalculationResults(Arg.Any<IEnumerable<PublishedProviderCalculationResult>>())
-			    .Returns(Task.CompletedTask);
+            IPublishedProviderResultsRepository publishedProviderResultsRepository =
+                CreatePublishedProviderResultsRepository();
+            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
+                .Returns(Task.CompletedTask);
+            publishedProviderResultsRepository
+                .SavePublishedAllocationLineResultsHistory(Arg.Any<IEnumerable<PublishedAllocationLineResultHistory>>())
+                .Returns(Task.CompletedTask);
 
-		    ICacheProvider mockCacheProvider = CreateCacheProvider();
+            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository =
+                CreatePublishedProviderCalculationResultsRepository();
+            publishedProviderCalculationResultsRepository
+                .CreatePublishedCalculationResults(Arg.Any<IEnumerable<PublishedProviderCalculationResult>>())
+                .Returns(Task.CompletedTask);
 
-		    SpecificationCalculationExecutionStatus expectedProgressCall1 = CreateSpecificationCalculationProgress(c =>
-		    {
-			    c.PercentageCompleted = 0;
-			    c.CalculationProgress = CalculationProgressStatus.InProgress;
-		    });
-		    SpecificationCalculationExecutionStatus expectedProgressCall2 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 5);
-		    SpecificationCalculationExecutionStatus expectedProgressCall3 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 10);
-		    SpecificationCalculationExecutionStatus expectedProgressCall4 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 15);
-		    SpecificationCalculationExecutionStatus expectedProgressCall5 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 22);
-		    SpecificationCalculationExecutionStatus expectedProgressCall6 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 32);
-		    SpecificationCalculationExecutionStatus expectedProgressCall7 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 85);
-		    SpecificationCalculationExecutionStatus expectedProgressCall8 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 90);
-		    SpecificationCalculationExecutionStatus expectedProgressCall9 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 95);
-		    SpecificationCalculationExecutionStatus expectedProgressCall10 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 100);
-		    SpecificationCalculationExecutionStatus expectedProgressCall11 = CreateSpecificationCalculationProgress(c =>
-		    {
-			    c.PercentageCompleted = 100;
-			    c.CalculationProgress = CalculationProgressStatus.Finished;
-		    });
+            IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
 
-		    ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
-			    publishedProviderResultsRepository: publishedProviderResultsRepository,
-			    specificationsRepository: specificationsRepository,
-			    publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository,
-			    cacheProvider: mockCacheProvider);
+            assembler
+                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
+                .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
 
-		    Message message = new Message();
-		    message.UserProperties["specification-id"] = SpecificationId1;
+            ICacheProvider mockCacheProvider = CreateCacheProvider();
 
-		    // Act
-		    Func<Task> publishProviderResultsAction = () => resultsService.PublishProviderResults(message);
+            SpecificationCalculationExecutionStatus expectedProgressCall1 = CreateSpecificationCalculationProgress(c =>
+            {
+                c.PercentageCompleted = 0;
+                c.CalculationProgress = CalculationProgressStatus.InProgress;
+            });
+            SpecificationCalculationExecutionStatus expectedProgressCall2 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 5);
+            SpecificationCalculationExecutionStatus expectedProgressCall3 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 10);
+            SpecificationCalculationExecutionStatus expectedProgressCall4 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 15);
+            SpecificationCalculationExecutionStatus expectedProgressCall5 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 22);
+            SpecificationCalculationExecutionStatus expectedProgressCall6 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 32);
+            SpecificationCalculationExecutionStatus expectedProgressCall7 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 85);
+            SpecificationCalculationExecutionStatus expectedProgressCall8 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 90);
+            SpecificationCalculationExecutionStatus expectedProgressCall9 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 95);
+            SpecificationCalculationExecutionStatus expectedProgressCall10 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 100);
+            SpecificationCalculationExecutionStatus expectedProgressCall11 = CreateSpecificationCalculationProgress(c =>
+            {
+                c.PercentageCompleted = 100;
+                c.CalculationProgress = CalculationProgressStatus.Finished;
+            });
 
-		    //Assert
-		    publishProviderResultsAction.Should().NotThrow();
-		    
-			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall1, TimeSpan.FromHours(6), false);
-			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall2, TimeSpan.FromHours(6), false);
-			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall3, TimeSpan.FromHours(6), false);
-			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall4, TimeSpan.FromHours(6), false);
-			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall5, TimeSpan.FromHours(6), false);
-			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall6, TimeSpan.FromHours(6), false);
-			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall7, TimeSpan.FromHours(6), false);
-			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall8, TimeSpan.FromHours(6), false);
-			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall9, TimeSpan.FromHours(6), false);
-			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall10, TimeSpan.FromHours(6), false);
-			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall11, TimeSpan.FromHours(6), false);
-			mockCacheProvider.Received(11).SetAsync(Arg.Any<string>(), Arg.Any<SpecificationCalculationExecutionStatus>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
-		}
+            ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository,
+                cacheProvider: mockCacheProvider,
+                publishedProviderResultsAssemblerService: assembler);
 
-		[TestMethod]
-		public void PublishProviderResults_WhenAnExceptionIsThrownAtSomePoint_ThenErrorIsReportedOnCache()
-		{
-			// Arrange
-			IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
-			{
-				new ProviderResult()
-			};
+            Message message = new Message();
+            message.UserProperties["specification-id"] = SpecificationId1;
 
-			ICalculationResultsRepository resultsRepository = CreateResultsRepository();
-			resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(SpecificationId1), Arg.Is(-1))
-				.Returns(Task.FromResult(providerResults));
+            // Act
+            Func<Task> publishProviderResultsAction = () => resultsService.PublishProviderResults(message);
 
-			ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-			specificationsRepository.GetCurrentSpecificationById(Arg.Is(SpecificationId1))
-				.Returns(Task.FromResult(new SpecificationCurrentVersion()));
+            //Assert
+            publishProviderResultsAction.Should().NotThrow();
 
-			IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-			publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
-				.Returns(Task.CompletedTask);
+            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall1, TimeSpan.FromHours(6), false);
+            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall2, TimeSpan.FromHours(6), false);
+            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall3, TimeSpan.FromHours(6), false);
+            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall4, TimeSpan.FromHours(6), false);
+            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall5, TimeSpan.FromHours(6), false);
+            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall6, TimeSpan.FromHours(6), false);
+            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall7, TimeSpan.FromHours(6), false);
+            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall8, TimeSpan.FromHours(6), false);
+            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall9, TimeSpan.FromHours(6), false);
+            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall10, TimeSpan.FromHours(6), false);
+            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall11, TimeSpan.FromHours(6), false);
+            mockCacheProvider.Received(11).SetAsync(Arg.Any<string>(), Arg.Any<SpecificationCalculationExecutionStatus>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
+        }
 
-			publishedProviderResultsRepository.SavePublishedAllocationLineResultsHistory(Arg.Any<IEnumerable<PublishedAllocationLineResultHistory>>())
-				.Returns(Task.CompletedTask);
+        [TestMethod]
+        public void PublishProviderResults_WhenAnExceptionIsThrownAtSomePoint_ThenErrorIsReportedOnCache()
+        {
+            // Arrange
+            IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
+            {
+                new ProviderResult()
+            };
 
-			IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
-			publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(Arg.Any<IEnumerable<PublishedProviderCalculationResult>>())
-				.Returns(ex => { throw new Exception("Error saving published calculation results"); });
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(SpecificationId1), Arg.Is(-1))
+                .Returns(Task.FromResult(providerResults));
 
-			ICacheProvider mockCacheProvider = CreateCacheProvider();
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository.GetCurrentSpecificationById(Arg.Is(SpecificationId1))
+                .Returns(Task.FromResult(new SpecificationCurrentVersion()));
 
-			SpecificationCalculationExecutionStatus expectedErrorProgress = CreateSpecificationCalculationProgress(c =>
-			{
-				c.PercentageCompleted = 15;
-				c.CalculationProgress = CalculationProgressStatus.Error;
-			});
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
+            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
+                .Returns(Task.CompletedTask);
 
-			ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
-				publishedProviderResultsRepository: publishedProviderResultsRepository,
-				specificationsRepository: specificationsRepository,
-				publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository,
-				cacheProvider: mockCacheProvider);
+            publishedProviderResultsRepository.SavePublishedAllocationLineResultsHistory(Arg.Any<IEnumerable<PublishedAllocationLineResultHistory>>())
+                .Returns(Task.CompletedTask);
 
-			Message message = new Message();
-			message.UserProperties["specification-id"] = SpecificationId1;
+            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
+            publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(Arg.Any<IEnumerable<PublishedProviderCalculationResult>>())
+                .Returns(ex => { throw new Exception("Error saving published calculation results"); });
 
-			// Act
-			Func<Task> publishProviderAction = () => resultsService.PublishProviderResults(message);
+            ICacheProvider mockCacheProvider = CreateCacheProvider();
 
-			//Assert
-			publishProviderAction.Should().ThrowExactly<Exception>();
-			mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedErrorProgress, TimeSpan.FromHours(6), false);
-		}
+            SpecificationCalculationExecutionStatus expectedErrorProgress = CreateSpecificationCalculationProgress(c =>
+            {
+                c.PercentageCompleted = 15;
+                c.CalculationProgress = CalculationProgressStatus.Error;
+            });
 
-		private static SpecificationCalculationExecutionStatus CreateSpecificationCalculationProgress(Action<SpecificationCalculationExecutionStatus> defaultModelAction)
-	    {
-		    SpecificationCalculationExecutionStatus defaultModel = new SpecificationCalculationExecutionStatus(SpecificationId1, 0, CalculationProgressStatus.InProgress);
-		    defaultModelAction(defaultModel);
-		    return defaultModel;
-	    }
-	}
+            ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository,
+                cacheProvider: mockCacheProvider);
+
+            Message message = new Message();
+            message.UserProperties["specification-id"] = SpecificationId1;
+
+            // Act
+            Func<Task> publishProviderAction = () => resultsService.PublishProviderResults(message);
+
+            //Assert
+            publishProviderAction.Should().ThrowExactly<Exception>();
+            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedErrorProgress, TimeSpan.FromHours(6), false);
+        }
+
+        [TestMethod]
+        public async Task PublishProviderResults_WhenNoExisitingAllocationResultsPublished_ThenResultsAreSaved()
+        {
+            // Arrange
+            string specificationId = "spec-1";
+            string calculationId = "calc-1";
+            string providerId = "prov-1";
+            Reference author = new Reference("author-1", "author1");
+            Period fundingPeriod = new Period()
+            {
+                Id = "fp1",
+                Name = "Funding Period 1",
+            };
+
+            string resultId = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{specificationId}{providerId}{calculationId}"));
+
+            IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
+            {
+                new ProviderResult()
+            };
+
+            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = Enumerable.Empty<PublishedProviderCalculationResult>();
+
+            IEnumerable<PublishedProviderCalculationResultHistory> publishedProviderCalculationResultsHistory = Enumerable.Empty<PublishedProviderCalculationResultHistory>();
+
+            SpecificationCurrentVersion specificationCurrentVersion = new SpecificationCurrentVersion
+            {
+                Id = specificationId
+            };
+
+            AllocationLine allocationLine1 = new AllocationLine()
+            {
+                Id = "AAAAA",
+                Name = "Allocation Line 1",
+            };
+
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
+            publishedProviderResults.Add(new PublishedProviderResult()
+            {
+                FundingPeriod = fundingPeriod,
+                ProviderId = providerId,
+                SpecificationId = specificationId,
+                FundingStreamResult = new PublishedFundingStreamResult()
+                {
+                    AllocationLineResult = new PublishedAllocationLineResult()
+                    {
+                        AllocationLine = allocationLine1,
+                        Current = new PublishedAllocationLineResultVersion()
+                        {
+                            Author = author,
+                            Status = AllocationLineStatus.Held,
+                            Value = 1
+                        }
+                    }
+                }
+            });
+
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
+                .Returns(Task.FromResult(providerResults));
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specificationCurrentVersion);
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
+            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
+                .Returns(Task.CompletedTask);
+            publishedProviderResultsRepository.SavePublishedAllocationLineResultsHistory(Arg.Any<IEnumerable<PublishedAllocationLineResultHistory>>())
+                .Returns(Task.CompletedTask);
+
+            IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
+            assembler
+                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion)
+                .Returns(publishedProviderCalculationResults);
+
+            assembler
+                .AssemblePublishedProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<Reference>(), Arg.Any<SpecificationCurrentVersion>())
+                .Returns(publishedProviderResults);
+
+            assembler
+                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
+                .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
+
+            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
+            publishedProviderCalculationResultsRepository
+                .GetPublishedProviderCalculationHistoryForSpecificationId(Arg.Is(specificationId))
+                .Returns(publishedProviderCalculationResultsHistory);
+
+            ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository,
+                publishedProviderResultsAssemblerService: assembler);
+
+            Message message = new Message();
+            message.UserProperties["specification-id"] = specificationId;
+
+            // Act
+            await resultsService.PublishProviderResults(message);
+
+            //Assert
+            await
+                publishedProviderResultsRepository
+                    .Received(1)
+                    .SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(a =>
+                    a.First().ProviderId == providerId &&
+                    a.First().FundingStreamResult.AllocationLineResult.Current.Value == 1 &&
+                    a.First().FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Held));
+
+            await
+                publishedProviderResultsRepository
+                    .Received(1)
+                    .SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(a => a.Count() == 1));
+
+        }
+
+        [TestMethod]
+        public async Task PublishProviderResults_WhenExisitingAllocationResultsShouldBeExcluded_ThenResultsAreSaved()
+        {
+            // Arrange
+            string specificationId = "spec-1";
+            string calculationId = "calc-1";
+            string providerId = "prov-1";
+            Reference author = new Reference("author-1", "author1");
+            Period fundingPeriod = new Period()
+            {
+                Id = "fp1",
+                Name = "Funding Period 1",
+            };
+
+            string resultId = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{specificationId}{providerId}{calculationId}"));
+
+            IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
+            {
+                new ProviderResult()
+            };
+
+            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = Enumerable.Empty<PublishedProviderCalculationResult>();
+
+            IEnumerable<PublishedProviderCalculationResultHistory> publishedProviderCalculationResultsHistory = Enumerable.Empty<PublishedProviderCalculationResultHistory>();
+
+            SpecificationCurrentVersion specificationCurrentVersion = new SpecificationCurrentVersion
+            {
+                Id = specificationId
+            };
+
+            AllocationLine allocationLine1 = new AllocationLine()
+            {
+                Id = "AAAAA",
+                Name = "Allocation Line 1",
+            };
+
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
+
+            List<PublishedProviderResultExisting> existingToRemove = new List<PublishedProviderResultExisting>()
+            {
+                new PublishedProviderResultExisting()
+                {
+                    Id = "c3BlYy0xMTIzQUFBQUE=",
+                    AllocationLineId = allocationLine1.Id,
+                    ProviderId = "123",
+                    Status = AllocationLineStatus.Approved,
+                    Value = 51,
+                }
+            };
+
+            PublishedProviderResult existingProviderResultToRemove = new PublishedProviderResult()
+            {
+                ProviderId = "123",
+                SpecificationId = specificationId,
+                FundingStreamResult = new PublishedFundingStreamResult()
+                {
+                    AllocationLineResult = new PublishedAllocationLineResult()
+                    {
+                        AllocationLine = allocationLine1,
+                        Current = new PublishedAllocationLineResultVersion()
+                        {
+                            Value = 51,
+                            Status = AllocationLineStatus.Approved,
+                            Provider = new ProviderSummary()
+                            {
+                                Name = "Provider Name",
+                                Id = "123",
+                            }
+                        }
+                    },
+                    FundingStream = new FundingStream()
+                    {
+                        Id = "fsId",
+                        Name = "Funding Stream Name",
+                        PeriodType = new PeriodType()
+                        {
+                            Name = "Test Period Type",
+                            Id = "tpt",
+                        }
+                    },
+                    FundingStreamPeriod = "fsp",
+                },
+                FundingPeriod = new Period()
+                {
+                    Id = "fundingPeriodId",
+                    Name = "Funding Period Name"
+                },
+            };
+
+
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
+                .Returns(Task.FromResult(providerResults));
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specificationCurrentVersion);
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
+            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
+                .Returns(Task.CompletedTask);
+            publishedProviderResultsRepository.SavePublishedAllocationLineResultsHistory(Arg.Any<IEnumerable<PublishedAllocationLineResultHistory>>())
+                .Returns(Task.CompletedTask);
+
+            IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
+            assembler
+                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion)
+                .Returns(publishedProviderCalculationResults);
+
+            assembler
+                .AssemblePublishedProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<Reference>(), Arg.Any<SpecificationCurrentVersion>())
+                .Returns(publishedProviderResults);
+
+            assembler
+                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
+                .Returns((publishedProviderResults, existingToRemove));
+
+            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
+            publishedProviderCalculationResultsRepository
+                .GetPublishedProviderCalculationHistoryForSpecificationId(Arg.Is(specificationId))
+                .Returns(publishedProviderCalculationResultsHistory);
+
+            publishedProviderResultsRepository
+                .GetPublishedProviderResultForId("c3BlYy0xMTIzQUFBQUE=", "123")
+                .Returns(existingProviderResultToRemove);
+
+            ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository,
+                publishedProviderResultsAssemblerService: assembler);
+
+            Message message = new Message();
+            message.UserProperties["specification-id"] = specificationId;
+
+            // Act
+            await resultsService.PublishProviderResults(message);
+
+            //Assert
+
+            decimal? expectedValue = 0;
+
+            await
+                publishedProviderResultsRepository
+                    .Received(1)
+                    .SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(a =>
+                    a.First().ProviderId == "123" &&
+                    a.First().FundingStreamResult.AllocationLineResult.Current.Value == expectedValue &&
+                    a.First().FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Updated));
+
+            await
+                publishedProviderResultsRepository
+                    .Received(1)
+                    .SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(a => a.Count() == 1));
+
+        }
+
+        private static SpecificationCalculationExecutionStatus CreateSpecificationCalculationProgress(Action<SpecificationCalculationExecutionStatus> defaultModelAction)
+        {
+            SpecificationCalculationExecutionStatus defaultModel = new SpecificationCalculationExecutionStatus(SpecificationId1, 0, CalculationProgressStatus.InProgress);
+            defaultModelAction(defaultModel);
+            return defaultModel;
+        }
+    }
 }

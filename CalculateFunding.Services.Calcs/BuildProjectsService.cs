@@ -1,31 +1,30 @@
-﻿using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Options;
-using Serilog;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
-using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.Compiler;
-using CalculateFunding.Services.Core.Interfaces.Logging;
-using Newtonsoft.Json;
-using Microsoft.Azure.ServiceBus;
-using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Models.Health;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
+using Newtonsoft.Json;
+using Serilog;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -203,7 +202,9 @@ namespace CalculateFunding.Services.Calcs
             }
 
             if (buildProject.DatasetRelationships == null)
+            {
                 buildProject.DatasetRelationships = new List<DatasetRelationshipSummary>();
+            }
 
             if (!buildProject.DatasetRelationships.Any(m => m.Name == relationship.Name))
             {
@@ -264,7 +265,9 @@ namespace CalculateFunding.Services.Calcs
             }
 
             if (buildProject.DatasetRelationships == null)
+            {
                 buildProject.DatasetRelationships = new List<DatasetRelationshipSummary>();
+            }
 
             if (!buildProject.DatasetRelationships.Any(m => m.Name == relationship.Name))
             {
@@ -290,7 +293,9 @@ namespace CalculateFunding.Services.Calcs
             BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
 
             if (buildProject == null)
+            {
                 return new NotFoundResult();
+            }
 
             return new OkObjectResult(buildProject);
         }
@@ -354,24 +359,26 @@ namespace CalculateFunding.Services.Calcs
             BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
 
             if (buildProject == null)
-                return new NotFoundResult();
-
-            IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
-
-            IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations);
-
-            string sourceDirectory = @"c:\dev\vbout";
-            foreach (SourceFile sourceFile in sourceFiles)
             {
-                string filename = sourceDirectory + "\\" + sourceFile.FileName;
-                string directory = System.IO.Path.GetDirectoryName(filename);
-                if (!System.IO.Directory.Exists(directory))
-                {
-                    System.IO.Directory.CreateDirectory(directory);
-                }
-
-                System.IO.File.WriteAllText(filename, sourceFile.SourceCode);
+                return new NotFoundResult();
             }
+
+            //IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
+
+            //IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations);
+
+            //string sourceDirectory = @"c:\dev\vbout";
+            //foreach (SourceFile sourceFile in sourceFiles)
+            //{
+            //    string filename = sourceDirectory + "\\" + sourceFile.FileName;
+            //    string directory = System.IO.Path.GetDirectoryName(filename);
+            //    if (!System.IO.Directory.Exists(directory))
+            //    {
+            //        System.IO.Directory.CreateDirectory(directory);
+            //    }
+
+            //    System.IO.File.WriteAllText(filename, sourceFile.SourceCode);
+            //}
 
 
             return new OkObjectResult(buildProject);

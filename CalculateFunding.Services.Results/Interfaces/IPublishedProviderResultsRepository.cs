@@ -1,8 +1,6 @@
-﻿using CalculateFunding.Models.Results;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Results;
 
 namespace CalculateFunding.Services.Results.Interfaces
 {
@@ -11,6 +9,8 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task SavePublishedResults(IEnumerable<PublishedProviderResult> publishedResults);
 
         Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsForSpecificationId(string specificationId);
+
+        Task<IEnumerable<PublishedProviderResultExisting>> GetExistingPublishedProviderResultsForSpecificationId(string specificationId);
 
         Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsForSpecificationIdAndProviderId(string specificationId, IEnumerable<string> providerIds);
 
@@ -24,7 +24,10 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         Task<PublishedAllocationLineResultHistory> GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(string specificationId, string providerId, string allocationLineId);
 
-        Task<PublishedProviderResult> GetPublishedProviderResultForId(string id, string providerId);
+        PublishedProviderResult GetPublishedProviderResultForId(string publishedProviderResultId);
+
+        Task<PublishedProviderResult> GetPublishedProviderResultForId(string publishedProviderResultId, string providerId);
+
 
         Task<PublishedProviderResult> GetPublishedProviderResultForIdInPublishedState(string id);
 
