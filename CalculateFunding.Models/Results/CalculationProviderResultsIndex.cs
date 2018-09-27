@@ -1,9 +1,7 @@
 ﻿using Microsoft.Azure.Search;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace CalculateFunding.Models.Results
 {
@@ -112,6 +110,10 @@ namespace CalculateFunding.Models.Results
 
         [IsFilterable, IsSortable]
         [JsonProperty("calculationResult")]
-        public Double CaclulationResult { get; set; }
+        public double? CalculationResult { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("isExcluded")]
+        public bool IsExcluded { get; set; }
     }
 }

@@ -7,7 +7,7 @@ namespace CalculateFunding.Repositories.Common.Search.Results
     {
         public string Id { get; set; }
 
-        public double CalculationResult { get; set; }
+        public double? CalculationResult { get; set; }
 
         public string SpecificationId { get; set; }
 

@@ -764,7 +764,7 @@ namespace CalculateFunding.Services.Results.Services
                             m.First().SpecificationName == "spec name" &&
                             m.First().CalculationSpecificationId == "calc-spec-id-1" &&
                             m.First().CalculationSpecificationName == "calc spec name 1" &&
-                            m.First().CaclulationResult == 123 &&
+                            m.First().CalculationResult == 123 &&
                             m.First().CalculationType == "Funding" &&
                             m.First().ProviderId == "prov-id" &&
                             m.First().ProviderName == "prov name" &&
@@ -773,7 +773,8 @@ namespace CalculateFunding.Services.Results.Services
                             m.First().UKPRN == "ukprn" &&
                             m.First().UPIN == "upin" &&
                             m.First().URN == "urn" &&
-                            m.First().EstablishmentNumber == "12345"
+                            m.First().EstablishmentNumber == "12345" &&
+                            m.First().IsExcluded == false
                     ));
 
             await
@@ -785,7 +786,7 @@ namespace CalculateFunding.Services.Results.Services
                             m.Last().SpecificationName == "spec name" &&
                             m.Last().CalculationSpecificationId == "calc-spec-id-2" &&
                             m.Last().CalculationSpecificationName == "calc spec name 2" &&
-                            m.Last().CaclulationResult == 10 &&
+                            m.Last().CalculationResult == 10 &&
                             m.Last().CalculationType == "Number" &&
                             m.Last().ProviderId == "prov-id" &&
                             m.Last().ProviderName == "prov name" &&
@@ -794,7 +795,73 @@ namespace CalculateFunding.Services.Results.Services
                             m.Last().UKPRN == "ukprn" &&
                             m.Last().UPIN == "upin" &&
                             m.Last().URN == "urn" &&
-                            m.Last().EstablishmentNumber == "12345"
+                            m.Last().EstablishmentNumber == "12345" &&
+                            m.Last().IsExcluded == false
+                    ));
+        }
+
+        [TestMethod]
+        public async Task ReIndexCalculationProviderResults_GivenResultReturnedFromDatabaseWithCalcResultWithNullValue_UpdatesSearch_AndSetsIsExcluded_ThenReturnsNoContent()
+        {
+            //Arrange
+            DocumentEntity<ProviderResult> providerResult = CreateDocumentEntityWithNullCalculationResult();
+
+            ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
+            calculationResultsRepository
+                .GetAllProviderResults()
+                .Returns(new[] { providerResult });
+
+            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
+
+            SpecificationSummary specificationSummary = new SpecificationSummary()
+            {
+                Id = providerResult.Content.SpecificationId,
+                Name = "spec name",
+            };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationSummary.Id))
+                .Returns(specificationSummary);
+
+            ResultsService resultsService = CreateResultsService(
+                resultsRepository: calculationResultsRepository,
+                calculationProviderResultsSearchRepository: searchRepository,
+                specificationsRepository: specificationsRepository);
+
+            //Act
+            IActionResult actionResult = await resultsService.ReIndexCalculationProviderResults();
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<NoContentResult>();
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(m => m.Count() == 1));
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(
+                        m =>
+                            m.First().SpecificationId == "spec-id" &&
+                            m.First().SpecificationName == "spec name" &&
+                            m.First().CalculationSpecificationId == "calc-spec-id-1" &&
+                            m.First().CalculationSpecificationName == "calc spec name 1" &&
+                            m.First().CalculationResult == null &&
+                            m.First().CalculationType == "Funding" &&
+                            m.First().ProviderId == "prov-id" &&
+                            m.First().ProviderName == "prov name" &&
+                            m.First().ProviderType == "prov type" &&
+                            m.First().ProviderSubType == "prov sub type" &&
+                            m.First().UKPRN == "ukprn" &&
+                            m.First().UPIN == "upin" &&
+                            m.First().URN == "urn" &&
+                            m.First().EstablishmentNumber == "12345" &&
+                            m.First().IsExcluded == true
                     ));
         }
 
@@ -1323,6 +1390,42 @@ namespace CalculateFunding.Services.Results.Services
                             Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
                             Value = 10,
                             CalculationType = Models.Calcs.CalculationType.Number
+                        }
+                    },
+                    Provider = new ProviderSummary
+                    {
+                        Id = "prov-id",
+                        Name = "prov name",
+                        ProviderType = "prov type",
+                        ProviderSubType = "prov sub type",
+                        Authority = "authority",
+                        UKPRN = "ukprn",
+                        UPIN = "upin",
+                        URN = "urn",
+                        EstablishmentNumber = "12345",
+                        LACode = "la code",
+                        DateOpened = DateTime.Now.AddDays(-7)
+                    }
+                }
+            };
+        }
+
+        static DocumentEntity<ProviderResult> CreateDocumentEntityWithNullCalculationResult()
+        {
+            return new DocumentEntity<ProviderResult>
+            {
+                UpdatedAt = DateTime.Now,
+                Content = new ProviderResult
+                {
+                    SpecificationId = "spec-id",
+                    CalculationResults = new List<CalculationResult>
+                    {
+                        new CalculationResult
+                        {
+                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
+                            Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
+                            Value = null,
+                            CalculationType = Models.Calcs.CalculationType.Funding
                         }
                     },
                     Provider = new ProviderSummary
