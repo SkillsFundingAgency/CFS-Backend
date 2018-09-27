@@ -1,14 +1,59 @@
 ﻿using Microsoft.Azure.Search;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace CalculateFunding.Models.Results
 {
     public class CalculationProviderResultsIndex
     {
+        public CalculationProviderResultsIndex() { }
+
+        // Have a separate constructor so deserialisation from Azure Search can convert null to false for IsExcluded property
+        [JsonConstructor]
+        public CalculationProviderResultsIndex(string specificationId, 
+            string specificationName, 
+            string calculationId, 
+            string calculationName, 
+            string calculationSpecificationId, 
+            string calculationType, 
+            string calculationSpecificationName, 
+            string providerId, 
+            string providerName, 
+            string providerType, 
+            string localAuthority, 
+            string providerSubType, 
+            DateTimeOffset lastUpdatedDate, 
+            string ukPrn, 
+            string urn, 
+            string upin, 
+            string establishmentNumber, 
+            DateTimeOffset? openDate, 
+            double? calculationResult, 
+            bool? isExcluded)
+        {
+            SpecificationId = specificationId;
+            SpecificationName = specificationName;
+            CalculationId = calculationId;
+            CalculationName = calculationName;
+            CalculationSpecificationId = calculationSpecificationId;
+            CalculationType = calculationType;
+            CalculationSpecificationName = calculationSpecificationName;
+            ProviderId = providerId;
+            ProviderName = providerName;
+            ProviderType = providerType;
+            LocalAuthority = localAuthority;
+            ProviderSubType = providerSubType;
+            LastUpdatedDate = lastUpdatedDate;
+            UKPRN = ukPrn;
+            URN = urn;
+            UPIN = upin;
+            EstablishmentNumber = establishmentNumber;
+            OpenDate = openDate;
+            CalculationResult = calculationResult;
+            IsExcluded = isExcluded ?? false;
+        }
+
         /// <summary>
         /// ID is the CalculationSpecificationId and ProviderId combined with an _
         /// </summary>
@@ -112,6 +157,10 @@ namespace CalculateFunding.Models.Results
 
         [IsFilterable, IsSortable]
         [JsonProperty("calculationResult")]
-        public Double CaclulationResult { get; set; }
+        public double? CalculationResult { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("isExcluded")]
+        public bool IsExcluded { get; set; }
     }
 }

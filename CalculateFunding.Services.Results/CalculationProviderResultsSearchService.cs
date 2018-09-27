@@ -216,7 +216,7 @@ namespace CalculateFunding.Services.Results
                     CalculationId = m.Result.CalculationId,
                     CalculationName = m.Result.CalculationName,
                     CalculationType = m.Result.CalculationType,
-                    CalculationResult = m.Result.CaclulationResult,
+                    CalculationResult = m.Result.CalculationResult,
                     LastUpdatedDate = m.Result.LastUpdatedDate.LocalDateTime,
                     LocalAuthority = m.Result.LocalAuthority,
                     ProviderType = m.Result.ProviderType,

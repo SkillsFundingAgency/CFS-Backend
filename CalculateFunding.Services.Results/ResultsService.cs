@@ -741,47 +741,45 @@ namespace CalculateFunding.Services.Results
 
                 foreach (CalculationResult calculationResult in providerResult.CalculationResults)
                 {
-                    if (calculationResult.Value.HasValue)
+                    SpecificationSummary specificationSummary = null;
+                    if (!specifications.ContainsKey(providerResult.SpecificationId))
                     {
-                        SpecificationSummary specificationSummary = null;
-                        if (!specifications.ContainsKey(providerResult.SpecificationId))
+                        specificationSummary = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetSpecificationSummaryById(providerResult.SpecificationId));
+                        if (specificationSummary == null)
                         {
-                            specificationSummary = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetSpecificationSummaryById(providerResult.SpecificationId));
-                            if (specificationSummary == null)
-                            {
-                                throw new InvalidOperationException($"Specification Summary returned null for specification ID '{providerResult.SpecificationId}'");
-                            }
-
-                            specifications.Add(providerResult.SpecificationId, specificationSummary);
-                        }
-                        else
-                        {
-                            specificationSummary = specifications[providerResult.SpecificationId];
+                            throw new InvalidOperationException($"Specification Summary returned null for specification ID '{providerResult.SpecificationId}'");
                         }
 
-                        searchItems.Add(new CalculationProviderResultsIndex
-                        {
-                            SpecificationId = providerResult.SpecificationId,
-                            SpecificationName = specificationSummary?.Name,
-                            CalculationSpecificationId = calculationResult.CalculationSpecification.Id,
-                            CalculationSpecificationName = calculationResult.CalculationSpecification.Name,
-                            CalculationName = calculationResult.Calculation.Name,
-                            CalculationId = calculationResult.Calculation.Id,
-                            CalculationType = calculationResult.CalculationType.ToString(),
-                            ProviderId = providerResult.Provider.Id,
-                            ProviderName = providerResult.Provider.Name,
-                            ProviderType = providerResult.Provider.ProviderType,
-                            ProviderSubType = providerResult.Provider.ProviderSubType,
-                            LocalAuthority = providerResult.Provider.Authority,
-                            LastUpdatedDate = documentEnity.UpdatedAt,
-                            UKPRN = providerResult.Provider.UKPRN,
-                            URN = providerResult.Provider.URN,
-                            UPIN = providerResult.Provider.UPIN,
-                            EstablishmentNumber = providerResult.Provider.EstablishmentNumber,
-                            OpenDate = providerResult.Provider.DateOpened,
-                            CaclulationResult = calculationResult.Value.HasValue ? Convert.ToDouble(calculationResult.Value) : 0
-                        });
+                        specifications.Add(providerResult.SpecificationId, specificationSummary);
                     }
+                    else
+                    {
+                        specificationSummary = specifications[providerResult.SpecificationId];
+                    }
+
+                    searchItems.Add(new CalculationProviderResultsIndex
+                    {
+                        SpecificationId = providerResult.SpecificationId,
+                        SpecificationName = specificationSummary?.Name,
+                        CalculationSpecificationId = calculationResult.CalculationSpecification.Id,
+                        CalculationSpecificationName = calculationResult.CalculationSpecification.Name,
+                        CalculationName = calculationResult.Calculation.Name,
+                        CalculationId = calculationResult.Calculation.Id,
+                        CalculationType = calculationResult.CalculationType.ToString(),
+                        ProviderId = providerResult.Provider.Id,
+                        ProviderName = providerResult.Provider.Name,
+                        ProviderType = providerResult.Provider.ProviderType,
+                        ProviderSubType = providerResult.Provider.ProviderSubType,
+                        LocalAuthority = providerResult.Provider.Authority,
+                        LastUpdatedDate = documentEnity.UpdatedAt,
+                        UKPRN = providerResult.Provider.UKPRN,
+                        URN = providerResult.Provider.URN,
+                        UPIN = providerResult.Provider.UPIN,
+                        EstablishmentNumber = providerResult.Provider.EstablishmentNumber,
+                        OpenDate = providerResult.Provider.DateOpened,
+                        CalculationResult = calculationResult.Value.HasValue ? Convert.ToDouble(calculationResult.Value) : default(double?),
+                        IsExcluded = !calculationResult.Value.HasValue
+                    });
                 }
             }
 
