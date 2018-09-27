@@ -37,6 +37,7 @@ namespace CalculateFunding.Services.Calculator
             Type providerType = providerSetter.PropertyType;
 
             var executeMethods = allocationType.GetMethods().Where(x => x.ReturnType == typeof(Nullable<decimal>));
+
             foreach (var executeMethod in executeMethods)
             {
                 var parameters = executeMethod.GetParameters();
