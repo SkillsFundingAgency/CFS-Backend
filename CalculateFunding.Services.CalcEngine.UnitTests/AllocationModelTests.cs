@@ -31,12 +31,12 @@ namespace CalculateFunding.Services.Calculator
             //Assert
             calcResults.Any().Should().BeTrue();
             calcResults.Count().Should().Be(6);
-            calcResults.ElementAt(0).Value.Should().Be(59);
-            calcResults.ElementAt(1).Value.Should().Be(112);
-            calcResults.ElementAt(2).Value.Should().BeLessThan(1);
-            calcResults.ElementAt(3).Value.Should().Be(11);
-            calcResults.ElementAt(4).Value.Should().BeNull();
-            calcResults.ElementAt(5).Value.Should().BeNull();
+            calcResults.First(r => r.Calculation.Name == "AB Calc 2109").Value.Should().Be(59);
+            calcResults.First(r => r.Calculation.Name == "AB Calc 2509").Value.Should().Be(112);
+            calcResults.First(r => r.Calculation.Name == "AB Calc 2509-002").Value.Should().BeLessThan(1);
+            calcResults.First(r => r.Calculation.Name == "AB Calc 2609-001").Value.Should().Be(11);
+            calcResults.First(r => r.Calculation.Name == "AB Clc 2609-0002").Value.Should().Be(10079319M);
+            calcResults.First(r => r.Calculation.Name == "ABCalcExclude-2609-001").Value.Should().BeNull();
         }
 
         [TestMethod]
