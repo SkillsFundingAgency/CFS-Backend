@@ -277,7 +277,7 @@ namespace CalculateFunding.Api.Specs.Controllers
         [HttpPost]
         public Task<IActionResult> RunRefreshPublishedResults()
         {
-	        return _specService.RefreshPublishedResults(ControllerContext.HttpContext.Request);
+            return _specService.RefreshPublishedResults(ControllerContext.HttpContext.Request);
         }
-	}
+    }
 }

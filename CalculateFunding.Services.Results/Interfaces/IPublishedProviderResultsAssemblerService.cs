@@ -1,8 +1,8 @@
-﻿using CalculateFunding.Models;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Interfaces
 {
@@ -11,5 +11,14 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IEnumerable<PublishedProviderResult>> AssemblePublishedProviderResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion);
 
         IEnumerable<PublishedProviderCalculationResult> AssemblePublishedCalculationResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion);
+
+        /// <summary>
+        /// Determines which PublishedProviderResults should be saved.
+        /// If a result is not found in current results, then the value is set to 0
+        /// </summary>
+        /// <param name="providerResults">Published Provider Results from assembler</param>
+        /// <param name="existingResults">Existing results stored in Cosmos</param>
+        /// <returns>PublishedProviderResults to save, PublishedProviderResultExisting which do not exist in the current list</returns>
+        (IEnumerable<PublishedProviderResult>, IEnumerable<PublishedProviderResultExisting>) GeneratePublishedProviderResultsToSave(IEnumerable<PublishedProviderResult> providerResults, IEnumerable<PublishedProviderResultExisting> existingResults);
     }
 }

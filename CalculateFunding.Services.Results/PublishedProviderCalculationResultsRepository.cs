@@ -1,15 +1,15 @@
-﻿using CalculateFunding.Models.Health;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
 {
@@ -39,7 +39,7 @@ namespace CalculateFunding.Services.Results
         {
             Guard.ArgumentNotNull(publishedCalculationResults, nameof(publishedCalculationResults));
 
-            return _cosmosRepository.BulkCreateAsync(publishedCalculationResults.Select(m => new KeyValuePair<string, PublishedProviderCalculationResult>(m.ProviderId, m)));
+            return _cosmosRepository.BulkCreateAsync(publishedCalculationResults.Select(m => new KeyValuePair<string, PublishedProviderCalculationResult>(m.ProviderId, m)), 100);
         }
 
         public Task<IEnumerable<PublishedProviderCalculationResultHistory>> GetPublishedProviderCalculationHistoryForSpecificationId(string specificationId)

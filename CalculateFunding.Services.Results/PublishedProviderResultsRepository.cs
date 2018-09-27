@@ -1,4 +1,10 @@
-﻿using CalculateFunding.Models.Health;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
@@ -6,11 +12,6 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
 using LinqKit;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
 {
@@ -67,7 +68,7 @@ namespace CalculateFunding.Services.Results
                             string sql = $"select * from root c where c.content.specificationId = \"{specificationId}\" and c.documentType = \"PublishedProviderResult\" and c.content.providerId = \"{providerId}\" and c.deleted = false";
 
                             IEnumerable<PublishedProviderResult> publishedProviderResults = await _cosmosRepository.QueryPartitionedEntity<PublishedProviderResult>(sql, partitionEntityId: providerId);
-                            foreach ( PublishedProviderResult result in publishedProviderResults)
+                            foreach (PublishedProviderResult result in publishedProviderResults)
                             {
                                 results.Add(result);
                             }
@@ -80,6 +81,28 @@ namespace CalculateFunding.Services.Results
             }
             await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
+            return results;
+        }
+
+        public async Task<IEnumerable<PublishedProviderResultExisting>> GetExistingPublishedProviderResultsForSpecificationId(string specificationId)
+        {
+            IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic<dynamic>($"SELECT r.id, r.content.providerId, r.content.fundingStreamResult.allocationLineResult.current.status,r.content.fundingStreamResult.allocationLineResult.current[\"value\"], r.content.fundingStreamResult.allocationLineResult.allocationLine.id as allocationLineId FROM Root r where r.documentType = 'PublishedProviderResult' and r.deleted = false and r.content.specificationId = '{specificationId}'", true, 1000);
+
+            List<PublishedProviderResultExisting> results = new List<PublishedProviderResultExisting>();
+            foreach (dynamic existingResult in existingResults)
+            {
+                PublishedProviderResultExisting result = new PublishedProviderResultExisting()
+                {
+                    AllocationLineId = existingResult.allocationLineId,
+                    Id = existingResult.id,
+                    ProviderId = existingResult.providerId,
+                    Value = existingResult.value,
+                };
+
+                result.Status = Enum.Parse(typeof(AllocationLineStatus), existingResult.status);
+
+                results.Add(result);
+            }
             return results;
         }
 
@@ -115,17 +138,23 @@ namespace CalculateFunding.Services.Results
             return Task.FromResult(results.AsEnumerable());
         }
 
-        public async Task<PublishedProviderResult> GetPublishedProviderResultForId(string id, string providerId)
+        public PublishedProviderResult GetPublishedProviderResultForId(string id)
         {
             Guard.IsNullOrWhiteSpace(id, nameof(id));
 
+            IQueryable<PublishedProviderResult> results = _cosmosRepository.Query<PublishedProviderResult>(enableCrossPartitionQuery: true).Where(m => m.Id == id);
+
+            return results.AsEnumerable().FirstOrDefault();
+        }
+
+        public async Task<PublishedProviderResult> GetPublishedProviderResultForId(string publishedProviderResultId, string providerId)
+        {
+            Guard.IsNullOrWhiteSpace(publishedProviderResultId, nameof(publishedProviderResultId));
             Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
 
-            string sql = $"select * from root c where c.id = \"{id}\" and c.documentType = \"PublishedProviderResult\" and c.deleted = false";
+            IEnumerable<PublishedProviderResult> results = await _cosmosRepository.QueryPartitionedEntity<PublishedProviderResult>($"SELECT * FROM Root r WHERE r.id ='{publishedProviderResultId}'", 1, providerId);
 
-            IEnumerable<PublishedProviderResult> publishedProviderResults = await _cosmosRepository.QueryPartitionedEntity<PublishedProviderResult>(sql, 1, partitionEntityId: providerId);
-
-            return publishedProviderResults.FirstOrDefault();
+            return results.FirstOrDefault();
         }
 
         public Task<PublishedProviderResult> GetPublishedProviderResultForIdInPublishedState(string id)

@@ -1436,6 +1436,465 @@ namespace CalculateFunding.Services.Results.Services
             resultsList[4].Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
         }
 
+        [TestMethod]
+        public void GeneratePublishedProviderResultsToSave_WhenNoResultsGenerated_ThenNoResultsReturned()
+        {
+            // Arrange
+            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
+
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
+            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
+
+
+            // Act
+            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
+
+            // Assert
+            resultsToSave
+                .Should()
+                .BeEmpty();
+
+            resultsToExclude
+                .Should()
+                .BeEmpty();
+        }
+
+        [TestMethod]
+        public void GeneratePublishedProviderResultsToSave_WhenNoExistingResultsExistAndResultsProvided_ThenResultsReturnedToSave()
+        {
+            // Arrange
+            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
+
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
+            publishedProviderResults
+                .Add(new PublishedProviderResult()
+                {
+                    ProviderId = "1",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = new AllocationLine()
+                            {
+                                Id = "AAAAA",
+                                Name = "Allocation Line 1"
+                            },
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 123,
+                            }
+                        }
+                    }
+                });
+
+            publishedProviderResults
+               .Add(new PublishedProviderResult()
+               {
+                   ProviderId = "2",
+                   FundingStreamResult = new PublishedFundingStreamResult()
+                   {
+                       AllocationLineResult = new PublishedAllocationLineResult()
+                       {
+                           AllocationLine = new AllocationLine()
+                           {
+                               Id = "AAAAA",
+                               Name = "Allocation Line 1"
+                           },
+                           Current = new PublishedAllocationLineResultVersion()
+                           {
+                               Status = AllocationLineStatus.Held,
+                               Value = 456,
+                           }
+                       }
+                   }
+               });
+
+            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
+
+
+            // Act
+            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
+
+            // Assert
+            resultsToSave
+                .Should()
+                .HaveCount(2);
+
+            resultsToSave
+                .Should()
+                .BeEquivalentTo(publishedProviderResults);
+
+            resultsToExclude
+                .Should()
+                .BeEmpty();
+        }
+
+        [TestMethod]
+        public void GeneratePublishedProviderResultsToSave_WhenExistingResultsExistAndMatchCurrentValuesAndResultsProvided_ThenNoResultsReturnedToSaveOrExclude()
+        {
+            // Arrange
+            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
+
+            AllocationLine allocationLine1 = new AllocationLine()
+            {
+                Id = "AAAAA",
+                Name = "Allocation Line 1"
+            };
+
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
+            publishedProviderResults
+                .Add(new PublishedProviderResult()
+                {
+                    ProviderId = "1",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = allocationLine1,
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 123,
+                            }
+                        }
+                    }
+                });
+
+            publishedProviderResults
+               .Add(new PublishedProviderResult()
+               {
+                   ProviderId = "2",
+                   FundingStreamResult = new PublishedFundingStreamResult()
+                   {
+                       AllocationLineResult = new PublishedAllocationLineResult()
+                       {
+                           AllocationLine = allocationLine1,
+                           Current = new PublishedAllocationLineResultVersion()
+                           {
+                               Status = AllocationLineStatus.Held,
+                               Value = 456,
+                           }
+                       }
+                   }
+               });
+
+            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
+            existingResults.Add(new PublishedProviderResultExisting()
+            {
+                AllocationLineId = allocationLine1.Id,
+                ProviderId = "1",
+                Status = AllocationLineStatus.Held,
+                Value = 123,
+            });
+
+            existingResults.Add(new PublishedProviderResultExisting()
+            {
+                AllocationLineId = allocationLine1.Id,
+                ProviderId = "2",
+                Status = AllocationLineStatus.Held,
+                Value = 456,
+            });
+
+
+            // Act
+            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
+
+            // Assert
+            resultsToSave
+                .Should()
+                .HaveCount(0);
+
+            resultsToExclude
+                .Should()
+                .BeEmpty();
+        }
+
+        [TestMethod]
+        public void GeneratePublishedProviderResultsToSave_WhenExistingResultsExistAndOneResultsShouldBeUpdatedDueToValueChange_ThenResultsReturnedToSaveAndNoneExcluded()
+        {
+            // Arrange
+            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
+
+            AllocationLine allocationLine1 = new AllocationLine()
+            {
+                Id = "AAAAA",
+                Name = "Allocation Line 1"
+            };
+
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
+            publishedProviderResults
+                .Add(new PublishedProviderResult()
+                {
+                    ProviderId = "1",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = allocationLine1,
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 123,
+                            }
+                        }
+                    }
+                });
+
+            publishedProviderResults
+               .Add(new PublishedProviderResult()
+               {
+                   ProviderId = "2",
+                   FundingStreamResult = new PublishedFundingStreamResult()
+                   {
+                       AllocationLineResult = new PublishedAllocationLineResult()
+                       {
+                           AllocationLine = allocationLine1,
+                           Current = new PublishedAllocationLineResultVersion()
+                           {
+                               Status = AllocationLineStatus.Held,
+                               Value = 789,
+                           }
+                       }
+                   }
+               });
+
+            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
+            existingResults.Add(new PublishedProviderResultExisting()
+            {
+                AllocationLineId = allocationLine1.Id,
+                ProviderId = "1",
+                Status = AllocationLineStatus.Held,
+                Value = 123,
+            });
+
+            existingResults.Add(new PublishedProviderResultExisting()
+            {
+                AllocationLineId = allocationLine1.Id,
+                ProviderId = "2",
+                Status = AllocationLineStatus.Held,
+                Value = 456,
+            });
+
+            // Act
+            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
+
+            // Assert
+            resultsToSave
+                .Should()
+                .HaveCount(1);
+
+            resultsToSave
+                .Should()
+                .BeEquivalentTo(new List<PublishedProviderResult>() { publishedProviderResults[1] });
+
+            resultsToExclude
+                .Should()
+                .BeEmpty();
+        }
+
+        [TestMethod]
+        public void GeneratePublishedProviderResultsToSave_WhenExistingResultsExistAndOneExistingResultHasNoCurrentVersion_ThenNoResultsReturnedToSaveAndOneExcluded()
+        {
+            // Arrange
+            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
+
+            AllocationLine allocationLine1 = new AllocationLine()
+            {
+                Id = "AAAAA",
+                Name = "Allocation Line 1"
+            };
+
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
+            publishedProviderResults
+                .Add(new PublishedProviderResult()
+                {
+                    ProviderId = "1",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = allocationLine1,
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 123,
+                            }
+                        }
+                    }
+                });
+
+            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
+            existingResults.Add(new PublishedProviderResultExisting()
+            {
+                AllocationLineId = allocationLine1.Id,
+                ProviderId = "1",
+                Status = AllocationLineStatus.Held,
+                Value = 123,
+            });
+
+            existingResults.Add(new PublishedProviderResultExisting()
+            {
+                AllocationLineId = allocationLine1.Id,
+                ProviderId = "2",
+                Status = AllocationLineStatus.Held,
+                Value = 456,
+            });
+
+            // Act
+            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
+
+            // Assert
+            resultsToSave
+                .Should()
+                .HaveCount(0);
+
+            resultsToExclude
+                .Should()
+                .HaveCount(1);
+
+            resultsToExclude
+                .Should()
+                .BeEquivalentTo(new List<PublishedProviderResultExisting>() { existingResults[1] });
+        }
+
+        [TestMethod]
+        public void GeneratePublishedProviderResultsToSave_WhenExistingResultsExistWithMultipeAllocationLinesAndHasSavesAndAdded_ThenResultsReturnedToSaveAndNoneExcluded()
+        {
+            // Arrange
+            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
+
+            AllocationLine allocationLine1 = new AllocationLine()
+            {
+                Id = "AAAAA",
+                Name = "Allocation Line 1"
+            };
+
+            AllocationLine allocationLine2 = new AllocationLine()
+            {
+                Id = "BBBBB",
+                Name = "Allocation Line 2"
+            };
+
+            AllocationLine allocationLine3 = new AllocationLine()
+            {
+                Id = "CCCCC",
+                Name = "Allocation Line 3"
+            };
+
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
+            publishedProviderResults
+                .Add(new PublishedProviderResult()
+                {
+                    ProviderId = "1",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = allocationLine1,
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 123,
+                            }
+                        }
+                    }
+                });
+
+            publishedProviderResults
+                .Add(new PublishedProviderResult()
+                {
+                    ProviderId = "2",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = allocationLine1,
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 234,
+                            }
+                        }
+                    }
+                });
+
+            publishedProviderResults
+                .Add(new PublishedProviderResult()
+                {
+                    ProviderId = "1",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = allocationLine2,
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 345,
+                            }
+                        }
+                    }
+                });
+
+            publishedProviderResults
+                .Add(new PublishedProviderResult()
+                {
+                    ProviderId = "2",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = allocationLine2,
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 456,
+                            }
+                        }
+                    }
+                });
+
+
+            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
+            existingResults.Add(new PublishedProviderResultExisting()
+            {
+                AllocationLineId = allocationLine1.Id,
+                ProviderId = "1",
+                Status = AllocationLineStatus.Held,
+                Value = 123,
+            });
+
+            existingResults.Add(new PublishedProviderResultExisting()
+            {
+                AllocationLineId = allocationLine1.Id,
+                ProviderId = "2",
+                Status = AllocationLineStatus.Held,
+                Value = 456,
+            });
+
+            // Act
+            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
+
+            // Assert
+            resultsToSave
+                .Should()
+                .HaveCount(3);
+
+            resultsToExclude
+                .Should()
+                .HaveCount(0);
+
+            resultsToSave
+                .Should()
+                .BeEquivalentTo(new List<PublishedProviderResult>()
+                {
+                    publishedProviderResults[1],
+                    publishedProviderResults[2],
+                    publishedProviderResults[3],
+                });
+        }
+
         static PublishedProviderResultsAssemblerService CreateAssemblerService(
             ISpecificationsRepository specificationsRepository = null, ILogger logger = null)
         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
 using CalculateFunding.Repositories.Common.Cosmos.Interfaces;
@@ -127,6 +128,8 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             {
                 MaxItemCount = maxItemCount,
                 EnableCrossPartitionQuery = enableCrossPartitionQuery,
+                MaxBufferedItemCount = 100,
+                MaxDegreeOfParallelism = 50,
             };
 
             if (!string.IsNullOrEmpty(directSql))
@@ -163,6 +166,8 @@ namespace CalculateFunding.Repositories.Common.Cosmos
                 MaxItemCount = itemsPerPage,
                 EnableCrossPartitionQuery = false,
                 PartitionKey = new PartitionKey(partitionEntityId),
+                MaxDegreeOfParallelism = 50,
+                MaxBufferedItemCount = 100,
             };
 
             return (await _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri,
@@ -189,7 +194,9 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             var queryOptions = new FeedOptions
             {
                 EnableCrossPartitionQuery = enableCrossPartitionQuery,
-                MaxItemCount = itemsPerPage
+                MaxItemCount = itemsPerPage,
+                MaxDegreeOfParallelism = 50,
+                MaxBufferedItemCount = 100,
             };
 
             IEnumerable<dynamic> results = new List<dynamic>();
@@ -212,7 +219,9 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             var queryOptions = new FeedOptions
             {
                 MaxItemCount = itemsPerPage,
-                EnableCrossPartitionQuery = enableCrossPartitionQuery
+                EnableCrossPartitionQuery = enableCrossPartitionQuery,
+                MaxDegreeOfParallelism = 50,
+                MaxBufferedItemCount = 100,
             };
 
             return _documentClient.CreateDocumentQuery<T>(_collectionUri,
@@ -237,7 +246,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             {
                 FeedResponse<DocumentEntity<T>> queryResponse = await queryable.ExecuteNextAsync<DocumentEntity<T>>();
 
-                results.AddRange(queryResponse.Select(s=>s.Content));
+                results.AddRange(queryResponse.Select(s => s.Content));
             }
 
             return results;
@@ -420,10 +429,33 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
         public async Task BulkCreateAsync<T>(IEnumerable<KeyValuePair<string, T>> entities, int degreeOfParallelism = 5) where T : IIdentifiable
         {
-            await Task.Run(() => Parallel.ForEach(entities, new ParallelOptions { MaxDegreeOfParallelism = degreeOfParallelism }, (item) =>
+            List<Task> allTasks = new List<Task>(entities.Count());
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: degreeOfParallelism);
+            foreach (KeyValuePair<string, T> entity in entities)
             {
-                Task.WaitAll(CreateAsync(item));
-            }));
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await CreateAsync(entity);
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+            await Task.WhenAll(allTasks.ToArray());
+
+            foreach (Task task in allTasks)
+            {
+                if (task.Exception != null)
+                {
+                    throw task.Exception;
+                }
+            }
         }
 
         public async Task<HttpStatusCode> UpdateAsync<T>(T entity) where T : Reference

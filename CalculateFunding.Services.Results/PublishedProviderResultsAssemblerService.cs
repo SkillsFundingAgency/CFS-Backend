@@ -141,6 +141,58 @@ namespace CalculateFunding.Services.Results
             return publishedProviderCalculationResults;
         }
 
+        public (IEnumerable<PublishedProviderResult>, IEnumerable<PublishedProviderResultExisting>) GeneratePublishedProviderResultsToSave(IEnumerable<PublishedProviderResult> providerResults, IEnumerable<PublishedProviderResultExisting> existingResults)
+        {
+            Guard.ArgumentNotNull(providerResults, nameof(providerResults));
+            Guard.ArgumentNotNull(existingResults, nameof(existingResults));
+
+            List<PublishedProviderResult> publishedProviderResultsToSave = new List<PublishedProviderResult>();
+
+            Dictionary<string, List<PublishedProviderResultExisting>> existingProviderResults = new Dictionary<string, List<PublishedProviderResultExisting>>();
+            foreach (PublishedProviderResultExisting providerResult in existingResults)
+            {
+                if (!existingProviderResults.ContainsKey(providerResult.ProviderId))
+                {
+                    existingProviderResults.Add(providerResult.ProviderId, new List<PublishedProviderResultExisting>());
+                }
+
+                existingProviderResults[providerResult.ProviderId].Add(providerResult);
+            }
+
+            foreach (PublishedProviderResult providerResult in providerResults)
+            {
+                if (existingProviderResults.ContainsKey(providerResult.ProviderId))
+                {
+                    List<PublishedProviderResultExisting> existingResultsForProvider = existingProviderResults[providerResult.ProviderId];
+                    PublishedProviderResultExisting existingResult = existingResultsForProvider.Where(p => p.AllocationLineId == providerResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id).SingleOrDefault();
+                    if (existingResult != null)
+                    {
+                        existingResultsForProvider.Remove(existingResult);
+
+                        if (!existingResultsForProvider.Any())
+                        {
+                            existingProviderResults.Remove(providerResult.ProviderId);
+                        }
+
+                        if (providerResult.FundingStreamResult.AllocationLineResult.Current.Value == existingResult.Value)
+                        {
+                            continue;
+                        }
+                    }
+                }
+
+                publishedProviderResultsToSave.Add(providerResult);
+            }
+
+            List<PublishedProviderResultExisting> existingRecordsExclude = new List<PublishedProviderResultExisting>(existingProviderResults.Values.Count);
+            foreach (List<PublishedProviderResultExisting> existingList in existingProviderResults.Values)
+            {
+                existingRecordsExclude.AddRange(existingList);
+            }
+
+            return (publishedProviderResultsToSave, existingRecordsExclude);
+        }
+
         private (Policy policy, Policy parentPolicy, Models.Specs.Calculation calculation) FindPolicy(string calculationSpecificationId, IEnumerable<Policy> policies)
         {
             foreach (Policy policy in policies)
