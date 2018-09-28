@@ -808,6 +808,13 @@
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -928,6 +935,13 @@
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -1040,6 +1054,13 @@
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -1144,6 +1165,13 @@
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -1255,6 +1283,13 @@
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -1378,6 +1413,13 @@
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -1477,6 +1519,13 @@
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -1584,6 +1633,13 @@
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -1661,6 +1717,14 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
+          "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "WEBSITE_TIME_ZONE",
@@ -1758,6 +1822,14 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
+          "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "WEBSITE_TIME_ZONE",
@@ -1848,6 +1920,13 @@
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "WEBSITE_TIME_ZONE",
@@ -1929,6 +2008,14 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
+          "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "WEBSITE_TIME_ZONE",
@@ -2027,6 +2114,13 @@
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "WEBSITE_TIME_ZONE",
@@ -2115,6 +2209,14 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
+          "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "WEBSITE_TIME_ZONE",
@@ -2191,6 +2293,14 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
+          "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
@@ -2267,6 +2377,14 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
+          "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
@@ -2352,6 +2470,14 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
+          "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "httpsOnly": true,
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
           "appSettings": [
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",

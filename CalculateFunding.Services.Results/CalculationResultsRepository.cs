@@ -49,7 +49,15 @@ namespace CalculateFunding.Services.Results
 
         public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId, int maxItemCount = -1)
         {
-            List<ProviderResult> results = _cosmosRepository.Query<ProviderResult>(enableCrossPartitionQuery: true).Where(x => x.SpecificationId == specificationId).Take(maxItemCount).ToList();
+            List<ProviderResult> results;
+            if (maxItemCount > 0)
+            {
+                results = _cosmosRepository.Query<ProviderResult>(enableCrossPartitionQuery: true).Where(x => x.SpecificationId == specificationId).Take(maxItemCount).ToList();
+            }
+            else
+            {
+                results = _cosmosRepository.Query<ProviderResult>(enableCrossPartitionQuery: true).Where(x => x.SpecificationId == specificationId).ToList();
+            }
 
             return Task.FromResult(results.AsEnumerable());
         }
