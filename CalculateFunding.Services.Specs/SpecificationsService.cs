@@ -1925,7 +1925,7 @@ namespace CalculateFunding.Services.Specs
 
             try
             {
-                SpecificationCalculationExecutionStatus specProgress = await _cacheProvider.GetAsync<SpecificationCalculationExecutionStatus>($"calculationProgress-{specificationId}");
+                SpecificationCalculationExecutionStatus specProgress = await _cacheProvider.GetAsync<SpecificationCalculationExecutionStatus>($"{CacheKeys.CalculationProgress}{specificationId}");
                 if (specProgress == null)
                 {
                     _logger.Error("Cache returned null, couldn't find specification - {specificationId}", specificationId);
