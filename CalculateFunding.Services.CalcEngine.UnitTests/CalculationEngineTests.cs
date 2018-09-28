@@ -1,4 +1,10 @@
-﻿using CalculateFunding.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calculator.Interfaces;
@@ -6,14 +12,8 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
-using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using NSubstitute.ExceptionExtensions;
+using Serilog;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -384,7 +384,7 @@ namespace CalculateFunding.Services.Calculator
             result.AllocationLineResults.Should().BeEmpty();
             result.Provider.Should().Be(providerSummary);
             result.SpecificationId.ShouldBeEquivalentTo(buildProject.SpecificationId);
-            result.Id.ShouldBeEquivalentTo(GenerateId(providerSummary.Id,buildProject.SpecificationId));
+            result.Id.ShouldBeEquivalentTo(GenerateId(providerSummary.Id, buildProject.SpecificationId));
         }
 
         [TestMethod]
@@ -486,7 +486,7 @@ namespace CalculateFunding.Services.Calculator
             fundingCalcResult.CalculationSpecification.ShouldBeEquivalentTo(fundingCalcSpecificationReference);
             fundingCalcResult.PolicySpecifications.ShouldBeEquivalentTo(policySpecificationsForFundingCalc);
             fundingCalcResult.Value.ShouldBeEquivalentTo(fundingCalcReturned.Value.Value);
-            
+
             CalculationResult numberCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == numbercalcReference.Id);
             numberCalcResult.Calculation.ShouldBeEquivalentTo(numbercalcReference);
             numberCalcResult.CalculationType.ShouldBeEquivalentTo(fundingCalcReturned2.CalculationType);
@@ -502,6 +502,300 @@ namespace CalculateFunding.Services.Calculator
             nonMatchingCalcResult.CalculationSpecification.Should().BeNull();
             nonMatchingCalcResult.PolicySpecifications.Should().BeNull();
             nonMatchingCalcResult.Value.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void CalculateProviderResult_WhenCalculationValuesReturnedWithMultipleAllocationLines_ThenAllocationLineValuesAreSetCorrectly()
+        {
+            // Arrange
+            List<Reference> policySpecificationsForFundingCalc = new List<Reference>()
+            {
+                new Reference("Spec1", "SpecOne"),
+                new Reference("Spec2", "SpecTwo")
+            };
+            List<Reference> policySpecificationsForNumberCalc = new List<Reference>()
+            {
+                new Reference("Spec1", "SpecOne"),
+            };
+            Reference allocationLine1 = new Reference("allocationLine", "allocation line for Funding Calc and number calc");
+            Reference allocationLine2 = new Reference("allocationLine2", "Second allocation line");
+            Reference allocationLine3 = new Reference("allocationLine3", "Allocation line excluded");
+
+            CalculationResult calc1 = new CalculationResult()
+            {
+                CalculationType = CalculationType.Funding,
+                Calculation = new Reference("calc1", "Calc 1"),
+                AllocationLine = allocationLine1,
+                CalculationSpecification = new Reference("FSpect", "FundingSpecification"),
+                PolicySpecifications = policySpecificationsForFundingCalc,
+                Value = 10000
+            };
+            CalculationResult calc2 = new CalculationResult()
+            {
+                CalculationType = CalculationType.Funding,
+                Calculation = new Reference("calc2", "Calc 2"),
+                AllocationLine = allocationLine1,
+                CalculationSpecification = new Reference("FSpec2", "FundingSpecification2"),
+                PolicySpecifications = policySpecificationsForNumberCalc,
+                Value = 20000
+            };
+            CalculationResult calc3 = new CalculationResult()
+            {
+                CalculationType = CalculationType.Funding,
+                Calculation = new Reference("calc3", "Calc 3"),
+                AllocationLine = allocationLine2,
+                CalculationSpecification = new Reference("calc3", "Calc 3"),
+                PolicySpecifications = policySpecificationsForNumberCalc,
+                Value = 67
+            };
+            CalculationResult calc4 = new CalculationResult()
+            {
+                CalculationType = CalculationType.Funding,
+                Calculation = new Reference("calc4", "Calc 4"),
+                AllocationLine = allocationLine3,
+                CalculationSpecification = new Reference("calc4", "Calc 4"),
+                PolicySpecifications = policySpecificationsForNumberCalc,
+                Value = null,
+            };
+            CalculationResult calc5 = new CalculationResult()
+            {
+                CalculationType = CalculationType.Funding,
+                Calculation = new Reference("calc5", "Calc 5"),
+                AllocationLine = allocationLine3,
+                CalculationSpecification = new Reference("calc5", "Calc 5"),
+                PolicySpecifications = policySpecificationsForNumberCalc,
+                Value = 50,
+            };
+            CalculationResult calc6 = new CalculationResult()
+            {
+                CalculationType = CalculationType.Funding,
+                Calculation = new Reference("calc6", "Calc 6"),
+                AllocationLine = allocationLine3,
+                CalculationSpecification = new Reference("calc6", "Calc 6"),
+                PolicySpecifications = policySpecificationsForNumberCalc,
+                Value = 8,
+            };
+
+            List<CalculationResult> calculationResults = new List<CalculationResult>()
+            {
+                calc1,
+                calc2,
+                calc3,
+                calc4,
+                calc5,
+                calc6,
+            };
+            IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
+            mockAllocationModel
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Returns(calculationResults);
+
+            CalculationEngine calculationEngine = CreateCalculationEngine();
+            ProviderSummary providerSummary = CreateDummyProviderSummary();
+            BuildProject buildProject = CreateBuildProject();
+
+
+            IEnumerable<CalculationSummaryModel> calculationSummaryModels = new[]
+            {
+                new CalculationSummaryModel()
+                {
+                    Id = "calc1",
+                    Name = "Calc 1",
+                    CalculationType = CalculationType.Funding
+                },
+                new CalculationSummaryModel()
+                {
+                    Id = "calc2",
+                    Name = "Calc 2",
+                    CalculationType = CalculationType.Funding
+                },
+                new CalculationSummaryModel()
+                {
+                    Id = "calc3",
+                    Name = "Calc 3",
+                    CalculationType = CalculationType.Funding
+                },
+                new CalculationSummaryModel()
+                {
+                    Id = "calc4",
+                    Name = "Calc 4",
+                    CalculationType = CalculationType.Funding
+                },
+                 new CalculationSummaryModel()
+                {
+                    Id = "calc5",
+                    Name = "Calc 5",
+                    CalculationType = CalculationType.Funding
+                },
+                  new CalculationSummaryModel()
+                {
+                    Id = "calc6",
+                    Name = "Calc 6",
+                    CalculationType = CalculationType.Funding
+                },
+            };
+
+            // Act
+            var calculateProviderResults = calculationEngine.CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModels,
+                providerSummary, new List<ProviderSourceDataset>());
+            ProviderResult result = calculateProviderResults;
+
+            // Assert
+            result
+                .AllocationLineResults
+                .Should()
+                .HaveCount(3);
+
+            // Values are summed for allocation line
+            result
+                .AllocationLineResults[0]
+                .Value
+                .Should()
+                .Be(30000);
+
+            result
+                .AllocationLineResults[1]
+                .Value
+                .Should()
+                .Be(67);
+
+            // All calculations for Allocation Line 3 returned nulls - therefore allocation line value is null
+            result
+                .AllocationLineResults[2]
+                .Value
+                .Should()
+                .Be(58);
+        }
+
+        [TestMethod]
+        public void CalculateProviderResult_WhenCalculationValuesReturnedWithMultipleAllocationLinesAndMixOfValuesAndNulls_ThenAllocationLineValuesAreSetCorrectly()
+        {
+            // Arrange
+            List<Reference> policySpecificationsForFundingCalc = new List<Reference>()
+            {
+                new Reference("Spec1", "SpecOne"),
+                new Reference("Spec2", "SpecTwo")
+            };
+            List<Reference> policySpecificationsForNumberCalc = new List<Reference>()
+            {
+                new Reference("Spec1", "SpecOne"),
+            };
+            Reference allocationLine1 = new Reference("allocationLine", "allocation line for Funding Calc and number calc");
+            Reference allocationLine2 = new Reference("allocationLine2", "Second allocation line");
+            Reference allocationLine3 = new Reference("allocationLine3", "Allocation line excluded");
+
+            CalculationResult calc1 = new CalculationResult()
+            {
+                CalculationType = CalculationType.Funding,
+                Calculation = new Reference("calc1", "Calc 1"),
+                AllocationLine = allocationLine1,
+                CalculationSpecification = new Reference("FSpect", "FundingSpecification"),
+                PolicySpecifications = policySpecificationsForFundingCalc,
+                Value = 10000
+            };
+            CalculationResult calc2 = new CalculationResult()
+            {
+                CalculationType = CalculationType.Funding,
+                Calculation = new Reference("calc2", "Calc 2"),
+                AllocationLine = allocationLine1,
+                CalculationSpecification = new Reference("FSpec2", "FundingSpecification2"),
+                PolicySpecifications = policySpecificationsForNumberCalc,
+                Value = 20000
+            };
+            CalculationResult calc3 = new CalculationResult()
+            {
+                CalculationType = CalculationType.Funding,
+                Calculation = new Reference("calc3", "Calc 3"),
+                AllocationLine = allocationLine2,
+                CalculationSpecification = new Reference("calc3", "Calc 3"),
+                PolicySpecifications = policySpecificationsForNumberCalc,
+                Value = 67
+            };
+            CalculationResult calc4 = new CalculationResult()
+            {
+                CalculationType = CalculationType.Funding,
+                Calculation = new Reference("calc4", "Calc 4"),
+                AllocationLine = allocationLine3,
+                CalculationSpecification = new Reference("calc4", "Calc 4"),
+                PolicySpecifications = policySpecificationsForNumberCalc,
+                Value = null,
+            };
+
+            List<CalculationResult> calculationResults = new List<CalculationResult>()
+            {
+                calc1,
+                calc2,
+                calc3,
+                calc4,
+            };
+            IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
+            mockAllocationModel
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Returns(calculationResults);
+
+            CalculationEngine calculationEngine = CreateCalculationEngine();
+            ProviderSummary providerSummary = CreateDummyProviderSummary();
+            BuildProject buildProject = CreateBuildProject();
+
+
+            IEnumerable<CalculationSummaryModel> calculationSummaryModels = new[]
+            {
+                new CalculationSummaryModel()
+                {
+                    Id = "calc1",
+                    Name = "Calc 1",
+                    CalculationType = CalculationType.Funding
+                },
+                new CalculationSummaryModel()
+                {
+                    Id = "calc2",
+                    Name = "Calc 2",
+                    CalculationType = CalculationType.Funding
+                },
+                new CalculationSummaryModel()
+                {
+                    Id = "calc3",
+                    Name = "Calc 3",
+                    CalculationType = CalculationType.Funding
+                },
+                new CalculationSummaryModel()
+                {
+                    Id = "calc4",
+                    Name = "Calc 4",
+                    CalculationType = CalculationType.Funding
+                },
+            };
+
+            // Act
+            var calculateProviderResults = calculationEngine.CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModels,
+                providerSummary, new List<ProviderSourceDataset>());
+            ProviderResult result = calculateProviderResults;
+
+            // Assert
+            result
+                .AllocationLineResults
+                .Should()
+                .HaveCount(3);
+
+            // Values are summed for allocation line
+            result
+                .AllocationLineResults[0]
+                .Value
+                .Should()
+                .Be(30000);
+
+            result
+                .AllocationLineResults[1]
+                .Value
+                .Should()
+                .Be(67);
+
+            // All calculations for Allocation Line 3 returned nulls - therefore allocation line value is null
+            result
+                .AllocationLineResults[2]
+                .Value
+                .Should()
+                .Be(null);
         }
 
         private static string GenerateId(string providerId, string specificationId)

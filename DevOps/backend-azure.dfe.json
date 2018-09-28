@@ -807,7 +807,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
-          "use32BitWorkerProcess": true,
+          "use32BitWorkerProcess": false,
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -927,7 +927,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
-          "use32BitWorkerProcess": true,
+          "use32BitWorkerProcess": false,
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -1039,7 +1039,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
-          "use32BitWorkerProcess": true,
+          "use32BitWorkerProcess": false,
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -1143,7 +1143,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
-          "use32BitWorkerProcess": true,
+          "use32BitWorkerProcess": false,
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -1254,7 +1254,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
-          "use32BitWorkerProcess": true,
+          "use32BitWorkerProcess": false,
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -1377,7 +1377,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
-          "use32BitWorkerProcess": true,
+          "use32BitWorkerProcess": false,
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -1476,7 +1476,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
-          "use32BitWorkerProcess": true,
+          "use32BitWorkerProcess": false,
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",
@@ -1583,7 +1583,7 @@
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
-          "use32BitWorkerProcess": true,
+          "use32BitWorkerProcess": false,
           "appSettings": [
             {
               "name": "AzureWebJobsDashboard",

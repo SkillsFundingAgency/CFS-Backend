@@ -150,7 +150,7 @@ namespace CalculateFunding.Services.Calculator
                 .GroupBy(x => x.AllocationLine).Select(x => new AllocationLineResult
                 {
                     AllocationLine = x.Key,
-                    Value = x.Sum(v => v.Value ?? decimal.Zero)
+                    Value = x.All(v => !v.Value.HasValue) ? (decimal?)null : x.Sum(v => v.Value ?? decimal.Zero)
                 }).ToList();
 
             return providerResult;

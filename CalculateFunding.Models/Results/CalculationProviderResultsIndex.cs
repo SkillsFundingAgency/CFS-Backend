@@ -1,7 +1,7 @@
-﻿using Microsoft.Azure.Search;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.Azure.Search;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
@@ -11,25 +11,25 @@ namespace CalculateFunding.Models.Results
 
         // Have a separate constructor so deserialisation from Azure Search can convert null to false for IsExcluded property
         [JsonConstructor]
-        public CalculationProviderResultsIndex(string specificationId, 
-            string specificationName, 
-            string calculationId, 
-            string calculationName, 
-            string calculationSpecificationId, 
-            string calculationType, 
-            string calculationSpecificationName, 
-            string providerId, 
-            string providerName, 
-            string providerType, 
-            string localAuthority, 
-            string providerSubType, 
-            DateTimeOffset lastUpdatedDate, 
-            string ukPrn, 
-            string urn, 
-            string upin, 
-            string establishmentNumber, 
-            DateTimeOffset? openDate, 
-            double? calculationResult, 
+        public CalculationProviderResultsIndex(string specificationId,
+            string specificationName,
+            string calculationId,
+            string calculationName,
+            string calculationSpecificationId,
+            string calculationType,
+            string calculationSpecificationName,
+            string providerId,
+            string providerName,
+            string providerType,
+            string localAuthority,
+            string providerSubType,
+            DateTimeOffset lastUpdatedDate,
+            string ukPrn,
+            string urn,
+            string upin,
+            string establishmentNumber,
+            DateTimeOffset? openDate,
+            double? calculationResult,
             bool? isExcluded)
         {
             SpecificationId = specificationId;
@@ -155,8 +155,9 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("openDate")]
         public DateTimeOffset? OpenDate { get; set; }
 
+        // NullValueHandling should be set to allow nulls when saving into search, otherwise the merge skips this property and null is never set
         [IsFilterable, IsSortable]
-        [JsonProperty("calculationResult")]
+        [JsonProperty("calculationResult", NullValueHandling = NullValueHandling.Include)]
         public double? CalculationResult { get; set; }
 
         [IsFilterable]

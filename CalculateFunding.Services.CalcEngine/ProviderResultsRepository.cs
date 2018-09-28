@@ -1,15 +1,14 @@
-﻿using CalculateFunding.Models.Results;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Cosmos.Interfaces;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -110,6 +109,9 @@ namespace CalculateFunding.Services.Calculator
             if (!indexErrors.IsNullOrEmpty())
             {
                 _logger.Error($"Failed to index provider results with the following errors: {string.Join(";", indexErrors.Select(m => m.ErrorMessage))}");
+
+                // Throw exception so Service Bus message can be requeued and calc results can have a chance to get saved again
+                throw new FailedToIndexSearchException(indexErrors);
             }
         }
     }
