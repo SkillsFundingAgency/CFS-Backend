@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -149,7 +150,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             OkObjectResult okResult = result as OkObjectResult;
 
-            IList<TestScenarioResultCounts> results = okResult.Value as IList<TestScenarioResultCounts>;
+            ConcurrentBag<TestScenarioResultCounts> results = okResult.Value as ConcurrentBag<TestScenarioResultCounts>;
 
             results
                 .Count
@@ -197,7 +198,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             OkObjectResult okResult = result as OkObjectResult;
 
-            IList<TestScenarioResultCounts> results = okResult.Value as IList<TestScenarioResultCounts>;
+            ConcurrentBag<TestScenarioResultCounts> results = okResult.Value as ConcurrentBag<TestScenarioResultCounts>;
 
             results
                 .Count
@@ -259,7 +260,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             OkObjectResult okResult = result as OkObjectResult;
 
-            IList<TestScenarioResultCounts> results = okResult.Value as IList<TestScenarioResultCounts>;
+            ConcurrentBag<TestScenarioResultCounts> results = okResult.Value as ConcurrentBag<TestScenarioResultCounts>;
 
             results
                 .Count
@@ -384,7 +385,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             OkObjectResult okResult = result as OkObjectResult;
 
-            IList<TestScenarioResultCounts> results = okResult.Value as IList<TestScenarioResultCounts>;
+            ConcurrentBag<TestScenarioResultCounts> results = okResult.Value as ConcurrentBag<TestScenarioResultCounts>;
 
             results
                 .Count
@@ -467,7 +468,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             OkObjectResult okResult = result as OkObjectResult;
 
-            IList<TestScenarioResultCounts> results = okResult.Value as IList<TestScenarioResultCounts>;
+            ConcurrentBag<TestScenarioResultCounts> results = okResult.Value as ConcurrentBag<TestScenarioResultCounts>;
 
             results
                 .Count

@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using FluentAssertions;
@@ -140,7 +141,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             ICacheProvider cacheProvider = Substitute.For<ICacheProvider>();
 
-            cacheProvider.GetAsync<SpecificationCalculationExecutionStatus>($"calculationProgress-{SpecificationId}").Returns(new SpecificationCalculationExecutionStatus(SpecificationId,5,CalculationProgressStatus.InProgress));
+            cacheProvider.GetAsync<SpecificationCalculationExecutionStatus>($"{CacheKeys.CalculationProgress}{SpecificationId}").Returns(new SpecificationCalculationExecutionStatus(SpecificationId,5,CalculationProgressStatus.InProgress));
 
             ILogger logger = CreateLogger();
 
@@ -170,7 +171,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             ICacheProvider cacheProvider = Substitute.For<ICacheProvider>();
 
-            cacheProvider.GetAsync<SpecificationCalculationExecutionStatus>($"calculationProgress-{SpecificationId}").Returns<SpecificationCalculationExecutionStatus>(x => { throw new Exception(); });
+            cacheProvider.GetAsync<SpecificationCalculationExecutionStatus>($"{CacheKeys.CalculationProgress}{SpecificationId}").Returns<SpecificationCalculationExecutionStatus>(x => { throw new Exception(); });
 
             ILogger logger = CreateLogger();
 

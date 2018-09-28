@@ -72,7 +72,7 @@ namespace CalculateFunding.Services.Results.Services
             Func<Task> test = () => resultsService.PublishProviderResults(message);
 
             //Assert
-            test.Should().ThrowExactly<ArgumentException>().And.Message.Should().Be("Could not find any provider results for specification");
+            test.Should().ThrowExactly<ArgumentException>().And.Message.Should().Be("Specification not found for specification id -1");
         }
 
         [TestMethod]
@@ -950,6 +950,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 c.PercentageCompleted = 15;
                 c.CalculationProgress = CalculationProgressStatus.Error;
+                c.ErrorMessage = "Failed to create published provider calculation results";
             });
 
             ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,

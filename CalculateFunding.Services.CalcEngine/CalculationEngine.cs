@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -43,7 +44,7 @@ namespace CalculateFunding.Services.Calculator
 
             var allocationModel = _allocationFactory.CreateAllocationModel(assembly);
 
-            IList<ProviderResult> providerResults = new List<ProviderResult>();
+            ConcurrentBag<ProviderResult> providerResults = new ConcurrentBag<ProviderResult>();
 
             IEnumerable<CalculationSummaryModel> calculations = await _calculationsRepository.GetCalculationSummariesForSpecification(buildProject.SpecificationId);
 

@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Results
                     AllocationLineId = existingResult.allocationLineId,
                     Id = existingResult.id,
                     ProviderId = existingResult.providerId,
-                    Value = existingResult.value,
+                    Value = existingResult.value != null ? Convert.ToDecimal(existingResult.value) : null,
                 };
 
                 result.Status = Enum.Parse(typeof(AllocationLineStatus), existingResult.status);
