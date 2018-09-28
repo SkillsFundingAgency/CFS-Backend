@@ -477,18 +477,6 @@ namespace CalculateFunding.Services.Results
             string specificationId = message.UserProperties["specification-id"].ToString();
             UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.InProgress);
 
-            Stopwatch getCalculationResultsStopwatch = Stopwatch.StartNew();
-            IEnumerable<ProviderResult> providerResults = await GetProviderResultsBySpecificationId(specificationId);
-            getCalculationResultsStopwatch.Stop();
-            UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
-
-            if (providerResults.IsNullOrEmpty())
-            {
-                UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
-                _logger.Error($"Provider results not found for specification id {specificationId}");
-                throw new ArgumentException("Could not find any provider results for specification");
-            }
-
             Stopwatch getSpecificationStopwatch = Stopwatch.StartNew();
             SpecificationCurrentVersion specification = await _specificationsRepository.GetCurrentSpecificationById(specificationId);
             getSpecificationStopwatch.Stop();
@@ -497,9 +485,21 @@ namespace CalculateFunding.Services.Results
 
             if (specification == null)
             {
-                UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
+                UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error, "specification not found");
                 _logger.Error($"Specification not found for specification id {specificationId}");
                 throw new ArgumentException($"Specification not found for specification id {specificationId}");
+            }
+
+            Stopwatch getCalculationResultsStopwatch = Stopwatch.StartNew();
+            IEnumerable<ProviderResult> providerResults = await GetProviderResultsBySpecificationId(specificationId);
+            getCalculationResultsStopwatch.Stop();
+            UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+
+            if (providerResults.IsNullOrEmpty())
+            {
+                UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error, "Could not find any provider results");
+                _logger.Error($"Provider results not found for specification id {specificationId}");
+                throw new ArgumentException("Could not find any provider results for specification");
             }
 
             Reference author = message.GetUserDetails();
@@ -528,7 +528,7 @@ namespace CalculateFunding.Services.Results
             }
             catch (Exception ex)
             {
-                UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
+                UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error, "Failed to create published provider calculation results");
                 _logger.Error(ex, $"Failed to create published provider calculation results for specification: {specificationId}");
                 throw new Exception($"Failed to create published provider calculation results for specification: {specificationId}", ex);
             }
@@ -590,7 +590,7 @@ namespace CalculateFunding.Services.Results
                 }
                 catch (Exception ex)
                 {
-                    UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error);
+                    UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error, "Failed to create published provider results");
                     _logger.Error(ex, $"Failed to create published provider results for specification: {specificationId}");
                     throw new Exception($"Failed to create published provider results for specification: {specificationId}", ex);
                 }

@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return new BadRequestObjectResult("Null or empty test scenario ids provided");
             }
 
-            IList<TestScenarioResultCounts> resultCounts = new List<TestScenarioResultCounts>();
+            ConcurrentBag<TestScenarioResultCounts> resultCounts = new ConcurrentBag<TestScenarioResultCounts>();
 
             Parallel.ForEach(requestModel.TestScenarioIds, new ParallelOptions() { MaxDegreeOfParallelism = 10 }, testScenarioId =>
             {

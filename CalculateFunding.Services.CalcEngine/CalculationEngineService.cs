@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -159,7 +160,7 @@ namespace CalculateFunding.Services.Calculator
             {
                 var calcTiming = Stopwatch.StartNew();
 
-                IList<ProviderResult> providerResults = new List<ProviderResult>();
+                ConcurrentBag<ProviderResult> providerResults = new ConcurrentBag<ProviderResult>();
 
                 IEnumerable<ProviderSummary> partitionedSummaries = summaries.Skip(i).Take(providerBatchSize);
 
