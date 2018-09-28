@@ -36,11 +36,11 @@ namespace CalculateFunding.Services.Results
         }
 
         public Task<ProviderResult> GetProviderResult(string providerId, string specificationId)
-	    {
-		    var results = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId && x.SpecificationId == specificationId).ToList().Take(1);
+        {
+            var results = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId && x.SpecificationId == specificationId).ToList().Take(1);
 
-		    return Task.FromResult(results.FirstOrDefault());
-		}
+            return Task.FromResult(results.FirstOrDefault());
+        }
 
         public Task<IEnumerable<DocumentEntity<ProviderResult>>> GetAllProviderResults()
         {
@@ -49,13 +49,13 @@ namespace CalculateFunding.Services.Results
 
         public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId, int maxItemCount = -1)
         {
-            var results = _cosmosRepository.Query<ProviderResult>(maxItemCount: maxItemCount, enableCrossPartitionQuery: true).Where(x => x.SpecificationId == specificationId).ToList();
+            List<ProviderResult> results = _cosmosRepository.Query<ProviderResult>(enableCrossPartitionQuery: true).Where(x => x.SpecificationId == specificationId).Take(maxItemCount).ToList();
 
             return Task.FromResult(results.AsEnumerable());
         }
 
         public Task<IEnumerable<ProviderResult>> GetSpecificationResults(string providerId)
-	    {
+        {
             string sql = $"select * from r where r.content.provider.id = \"{ providerId }\"";
 
             var resultsArray = _cosmosRepository.DynamicQuery<dynamic>(sql, enableCrossPartitionQuery: true).ToArray();
@@ -71,10 +71,10 @@ namespace CalculateFunding.Services.Results
             return Task.FromResult(providerResults);
         }
 
-	    public Task<HttpStatusCode> UpdateProviderResults(List<ProviderResult> results)
-	    {
+        public Task<HttpStatusCode> UpdateProviderResults(List<ProviderResult> results)
+        {
             return _cosmosRepository.BulkUpdateAsync(results, "usp_update_provider_results");
-	    }
+        }
 
         public Task<decimal> GetCalculationResultTotalForSpecificationId(string specificationId)
         {

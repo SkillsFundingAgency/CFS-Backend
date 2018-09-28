@@ -121,12 +121,11 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return response.FirstOrDefault();
         }
 
-        public IQueryable<T> Query<T>(string directSql = null, int maxItemCount = -1, bool enableCrossPartitionQuery = false) where T : IIdentifiable
+        public IQueryable<T> Query<T>(string directSql = null, bool enableCrossPartitionQuery = false) where T : IIdentifiable
         {
             // Set some common query options
             var queryOptions = new FeedOptions
             {
-                MaxItemCount = maxItemCount,
                 EnableCrossPartitionQuery = enableCrossPartitionQuery,
                 MaxBufferedItemCount = 100,
                 MaxDegreeOfParallelism = 50,
@@ -134,23 +133,13 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
             if (!string.IsNullOrEmpty(directSql))
             {
-                if (maxItemCount > 0)
-                {
-                    return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri,
-                    directSql,
-                    queryOptions).Take(maxItemCount).Select(x => x.Content).AsQueryable();
-                }
 
                 return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri,
                     directSql,
-                    queryOptions).Select(x => x.Content).AsQueryable();
-            }
-            if (maxItemCount > 0)
-            {
-                return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted).Take(maxItemCount).Select(x => x.Content).AsQueryable();
+                    queryOptions).Select(x => x.Content);
             }
 
-            return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted).Select(x => x.Content).AsQueryable();
+            return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, queryOptions).Where(x => x.DocumentType == GetDocumentType<T>() && !x.Deleted).Select(x => x.Content);
         }
 
         public async Task<IEnumerable<T>> QueryPartitionedEntity<T>(string directSql, int itemsPerPage = -1, string partitionEntityId = null) where T : IIdentifiable
