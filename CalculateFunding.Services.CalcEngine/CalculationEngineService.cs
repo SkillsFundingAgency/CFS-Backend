@@ -205,7 +205,8 @@ namespace CalculateFunding.Services.Calculator
                         saveCosmosElapsedMs = saveCosmosStopwatch.ElapsedMilliseconds;
                     }
 
-                    string providerResultsCacheKey = $"{CacheKeys.ProviderResultBatch}{Guid.NewGuid().ToString()}";
+                    // Should just be the GUID as the content, as the prefix is read by the receiver, rather than the sender
+                    string providerResultsCacheKey = Guid.NewGuid().ToString();
 
                     Stopwatch saveRedisStopwatch = Stopwatch.StartNew();
                     await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<List<ProviderResult>>($"{CacheKeys.ProviderResultBatch}{providerResultsCacheKey}", providerResults.ToList(), TimeSpan.FromHours(12), false));
