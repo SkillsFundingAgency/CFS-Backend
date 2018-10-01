@@ -18,20 +18,11 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsForSpecificationAndStatus(string specificationId, UpdatePublishedAllocationLineResultStatusModel filterCriteria);
 
-        Task<IEnumerable<PublishedAllocationLineResultHistory>> GetPublishedProviderAllocationLineHistoryForSpecificationId(string specificationId);
-
-        Task SavePublishedAllocationLineResultsHistory(IEnumerable<PublishedAllocationLineResultHistory> publishedResultsHistory);
-
-        Task<PublishedAllocationLineResultHistory> GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(string specificationId, string providerId, string allocationLineId);
-
         PublishedProviderResult GetPublishedProviderResultForId(string publishedProviderResultId);
 
         Task<PublishedProviderResult> GetPublishedProviderResultForId(string publishedProviderResultId, string providerId);
 
-
         Task<PublishedProviderResult> GetPublishedProviderResultForIdInPublishedState(string id);
-
-        Task<PublishedAllocationLineResultHistory> GetPublishedAllocationLineResultHistoryForId(string id);
 
         Task<IEnumerable<PublishedProviderResult>> GetAllNonHeldPublishedProviderResults();
     }

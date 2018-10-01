@@ -7,6 +7,7 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using Serilog;
 
@@ -16,15 +17,23 @@ namespace CalculateFunding.Services.Results
     {
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly ILogger _logger;
+        private readonly IVersionRepository<PublishedAllocationLineResultVersion> _allocationResultsVersionRepository;
+        private readonly IVersionRepository<PublishedProviderCalculationResultVersion> _calculationResultsVersionRepository;
 
         public PublishedProviderResultsAssemblerService(
             ISpecificationsRepository specificationsRepository,
-            ILogger logger)
+            ILogger logger,
+            IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository,
+            IVersionRepository<PublishedProviderCalculationResultVersion> calculationResultsVersionRepository)
         {
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(allocationResultsVersionRepository, nameof(allocationResultsVersionRepository));
 
             _specificationsRepository = specificationsRepository;
             _logger = logger;
+            _allocationResultsVersionRepository = allocationResultsVersionRepository;
+            _calculationResultsVersionRepository = calculationResultsVersionRepository;
         }
 
         public async Task<IEnumerable<PublishedProviderResult>> AssemblePublishedProviderResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion)
@@ -63,6 +72,8 @@ namespace CalculateFunding.Services.Results
                         Title = $"Allocation {publishedFundingStreamResult.AllocationLineResult.AllocationLine.Name} was {publishedFundingStreamResult.AllocationLineResult.Current.Status.ToString()}",
                         FundingPeriod = fundingPeriod
                     };
+
+                    publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.PublishedProviderResultId = publishedProviderResult.Id;
 
                     publishedProviderResults.Add(publishedProviderResult);
                 }
@@ -106,11 +117,10 @@ namespace CalculateFunding.Services.Results
                     PublishedProviderCalculationResult publishedProviderCalculationResult = new PublishedProviderCalculationResult()
                     {
                         ProviderId = providerResult.Provider.Id,
-                        Approved = null,
                         CalculationSpecification = calculationResult.CalculationSpecification,
                         FundingPeriod = specificationCurrentVersion.FundingPeriod,
                         AllocationLine = calculationResult.AllocationLine,
-                        Current = new PublishedProviderCalculationResultCalculationVersion()
+                        Current = new PublishedProviderCalculationResultVersion()
                         {
                             Author = author,
                             CalculationType = ConvertCalculationType(calculationResult.CalculationType),
@@ -118,9 +128,10 @@ namespace CalculateFunding.Services.Results
                             Date = DateTimeOffset.Now,
                             Provider = providerResult.Provider,
                             Value = calculationResult.Value,
-                            Version = 1,
+                            SpecificationId = specificationId,
+                            ProviderId = providerResult.Provider.Id
                         },
-                        Published = null,
+                       
                         Specification = new Reference(specification.Id, specification.Name)
                     };
 
@@ -133,6 +144,8 @@ namespace CalculateFunding.Services.Results
                     {
                         publishedProviderCalculationResult.ParentPolicy = new PolicySummary(parentPolicy.Id, parentPolicy.Name, parentPolicy.Description);
                     }
+
+                    publishedProviderCalculationResult.Current.CalculationnResultId = publishedProviderCalculationResult.Id;
 
                     publishedProviderCalculationResults.Add(publishedProviderCalculationResult);
                 }
@@ -178,7 +191,17 @@ namespace CalculateFunding.Services.Results
                         {
                             continue;
                         }
+
+                        providerResult.FundingStreamResult.AllocationLineResult.Current.Version = _allocationResultsVersionRepository.GetNextVersionNumber(providerResult.FundingStreamResult.AllocationLineResult.Current);
                     }
+                    else
+                    {
+                        providerResult.FundingStreamResult.AllocationLineResult.Current.Version = 1;
+                    }
+                }
+                else
+                {
+                    providerResult.FundingStreamResult.AllocationLineResult.Current.Version = 1;
                 }
 
                 publishedProviderResultsToSave.Add(providerResult);
@@ -191,6 +214,63 @@ namespace CalculateFunding.Services.Results
             }
 
             return (publishedProviderResultsToSave, existingRecordsExclude);
+        }
+
+        public IEnumerable<PublishedProviderCalculationResult> GeneratePublishedProviderCalculationResultsToSave(IEnumerable<PublishedProviderCalculationResult> providerCalculationResults, IEnumerable<PublishedProviderCalculationResultExisting> existingResults)
+        {
+            Guard.ArgumentNotNull(providerCalculationResults, nameof(providerCalculationResults));
+            Guard.ArgumentNotNull(existingResults, nameof(existingResults));
+
+            List<PublishedProviderCalculationResult> publishedProviderCalculationResultsToSave = new List<PublishedProviderCalculationResult>();
+
+            Dictionary<string, List<PublishedProviderCalculationResultExisting>> existingProviderCalculationResults = new Dictionary<string, List<PublishedProviderCalculationResultExisting>>();
+
+            foreach (PublishedProviderCalculationResultExisting providerCalculationResult in existingResults)
+            {
+                if (!existingProviderCalculationResults.ContainsKey(providerCalculationResult.ProviderId))
+                {
+                    existingProviderCalculationResults.Add(providerCalculationResult.ProviderId, new List<PublishedProviderCalculationResultExisting>());
+                }
+
+                existingProviderCalculationResults[providerCalculationResult.ProviderId].Add(providerCalculationResult);
+            }
+
+            foreach (PublishedProviderCalculationResult providerCalculationResult in providerCalculationResults)
+            {
+                if (existingProviderCalculationResults.ContainsKey(providerCalculationResult.ProviderId))
+                {
+                    List<PublishedProviderCalculationResultExisting> existingResultsForProvider = existingProviderCalculationResults[providerCalculationResult.ProviderId];
+                    PublishedProviderCalculationResultExisting existingResult = existingResultsForProvider.FirstOrDefault(p => p.Id == providerCalculationResult.Id);
+                    if (existingResult != null)
+                    {
+                        existingResultsForProvider.Remove(existingResult);
+
+                        if (!existingResultsForProvider.Any())
+                        {
+                            existingProviderCalculationResults.Remove(providerCalculationResult.ProviderId);
+                        }
+
+                        if (providerCalculationResult.Current.Value == existingResult.Value)
+                        {
+                            continue;
+                        }
+
+                        providerCalculationResult.Current.Version = _calculationResultsVersionRepository.GetNextVersionNumber(providerCalculationResult.Current);
+                    }
+                    else
+                    {
+                        providerCalculationResult.Current.Version = 1;
+                    }
+                }
+                else
+                {
+                    providerCalculationResult.Current.Version = 1;
+                }
+
+                publishedProviderCalculationResultsToSave.Add(providerCalculationResult);
+            }
+
+            return publishedProviderCalculationResultsToSave;
         }
 
         private (Policy policy, Policy parentPolicy, Models.Specs.Calculation calculation) FindPolicy(string calculationSpecificationId, IEnumerable<Policy> policies)
@@ -277,9 +357,10 @@ namespace CalculateFunding.Services.Results
                             Author = author,
                             Date = DateTimeOffset.Now,
                             Status = AllocationLineStatus.Held,
-                            Version = 1,
                             Value = allocationLineResultGroup.Sum(m => m.Value),
-                            Provider = providerResult.Provider
+                            Provider = providerResult.Provider,
+                            SpecificationId = specificationCurrentVersion.Id,
+                            ProviderId = providerResult.Provider.Id
                         };
 
                         publishedFundingStreamResult.AllocationLineResult = new PublishedAllocationLineResult

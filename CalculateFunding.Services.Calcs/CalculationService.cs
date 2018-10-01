@@ -1137,7 +1137,7 @@ namespace CalculateFunding.Services.Calcs
 
         private async Task<HttpStatusCode> UpdateCalculation(Calculation calculation, CalculationVersion calculationVersion, CalculationVersion previousVersion)
         {
-            calculationVersion = await _calculationVersionRepository.CreateVersion(calculationVersion, previousVersion);
+            calculationVersion = _calculationVersionRepository.CreateVersion(calculationVersion, previousVersion);
 
             calculation.Current = calculationVersion;
 

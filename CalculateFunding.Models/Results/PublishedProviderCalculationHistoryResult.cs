@@ -26,6 +26,6 @@ namespace CalculateFunding.Models.Results
         }
 
         [JsonProperty("history")]
-        public IEnumerable<PublishedProviderCalculationResultCalculationVersion> History { get; set; }
+        public IEnumerable<PublishedProviderCalculationResultVersion> History { get; set; }
     }
 }

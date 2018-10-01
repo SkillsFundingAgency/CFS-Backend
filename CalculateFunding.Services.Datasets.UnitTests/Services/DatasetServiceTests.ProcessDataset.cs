@@ -1667,10 +1667,10 @@ namespace CalculateFunding.Services.Datasets.Services
                              m.First().ProviderId == "123"
                         ));
 
-            await
-                versionRepository
-                    .DidNotReceive()
-                    .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(), Arg.Any<ProviderSourceDatasetVersion>());
+         
+            versionRepository
+                .DidNotReceive()
+                .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(), Arg.Any<ProviderSourceDatasetVersion>());
 
             await
                 versionRepository
@@ -1871,10 +1871,9 @@ namespace CalculateFunding.Services.Datasets.Services
             await service.ProcessDataset(message);
 
             // Assert
-            await
-                versionRepository
-                    .DidNotReceive()
-                    .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(), Arg.Any<ProviderSourceDatasetVersion>());
+            versionRepository
+                .DidNotReceive()
+                .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(), Arg.Any<ProviderSourceDatasetVersion>());
 
             logger
                 .DidNotReceive()
@@ -2083,10 +2082,9 @@ namespace CalculateFunding.Services.Datasets.Services
             await service.ProcessDataset(message);
 
             // Assert
-            await
-                versionRepository
-                    .Received(1)
-                    .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(), Arg.Any<ProviderSourceDatasetVersion>());
+            versionRepository
+                .Received(1)
+                .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(), Arg.Any<ProviderSourceDatasetVersion>());
 
             await
                 versionRepository

@@ -2,7 +2,6 @@
 using CalculateFunding.Api.External.V1.Services;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -12,7 +11,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -168,7 +166,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             IResultsService resultsService = CreateResultsService();
             resultsService
                 .GetPublishedProviderResultWithHistoryByAllocationResultId(Arg.Is(allocationResultId))
-                .Returns((PublishedProviderResult)null);
+                .Returns((PublishedProviderResultWithHistory)null);
 
             AllocationsService service = CreateService(resultsService);
 
@@ -194,7 +192,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                 .Headers
                 .Returns(headerDictionary);
 
-            PublishedProviderResult publishedProviderResult = CreatePublishedProviderResult();
+            PublishedProviderResultWithHistory publishedProviderResult = CreatePublishedProviderResultWithHistory();
 
             IResultsService resultsService = CreateResultsService();
             resultsService
@@ -226,34 +224,8 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                 .Headers
                 .Returns(headerDictionary);
 
-            PublishedProviderResult publishedProviderResult = CreatePublishedProviderResult();
-            publishedProviderResult.FundingStreamResult.AllocationLineResult.History = new List<PublishedAllocationLineResultVersion>
-            {
-                new PublishedAllocationLineResultVersion
-                {
-                    Value = 50,
-                    Version = 1,
-                    Status = AllocationLineStatus.Held,
-                    Author = new Reference
-                    {
-                        Name = "Joe Bloggs"
-                    },
-                    Commment = "Wahey",
-                    Date = DateTimeOffset.Now.AddDays(-2)
-                },
-                 new PublishedAllocationLineResultVersion
-                {
-                    Value = 40,
-                    Version = 2,
-                    Status = AllocationLineStatus.Approved,
-                    Author = new Reference
-                    {
-                        Name = "Joe Bloggs"
-                    },
-                    Commment = "Wahey",
-                    Date = DateTimeOffset.Now.AddDays(-1)
-                }
-            };
+            PublishedProviderResultWithHistory publishedProviderResult = CreatePublishedProviderResultWithHistory();
+           
 
             IResultsService resultsService = CreateResultsService();
             resultsService
@@ -274,7 +246,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
             AllocationWithHistoryModel allocationModel = JsonConvert.DeserializeObject<AllocationWithHistoryModel>(contentResult.Content);
 
-            string id = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{publishedProviderResult.SpecificationId}{publishedProviderResult.ProviderId}{publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id}"));
+            string id = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{publishedProviderResult.PublishedProviderResult.SpecificationId}{publishedProviderResult.PublishedProviderResult.ProviderId}{publishedProviderResult.PublishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id}"));
 
             allocationModel
                 .Should()
@@ -367,6 +339,42 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                 {
                     new ProfilingPeriod()
                 }
+            };
+        }
+
+        static PublishedProviderResultWithHistory CreatePublishedProviderResultWithHistory()
+        {
+            return new PublishedProviderResultWithHistory
+            {
+                PublishedProviderResult = CreatePublishedProviderResult(),
+                History = new[]
+                {
+
+                    new PublishedAllocationLineResultVersion
+                    {
+                        Value = 50,
+                        Version = 1,
+                        Status = AllocationLineStatus.Held,
+                        Author = new Reference
+                        {
+                            Name = "Joe Bloggs"
+                        },
+                        Commment = "Wahey",
+                        Date = DateTimeOffset.Now.AddDays(-2)
+                    },
+                     new PublishedAllocationLineResultVersion
+                    {
+                        Value = 40,
+                        Version = 2,
+                        Status = AllocationLineStatus.Approved,
+                        Author = new Reference
+                        {
+                            Name = "Joe Bloggs"
+                        },
+                        Commment = "Wahey",
+                        Date = DateTimeOffset.Now.AddDays(-1)
+                    }
+                 }
             };
         }
     }

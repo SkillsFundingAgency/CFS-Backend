@@ -30,6 +30,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Interfaces;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -1220,7 +1221,9 @@ namespace CalculateFunding.Services.Results.Services
             ICacheProvider cacheProvider = null,
             ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationFeedSearchRepository = null,
             IProviderProfilingRepository providerProfilingRepository = null,
-            IMessengerService messengerService = null)
+            IMessengerService messengerService = null,
+            IVersionRepository<PublishedAllocationLineResultVersion> publishedProviderResultsVersionRepository = null,
+            IVersionRepository<PublishedProviderCalculationResultVersion> publishedProviderCalcResultsVersionRepository = null)
         {
             return new ResultsService(
                 logger ?? CreateLogger(),
@@ -1239,7 +1242,19 @@ namespace CalculateFunding.Services.Results.Services
                 cacheProvider ?? CreateCacheProvider(),
                 allocationNotificationFeedSearchRepository ?? CreateAllocationNotificationFeedSearchRepository(),
                 providerProfilingRepository ?? CreateProfilingRepository(),
-                messengerService ?? CreateMessengerService());
+                messengerService ?? CreateMessengerService(),
+                publishedProviderResultsVersionRepository ?? CreatePublishedProviderResultsVersionRepository(),
+                publishedProviderCalcResultsVersionRepository ?? CreatePublishedProviderCalcResultsVersionRepository());
+        }
+
+        static IVersionRepository<PublishedProviderCalculationResultVersion> CreatePublishedProviderCalcResultsVersionRepository()
+        {
+            return Substitute.For<IVersionRepository<PublishedProviderCalculationResultVersion>>();
+        }
+
+        static IVersionRepository<PublishedAllocationLineResultVersion> CreatePublishedProviderResultsVersionRepository()
+        {
+            return Substitute.For<IVersionRepository<PublishedAllocationLineResultVersion>>();
         }
 
         static IProviderProfilingRepository CreateProfilingRepository()
@@ -1489,6 +1504,7 @@ namespace CalculateFunding.Services.Results.Services
                                 Value = 50,
                                 Version = 1,
                                 Date = DateTimeOffset.Now,
+                                PublishedProviderResultId = "res1",
                                 Provider = new ProviderSummary
                                 {
                                     URN = "12345",
@@ -1542,6 +1558,7 @@ namespace CalculateFunding.Services.Results.Services
                                 Value = 100,
                                 Version = 1,
                                 Date = DateTimeOffset.Now,
+                                PublishedProviderResultId = "res2",
                                 Provider = new ProviderSummary
                                 {
                                     URN = "12345",
@@ -1595,6 +1612,7 @@ namespace CalculateFunding.Services.Results.Services
                                 Value = 100,
                                 Version = 1,
                                 Date = DateTimeOffset.Now,
+                                PublishedProviderResultId = "res3",
                                 Provider = new ProviderSummary
                                 {
                                     URN = "12345",
@@ -1665,6 +1683,7 @@ namespace CalculateFunding.Services.Results.Services
                                 Value = 50,
                                 Version = 1,
                                 Date = DateTimeOffset.Now,
+                                PublishedProviderResultId = "res1",
                                 Provider = new ProviderSummary
                                 {
                                     URN = "12345",
@@ -1730,6 +1749,7 @@ namespace CalculateFunding.Services.Results.Services
                                 Value = 100,
                                 Version = 1,
                                 Date = DateTimeOffset.Now,
+                                  PublishedProviderResultId = "res2",
                                 Provider = new ProviderSummary
                                 {
                                     URN = "12345",
@@ -1795,6 +1815,7 @@ namespace CalculateFunding.Services.Results.Services
                                 Value = 100,
                                 Version = 1,
                                 Date = DateTimeOffset.Now,
+                                 PublishedProviderResultId = "res3",
                                 Provider = new ProviderSummary
                                 {
                                     URN = "12345",

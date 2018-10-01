@@ -48,14 +48,14 @@ namespace CalculateFunding.Api.External.V1.Services
             Guard.IsNullOrWhiteSpace(allocationResultId, nameof(allocationResultId));
             Guard.ArgumentNotNull(httpRequest, nameof(httpRequest));
 
-            PublishedProviderResult publishedProviderResult = await _resultsService.GetPublishedProviderResultWithHistoryByAllocationResultId(allocationResultId);
+            PublishedProviderResultWithHistory publishedProviderResultWithHistory = await _resultsService.GetPublishedProviderResultWithHistoryByAllocationResultId(allocationResultId);
 
-            if (publishedProviderResult == null)
+            if (publishedProviderResultWithHistory == null)
             {
                 return new NotFoundResult();
             }
 
-            AllocationWithHistoryModel allocation = CreateAllocationWithHistoryModel(publishedProviderResult);
+            AllocationWithHistoryModel allocation = CreateAllocationWithHistoryModel(publishedProviderResultWithHistory);
 
             return Formatter.ActionResult<AllocationModel>(httpRequest, allocation);
         }
@@ -132,11 +132,11 @@ namespace CalculateFunding.Api.External.V1.Services
             };
         }
 
-        AllocationWithHistoryModel CreateAllocationWithHistoryModel(PublishedProviderResult publishedProviderResult)
+        AllocationWithHistoryModel CreateAllocationWithHistoryModel(PublishedProviderResultWithHistory publishedProviderResultWithHistory)
         {
-            AllocationWithHistoryModel allocationModel = new AllocationWithHistoryModel(CreateAllocation(publishedProviderResult));
+            AllocationWithHistoryModel allocationModel = new AllocationWithHistoryModel(CreateAllocation(publishedProviderResultWithHistory.PublishedProviderResult));
 
-            allocationModel.History = publishedProviderResult.FundingStreamResult.AllocationLineResult.History?.Select(m =>
+            allocationModel.History = publishedProviderResultWithHistory.History?.Select(m =>
                    new AllocationHistoryModel
                    {
                        AllocationAmount = m.Value,

@@ -1,21 +1,31 @@
-﻿using Newtonsoft.Json;
+﻿using CalculateFunding.Models.Versioning;
+using Newtonsoft.Json;
 using System;
 
 namespace CalculateFunding.Models.Results
 {
-    public class PublishedProviderCalculationResultCalculationVersion
+    public class PublishedProviderCalculationResultVersion : VersionedItem
     {
-        [JsonProperty("version")]
-        public int Version { get; set; }
+        [JsonProperty("id")]
+        public override string Id
+        {
+            get { return $"{CalculationnResultId}_version_{Version}"; }
+        }
 
-        [JsonProperty("date")]
-        public DateTimeOffset Date { get; set; }
+        [JsonProperty("entityId")]
+        public override string EntityId
+        {
+            get { return $"{CalculationnResultId}"; }
+        }
 
-        [JsonProperty("author")]
-        public Reference Author { get; set; }
+        [JsonProperty("allocationResultId")]
+        public string CalculationnResultId { get; set; }
 
-        [JsonProperty("comment")]
-        public string Commment { get; set; }
+        [JsonProperty("specificationId")]
+        public string SpecificationId { get; set; }
+
+        [JsonProperty("providerId")]
+        public string ProviderId { get; set; }
 
         [JsonProperty("value")]
         public decimal? Value { get; set; }
@@ -26,11 +36,11 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("provider")]
         public ProviderSummary Provider { get; set; }
 
-        public PublishedProviderCalculationResultCalculationVersion Clone()
+        public override VersionedItem Clone()
         {
             // Serialise to perform a deep copy
             string json = JsonConvert.SerializeObject(this);
-            return JsonConvert.DeserializeObject<PublishedProviderCalculationResultCalculationVersion>(json);
+            return JsonConvert.DeserializeObject<PublishedProviderCalculationResultVersion>(json);
         }
     }
 

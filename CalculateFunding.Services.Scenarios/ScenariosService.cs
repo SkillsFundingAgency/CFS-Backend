@@ -173,7 +173,7 @@ namespace CalculateFunding.Services.Scenarios
                     newVersion.FundingStreamIds = specification.FundingStreams.Select(s => s.Id).ToArraySafe();
                     newVersion.FundingPeriodId = specification.FundingPeriod.Id;
 
-                    newVersion = await _versionRepository.CreateVersion(newVersion, testScenario.Current);
+                    newVersion = _versionRepository.CreateVersion(newVersion, testScenario.Current);
 
                     testScenario.Current = newVersion;
                 }
@@ -314,7 +314,7 @@ namespace CalculateFunding.Services.Scenarios
                     PublishStatus = scenario.Current.PublishStatus
                 };
 
-                newVersion = await _versionRepository.CreateVersion(newVersion, scenario.Current);
+                newVersion = _versionRepository.CreateVersion(newVersion, scenario.Current);
 
                 scenario.Current = newVersion;
 
@@ -390,7 +390,7 @@ namespace CalculateFunding.Services.Scenarios
                     TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
                     testScenarioVersion.Gherkin = result;
 
-                    testScenarioVersion = await _versionRepository.CreateVersion(testScenarioVersion, testScenario.Current);
+                    testScenarioVersion = _versionRepository.CreateVersion(testScenarioVersion, testScenario.Current);
 
                     testScenario.Current = testScenarioVersion;
 
