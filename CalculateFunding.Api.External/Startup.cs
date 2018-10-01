@@ -6,6 +6,7 @@ using CalculateFunding.Api.External.Swagger;
 using CalculateFunding.Api.External.V1.Interfaces;
 using CalculateFunding.Api.External.V1.Services;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Repositories.Common.Cosmos;
@@ -245,7 +246,33 @@ namespace CalculateFunding.Api.External
 			        return new Services.Specs.SpecificationsRepository(cosmosRepository);
 		        });
 
-			builder.AddSingleton<ITimePeriodsService, TimePeriodsService>();
+            builder.AddSingleton<IVersionRepository<PublishedAllocationLineResultVersion>, VersionRepository<PublishedAllocationLineResultVersion>>((ctx) =>
+            {
+                CosmosDbSettings versioningDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", versioningDbSettings);
+
+                versioningDbSettings.CollectionName = "publishedproviderresults";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(versioningDbSettings);
+
+                return new VersionRepository<PublishedAllocationLineResultVersion>(resultsRepostory);
+            });
+
+            builder.AddSingleton<IVersionRepository<PublishedProviderCalculationResultVersion>, VersionRepository<PublishedProviderCalculationResultVersion>>((ctx) =>
+            {
+                CosmosDbSettings versioningDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", versioningDbSettings);
+
+                versioningDbSettings.CollectionName = "publishedprovidercalcresults";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(versioningDbSettings);
+
+                return new VersionRepository<PublishedProviderCalculationResultVersion>(resultsRepostory);
+            });
+
+            builder.AddSingleton<ITimePeriodsService, TimePeriodsService>();
             builder.AddSingleton<IFundingStreamService, FundingStreamService>();
 	        builder.AddSingleton<ISpecificationsService, SpecificationsService>();
 			builder.AddSingleton<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();

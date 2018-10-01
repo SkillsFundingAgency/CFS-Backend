@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Core.Services
             return _cosmosRepository.BulkCreateAsync<T>(newVersions.ToList());
         }
 
-        public async Task<T> CreateVersion(T newVersion, T currentVersion = null)
+        public T CreateVersion(T newVersion, T currentVersion = null)
         {
             Guard.ArgumentNotNull(newVersion, nameof(newVersion));
 
@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Core.Services
             }
             else
             {
-                newVersion.Version = await GetNextVersionNumber(newVersion);
+                newVersion.Version = GetNextVersionNumber(newVersion);
 
                 if (newVersion.PublishStatus == PublishStatus.Approved && currentVersion.PublishStatus == PublishStatus.Draft)
                 {
@@ -85,7 +85,21 @@ namespace CalculateFunding.Services.Core.Services
             return GetVersionsByEntityId(entityId);
         }
 
-        private Task<int> GetNextVersionNumber(T version)
+        public Task<T> GetVersion(string entityId, int version)
+        {
+            Guard.IsNullOrWhiteSpace(entityId, nameof(entityId));
+
+            if(version < 1)
+            {
+                throw new ArgumentException("Invalid version number was supplied", nameof(version));
+            }
+
+            IQueryable<T> versions = _cosmosRepository.Query<T>().Where(m => m.EntityId == entityId && m.Version == version);
+
+            return Task.FromResult(versions.AsEnumerable().FirstOrDefault());
+        }
+
+        public int GetNextVersionNumber(T version)
         {
             Guard.ArgumentNotNull(version, nameof(version));
 
@@ -97,12 +111,12 @@ namespace CalculateFunding.Services.Core.Services
 
             if (resultsArray.IsNullOrEmpty())
             {
-                return Task.FromResult(1);
+                return 1;
             }
 
             int nextVersionNumber = (int)resultsArray[0] + 1;
 
-            return Task.FromResult(nextVersionNumber);
+            return nextVersionNumber;
         }
 
         private Task<IEnumerable<T>> GetVersionsByEntityId(string entityId)

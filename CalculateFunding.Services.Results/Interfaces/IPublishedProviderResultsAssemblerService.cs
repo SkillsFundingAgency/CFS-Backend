@@ -20,5 +20,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         /// <param name="existingResults">Existing results stored in Cosmos</param>
         /// <returns>PublishedProviderResults to save, PublishedProviderResultExisting which do not exist in the current list</returns>
         (IEnumerable<PublishedProviderResult>, IEnumerable<PublishedProviderResultExisting>) GeneratePublishedProviderResultsToSave(IEnumerable<PublishedProviderResult> providerResults, IEnumerable<PublishedProviderResultExisting> existingResults);
+
+        IEnumerable<PublishedProviderCalculationResult> GeneratePublishedProviderCalculationResultsToSave(IEnumerable<PublishedProviderCalculationResult> providerCalculationResults, IEnumerable<PublishedProviderCalculationResultExisting> existingResults);
     }
 }

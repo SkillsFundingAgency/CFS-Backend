@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -263,7 +264,6 @@ namespace CalculateFunding.Services.Results.Services
             PublishedProviderResult result = results.First();
 
             result.Title.Should().Be("Allocation test allocation line 1 was Held");
-            result.Summary.Should().Be("UKPRN: ukprn-001, version 1");
             result.Id.Should().NotBeEmpty();
             result.FundingStreamResult.AllocationLineResult.Current.Provider.URN.Should().Be("urn");
             result.FundingStreamResult.AllocationLineResult.Current.Provider.UKPRN.Should().Be("ukprn");
@@ -1221,7 +1221,6 @@ namespace CalculateFunding.Services.Results.Services
 
             PublishedProviderCalculationResult result = results.First();
 
-            result.Approved.Should().BeNull();
             result.Current.Author.Should().BeEquivalentTo(author);
             result.Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
             result.Current.Commment.Should().BeNullOrWhiteSpace();
@@ -1233,7 +1232,6 @@ namespace CalculateFunding.Services.Results.Services
                 UKPRN = "123",
             });
             result.Current.Value.Should().Be(12345.66M);
-            result.Current.Version.Should().Be(1);
             result.Policy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
             result.ParentPolicy.Should().BeNull();
         }
@@ -1281,7 +1279,6 @@ namespace CalculateFunding.Services.Results.Services
 
             PublishedProviderCalculationResult result = results.First();
 
-            result.Approved.Should().BeNull();
             result.Current.Author.Should().BeEquivalentTo(author);
             result.Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
             result.Current.Commment.Should().BeNullOrWhiteSpace();
@@ -1293,7 +1290,6 @@ namespace CalculateFunding.Services.Results.Services
                 UKPRN = "123",
             });
             result.Current.Value.Should().Be(12345.66M);
-            result.Current.Version.Should().Be(1);
             result.Policy.Should().BeEquivalentTo(new Reference("subpolicy2", "SubPolicy 2"));
             result.ParentPolicy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
         }
@@ -1391,7 +1387,6 @@ namespace CalculateFunding.Services.Results.Services
             List<PublishedProviderCalculationResult> resultsList = new List<PublishedProviderCalculationResult>(results);
 
             result.CalculationSpecification.Should().BeEquivalentTo(new Reference("subpolicy2Calc2", "Subpolicy 1 Calculation 2"));
-            result.Approved.Should().BeNull();
             result.Current.Author.Should().BeEquivalentTo(author);
             result.Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
             result.Current.Commment.Should().BeNullOrWhiteSpace();
@@ -1403,7 +1398,6 @@ namespace CalculateFunding.Services.Results.Services
                 UKPRN = "123",
             });
             result.Current.Value.Should().Be(12345.66M);
-            result.Current.Version.Should().Be(1);
             result.Policy.Should().BeEquivalentTo(new Reference("subpolicy2", "SubPolicy 2"));
             result.ParentPolicy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
 
@@ -1614,7 +1608,9 @@ namespace CalculateFunding.Services.Results.Services
         public void GeneratePublishedProviderResultsToSave_WhenExistingResultsExistAndOneResultsShouldBeUpdatedDueToValueChange_ThenResultsReturnedToSaveAndNoneExcluded()
         {
             // Arrange
-            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
+            IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = CreateAllocationResultsVersionRepository();
+
+            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService(allocationResultsVersionRepository: allocationResultsVersionRepository);
 
             AllocationLine allocationLine1 = new AllocationLine()
             {
@@ -1676,6 +1672,10 @@ namespace CalculateFunding.Services.Results.Services
                 Value = 456,
             });
 
+            allocationResultsVersionRepository
+                .GetNextVersionNumber(Arg.Is(publishedProviderResults.ElementAt(1).FundingStreamResult.AllocationLineResult.Current))
+                .Returns(2);
+
             // Act
             (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
 
@@ -1691,13 +1691,20 @@ namespace CalculateFunding.Services.Results.Services
             resultsToExclude
                 .Should()
                 .BeEmpty();
+
+            publishedProviderResults.ElementAt(1).FundingStreamResult.AllocationLineResult.Current
+                .Version
+                .Should()
+                .Be(2);
         }
 
         [TestMethod]
         public void GeneratePublishedProviderResultsToSave_WhenExistingResultsExistAndOneExistingResultHasNoCurrentVersion_ThenNoResultsReturnedToSaveAndOneExcluded()
         {
             // Arrange
-            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
+            IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = CreateAllocationResultsVersionRepository();
+
+            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService(allocationResultsVersionRepository: allocationResultsVersionRepository);
 
             AllocationLine allocationLine1 = new AllocationLine()
             {
@@ -1756,13 +1763,19 @@ namespace CalculateFunding.Services.Results.Services
             resultsToExclude
                 .Should()
                 .BeEquivalentTo(new List<PublishedProviderResultExisting>() { existingResults[1] });
+
+            allocationResultsVersionRepository
+                .DidNotReceive()
+                .GetNextVersionNumber(Arg.Any<PublishedAllocationLineResultVersion>());
         }
 
         [TestMethod]
         public void GeneratePublishedProviderResultsToSave_WhenExistingResultsExistWithMultipeAllocationLinesAndHasSavesAndAdded_ThenResultsReturnedToSaveAndNoneExcluded()
         {
             // Arrange
-            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
+            IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = CreateAllocationResultsVersionRepository();
+
+            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService(allocationResultsVersionRepository: allocationResultsVersionRepository);
 
             AllocationLine allocationLine1 = new AllocationLine()
             {
@@ -1893,14 +1906,324 @@ namespace CalculateFunding.Services.Results.Services
                     publishedProviderResults[2],
                     publishedProviderResults[3],
                 });
+
+            allocationResultsVersionRepository
+                .Received(1)
+                .GetNextVersionNumber(Arg.Any<PublishedAllocationLineResultVersion>());
+        }
+
+        [TestMethod]
+        public void GeneratePublishedProviderCalculationResultsToSave_WhenNoExistingResultsExistAndResultsProvided_ThenResultsReturnedToSaveAsVersion1()
+        {
+            // Arrange
+            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
+
+            List<PublishedProviderCalculationResult> publishedProviderCalcResults = new List<PublishedProviderCalculationResult>();
+            publishedProviderCalcResults
+                .Add(new PublishedProviderCalculationResult()
+                {
+                    ProviderId = "1",
+                    Current = new PublishedProviderCalculationResultVersion()
+                });
+
+            publishedProviderCalcResults
+               .Add(new PublishedProviderCalculationResult()
+               {
+                   ProviderId = "2",
+                   Current = new PublishedProviderCalculationResultVersion()
+               });
+
+            List<PublishedProviderCalculationResultExisting> existingResults = new List<PublishedProviderCalculationResultExisting>();
+
+
+            // Act
+            IEnumerable<PublishedProviderCalculationResult> resultsToSave  = assembler.GeneratePublishedProviderCalculationResultsToSave(publishedProviderCalcResults, existingResults);
+
+            // Assert
+            resultsToSave
+                .Should()
+                .HaveCount(2);
+
+            resultsToSave
+                .Should()
+                .BeEquivalentTo(publishedProviderCalcResults);
+
+            resultsToSave
+                .ElementAt(0)
+                .Current
+                .Version
+                .Should()
+                .Be(1);
+
+            resultsToSave
+                .ElementAt(1)
+                .Current
+                .Version
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public void GeneratePublishedProviderCalculationResultsToSave_WhenExistingResultsExistAndMatchCurrentValuesAndResultsProvided_ThenNoResultsReturnedToSave()
+        {
+            // Arrange
+            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
+
+            AllocationLine allocationLine1 = new AllocationLine()
+            {
+                Id = "AAAAA",
+                Name = "Allocation Line 1"
+            };
+
+            List<PublishedProviderCalculationResult> publishedProviderCalculationResults = new List<PublishedProviderCalculationResult>();
+            publishedProviderCalculationResults
+                .Add(new PublishedProviderCalculationResult()
+                {
+                    ProviderId = "1",
+                    AllocationLine = allocationLine1,
+                    Current = new PublishedProviderCalculationResultVersion {  Value = 10 },
+                    Specification = new Reference
+                    {
+                        Id = "spec-1"
+                    },
+                    CalculationSpecification = new Reference
+                    {
+                        Id = "calc-spec-1"
+                    }
+                });
+
+            publishedProviderCalculationResults
+               .Add(new PublishedProviderCalculationResult()
+               {
+                   ProviderId = "2",
+                   AllocationLine = allocationLine1,
+                   Current = new PublishedProviderCalculationResultVersion { Value = 20 },
+                   Specification = new Reference
+                   {
+                       Id = "spec-1"
+                   },
+                   CalculationSpecification = new Reference
+                   {
+                       Id = "calc-spec-1"
+                   }                 
+               });
+
+            List<PublishedProviderCalculationResultExisting> existingResults = new List<PublishedProviderCalculationResultExisting>();
+            existingResults.Add(new PublishedProviderCalculationResultExisting()
+            {
+                Id = publishedProviderCalculationResults.ElementAt(0).Id,
+                ProviderId = "1",
+                Value = 10,
+            });
+
+            existingResults.Add(new PublishedProviderCalculationResultExisting()
+            {
+                Id = publishedProviderCalculationResults.ElementAt(1).Id,
+                ProviderId = "2",
+                Value = 20,
+            });
+
+            // Act
+            IEnumerable<PublishedProviderCalculationResult> resultsToSave = assembler.GeneratePublishedProviderCalculationResultsToSave(publishedProviderCalculationResults, existingResults);
+
+            // Assert
+            resultsToSave
+                .Should()
+                .HaveCount(0);
+        }
+
+        [TestMethod]
+        public void GeneratePublishedProviderCalculationResultsToSave_WhenExistingResultsExistAndOneMatchesCurrentValuesAndResultsProvided_ThenOneResultReturnedToSave()
+        {
+            // Arrange
+            IVersionRepository<PublishedProviderCalculationResultVersion> versionRepository = CreateCalculationResultsVersionRepository();
+
+            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService(calculationResultsVersionRepository: versionRepository);
+
+            AllocationLine allocationLine1 = new AllocationLine()
+            {
+                Id = "AAAAA",
+                Name = "Allocation Line 1"
+            };
+
+            List<PublishedProviderCalculationResult> publishedProviderCalculationResults = new List<PublishedProviderCalculationResult>();
+            publishedProviderCalculationResults
+                .Add(new PublishedProviderCalculationResult()
+                {
+                    ProviderId = "1",
+                    AllocationLine = allocationLine1,
+                    Current = new PublishedProviderCalculationResultVersion { Value = 10 },
+                    Specification = new Reference
+                    {
+                        Id = "spec-1"
+                    },
+                    CalculationSpecification = new Reference
+                    {
+                        Id = "calc-spec-1"
+                    }
+                });
+
+            publishedProviderCalculationResults
+               .Add(new PublishedProviderCalculationResult()
+               {
+                   ProviderId = "2",
+                   AllocationLine = allocationLine1,
+                   Current = new PublishedProviderCalculationResultVersion { Value = 200 },
+                   Specification = new Reference
+                   {
+                       Id = "spec-1"
+                   },
+                   CalculationSpecification = new Reference
+                   {
+                       Id = "calc-spec-1"
+                   }
+               });
+
+            versionRepository
+                .GetNextVersionNumber(Arg.Is(publishedProviderCalculationResults.ElementAt(1).Current))
+                .Returns(2);
+
+            List<PublishedProviderCalculationResultExisting> existingResults = new List<PublishedProviderCalculationResultExisting>();
+            existingResults.Add(new PublishedProviderCalculationResultExisting()
+            {
+                Id = publishedProviderCalculationResults.ElementAt(0).Id,
+                ProviderId = "1",
+                Value = 10,
+            });
+
+            existingResults.Add(new PublishedProviderCalculationResultExisting()
+            {
+                Id = publishedProviderCalculationResults.ElementAt(1).Id,
+                ProviderId = "2",
+                Value = 20,
+            });
+
+            // Act
+            IEnumerable<PublishedProviderCalculationResult> resultsToSave = assembler.GeneratePublishedProviderCalculationResultsToSave(publishedProviderCalculationResults, existingResults);
+
+            // Assert
+            resultsToSave
+                .Should()
+                .HaveCount(1);
+
+            resultsToSave
+                .First()
+                .Current
+                .Version
+                .Should()
+                .Be(2);
+        }
+
+        [TestMethod]
+        public void GeneratePublishedProviderCalculationResultsToSave_WhenExistingResultsExistAndNoneMatchesCurrentValuesAndResultsProvided_ThenResultReturnedToSave()
+        {
+            // Arrange
+            IVersionRepository<PublishedProviderCalculationResultVersion> versionRepository = CreateCalculationResultsVersionRepository();
+
+            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService(calculationResultsVersionRepository: versionRepository);
+
+            AllocationLine allocationLine1 = new AllocationLine()
+            {
+                Id = "AAAAA",
+                Name = "Allocation Line 1"
+            };
+
+            List<PublishedProviderCalculationResult> publishedProviderCalculationResults = new List<PublishedProviderCalculationResult>();
+            publishedProviderCalculationResults
+                .Add(new PublishedProviderCalculationResult()
+                {
+                    ProviderId = "1",
+                    AllocationLine = allocationLine1,
+                    Current = new PublishedProviderCalculationResultVersion { Value = 10 },
+                    Specification = new Reference
+                    {
+                        Id = "spec-1"
+                    },
+                    CalculationSpecification = new Reference
+                    {
+                        Id = "calc-spec-1"
+                    }
+                });
+
+            publishedProviderCalculationResults
+               .Add(new PublishedProviderCalculationResult()
+               {
+                   ProviderId = "2",
+                   AllocationLine = allocationLine1,
+                   Current = new PublishedProviderCalculationResultVersion { Value = 20 },
+                   Specification = new Reference
+                   {
+                       Id = "spec-1"
+                   },
+                   CalculationSpecification = new Reference
+                   {
+                       Id = "calc-spec-1"
+                   }
+               });
+
+            versionRepository
+                .GetNextVersionNumber(Arg.Any<PublishedProviderCalculationResultVersion>())
+                .Returns(2);
+
+            List<PublishedProviderCalculationResultExisting> existingResults = new List<PublishedProviderCalculationResultExisting>();
+            existingResults.Add(new PublishedProviderCalculationResultExisting()
+            {
+                Id = publishedProviderCalculationResults.ElementAt(0).Id,
+                ProviderId = "1",
+                Value = 100,
+            });
+
+            existingResults.Add(new PublishedProviderCalculationResultExisting()
+            {
+                Id = publishedProviderCalculationResults.ElementAt(1).Id,
+                ProviderId = "2",
+                Value = 200,
+            });
+
+            // Act
+            IEnumerable<PublishedProviderCalculationResult> resultsToSave = assembler.GeneratePublishedProviderCalculationResultsToSave(publishedProviderCalculationResults, existingResults);
+
+            // Assert
+            resultsToSave
+                .Should()
+                .HaveCount(2);
+
+            resultsToSave
+                .ElementAt(0)
+                .Current
+                .Version
+                .Should()
+                .Be(2);
+
+            resultsToSave
+               .ElementAt(1)
+               .Current
+               .Version
+               .Should()
+               .Be(2);
         }
 
         static PublishedProviderResultsAssemblerService CreateAssemblerService(
-            ISpecificationsRepository specificationsRepository = null, ILogger logger = null)
+            ISpecificationsRepository specificationsRepository = null, 
+            ILogger logger = null, 
+            IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = null,
+            IVersionRepository<PublishedProviderCalculationResultVersion> calculationResultsVersionRepository = null)
         {
             return new PublishedProviderResultsAssemblerService(
                 specificationsRepository ?? CreateSpecificationsRepository(),
-                logger ?? CreateLogger());
+                logger ?? CreateLogger(),
+                allocationResultsVersionRepository ?? CreateAllocationResultsVersionRepository(),
+                calculationResultsVersionRepository ?? CreateCalculationResultsVersionRepository());
+        }
+
+        static IVersionRepository<PublishedProviderCalculationResultVersion> CreateCalculationResultsVersionRepository()
+        {
+            return Substitute.For<IVersionRepository<PublishedProviderCalculationResultVersion>>();
+        }
+
+        static IVersionRepository<PublishedAllocationLineResultVersion> CreateAllocationResultsVersionRepository()
+        {
+            return Substitute.For<IVersionRepository<PublishedAllocationLineResultVersion>>();
         }
 
         static ISpecificationsRepository CreateSpecificationsRepository()

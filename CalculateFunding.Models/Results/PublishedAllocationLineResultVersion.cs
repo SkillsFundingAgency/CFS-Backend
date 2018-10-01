@@ -5,30 +5,39 @@ using System.Linq;
 
 namespace CalculateFunding.Models.Results
 {
-    public class PublishedAllocationLineResultVersion
+    public class PublishedAllocationLineResultVersion : VersionedItem
     {
+        [JsonProperty("id")]
+        public override string Id
+        {
+            get { return $"{PublishedProviderResultId}_version_{Version}"; }
+        }
+
+        [JsonProperty("entityId")]
+        public override string EntityId
+        {
+            get { return $"{PublishedProviderResultId}"; }
+        }
+
+        [JsonProperty("publishedProviderResultId")]
+        public string PublishedProviderResultId { get; set; }
+
+        [JsonProperty("specificationId")]
+        public string SpecificationId { get; set; }
+
+        [JsonProperty("providerId")]
+        public string ProviderId { get; set; }
+
         [JsonProperty("status")]
         public AllocationLineStatus Status { get; set; }
 
         [JsonProperty("value")]
         public decimal? Value { get; set; }
 
-        [JsonProperty("version")]
-        public int Version { get; set; }
-
-        [JsonProperty("date")]
-        public DateTimeOffset Date { get; set; }
-
-        [JsonProperty("author")]
-        public Reference Author { get; set; }
-
-        [JsonProperty("comment")]
-        public string Commment { get; set; }
-
         [JsonProperty("provider")]
         public ProviderSummary Provider { get; set; }
 
-        public PublishedAllocationLineResultVersion Clone()
+        public override VersionedItem Clone()
         {
             // Serialise to perform a deep copy
             string json = JsonConvert.SerializeObject(this);

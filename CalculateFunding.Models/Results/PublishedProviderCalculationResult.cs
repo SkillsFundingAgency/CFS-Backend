@@ -47,13 +47,7 @@ namespace CalculateFunding.Models.Results
         public PublishStatus Status { get; set; }
 
         [JsonProperty("current")]
-        public PublishedProviderCalculationResultCalculationVersion Current { get; set; }
-
-        [JsonProperty("published")]
-        public PublishedProviderCalculationResultCalculationVersion Published { get; set; }
-
-        [JsonProperty("approved")]
-        public PublishedProviderCalculationResultCalculationVersion Approved { get; set; }
+        public PublishedProviderCalculationResultVersion Current { get; set; }
     }
 
 }

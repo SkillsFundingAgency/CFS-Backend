@@ -2,12 +2,15 @@
 using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.Common.Middleware;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Builder;
@@ -138,6 +141,32 @@ namespace CalculateFunding.Api.Results
 
             builder
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
+
+            builder.AddSingleton<IVersionRepository<PublishedAllocationLineResultVersion>, VersionRepository<PublishedAllocationLineResultVersion>>((ctx) =>
+            {
+                CosmosDbSettings versioningDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", versioningDbSettings);
+
+                versioningDbSettings.CollectionName = "publishedproviderresults";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(versioningDbSettings);
+
+                return new VersionRepository<PublishedAllocationLineResultVersion>(resultsRepostory);
+            });
+
+            builder.AddSingleton<IVersionRepository<PublishedProviderCalculationResultVersion>, VersionRepository<PublishedProviderCalculationResultVersion>>((ctx) =>
+            {
+                CosmosDbSettings versioningDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", versioningDbSettings);
+
+                versioningDbSettings.CollectionName = "publishedprovidercalcresults";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(versioningDbSettings);
+
+                return new VersionRepository<PublishedProviderCalculationResultVersion>(resultsRepostory);
+            });
 
             builder.AddUserProviderFromRequest();
 

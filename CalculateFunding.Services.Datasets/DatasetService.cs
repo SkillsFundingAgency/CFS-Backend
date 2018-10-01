@@ -1295,7 +1295,7 @@ namespace CalculateFunding.Services.Datasets
 
                     if (existingDatasetJson != latestDatasetJson)
                     {
-                        newVersion = _sourceDatasetsVersionRepository.CreateVersion(newVersion, existingCurrent[providerId].Current).Result;
+                        newVersion = _sourceDatasetsVersionRepository.CreateVersion(newVersion, existingCurrent[providerId].Current);
                         newVersion.Author = user;
                         newVersion.Rows = sourceDataset.Current.Rows;
 

@@ -3,6 +3,7 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.ResultModels;
@@ -397,19 +398,13 @@ namespace CalculateFunding.Services.Results.Services
                 publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
-            PublishedAllocationLineResultHistory history = new PublishedAllocationLineResultHistory
-            {
-                SpecificationId = specificationId,
-                ProviderId = "1111",
-                AllocationLine = new Models.Reference
-                {
-                    Id = "AAAAA"
-                },
-                History = new[]
-                {
-                    new PublishedAllocationLineResultVersion()
-                }
-            };
+            PublishedAllocationLineResultVersion newVersion = publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current as PublishedAllocationLineResultVersion;
+            newVersion.Version = 2;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>())
+                .Returns(newVersion);
 
             SpecificationCurrentVersion specification = CreateSpecification(specificationId);
 
@@ -421,13 +416,12 @@ namespace CalculateFunding.Services.Results.Services
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
             resultsProviderRepository
                 .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
-                .Returns(publishedProviderResults);
+                .Returns(publishedProviderResults);      
 
-            resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111"), Arg.Is("AAAAA"))
-                .Returns(history);
-
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, specificationsRepository: specificationsRepository);
+            ResultsService resultsService = CreateResultsService(
+                publishedProviderResultsRepository: resultsProviderRepository, 
+                specificationsRepository: specificationsRepository,
+                publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -450,6 +444,11 @@ namespace CalculateFunding.Services.Results.Services
                .UpdatedProviderIds
                .Should()
                .Be(1);
+
+            await
+                versionRepository
+                    .Received(1)
+                    .SaveVersions(Arg.Is<IEnumerable<PublishedAllocationLineResultVersion>>(m => m.First() == newVersion));
         }
 
         [TestMethod]
@@ -500,28 +499,10 @@ namespace CalculateFunding.Services.Results.Services
 
             IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResults();
 
-            PublishedAllocationLineResultHistory history = new PublishedAllocationLineResultHistory
-            {
-                SpecificationId = specificationId,
-                ProviderId = "1111",
-                AllocationLine = new Models.Reference
-                {
-                    Id = "AAAAA"
-                },
-                History = new[]
-                {
-                    new PublishedAllocationLineResultVersion()
-                }
-            };
-
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
             resultsProviderRepository
                 .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
-
-            resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111"), Arg.Is("AAAAA"))
-                .Returns(history);
 
             ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
 
@@ -599,29 +580,11 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult()
             };
 
-            PublishedAllocationLineResultHistory history = new PublishedAllocationLineResultHistory
-            {
-                SpecificationId = specificationId,
-                ProviderId = "1111",
-                AllocationLine = new Models.Reference
-                {
-                    Id = "AAAAA"
-                },
-                History = new[]
-                {
-                    new PublishedAllocationLineResultVersion()
-                }
-            };
-
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
 
             resultsProviderRepository
                 .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
-
-            resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111"), Arg.Is("AAAAA"))
-                .Returns(history);
 
             ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
 
@@ -649,7 +612,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task UpdatePublishedAllocationLineResultsStatus_GivenAllResultsAreHeldAndAttemptToPublish_ReturnsOKObjectEnsureHistoryAdded()
+        public async Task UpdatePublishedAllocationLineResultsStatus_GivenAllResultsAreHeldAndAttemptToApproved_ReturnsOKObjectEnsureHistoryAdded()
         {
             //arrange
             string specificationId = "spec-1";
@@ -703,26 +666,21 @@ namespace CalculateFunding.Services.Results.Services
             {
                 publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
-
-            PublishedAllocationLineResultHistory history = new PublishedAllocationLineResultHistory
-            {
-                SpecificationId = specificationId,
-                ProviderId = providerId,
-                AllocationLine = new Models.Reference
-                {
-                    Id = "AAAAA"
-                },
-                History = null
-            };
-
+            
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
+
             resultsProviderRepository
                 .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
 
-            resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is(providerId), Arg.Is("AAAAA"))
-                .Returns(history);
+            PublishedAllocationLineResultVersion newVersion = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion.Version = 2;
+            newVersion.Status = AllocationLineStatus.Approved;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>())
+                .Returns(newVersion);
 
             ISearchRepository<AllocationNotificationFeedIndex> searchRepository = CreateAllocationNotificationFeedSearchRepository();
 
@@ -733,7 +691,11 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository);
+            ResultsService resultsService = CreateResultsService(
+                publishedProviderResultsRepository: resultsProviderRepository, 
+                allocationNotificationFeedSearchRepository: searchRepository, 
+                specificationsRepository: specificationsRepository,
+                publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -744,13 +706,7 @@ namespace CalculateFunding.Services.Results.Services
                 .BeOfType<OkObjectResult>();
 
             OkObjectResult okObjectResult = actionResult as OkObjectResult;
-
-            history
-                 .History
-                 .Count()
-                 .Should()
-                 .Be(1);
-
+            
             await searchRepository
                     .Received(1)
                     .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
@@ -766,7 +722,7 @@ namespace CalculateFunding.Services.Results.Services
                         m.First().ProviderOpenDate.HasValue &&
                         m.First().AllocationLineId == "AAAAA" &&
                         m.First().AllocationLineName == "test allocation line 1" &&
-                        m.First().AllocationVersionNumber == 1 &&
+                        m.First().AllocationVersionNumber == 2 &&
                         m.First().AllocationStatus == "Approved" &&
                         m.First().AllocationAmount == (double)50.0 &&
                         m.First().ProviderProfiling == "[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]" &&
@@ -777,6 +733,11 @@ namespace CalculateFunding.Services.Results.Services
                         m.First().SubProviderType == "test sub type" &&
                         m.First().EstablishmentNumber == "es123"
             ));
+
+            await
+                versionRepository
+                    .Received(1)
+                    .SaveVersions(Arg.Is<IEnumerable<PublishedAllocationLineResultVersion>>(m => m.Count() == 1 && m.First() == newVersion));
         }
 
         [TestMethod]
@@ -842,55 +803,29 @@ namespace CalculateFunding.Services.Results.Services
                 publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
-            PublishedAllocationLineResultHistory history1 = new PublishedAllocationLineResultHistory
-            {
-                SpecificationId = specificationId,
-                ProviderId = "1111",
-                AllocationLine = new Models.Reference
-                {
-                    Id = "AAAAA"
-                },
-                History = null
-            };
-
-            PublishedAllocationLineResultHistory history2 = new PublishedAllocationLineResultHistory
-            {
-                SpecificationId = specificationId,
-                ProviderId = "1111-1",
-                AllocationLine = new Models.Reference
-                {
-                    Id = "AAAAA"
-                },
-                History = null
-            };
-
-            PublishedAllocationLineResultHistory history3 = new PublishedAllocationLineResultHistory
-            {
-                SpecificationId = specificationId,
-                ProviderId = "1111-2",
-                AllocationLine = new Models.Reference
-                {
-                    Id = "AAAAA"
-                },
-                History = null
-            };
-
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
             resultsProviderRepository
                 .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
 
-            resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111"), Arg.Is("AAAAA"))
-                .Returns(history1);
+            PublishedAllocationLineResultVersion newVersion1 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion1.Version = 2;
+            newVersion1.Status = AllocationLineStatus.Approved;
 
-            resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111-1"), Arg.Is("AAAAA"))
-                .Returns(history2);
+            PublishedAllocationLineResultVersion newVersion2 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion2.Version = 2;
+            newVersion2.Status = AllocationLineStatus.Approved;
 
-            resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111-2"), Arg.Is("AAAAA"))
-                .Returns(history3);
+
+            PublishedAllocationLineResultVersion newVersion3 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion3.Version = 2;
+            newVersion3.Status = AllocationLineStatus.Approved;
+
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>())
+                .Returns(newVersion1, newVersion2, newVersion3);
 
             SpecificationCurrentVersion specification = CreateSpecification(specificationId);
 
@@ -899,7 +834,10 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, specificationsRepository: specificationsRepository);
+            ResultsService resultsService = CreateResultsService(
+                publishedProviderResultsRepository: resultsProviderRepository, 
+                specificationsRepository: specificationsRepository,
+                publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -923,23 +861,10 @@ namespace CalculateFunding.Services.Results.Services
                .Should()
                .Be(3);
 
-            history1
-                 .History
-                 .Count()
-                 .Should()
-                 .Be(1);
-
-            history2
-                 .History
-                 .Count()
-                 .Should()
-                 .Be(1);
-
-            history3
-                 .History
-                 .Count()
-                 .Should()
-                 .Be(1);
+            await
+                versionRepository
+                    .Received(1)
+                    .SaveVersions(Arg.Is<IEnumerable<PublishedAllocationLineResultVersion>>(m => m.Count() == 3));
         }
 
         [TestMethod]
@@ -1005,55 +930,27 @@ namespace CalculateFunding.Services.Results.Services
                 publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
-            PublishedAllocationLineResultHistory history1 = new PublishedAllocationLineResultHistory
-            {
-                SpecificationId = specificationId,
-                ProviderId = "1111",
-                AllocationLine = new Models.Reference
-                {
-                    Id = "AAAAA"
-                },
-                History = null
-            };
+            PublishedAllocationLineResultVersion newVersion1 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion1.Version = 2;
+            newVersion1.Status = AllocationLineStatus.Approved;
 
-            PublishedAllocationLineResultHistory history2 = new PublishedAllocationLineResultHistory
-            {
-                SpecificationId = specificationId,
-                ProviderId = "1111-1",
-                AllocationLine = new Models.Reference
-                {
-                    Id = "AAAAA"
-                },
-                History = null
-            };
+            PublishedAllocationLineResultVersion newVersion2 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion2.Version = 2;
+            newVersion2.Status = AllocationLineStatus.Approved;
 
-            PublishedAllocationLineResultHistory history3 = new PublishedAllocationLineResultHistory
-            {
-                SpecificationId = specificationId,
-                ProviderId = "1111-2",
-                AllocationLine = new Models.Reference
-                {
-                    Id = "AAAAA"
-                },
-                History = null
-            };
+            PublishedAllocationLineResultVersion newVersion3 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion3.Version = 2;
+            newVersion3.Status = AllocationLineStatus.Approved;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>())
+                .Returns(newVersion1, newVersion2, newVersion3);
 
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
             resultsProviderRepository
                 .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
-
-            resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111"), Arg.Is("AAAAA"))
-                .Returns(history1);
-
-            resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111-1"), Arg.Is("AAAAA"))
-                .Returns(history2);
-
-            resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111-2"), Arg.Is("AAAAA"))
-                .Returns(history3);
 
             SpecificationCurrentVersion specification = CreateSpecification(specificationId);
 
@@ -1062,7 +959,10 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, specificationsRepository: specificationsRepository);
+            ResultsService resultsService = CreateResultsService(
+                publishedProviderResultsRepository: resultsProviderRepository, 
+                specificationsRepository: specificationsRepository,
+                publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -1085,6 +985,11 @@ namespace CalculateFunding.Services.Results.Services
                .UpdatedProviderIds
                .Should()
                .Be(3);
+
+            await
+                versionRepository
+                    .Received(1)
+                    .SaveVersions(Arg.Is<IEnumerable<PublishedAllocationLineResultVersion>>(m => m.Count() == 3));
         }
 
         [TestMethod]
@@ -1150,55 +1055,28 @@ namespace CalculateFunding.Services.Results.Services
                 publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
-            PublishedAllocationLineResultHistory history1 = new PublishedAllocationLineResultHistory
-            {
-                SpecificationId = specificationId,
-                ProviderId = "1111",
-                AllocationLine = new Models.Reference
-                {
-                    Id = "AAAAA"
-                },
-                History = null
-            };
+            PublishedAllocationLineResultVersion newVersion1 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion1.Version = 2;
+            newVersion1.Status = AllocationLineStatus.Approved;
 
-            PublishedAllocationLineResultHistory history2 = new PublishedAllocationLineResultHistory
-            {
-                SpecificationId = specificationId,
-                ProviderId = "1111-1",
-                AllocationLine = new Models.Reference
-                {
-                    Id = "AAAAA"
-                },
-                History = null
-            };
+            PublishedAllocationLineResultVersion newVersion2 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion2.Version = 2;
+            newVersion2.Status = AllocationLineStatus.Approved;
 
-            PublishedAllocationLineResultHistory history3 = new PublishedAllocationLineResultHistory
-            {
-                SpecificationId = specificationId,
-                ProviderId = "1111-2",
-                AllocationLine = new Models.Reference
-                {
-                    Id = "AAAAA"
-                },
-                History = null
-            };
+            PublishedAllocationLineResultVersion newVersion3 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion3.Version = 2;
+            newVersion3.Status = AllocationLineStatus.Approved;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>())
+                .Returns(newVersion1, newVersion2, newVersion3);
+
 
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
             resultsProviderRepository
                 .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
-
-            resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111"), Arg.Is("AAAAA"))
-                .Returns(history1);
-
-            resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111-1"), Arg.Is("AAAAA"))
-                .Returns(history2);
-
-            resultsProviderRepository
-                .GetPublishedProviderAllocationLineHistoryForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Is("1111-2"), Arg.Is("AAAAA"))
-                .Returns(history3);
 
             SpecificationCurrentVersion specification = CreateSpecification(specificationId);
 
@@ -1209,7 +1087,11 @@ namespace CalculateFunding.Services.Results.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, specificationsRepository: specificationsRepository, messengerService: messengerService);
+            ResultsService resultsService = CreateResultsService(
+                publishedProviderResultsRepository: resultsProviderRepository, 
+                specificationsRepository: specificationsRepository, 
+                messengerService: messengerService,
+                publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);

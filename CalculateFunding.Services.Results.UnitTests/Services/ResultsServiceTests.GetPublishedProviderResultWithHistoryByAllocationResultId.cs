@@ -1,12 +1,12 @@
 ﻿
 using CalculateFunding.Models.Results;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Services
@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Results.Services
             ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
 
             //Act
-            PublishedProviderResult result = await service.GetPublishedProviderResultWithHistoryByAllocationResultId(allocationResultId);
+            PublishedProviderResultWithHistory result = await service.GetPublishedProviderResultWithHistoryByAllocationResultId(allocationResultId);
 
             //Assert
             result
@@ -48,14 +48,15 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultForIdInPublishedState(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
 
-            publishedProviderResultsRepository
-               .GetPublishedAllocationLineResultHistoryForId(Arg.Is(allocationResultId))
-               .Returns((PublishedAllocationLineResultHistory)null);
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .GetVersions(Arg.Is(allocationResultId))
+                .Returns((IEnumerable<PublishedAllocationLineResultVersion>)null);
 
-            ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
+            ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository, publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
-            PublishedProviderResult result = await service.GetPublishedProviderResultWithHistoryByAllocationResultId(allocationResultId);
+            PublishedProviderResultWithHistory result = await service.GetPublishedProviderResultWithHistoryByAllocationResultId(allocationResultId);
 
             //Assert
             result
@@ -77,14 +78,11 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            PublishedAllocationLineResultHistory history = new PublishedAllocationLineResultHistory
+            IEnumerable<PublishedAllocationLineResultVersion> history = new[]
             {
-                History = new List<PublishedAllocationLineResultVersion>
-                {
-                    new PublishedAllocationLineResultVersion(),
+                 new PublishedAllocationLineResultVersion(),
                     new PublishedAllocationLineResultVersion(),
                     new PublishedAllocationLineResultVersion()
-                }
             };
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
@@ -92,14 +90,15 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultForIdInPublishedState(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
 
-            publishedProviderResultsRepository
-               .GetPublishedAllocationLineResultHistoryForId(Arg.Is(allocationResultId))
-               .Returns(history);
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .GetVersions(Arg.Is(allocationResultId))
+                .Returns(history);
 
-            ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
+            ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository, publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
-            PublishedProviderResult result = await service.GetPublishedProviderResultWithHistoryByAllocationResultId(allocationResultId);
+            PublishedProviderResultWithHistory result = await service.GetPublishedProviderResultWithHistoryByAllocationResultId(allocationResultId);
 
             //Assert
             result
@@ -107,10 +106,13 @@ namespace CalculateFunding.Services.Results.Services
                 .NotBeNull();
 
             result
-                .FundingStreamResult
-                .AllocationLineResult
+                .PublishedProviderResult
+                .Should()
+                .NotBeNull();
+
+            result
                 .History
-                .Count
+                .Count()
                 .Should()
                 .Be(3);
         }
