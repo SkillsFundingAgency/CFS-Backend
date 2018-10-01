@@ -1159,14 +1159,14 @@ namespace CalculateFunding.Services.Results
                                             LastUpdated = alr.Current.Date,
                                             Authority = alr.Current.Provider.Authority
                                         }
-                                    )
+                                    ).OrderBy(r => r.AllocationLineName)
                         } });
                     }
 
                 }
             }
 
-            return results;
+            return results.OrderBy(r => r.ProviderName);
         }
 
         private async Task<Tuple<int, int>> UpdateAllocationLineResultsStatus(IEnumerable<PublishedProviderResult> publishedProviderResults,
