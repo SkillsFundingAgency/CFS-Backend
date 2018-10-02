@@ -41,5 +41,12 @@ namespace CalculateFunding.Services.Calcs
 
             return _apiClient.GetAsync<IEnumerable<Calculation>>(url);
         }
+
+        public Task<IEnumerable<FundingStream>> GetFundingStreams()
+        {
+            string url = $"specs/funding-streams";
+
+            return _apiClient.GetAsync<IEnumerable<FundingStream>>(url);
+        }
     }
 }
