@@ -1,7 +1,7 @@
 ﻿using CalculateFunding.Models.Specs;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Interfaces
@@ -15,5 +15,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<SpecificationCurrentVersion> GetCurrentSpecificationById(string specificationId);
 
         Task<Period> GetFundingPeriodById(string fundingPeriodId);
+
+        Task<HttpStatusCode> UpdatePublishedRefreshedDate(string specificationId, DateTimeOffset publishedRefreshDate);
     }
 }

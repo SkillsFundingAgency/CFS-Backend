@@ -31,5 +31,8 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("isSelectedForFunding")]
         public bool IsSelectedForFunding { get; set; }
+
+        [JsonProperty("publishedResultsRefreshedAt")]
+        public DateTimeOffset? PublishedResultsRefreshedAt { get; set; }
     }
 }
