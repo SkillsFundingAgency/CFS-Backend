@@ -31,10 +31,8 @@ namespace CalculateFunding.Services.Calculator
             _logger = logger;
         }
 
-        public IAllocationModel GenerateAllocationModel(BuildProject buildProject)
+        public IAllocationModel GenerateAllocationModel(Assembly assembly)
         {
-            Assembly assembly = Assembly.Load(Convert.FromBase64String(buildProject.Build.AssemblyBase64));
-
             return _allocationFactory.CreateAllocationModel(assembly);
         }
 
@@ -75,15 +73,8 @@ namespace CalculateFunding.Services.Calculator
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            IEnumerable<CalculationResult> calculationResults;
-            try
-            {
-                calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider).ToArray();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.ToString());
-            }
+
+            IEnumerable<CalculationResult> calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider).ToArray();
 
             var providerCalResults = calculationResults.ToDictionary(x => x.Calculation?.Id);
             stopwatch.Stop();

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Calcs;
@@ -144,8 +145,6 @@ namespace CalculateFunding.Services.Calculator
 
             summaries = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.ListRangeAsync<ProviderSummary>(cacheKey, start, stop));
 
-            IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(buildProject);
-
             int providerBatchSize = _engineSettings.ProviderBatchSize;
 
             Stopwatch calculationsLookupStopwatch = Stopwatch.StartNew();
@@ -178,17 +177,26 @@ namespace CalculateFunding.Services.Calculator
                 }
 
                 Stopwatch calculationStopwatch = Stopwatch.StartNew();
+
+                Assembly assembly = Assembly.Load(Convert.FromBase64String(buildProject.Build.AssemblyBase64));
                 Parallel.ForEach(partitionedSummaries, new ParallelOptions { MaxDegreeOfParallelism = _engineSettings.CalculateProviderResultsDegreeOfParallelism }, provider =>
                 {
+                    IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(assembly);
+
                     IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.ProviderId == provider.Id);
 
-                    var result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets);
+                    ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets);
 
                     if (result != null)
                     {
                         providerResults.Add(result);
                     }
+                    else
+                    {
+                        throw new InvalidOperationException("Null result from Calc Engine CalculateProviderResults");
+                    }
                 });
+
                 calculationStopwatch.Stop();
 
                 double? saveCosmosElapsedMs = null;
