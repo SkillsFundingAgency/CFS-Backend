@@ -171,11 +171,11 @@
     "searchSkuName": {
       "type": "string",
       "allowedValues": [
-        "Free",
-        "Basic",
-        "Standard"
+        "free",
+        "basic",
+        "standard"
       ],
-      "defaultValue": "Standard",
+      "defaultValue": "standard",
       "metadata": {
         "description": "The pricing tier of the Search Service"
       }
