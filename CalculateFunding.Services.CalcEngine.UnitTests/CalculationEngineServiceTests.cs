@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Threading.Tasks;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calculator.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Core.Options;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
-using Serilog;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -48,9 +45,9 @@ namespace CalculateFunding.Services.Calculator
             serviceAction.ShouldThrow<ArgumentNullException>();
         }
 
-       [TestMethod]
-        public void 
-           GenerateAllocations_GivenAValidRequestWhereSaveProviderResultsNotIgnored_ShouldBatchCorrectlyAndSaveProviderResults()
+        [Ignore("This test has a provider result as null, but should be checking successful results.")]
+        [TestMethod]
+        public async Task GenerateAllocations_GivenAValidRequestWhereSaveProviderResultsNotIgnored_ShouldBatchCorrectlyAndSaveProviderResults()
         {
             const string cacheKey = "Cache-key";
             const string specificationId = "spec1";
@@ -88,14 +85,14 @@ namespace CalculateFunding.Services.Calculator
 
             calculationEngineServiceTestsHelper
                 .MockCalculationEngine
-                .GenerateAllocationModel(Arg.Any<BuildProject>())
+                .GenerateAllocationModel(Arg.Any<Assembly>())
                 .Returns(mockAllocationModel);
             calculationEngineServiceTestsHelper
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IEnumerable<ProviderSourceDataset>>())
-                .Returns((ProviderResult) null);
+                .Returns((ProviderResult)null);
 
             calculationEngineServiceTestsHelper
                 .MockEngineSettings
@@ -111,9 +108,9 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("provider-cache-key", cacheKey);
             messageUserProperties.Add("specification-id", specificationId);
 
-            service.GenerateAllocations(message).Wait();
+            await service.GenerateAllocations(message);
 
-            calculationEngineServiceTestsHelper
+            await calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(0)
                 .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<int>());
@@ -158,7 +155,7 @@ namespace CalculateFunding.Services.Calculator
 
             calculationEngineServiceTestsHelper
                 .MockCalculationEngine
-                .GenerateAllocationModel(Arg.Any<BuildProject>())
+                .GenerateAllocationModel(Arg.Any<Assembly>())
                 .Returns(mockAllocationModel);
             calculationEngineServiceTestsHelper
                 .MockCalculationEngine
@@ -238,7 +235,7 @@ namespace CalculateFunding.Services.Calculator
 
             calculationEngineServiceTestsHelper
                 .MockCalculationEngine
-                .GenerateAllocationModel(Arg.Any<BuildProject>())
+                .GenerateAllocationModel(Arg.Any<Assembly>())
                 .Returns(mockAllocationModel);
             calculationEngineServiceTestsHelper
                 .MockCalculationEngine

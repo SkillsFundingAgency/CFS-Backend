@@ -11,6 +11,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -36,6 +37,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
+using Calculation = CalculateFunding.Models.Calcs.Calculation;
+using CalculationCurrentVersion = CalculateFunding.Models.Calcs.CalculationCurrentVersion;
+using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -451,7 +455,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 calculation.FundingPeriod = specificationVersionComparison.Current.FundingPeriod;
 
-                if (!fundingStreamIds.IsNullOrEmpty() && !fundingStreamIds.Contains(calculation.FundingStream.Id))
+                if (!fundingStreamIds.IsNullOrEmpty() && !fundingStreamIds.Contains(calculation.FundingStream?.Id))
                 {
                     calculation.FundingStream = null;
                     calculation.AllocationLine = null;
@@ -558,11 +562,53 @@ namespace CalculateFunding.Services.Calcs
                 {
                     calculation.AllocationLine = null;
                 }
-
                 calculation.CalculationType = (CalculationType)calculationVersionComparison.Current.CalculationType;
             }
+			
+	        if (!string.IsNullOrWhiteSpace(calculation.AllocationLine?.Id) 
+	            && (calculation.AllocationLine.Id != calculationVersionComparison.Previous.AllocationLine?.Id || calculation.FundingStream == null))
+	        {
+		        string[] fundingStreamIdsForSpecification = specification.FundingStreams.Select(fs => fs.Id).ToArraySafe();
 
-            await _calculationsRepository.UpdateCalculations(calculationsToUpdate);
+                List<FundingStream> fundingStreamInSpecificationsAsList = new List<FundingStream>();
+
+                if (!fundingStreamIdsForSpecification.IsNullOrEmpty())
+		        {
+                    IEnumerable<FundingStream> allfundingStreams = await _specsRepository.GetFundingStreams();
+
+                    foreach(string fundingStreamId in fundingStreamIdsForSpecification)
+                    {
+                        FundingStream fundingStream = allfundingStreams.FirstOrDefault(m => m.Id == fundingStreamId);
+
+                        if(fundingStream != null)
+                        {
+                            fundingStreamInSpecificationsAsList.Add(fundingStream);
+                        }
+                    }
+
+			        FundingStream fundingStreamToAssign =
+			            fundingStreamInSpecificationsAsList
+				            .Select(fs => new { FundingStream = fs, fs.AllocationLines })
+				            .FirstOrDefault(fsal => fsal.AllocationLines.Any(al => al.Id == calculation.AllocationLine.Id))
+				            ?.FundingStream;
+			        if (fundingStreamToAssign == null)
+			        {
+				        string errorTextFundingStreamNotFoundForAllocationLine = $"Calculation: {calculation.Id} could not be updated because allocation line: {calculation.AllocationLine.Id} did not belong to any funding stream in the system";
+				        _logger.Error(errorTextFundingStreamNotFoundForAllocationLine);
+			            throw new InvalidOperationException(errorTextFundingStreamNotFoundForAllocationLine);
+			        }
+
+			        calculation.FundingStream = fundingStreamToAssign;
+		        }
+                else
+                {
+	                string errorTextSpecificationHasNoFundingStreams = $"Specification: {specification.Id} did not have any funding streams assigned to it";
+	                _logger.Error(errorTextSpecificationHasNoFundingStreams);
+	                throw new InvalidOperationException(errorTextSpecificationHasNoFundingStreams);
+				}
+	        }
+
+			await _calculationsRepository.UpdateCalculations(calculationsToUpdate);
 
             await _cacheProvider.RemoveAsync<List<CalculationSummaryModel>>($"{CacheKeys.CalculationsSummariesForSpecification}{specificationId}");
             await _cacheProvider.RemoveAsync<CalculationCurrentVersion>($"{CacheKeys.CurrentCalculation}{calculationId}");

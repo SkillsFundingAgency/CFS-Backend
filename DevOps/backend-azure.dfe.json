@@ -78,7 +78,9 @@
         "P2",
         "P3",
         "P4",
-        "P3v2"
+        "P3v3",
+        "P3v2",
+        "P3v1"
       ],
       "metadata": {
         "description": "Describes plan's pricing tier and instance size. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
@@ -166,19 +168,42 @@
         "description": "Family for Engine hosting plan"
       }
     },
+    "searchSkuName": {
+      "type": "string",
+      "allowedValues": [
+        "free",
+        "basic",
+        "standard"
+      ],
+      "defaultValue": "standard",
+      "metadata": {
+        "description": "The pricing tier of the Search Service"
+      }
+    },
     "searchReplicas": {
       "type": "int",
       "defaultValue": 2,
       "minValue": 1,
+      "maxValue": 12,
       "metadata": {
         "description": "Total number of replicas for search"
+      }
+    },
+    "searchPartitions": {
+      "type": "int",
+      "defaultValue": 1,
+      "minValue": 1,
+      "maxValue": 12,
+      "metadata": {
+        "description": "Total number of partitions for search"
       }
     },
     "cacheSKUName": {
       "type": "string",
       "allowedValues": [
         "Basic",
-        "Standard"
+        "Standard",
+        "Premium"
       ],
       "defaultValue": "Basic",
       "metadata": {
@@ -188,11 +213,12 @@
     "cacheSKUFamily": {
       "type": "string",
       "allowedValues": [
-        "C"
+        "C",
+        "P"
       ],
       "defaultValue": "C",
       "metadata": {
-        "description": "The family for the sku."
+        "description": "The family for the sku. Either C = Basic/Standard or P = Premium"
       }
     },
     "cacheSKUCapacity": {
@@ -208,7 +234,7 @@
       ],
       "defaultValue": 0,
       "metadata": {
-        "description": "The size of the new Azure Redis Cache instance. "
+        "description": "The size of the new Azure Redis Cache instance. 1-6 for Basic/Standard or 1-4 for Premium"
       }
     },
     "AzureAdTenantId": {
@@ -336,10 +362,10 @@
       },
       "properties": {
         "sku": {
-          "name": "standard"
+          "name": "[parameters('searchSkuName')]"
         },
         "replicaCount": "[parameters('searchReplicas')]",
-        "partitionCount": 1
+        "partitionCount": "[parameters('searchPartitions')]"
       }
     },
     {
