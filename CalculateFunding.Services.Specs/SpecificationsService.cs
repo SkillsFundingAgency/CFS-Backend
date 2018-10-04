@@ -1248,7 +1248,68 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(result);
         }
 
-        Task SendSpecificationComparisonModelMessageToTopic(string specificationId, string topicName, SpecificationVersion current, SpecificationVersion previous, HttpRequest request)
+        public async Task<IActionResult> UpdatePublishedRefreshedDate(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out StringValues specId);
+            string specificationId = specId.FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to UpdatePublishedRefreshedDate");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+            string json = await request.GetRawBodyStringAsync();
+
+            UpdatePublishedRefreshedDateModel updateRefreshDateModel = null;
+
+            try
+            {
+                updateRefreshDateModel = JsonConvert.DeserializeObject<UpdatePublishedRefreshedDateModel>(json);
+
+                if (updateRefreshDateModel == null || updateRefreshDateModel.PublishedResultsRefreshedAt == DateTimeOffset.MinValue)
+                {
+                    _logger.Error("A null refresh date model was provided");
+                    return new BadRequestObjectResult("Null refresh date model provided");
+                }
+            }
+            catch (JsonReaderException jre)
+            {
+                _logger.Error(jre, $"An invalid refresh date was provided for specification: {specificationId}");
+
+                return new BadRequestObjectResult("An invalid refresh date was provided");
+            }
+
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+            if (specification == null)
+            {
+                _logger.Warning($"Failed to find specification for id: {specificationId}");
+                return new NotFoundObjectResult("Specification not found");
+            }
+
+            specification.PublishedResultsRefreshedAt = updateRefreshDateModel.PublishedResultsRefreshedAt;
+            HttpStatusCode statusCode = await _specificationsRepository.UpdateSpecification(specification);
+
+            if (!statusCode.IsSuccess())
+            {
+                string error = $"Failed to set PublishedResultsRefreshedAt on specification for id: {specificationId} to value: {updateRefreshDateModel.PublishedResultsRefreshedAt.ToString()}";
+                _logger.Error(error);
+                return new InternalServerErrorResult(error);
+            }
+
+            SpecificationIndex specificationIndex = CreateSpecificationIndex(specification);
+
+            IEnumerable<IndexError> errors = await _searchRepository.Index(new List<SpecificationIndex> { specificationIndex });
+
+            if (errors.Any())
+            {
+                string error = $"Failed to index search for specification {specificationId} with the following errors: {string.Join(";", errors.Select(m => m.ErrorMessage))}";
+                _logger.Error(error);
+                return new InternalServerErrorResult(error);
+            }
+
+            return new OkResult();
+        }
+
+        private async Task SendSpecificationComparisonModelMessageToTopic(string specificationId, string topicName, SpecificationVersion current, SpecificationVersion previous, HttpRequest request)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.ArgumentNotNull(current, nameof(current));
@@ -1264,10 +1325,10 @@ namespace CalculateFunding.Services.Specs
                 Previous = previous
             };
 
-            return _messengerService.SendToTopic(topicName, comparisonModel, properties);
+            await _messengerService.SendToTopic(topicName, comparisonModel, properties);
         }
 
-        Task SendCalculationComparisonModelMessageToTopic(string specificationId, string calculationId, string topicName, Calculation current, Calculation previous, HttpRequest request)
+        private async Task SendCalculationComparisonModelMessageToTopic(string specificationId, string calculationId, string topicName, Calculation current, Calculation previous, HttpRequest request)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.ArgumentNotNull(current, nameof(current));
@@ -1284,7 +1345,7 @@ namespace CalculateFunding.Services.Specs
                 Previous = previous,
             };
 
-            return _messengerService.SendToTopic(topicName, comparisonModel, properties);
+            await _messengerService.SendToTopic(topicName, comparisonModel, properties);
         }
 
         /// <summary>
@@ -1627,7 +1688,7 @@ namespace CalculateFunding.Services.Specs
             {
                 await _searchRepository.DeleteIndex();
 
-                const string sql = "select s.id, s.content.current.name, s.content.current.fundingStreams, s.content.current.fundingPeriod, s.content.current.publishStatus, s.content.current.description, s.content.current.dataDefinitionRelationshipIds, s.updatedAt from specs s where s.documentType = 'Specification'";
+                const string sql = "select s.id, s.content.current.name, s.content.current.fundingStreams, s.content.current.fundingPeriod, s.content.current.publishStatus, s.content.current.description, s.content.current.dataDefinitionRelationshipIds, s.content.publishedResultsRefreshedAt, s.updatedAt from specs s where s.documentType = 'Specification'";
 
                 IEnumerable<SpecificationSearchModel> specifications = (await _specificationsRepository.GetSpecificationsByRawQuery<SpecificationSearchModel>(sql)).ToArraySafe();
 
@@ -1647,7 +1708,8 @@ namespace CalculateFunding.Services.Specs
                         Status = specification.PublishStatus,
                         Description = specification.Description,
                         IsSelectedForFunding = specification.IsSelectedForFunding,
-                        DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.IsNullOrEmpty() ? new string[0] : specification.DataDefinitionRelationshipIds
+                        DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.IsNullOrEmpty() ? new string[0] : specification.DataDefinitionRelationshipIds,
+                        PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt
                     });
                 }
 
@@ -1671,7 +1733,7 @@ namespace CalculateFunding.Services.Specs
             }
         }
 
-        async public Task<IActionResult> SaveFundingStream(HttpRequest request)
+        public async Task<IActionResult> SaveFundingStream(HttpRequest request)
         {
             string yaml = await request.GetRawBodyStringAsync();
 
@@ -1731,7 +1793,7 @@ namespace CalculateFunding.Services.Specs
             return new OkResult();
         }
 
-        async public Task<IActionResult> SaveFundingPeriods(HttpRequest request)
+        public async Task<IActionResult> SaveFundingPeriods(HttpRequest request)
         {
             string yaml = await request.GetRawBodyStringAsync();
 
@@ -1999,7 +2061,7 @@ namespace CalculateFunding.Services.Specs
                 );
         }
 
-        IDictionary<string, string> CreateMessageProperties(HttpRequest request)
+        private IDictionary<string, string> CreateMessageProperties(HttpRequest request)
         {
             Reference user = request.GetUser();
 
@@ -2030,11 +2092,12 @@ namespace CalculateFunding.Services.Specs
                 Policies = specification.Content.Current.Policies,
                 FundingStreams = fundingStreams,
                 PublishStatus = specification.Content.Current.PublishStatus,
-                IsSelectedForFunding = specification.Content.IsSelectedForFunding
+                IsSelectedForFunding = specification.Content.IsSelectedForFunding,
+                PublishedResultsRefreshedAt = specification.Content.PublishedResultsRefreshedAt
             };
         }
 
-        SpecificationIndex CreateSpecificationIndex(Specification specification)
+        private SpecificationIndex CreateSpecificationIndex(Specification specification)
         {
             SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
 
@@ -2050,7 +2113,8 @@ namespace CalculateFunding.Services.Specs
                 FundingPeriodId = specificationVersion.FundingPeriod.Id,
                 FundingPeriodName = specificationVersion.FundingPeriod.Name,
                 LastUpdatedDate = DateTimeOffset.Now,
-                DataDefinitionRelationshipIds = specificationVersion.DataDefinitionRelationshipIds.ToArraySafe()
+                DataDefinitionRelationshipIds = specificationVersion.DataDefinitionRelationshipIds.ToArraySafe(),
+                PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt
             };
         }
     }

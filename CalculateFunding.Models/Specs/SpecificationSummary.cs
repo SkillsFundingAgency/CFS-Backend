@@ -2,7 +2,6 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Models.Specs
 {
@@ -22,5 +21,8 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("approvalStatus")]
         public PublishStatus ApprovalStatus { get; set; }
+
+        [JsonProperty("publishedResultsRefreshedAt")]
+        public DateTimeOffset? PublishedResultsRefreshedAt { get; set; }
     }
 }

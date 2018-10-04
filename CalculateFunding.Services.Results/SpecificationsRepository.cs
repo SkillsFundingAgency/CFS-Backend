@@ -4,20 +4,18 @@ using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Results.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
 {
     public class SpecificationsRepository : ISpecificationsRepository
     {
-        const string specsUrl = "specs/specification-summary-by-id?specificationId=";
-
-        const string currentSpecsUrl = "specs/specification-current-version-by-id?specificationId=";
-
-        const string fundingStreamsUrl = "specs/get-fundingstreams";
-
-        const string fundingPeriodUrl = "specs/get-fundingPeriod-by-id?fundingPeriodId=";
+        private const string specsUrl = "specs/specification-summary-by-id?specificationId=";
+        private const string currentSpecsUrl = "specs/specification-current-version-by-id?specificationId=";
+        private const string fundingStreamsUrl = "specs/get-fundingstreams";
+        private const string fundingPeriodUrl = "specs/get-fundingPeriod-by-id?fundingPeriodId=";
+        private const string updatePublishedRefreshedDateUrl = "specs/update-published-refreshed-date?specificationId=";
 
         private readonly ISpecificationsApiClientProxy _apiClient;
 
@@ -28,39 +26,50 @@ namespace CalculateFunding.Services.Results
             _apiClient = apiClient;
         }
 
-        public Task<SpecificationSummary> GetSpecificationSummaryById(string specificationId)
+        public async Task<SpecificationSummary> GetSpecificationSummaryById(string specificationId)
         {
-            if (string.IsNullOrWhiteSpace(specificationId))
-                throw new ArgumentNullException(nameof(specificationId));
+            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
 
             string url = $"{specsUrl}{specificationId}";
 
-            return _apiClient.GetAsync<SpecificationSummary>(url);
+            return await _apiClient.GetAsync<SpecificationSummary>(url);
         }
 
-        public Task<SpecificationCurrentVersion> GetCurrentSpecificationById(string specificationId)
+        public async Task<SpecificationCurrentVersion> GetCurrentSpecificationById(string specificationId)
         {
-            if (string.IsNullOrWhiteSpace(specificationId))
-                throw new ArgumentNullException(nameof(specificationId));
+            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
 
             string url = $"{currentSpecsUrl}{specificationId}";
 
-            return _apiClient.GetAsync<SpecificationCurrentVersion>(url);
+            return await _apiClient.GetAsync<SpecificationCurrentVersion>(url);
         }
 
-        public Task<IEnumerable<FundingStream>> GetFundingStreams()
+        public async Task<IEnumerable<FundingStream>> GetFundingStreams()
         {
-            return _apiClient.GetAsync<IEnumerable<FundingStream>>(fundingStreamsUrl);
+            return await _apiClient.GetAsync<IEnumerable<FundingStream>>(fundingStreamsUrl);
         }
 
-        public Task<Period> GetFundingPeriodById(string fundingPeriodId)
+        public async Task<Period> GetFundingPeriodById(string fundingPeriodId)
         {
-            if (string.IsNullOrWhiteSpace(fundingPeriodId))
-                throw new ArgumentNullException(nameof(fundingPeriodId));
+            Guard.ArgumentNotNull(fundingPeriodId, nameof(fundingPeriodId));
 
             string url = $"{fundingPeriodUrl}{fundingPeriodId}";
 
-            return _apiClient.GetAsync<Period>(url);
+            return await _apiClient.GetAsync<Period>(url);
+        }
+
+        public async Task<HttpStatusCode> UpdatePublishedRefreshedDate(string specificationId, DateTimeOffset publishedRefreshDate)
+        {
+            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
+
+            string url = $"{updatePublishedRefreshedDateUrl}{specificationId}";
+
+            UpdatePublishedRefreshedDateModel model = new UpdatePublishedRefreshedDateModel
+            {
+                PublishedResultsRefreshedAt = publishedRefreshDate
+            };
+
+            return await _apiClient.PostAsync(url, model);
         }
     }
 }

@@ -23,261 +23,268 @@ namespace CalculateFunding.Api.Specs.Controllers
 
         [Route("api/specs/specification-by-id")]
         [HttpGet]
-        public Task<IActionResult> RunGetSpecificationById()
+        public async Task<IActionResult> RunGetSpecificationById()
         {
-            return _specService.GetSpecificationById(ControllerContext.HttpContext.Request);
+            return await _specService.GetSpecificationById(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specification-summary-by-id")]
         [HttpGet]
-        public Task<IActionResult> RunGetSpecificationSummaryById()
+        public async Task<IActionResult> RunGetSpecificationSummaryById()
         {
-            return _specService.GetSpecificationSummaryById(ControllerContext.HttpContext.Request);
+            return await _specService.GetSpecificationSummaryById(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specification-summaries-by-ids")]
         [HttpPost]
-        public Task<IActionResult> RunGetSpecificationSummariesByIds()
+        public async Task<IActionResult> RunGetSpecificationSummariesByIds()
         {
-            return _specService.GetSpecificationSummariesByIds(ControllerContext.HttpContext.Request);
+            return await _specService.GetSpecificationSummariesByIds(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specification-summaries")]
         [HttpGet]
-        public Task<IActionResult> RunGetSpecificationSummaries()
+        public async Task<IActionResult> RunGetSpecificationSummaries()
         {
-            return _specService.GetSpecificationSummaries(ControllerContext.HttpContext.Request);
+            return await _specService.GetSpecificationSummaries(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specification-current-version-by-id")]
         [HttpGet]
-        public Task<IActionResult> RunGetCurrentSpecificationById()
+        public async Task<IActionResult> RunGetCurrentSpecificationById()
         {
-            return _specService.GetCurrentSpecificationById(ControllerContext.HttpContext.Request);
+            return await _specService.GetCurrentSpecificationById(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications")]
         [HttpGet]
-        public Task<IActionResult> RunGetSpecifications()
+        public async Task<IActionResult> RunGetSpecifications()
         {
-            return _specService.GetSpecifications(ControllerContext.HttpContext.Request);
+            return await _specService.GetSpecifications(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications-selected-for-funding")]
         [HttpGet]
-        public Task<IActionResult> RunGetSpecificationsSelectedForFunding()
+        public async Task<IActionResult> RunGetSpecificationsSelectedForFunding()
         {
-            return _specService.GetSpecificationsSelectedForFunding(ControllerContext.HttpContext.Request);
+            return await _specService.GetSpecificationsSelectedForFunding(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications-selected-for-funding-by-period")]
         [HttpGet]
-        public Task<IActionResult> RunGetSpecificationsSelectedForFundingByPeriod()
+        public async Task<IActionResult> RunGetSpecificationsSelectedForFundingByPeriod()
         {
-            return _specService.GetSpecificationsSelectedForFundingByPeriod(ControllerContext.HttpContext.Request);
+            return await _specService.GetSpecificationsSelectedForFundingByPeriod(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/funding-streams-selected-for-funding-by-specification")]
         [HttpGet]
-        public Task<IActionResult> RunGetFundingStreamsSelectedForFundingBySpecification()
+        public async Task<IActionResult> RunGetFundingStreamsSelectedForFundingBySpecification()
         {
-            return _specService.GetFundingStreamsSelectedForFundingBySpecification(ControllerContext.HttpContext.Request);
+            return await _specService.GetFundingStreamsSelectedForFundingBySpecification(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications-by-year")]
         [HttpGet]
-        public Task<IActionResult> RunSpecificationsByYear()
+        public async Task<IActionResult> RunSpecificationsByYear()
         {
-            return _specService.GetSpecificationsByFundingPeriodId(ControllerContext.HttpContext.Request);
+            return await _specService.GetSpecificationsByFundingPeriodId(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specification-by-name")]
         [HttpGet]
-        public Task<IActionResult> RunSpecificationByName()
+        public async Task<IActionResult> RunSpecificationByName()
         {
-            return _specService.GetSpecificationByName(ControllerContext.HttpContext.Request);
+            return await _specService.GetSpecificationByName(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications")]
         [HttpPost]
-        public Task<IActionResult> RunSpecificationsCommands([FromBody]string value)
+        public async Task<IActionResult> RunSpecificationsCommands([FromBody]string value)
         {
-            return _specService.CreateSpecification(ControllerContext.HttpContext.Request);
+            return await _specService.CreateSpecification(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specification-edit")]
         [HttpPut]
-        public Task<IActionResult> RunEditSpecification([FromBody]string value)
+        public async Task<IActionResult> RunEditSpecification([FromBody]string value)
         {
-            return _specService.EditSpecification(ControllerContext.HttpContext.Request);
+            return await _specService.EditSpecification(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specification-edit-status")]
         [HttpPut]
-        public Task<IActionResult> RunEditSpecificationStatus([FromBody]string value)
+        public async Task<IActionResult> RunEditSpecificationStatus([FromBody]string value)
         {
-            return _specService.EditSpecificationStatus(ControllerContext.HttpContext.Request);
+            return await _specService.EditSpecificationStatus(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/funding-streams")]
         [HttpGet]
-        public Task<IActionResult> RunFundingStreams()
+        public async Task<IActionResult> RunFundingStreams()
         {
-            return _specService.GetFundingStreams(ControllerContext.HttpContext.Request);
+            return await _specService.GetFundingStreams(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/policy-by-name")]
         [HttpPost]
-        public Task<IActionResult> RunPolicyByName()
+        public async Task<IActionResult> RunPolicyByName()
         {
-            return _specService.GetPolicyByName(ControllerContext.HttpContext.Request);
+            return await _specService.GetPolicyByName(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/policies")]
         [HttpPost]
-        public Task<IActionResult> RunCreatePolicy()
+        public async Task<IActionResult> RunCreatePolicy()
         {
-            return _specService.CreatePolicy(ControllerContext.HttpContext.Request);
+            return await _specService.CreatePolicy(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/policies")]
         [HttpPut]
-        public Task<IActionResult> RunEditPolicy()
+        public async Task<IActionResult> RunEditPolicy()
         {
-            return _specService.EditPolicy(ControllerContext.HttpContext.Request);
+            return await _specService.EditPolicy(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/calculation-by-name")]
         [HttpPost]
-        public Task<IActionResult> RunCalculationByName()
+        public async Task<IActionResult> RunCalculationByName()
         {
-            return _specService.GetCalculationByName(ControllerContext.HttpContext.Request);
+            return await _specService.GetCalculationByName(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/calculation-by-id")]
         [HttpGet]
-        public Task<IActionResult> RunCalculationBySpecificationIdAndCalculationId()
+        public async Task<IActionResult> RunCalculationBySpecificationIdAndCalculationId()
         {
-            return _specService.GetCalculationBySpecificationIdAndCalculationId(ControllerContext.HttpContext.Request);
+            return await _specService.GetCalculationBySpecificationIdAndCalculationId(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/calculations-by-specificationid")]
         [HttpGet]
-        public Task<IActionResult> RunCalculationsBySpecificationId()
+        public async Task<IActionResult> RunCalculationsBySpecificationId()
         {
-            return _specService.GetCalculationsBySpecificationId(ControllerContext.HttpContext.Request);
+            return await _specService.GetCalculationsBySpecificationId(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/calculations")]
         [HttpPost]
-        public Task<IActionResult> RunCreateCalculation()
+        public async Task<IActionResult> RunCreateCalculation()
         {
-            return _specService.CreateCalculation(ControllerContext.HttpContext.Request);
+            return await _specService.CreateCalculation(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/calculations")]
         [HttpPut]
-        public Task<IActionResult> RunEditCalculation()
+        public async Task<IActionResult> RunEditCalculation()
         {
-            return _specService.EditCalculation(ControllerContext.HttpContext.Request);
+            return await _specService.EditCalculation(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/get-fundingstreams")]
         [HttpGet]
-        public Task<IActionResult> RunGetFundingStreams()
+        public async Task<IActionResult> RunGetFundingStreams()
         {
-            return _specService.GetFundingStreams(ControllerContext.HttpContext.Request);
+            return await _specService.GetFundingStreams(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/get-fundingstream-by-id")]
         [HttpGet]
-        public Task<IActionResult> RunGetFundingStreamById()
+        public async Task<IActionResult> RunGetFundingStreamById()
         {
-            return _specService.GetFundingStreamById(ControllerContext.HttpContext.Request);
+            return await _specService.GetFundingStreamById(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/get-fundingstreams-for-specification")]
         [HttpGet]
-        public Task<IActionResult> RunGetFundingStreamsForSpecificationById()
+        public async Task<IActionResult> RunGetFundingStreamsForSpecificationById()
         {
-            return _specService.GetFundingStreamsForSpecificationById(ControllerContext.HttpContext.Request);
+            return await _specService.GetFundingStreamsForSpecificationById(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/reindex")]
         [HttpGet]
-        public Task<IActionResult> ReIndex()
+        public async Task<IActionResult> ReIndex()
         {
-            return _specService.ReIndex();
+            return await _specService.ReIndex();
         }
 
         [Route("api/specs/specifications-dataset-relationships-search")]
         [HttpPost]
-        public Task<IActionResult> RunSearchSpecificationsDatasetRelationships()
+        public async Task<IActionResult> RunSearchSpecificationsDatasetRelationships()
         {
-            return _specSearchService.SearchSpecificationDatasetRelationships(ControllerContext.HttpContext.Request);
+            return await _specSearchService.SearchSpecificationDatasetRelationships(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications-search")]
         [HttpPost]
-        public Task<IActionResult> RunSearchSpecifications()
+        public async Task<IActionResult> RunSearchSpecifications()
         {
-            return _specSearchService.SearchSpecifications(ControllerContext.HttpContext.Request);
+            return await _specSearchService.SearchSpecifications(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/save-fundingstream")]
         [HttpPost]
-        public Task<IActionResult> RunSaveFundingStreamn()
+        public async Task<IActionResult> RunSaveFundingStreamn()
         {
-            return _specService.SaveFundingStream(ControllerContext.HttpContext.Request);
+            return await _specService.SaveFundingStream(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/get-fundingperiods")]
         [HttpGet]
-        public Task<IActionResult> RunGetFundingPeriods()
+        public async Task<IActionResult> RunGetFundingPeriods()
         {
-            return _specService.GetFundingPeriods(ControllerContext.HttpContext.Request);
+            return await _specService.GetFundingPeriods(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/get-fundingperiod-by-id")]
         [HttpGet]
-        public Task<IActionResult> RunGetFundingPeriodById()
+        public async Task<IActionResult> RunGetFundingPeriodById()
         {
-            return _specService.GetFundingPeriodById(ControllerContext.HttpContext.Request);
+            return await _specService.GetFundingPeriodById(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/save-fundingperiods")]
         [HttpPost]
-        public Task<IActionResult> RunSaveFundingPeriods()
+        public async Task<IActionResult> RunSaveFundingPeriods()
         {
-            return _specService.SaveFundingPeriods(ControllerContext.HttpContext.Request);
+            return await _specService.SaveFundingPeriods(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications-by-fundingperiod-and-fundingstream")]
         [HttpGet]
-        public Task<IActionResult> RunGetSpecificationsByFundingPeriodIdAndFundingStreamId()
+        public async Task<IActionResult> RunGetSpecificationsByFundingPeriodIdAndFundingStreamId()
         {
-            return _specService.GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(ControllerContext.HttpContext.Request);
+            return await _specService.GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/select-for-funding")]
         [HttpPost]
-        public Task<IActionResult> RunSelectSpecificationForFunding()
+        public async Task<IActionResult> RunSelectSpecificationForFunding()
         {
-            return _specService.SelectSpecificationForFunding(ControllerContext.HttpContext.Request);
+            return await _specService.SelectSpecificationForFunding(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/check-publish-result-status")]
         [HttpPost]
-        public Task<IActionResult> RunCheckPublishResultStatus()
+        public async Task<IActionResult> RunCheckPublishResultStatus()
         {
-            return _specService.CheckPublishResultStatus(ControllerContext.HttpContext.Request);
+            return await _specService.CheckPublishResultStatus(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/refresh-published-results")]
         [HttpPost]
-        public Task<IActionResult> RunRefreshPublishedResults()
+        public async Task<IActionResult> RunRefreshPublishedResults()
         {
-            return _specService.RefreshPublishedResults(ControllerContext.HttpContext.Request);
+            return await _specService.RefreshPublishedResults(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/specs/update-published-refreshed-date")]
+        [HttpPost]
+        public async Task<IActionResult> RunUpdatePublishedRefreshedDate()
+        {
+            return await _specService.UpdatePublishedRefreshedDate(ControllerContext.HttpContext.Request);
         }
     }
 }

@@ -75,5 +75,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> GetFundingPeriodById(HttpRequest request);
 
         Task<IActionResult> CheckPublishResultStatus(HttpRequest request);
+
+        Task<IActionResult> UpdatePublishedRefreshedDate(HttpRequest request);
     }
 }

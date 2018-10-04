@@ -615,7 +615,19 @@ namespace CalculateFunding.Services.Results
                 }
             }
 
-            UpdateCacheForSegmentDone(specificationId, 100, CalculationProgressStatus.Finished);
+            // Update the specification to store when this refresh happened
+            DateTimeOffset publishedResultsRefreshedAt = DateTimeOffset.Now;
+            HttpStatusCode updatePublishedRefreshedDateStatus = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.UpdatePublishedRefreshedDate(specification.Id, publishedResultsRefreshedAt));
+            if (updatePublishedRefreshedDateStatus.IsSuccess())
+            {
+                _logger.Information($"Updated the published refresh date on the specification with id: {specificationId}");
+            }
+            else
+            {
+                _logger.Error($"Failed to update the published refresh date on the specification with id: {specificationId}. Failed with code: {updatePublishedRefreshedDateStatus}");
+            }
+
+            UpdateCacheForSegmentDone(specificationId, 100, CalculationProgressStatus.Finished, publishedResultsRefreshedAt: publishedResultsRefreshedAt);
 
             IDictionary<string, double> metrics = new Dictionary<string, double>()
                     {
@@ -1694,11 +1706,12 @@ namespace CalculateFunding.Services.Results
             return calculationSummaries;
         }
 
-        private void UpdateCacheForSegmentDone(string specificationId, int percentageToSetTo, CalculationProgressStatus progressStatus, string message = null)
+        private void UpdateCacheForSegmentDone(string specificationId, int percentageToSetTo, CalculationProgressStatus progressStatus, string message = null, DateTimeOffset? publishedResultsRefreshedAt = null)
         {
             SpecificationCalculationExecutionStatus calculationProgress = new SpecificationCalculationExecutionStatus(specificationId, percentageToSetTo, progressStatus)
             {
-                ErrorMessage = message
+                ErrorMessage = message,
+                PublishedResultsRefreshedAt = publishedResultsRefreshedAt
             };
             CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{calculationProgress.SpecificationId}", calculationProgress, _cacheProvider);
         }
