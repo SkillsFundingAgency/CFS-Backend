@@ -25,9 +25,17 @@ namespace CalculateFunding.Models.Search
             get
             {
                 if (TotalCount <= Top)
+                {
                     return 1;
+                }
 
-                return TotalCount / Top;
+                int pages = TotalCount / Top;
+
+                if ((TotalCount % Top) > 0) {
+                    return pages + 1;
+                }
+
+                return pages;
             }
         }
 
