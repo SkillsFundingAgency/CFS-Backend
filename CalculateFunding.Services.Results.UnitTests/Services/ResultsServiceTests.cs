@@ -1505,6 +1505,7 @@ namespace CalculateFunding.Services.Results.Services
                                 Version = 1,
                                 Date = DateTimeOffset.Now,
                                 PublishedProviderResultId = "res1",
+                                ProviderId = "1111",
                                 Provider = new ProviderSummary
                                 {
                                     URN = "12345",
@@ -1559,6 +1560,7 @@ namespace CalculateFunding.Services.Results.Services
                                 Version = 1,
                                 Date = DateTimeOffset.Now,
                                 PublishedProviderResultId = "res2",
+                                ProviderId = "1111",
                                 Provider = new ProviderSummary
                                 {
                                     URN = "12345",
@@ -1613,6 +1615,7 @@ namespace CalculateFunding.Services.Results.Services
                                 Version = 1,
                                 Date = DateTimeOffset.Now,
                                 PublishedProviderResultId = "res3",
+                                ProviderId = "1111",
                                 Provider = new ProviderSummary
                                 {
                                     URN = "12345",

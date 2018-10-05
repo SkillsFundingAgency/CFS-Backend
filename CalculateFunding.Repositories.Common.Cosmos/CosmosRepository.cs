@@ -177,6 +177,22 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return query;
         }
 
+        public IQueryable<dynamic> DynamicQueryPartionedEntity<dynamic>(string sql, string partitionEntityId = null)
+        {
+            // Set some common query options
+            var queryOptions = new FeedOptions
+            {
+                EnableCrossPartitionQuery = false,
+                PartitionKey = new PartitionKey(partitionEntityId),
+                MaxDegreeOfParallelism = 50,
+                MaxBufferedItemCount = 100,
+            };
+
+            var query = _documentClient.CreateDocumentQuery<dynamic>(_collectionUri, sql, queryOptions);
+
+            return query;
+        }
+
         public async Task<IEnumerable<dynamic>> QueryDynamic<dynamic>(string sql, bool enableCrossPartitionQuery = false, int itemsPerPage = 1000)
         {
             // Set some common query options

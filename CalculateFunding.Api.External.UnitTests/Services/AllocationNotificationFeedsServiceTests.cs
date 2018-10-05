@@ -531,7 +531,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             atomFeed.Link.First(m => m.Rel == "last").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=36");
             atomFeed.Link.First(m => m.Rel == "previous").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=1");
             atomFeed.Link.First(m => m.Rel == "next").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=2");
-        }
+        }     
 
         [TestMethod]
         public async Task GetNotifications_GivenAcceptHeaderNotSupplied_ReturnsBadRequest()

@@ -196,7 +196,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(Task.CompletedTask);
 
             IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
-            versionRepository.SaveVersions(Arg.Any<IEnumerable<PublishedAllocationLineResultVersion>>())
+            versionRepository.SaveVersions(Arg.Any<IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>>>())
                 .Returns(ex => { throw new Exception("Error saving published results version history"); });
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
@@ -407,7 +407,7 @@ namespace CalculateFunding.Services.Results.Services
             await
                 calcsVersionRepository
                 .Received(1)
-                .SaveVersions(Arg.Is<IEnumerable<PublishedProviderCalculationResultVersion>>(m => m.Count() == 1));
+                .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string,PublishedProviderCalculationResultVersion>>>(m => m.Count() == 1));
         }
 
         [TestMethod]
@@ -593,18 +593,19 @@ namespace CalculateFunding.Services.Results.Services
             await
                 calcsVersionRepository
                 .Received(1)
-                .SaveVersions(Arg.Is<IEnumerable<PublishedProviderCalculationResultVersion>>(
+                .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedProviderCalculationResultVersion>>>(
                     m => m.Count() == 1 &&
-                    m.First().Id == $"{resultId}_version_1" &&
-                    m.First().ProviderId == providerId &&
-                    m.First().CalculationnResultId == resultId &&
-                    m.First().Author.Id == "author-1" &&
-                    m.First().Author.Name == "author1" &&
-                    m.First().Commment == "comment" &&
-                    m.First().Date.Date == DateTimeOffset.Now.Date &&
-                    m.First().Value == 100 &&
-                    m.First().Version == 1 &&
-                    m.First().Provider.Id == providerId));
+                    m.First().Key == providerId &&
+                    m.First().Value.Id == $"{resultId}_version_1" &&
+                    m.First().Value.ProviderId == providerId &&
+                    m.First().Value.CalculationnResultId == resultId &&
+                    m.First().Value.Author.Id == "author-1" &&
+                    m.First().Value.Author.Name == "author1" &&
+                    m.First().Value.Commment == "comment" &&
+                    m.First().Value.Date.Date == DateTimeOffset.Now.Date &&
+                    m.First().Value.Value == 100 &&
+                    m.First().Value.Version == 1 &&
+                    m.First().Value.Provider.Id == providerId));
         }
 
         [TestMethod]
@@ -713,18 +714,19 @@ namespace CalculateFunding.Services.Results.Services
             await
                 calcsVersionRepository
                 .Received(1)
-                .SaveVersions(Arg.Is<IEnumerable<PublishedProviderCalculationResultVersion>>(
+                .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string,PublishedProviderCalculationResultVersion>>>(
                     m => m.Count() == 1 &&
-                    m.First().Id == $"{resultId}_version_1" &&
-                    m.First().ProviderId == "prov-1" &&
-                    m.First().CalculationnResultId == resultId &&
-                    m.First().Author.Id == "author-1" &&
-                    m.First().Author.Name == "author1" &&
-                    m.First().Commment == "comment" &&
-                    m.First().Date.Date == DateTimeOffset.Now.Date &&
-                    m.First().Value == 100 &&
-                    m.First().Version == 1 &&
-                    m.First().Provider.Id == "prov-1"));
+                    m.First().Key == "prov-1" &&
+                    m.First().Value.Id == $"{resultId}_version_1" &&
+                    m.First().Value.ProviderId == "prov-1" &&
+                    m.First().Value.CalculationnResultId == resultId &&
+                    m.First().Value.Author.Id == "author-1" &&
+                    m.First().Value.Author.Name == "author1" &&
+                    m.First().Value.Commment == "comment" &&
+                    m.First().Value.Date.Date == DateTimeOffset.Now.Date &&
+                    m.First().Value.Value == 100 &&
+                    m.First().Value.Version == 1 &&
+                    m.First().Value.Provider.Id == "prov-1"));
         }
 
         [TestMethod]
@@ -851,15 +853,16 @@ namespace CalculateFunding.Services.Results.Services
             await
                 calcsVersionRepository
                 .Received(1)
-                .SaveVersions(Arg.Is<IEnumerable<PublishedProviderCalculationResultVersion>>(
+                .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedProviderCalculationResultVersion>>>(
                     m => m.Count() == 1 &&
-                    m.First().Author.Id == "author-2" &&
-                    m.First().Author.Name == "author2" &&
-                    m.First().Commment == "comment" &&
-                    m.First().Date.Date == DateTimeOffset.Now.Date &&
-                    m.First().Value == 200 &&
-                    m.First().Version == 2 &&
-                    m.First().Provider.Id == providerId));
+                    m.First().Key == providerId &&
+                    m.First().Value.Author.Id == "author-2" &&
+                    m.First().Value.Author.Name == "author2" &&
+                    m.First().Value.Commment == "comment" &&
+                    m.First().Value.Date.Date == DateTimeOffset.Now.Date &&
+                    m.First().Value.Value == 200 &&
+                    m.First().Value.Version == 2 &&
+                    m.First().Value.Provider.Id == providerId));
         }
 
         [TestMethod]

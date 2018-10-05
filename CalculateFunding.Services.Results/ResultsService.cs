@@ -325,7 +325,7 @@ namespace CalculateFunding.Services.Results
             if (version.HasValue && version.Value != publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Version)
             {
 
-                PublishedAllocationLineResultVersion resultVersion = await _publishedProviderResultsVersionRepository.GetVersion(allocationResultId, version.Value);
+                PublishedAllocationLineResultVersion resultVersion = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.GetVersion(allocationResultId, version.Value));
 
                 if (resultVersion == null)
                 {
@@ -349,9 +349,11 @@ namespace CalculateFunding.Services.Results
                 return null;
             }
 
-            IEnumerable<PublishedAllocationLineResultVersion> history = await _publishedProviderResultsVersionRepository.GetVersions(allocationResultId);
+            string query = $"select c from c where c.documentType = 'PublishedAllocationLineResultVersion' and c.deleted = false and c.content.entityId = '{allocationResultId}'";
 
-            if (history == null)
+            IEnumerable<PublishedAllocationLineResultVersion> history = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.GetVersions(query, publishedProviderResult.ProviderId));
+
+            if (history.IsNullOrEmpty())
             {
                 return null;
             }
@@ -525,7 +527,7 @@ namespace CalculateFunding.Services.Results
             assemblePublishedCalculationResults.Stop();
 
             Stopwatch publishedProviderCalculationResultsStopwatch = Stopwatch.StartNew();
-            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = _publishedProviderResultsAssemblerService.GeneratePublishedProviderCalculationResultsToSave(publishedProviderCalcuationResults, existingPublishedProviderCalculationResults);
+            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = await _publishedProviderCalculationResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsAssemblerService.GeneratePublishedProviderCalculationResultsToSave(publishedProviderCalcuationResults, existingPublishedProviderCalculationResults));
             publishedProviderCalculationResultsStopwatch.Stop();
 
             UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
@@ -564,7 +566,7 @@ namespace CalculateFunding.Services.Results
             List<PublishedProviderResult> publishedProviderResultsToSave = new List<PublishedProviderResult>();
 
             Stopwatch assembleSaveAndExcludeStopwatch = Stopwatch.StartNew();
-            (IEnumerable<PublishedProviderResult> newOrUpdatedPublishedProviderResults, IEnumerable<PublishedProviderResultExisting> existingRecordsToZero) = _publishedProviderResultsAssemblerService.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingPublishedProviderResults);
+            (IEnumerable<PublishedProviderResult> newOrUpdatedPublishedProviderResults, IEnumerable<PublishedProviderResultExisting> existingRecordsToZero) = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsAssemblerService.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingPublishedProviderResults));
             assembleSaveAndExcludeStopwatch.Stop();
 
             if (newOrUpdatedPublishedProviderResults.AnyWithNullCheck())
@@ -693,6 +695,8 @@ namespace CalculateFunding.Services.Results
                                 {
                                     existingResult.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Updated;
                                 }
+
+                                existingResult.FundingStreamResult.AllocationLineResult.Current.Version = await _publishedProviderResultsVersionRepository.GetNextVersionNumber(existingResult.FundingStreamResult.AllocationLineResult.Current, existingResult.ProviderId);
 
                                 results.Add(existingResult);
                             }
@@ -1297,7 +1301,9 @@ namespace CalculateFunding.Services.Results
                 {
                     await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(resultsToUpdate));
 
-                    await _publishedProviderResultsVersionRepository.SaveVersions(historyToSave);
+                    IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>> history = historyToSave.Select(m => new KeyValuePair<string, PublishedAllocationLineResultVersion>(m.ProviderId, m));
+                   
+                    await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.SaveVersions(history));
 
                     await UpdateAllocationNotificationsFeedIndex(resultsToUpdate, specification);
                 }
@@ -1493,7 +1499,9 @@ namespace CalculateFunding.Services.Results
 
             if(historyResultsToSave.Any())
             {
-                await _publishedProviderResultsVersionRepository.SaveVersions(historyResultsToSave);
+                IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>> history = historyResultsToSave.Select(m => new KeyValuePair<string, PublishedAllocationLineResultVersion>(m.ProviderId, m));
+
+                await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.SaveVersions(history));
             }
         }
 
@@ -1511,7 +1519,9 @@ namespace CalculateFunding.Services.Results
 
             if (!historyResultsToSave.IsNullOrEmpty())
             {
-                await _publishedProviderCalcResultsVersionRepository.SaveVersions(historyResultsToSave);
+                IEnumerable<KeyValuePair<string, PublishedProviderCalculationResultVersion>> history = historyResultsToSave.Select(m => new KeyValuePair<string, PublishedProviderCalculationResultVersion>(m.ProviderId, m));
+
+                await _publishedProviderCalculationResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderCalcResultsVersionRepository.SaveVersions(history));
             }
         }
 

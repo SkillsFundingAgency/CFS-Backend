@@ -29,13 +29,9 @@ namespace CalculateFunding.Models.Search
                     return 1;
                 }
 
-                int pages = TotalCount / Top;
+                double pages = ((double)TotalCount / (double)Top);
 
-                if ((TotalCount % Top) > 0) {
-                    return pages + 1;
-                }
-
-                return pages;
+                return (int)Math.Ceiling(pages);
             }
         }
 

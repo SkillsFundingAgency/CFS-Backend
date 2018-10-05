@@ -446,9 +446,9 @@ namespace CalculateFunding.Services.Results.Services
                .Be(1);
 
             await
-                versionRepository
-                    .Received(1)
-                    .SaveVersions(Arg.Is<IEnumerable<PublishedAllocationLineResultVersion>>(m => m.First() == newVersion));
+               versionRepository
+                   .Received(1)
+                   .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>>>(m => m.First().Key == newVersion.ProviderId && m.First().Value.Version == 2));
         }
 
         [TestMethod]
@@ -737,7 +737,7 @@ namespace CalculateFunding.Services.Results.Services
             await
                 versionRepository
                     .Received(1)
-                    .SaveVersions(Arg.Is<IEnumerable<PublishedAllocationLineResultVersion>>(m => m.Count() == 1 && m.First() == newVersion));
+                    .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string,PublishedAllocationLineResultVersion>>>(m => m.Count() == 1 && m.First().Key == newVersion.ProviderId && m.First().Value == newVersion));
         }
 
         [TestMethod]
@@ -862,9 +862,9 @@ namespace CalculateFunding.Services.Results.Services
                .Be(3);
 
             await
-                versionRepository
-                    .Received(1)
-                    .SaveVersions(Arg.Is<IEnumerable<PublishedAllocationLineResultVersion>>(m => m.Count() == 3));
+               versionRepository
+                   .Received(1)
+                   .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>>>(m => m.Count() == 3));
         }
 
         [TestMethod]
@@ -987,9 +987,9 @@ namespace CalculateFunding.Services.Results.Services
                .Be(3);
 
             await
-                versionRepository
-                    .Received(1)
-                    .SaveVersions(Arg.Is<IEnumerable<PublishedAllocationLineResultVersion>>(m => m.Count() == 3));
+               versionRepository
+                   .Received(1)
+                   .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>>>(m => m.Count() == 3));
         }
 
         [TestMethod]

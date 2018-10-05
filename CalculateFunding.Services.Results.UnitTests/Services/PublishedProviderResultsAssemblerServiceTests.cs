@@ -1431,7 +1431,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void GeneratePublishedProviderResultsToSave_WhenNoResultsGenerated_ThenNoResultsReturned()
+        public async Task GeneratePublishedProviderResultsToSave_WhenNoResultsGenerated_ThenNoResultsReturned()
         {
             // Arrange
             PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
@@ -1441,7 +1441,7 @@ namespace CalculateFunding.Services.Results.Services
 
 
             // Act
-            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
+            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = await assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
 
             // Assert
             resultsToSave
@@ -1454,7 +1454,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void GeneratePublishedProviderResultsToSave_WhenNoExistingResultsExistAndResultsProvided_ThenResultsReturnedToSave()
+        public async Task GeneratePublishedProviderResultsToSave_WhenNoExistingResultsExistAndResultsProvided_ThenResultsReturnedToSave()
         {
             // Arrange
             PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
@@ -1508,7 +1508,7 @@ namespace CalculateFunding.Services.Results.Services
 
 
             // Act
-            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
+            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = await assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
 
             // Assert
             resultsToSave
@@ -1525,7 +1525,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void GeneratePublishedProviderResultsToSave_WhenExistingResultsExistAndMatchCurrentValuesAndResultsProvided_ThenNoResultsReturnedToSaveOrExclude()
+        public async Task GeneratePublishedProviderResultsToSave_WhenExistingResultsExistAndMatchCurrentValuesAndResultsProvided_ThenNoResultsReturnedToSaveOrExclude()
         {
             // Arrange
             PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
@@ -1592,7 +1592,7 @@ namespace CalculateFunding.Services.Results.Services
 
 
             // Act
-            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
+            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = await assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
 
             // Assert
             resultsToSave
@@ -1605,7 +1605,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void GeneratePublishedProviderResultsToSave_WhenExistingResultsExistAndOneResultsShouldBeUpdatedDueToValueChange_ThenResultsReturnedToSaveAndNoneExcluded()
+        public async Task GeneratePublishedProviderResultsToSave_WhenExistingResultsExistAndOneResultsShouldBeUpdatedDueToValueChange_ThenResultsReturnedToSaveAndNoneExcluded()
         {
             // Arrange
             IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = CreateAllocationResultsVersionRepository();
@@ -1673,11 +1673,11 @@ namespace CalculateFunding.Services.Results.Services
             });
 
             allocationResultsVersionRepository
-                .GetNextVersionNumber(Arg.Is(publishedProviderResults.ElementAt(1).FundingStreamResult.AllocationLineResult.Current))
+                .GetNextVersionNumber(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<string>())
                 .Returns(2);
 
             // Act
-            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
+            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = await assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
 
             // Assert
             resultsToSave
@@ -1699,7 +1699,106 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void GeneratePublishedProviderResultsToSave_WhenExistingResultsExistAndOneExistingResultHasNoCurrentVersion_ThenNoResultsReturnedToSaveAndOneExcluded()
+        public async Task GeneratePublishedProviderResultsToSave_WhenExistingResultsExistAndOneResultsShouldBeUpdatedDueToValueChangeAndIsCurrenntlyApproved_ThenResultsReturnedToSaveAndNoneExcludedAndStatusIsUpdated()
+        {
+            // Arrange
+            IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = CreateAllocationResultsVersionRepository();
+
+            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService(allocationResultsVersionRepository: allocationResultsVersionRepository);
+
+            AllocationLine allocationLine1 = new AllocationLine()
+            {
+                Id = "AAAAA",
+                Name = "Allocation Line 1"
+            };
+
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
+            publishedProviderResults
+                .Add(new PublishedProviderResult()
+                {
+                    ProviderId = "1",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = allocationLine1,
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 123,
+                            }
+                        }
+                    }
+                });
+
+            publishedProviderResults
+               .Add(new PublishedProviderResult()
+               {
+                   ProviderId = "2",
+                   FundingStreamResult = new PublishedFundingStreamResult()
+                   {
+                       AllocationLineResult = new PublishedAllocationLineResult()
+                       {
+                           AllocationLine = allocationLine1,
+                           Current = new PublishedAllocationLineResultVersion()
+                           {
+                               Status = AllocationLineStatus.Approved,
+                               Value = 789,
+                           }
+                       }
+                   }
+               });
+
+            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
+            existingResults.Add(new PublishedProviderResultExisting()
+            {
+                AllocationLineId = allocationLine1.Id,
+                ProviderId = "1",
+                Status = AllocationLineStatus.Held,
+                Value = 123,
+            });
+
+            existingResults.Add(new PublishedProviderResultExisting()
+            {
+                AllocationLineId = allocationLine1.Id,
+                ProviderId = "2",
+                Status = AllocationLineStatus.Approved,
+                Value = 456,
+            });
+
+            allocationResultsVersionRepository
+                .GetNextVersionNumber(Arg.Is(publishedProviderResults.ElementAt(1).FundingStreamResult.AllocationLineResult.Current), Arg.Is("2"))
+                .Returns(2);
+
+            // Act
+            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = await assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
+
+            // Assert
+            resultsToSave
+                .Should()
+                .HaveCount(1);
+
+            resultsToSave
+                .Should()
+                .BeEquivalentTo(new List<PublishedProviderResult>() { publishedProviderResults[1] });
+
+            resultsToExclude
+                .Should()
+                .BeEmpty();
+
+            publishedProviderResults.ElementAt(1).FundingStreamResult.AllocationLineResult.Current
+                .Version
+                .Should()
+                .Be(2);
+
+            publishedProviderResults.ElementAt(1).FundingStreamResult.AllocationLineResult.Current
+                .Status
+                .Should()
+                .Be(AllocationLineStatus.Updated);
+        }
+
+        [TestMethod]
+        public async Task GeneratePublishedProviderResultsToSave_WhenExistingResultsExistAndOneExistingResultHasNoCurrentVersion_ThenNoResultsReturnedToSaveAndOneExcluded()
         {
             // Arrange
             IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = CreateAllocationResultsVersionRepository();
@@ -1749,7 +1848,7 @@ namespace CalculateFunding.Services.Results.Services
             });
 
             // Act
-            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
+            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = await assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
 
             // Assert
             resultsToSave
@@ -1764,13 +1863,14 @@ namespace CalculateFunding.Services.Results.Services
                 .Should()
                 .BeEquivalentTo(new List<PublishedProviderResultExisting>() { existingResults[1] });
 
+            await
             allocationResultsVersionRepository
                 .DidNotReceive()
                 .GetNextVersionNumber(Arg.Any<PublishedAllocationLineResultVersion>());
         }
 
         [TestMethod]
-        public void GeneratePublishedProviderResultsToSave_WhenExistingResultsExistWithMultipeAllocationLinesAndHasSavesAndAdded_ThenResultsReturnedToSaveAndNoneExcluded()
+        public async Task GeneratePublishedProviderResultsToSave_WhenExistingResultsExistWithMultipeAllocationLinesAndHasSavesAndAdded_ThenResultsReturnedToSaveAndNoneExcluded()
         {
             // Arrange
             IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = CreateAllocationResultsVersionRepository();
@@ -1887,7 +1987,7 @@ namespace CalculateFunding.Services.Results.Services
             });
 
             // Act
-            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
+            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = await assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
 
             // Assert
             resultsToSave
@@ -1907,13 +2007,14 @@ namespace CalculateFunding.Services.Results.Services
                     publishedProviderResults[3],
                 });
 
-            allocationResultsVersionRepository
-                .Received(1)
-                .GetNextVersionNumber(Arg.Any<PublishedAllocationLineResultVersion>());
+            await
+                allocationResultsVersionRepository
+                    .Received(1)
+                    .GetNextVersionNumber(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<string>());
         }
 
         [TestMethod]
-        public void GeneratePublishedProviderCalculationResultsToSave_WhenNoExistingResultsExistAndResultsProvided_ThenResultsReturnedToSaveAsVersion1()
+        public async Task GeneratePublishedProviderCalculationResultsToSave_WhenNoExistingResultsExistAndResultsProvided_ThenResultsReturnedToSaveAsVersion1()
         {
             // Arrange
             PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
@@ -1923,21 +2024,25 @@ namespace CalculateFunding.Services.Results.Services
                 .Add(new PublishedProviderCalculationResult()
                 {
                     ProviderId = "1",
-                    Current = new PublishedProviderCalculationResultVersion()
+                    Current = new PublishedProviderCalculationResultVersion(),
+                    Specification = new Reference {  Id = "spec-1" },
+                    CalculationSpecification = new Reference {  Id = "calc-1" }
                 });
 
             publishedProviderCalcResults
                .Add(new PublishedProviderCalculationResult()
                {
                    ProviderId = "2",
-                   Current = new PublishedProviderCalculationResultVersion()
+                   Current = new PublishedProviderCalculationResultVersion(),
+                   Specification = new Reference { Id = "spec-1" },
+                   CalculationSpecification = new Reference { Id = "calc-1" }
                });
 
             List<PublishedProviderCalculationResultExisting> existingResults = new List<PublishedProviderCalculationResultExisting>();
 
 
             // Act
-            IEnumerable<PublishedProviderCalculationResult> resultsToSave  = assembler.GeneratePublishedProviderCalculationResultsToSave(publishedProviderCalcResults, existingResults);
+            IEnumerable<PublishedProviderCalculationResult> resultsToSave  = await assembler.GeneratePublishedProviderCalculationResultsToSave(publishedProviderCalcResults, existingResults);
 
             // Assert
             resultsToSave
@@ -1964,7 +2069,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void GeneratePublishedProviderCalculationResultsToSave_WhenExistingResultsExistAndMatchCurrentValuesAndResultsProvided_ThenNoResultsReturnedToSave()
+        public async Task GeneratePublishedProviderCalculationResultsToSave_WhenExistingResultsExistAndMatchCurrentValuesAndResultsProvided_ThenNoResultsReturnedToSave()
         {
             // Arrange
             PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
@@ -2024,7 +2129,7 @@ namespace CalculateFunding.Services.Results.Services
             });
 
             // Act
-            IEnumerable<PublishedProviderCalculationResult> resultsToSave = assembler.GeneratePublishedProviderCalculationResultsToSave(publishedProviderCalculationResults, existingResults);
+            IEnumerable<PublishedProviderCalculationResult> resultsToSave = await assembler.GeneratePublishedProviderCalculationResultsToSave(publishedProviderCalculationResults, existingResults);
 
             // Assert
             resultsToSave
@@ -2033,7 +2138,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void GeneratePublishedProviderCalculationResultsToSave_WhenExistingResultsExistAndOneMatchesCurrentValuesAndResultsProvided_ThenOneResultReturnedToSave()
+        public async Task GeneratePublishedProviderCalculationResultsToSave_WhenExistingResultsExistAndOneMatchesCurrentValuesAndResultsProvided_ThenOneResultReturnedToSave()
         {
             // Arrange
             IVersionRepository<PublishedProviderCalculationResultVersion> versionRepository = CreateCalculationResultsVersionRepository();
@@ -2080,7 +2185,7 @@ namespace CalculateFunding.Services.Results.Services
                });
 
             versionRepository
-                .GetNextVersionNumber(Arg.Is(publishedProviderCalculationResults.ElementAt(1).Current))
+                .GetNextVersionNumber(Arg.Is(publishedProviderCalculationResults.ElementAt(1).Current), Arg.Is("2"))
                 .Returns(2);
 
             List<PublishedProviderCalculationResultExisting> existingResults = new List<PublishedProviderCalculationResultExisting>();
@@ -2099,7 +2204,7 @@ namespace CalculateFunding.Services.Results.Services
             });
 
             // Act
-            IEnumerable<PublishedProviderCalculationResult> resultsToSave = assembler.GeneratePublishedProviderCalculationResultsToSave(publishedProviderCalculationResults, existingResults);
+            IEnumerable<PublishedProviderCalculationResult> resultsToSave = await assembler.GeneratePublishedProviderCalculationResultsToSave(publishedProviderCalculationResults, existingResults);
 
             // Assert
             resultsToSave
@@ -2115,7 +2220,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void GeneratePublishedProviderCalculationResultsToSave_WhenExistingResultsExistAndNoneMatchesCurrentValuesAndResultsProvided_ThenResultReturnedToSave()
+        public async Task GeneratePublishedProviderCalculationResultsToSave_WhenExistingResultsExistAndNoneMatchesCurrentValuesAndResultsProvided_ThenResultReturnedToSave()
         {
             // Arrange
             IVersionRepository<PublishedProviderCalculationResultVersion> versionRepository = CreateCalculationResultsVersionRepository();
@@ -2162,7 +2267,7 @@ namespace CalculateFunding.Services.Results.Services
                });
 
             versionRepository
-                .GetNextVersionNumber(Arg.Any<PublishedProviderCalculationResultVersion>())
+                .GetNextVersionNumber(Arg.Any<PublishedProviderCalculationResultVersion>(), Arg.Any<string>())
                 .Returns(2);
 
             List<PublishedProviderCalculationResultExisting> existingResults = new List<PublishedProviderCalculationResultExisting>();
@@ -2181,7 +2286,7 @@ namespace CalculateFunding.Services.Results.Services
             });
 
             // Act
-            IEnumerable<PublishedProviderCalculationResult> resultsToSave = assembler.GeneratePublishedProviderCalculationResultsToSave(publishedProviderCalculationResults, existingResults);
+            IEnumerable<PublishedProviderCalculationResult> resultsToSave = await assembler.GeneratePublishedProviderCalculationResultsToSave(publishedProviderCalculationResults, existingResults);
 
             // Assert
             resultsToSave
