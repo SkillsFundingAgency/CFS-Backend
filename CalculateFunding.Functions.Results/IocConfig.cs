@@ -140,8 +140,18 @@ namespace CalculateFunding.Functions.Results
             builder
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
-            builder
-              .AddSingleton<IProviderProfilingRepository, ProviderProfilingRepository>();
+            bool enableMockProvider = config.GetValue<bool>("FeatureToggles:EnableMockProfilingApi");
+
+            if (enableMockProvider)
+            {
+                builder
+                    .AddSingleton<IProviderProfilingRepository, MockProviderProfilingRepository>();
+            }
+            else
+            {
+                builder
+                    .AddSingleton<IProviderProfilingRepository, ProviderProfilingRepository>();
+            }
 
             builder.AddSingleton<IVersionRepository<PublishedAllocationLineResultVersion>, VersionRepository<PublishedAllocationLineResultVersion>>((ctx) =>
             {

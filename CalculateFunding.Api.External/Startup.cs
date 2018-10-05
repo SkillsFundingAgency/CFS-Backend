@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using AutoMapper;
 using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.External.MappingProfiles;
@@ -229,10 +230,20 @@ namespace CalculateFunding.Api.External
             builder
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
-            builder
-              .AddSingleton<IProviderProfilingRepository, ProviderProfilingRepository>();
+            bool enableMockProvider = Configuration.GetValue<bool>("FeatureToggles:EnableMockProfilingApi");
 
-	        builder.AddSingleton<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>(
+            if (enableMockProvider)
+            {
+                builder
+                    .AddSingleton<IProviderProfilingRepository, MockProviderProfilingRepository>();
+            }
+            else
+            {
+                builder
+                    .AddSingleton<IProviderProfilingRepository, ProviderProfilingRepository>();
+            }
+
+            builder.AddSingleton<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>(
 		        ctx =>
 		        {
 			        CosmosDbSettings specRepoDbSettings = new CosmosDbSettings();
