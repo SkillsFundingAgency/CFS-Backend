@@ -41,7 +41,9 @@ namespace CalculateFunding.Services.Results.Services
             //Arrange
             string allocationResultId = "12345";
 
-            PublishedProviderResult publishedProviderResult = new PublishedProviderResult();
+            string query = $"select c from c where c.documentType = 'PublishedAllocationLineResultVersion' and c.deleted = false and c.content.entityId = '{allocationResultId}'";
+
+            PublishedProviderResult publishedProviderResult = new PublishedProviderResult { ProviderId = "1111" };
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             publishedProviderResultsRepository
@@ -50,8 +52,8 @@ namespace CalculateFunding.Services.Results.Services
 
             IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
             versionRepository
-                .GetVersions(Arg.Is(allocationResultId))
-                .Returns((IEnumerable<PublishedAllocationLineResultVersion>)null);
+                .GetVersions(Arg.Is(query), Arg.Is("1111"))
+                .Returns((IEnumerable<PublishedAllocationLineResultVersion>) null);
 
             ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository, publishedProviderResultsVersionRepository: versionRepository);
 
@@ -70,8 +72,11 @@ namespace CalculateFunding.Services.Results.Services
             //Arrange
             string allocationResultId = "12345";
 
+            string query = $"select c from c where c.documentType = 'PublishedAllocationLineResultVersion' and c.deleted = false and c.content.entityId = '{allocationResultId}'";
+
             PublishedProviderResult publishedProviderResult = new PublishedProviderResult
             {
+                ProviderId = "1111",
                 FundingStreamResult = new PublishedFundingStreamResult
                 {
                     AllocationLineResult = new PublishedAllocationLineResult { }
@@ -81,8 +86,8 @@ namespace CalculateFunding.Services.Results.Services
             IEnumerable<PublishedAllocationLineResultVersion> history = new[]
             {
                  new PublishedAllocationLineResultVersion(),
-                    new PublishedAllocationLineResultVersion(),
-                    new PublishedAllocationLineResultVersion()
+                 new PublishedAllocationLineResultVersion(),
+                 new PublishedAllocationLineResultVersion()
             };
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
@@ -92,7 +97,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
             versionRepository
-                .GetVersions(Arg.Is(allocationResultId))
+                .GetVersions(Arg.Is(query), Arg.Is("1111"))
                 .Returns(history);
 
             ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository, publishedProviderResultsVersionRepository: versionRepository);

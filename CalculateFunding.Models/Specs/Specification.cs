@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using CalculateFunding.Models.Versioning;
+﻿using System;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs
@@ -12,5 +10,8 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("current")]
         public SpecificationVersion Current { get; set; }
+
+        [JsonProperty("publishedResultsRefreshedAt")]
+        public DateTimeOffset? PublishedResultsRefreshedAt { get; set; }
     }
 }

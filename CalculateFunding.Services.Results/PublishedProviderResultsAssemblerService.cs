@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
@@ -105,6 +107,11 @@ namespace CalculateFunding.Services.Results
 
             foreach (ProviderResult providerResult in providerResults)
             {
+                if(providerResult.CalculationResults.IsNullOrEmpty())
+                {
+                    continue;
+                }
+
                 foreach (CalculationResult calculationResult in providerResult.CalculationResults)
                 {
                     (Policy policy, Policy parentPolicy, Models.Specs.Calculation calculation) = FindPolicy(calculationResult.CalculationSpecification.Id, specificationCurrentVersion.Policies);
@@ -154,74 +161,100 @@ namespace CalculateFunding.Services.Results
             return publishedProviderCalculationResults;
         }
 
-        public (IEnumerable<PublishedProviderResult>, IEnumerable<PublishedProviderResultExisting>) GeneratePublishedProviderResultsToSave(IEnumerable<PublishedProviderResult> providerResults, IEnumerable<PublishedProviderResultExisting> existingResults)
+        public async Task<(IEnumerable<PublishedProviderResult>, IEnumerable<PublishedProviderResultExisting>)> GeneratePublishedProviderResultsToSave(IEnumerable<PublishedProviderResult> providerResults, IEnumerable<PublishedProviderResultExisting> existingResults)
         {
             Guard.ArgumentNotNull(providerResults, nameof(providerResults));
             Guard.ArgumentNotNull(existingResults, nameof(existingResults));
 
-            List<PublishedProviderResult> publishedProviderResultsToSave = new List<PublishedProviderResult>();
+            ConcurrentBag<PublishedProviderResult> publishedProviderResultsToSave = new ConcurrentBag<PublishedProviderResult>();
 
-            Dictionary<string, List<PublishedProviderResultExisting>> existingProviderResults = new Dictionary<string, List<PublishedProviderResultExisting>>();
+            ConcurrentDictionary<string, ConcurrentDictionary<string, PublishedProviderResultExisting>> existingProviderResults = new ConcurrentDictionary<string, ConcurrentDictionary<string, PublishedProviderResultExisting>>();
+
             foreach (PublishedProviderResultExisting providerResult in existingResults)
             {
                 if (!existingProviderResults.ContainsKey(providerResult.ProviderId))
                 {
-                    existingProviderResults.Add(providerResult.ProviderId, new List<PublishedProviderResultExisting>());
+                    existingProviderResults.TryAdd(providerResult.ProviderId, new ConcurrentDictionary<string, PublishedProviderResultExisting>());
                 }
 
-                existingProviderResults[providerResult.ProviderId].Add(providerResult);
+                existingProviderResults[providerResult.ProviderId].TryAdd(providerResult.AllocationLineId, providerResult);
             }
 
-            foreach (PublishedProviderResult providerResult in providerResults)
+       
+            List<Task> allTasks = new List<Task>();
+
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+            
+            foreach(PublishedProviderResult providerResult in providerResults)
             {
-                if (existingProviderResults.ContainsKey(providerResult.ProviderId))
-                {
-                    List<PublishedProviderResultExisting> existingResultsForProvider = existingProviderResults[providerResult.ProviderId];
-                    PublishedProviderResultExisting existingResult = existingResultsForProvider.Where(p => p.AllocationLineId == providerResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id).SingleOrDefault();
-                    if (existingResult != null)
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
                     {
-                        existingResultsForProvider.Remove(existingResult);
-
-                        if (!existingResultsForProvider.Any())
+                        try
                         {
-                            existingProviderResults.Remove(providerResult.ProviderId);
-                        }
+                            if (existingProviderResults.ContainsKey(providerResult.ProviderId))
+                            {
+                                ConcurrentDictionary<string, PublishedProviderResultExisting> existingResultsForProvider = existingProviderResults[providerResult.ProviderId];
 
-                        if (providerResult.FundingStreamResult.AllocationLineResult.Current.Value == existingResult.Value)
+                               
+                                if (existingResultsForProvider.TryGetValue(providerResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id, out PublishedProviderResultExisting existingResult))
+                                {
+                                    existingResultsForProvider.TryRemove(providerResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id, out var removedExistingResult);
+
+                                    if (!existingResultsForProvider.Any())
+                                    {
+                                        existingProviderResults.TryRemove(providerResult.ProviderId, out var removedProviderResult);
+                                    }
+
+                                    if (providerResult.FundingStreamResult.AllocationLineResult.Current.Value == existingResult.Value)
+                                    {
+                                        return;
+                                    }
+
+                                    providerResult.FundingStreamResult.AllocationLineResult.Current.Version = await _allocationResultsVersionRepository.GetNextVersionNumber(providerResult.FundingStreamResult.AllocationLineResult.Current, providerResult.ProviderId);
+
+                                    if (existingResult.Status != AllocationLineStatus.Held)
+                                    {
+                                        providerResult.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Updated;
+                                    }
+                                    
+                                }
+                                else
+                                {
+                                    providerResult.FundingStreamResult.AllocationLineResult.Current.Version = 1;
+                                }
+                            }
+                            else
+                            {
+                                providerResult.FundingStreamResult.AllocationLineResult.Current.Version = 1;
+                            }
+
+                            publishedProviderResultsToSave.Add(providerResult);
+                        }
+                        finally
                         {
-                            continue;
+                            throttler.Release();
                         }
-
-                        providerResult.FundingStreamResult.AllocationLineResult.Current.Version = _allocationResultsVersionRepository.GetNextVersionNumber(providerResult.FundingStreamResult.AllocationLineResult.Current);
-                    }
-                    else
-                    {
-                        providerResult.FundingStreamResult.AllocationLineResult.Current.Version = 1;
-                    }
-                }
-                else
-                {
-                    providerResult.FundingStreamResult.AllocationLineResult.Current.Version = 1;
-                }
-
-                publishedProviderResultsToSave.Add(providerResult);
+                    }));
             }
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
             List<PublishedProviderResultExisting> existingRecordsExclude = new List<PublishedProviderResultExisting>(existingProviderResults.Values.Count);
-            foreach (List<PublishedProviderResultExisting> existingList in existingProviderResults.Values)
+            foreach (ConcurrentDictionary<string, PublishedProviderResultExisting> existingList in existingProviderResults.Values)
             {
-                existingRecordsExclude.AddRange(existingList);
+                existingRecordsExclude.AddRange(existingList.Values);
             }
 
             return (publishedProviderResultsToSave, existingRecordsExclude);
         }
 
-        public IEnumerable<PublishedProviderCalculationResult> GeneratePublishedProviderCalculationResultsToSave(IEnumerable<PublishedProviderCalculationResult> providerCalculationResults, IEnumerable<PublishedProviderCalculationResultExisting> existingResults)
+        public async Task<IEnumerable<PublishedProviderCalculationResult>> GeneratePublishedProviderCalculationResultsToSave(IEnumerable<PublishedProviderCalculationResult> providerCalculationResults, IEnumerable<PublishedProviderCalculationResultExisting> existingResults)
         {
             Guard.ArgumentNotNull(providerCalculationResults, nameof(providerCalculationResults));
             Guard.ArgumentNotNull(existingResults, nameof(existingResults));
 
-            List<PublishedProviderCalculationResult> publishedProviderCalculationResultsToSave = new List<PublishedProviderCalculationResult>();
+            ConcurrentBag<PublishedProviderCalculationResult> publishedProviderCalculationResultsToSave = new ConcurrentBag<PublishedProviderCalculationResult>();
 
             Dictionary<string, List<PublishedProviderCalculationResultExisting>> existingProviderCalculationResults = new Dictionary<string, List<PublishedProviderCalculationResultExisting>>();
 
@@ -235,40 +268,55 @@ namespace CalculateFunding.Services.Results
                 existingProviderCalculationResults[providerCalculationResult.ProviderId].Add(providerCalculationResult);
             }
 
-            foreach (PublishedProviderCalculationResult providerCalculationResult in providerCalculationResults)
+            List<Task> allTasks = new List<Task>();
+
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+
+            int resultsCount = providerCalculationResults.Count();
+
+            PublishedProviderCalculationResult[] publishedProviderCalcResults = providerCalculationResults.ToArraySafe();
+
+            foreach(PublishedProviderCalculationResult providerCalculationResult in providerCalculationResults)
             {
-                if (existingProviderCalculationResults.ContainsKey(providerCalculationResult.ProviderId))
-                {
-                    List<PublishedProviderCalculationResultExisting> existingResultsForProvider = existingProviderCalculationResults[providerCalculationResult.ProviderId];
-                    PublishedProviderCalculationResultExisting existingResult = existingResultsForProvider.FirstOrDefault(p => p.Id == providerCalculationResult.Id);
-                    if (existingResult != null)
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
                     {
-                        existingResultsForProvider.Remove(existingResult);
-
-                        if (!existingResultsForProvider.Any())
+                        try
                         {
-                            existingProviderCalculationResults.Remove(providerCalculationResult.ProviderId);
-                        }
 
-                        if (providerCalculationResult.Current.Value == existingResult.Value)
+                            if (existingProviderCalculationResults.ContainsKey(providerCalculationResult.ProviderId))
+                            {
+                                List<PublishedProviderCalculationResultExisting> existingResultsForProvider = existingProviderCalculationResults[providerCalculationResult.ProviderId];
+                                PublishedProviderCalculationResultExisting existingResult = existingResultsForProvider.FirstOrDefault(p => p.Id == providerCalculationResult.Id);
+                                if (existingResult != null)
+                                {
+                                    if (providerCalculationResult.Current.Value == existingResult.Value)
+                                    {
+                                        return;
+                                    }
+
+                                    providerCalculationResult.Current.Version = await _calculationResultsVersionRepository.GetNextVersionNumber(providerCalculationResult.Current, providerCalculationResult.ProviderId);
+                                }
+                                else
+                                {
+                                    providerCalculationResult.Current.Version = 1;
+                                }
+                            }
+                            else
+                            {
+                                providerCalculationResult.Current.Version = 1;
+                            }
+
+                            publishedProviderCalculationResultsToSave.Add(providerCalculationResult);
+                        }
+                        finally
                         {
-                            continue;
+                            throttler.Release();
                         }
-
-                        providerCalculationResult.Current.Version = _calculationResultsVersionRepository.GetNextVersionNumber(providerCalculationResult.Current);
-                    }
-                    else
-                    {
-                        providerCalculationResult.Current.Version = 1;
-                    }
-                }
-                else
-                {
-                    providerCalculationResult.Current.Version = 1;
-                }
-
-                publishedProviderCalculationResultsToSave.Add(providerCalculationResult);
+                    }));
             }
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
             return publishedProviderCalculationResultsToSave;
         }

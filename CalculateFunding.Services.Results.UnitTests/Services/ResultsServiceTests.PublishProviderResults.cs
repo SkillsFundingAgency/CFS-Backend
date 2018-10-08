@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
@@ -195,7 +196,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(Task.CompletedTask);
 
             IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
-            versionRepository.SaveVersions(Arg.Any<IEnumerable<PublishedAllocationLineResultVersion>>())
+            versionRepository.SaveVersions(Arg.Any<IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>>>())
                 .Returns(ex => { throw new Exception("Error saving published results version history"); });
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
@@ -284,9 +285,13 @@ namespace CalculateFunding.Services.Results.Services
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
                 .Returns(Task.FromResult(providerResults));
+
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
-                .Returns(Task.FromResult(new SpecificationCurrentVersion()));
+                .Returns(Task.FromResult(new SpecificationCurrentVersion { Id = specificationId }));
+            specificationsRepository.UpdatePublishedRefreshedDate(Arg.Is(specificationId), Arg.Any<DateTimeOffset>())
+                .Returns(Task.FromResult(HttpStatusCode.OK));
+
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
                 .Returns(Task.CompletedTask);
@@ -298,11 +303,15 @@ namespace CalculateFunding.Services.Results.Services
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
             publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(Arg.Any<IEnumerable<PublishedProviderCalculationResult>>())
                 .Returns(Task.CompletedTask);
+
+            ILogger logger = CreateLogger();
+
             ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository,
-                publishedProviderResultsVersionRepository: versionRepository);
+                publishedProviderResultsVersionRepository: versionRepository,
+                logger: logger);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -312,6 +321,8 @@ namespace CalculateFunding.Services.Results.Services
 
             //Assert
             test.Should().NotThrow();
+            logger.DidNotReceive().Error(Arg.Any<string>());
+            logger.Received(1).Information(Arg.Is($"Updated the published refresh date on the specification with id: {specificationId}"));
         }
 
         [TestMethod]
@@ -396,7 +407,7 @@ namespace CalculateFunding.Services.Results.Services
             await
                 calcsVersionRepository
                 .Received(1)
-                .SaveVersions(Arg.Is<IEnumerable<PublishedProviderCalculationResultVersion>>(m => m.Count() == 1));
+                .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string,PublishedProviderCalculationResultVersion>>>(m => m.Count() == 1));
         }
 
         [TestMethod]
@@ -582,18 +593,19 @@ namespace CalculateFunding.Services.Results.Services
             await
                 calcsVersionRepository
                 .Received(1)
-                .SaveVersions(Arg.Is<IEnumerable<PublishedProviderCalculationResultVersion>>(
+                .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedProviderCalculationResultVersion>>>(
                     m => m.Count() == 1 &&
-                    m.First().Id == $"{resultId}_version_1" &&
-                    m.First().ProviderId == providerId &&
-                    m.First().CalculationnResultId == resultId &&
-                    m.First().Author.Id == "author-1" &&
-                    m.First().Author.Name == "author1" &&
-                    m.First().Commment == "comment" &&
-                    m.First().Date.Date == DateTimeOffset.Now.Date &&
-                    m.First().Value == 100 &&
-                    m.First().Version == 1 &&
-                    m.First().Provider.Id == providerId));
+                    m.First().Key == providerId &&
+                    m.First().Value.Id == $"{resultId}_version_1" &&
+                    m.First().Value.ProviderId == providerId &&
+                    m.First().Value.CalculationnResultId == resultId &&
+                    m.First().Value.Author.Id == "author-1" &&
+                    m.First().Value.Author.Name == "author1" &&
+                    m.First().Value.Commment == "comment" &&
+                    m.First().Value.Date.Date == DateTimeOffset.Now.Date &&
+                    m.First().Value.Value == 100 &&
+                    m.First().Value.Version == 1 &&
+                    m.First().Value.Provider.Id == providerId));
         }
 
         [TestMethod]
@@ -702,18 +714,19 @@ namespace CalculateFunding.Services.Results.Services
             await
                 calcsVersionRepository
                 .Received(1)
-                .SaveVersions(Arg.Is<IEnumerable<PublishedProviderCalculationResultVersion>>(
+                .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string,PublishedProviderCalculationResultVersion>>>(
                     m => m.Count() == 1 &&
-                    m.First().Id == $"{resultId}_version_1" &&
-                    m.First().ProviderId == "prov-1" &&
-                    m.First().CalculationnResultId == resultId &&
-                    m.First().Author.Id == "author-1" &&
-                    m.First().Author.Name == "author1" &&
-                    m.First().Commment == "comment" &&
-                    m.First().Date.Date == DateTimeOffset.Now.Date &&
-                    m.First().Value == 100 &&
-                    m.First().Version == 1 &&
-                    m.First().Provider.Id == "prov-1"));
+                    m.First().Key == "prov-1" &&
+                    m.First().Value.Id == $"{resultId}_version_1" &&
+                    m.First().Value.ProviderId == "prov-1" &&
+                    m.First().Value.CalculationnResultId == resultId &&
+                    m.First().Value.Author.Id == "author-1" &&
+                    m.First().Value.Author.Name == "author1" &&
+                    m.First().Value.Commment == "comment" &&
+                    m.First().Value.Date.Date == DateTimeOffset.Now.Date &&
+                    m.First().Value.Value == 100 &&
+                    m.First().Value.Version == 1 &&
+                    m.First().Value.Provider.Id == "prov-1"));
         }
 
         [TestMethod]
@@ -840,15 +853,16 @@ namespace CalculateFunding.Services.Results.Services
             await
                 calcsVersionRepository
                 .Received(1)
-                .SaveVersions(Arg.Is<IEnumerable<PublishedProviderCalculationResultVersion>>(
+                .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedProviderCalculationResultVersion>>>(
                     m => m.Count() == 1 &&
-                    m.First().Author.Id == "author-2" &&
-                    m.First().Author.Name == "author2" &&
-                    m.First().Commment == "comment" &&
-                    m.First().Date.Date == DateTimeOffset.Now.Date &&
-                    m.First().Value == 200 &&
-                    m.First().Version == 2 &&
-                    m.First().Provider.Id == providerId));
+                    m.First().Key == providerId &&
+                    m.First().Value.Author.Id == "author-2" &&
+                    m.First().Value.Author.Name == "author2" &&
+                    m.First().Value.Commment == "comment" &&
+                    m.First().Value.Date.Date == DateTimeOffset.Now.Date &&
+                    m.First().Value.Value == 200 &&
+                    m.First().Value.Version == 2 &&
+                    m.First().Value.Provider.Id == providerId));
         }
 
         [TestMethod]
@@ -1293,6 +1307,59 @@ namespace CalculateFunding.Services.Results.Services
                     .Received(1)
                     .SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(a => a.Count() == 1));
 
+        }
+
+        [TestMethod]
+        public void PublishProviderResults_WhenFailsToUpdateSpecificationRefreshDate_ThenNoExceptionThrown()
+        {
+            // Arrange
+            string specificationId = "1";
+            IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
+            {
+                new ProviderResult()
+            };
+
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
+                .Returns(Task.FromResult(providerResults));
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(Task.FromResult(new SpecificationCurrentVersion { Id = specificationId }));
+            specificationsRepository.UpdatePublishedRefreshedDate(Arg.Is(specificationId), Arg.Any<DateTimeOffset>())
+                .Returns(Task.FromResult(HttpStatusCode.InternalServerError));
+
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
+            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
+                .Returns(Task.CompletedTask);
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository.SaveVersions(Arg.Any<IEnumerable<PublishedAllocationLineResultVersion>>())
+                .Returns(Task.CompletedTask);
+
+            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
+            publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(Arg.Any<IEnumerable<PublishedProviderCalculationResult>>())
+                .Returns(Task.CompletedTask);
+
+            ILogger logger = CreateLogger();
+
+            ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository,
+                publishedProviderResultsVersionRepository: versionRepository,
+                logger: logger);
+
+            Message message = new Message();
+            message.UserProperties["specification-id"] = specificationId;
+
+            // Act
+            Func<Task> test = () => resultsService.PublishProviderResults(message);
+
+            //Assert
+            test.Should().NotThrow();
+            logger.Received(1).Error(Arg.Is($"Failed to update the published refresh date on the specification with id: {specificationId}. Failed with code: InternalServerError"));
+            logger.DidNotReceive().Information(Arg.Is($"Updated the published refresh date on the specification with id: {specificationId}"));
         }
 
         private static SpecificationCalculationExecutionStatus CreateSpecificationCalculationProgress(Action<SpecificationCalculationExecutionStatus> defaultModelAction)

@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Results
         private readonly ISearchRepository<AllocationNotificationFeedIndex> _allocationNotificationsSearchRepository;
         private readonly Polly.Policy _allocationNotificationsSearchRepositoryPolicy;
 
-        private IEnumerable<string> DefaultOrderBy = new[] { "dateUpdated" };
+        private IEnumerable<string> DefaultOrderBy = new[] { "dateUpdated desc" };
 
         public AllocationNotificationsFeedsSearchService (
             ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationsSearchRepository,

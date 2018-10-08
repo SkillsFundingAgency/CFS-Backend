@@ -138,7 +138,7 @@ namespace CalculateFunding.Services.Core.Services
 
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
             cosmosRepository
-                .DynamicQuery<dynamic>(Arg.Any<string>(), Arg.Is(true))
+                .DynamicQuery<dynamic>(Arg.Any<string>())
                 .Returns(maxNumber.AsQueryable());
 
             VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository);

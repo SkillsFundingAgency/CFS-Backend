@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Models
+﻿using System;
+
+namespace CalculateFunding.Models
 {
 	public class SpecificationCalculationExecutionStatus
 	{
@@ -14,11 +16,16 @@
 		}
 
 		public string SpecificationId { get; set; }
+
 		public int PercentageCompleted { get; set; }
+
 		public CalculationProgressStatus CalculationProgress { get; set; }
+
 		public string ErrorMessage { get; set; }
 
-		protected bool Equals(SpecificationCalculationExecutionStatus other)
+        public DateTimeOffset? PublishedResultsRefreshedAt { get; set; }
+
+        protected bool Equals(SpecificationCalculationExecutionStatus other)
 		{
 			return string.Equals(SpecificationId, other.SpecificationId) && PercentageCompleted == other.PercentageCompleted && CalculationProgress == other.CalculationProgress && string.Equals(ErrorMessage, other.ErrorMessage);
 		}

@@ -12,12 +12,14 @@ namespace CalculateFunding.Services.Core.Interfaces
 
         Task SaveVersion(T newVersion);
 
-        Task<IEnumerable<T>> GetVersions(string entityId);
+        Task<IEnumerable<T>> GetVersions(string sql = null, string partitionKeyId = null);
 
         Task<T> GetVersion(string entityId, int version);
 
-        Task SaveVersions(IEnumerable<T> newVersions);
+        Task SaveVersions(IEnumerable<T> newVersions, int maxDegreesOfParallelism = 30);
 
-        int GetNextVersionNumber(T version);
+        Task SaveVersions(IEnumerable<KeyValuePair<string, T>> newVersions, int maxDegreesOfParallelism = 30);
+
+        Task<int> GetNextVersionNumber(T version, string partitionKeyId = null);
     }
 }
