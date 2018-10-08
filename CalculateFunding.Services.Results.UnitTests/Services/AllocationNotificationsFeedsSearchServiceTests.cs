@@ -54,7 +54,7 @@ namespace CalculateFunding.Services.Results.Services
             await
                 searchRepository
                 .Received(1)
-                .Search(Arg.Is(""), Arg.Is<SearchParameters>(m => m.Top == 500 && m.OrderBy.First() == "dateUpdated"));
+                .Search(Arg.Is(""), Arg.Is<SearchParameters>(m => m.Top == 500 && m.OrderBy.First() == "dateUpdated desc"));
         }
 
         [TestMethod]
