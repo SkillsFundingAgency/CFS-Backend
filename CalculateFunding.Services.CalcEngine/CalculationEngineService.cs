@@ -22,6 +22,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
+using Newtonsoft.Json;
 using Polly;
 using Serilog;
 
@@ -122,7 +123,11 @@ namespace CalculateFunding.Services.Calculator
 
             string specificationId = message.UserProperties["specification-id"].ToString();
 
+            _logger.Information($"Validating new allocations message");
+
             CalculationEngineServiceValidator.ValidateMessage(_logger, message);
+
+            _logger.Information($"Generating allocations for specification id {specificationId}");
 
             BuildProject buildProject = await _calculationsRepository.GetBuildProjectBySpecificationId(specificationId);
 
@@ -133,9 +138,13 @@ namespace CalculateFunding.Services.Calculator
                 throw new ArgumentNullException(nameof(buildProject));
             }
 
+            _logger.Information($"Fetched build project for id {specificationId}");
+
             int partitionIndex = int.Parse(message.UserProperties["provider-summaries-partition-index"].ToString());
 
             int partitionSize = int.Parse(message.UserProperties["provider-summaries-partition-size"].ToString());
+
+            _logger.Information($"processing partition index {partitionIndex} for batch size {partitionSize}");
 
             int start = partitionIndex;
 
@@ -151,6 +160,8 @@ namespace CalculateFunding.Services.Calculator
             IEnumerable<CalculationSummaryModel> calculations = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationSummariesForSpecification(specificationId));
             if (calculations == null)
             {
+                _logger.Error($"Calculations lookup API returned null for specification id {specificationId}");
+
                 throw new InvalidOperationException("Calculations lookup API returned null");
             }
             calculationsLookupStopwatch.Stop();
@@ -167,16 +178,24 @@ namespace CalculateFunding.Services.Calculator
 
                 Stopwatch providerSourceDatasetsStopwatch = Stopwatch.StartNew();
 
+                _logger.Information($"Fetching provider sources for specification id {specificationId}");
+
                 List<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>(await _providerSourceDatasetsRepositoryPolicy.ExecuteAsync(() => _providerSourceDatasetsRepository.GetProviderSourceDatasetsByProviderIdsAndSpecificationId(providerIdList, specificationId)));
 
                 providerSourceDatasetsStopwatch.Stop();
 
                 if (providerSourceDatasets == null)
                 {
+                    _logger.Information($"No provider sources found for specification id {specificationId}");
+
                     providerSourceDatasets = new List<ProviderSourceDataset>();
                 }
 
+                _logger.Information($"fetched provider sources found for specification id {specificationId}");
+
                 Stopwatch calculationStopwatch = Stopwatch.StartNew();
+
+                _logger.Information($"calculating results for specification id {specificationId}");
 
                 Assembly assembly = Assembly.Load(Convert.FromBase64String(buildProject.Build.AssemblyBase64));
                 Parallel.ForEach(partitionedSummaries, new ParallelOptions { MaxDegreeOfParallelism = _engineSettings.CalculateProviderResultsDegreeOfParallelism }, provider =>
@@ -197,6 +216,8 @@ namespace CalculateFunding.Services.Calculator
                     }
                 });
 
+                _logger.Information($"calculating results complete for specification id {specificationId}");
+
                 calculationStopwatch.Stop();
 
                 double? saveCosmosElapsedMs = null;
@@ -207,18 +228,26 @@ namespace CalculateFunding.Services.Calculator
                 {
                     if (!message.UserProperties.ContainsKey("ignore-save-provider-results"))
                     {
+                        _logger.Information($"Saving results for specification id {specificationId}");
+
                         Stopwatch saveCosmosStopwatch = Stopwatch.StartNew();
                         await _providerResultsRepositoryPolicy.ExecuteAsync(() => _providerResultsRepository.SaveProviderResults(providerResults, _engineSettings.SaveProviderDegreeOfParallelism));
                         saveCosmosStopwatch.Stop();
                         saveCosmosElapsedMs = saveCosmosStopwatch.ElapsedMilliseconds;
+
+                        _logger.Information($"Saving results completeed for specification id {specificationId}");
                     }
 
                     // Should just be the GUID as the content, as the prefix is read by the receiver, rather than the sender
                     string providerResultsCacheKey = Guid.NewGuid().ToString();
 
+                    _logger.Information($"Saving results to cache for specification id {specificationId} with key {providerResultsCacheKey}");
+
                     Stopwatch saveRedisStopwatch = Stopwatch.StartNew();
                     await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<List<ProviderResult>>($"{CacheKeys.ProviderResultBatch}{providerResultsCacheKey}", providerResults.ToList(), TimeSpan.FromHours(12), false));
                     saveRedisStopwatch.Stop();
+
+                    _logger.Information($"Saved results to cache for specification id {specificationId} with key {providerResultsCacheKey}");
 
                     saveRedisElapsedMs = saveRedisStopwatch.ElapsedMilliseconds;
 
@@ -228,11 +257,15 @@ namespace CalculateFunding.Services.Calculator
 
                     properties.Add("providerResultsCacheKey", providerResultsCacheKey);
 
+                    _logger.Information($"Sending message for test exceution for specification id {specificationId}");
+
                     Stopwatch saveQueueStopwatch = Stopwatch.StartNew();
                     await _messengerServicePolicy.ExecuteAsync(() => _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.TestEngineExecuteTests, null, properties));
                     saveQueueStopwatch.Stop();
 
                     saveQueueElapsedMs = saveQueueStopwatch.ElapsedMilliseconds;
+
+                    _logger.Information($"Message sent for test exceution for specification id {specificationId}");
                 }
 
                 calcTiming.Stop();

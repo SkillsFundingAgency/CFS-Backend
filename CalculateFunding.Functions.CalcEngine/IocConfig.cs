@@ -94,7 +94,7 @@ namespace CalculateFunding.Functions.CalcEngine
 
             builder.AddApplicationInsightsTelemetryClient(config);
 
-            builder.AddLogging("CalculateFunding.Functions.CalcEngine");
+            builder.AddLogging("CalculateFunding.Functions.CalcEngine", config);
 
             builder.AddTelemetry();
 

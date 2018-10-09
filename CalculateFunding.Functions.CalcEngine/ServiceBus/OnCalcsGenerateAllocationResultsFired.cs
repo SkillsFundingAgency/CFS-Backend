@@ -21,6 +21,8 @@ namespace CalculateFunding.Functions.CalcEngine.ServiceBus
 
             using (var scope = IocConfig.Build(config).CreateScope())
             {
+                ILogger logger = scope.ServiceProvider.GetService<ILogger>();
+                logger.Information("Scope created, starting to generate allocations");
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 var calculationEngineService = scope.ServiceProvider.GetService<ICalculationEngineService>();
 
@@ -28,12 +30,11 @@ namespace CalculateFunding.Functions.CalcEngine.ServiceBus
                 {
                     correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
                     await calculationEngineService.GenerateAllocations(message);
-                   
+
+                    logger.Information("Generate allocations complete");
                 }
                 catch (Exception exception)
                 {
-                    ILogger logger = scope.ServiceProvider.GetService<ILogger>();
-
                     logger.Error(exception, $"An error occurred processing message on queue: {ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults}");
                     throw;
                 }
