@@ -5,7 +5,6 @@ namespace CalculateFunding.Models.Datasets
 {
     public class DatasetMetadataModel
     {
-        public DatasetMetadataModel(){}
         public string AuthorName { get; set; }
         public string AuthorId { get; set; }
         public string DatasetId { get; set; }
