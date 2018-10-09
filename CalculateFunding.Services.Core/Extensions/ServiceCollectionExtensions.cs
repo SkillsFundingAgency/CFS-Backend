@@ -216,7 +216,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddLogging(this IServiceCollection builder, string serviceName)
+        public static IServiceCollection AddLogging(this IServiceCollection builder, string serviceName, IConfigurationRoot config = null)
         {
             builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
 
@@ -224,7 +224,16 @@ namespace CalculateFunding.Services.Core.Extensions
             {
                 TelemetryClient client = ctx.GetService<TelemetryClient>();
 
-              return GetLoggerConfiguration(client, serviceName).CreateLogger();
+                LoggerConfiguration loggerConfiguration = GetLoggerConfiguration(client, serviceName);
+
+                if (config != null && !string.IsNullOrWhiteSpace(config.GetValue<string>("FileLoggingPath")))
+                {
+                    string folderPath = config.GetValue<string>("FileLoggingPath");
+
+                    loggerConfiguration.WriteTo.RollingFile(folderPath + "log-{Date}-" + Environment.MachineName + ".txt", LogEventLevel.Verbose);
+                }
+
+                return loggerConfiguration.CreateLogger();
             });
 
             //builder.AddSingleton(logger);

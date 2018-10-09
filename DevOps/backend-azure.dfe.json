@@ -94,21 +94,21 @@
         "description": "Describes API plan's instance count"
       }
     },
-    "apiSkuTier":{
+    "apiSkuTier": {
       "type": "string",
       "defaultValue": "PremiumV2",
       "metadata": {
         "description": "Tier for API hosting plan"
       }
     },
-    "apiSkuSize":{
+    "apiSkuSize": {
       "type": "string",
       "defaultValue": "P3v2",
       "metadata": {
         "description": "Size for API hosting plan"
       }
     },
-    "apiSkuFamily":{
+    "apiSkuFamily": {
       "type": "string",
       "defaultValue": "Pv2",
       "metadata": {
@@ -147,21 +147,21 @@
         "description": "Describes Engine plan's instance count"
       }
     },
-    "engineSkuTier":{
+    "engineSkuTier": {
       "type": "string",
       "defaultValue": "PremiumV2",
       "metadata": {
         "description": "Tier for Engine hosting plan"
       }
     },
-    "engineSkuSize":{
+    "engineSkuSize": {
       "type": "string",
       "defaultValue": "P2v2",
       "metadata": {
         "description": "Size for Engine hosting plan"
       }
     },
-    "engineSkuFamily":{
+    "engineSkuFamily": {
       "type": "string",
       "defaultValue": "Pv2",
       "metadata": {
@@ -292,6 +292,13 @@
       "type": "string",
       "metadata": {
         "description": "Api url of the profiling application"
+      }
+    },
+    "EnableMockProfilingApi": {
+      "defaultValue": false,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable the mock profiling api"
       }
     }
   },
@@ -1416,6 +1423,10 @@
             {
               "name": "providerProfilingClient:ApiEndpoint",
               "value": "[parameters('ProviderProfilingApiUrl')]"
+            },
+            {
+              "name": "FeatureToggles:EnableMockProfilingApi",
+              "value": "[parameters('EnableMockProfilingApi')]"
             }
           ]
         }
@@ -2118,6 +2129,10 @@
             {
               "name": "AzureAd:Authority",
               "value": "[parameters('AzureAdAuthority')]"
+            },
+            {
+              "name": "FeatureToggles:EnableMockProfilingApi",
+              "value": "[parameters('EnableMockProfilingApi')]"
             }
           ]
         }
