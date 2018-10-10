@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using AutoMapper;
@@ -1287,42 +1288,61 @@ namespace CalculateFunding.Services.Datasets
 
             ConcurrentBag<ProviderSourceDatasetVersion> historyToSave = new ConcurrentBag<ProviderSourceDatasetVersion>();
 
-            Parallel.ForEach(resultsByProviderId, (KeyValuePair<string, ProviderSourceDataset> providerSourceDataset) =>
+
+            IList<Task> historySaveTasks = new List<Task>();
+
+
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+            foreach (KeyValuePair<string, ProviderSourceDataset> providerSourceDataset in resultsByProviderId)
             {
-                string providerId = providerSourceDataset.Key;
-                ProviderSourceDataset sourceDataset = providerSourceDataset.Value;
-
-                ProviderSourceDatasetVersion newVersion = null;
-
-                if (existingCurrent.ContainsKey(providerId))
-                {
-                    newVersion = existingCurrent[providerId].Current.Clone() as ProviderSourceDatasetVersion;
-                    
-                    string existingDatasetJson = JsonConvert.SerializeObject(existingCurrent[providerId].Current.Rows);
-                    string latestDatasetJson = JsonConvert.SerializeObject(sourceDataset.Current.Rows);
-
-                    if (existingDatasetJson != latestDatasetJson)
+                await throttler.WaitAsync();
+                historySaveTasks.Add(
+                    Task.Run(async () =>
                     {
-                        newVersion = _sourceDatasetsVersionRepository.CreateVersion(newVersion, existingCurrent[providerId].Current);
-                        newVersion.Author = user;
-                        newVersion.Rows = sourceDataset.Current.Rows;
+                        try
+                        {
+                            string providerId = providerSourceDataset.Key;
+                            ProviderSourceDataset sourceDataset = providerSourceDataset.Value;
 
-                        sourceDataset.Current = newVersion;
+                            ProviderSourceDatasetVersion newVersion = null;
 
-                        updateCurrentDatasets.TryAdd(providerId, sourceDataset);
+                            if (existingCurrent.ContainsKey(providerId))
+                            {
+                                newVersion = existingCurrent[providerId].Current.Clone() as ProviderSourceDatasetVersion;
 
-                        historyToSave.Add(newVersion);
-                    }
-                }
-                else
-                {
-                    newVersion = sourceDataset.Current;
+                                string existingDatasetJson = JsonConvert.SerializeObject(existingCurrent[providerId].Current.Rows);
+                                string latestDatasetJson = JsonConvert.SerializeObject(sourceDataset.Current.Rows);
 
-                    updateCurrentDatasets.TryAdd(providerId, sourceDataset);
+                                if (existingDatasetJson != latestDatasetJson)
+                                {
+                                    newVersion = await _sourceDatasetsVersionRepository.CreateVersion(newVersion, existingCurrent[providerId].Current, providerId);
+                                    newVersion.Author = user;
+                                    newVersion.Rows = sourceDataset.Current.Rows;
 
-                    historyToSave.Add(newVersion);
-                }
-            });
+                                    sourceDataset.Current = newVersion;
+
+                                    updateCurrentDatasets.TryAdd(providerId, sourceDataset);
+
+                                    historyToSave.Add(newVersion);
+                                }
+                            }
+                            else
+                            {
+                                newVersion = sourceDataset.Current;
+
+                                updateCurrentDatasets.TryAdd(providerId, sourceDataset);
+
+                                historyToSave.Add(newVersion);
+                            }
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+
+            await TaskHelper.WhenAllAndThrow(historySaveTasks.ToArray());
 
             if (updateCurrentDatasets.Count > 0)
             {

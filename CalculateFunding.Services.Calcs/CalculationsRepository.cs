@@ -1,14 +1,14 @@
-﻿using CalculateFunding.Models.Aggregations;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Services;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Calcs
 
         public Task<HttpStatusCode> CreateDraftCalculation(Calculation calculation)
         {
-            return  _cosmosRepository.CreateAsync(calculation);
+            return _cosmosRepository.CreateAsync(calculation);
         }
 
         async public Task<Calculation> GetCalculationById(string calculationId)
@@ -43,21 +43,23 @@ namespace CalculateFunding.Services.Calcs
             var calculation = await _cosmosRepository.ReadAsync<Calculation>(calculationId);
 
             if (calculation == null)
+            {
                 return null;
+            }
 
             return calculation.Content;
         }
 
-	    public Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId)
-	    {
-		    var calculations = _cosmosRepository.Query<Calculation>().Where(x => x.SpecificationId == specificationId);
+        public Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId)
+        {
+            IQueryable<Calculation> calculations = _cosmosRepository.Query<Calculation>().Where(x => x.SpecificationId == specificationId);
 
-		    return Task.FromResult(calculations.AsEnumerable());
-	    }
+            return Task.FromResult(calculations.AsEnumerable());
+        }
 
         public Task<Calculation> GetCalculationByCalculationSpecificationId(string calculationSpecificationId)
         {
-            var calculations = _cosmosRepository.Query<Calculation>().Where(x => x.CalculationSpecification.Id == calculationSpecificationId);
+            IQueryable<Calculation> calculations = _cosmosRepository.Query<Calculation>().Where(x => x.CalculationSpecification.Id == calculationSpecificationId);
 
             return Task.FromResult(calculations.AsEnumerable().FirstOrDefault());
         }

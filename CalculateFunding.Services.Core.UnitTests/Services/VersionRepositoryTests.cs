@@ -1,11 +1,11 @@
-﻿using CalculateFunding.Models.Versioning;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Cosmos.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Core.Services
 {
@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Core.Services
         }
 
         [TestMethod]
-        public void CreateVersion_GivenNullCurrentVersion_AssignsDefaultValues()
+        public async Task CreateVersion_GivenNullCurrentVersion_AssignsDefaultValues()
         {
             //Arrange
             TestVersionItem newVersion = new TestVersionItem();
@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Core.Services
             VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository);
 
             //Act
-            newVersion = versionRepository.CreateVersion(newVersion);
+            newVersion = await versionRepository.CreateVersion(newVersion);
 
             //Assert
             newVersion
@@ -73,7 +73,7 @@ namespace CalculateFunding.Services.Core.Services
         }
 
         [TestMethod]
-        public void CreateVersion_GivenACurrentVersionButUnableToFindExistingVersions_SetsVersionToOne()
+        public async Task CreateVersion_GivenACurrentVersionButUnableToFindExistingVersions_SetsVersionToOne()
         {
             //Arrange
             TestVersionItem newVersion = new TestVersionItem
@@ -97,7 +97,7 @@ namespace CalculateFunding.Services.Core.Services
             VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository);
 
             //Act
-            newVersion = versionRepository.CreateVersion(newVersion, currentVersion);
+            newVersion = await versionRepository.CreateVersion(newVersion, currentVersion);
 
             //Assert
             newVersion
@@ -118,7 +118,7 @@ namespace CalculateFunding.Services.Core.Services
         }
 
         [TestMethod]
-        public void CreateVersion_GivenACurrentVersionWithVersion1_SetsNewVersionToThreeAndStatusToUpdated()
+        public async Task CreateVersion_GivenACurrentVersionWithVersion1_SetsNewVersionToThreeAndStatusToUpdated()
         {
             //Arrange
             TestVersionItem newVersion = new TestVersionItem
@@ -144,7 +144,7 @@ namespace CalculateFunding.Services.Core.Services
             VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository);
 
             //Act
-            newVersion = versionRepository.CreateVersion(newVersion, currentVersion);
+            newVersion = await versionRepository.CreateVersion(newVersion, currentVersion);
 
             //Assert
             newVersion

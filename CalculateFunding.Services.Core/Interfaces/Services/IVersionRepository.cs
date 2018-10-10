@@ -1,18 +1,16 @@
-﻿using CalculateFunding.Models.Versioning;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Versioning;
 
 namespace CalculateFunding.Services.Core.Interfaces
 {
-    public interface IVersionRepository<T> where T: VersionedItem
+    public interface IVersionRepository<T> where T : VersionedItem
     {
-        T CreateVersion(T newVersion, T currentVersion = null);
+        Task<T> CreateVersion(T newVersion, T currentVersion = null, string partitionKey = null);
 
         Task SaveVersion(T newVersion);
 
-        Task<IEnumerable<T>> GetVersions(string sql = null, string partitionKeyId = null);
+        Task<IEnumerable<T>> GetVersions(string entityId, string partitionKeyId = null);
 
         Task<T> GetVersion(string entityId, int version);
 

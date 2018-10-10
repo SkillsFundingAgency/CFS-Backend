@@ -19,6 +19,7 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
@@ -30,8 +31,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
-using System.Threading;
-using CalculateFunding.Services.Core.Interfaces;
 
 namespace CalculateFunding.Services.Results
 {
@@ -349,9 +348,8 @@ namespace CalculateFunding.Services.Results
                 return null;
             }
 
-            string query = $"select c from c where c.documentType = 'PublishedAllocationLineResultVersion' and c.deleted = false and c.content.entityId = '{allocationResultId}'";
 
-            IEnumerable<PublishedAllocationLineResultVersion> history = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.GetVersions(query, publishedProviderResult.ProviderId));
+            IEnumerable<PublishedAllocationLineResultVersion> history = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.GetVersions(allocationResultId, publishedProviderResult.ProviderId));
 
             if (history.IsNullOrEmpty())
             {
@@ -1254,8 +1252,8 @@ namespace CalculateFunding.Services.Results
                             newVersion.Author = author;
                             newVersion.Date = DateTimeOffset.Now.ToLocalTime();
                             newVersion.Status = updateStatusModel.Status;
-                            
-                            newVersion = _publishedProviderResultsVersionRepository.CreateVersion(newVersion, allocationLineResult.Current);
+
+                            newVersion = await _publishedProviderResultsVersionRepository.CreateVersion(newVersion, allocationLineResult.Current, newVersion.ProviderId);
 
                             allocationLineResult.Current = newVersion;
 
@@ -1302,7 +1300,7 @@ namespace CalculateFunding.Services.Results
                     await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(resultsToUpdate));
 
                     IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>> history = historyToSave.Select(m => new KeyValuePair<string, PublishedAllocationLineResultVersion>(m.ProviderId, m));
-                   
+
                     await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.SaveVersions(history));
 
                     await UpdateAllocationNotificationsFeedIndex(resultsToUpdate, specification);
@@ -1485,7 +1483,7 @@ namespace CalculateFunding.Services.Results
 
             return true;
         }
-        
+
         async Task SavePublishedAllocationLineResultVersionHistory(IEnumerable<PublishedProviderResult> publishedProviderResults)
         {
             IEnumerable<PublishedAllocationLineResultVersion> historyResultsToSave = new List<PublishedAllocationLineResultVersion>();
@@ -1497,7 +1495,7 @@ namespace CalculateFunding.Services.Results
                 historyResultsToSave = historyResultsToSave.Concat(new[] { publishedAllocationLineResult.Current });
             }
 
-            if(historyResultsToSave.Any())
+            if (historyResultsToSave.Any())
             {
                 IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>> history = historyResultsToSave.Select(m => new KeyValuePair<string, PublishedAllocationLineResultVersion>(m.ProviderId, m));
 

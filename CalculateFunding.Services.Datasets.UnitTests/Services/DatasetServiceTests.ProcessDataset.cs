@@ -5,7 +5,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
@@ -1667,7 +1666,7 @@ namespace CalculateFunding.Services.Datasets.Services
                              m.First().ProviderId == "123"
                         ));
 
-         
+
             versionRepository
                 .DidNotReceive()
                 .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(), Arg.Any<ProviderSourceDatasetVersion>());
@@ -1675,7 +1674,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 versionRepository
                     .Received(1)
-                    .SaveVersions(Arg.Is<IEnumerable<ProviderSourceDatasetVersion>>(m => 
+                    .SaveVersions(Arg.Is<IEnumerable<ProviderSourceDatasetVersion>>(m =>
                         m.Count() == 1 &&
                         m.First().Author != null &&
                         m.First().Date.Date == DateTime.Now.Date &&
@@ -1804,7 +1803,7 @@ namespace CalculateFunding.Services.Datasets.Services
             {
                 DatasetVersion = new DatasetRelationshipVersion()
                 {
-                    Version = 1                
+                    Version = 1
                 },
                 DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
             };
@@ -1849,7 +1848,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     Current = existingVersion
                 }
             };
-;
+            ;
             providerResultsRepository
                 .GetCurrentProviderSourceDatasets(Arg.Is(SpecificationId), Arg.Is("relId"))
                 .Returns(existingCurrentDatasets);
@@ -1871,7 +1870,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await service.ProcessDataset(message);
 
             // Assert
-            versionRepository
+            await versionRepository
                 .DidNotReceive()
                 .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(), Arg.Any<ProviderSourceDatasetVersion>());
 
@@ -2064,7 +2063,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IVersionRepository<ProviderSourceDatasetVersion> versionRepository = CreateVersionRepository();
             versionRepository
-                .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(), Arg.Is(existingVersion))
+                .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(), Arg.Is(existingVersion), Arg.Is("123"))
                 .Returns(newVersion);
 
             DatasetService service = CreateDatasetService(
@@ -2082,9 +2081,9 @@ namespace CalculateFunding.Services.Datasets.Services
             await service.ProcessDataset(message);
 
             // Assert
-            versionRepository
+            await versionRepository
                 .Received(1)
-                .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(), Arg.Any<ProviderSourceDatasetVersion>());
+                .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(), Arg.Any<ProviderSourceDatasetVersion>(), Arg.Is("123"));
 
             await
                 versionRepository
