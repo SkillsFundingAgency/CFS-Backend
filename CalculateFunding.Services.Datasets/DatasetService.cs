@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web;
 using AutoMapper;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
@@ -147,7 +148,7 @@ namespace CalculateFunding.Services.Datasets
             string json = await request.GetRawBodyStringAsync();
 
             CreateNewDatasetModel model = JsonConvert.DeserializeObject<CreateNewDatasetModel>(json);
-
+        
             if (model == null)
             {
                 _logger.Error("Null model name was provided to CreateNewDataset");
@@ -932,7 +933,14 @@ namespace CalculateFunding.Services.Datasets
 
             Guard.ArgumentNotNull(metadata, nameof(metadata));
 
-            DatasetMetadataModel metadataModel = new DatasetMetadataModel(metadata);
+            DatasetMetadataModel metadataModel = new DatasetMetadataModel();
+
+            metadataModel.AuthorName = metadata.ContainsKey("authorName") ? metadata["authorName"] : string.Empty;
+            metadataModel.AuthorId = metadata.ContainsKey("authorId") ? metadata["authorId"] : string.Empty;
+            metadataModel.DatasetId = metadata.ContainsKey("datasetId") ? metadata["datasetId"] : string.Empty;
+            metadataModel.DataDefinitionId = metadata.ContainsKey("dataDefinitionId") ? metadata["dataDefinitionId"] : string.Empty;
+            metadataModel.Name = metadata.ContainsKey("name") ? metadata["name"] : string.Empty;
+            metadataModel.Description = metadata.ContainsKey("description") ? HttpUtility.UrlDecode(metadata["description"]) : string.Empty;
 
             var validationResult = await _datasetMetadataModelValidator.ValidateAsync(metadataModel);
 
