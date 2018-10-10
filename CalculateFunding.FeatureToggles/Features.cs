@@ -17,9 +17,9 @@ namespace CalculateFunding.FeatureToggles
             return CheckSetting("allocationLineMajorMinorVersioningEnabled");
         }
 
-        public bool IsProviderProfilingServiceEnabled()
+        public bool IsProviderProfilingServiceDisabled()
         {
-            return CheckSetting("providerProfilingServiceEnabled");
+            return CheckSetting("providerProfilingServiceDisabled");
         }
 
         public bool IsAggregateSupportInCalculationsEnabled()

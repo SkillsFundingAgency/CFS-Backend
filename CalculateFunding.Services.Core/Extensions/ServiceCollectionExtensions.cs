@@ -399,15 +399,10 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddFeatureToggles(this IServiceCollection builder, IConfiguration config)
+        public static IFeatureToggle CreateFeatureToggles(this IServiceCollection builder, IConfiguration config)
         {
             IConfigurationSection featuresConfig = config.GetSection("features");
-            builder.AddSingleton<IFeatureToggle, Features>((ctx) =>
-            {
-                return new Features(featuresConfig);
-            });
-
-            return builder;
+            return new Features(featuresConfig);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using AutoMapper;
+using CalculateFunding.FeatureToggles;
 using CalculateFunding.Models;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
@@ -140,17 +141,17 @@ namespace CalculateFunding.Functions.Results
             builder
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
-            bool enableMockProvider = config.GetValue<bool>("FeatureToggles:EnableMockProfilingApi");
-
-            if (enableMockProvider)
+            IFeatureToggle features = builder.CreateFeatureToggles(config);
+            builder.AddSingleton<IFeatureToggle>(features);
+            
+            if (features.IsProviderProfilingServiceDisabled())
             {
-                builder
-                    .AddSingleton<IProviderProfilingRepository, MockProviderProfilingRepository>();
+                builder.AddSingleton<IProviderProfilingRepository, MockProviderProfilingRepository>();
             }
             else
             {
-                builder
-                    .AddSingleton<IProviderProfilingRepository, ProviderProfilingRepository>();
+                builder.AddSingleton<IProviderProfilingRepository, ProviderProfilingRepository>();
+                builder.AddProviderProfileServiceClient(config);
             }
 
             builder.AddSingleton<IVersionRepository<PublishedAllocationLineResultVersion>, VersionRepository<PublishedAllocationLineResultVersion>>((ctx) =>
@@ -190,8 +191,6 @@ namespace CalculateFunding.Functions.Results
             builder.AddTelemetry();
 
             builder.AddSpecificationsInterServiceClient(config);
-
-            builder.AddProviderProfileServiceClient(config);
 
             builder.AddPolicySettings(config);
 

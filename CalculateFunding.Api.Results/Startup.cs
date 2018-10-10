@@ -182,8 +182,6 @@ namespace CalculateFunding.Api.Results
 
             builder.AddSpecificationsInterServiceClient(Configuration);
 
-            builder.AddProviderProfileServiceClient(Configuration);
-
             builder.AddPolicySettings(Configuration);
 
             builder.AddHttpContextAccessor();

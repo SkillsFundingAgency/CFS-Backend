@@ -93,12 +93,12 @@ namespace CalculateFunding.FeatureToggles.UnitTests
         {
             // Arrange
             IConfigurationSection config = Substitute.For<IConfigurationSection>();
-            config[Arg.Is("providerProfilingServiceEnabled")].Returns((string)null);
+            config[Arg.Is("providerProfilingServiceDisabled")].Returns((string)null);
 
             Features features = new Features(config);
 
             // Act
-            bool result = features.IsProviderProfilingServiceEnabled();
+            bool result = features.IsProviderProfilingServiceDisabled();
 
             // Assert
             result.Should().BeFalse();
@@ -109,12 +109,12 @@ namespace CalculateFunding.FeatureToggles.UnitTests
         {
             // Arrange
             IConfigurationSection config = Substitute.For<IConfigurationSection>();
-            config[Arg.Is("providerProfilingServiceEnabled")].Returns(string.Empty);
+            config[Arg.Is("providerProfilingServiceDisabled")].Returns(string.Empty);
 
             Features features = new Features(config);
 
             // Act
-            bool result = features.IsProviderProfilingServiceEnabled();
+            bool result = features.IsProviderProfilingServiceDisabled();
 
             // Assert
             result.Should().BeFalse();
@@ -125,12 +125,12 @@ namespace CalculateFunding.FeatureToggles.UnitTests
         {
             // Arrange
             IConfigurationSection config = Substitute.For<IConfigurationSection>();
-            config[Arg.Is("providerProfilingServiceEnabled")].Returns("not a bool");
+            config[Arg.Is("providerProfilingServiceDisabled")].Returns("not a bool");
 
             Features features = new Features(config);
 
             // Act
-            bool result = features.IsProviderProfilingServiceEnabled();
+            bool result = features.IsProviderProfilingServiceDisabled();
 
             // Assert
             result.Should().BeFalse();
@@ -141,12 +141,12 @@ namespace CalculateFunding.FeatureToggles.UnitTests
         {
             // Arrange
             IConfigurationSection config = Substitute.For<IConfigurationSection>();
-            config[Arg.Is("providerProfilingServiceEnabled")].Returns("false");
+            config[Arg.Is("providerProfilingServiceDisabled")].Returns("false");
 
             Features features = new Features(config);
 
             // Act
-            bool result = features.IsProviderProfilingServiceEnabled();
+            bool result = features.IsProviderProfilingServiceDisabled();
 
             // Assert
             result.Should().BeFalse();
@@ -157,12 +157,12 @@ namespace CalculateFunding.FeatureToggles.UnitTests
         {
             // Arrange
             IConfigurationSection config = Substitute.For<IConfigurationSection>();
-            config[Arg.Is("providerProfilingServiceEnabled")].Returns("true");
+            config[Arg.Is("providerProfilingServiceDisabled")].Returns("true");
 
             Features features = new Features(config);
 
             // Act
-            bool result = features.IsProviderProfilingServiceEnabled();
+            bool result = features.IsProviderProfilingServiceDisabled();
 
             // Assert
             result.Should().BeTrue();

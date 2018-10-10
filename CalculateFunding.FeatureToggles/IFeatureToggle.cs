@@ -2,7 +2,7 @@
 {
     public interface IFeatureToggle
     {
-        bool IsProviderProfilingServiceEnabled();
+        bool IsProviderProfilingServiceDisabled();
 
         bool IsAllocationLineMajorMinorVersioningEnabled();
 
