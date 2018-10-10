@@ -1,5 +1,10 @@
-﻿using CalculateFunding.Models;
-using CalculateFunding.Models.Calcs;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Health;
@@ -22,13 +27,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Scenarios
 {
@@ -113,12 +111,16 @@ namespace CalculateFunding.Services.Scenarios
             var validationResult = (await _createNewTestScenarioVersionValidator.ValidateAsync(scenarioVersion)).PopulateModelState();
 
             if (validationResult != null)
+            {
                 return validationResult;
+            }
 
             TestScenario testScenario = null;
 
             if (!string.IsNullOrEmpty(scenarioVersion.Id))
+            {
                 testScenario = await _scenariosRepository.GetTestScenarioById(scenarioVersion.Id);
+            }
 
             bool saveAsVersion = true;
 
@@ -173,7 +175,7 @@ namespace CalculateFunding.Services.Scenarios
                     newVersion.FundingStreamIds = specification.FundingStreams.Select(s => s.Id).ToArraySafe();
                     newVersion.FundingPeriodId = specification.FundingPeriod.Id;
 
-                    newVersion = _versionRepository.CreateVersion(newVersion, testScenario.Current);
+                    newVersion = await _versionRepository.CreateVersion(newVersion, testScenario.Current);
 
                     testScenario.Current = newVersion;
                 }
@@ -314,7 +316,7 @@ namespace CalculateFunding.Services.Scenarios
                     PublishStatus = scenario.Current.PublishStatus
                 };
 
-                newVersion = _versionRepository.CreateVersion(newVersion, scenario.Current);
+                newVersion = await _versionRepository.CreateVersion(newVersion, scenario.Current);
 
                 scenario.Current = newVersion;
 
@@ -390,7 +392,7 @@ namespace CalculateFunding.Services.Scenarios
                     TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
                     testScenarioVersion.Gherkin = result;
 
-                    testScenarioVersion = _versionRepository.CreateVersion(testScenarioVersion, testScenario.Current);
+                    testScenarioVersion = await _versionRepository.CreateVersion(testScenarioVersion, testScenario.Current);
 
                     testScenario.Current = testScenarioVersion;
 
@@ -404,7 +406,7 @@ namespace CalculateFunding.Services.Scenarios
                 }
             }
 
-            if(updateCount > 0)
+            if (updateCount > 0)
             {
                 await _cacheProvider.RemoveAsync<List<TestScenario>>($"{CacheKeys.TestScenarios}{comparison.SpecificationId}");
             }

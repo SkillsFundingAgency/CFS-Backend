@@ -1028,7 +1028,7 @@ namespace CalculateFunding.Services.Specs
                 }
             });
 
-            specificationVersion = _specificationVersionRepository.CreateVersion(specificationVersion);
+            specificationVersion = await _specificationVersionRepository.CreateVersion(specificationVersion);
 
             await _specificationVersionRepository.SaveVersion(specificationVersion);
 
@@ -2004,7 +2004,7 @@ namespace CalculateFunding.Services.Specs
 
         private async Task<HttpStatusCode> UpdateSpecification(Specification specification, SpecificationVersion specificationVersion, SpecificationVersion previousVersion)
         {
-            specificationVersion = _specificationVersionRepository.CreateVersion(specificationVersion, previousVersion);
+            specificationVersion = await _specificationVersionRepository.CreateVersion(specificationVersion, previousVersion);
 
             specification.Current = specificationVersion;
 
@@ -2022,7 +2022,7 @@ namespace CalculateFunding.Services.Specs
 
         private async Task<HttpStatusCode> PublishSpecification(Specification specification, SpecificationVersion specificationVersion, SpecificationVersion previousVersion)
         {
-            specificationVersion = _specificationVersionRepository.CreateVersion(specificationVersion, previousVersion);
+            specificationVersion = await _specificationVersionRepository.CreateVersion(specificationVersion, previousVersion);
 
             specification.Current = specificationVersion;
 
