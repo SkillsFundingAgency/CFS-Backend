@@ -1,15 +1,16 @@
-﻿using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.Health;
-using CalculateFunding.Repositories.Common.Cosmos;
-using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Services.Datasets.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Health;
+using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Datasets.Interfaces;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -19,6 +20,8 @@ namespace CalculateFunding.Services.Datasets
 
         public DataSetsRepository(CosmosRepository cosmosRepository)
         {
+            Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
+
             _cosmosRepository = cosmosRepository;
         }
 
@@ -26,7 +29,7 @@ namespace CalculateFunding.Services.Datasets
         {
             ServiceHealth health = new ServiceHealth();
 
-            var cosmosHealth = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) cosmosHealth = await _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(DataSetsRepository);
             health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
@@ -44,37 +47,37 @@ namespace CalculateFunding.Services.Datasets
             return _cosmosRepository.UpsertAsync(dataset);
         }
 
-        async public Task<DatasetDefinition> GetDatasetDefinition(string definitionId)
+        public async Task<DatasetDefinition> GetDatasetDefinition(string definitionId)
         {
-            var definitions = await GetDatasetDefinitionsByQuery(m => m.Id == definitionId);
+            IEnumerable<DatasetDefinition> definitions = await GetDatasetDefinitionsByQuery(m => m.Id == definitionId);
 
             return definitions.FirstOrDefault();
         }
 
-        async public Task<Dataset> GetDatasetByDatasetId(string datasetId)
+        public async Task<Dataset> GetDatasetByDatasetId(string datasetId)
         {
-            var datasets = await GetDatasetsByQuery(m => m.Id == datasetId);
+            IEnumerable<Dataset> datasets = await GetDatasetsByQuery(m => m.Id == datasetId);
 
             return datasets.FirstOrDefault();
         }
 
         public Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitions()
         {
-            var definitions = _cosmosRepository.Query<DatasetDefinition>();
+            IQueryable<DatasetDefinition> definitions = _cosmosRepository.Query<DatasetDefinition>();
 
             return Task.FromResult(definitions.ToList().AsEnumerable());
         }
 
         public Task<IEnumerable<DatasetDefinition>> GetDatasetDefinitionsByQuery(Expression<Func<DatasetDefinition, bool>> query)
         {
-            var definitions = _cosmosRepository.Query<DatasetDefinition>().Where(query);
+            IQueryable<DatasetDefinition> definitions = _cosmosRepository.Query<DatasetDefinition>().Where(query);
 
             return Task.FromResult(definitions.AsEnumerable());
         }
 
         public Task<IEnumerable<Dataset>> GetDatasetsByQuery(Expression<Func<Dataset, bool>> query)
         {
-            var datasets = _cosmosRepository.Query<Dataset>().Where(query);
+            IQueryable<Dataset> datasets = _cosmosRepository.Query<Dataset>().Where(query);
 
             return Task.FromResult(datasets.AsEnumerable());
         }
@@ -91,21 +94,21 @@ namespace CalculateFunding.Services.Datasets
 
         public Task<IEnumerable<DefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsByQuery(Expression<Func<DefinitionSpecificationRelationship, bool>> query)
         {
-            var relationships = _cosmosRepository.Query<DefinitionSpecificationRelationship>().Where(query);
+            IQueryable<DefinitionSpecificationRelationship> relationships = _cosmosRepository.Query<DefinitionSpecificationRelationship>().Where(query);
 
             return Task.FromResult(relationships.AsEnumerable());
         }
 
-        async public Task<DefinitionSpecificationRelationship> GetRelationshipBySpecificationIdAndName(string specificationId, string name)
+        public async Task<DefinitionSpecificationRelationship> GetRelationshipBySpecificationIdAndName(string specificationId, string name)
         {
-            var relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Specification.Id == specificationId && m.Name == name);
+            IEnumerable<DefinitionSpecificationRelationship> relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Specification.Id == specificationId && m.Name.ToLower() == name.ToLower());
 
             return relationships.FirstOrDefault();
         }
 
-        async public Task<DefinitionSpecificationRelationship> GetDefinitionSpecificationRelationshipById(string relationshipId)
+        public async Task<DefinitionSpecificationRelationship> GetDefinitionSpecificationRelationshipById(string relationshipId)
         {
-            var relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Id == relationshipId);
+            IEnumerable<DefinitionSpecificationRelationship> relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Id == relationshipId);
 
             return relationships.FirstOrDefault();
         }
