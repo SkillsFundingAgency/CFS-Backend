@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Results
             new FacetFilterType("localAuthority")
         };
 
-        private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
+        private IEnumerable<string> DefaultOrderBy = new[] { "providerName" };
         
         public CalculationProviderResultsSearchService(ILogger logger,
             ISearchRepository<CalculationProviderResultsIndex> searchRepository,
@@ -77,8 +77,7 @@ namespace CalculateFunding.Services.Results
 
             try
             {
-                CalculationProviderResultSearchResults results = await SearchCalculationProviderResults(searchModel);
-
+                CalculationProviderResultSearchResults results = await SearchCalculationProviderResults(searchModel);               
                 return new OkObjectResult(results);
             }
             catch (FailedToQuerySearchException exception)
