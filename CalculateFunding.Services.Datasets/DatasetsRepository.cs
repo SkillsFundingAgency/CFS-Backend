@@ -98,7 +98,7 @@ namespace CalculateFunding.Services.Datasets
 
         async public Task<DefinitionSpecificationRelationship> GetRelationshipBySpecificationIdAndName(string specificationId, string name)
         {
-            var relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Specification.Id == specificationId && m.Name == name);
+            var relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Specification.Id == specificationId && m.Name.ToLower() == name.ToLower());
 
             return relationships.FirstOrDefault();
         }
