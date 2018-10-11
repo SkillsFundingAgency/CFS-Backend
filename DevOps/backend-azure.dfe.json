@@ -306,7 +306,14 @@
       "metadata": {
         "description": "Enables a restricted set of users access to provisioned storage accounts"
       },
-      "defaultValue": false
+      "defaultValue": true
+    },
+    "cosmosFirewallEnabled": {
+      "type": "bool",
+      "metadata": {
+        "description": "Enables a restricted set of users access to provisioned cosmos database"
+      },
+      "defaultValue": true
     }
   },
   "variables": {
@@ -339,7 +346,8 @@
     "datasetStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('datasetstorageAccountName'))]",
     "storageAccountName": "[concat('strg', parameters('environmentKey'), 'functions')]",
     "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-    "storageFirewallOptions": "{\"bypass\": \"AzureServices\",\r\n                \"virtualNetworkRules\": [],\r\n                \"ipRules\": [\r\n                    {\r\n                        \"value\": \"213.123.63.150\",\r\n                        \"action\": \"Allow\"\r\n                    },\r\n                    {\r\n                        \"value\": \"86.188.174.157\",\r\n                        \"action\": \"Allow\"\r\n                    }\r\n                ],\r\n                \"defaultAction\": \"Deny\"}"
+    "storageFirewallOptions": "{\"bypass\": \"AzureServices\",\r\n                \"virtualNetworkRules\": [],\r\n                \"ipRules\": [\r\n                    {\r\n                        \"value\": \"213.123.63.150\",\r\n                        \"action\": \"Allow\"\r\n                    },\r\n                    {\r\n                        \"value\": \"86.188.174.157\",\r\n                        \"action\": \"Allow\"\r\n                    }\r\n                ],\r\n                \"defaultAction\": \"Deny\"}",
+    "cosmosFirewallOptions": "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26,0.0.0.0"
   },
   "resources": [
     {
@@ -364,7 +372,8 @@
             "locationName": "[resourceGroup().location]",
             "failoverPriority": 0
           }
-        ]
+        ],
+        "ipRangeFilter": "[if(parameters('cosmosFirewallEnabled'), variables('cosmosFirewallOptions'), '')]"
       }
     },
     {
