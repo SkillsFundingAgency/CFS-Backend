@@ -378,28 +378,34 @@
     {
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[variables('storageAccountName')]",
-      "apiVersion": "2017-06-01",
+      "apiVersion": "2018-07-01",
       "location": "[resourceGroup().location]",
       "kind": "Storage",
       "sku": {
         "name": "Standard_LRS"
+      },
+      "properties":{
+        "supportsHttpsTrafficOnly": true
       }
     },
     {
       "type": "Microsoft.Storage/storageAccounts",
       "name": "[variables('datasetStorageAccountName')]",
-      "apiVersion": "2017-06-01",
+      "apiVersion": "2018-07-01",
       "location": "[resourceGroup().location]",
       "kind": "Storage",
       "sku": {
         "name": "Standard_LRS"
+      },
+      "properties":{
+        "supportsHttpsTrafficOnly": true
       }
     },
     {
       "name": "[variables('cacheName')]",
       "type": "Microsoft.Cache/Redis",
       "location": "[resourceGroup().location]",
-      "apiVersion": "2015-08-01",
+      "apiVersion": "2018-03-01",
       "dependsOn": [],
       "tags": {
         "displayName": "cache"
@@ -409,7 +415,9 @@
           "name": "[parameters('cacheSKUName')]",
           "family": "[parameters('cacheSKUFamily')]",
           "capacity": "[parameters('cacheSKUCapacity')]"
-        }
+        },
+        "enableNonSslPort": false,
+        "minimumTlsVersion":1.2
       }
     },
     {
