@@ -300,6 +300,13 @@
       "metadata": {
         "description": "Feature toggle to enable the mock profiling api"
       }
+    },
+    "storageFirewallEnabled": {
+      "type": "bool",
+      "metadata": {
+        "description": "Enables a restricted set of users access to provisioned storage accounts"
+      },
+      "defaultValue": false
     }
   },
   "variables": {
@@ -331,7 +338,8 @@
     "datasetStorageAccountName": "[concat('strg', parameters('environmentKey'), 'datasets')]",
     "datasetStorageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('datasetstorageAccountName'))]",
     "storageAccountName": "[concat('strg', parameters('environmentKey'), 'functions')]",
-    "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
+    "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
+    "storageFirewallOptions": "{\"bypass\": \"AzureServices\",\r\n                \"virtualNetworkRules\": [],\r\n                \"ipRules\": [\r\n                    {\r\n                        \"value\": \"213.123.63.150\",\r\n                        \"action\": \"Allow\"\r\n                    },\r\n                    {\r\n                        \"value\": \"86.188.174.157\",\r\n                        \"action\": \"Allow\"\r\n                    }\r\n                ],\r\n                \"defaultAction\": \"Deny\"}"
   },
   "resources": [
     {
@@ -385,7 +393,8 @@
         "name": "Standard_LRS"
       },
       "properties":{
-        "supportsHttpsTrafficOnly": true
+        "supportsHttpsTrafficOnly": true,
+        "networkAcls": "[if(parameters('storageFirewallEnabled'), json(variables('storageFirewallOptions')), json('null'))]"
       }
     },
     {
@@ -398,7 +407,8 @@
         "name": "Standard_LRS"
       },
       "properties":{
-        "supportsHttpsTrafficOnly": true
+        "supportsHttpsTrafficOnly": true,
+        "networkAcls": "[if(parameters('storageFirewallEnabled'), json(variables('storageFirewallOptions')), json('null'))]"
       }
     },
     {
