@@ -26,7 +26,7 @@ using Serilog;
 namespace CalculateFunding.Services.Datasets.Services
 {
     [TestClass]
-    public class DatasetsServiceProcessDatasetTests : DatasetServiceTestsBase
+    public class ProcessDatasetsServiceProcessDatasetTests : ProcessDatasetServiceTestsBase
     {
         [TestMethod]
         public void ProcessDataset_GivenNullMessage_ThrowsArgumentNullException()
@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             Message message = null;
 
-            DatasetService service = CreateDatasetService();
+            ProcessDatasetService service = CreateProcessDatasetService();
 
             // Act
             Func<Task> test = () => service.ProcessDataset(message);
@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             Message message = new Message(new byte[0]);
 
-            DatasetService service = CreateDatasetService();
+            ProcessDatasetService service = CreateProcessDatasetService();
 
             // Act
             Func<Task> test = () => service.ProcessDataset(message);
@@ -70,7 +70,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
-            DatasetService service = CreateDatasetService();
+            ProcessDatasetService service = CreateProcessDatasetService();
 
             // Act
             Func<Task> test = () => service.ProcessDataset(message);
@@ -93,7 +93,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .UserProperties
                 .Add("specification-id", "");
 
-            DatasetService service = CreateDatasetService();
+            ProcessDatasetService service = CreateProcessDatasetService();
 
             // Act
             Func<Task> test = () => service.ProcessDataset(message);
@@ -155,7 +155,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            DatasetService service = CreateDatasetService(datasetRepository: datasetRepository, logger: logger);
+            ProcessDatasetService service = CreateProcessDatasetService(datasetRepository: datasetRepository, logger: logger);
 
             // Act
             Action action = () =>
@@ -239,7 +239,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
                 .Returns(definitionSpecificationRelationship);
 
-            DatasetService service = CreateDatasetService(datasetRepository: datasetRepository, logger: logger, calcsRepository: calcsRepository);
+            ProcessDatasetService service = CreateProcessDatasetService(datasetRepository: datasetRepository, logger: logger, calcsRepository: calcsRepository);
 
             // Act
             Action action = () =>
@@ -330,7 +330,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
                 .Returns(definitionSpecificationRelationship);
 
-            DatasetService service = CreateDatasetService(
+            ProcessDatasetService service = CreateProcessDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient);
 
@@ -418,7 +418,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            DatasetService service = CreateDatasetService(
+            ProcessDatasetService service = CreateProcessDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient);
 
@@ -517,7 +517,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            DatasetService service = CreateDatasetService(
+            ProcessDatasetService service = CreateProcessDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient);
 
@@ -560,7 +560,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
-            string dataset_cache_key = $"ds-table-rows:{DatasetService.GetBlobNameCacheKey(blobPath)}:{DataDefintionId}";
+            string dataset_cache_key = $"ds-table-rows:{ProcessDatasetService.GetBlobNameCacheKey(blobPath)}:{DataDefintionId}";
 
             IEnumerable<TableLoadResult> tableLoadResults = new[]
             {
@@ -636,7 +636,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
                 .Returns(tableLoadResults.ToArraySafe());
 
-            DatasetService service = CreateDatasetService(
+            ProcessDatasetService service = CreateProcessDatasetService(
                 datasetRepository: datasetRepository,
                 logger: logger,
                 calcsRepository: calcsRepository,
@@ -672,7 +672,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
-            string dataset_cache_key = $"ds-table-rows:{DatasetService.GetBlobNameCacheKey(blobPath)}:{DataDefintionId}";
+            string dataset_cache_key = $"ds-table-rows:{ProcessDatasetService.GetBlobNameCacheKey(blobPath)}:{DataDefintionId}";
 
             IEnumerable<TableLoadResult> tableLoadResults = new[]
             {
@@ -756,7 +756,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
                 .Returns(tableLoadResults.ToArraySafe());
 
-            DatasetService service = CreateDatasetService(
+            ProcessDatasetService service = CreateProcessDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
                 excelDatasetReader: excelDatasetReader);
@@ -873,7 +873,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
                 .Returns(definitionSpecificationRelationship);
 
-            DatasetService service = CreateDatasetService(
+            ProcessDatasetService service = CreateProcessDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
                 providerResultsRepository: resultsRepository);
@@ -994,7 +994,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
                 .Returns(definitionSpecificationRelationship);
 
-            DatasetService service = CreateDatasetService(
+            ProcessDatasetService service = CreateProcessDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
                 providerResultsRepository: resultsRepository);
@@ -1133,7 +1133,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
                 .Returns(definitionSpecificationRelationship);
 
-            DatasetService service = CreateDatasetService(
+            ProcessDatasetService service = CreateProcessDatasetService(
                 datasetRepository: datasetRepository, logger: logger,
                 calcsRepository: calcsRepository, blobClient: blobClient, cacheProvider: cacheProvider,
                 providerResultsRepository: resultsRepository);
@@ -1303,7 +1303,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
                 .Returns(tableLoadResults.ToArraySafe());
 
-            DatasetService service = CreateDatasetService(
+            ProcessDatasetService service = CreateProcessDatasetService(
                 datasetRepository: datasetRepository,
                 logger: logger,
                 calcsRepository: calcsRepository,
@@ -1337,7 +1337,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
 
-            string dataset_cache_key = $"ds-table-rows:{DatasetService.GetBlobNameCacheKey(blobPath)}:{DataDefintionId}";
+            string dataset_cache_key = $"ds-table-rows:{ProcessDatasetService.GetBlobNameCacheKey(blobPath)}:{DataDefintionId}";
 
             IEnumerable<TableLoadResult> tableLoadResults = new[]
             {
@@ -1475,7 +1475,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
                 .Returns(tableLoadResults.ToArraySafe());
 
-            DatasetService service = CreateDatasetService(
+            ProcessDatasetService service = CreateProcessDatasetService(
                 datasetRepository: datasetRepository,
                 logger: logger,
                 calcsRepository: calcsRepository,
@@ -1639,7 +1639,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IVersionRepository<ProviderSourceDatasetVersion> versionRepository = CreateVersionRepository();
 
-            DatasetService service = CreateDatasetService(
+            ProcessDatasetService service = CreateProcessDatasetService(
                 datasetRepository: datasetRepository,
                 logger: logger,
                 calcsRepository: calcsRepository,
@@ -1855,7 +1855,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IVersionRepository<ProviderSourceDatasetVersion> versionRepository = CreateVersionRepository();
 
-            DatasetService service = CreateDatasetService(
+            ProcessDatasetService service = CreateProcessDatasetService(
                 datasetRepository: datasetRepository,
                 logger: logger,
                 calcsRepository: calcsRepository,
@@ -2066,7 +2066,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .CreateVersion(Arg.Any<ProviderSourceDatasetVersion>(), Arg.Is(existingVersion), Arg.Is("123"))
                 .Returns(newVersion);
 
-            DatasetService service = CreateDatasetService(
+            ProcessDatasetService service = CreateProcessDatasetService(
                 datasetRepository: datasetRepository,
                 logger: logger,
                 calcsRepository: calcsRepository,

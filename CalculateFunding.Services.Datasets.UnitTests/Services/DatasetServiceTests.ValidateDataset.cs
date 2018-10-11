@@ -573,18 +573,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 new TableLoadResult{ GlobalErrors = errors }
             };
 
-            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
-            datasetReader
-                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
-                .Returns(tableLoadResults.ToList());
-
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             DatasetService service = CreateDatasetService(
                 logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
-                excelDatasetReader: datasetReader,
                 datasetUploadValidator: datasetUploadValidator,
                 cacheProvider: cacheProvider);
 
@@ -683,8 +677,11 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
-                excelDatasetReader: datasetReader, datasetUploadValidator: datasetUploadValidator,
+            DatasetService service = CreateDatasetService(
+                logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                datasetUploadValidator: datasetUploadValidator,
                 cacheProvider: cacheProvider);
 
             // Act
@@ -778,13 +775,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
             };
 
-            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
-            datasetReader
-                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
-                .Returns(tableLoadResults.ToList());
-
-            DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
-                excelDatasetReader: datasetReader);
+            DatasetService service = CreateDatasetService(
+                logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository
+                );
 
             // Act
             Func<Task> result = async () => { await service.ValidateDataset(message); };
@@ -895,8 +890,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Index(Arg.Any<List<DatasetIndex>>())
                 .Returns(indexErrors);
 
-            DatasetService service = CreateDatasetService(logger: logger, blobClient: blobClient, datasetRepository: datasetRepository,
-                excelDatasetReader: datasetReader, searchRepository: searchRepository);
+            DatasetService service = CreateDatasetService(
+                logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                searchRepository: searchRepository);
 
             // Act
             Func<Task> result = async () => { await service.ValidateDataset(message); };
@@ -984,11 +982,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
             };
 
-            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
-            datasetReader
-                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
-                .Returns(tableLoadResults.ToList());
-
             ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -996,7 +989,6 @@ namespace CalculateFunding.Services.Datasets.Services
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
-                excelDatasetReader: datasetReader,
                  searchRepository: searchRepository,
                  cacheProvider: cacheProvider);
 
@@ -1146,11 +1138,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
             };
 
-            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
-            datasetReader
-                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
-                .Returns(tableLoadResults.ToList());
-
             ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -1159,7 +1146,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
-                excelDatasetReader: datasetReader,
                 searchRepository: searchRepository,
                 cacheProvider: cacheProvider);
 
@@ -1333,17 +1319,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
             };
 
-            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
-            datasetReader
-                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
-                .Returns(tableLoadResults.ToList());
-
             ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
 
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
-                excelDatasetReader: datasetReader,
                  searchRepository: searchRepository);
 
             DatasetVersion existingDatasetVersion1 = new DatasetVersion()
@@ -1475,17 +1455,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
             };
 
-            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
-            datasetReader
-                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
-                .Returns(tableLoadResults.ToList());
-
             ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
 
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
-                excelDatasetReader: datasetReader,
                  searchRepository: searchRepository);
 
             DatasetVersion existingDatasetVersion1 = new DatasetVersion()
@@ -1607,17 +1581,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
             };
 
-            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
-            datasetReader
-                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
-                .Returns(tableLoadResults.ToList());
-
             ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
 
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
-                excelDatasetReader: datasetReader,
                  searchRepository: searchRepository);
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
@@ -1742,17 +1710,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
             };
 
-            IExcelDatasetReader datasetReader = CreateExcelDatasetReader();
-            datasetReader
-                .Read(Arg.Any<Stream>(), Arg.Is(datasetDefinition))
-                .Returns(tableLoadResults.ToList());
-
             ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
 
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
-                excelDatasetReader: datasetReader,
                  searchRepository: searchRepository);
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()

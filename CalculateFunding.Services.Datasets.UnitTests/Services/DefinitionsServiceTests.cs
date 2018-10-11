@@ -1,26 +1,26 @@
-﻿using CalculateFunding.Services.Datasets.Interfaces;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using Serilog;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.Extensions.Primitives;
-using System.IO;
-using CalculateFunding.Models.Datasets.Schema;
-using System.Net;
-using System.Linq;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.DataImporter;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.DataImporter;
+using CalculateFunding.Services.Datasets.Interfaces;
+using FluentAssertions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
+using NSubstitute;
+using Serilog;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -262,7 +262,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Write(Arg.Any<DatasetDefinition>())
                 .Returns(excelAsBytes);
 
-          
+
             DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter);
 
             //Act
@@ -494,7 +494,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(excelAsBytes);
 
             ICloudBlob blob = Substitute.For<ICloudBlob>();
-            
+
             IBlobClient blobClient = CreateBlobClient();
             blobClient
                 .GetBlockBlobReference(Arg.Any<string>())
@@ -519,7 +519,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Index(Arg.Is<IEnumerable<DatasetDefinitionIndex>>(
                     i => i.First().Description == "14/15 description" &&
                     i.First().Id == "9183" &&
-                    i.First().ModelHash == "1A24899BEB5336B654A070ABFCE857EAC1083533751E3F43A5EA0F2F361E3444" &&
+                    i.First().ModelHash == "597D073AD3193A956A067711EECC236D9593D25704D6EA101F3B8FF6B0212297" &&
                     i.First().Name == "14/15" &&
                     i.First().ProviderIdentifier == "None"
                    ));
@@ -574,7 +574,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Description = "14/15 description",
                 Id = "9183",
                 LastUpdatedDate = new DateTimeOffset(2018, 6, 19, 14, 10, 2, TimeSpan.Zero),
-                ModelHash = "1A24899BEB5336B654A070ABFCE857EAC1083533751E3F43A5EA0F2F361E3444",
+                ModelHash = "597D073AD3193A956A067711EECC236D9593D25704D6EA101F3B8FF6B0212297",
                 Name = "14/15",
                 ProviderIdentifier = "None",
             };

@@ -40,18 +40,12 @@ namespace CalculateFunding.Services.Datasets.Services
             IValidator<DatasetMetadataModel> datasetMetadataModelValidator = null,
             ISearchRepository<DatasetIndex> searchRepository = null,
             IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator = null,
-            ISpecificationsRepository specificationsRepository = null,
             IMessengerService messengerService = null,
-            IExcelDatasetReader excelDatasetReader = null,
             ICacheProvider cacheProvider = null,
             ICalcsRepository calcsRepository = null,
             IProviderRepository providerRepository = null,
-            IProvidersResultsRepository providerResultsRepository = null,
-            ITelemetry telemetry = null,
-            IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
             IValidator<ExcelPackage> datasetWorksheetValidator = null,
-            IValidator<DatasetUploadValidationModel> datasetUploadValidator = null,
-            IVersionRepository<ProviderSourceDatasetVersion> versionRepository = null)
+            IValidator<DatasetUploadValidationModel> datasetUploadValidator = null)
         {
 
             return new DatasetService(
@@ -64,17 +58,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetMetadataModelValidator ?? CreateDatasetMetadataModelValidator(),
                 searchRepository ?? CreateSearchRepository(),
                 getDatasetBlobModelValidator ?? CreateGetDatasetBlobModelValidator(),
-                specificationsRepository ?? CreateSpecificationsRepository(),
                 messengerService ?? CreateMessengerService(),
-                excelDatasetReader ?? CreateExcelDatasetReader(),
-                cacheProvider ?? CreateCacheProvider(), calcsRepository ?? CreateCalcsRepository(),
+                cacheProvider ?? CreateCacheProvider(),
                 providerRepository ?? CreateProviderRepository(),
-                providerResultsRepository ?? CreateProviderResultsRepository(),
-                telemetry ?? CreateTelemetry(),
-                datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies(),
                 datasetWorksheetValidator ?? CreateDataWorksheetValidator(),
-                datasetUploadValidator ?? CreateDatasetUploadValidator(),
-                versionRepository ?? CreateVersionRepository());
+                datasetUploadValidator ?? CreateDatasetUploadValidator()
+                );
         }
 
         protected static IVersionRepository<ProviderSourceDatasetVersion> CreateVersionRepository()

@@ -12,7 +12,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
@@ -67,7 +66,7 @@ namespace CalculateFunding.Api.Datasets
 
             app.UseMiddleware<LoggedInUserMiddleware>();
 
-			app.UseMiddleware<ApiKeyMiddleware>();
+            app.UseMiddleware<ApiKeyMiddleware>();
 
             app.UseMvc();
 
@@ -82,7 +81,11 @@ namespace CalculateFunding.Api.Datasets
 
             builder
                 .AddSingleton<IDatasetService, DatasetService>()
-                .AddSingleton<IHealthChecker,DatasetService>();
+                .AddSingleton<IHealthChecker, DatasetService>();
+
+            builder
+                .AddSingleton<IProcessDatasetService, ProcessDatasetService>()
+                .AddSingleton<IHealthChecker, ProcessDatasetService>();
 
             builder
               .AddSingleton<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();
@@ -146,7 +149,7 @@ namespace CalculateFunding.Api.Datasets
             builder.AddSingleton<IDatasetRepository, DataSetsRepository>();
 
             builder.AddSingleton<IDatasetSearchService, DatasetSearchService>()
-                .AddSingleton<IHealthChecker,DatasetSearchService>();
+                .AddSingleton<IHealthChecker, DatasetSearchService>();
 
             builder.AddSingleton<IDatasetDefinitionSearchService, DatasetDefinitionSearchService>();
 
@@ -215,7 +218,7 @@ namespace CalculateFunding.Api.Datasets
                 };
             });
 
-	        builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetItemValidator>();
+            builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetItemValidator>();
 
             builder.AddHealthCheckMiddleware();
         }
