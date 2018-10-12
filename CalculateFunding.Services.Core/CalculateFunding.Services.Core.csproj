@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CalculateFunding.Common" Version="1.0.0" />
     <PackageReference Include="Collector.Serilog.Enrichers.Correlation" Version="2.0.2" />
     <PackageReference Include="FluentValidation" Version="7.6.104" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.7.2" />
@@ -36,7 +37,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.FeatureToggles\CalculateFunding.FeatureToggles.csproj" />
     <ProjectReference Include="..\CalculateFunding.Repositories.Common.Cosmos\CalculateFunding.Repositories.Common.Cosmos.csproj" />
     <ProjectReference Include="..\CalculateFunding.Repositories.Common.Search\CalculateFunding.Repositories.Common.Search.csproj" />
   </ItemGroup>
