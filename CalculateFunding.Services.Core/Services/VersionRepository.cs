@@ -54,7 +54,7 @@ namespace CalculateFunding.Services.Core.Services
             {
                 newVersion.Version = await GetNextVersionNumber(newVersion, partitionKey);
 
-                if (newVersion.PublishStatus == PublishStatus.Approved && currentVersion.PublishStatus == PublishStatus.Draft)
+                if (newVersion.PublishStatus == PublishStatus.Approved && (currentVersion.PublishStatus == PublishStatus.Draft || currentVersion.PublishStatus == PublishStatus.Updated))
                 {
                     return newVersion;
                 }

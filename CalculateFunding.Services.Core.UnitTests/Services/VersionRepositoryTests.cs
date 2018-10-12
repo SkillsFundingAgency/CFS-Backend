@@ -118,6 +118,53 @@ namespace CalculateFunding.Services.Core.Services
         }
 
         [TestMethod]
+        public async Task CreateVersion_GivenACurrentVersionIsUpdatedAndGetsApproved_CreatesVersion()
+        {
+            //Arrange
+            TestVersionItem newVersion = new TestVersionItem
+            {
+                SpecificationId = specificationId,
+                PublishStatus = PublishStatus.Approved
+            };
+
+            TestVersionItem currentVersion = new TestVersionItem
+            {
+                SpecificationId = specificationId,
+                PublishStatus = PublishStatus.Updated,
+                Version = 1
+            };
+
+            IQueryable<TestVersionItem> versions = Enumerable.Empty<TestVersionItem>().AsQueryable<TestVersionItem>();
+
+            ICosmosRepository cosmosRepository = CreateCosmosRepository();
+            cosmosRepository
+                .Query<TestVersionItem>()
+                .Returns(versions);
+
+            VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository);
+
+            //Act
+            newVersion = await versionRepository.CreateVersion(newVersion, currentVersion);
+
+            //Assert
+            newVersion
+                .Version
+                .Should()
+                .Be(1);
+
+            newVersion
+                .PublishStatus
+                .Should()
+                .Be(PublishStatus.Approved);
+
+            newVersion
+                .Date
+                .Date
+                .Should()
+                .Be(DateTime.Now.Date.ToLocalTime());
+        }
+
+        [TestMethod]
         public async Task CreateVersion_GivenACurrentVersionWithVersion1_SetsNewVersionToThreeAndStatusToUpdated()
         {
             //Arrange
