@@ -12,7 +12,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
@@ -39,7 +38,9 @@ namespace CalculateFunding.Functions.Datasets
         public static IServiceProvider Build(IConfigurationRoot config)
         {
             if (_serviceProvider == null)
+            {
                 _serviceProvider = BuildServiceProvider(config);
+            }
 
             return _serviceProvider;
         }
@@ -56,7 +57,9 @@ namespace CalculateFunding.Functions.Datasets
         public static IServiceProvider Build(Message message, IConfigurationRoot config)
         {
             if (_serviceProvider == null)
+            {
                 _serviceProvider = BuildServiceProvider(message, config);
+            }
 
             IUserProfileProvider userProfileProvider = _serviceProvider.GetService<IUserProfileProvider>();
 
@@ -85,6 +88,9 @@ namespace CalculateFunding.Functions.Datasets
 
             builder
                 .AddSingleton<IDatasetService, DatasetService>();
+
+            builder
+                .AddSingleton<IProcessDatasetService, ProcessDatasetService>();
 
             builder
               .AddSingleton<IValidator<CreateNewDatasetModel>, CreateNewDatasetModelValidator>();
@@ -153,9 +159,9 @@ namespace CalculateFunding.Functions.Datasets
             builder
                .AddSingleton<ICalcsRepository, CalcsRepository>();
 
-	        builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetItemValidator>();
+            builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetItemValidator>();
 
-			MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
+            MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             builder
                 .AddSingleton(dataSetsConfig.CreateMapper());
 

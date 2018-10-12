@@ -1,12 +1,11 @@
-﻿using CalculateFunding.Models.Versioning;
-using CalculateFunding.Repositories.Common.Cosmos;
-using CalculateFunding.Repositories.Common.Cosmos.Interfaces;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Versioning;
+using CalculateFunding.Repositories.Common.Cosmos.Interfaces;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
 
 namespace CalculateFunding.Services.Core.Services
 {
@@ -39,7 +38,7 @@ namespace CalculateFunding.Services.Core.Services
             return _cosmosRepository.BulkCreateAsync<T>(newVersions.ToList(), degreeOfParallelism: maxDegreesOfParallelism);
         }
 
-        public T CreateVersion(T newVersion, T currentVersion = null)
+        public async Task<T> CreateVersion(T newVersion, T currentVersion = null, string partitionKey = null)
         {
             Guard.ArgumentNotNull(newVersion, nameof(newVersion));
 
@@ -53,7 +52,7 @@ namespace CalculateFunding.Services.Core.Services
             }
             else
             {
-                newVersion.Version = GetNextVersionNumber(newVersion).Result;
+                newVersion.Version = await GetNextVersionNumber(newVersion, partitionKey);
 
                 if (newVersion.PublishStatus == PublishStatus.Approved && currentVersion.PublishStatus == PublishStatus.Draft)
                 {
@@ -69,9 +68,14 @@ namespace CalculateFunding.Services.Core.Services
 
                         case PublishStatus.Approved:
                             if (newVersion.PublishStatus == PublishStatus.Draft)
+                            {
                                 break;
+                            }
                             else
+                            {
                                 newVersion.PublishStatus = PublishStatus.Updated;
+                            }
+
                             break;
 
                         default:
@@ -80,16 +84,16 @@ namespace CalculateFunding.Services.Core.Services
                     }
                 }
             }
- 
+
             return newVersion;
         }
 
-      
+
         public Task<T> GetVersion(string entityId, int version)
         {
             Guard.IsNullOrWhiteSpace(entityId, nameof(entityId));
 
-            if(version < 1)
+            if (version < 1)
             {
                 throw new ArgumentException("Invalid version number was supplied", nameof(version));
             }
@@ -101,52 +105,49 @@ namespace CalculateFunding.Services.Core.Services
 
         public Task<int> GetNextVersionNumber(T version, string partitionKeyId = null)
         {
-            try
+
+            Guard.ArgumentNotNull(version, nameof(version));
+
+            string entityId = version.EntityId;
+
+            string query = $"SELECT VALUE Max(c.content.version) FROM c where c.content.entityId = \"{ entityId }\" and c.documentType = \"{ typeof(T).Name }\" and c.deleted = false";
+
+            dynamic[] resultsArray = null;
+
+            if (string.IsNullOrWhiteSpace(partitionKeyId))
             {
-                Guard.ArgumentNotNull(version, nameof(version));
-
-                string entityId = version.EntityId;
-
-                string query = $"SELECT VALUE Max(c.content.version) FROM c where c.content.entityId = \"{ entityId }\" and c.documentType = \"{ typeof(T).Name }\" and c.deleted = false";
-
-                dynamic[] resultsArray = null;
-
-                if (string.IsNullOrWhiteSpace(partitionKeyId))
-                {
-                    resultsArray = _cosmosRepository.DynamicQuery<dynamic>(query).ToArray();
-                }
-                else
-                {
-                    resultsArray = _cosmosRepository.DynamicQueryPartionedEntity<dynamic>(query, partitionKeyId).ToArray();
-                }
-
-                if (resultsArray.IsNullOrEmpty())
-                {
-                    return Task.FromResult(1);
-                }
-
-                int nextVersionNumber = (int)resultsArray[0] + 1;
-
-                return Task.FromResult(nextVersionNumber);
+                resultsArray = _cosmosRepository.DynamicQuery<dynamic>(query).ToArray();
             }
-            catch(Exception ex)
+            else
+            {
+                resultsArray = _cosmosRepository.DynamicQueryPartionedEntity<dynamic>(query, partitionKeyId).ToArray();
+            }
+
+            if (resultsArray.IsNullOrEmpty())
             {
                 return Task.FromResult(1);
             }
+
+            int nextVersionNumber = (int)resultsArray[0] + 1;
+
+            return Task.FromResult(nextVersionNumber);
         }
 
-        public async Task<IEnumerable<T>> GetVersions(string sql = null, string partitionKeyId = null)
+        public async Task<IEnumerable<T>> GetVersions(string entityId, string partitionKeyId = null)
         {
+            Guard.IsNullOrWhiteSpace(entityId, nameof(entityId));
+
             IEnumerable<T> versions = Enumerable.Empty<T>();
 
             if (partitionKeyId == null)
             {
-                versions = _cosmosRepository.Query<T>(sql).AsEnumerable();
+                versions = _cosmosRepository.Query<T>().Where(m => m.EntityId == entityId);
             }
             else
             {
+                string query = $"select * from Root c where c.documentType = '{typeof(T).Name}' and c.deleted = false and c.content.entityId = '{entityId}'";
 
-                versions = await _cosmosRepository.QueryPartitionedEntity<T>(sql, partitionEntityId: partitionKeyId);
+                versions = await _cosmosRepository.QueryPartitionedEntity<T>(query, partitionEntityId: partitionKeyId);
             }
 
             return versions;

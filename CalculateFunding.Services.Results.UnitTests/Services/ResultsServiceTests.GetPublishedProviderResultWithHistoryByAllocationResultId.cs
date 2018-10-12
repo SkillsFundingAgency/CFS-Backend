@@ -1,13 +1,13 @@
 ﻿
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -53,7 +53,7 @@ namespace CalculateFunding.Services.Results.Services
             IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
             versionRepository
                 .GetVersions(Arg.Is(query), Arg.Is("1111"))
-                .Returns((IEnumerable<PublishedAllocationLineResultVersion>) null);
+                .Returns((IEnumerable<PublishedAllocationLineResultVersion>)null);
 
             ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository, publishedProviderResultsVersionRepository: versionRepository);
 
@@ -71,8 +71,6 @@ namespace CalculateFunding.Services.Results.Services
         {
             //Arrange
             string allocationResultId = "12345";
-
-            string query = $"select c from c where c.documentType = 'PublishedAllocationLineResultVersion' and c.deleted = false and c.content.entityId = '{allocationResultId}'";
 
             PublishedProviderResult publishedProviderResult = new PublishedProviderResult
             {
@@ -97,7 +95,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
             versionRepository
-                .GetVersions(Arg.Is(query), Arg.Is("1111"))
+                .GetVersions(Arg.Is(allocationResultId), Arg.Is("1111"))
                 .Returns(history);
 
             ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository, publishedProviderResultsVersionRepository: versionRepository);

@@ -35,6 +35,17 @@ namespace CalculateFunding.Models.Datasets.Schema
         [JsonProperty("mustMatch")]
         public List<string> MustMatch { get; set; }
 
+        [JsonProperty("calculateAggregateSum")]
+        public bool? CalculateAggregateSum { get; set; }
+
+        [JsonProperty("calculateAggregateAverage")]
+        public bool? CalculateAggregateAverage { get; set; }
+
+        [JsonProperty("calculateAggregateMin")]
+        public bool? CalculateAggregateMin { get; set; }
+
+        [JsonProperty("calculateAggregateMax")]
+        public bool? CalculateAggregateMax { get; set; }
 
     }
 }

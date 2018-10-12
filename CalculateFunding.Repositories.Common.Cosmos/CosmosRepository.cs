@@ -121,6 +121,14 @@ namespace CalculateFunding.Repositories.Common.Cosmos
             return response.FirstOrDefault();
         }
 
+        /// <summary>
+        /// Query cosmos using IQueryable on a given entity.
+        /// NOTE: The directSql may not work, only linq queries
+        /// </summary>
+        /// <typeparam name="T">Type of document stored in cosmos</typeparam>
+        /// <param name="directSql">Direct SQL Query - may not work</param>
+        /// <param name="enableCrossPartitionQuery">Enable cross partitioned query</param>
+        /// <returns></returns>
         public IQueryable<T> Query<T>(string directSql = null, bool enableCrossPartitionQuery = false) where T : IIdentifiable
         {
             // Set some common query options
@@ -133,7 +141,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
             if (!string.IsNullOrEmpty(directSql))
             {
-
+                // This probably doesn't work - it may need an .AsDocumentQuery() before the .Select
                 return _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri,
                     directSql,
                     queryOptions).Select(x => x.Content);

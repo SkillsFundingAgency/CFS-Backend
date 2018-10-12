@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
-using CalculateFunding.Models.Datasets;
-using CalculateFunding.Repositories.Common.Search;
 
 namespace CalculateFunding.Services.Datasets.Interfaces
 {
@@ -21,15 +19,11 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task ValidateDataset(Message message);
 
-        Task ProcessDataset(Message message);
-
         Task<IActionResult> GetDatasetsByDefinitionId(HttpRequest request);
 
         Task<IActionResult> DownloadDatasetFile(HttpRequest request);
 
         Task<IActionResult> Reindex(HttpRequest request);
-
-        Task<IActionResult> ProcessDataset(HttpRequest request);
 
         Task<IActionResult> RegenerateProviderSourceDatasets(HttpRequest httpRequest);
 

@@ -12,25 +12,29 @@ namespace CalculateFunding.Api.Datasets.Controllers
         private readonly IDatasetSearchService _datasetSearchService;
         private readonly IDatasetDefinitionSearchService _datasetDefinitionSearchService;
         private readonly IDefinitionSpecificationRelationshipService _definitionSpecificationRelationshipService;
+        private readonly IProcessDatasetService _processDatasetService;
 
         public DatasetsController(
             IDefinitionsService definitionService,
             IDatasetService datasetService,
             IDatasetSearchService datasetSearchService,
             IDatasetDefinitionSearchService datasetDefinitionSearchService,
-            IDefinitionSpecificationRelationshipService definitionSpecificationRelationshipService)
+            IDefinitionSpecificationRelationshipService definitionSpecificationRelationshipService,
+            IProcessDatasetService processDatasetService)
         {
             Guard.ArgumentNotNull(definitionService, nameof(definitionService));
             Guard.ArgumentNotNull(datasetService, nameof(datasetService));
             Guard.ArgumentNotNull(datasetSearchService, nameof(datasetSearchService));
             Guard.ArgumentNotNull(datasetDefinitionSearchService, nameof(datasetDefinitionSearchService));
             Guard.ArgumentNotNull(definitionSpecificationRelationshipService, nameof(definitionSpecificationRelationshipService));
+            Guard.ArgumentNotNull(processDatasetService, nameof(processDatasetService));
 
             _definitionService = definitionService;
             _datasetService = datasetService;
             _datasetSearchService = datasetSearchService;
             _datasetDefinitionSearchService = datasetDefinitionSearchService;
             _definitionSpecificationRelationshipService = definitionSpecificationRelationshipService;
+            _processDatasetService = processDatasetService;
         }
 
         [Route("api/datasets/data-definitions")]
@@ -170,7 +174,7 @@ namespace CalculateFunding.Api.Datasets.Controllers
         [HttpPost]
         public Task<IActionResult> RunProcessDataset()
         {
-            return _datasetService.ProcessDataset(ControllerContext.HttpContext.Request);
+            return _processDatasetService.ProcessDataset(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/datasets/get-schema-download-url")]

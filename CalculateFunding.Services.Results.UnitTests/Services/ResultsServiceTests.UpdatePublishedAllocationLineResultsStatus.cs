@@ -1,4 +1,11 @@
-﻿using CalculateFunding.Models.Results;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Constants;
@@ -6,7 +13,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
-using CalculateFunding.Services.Results.ResultModels;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
@@ -16,13 +22,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -403,7 +402,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
             versionRepository
-                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>())
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Is("1111"))
                 .Returns(newVersion);
 
             SpecificationCurrentVersion specification = CreateSpecification(specificationId);
@@ -416,10 +415,10 @@ namespace CalculateFunding.Services.Results.Services
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
             resultsProviderRepository
                 .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
-                .Returns(publishedProviderResults);      
+                .Returns(publishedProviderResults);
 
             ResultsService resultsService = CreateResultsService(
-                publishedProviderResultsRepository: resultsProviderRepository, 
+                publishedProviderResultsRepository: resultsProviderRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository);
 
@@ -662,11 +661,11 @@ namespace CalculateFunding.Services.Results.Services
 
             IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
 
-            foreach(PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
                 publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
-            
+
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
 
             resultsProviderRepository
@@ -692,8 +691,8 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(specification);
 
             ResultsService resultsService = CreateResultsService(
-                publishedProviderResultsRepository: resultsProviderRepository, 
-                allocationNotificationFeedSearchRepository: searchRepository, 
+                publishedProviderResultsRepository: resultsProviderRepository,
+                allocationNotificationFeedSearchRepository: searchRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository);
 
@@ -706,7 +705,7 @@ namespace CalculateFunding.Services.Results.Services
                 .BeOfType<OkObjectResult>();
 
             OkObjectResult okObjectResult = actionResult as OkObjectResult;
-            
+
             await searchRepository
                     .Received(1)
                     .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
@@ -737,7 +736,7 @@ namespace CalculateFunding.Services.Results.Services
             await
                 versionRepository
                     .Received(1)
-                    .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string,PublishedAllocationLineResultVersion>>>(m => m.Count() == 1 && m.First().Key == newVersion.ProviderId && m.First().Value == newVersion));
+                    .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>>>(m => m.Count() == 1 && m.First().Key == newVersion.ProviderId && m.First().Value == newVersion));
         }
 
         [TestMethod]
@@ -835,7 +834,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(specification);
 
             ResultsService resultsService = CreateResultsService(
-                publishedProviderResultsRepository: resultsProviderRepository, 
+                publishedProviderResultsRepository: resultsProviderRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository);
 
@@ -960,7 +959,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(specification);
 
             ResultsService resultsService = CreateResultsService(
-                publishedProviderResultsRepository: resultsProviderRepository, 
+                publishedProviderResultsRepository: resultsProviderRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository);
 
@@ -1088,8 +1087,8 @@ namespace CalculateFunding.Services.Results.Services
             IMessengerService messengerService = CreateMessengerService();
 
             ResultsService resultsService = CreateResultsService(
-                publishedProviderResultsRepository: resultsProviderRepository, 
-                specificationsRepository: specificationsRepository, 
+                publishedProviderResultsRepository: resultsProviderRepository,
+                specificationsRepository: specificationsRepository,
                 messengerService: messengerService,
                 publishedProviderResultsVersionRepository: versionRepository);
 
@@ -1102,6 +1101,6 @@ namespace CalculateFunding.Services.Results.Services
                 .BeOfType<OkObjectResult>();
 
             await messengerService.Received(1).SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.FetchProviderProfile), Arg.Any<IEnumerable<FetchProviderProfilingMessageItem>>(), Arg.Any<Dictionary<string, string>>());
-        } 
+        }
     }
 }

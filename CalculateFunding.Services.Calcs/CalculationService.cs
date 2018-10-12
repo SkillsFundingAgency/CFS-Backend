@@ -564,51 +564,51 @@ namespace CalculateFunding.Services.Calcs
                 }
                 calculation.CalculationType = (CalculationType)calculationVersionComparison.Current.CalculationType;
             }
-			
-	        if (!string.IsNullOrWhiteSpace(calculation.AllocationLine?.Id) 
-	            && (calculation.AllocationLine.Id != calculationVersionComparison.Previous.AllocationLine?.Id || calculation.FundingStream == null))
-	        {
-		        string[] fundingStreamIdsForSpecification = specification.FundingStreams.Select(fs => fs.Id).ToArraySafe();
+
+            if (!string.IsNullOrWhiteSpace(calculation.AllocationLine?.Id)
+                && (calculation.AllocationLine.Id != calculationVersionComparison.Previous.AllocationLine?.Id || calculation.FundingStream == null))
+            {
+                string[] fundingStreamIdsForSpecification = specification.FundingStreams.Select(fs => fs.Id).ToArraySafe();
 
                 List<FundingStream> fundingStreamInSpecificationsAsList = new List<FundingStream>();
 
                 if (!fundingStreamIdsForSpecification.IsNullOrEmpty())
-		        {
+                {
                     IEnumerable<FundingStream> allfundingStreams = await _specsRepository.GetFundingStreams();
 
-                    foreach(string fundingStreamId in fundingStreamIdsForSpecification)
+                    foreach (string fundingStreamId in fundingStreamIdsForSpecification)
                     {
                         FundingStream fundingStream = allfundingStreams.FirstOrDefault(m => m.Id == fundingStreamId);
 
-                        if(fundingStream != null)
+                        if (fundingStream != null)
                         {
                             fundingStreamInSpecificationsAsList.Add(fundingStream);
                         }
                     }
 
-			        FundingStream fundingStreamToAssign =
-			            fundingStreamInSpecificationsAsList
-				            .Select(fs => new { FundingStream = fs, fs.AllocationLines })
-				            .FirstOrDefault(fsal => fsal.AllocationLines.Any(al => al.Id == calculation.AllocationLine.Id))
-				            ?.FundingStream;
-			        if (fundingStreamToAssign == null)
-			        {
-				        string errorTextFundingStreamNotFoundForAllocationLine = $"Calculation: {calculation.Id} could not be updated because allocation line: {calculation.AllocationLine.Id} did not belong to any funding stream in the system";
-				        _logger.Error(errorTextFundingStreamNotFoundForAllocationLine);
-			            throw new InvalidOperationException(errorTextFundingStreamNotFoundForAllocationLine);
-			        }
+                    FundingStream fundingStreamToAssign =
+                        fundingStreamInSpecificationsAsList
+                            .Select(fs => new { FundingStream = fs, fs.AllocationLines })
+                            .FirstOrDefault(fsal => fsal.AllocationLines.Any(al => al.Id == calculation.AllocationLine.Id))
+                            ?.FundingStream;
+                    if (fundingStreamToAssign == null)
+                    {
+                        string errorTextFundingStreamNotFoundForAllocationLine = $"Calculation: {calculation.Id} could not be updated because allocation line: {calculation.AllocationLine.Id} did not belong to any funding stream in the system";
+                        _logger.Error(errorTextFundingStreamNotFoundForAllocationLine);
+                        throw new InvalidOperationException(errorTextFundingStreamNotFoundForAllocationLine);
+                    }
 
-			        calculation.FundingStream = fundingStreamToAssign;
-		        }
+                    calculation.FundingStream = fundingStreamToAssign;
+                }
                 else
                 {
-	                string errorTextSpecificationHasNoFundingStreams = $"Specification: {specification.Id} did not have any funding streams assigned to it";
-	                _logger.Error(errorTextSpecificationHasNoFundingStreams);
-	                throw new InvalidOperationException(errorTextSpecificationHasNoFundingStreams);
-				}
-	        }
+                    string errorTextSpecificationHasNoFundingStreams = $"Specification: {specification.Id} did not have any funding streams assigned to it";
+                    _logger.Error(errorTextSpecificationHasNoFundingStreams);
+                    throw new InvalidOperationException(errorTextSpecificationHasNoFundingStreams);
+                }
+            }
 
-			await _calculationsRepository.UpdateCalculations(calculationsToUpdate);
+            await _calculationsRepository.UpdateCalculations(calculationsToUpdate);
 
             await _cacheProvider.RemoveAsync<List<CalculationSummaryModel>>($"{CacheKeys.CalculationsSummariesForSpecification}{specificationId}");
             await _cacheProvider.RemoveAsync<CalculationCurrentVersion>($"{CacheKeys.CurrentCalculation}{calculationId}");
@@ -1183,7 +1183,7 @@ namespace CalculateFunding.Services.Calcs
 
         private async Task<HttpStatusCode> UpdateCalculation(Calculation calculation, CalculationVersion calculationVersion, CalculationVersion previousVersion)
         {
-            calculationVersion = _calculationVersionRepository.CreateVersion(calculationVersion, previousVersion);
+            calculationVersion = await _calculationVersionRepository.CreateVersion(calculationVersion, previousVersion);
 
             calculation.Current = calculationVersion;
 

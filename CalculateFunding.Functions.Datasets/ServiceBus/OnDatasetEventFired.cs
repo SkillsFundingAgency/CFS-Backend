@@ -7,6 +7,7 @@ using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Functions.Datasets.ServiceBus
@@ -18,18 +19,18 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
         {
             CultureInfo.CurrentCulture = new CultureInfo("en-GB");
 
-            var config = ConfigHelper.AddConfig();
+            IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            using (var scope = IocConfig.Build(config).CreateScope())
+            using (IServiceScope scope = IocConfig.Build(config).CreateScope())
             {
-                var datasetService = scope.ServiceProvider.GetService<IDatasetService>();
-                var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                var logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
+                IProcessDatasetService processDatasetService = scope.ServiceProvider.GetService<IProcessDatasetService>();
+                ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
+                Serilog.ILogger logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
 
                 try
                 {
                     correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await datasetService.ProcessDataset(message);
+                    await processDatasetService.ProcessDataset(message);
                 }
                 catch (Exception exception)
                 {
