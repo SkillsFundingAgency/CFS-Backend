@@ -294,7 +294,7 @@
         "description": "Api url of the profiling application"
       }
     },
-    "EnableMockProfilingApi": {
+    "DisableProviderProfilingService": {
       "defaultValue": false,
       "type": "bool",
       "metadata": {
@@ -1452,8 +1452,8 @@
               "value": "[parameters('ProviderProfilingApiUrl')]"
             },
             {
-              "name": "FeatureToggles:EnableMockProfilingApi",
-              "value": "[parameters('EnableMockProfilingApi')]"
+              "name": "features:providerProfilingServiceDisabled",
+              "value": "[parameters('DisableProviderProfilingService')]"
             }
           ]
         }
@@ -2158,8 +2158,8 @@
               "value": "[parameters('AzureAdAuthority')]"
             },
             {
-              "name": "FeatureToggles:EnableMockProfilingApi",
-              "value": "[parameters('EnableMockProfilingApi')]"
+              "name": "features:providerProfilingServiceDisabled",
+              "value": "[parameters('DisableProviderProfilingService')]"
             }
           ]
         }
