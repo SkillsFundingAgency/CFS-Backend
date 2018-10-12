@@ -10,13 +10,14 @@
     }
   },
   "variables": {
+    "documentDatabaseName": "[concat('cos-', parameters('environmentKey'),'-cfs')]"
   },
   "resources": [
   ],
   "outputs": {
-    "EnvironmentSetupFunctionUrl": {
-      "type": "string",
-      "value": "[listsecrets(resourceId('Microsoft.Web/sites/functions', concat('fa-', parameters('environmentKey'), '-environment'), 'cosmos-db-setup') ,'2015-08-01').trigger_url]"
+    "CosmosDbConnectionString": {
+      "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]",
+      "type": "string"
     }
   }
 }
