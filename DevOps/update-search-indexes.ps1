@@ -8,6 +8,7 @@
     [Parameter(Position = 2, mandatory = $true)]
     [String[]] $indexes = @()
 )
+$apiKeyObj = $apiKey | convertfrom-json
 
 $ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 
@@ -16,7 +17,7 @@ $rootFolder = "$ScriptDir\search-indexes"
 Write-Host "Updating indexes on: $searchServiceUrl";
 
 $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]";
-$headers.Add("api-key", $apiKey);
+$headers.Add("api-key", $apiKeyObj.azureSearchKey.value);
 
 $indexes | ForEach-Object {
     
