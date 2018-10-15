@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="7.0.0" />
+    <PackageReference Include="CalculateFunding.Common" Version="1.0.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.0-beta8" />
     <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta8" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.1.0" />

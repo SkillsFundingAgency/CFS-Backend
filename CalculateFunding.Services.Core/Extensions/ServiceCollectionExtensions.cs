@@ -1,39 +1,39 @@
-﻿using CalculateFunding.Models.Calcs;
+﻿using System;
+using System.Linq;
+using System.Security.Claims;
+using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Models;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
+using CalculateFunding.Services.Core.Interfaces.Proxies.External;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Proxies;
+using CalculateFunding.Services.Core.Proxies.External;
+using CalculateFunding.Services.Core.ServiceBus;
+using CalculateFunding.Services.Core.Services;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-using System;
-using System.Security.Claims;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Core.Caching;
-using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.ApplicationInsights;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Services.Core.ServiceBus;
-using System.Linq;
-using CalculateFunding.Models.Users;
-using Microsoft.Azure.ServiceBus;
-using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Services.Core.Services;
-using CalculateFunding.Models;
-using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Services.Core.Interfaces.Proxies.External;
-using CalculateFunding.Services.Core.Proxies.External;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -397,6 +397,12 @@ namespace CalculateFunding.Services.Core.Extensions
             builder.AddSingleton<PolicySettings>(policySettings);
 
             return builder;
+        }
+
+        public static IFeatureToggle CreateFeatureToggles(this IServiceCollection builder, IConfiguration config)
+        {
+            IConfigurationSection featuresConfig = config.GetSection("features");
+            return new Features(featuresConfig);
         }
     }
 }

@@ -1,9 +1,9 @@
 ﻿using System;
 using AutoMapper;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
@@ -28,14 +28,16 @@ namespace CalculateFunding.Functions.Results
         public static IServiceProvider Build(IConfigurationRoot config)
         {
             if (_serviceProvider == null)
+            {
                 _serviceProvider = BuildServiceProvider(config);
+            }
 
             return _serviceProvider;
         }
 
         static public IServiceProvider BuildServiceProvider(IConfigurationRoot config)
         {
-            var serviceProvider = new ServiceCollection();
+            ServiceCollection serviceProvider = new ServiceCollection();
 
             RegisterComponents(serviceProvider, config);
 
@@ -45,7 +47,9 @@ namespace CalculateFunding.Functions.Results
         public static IServiceProvider Build(Message message, IConfigurationRoot config)
         {
             if (_serviceProvider == null)
+            {
                 _serviceProvider = BuildServiceProvider(message, config);
+            }
 
             IUserProfileProvider userProfileProvider = _serviceProvider.GetService<IUserProfileProvider>();
 
@@ -58,7 +62,7 @@ namespace CalculateFunding.Functions.Results
 
         static public IServiceProvider BuildServiceProvider(Message message, IConfigurationRoot config)
         {
-            var serviceProvider = new ServiceCollection();
+            ServiceCollection serviceProvider = new ServiceCollection();
 
             serviceProvider.AddUserProviderFromMessage(message);
 
@@ -71,7 +75,7 @@ namespace CalculateFunding.Functions.Results
         {
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder.AddSingleton<IResultsService, ResultsService>();
-	        builder.AddSingleton<IResultsSearchService, ResultsSearchService>();
+            builder.AddSingleton<IResultsSearchService, ResultsSearchService>();
             builder.AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>();
             builder.AddSingleton<IProviderImportMappingService, ProviderImportMappingService>();
             builder.AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
@@ -140,17 +144,17 @@ namespace CalculateFunding.Functions.Results
             builder
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
-            bool enableMockProvider = config.GetValue<bool>("FeatureToggles:EnableMockProfilingApi");
+            IFeatureToggle features = builder.CreateFeatureToggles(config);
+            builder.AddSingleton<IFeatureToggle>(features);
 
-            if (enableMockProvider)
+            if (features.IsProviderProfilingServiceDisabled())
             {
-                builder
-                    .AddSingleton<IProviderProfilingRepository, MockProviderProfilingRepository>();
+                builder.AddSingleton<IProviderProfilingRepository, MockProviderProfilingRepository>();
             }
             else
             {
-                builder
-                    .AddSingleton<IProviderProfilingRepository, ProviderProfilingRepository>();
+                builder.AddSingleton<IProviderProfilingRepository, ProviderProfilingRepository>();
+                builder.AddProviderProfileServiceClient(config);
             }
 
             builder.AddSingleton<IVersionRepository<PublishedAllocationLineResultVersion>, VersionRepository<PublishedAllocationLineResultVersion>>((ctx) =>
@@ -190,8 +194,6 @@ namespace CalculateFunding.Functions.Results
             builder.AddTelemetry();
 
             builder.AddSpecificationsInterServiceClient(config);
-
-            builder.AddProviderProfileServiceClient(config);
 
             builder.AddPolicySettings(config);
 
