@@ -79,7 +79,7 @@ namespace CalculateFunding.Services.Results
             ConcurrentBag<PublishedProviderCalculationResult> results = new ConcurrentBag<PublishedProviderCalculationResult>();
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
             foreach (string providerId in providerIds)
             {
                 await throttler.WaitAsync();
