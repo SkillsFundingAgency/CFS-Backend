@@ -175,8 +175,8 @@ namespace CalculateFunding.Services.Results
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-
             ServiceHealth providerRepoHealth = await ((IHealthChecker)_publishedProviderResultsRepository).IsHealthOk();
+      
             var cacheHealth = await _cacheProvider.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
