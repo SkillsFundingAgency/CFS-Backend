@@ -168,7 +168,7 @@ namespace CalculateFunding.Api.TestRunner
 
             builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsightsTelemetryClient(Configuration);
+            builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.TestRunner");
 
             builder.AddLogging("CalculateFunding.Api.TestRunner");
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using AutoMapper;
-using CalculateFunding.Models;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
@@ -9,13 +8,11 @@ using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Repositories;
 using CalculateFunding.Services.TestRunner.Services;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
@@ -30,7 +27,9 @@ namespace CalculateFunding.Functions.TestEngine
         public static IServiceProvider Build(IConfigurationRoot config)
         {
             if (_serviceProvider == null)
+            {
                 _serviceProvider = BuildServiceProvider(config);
+            }
 
             return _serviceProvider;
         }
@@ -43,7 +42,7 @@ namespace CalculateFunding.Functions.TestEngine
 
             return serviceProvider.BuildServiceProvider();
         }
-       
+
         static public void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
         {
             builder
@@ -136,7 +135,7 @@ namespace CalculateFunding.Functions.TestEngine
 
             builder.AddCaching(config);
 
-            builder.AddApplicationInsightsTelemetryClient(config);
+            builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.TestRunner");
 
             builder.AddLogging("CalculateFunding.Functions.TestRunner");
 

@@ -81,7 +81,7 @@ namespace CalculateFunding.Functions.Scenarios
 
             builder.AddCaching(config);
 
-            builder.AddApplicationInsightsTelemetryClient(config);
+            builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Scenarios");
 
             builder.AddLogging("CalculateFunding.Functions.Scenarios");
 

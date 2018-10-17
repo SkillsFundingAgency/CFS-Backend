@@ -311,7 +311,7 @@ namespace CalculateFunding.Api.External
 
             builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsightsTelemetryClient(Configuration);
+            builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.External");
             builder.AddLogging("CalculateFunding.Api.External");
             builder.AddTelemetry();
 

@@ -287,7 +287,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddApplicationInsightsTelemetryClient(this IServiceCollection builder, IConfiguration config)
+        public static IServiceCollection AddApplicationInsightsTelemetryClient(this IServiceCollection builder, IConfiguration config, string serviceName)
         {
             Guard.ArgumentNotNull(config, nameof(config));
 
@@ -309,6 +309,10 @@ namespace CalculateFunding.Services.Core.Extensions
             });
 
             telemetryClient.InstrumentationKey = appInsightsKey;
+            if (!telemetryClient.Context.GlobalProperties.ContainsKey(LoggingConstants.ServiceNamePropertiesName))
+            {
+                telemetryClient.Context.GlobalProperties.Add(LoggingConstants.ServiceNamePropertiesName, serviceName);
+            }
 
             builder.AddSingleton(telemetryClient);
 

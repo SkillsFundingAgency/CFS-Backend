@@ -111,7 +111,7 @@ namespace CalculateFunding.Api.Specs
 
             builder.AddPolicySettings(Configuration);
 
-            builder.AddApplicationInsightsTelemetryClient(Configuration);
+            builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Apis.Specs");
             builder.AddLogging("CalculateFunding.Apis.Specs");
             builder.AddTelemetry();
 

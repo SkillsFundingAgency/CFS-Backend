@@ -150,7 +150,7 @@ namespace CalculateFunding.Functions.Calcs
 
             builder.AddCaching(config);
 
-            builder.AddApplicationInsightsTelemetryClient(config);
+            builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Calcs");
             builder.AddLogging("CalculateFunding.Functions.Calcs");
             builder.AddTelemetry();
 

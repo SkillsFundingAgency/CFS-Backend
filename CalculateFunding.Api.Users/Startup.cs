@@ -80,7 +80,7 @@ namespace CalculateFunding.Api.Users
 
             builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsightsTelemetryClient(Configuration);
+            builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Users");
 
             builder.AddLogging("CalculateFunding.Api.Users");
 

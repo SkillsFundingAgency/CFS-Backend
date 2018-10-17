@@ -91,7 +91,7 @@ namespace CalculateFunding.Functions.Specs
 
             builder.AddPolicySettings(config);
 
-            builder.AddApplicationInsightsTelemetryClient(config);
+            builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Specs");
             builder.AddLogging("CalculateFunding.Functions.Specs");
             builder.AddTelemetry();
         }

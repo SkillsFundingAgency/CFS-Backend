@@ -62,9 +62,9 @@ namespace CalculateFunding.Api.Calcs
 
             app.UseMiddleware<LoggedInUserMiddleware>();
 
-	        app.UseMiddleware<ApiKeyMiddleware>();
+            app.UseMiddleware<ApiKeyMiddleware>();
 
-			app.UseMvc();
+            app.UseMvc();
 
             app.UseHealthCheckMiddleware();
         }
@@ -147,7 +147,7 @@ namespace CalculateFunding.Api.Calcs
 
             builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsightsTelemetryClient(Configuration);
+            builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Calcs");
             builder.AddLogging("CalculateFunding.Api.Calcs");
             builder.AddTelemetry();
 

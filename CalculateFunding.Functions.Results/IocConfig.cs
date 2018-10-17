@@ -178,7 +178,7 @@ namespace CalculateFunding.Functions.Results
 
             builder.AddCaching(config);
 
-            builder.AddApplicationInsightsTelemetryClient(config);
+            builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Results");
             builder.AddLogging("CalculateFunding.Functions.Results");
             builder.AddTelemetry();
 

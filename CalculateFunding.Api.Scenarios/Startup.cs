@@ -101,7 +101,7 @@ namespace CalculateFunding.Api.Scenarios
 
             builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsightsTelemetryClient(Configuration);
+            builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Scenarios");
 
             builder.AddLogging("CalculateFunding.Api.Scenarios");
 

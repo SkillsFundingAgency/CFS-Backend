@@ -187,7 +187,7 @@ namespace CalculateFunding.Api.Datasets
 
             builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsightsTelemetryClient(Configuration);
+            builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Datasets");
             builder.AddLogging("CalculateFunding.Api.Datasets");
             builder.AddTelemetry();
 

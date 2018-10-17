@@ -197,7 +197,7 @@ namespace CalculateFunding.Functions.Datasets
 
             builder.AddCaching(config);
 
-            builder.AddApplicationInsightsTelemetryClient(config);
+            builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Datasets");
             builder.AddLogging("CalculateFunding.Functions.Datasets");
             builder.AddTelemetry();
 
