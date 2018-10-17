@@ -91,13 +91,15 @@ namespace CalculateFunding.Services.Results
         /// <param name="author">Author - user who performed this action</param>
         /// <param name="specificationCurrentVersion">Specification</param>
         /// <returns></returns>
-        public IEnumerable<PublishedProviderCalculationResult> AssemblePublishedCalculationResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion)
+        public (IEnumerable<PublishedProviderCalculationResult>, bool) AssemblePublishedCalculationResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion, IEnumerable<PublishedProviderCalculationResultExisting> existingResults)
         {
             Guard.ArgumentNotNull(providerResults, nameof(providerResults));
             Guard.ArgumentNotNull(author, nameof(author));
             Guard.ArgumentNotNull(specificationCurrentVersion, nameof(specificationCurrentVersion));
-
+        
             string specificationId = specificationCurrentVersion.Id;
+
+            bool hasCalcsChanged = false;
 
             IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id);
 
@@ -114,9 +116,20 @@ namespace CalculateFunding.Services.Results
 
                 foreach (CalculationResult calculationResult in providerResult.CalculationResults)
                 {
-                    (Policy policy, Policy parentPolicy, Models.Specs.Calculation calculation) = FindPolicy(calculationResult.CalculationSpecification.Id, specificationCurrentVersion.Policies);
 
-                    if (calculation.CalculationType == Models.Specs.CalculationType.Number && !calculation.IsPublic)
+                    if (!hasCalcsChanged)
+                    {
+                        PublishedProviderCalculationResultExisting existing = existingResults.FirstOrDefault(m => m.ProviderId == providerResult.Provider.Id && m.CalculationSpecificationId == calculationResult.CalculationSpecification.Id);
+
+                        if (existing != null && calculationResult.Version > 0 && (existing.CalculationVersion != calculationResult.Version))
+                        {
+                            hasCalcsChanged = true;
+                        }
+                    }
+
+                    (Policy policy, Policy parentPolicy, Models.Specs.Calculation calculation) = FindPolicy(calculationResult.CalculationSpecification?.Id, specificationCurrentVersion.Policies);
+
+                    if (calculation == null)
                     {
                         continue;
                     }
@@ -136,9 +149,10 @@ namespace CalculateFunding.Services.Results
                             Provider = providerResult.Provider,
                             Value = calculationResult.Value,
                             SpecificationId = specificationId,
-                            ProviderId = providerResult.Provider.Id
+                            ProviderId = providerResult.Provider.Id,
+                            CalculationVersion = calculationResult.Version
                         },
-                       
+
                         Specification = new Reference(specification.Id, specification.Name)
                     };
 
@@ -156,12 +170,13 @@ namespace CalculateFunding.Services.Results
 
                     publishedProviderCalculationResults.Add(publishedProviderCalculationResult);
                 }
+                
             }
 
-            return publishedProviderCalculationResults;
+            return (publishedProviderCalculationResults, hasCalcsChanged);
         }
 
-        public async Task<(IEnumerable<PublishedProviderResult>, IEnumerable<PublishedProviderResultExisting>)> GeneratePublishedProviderResultsToSave(IEnumerable<PublishedProviderResult> providerResults, IEnumerable<PublishedProviderResultExisting> existingResults)
+        public async Task<(IEnumerable<PublishedProviderResult>, IEnumerable<PublishedProviderResultExisting>)> GeneratePublishedProviderResultsToSave(IEnumerable<PublishedProviderResult> providerResults, IEnumerable<PublishedProviderResultExisting> existingResults, bool hasCalcsChanged = false)
         {
             Guard.ArgumentNotNull(providerResults, nameof(providerResults));
             Guard.ArgumentNotNull(existingResults, nameof(existingResults));
@@ -207,7 +222,7 @@ namespace CalculateFunding.Services.Results
                                         existingProviderResults.TryRemove(providerResult.ProviderId, out var removedProviderResult);
                                     }
 
-                                    if (providerResult.FundingStreamResult.AllocationLineResult.Current.Value == existingResult.Value)
+                                    if (providerResult.FundingStreamResult.AllocationLineResult.Current.Value == existingResult.Value && !hasCalcsChanged)
                                     {
                                         return;
                                     }
@@ -218,7 +233,10 @@ namespace CalculateFunding.Services.Results
                                     {
                                         providerResult.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Updated;
                                     }
-                                    
+
+                                    providerResult.FundingStreamResult.AllocationLineResult.Current.Major = existingResult.Major;
+                                    providerResult.FundingStreamResult.AllocationLineResult.Current.Minor = existingResult.Minor;
+
                                 }
                                 else
                                 {
@@ -291,10 +309,12 @@ namespace CalculateFunding.Services.Results
                                 PublishedProviderCalculationResultExisting existingResult = existingResultsForProvider.FirstOrDefault(p => p.Id == providerCalculationResult.Id);
                                 if (existingResult != null)
                                 {
-                                    if (providerCalculationResult.Current.Value == existingResult.Value)
+                                    if (providerCalculationResult.Current.Value == existingResult.Value && providerCalculationResult.Current.CalculationVersion == existingResult.CalculationVersion)
                                     {
                                         return;
                                     }
+
+                                    providerCalculationResult.Current.CalculationVersion = existingResult.CalculationVersion;
 
                                     providerCalculationResult.Current.Version = await _calculationResultsVersionRepository.GetNextVersionNumber(providerCalculationResult.Current, providerCalculationResult.ProviderId);
                                 }

@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Api.External.Swagger.Helpers;
 using CalculateFunding.Api.External.V1.Interfaces;
 using CalculateFunding.Api.External.V1.Models;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Search;
 using CalculateFunding.Services.Results.Interfaces;
@@ -18,11 +19,13 @@ namespace CalculateFunding.Api.External.V1.Services
     {
         private readonly IAllocationNotificationsFeedsSearchService _feedsService;
         private readonly ILogger _logger;
+        private readonly IFeatureToggle _featureToggle;
 
-        public ProviderResultsService(IAllocationNotificationsFeedsSearchService feedsService, ILogger logger)
+        public ProviderResultsService(IAllocationNotificationsFeedsSearchService feedsService, ILogger logger, IFeatureToggle featureToggle)
         {
             _feedsService = feedsService;
             _logger = logger;
+            _featureToggle = featureToggle;
         }
 
         public async Task<IActionResult> GetProviderResultsForAllocations(string providerId, int startYear, int endYear, string allocationLineIds, HttpRequest request)
@@ -288,6 +291,8 @@ namespace CalculateFunding.Api.External.V1.Services
                                 },
                                 AllocationStatus = allocationFeedIndex.AllocationStatus,
                                 AllocationVersionNumber = (ushort)allocationFeedIndex.AllocationVersionNumber,
+                                AllocationMajorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MajorVersion.HasValue) ? feedIndex.MajorVersion.Value : 0,
+                                AllocationMinorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MinorVersion.HasValue) ? feedIndex.MinorVersion.Value : 0,
                                 AllocationAmount = Convert.ToDecimal(allocationFeedIndex.AllocationAmount)
                             };
 
@@ -419,10 +424,13 @@ namespace CalculateFunding.Api.External.V1.Services
                                 ContractRequired = allocationFeedIndex.AllocationLineContractRequired ? "Y" : "N"
                             },
                             AllocationVersionNumber = (ushort)allocationFeedIndex.AllocationVersionNumber,
+                            AllocationMajorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MajorVersion.HasValue) ? feedIndex.MajorVersion.Value : 0,
+                            AllocationMinorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MinorVersion.HasValue) ? feedIndex.MinorVersion.Value : 0,
                             AllocationStatus = allocationFeedIndex.AllocationStatus,
                             AllocationAmount = Convert.ToDecimal(allocationFeedIndex.AllocationAmount),
                             ProfilePeriods = JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(allocationFeedIndex.ProviderProfiling).Select(
-                                    m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod)).ToArraySafe()
+                                    m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod)).ToArraySafe(),
+                            Version = (allocationFeedIndex.MajorVersion == null || allocationFeedIndex.MinorVersion == null) ? "" : $"{allocationFeedIndex.MajorVersion}.{allocationFeedIndex.MinorVersion}"
                         });
                     }
 

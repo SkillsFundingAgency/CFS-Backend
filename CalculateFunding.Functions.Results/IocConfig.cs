@@ -9,6 +9,7 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Proxies.External;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
@@ -75,6 +76,7 @@ namespace CalculateFunding.Functions.Results
         {
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder.AddSingleton<IResultsService, ResultsService>();
+            builder.AddSingleton<IPublishedResultsService, PublishedResultsService>();
             builder.AddSingleton<IResultsSearchService, ResultsSearchService>();
             builder.AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>();
             builder.AddSingleton<IProviderImportMappingService, ProviderImportMappingService>();
@@ -144,19 +146,6 @@ namespace CalculateFunding.Functions.Results
             builder
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
-            IFeatureToggle features = builder.CreateFeatureToggles(config);
-            builder.AddSingleton<IFeatureToggle>(features);
-
-            if (features.IsProviderProfilingServiceDisabled())
-            {
-                builder.AddSingleton<IProviderProfilingRepository, MockProviderProfilingRepository>();
-            }
-            else
-            {
-                builder.AddSingleton<IProviderProfilingRepository, ProviderProfilingRepository>();
-                builder.AddProviderProfileServiceClient(config);
-            }
-
             builder.AddSingleton<IVersionRepository<PublishedAllocationLineResultVersion>, VersionRepository<PublishedAllocationLineResultVersion>>((ctx) =>
             {
                 CosmosDbSettings versioningDbSettings = new CosmosDbSettings();
@@ -196,6 +185,42 @@ namespace CalculateFunding.Functions.Results
             builder.AddSpecificationsInterServiceClient(config);
 
             builder.AddPolicySettings(config);
+
+            builder.AddFeatureToggling(config);
+
+            builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService>((ctx) =>
+            {
+                IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
+
+                bool enableMajorMinorVersioning = featureToggle.IsAllocationLineMajorMinorVersioningEnabled();
+
+                if (enableMajorMinorVersioning)
+                {
+                    return new PublishedAllocationLineLogicalResultVersionService();
+                }
+                else
+                {
+                    return new RedundantPublishedAllocationLineLogicalResultVersionService();
+                }
+            });
+
+            builder.AddSingleton<IProviderProfilingRepository>((ctx) =>
+            {
+                IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
+
+                bool enableMockProvider = featureToggle.IsProviderProfilingServiceDisabled();
+
+                if (enableMockProvider)
+                {
+                    return new MockProviderProfilingRepository();
+                }
+                else
+                {
+                    IProviderProfilingApiProxy providerProfilingApiProxy = ctx.GetService<IProviderProfilingApiProxy>();
+
+                    return new ProviderProfilingRepository(providerProfilingApiProxy);
+                }
+            });
 
             builder.AddSingleton<IResultsResilliencePolicies>((ctx) =>
             {

@@ -1,8 +1,11 @@
 using CalculateFunding.Api.External.V1.Controllers;
+using CalculateFunding.Services.Results;
+using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 
 namespace CalculateFunding.Api.External.UnitTests
@@ -10,6 +13,17 @@ namespace CalculateFunding.Api.External.UnitTests
     [TestClass]
     public class StartupTests : IoCUnitTestBase
     {
+        bool enableMajorMinorVersioning = true;
+
+        bool disableProviderProfiling = true;
+
+        [TestInitialize()]
+        public void BeforeTest()
+        {
+            enableMajorMinorVersioning = true;
+            disableProviderProfiling = true;
+        }
+
         [TestMethod]
         public void ConfigureServices_RegisterDependenciesCorrectly()
         {
@@ -27,6 +41,49 @@ namespace CalculateFunding.Api.External.UnitTests
             ResolveType<ProviderResultsController>().Should().NotBeNull(nameof(ProviderResultsController));
 			ResolveType<TimePeriodsController>().Should().NotBeNull(nameof(TimePeriodsController));
 		}
+
+        [TestMethod]
+        public void ConfigureServices_WhenMajorMinorVersioningIsEnabled_RegisterDependenciesCorrectly()
+        {
+            // Arrange
+            IConfigurationRoot configuration = CreateTestConfiguration();
+            Startup target = new Startup(configuration);
+
+            // Act
+            target.ConfigureServices(Services);
+
+            // Assert
+            IServiceProvider serviceProvider = target.ServiceProvider;
+
+            IPublishedAllocationLineLogicalResultVersionService service = (IPublishedAllocationLineLogicalResultVersionService)serviceProvider.GetService(typeof(IPublishedAllocationLineLogicalResultVersionService));
+
+            service
+                .Should()
+                .BeOfType<PublishedAllocationLineLogicalResultVersionService>();
+        }
+
+        [TestMethod]
+        public void ConfigureServices_WhenMajorMinorVersioningIsDisabled_RegisterDependenciesCorrectly()
+        {
+            // Arrange
+            enableMajorMinorVersioning = false;
+
+            IConfigurationRoot configuration = CreateTestConfiguration();
+
+            Startup target = new Startup(configuration);
+
+            // Act
+            target.ConfigureServices(Services);
+
+            // Assert
+            IServiceProvider serviceProvider = target.ServiceProvider;
+
+            IPublishedAllocationLineLogicalResultVersionService service = (IPublishedAllocationLineLogicalResultVersionService)serviceProvider.GetService(typeof(IPublishedAllocationLineLogicalResultVersionService));
+
+            service
+               .Should()
+               .BeOfType<RedundantPublishedAllocationLineLogicalResultVersionService>();
+        }
 
         protected override Dictionary<string, string> AddToConfiguration()
         {
@@ -46,7 +103,8 @@ namespace CalculateFunding.Api.External.UnitTests
                 { "providerProfilingAzureBearerTokenOptions:GrantType", "client_credentials" },
                 { "providerProfilingAzureBearerTokenOptions:Scope", "https://wahetever-scope" },
                 { "providerProfilingAzureBearerTokenOptions:ClientId", "client-id" },
-                { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"}
+                { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"},
+                { "features:allocationLineMajorMinorVersioningEnabled", enableMajorMinorVersioning.ToString()}
             };
 
             return configData;

@@ -25,7 +25,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Results.Services
 {
-    public partial class ResultsServiceTests
+    public partial class PublishedResultsServiceTests
     {
         [TestMethod]
         public async Task UpdatePublishedAllocationLineResultsStatus_GivenNoSpecificationIdProvided_ReturnsBadRequest()
@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            ResultsService resultsService = CreateResultsService(logger);
+            PublishedResultsService resultsService = CreateResultsService(logger);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -70,7 +70,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            ResultsService resultsService = CreateResultsService(logger);
+            PublishedResultsService resultsService = CreateResultsService(logger);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -113,7 +113,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            ResultsService resultsService = CreateResultsService(logger);
+            PublishedResultsService resultsService = CreateResultsService(logger);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -181,7 +181,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
                 .Returns((IEnumerable<PublishedProviderResult>)null);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -252,7 +252,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            ResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: resultsProviderRepository);
+            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: resultsProviderRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -313,7 +313,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(CreatePublishedProviderResults());
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -417,8 +417,8 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
 
-            ResultsService resultsService = CreateResultsService(
-                publishedProviderResultsRepository: resultsProviderRepository,
+            PublishedResultsService resultsService = CreateResultsService(
+                publishedProviderResultsRepository: resultsProviderRepository, 
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository);
 
@@ -503,7 +503,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -585,7 +585,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -678,7 +678,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
             versionRepository
-                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>())
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Is(providerId))
                 .Returns(newVersion);
 
             ISearchRepository<AllocationNotificationFeedIndex> searchRepository = CreateAllocationNotificationFeedSearchRepository();
@@ -690,9 +690,9 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            ResultsService resultsService = CreateResultsService(
-                publishedProviderResultsRepository: resultsProviderRepository,
-                allocationNotificationFeedSearchRepository: searchRepository,
+            PublishedResultsService resultsService = CreateResultsService(
+                publishedProviderResultsRepository: resultsProviderRepository, 
+                allocationNotificationFeedSearchRepository: searchRepository, 
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository);
 
@@ -823,7 +823,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
             versionRepository
-                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>())
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<string>())
                 .Returns(newVersion1, newVersion2, newVersion3);
 
             SpecificationCurrentVersion specification = CreateSpecification(specificationId);
@@ -833,8 +833,8 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            ResultsService resultsService = CreateResultsService(
-                publishedProviderResultsRepository: resultsProviderRepository,
+            PublishedResultsService resultsService = CreateResultsService(
+                publishedProviderResultsRepository: resultsProviderRepository, 
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository);
 
@@ -943,7 +943,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
             versionRepository
-                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>())
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<string>())
                 .Returns(newVersion1, newVersion2, newVersion3);
 
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
@@ -958,8 +958,8 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            ResultsService resultsService = CreateResultsService(
-                publishedProviderResultsRepository: resultsProviderRepository,
+            PublishedResultsService resultsService = CreateResultsService(
+                publishedProviderResultsRepository: resultsProviderRepository, 
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository);
 
@@ -1068,7 +1068,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
             versionRepository
-                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>())
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<string>())
                 .Returns(newVersion1, newVersion2, newVersion3);
 
 
@@ -1086,9 +1086,9 @@ namespace CalculateFunding.Services.Results.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            ResultsService resultsService = CreateResultsService(
-                publishedProviderResultsRepository: resultsProviderRepository,
-                specificationsRepository: specificationsRepository,
+            PublishedResultsService resultsService = CreateResultsService(
+                publishedProviderResultsRepository: resultsProviderRepository, 
+                specificationsRepository: specificationsRepository, 
                 messengerService: messengerService,
                 publishedProviderResultsVersionRepository: versionRepository);
 

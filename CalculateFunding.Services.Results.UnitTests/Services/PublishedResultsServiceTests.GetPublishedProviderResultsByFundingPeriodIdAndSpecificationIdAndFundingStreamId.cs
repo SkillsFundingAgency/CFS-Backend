@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Services
 {
-    public partial class ResultsServiceTests
+    public partial class PublishedResultsServiceTests
     {
         [TestMethod]
         public async Task GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId_GivenNoSpecificationIdProvided_ReturnsBadRequest()
@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            ResultsService resultsService = CreateResultsService(logger);
+            PublishedResultsService resultsService = CreateResultsService(logger);
 
             //Act
             IActionResult actionResult = await resultsService.GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(request);
@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            ResultsService resultsService = CreateResultsService(logger);
+            PublishedResultsService resultsService = CreateResultsService(logger);
 
             //Act
             IActionResult actionResult = await resultsService.GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(request);
@@ -102,7 +102,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            ResultsService resultsService = CreateResultsService(logger);
+            PublishedResultsService resultsService = CreateResultsService(logger);
 
             //Act
             IActionResult actionResult = await resultsService.GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(request);
@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(request);
@@ -175,7 +175,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(Arg.Is(fundingPeriodId),Arg.Is(specificationId), Arg.Is(fundingStreamId))
                 .Returns(publishedProviderResults);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(request);
@@ -256,7 +256,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(Arg.Is(fundingPeriodId), Arg.Is(specificationId), Arg.Is(fundingStreamId))
                 .Returns(publishedProviderResults);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(request);
@@ -302,7 +302,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(Arg.Is(fundingPeriodId), Arg.Is(specificationId), Arg.Is(fundingStreamId))
                 .Returns(publishedProviderResults);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(request);

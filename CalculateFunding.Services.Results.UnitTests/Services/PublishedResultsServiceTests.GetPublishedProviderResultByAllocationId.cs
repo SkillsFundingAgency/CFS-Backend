@@ -11,7 +11,7 @@ using CalculateFunding.Services.Core.Interfaces;
 
 namespace CalculateFunding.Services.Results.Services
 {
-    public partial class ResultsServiceTests
+    public partial class PublishedResultsServiceTests
     {
         [TestMethod]
         public async Task GetPublishedProviderResultByAllocationResultId_GivenResultNotFound_ResturnsNull()
@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultForIdInPublishedState(Arg.Is(allocationResultId))
                 .Returns((PublishedProviderResult)null);
 
-            ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
+            PublishedResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
 
             //Act
             PublishedProviderResult result = await service.GetPublishedProviderResultByAllocationResultId(allocationResultId);
@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultForIdInPublishedState(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
 
-            ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
+            PublishedResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
 
             //Act
             PublishedProviderResult result = await service.GetPublishedProviderResultByAllocationResultId(allocationResultId);
@@ -85,7 +85,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
 
-            ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository, publishedProviderResultsVersionRepository: versionRepository);
+            PublishedResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository, publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
             PublishedProviderResult result = await service.GetPublishedProviderResultByAllocationResultId(allocationResultId, version);
@@ -130,7 +130,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetVersion(Arg.Is(allocationResultId), Arg.Is(version))
                 .Returns((PublishedAllocationLineResultVersion)null);
 
-            ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository, publishedProviderResultsVersionRepository: versionRepository);
+            PublishedResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository, publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
             PublishedProviderResult result = await service.GetPublishedProviderResultByAllocationResultId(allocationResultId, version);
@@ -176,7 +176,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetVersion(Arg.Is(allocationResultId), Arg.Is(version))
                 .Returns(publishedAllocationLineResultVersion);
 
-            ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository, publishedProviderResultsVersionRepository: versionRepository);
+            PublishedResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository, publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
             PublishedProviderResult result = await service.GetPublishedProviderResultByAllocationResultId(allocationResultId, version);

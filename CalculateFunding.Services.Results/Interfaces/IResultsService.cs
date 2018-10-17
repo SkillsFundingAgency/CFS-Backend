@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using CalculateFunding.Models.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -17,16 +16,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IActionResult> ReIndexCalculationProviderResults();
         Task<IActionResult> GetScopedProviderIdsBySpecificationId(HttpRequest request);
         Task<IActionResult> GetFundingCalculationResultsForSpecifications(HttpRequest request);
-        Task PublishProviderResults(Message message);
-        Task<IActionResult> GetPublishedProviderResultsBySpecificationId(HttpRequest request);
-        Task<IActionResult> GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(HttpRequest request);
-        Task<IActionResult> GetConfirmationDetailsForApprovePublishProviderResults(HttpRequest request);
-        Task<IActionResult> UpdatePublishedAllocationLineResultsStatus(HttpRequest request);
         Task<IActionResult> ImportProviders(HttpRequest request);
         Task<IActionResult> RemoveCurrentProviders();
-        Task<PublishedProviderResult> GetPublishedProviderResultByAllocationResultId(string allocationResultId, int? version = null);
-        Task<PublishedProviderResultWithHistory> GetPublishedProviderResultWithHistoryByAllocationResultId(string allocationResultId);
-        Task<IActionResult> ReIndexAllocationNotificationFeeds();
-        Task FetchProviderProfile(Message message);
     }
 }

@@ -16,6 +16,7 @@ using Microsoft.Extensions.Primitives;
 using Serilog;
 using CalculateFunding.Api.External.V1.Models;
 using Newtonsoft.Json;
+using CalculateFunding.Common.FeatureToggles;
 
 namespace CalculateFunding.Api.External.UnitTests.Services
 {
@@ -1679,9 +1680,124 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                     .GetLocalAuthorityFeeds(Arg.Is(laCode), Arg.Is(startYear), Arg.Is(endYear), Arg.Is<IList<string>>(m => m.Count == 1 && m.First() == "allocationLineId eq 'AllocationLine1'"));
         }
 
-        static ProviderResultsService CreateService(IAllocationNotificationsFeedsSearchService searchService = null, ILogger logger = null)
+        [TestMethod]
+        public async Task GetLocalAuthorityProvidersResultsForAllocations_GivenValidResultsFoundFromSearchAndfeatureToggleIsDisabled_ReturnsResults()
         {
-            return new ProviderResultsService(searchService ?? CreateSearchService(), logger ?? CreateLogger());
+            //Arrange
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary.Add("Accept", new StringValues("application/json"));
+
+            HttpRequest httpRequest = Substitute.For<HttpRequest>();
+            httpRequest.Headers.Returns(headerDictionary);
+
+            SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
+            {
+                Entries = CreateFeedIndexes()
+            };
+
+            feeds.Entries.ElementAt(0).MajorVersion = 1;
+            feeds.Entries.ElementAt(0).MinorVersion = 1;
+           
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(false);
+
+            IAllocationNotificationsFeedsSearchService searchService = CreateSearchService();
+            searchService
+                .GetLocalAuthorityFeeds(Arg.Is(laCode), Arg.Is(startYear), Arg.Is(endYear), Arg.Any<IEnumerable<string>>())
+                .Returns(feeds);
+
+            ProviderResultsService providerResultsService = CreateService(searchService, featureToggle: featureToggle);
+
+            //Act
+            IActionResult result = await providerResultsService.GetLocalAuthorityProvidersResultsForAllocations(laCode, startYear, endYear, allocationLineIds, httpRequest);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<ContentResult>()
+                .Which
+                .StatusCode
+                .Should()
+                .Be(200);
+
+            ContentResult contentResult = result as ContentResult;
+
+            LocalAuthorityResultsSummary localAuthorityResultSummary = JsonConvert.DeserializeObject<LocalAuthorityResultsSummary>(contentResult.Content);
+
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.ElementAt(0).Allocations.First().AllocationMajorVersion.Should().Be(0);
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.ElementAt(0).Allocations.First().AllocationMinorVersion.Should().Be(0);
+
+            await
+                searchService
+                    .Received(1)
+                    .GetLocalAuthorityFeeds(Arg.Is(laCode), Arg.Is(startYear), Arg.Is(endYear), Arg.Is<IList<string>>(m => m.Count == 1 && m.First() == "allocationLineId eq 'AllocationLine1'"));
+        }
+
+        [TestMethod]
+        public async Task GetLocalAuthorityProvidersResultsForAllocations_GivenValidResultsFoundFromSearchAndfeatureToggleIsEnabled_ReturnsResults()
+        {
+            //Arrange
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary.Add("Accept", new StringValues("application/json"));
+
+            HttpRequest httpRequest = Substitute.For<HttpRequest>();
+            httpRequest.Headers.Returns(headerDictionary);
+
+            SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
+            {
+                Entries = CreateFeedIndexes()
+            };
+
+            feeds.Entries.ElementAt(0).MajorVersion = 1;
+            feeds.Entries.ElementAt(1).MajorVersion = 1;
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(true);
+
+            IAllocationNotificationsFeedsSearchService searchService = CreateSearchService();
+            searchService
+                .GetLocalAuthorityFeeds(Arg.Is(laCode), Arg.Is(startYear), Arg.Is(endYear), Arg.Any<IEnumerable<string>>())
+                .Returns(feeds);
+
+            ProviderResultsService providerResultsService = CreateService(searchService, featureToggle: featureToggle);
+
+            //Act
+            IActionResult result = await providerResultsService.GetLocalAuthorityProvidersResultsForAllocations(laCode, startYear, endYear, allocationLineIds, httpRequest);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<ContentResult>()
+                .Which
+                .StatusCode
+                .Should()
+                .Be(200);
+
+            ContentResult contentResult = result as ContentResult;
+
+            LocalAuthorityResultsSummary localAuthorityResultSummary = JsonConvert.DeserializeObject<LocalAuthorityResultsSummary>(contentResult.Content);
+
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.ElementAt(0).Allocations.First().AllocationMajorVersion.Should().Be(1);
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.ElementAt(0).Allocations.First().AllocationMinorVersion.Should().Be(0);
+
+            await
+                searchService
+                    .Received(1)
+                    .GetLocalAuthorityFeeds(Arg.Is(laCode), Arg.Is(startYear), Arg.Is(endYear), Arg.Is<IList<string>>(m => m.Count == 1 && m.First() == "allocationLineId eq 'AllocationLine1'"));
+        }
+
+        static ProviderResultsService CreateService(IAllocationNotificationsFeedsSearchService searchService = null, ILogger logger = null, IFeatureToggle featureToggle = null)
+        {
+            return new ProviderResultsService(searchService ?? CreateSearchService(), logger ?? CreateLogger(), featureToggle ?? CreateFeatureToggle());
+        }
+
+        static IFeatureToggle CreateFeatureToggle()
+        {
+            return Substitute.For<IFeatureToggle>();
         }
 
         static IAllocationNotificationsFeedsSearchService CreateSearchService()

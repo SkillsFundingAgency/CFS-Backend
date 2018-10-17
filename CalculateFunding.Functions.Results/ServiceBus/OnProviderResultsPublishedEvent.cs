@@ -19,7 +19,7 @@ namespace CalculateFunding.Functions.Results.ServiceBus
 
             using (var scope = IocConfig.Build(config).CreateScope())
             {
-                var resultsService = scope.ServiceProvider.GetService<IResultsService>();
+                var resultsService = scope.ServiceProvider.GetService<IPublishedResultsService>();
                 var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 var logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
 

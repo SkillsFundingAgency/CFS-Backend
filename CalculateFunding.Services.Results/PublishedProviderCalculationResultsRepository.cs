@@ -53,7 +53,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IEnumerable<PublishedProviderCalculationResultExisting>> GetExistingPublishedProviderCalculationResultsForSpecificationId(string specificationId)
         {
-            IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic<dynamic>($"SELECT r.id, r.content.providerId, r.content.current[\"value\"] FROM Root r where r.documentType = 'PublishedProviderCalculationResult' and r.deleted = false and r.content.specification.id = '{specificationId}'", true, 1000);
+            IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic<dynamic>($"SELECT r.id, r.content.providerId, r.content.current[\"value\"], r.content.calculationSpecification.id as calculationSpecificationId, r.content.current.version as calculationVersion FROM Root r where r.documentType = 'PublishedProviderCalculationResult' and r.deleted = false and r.content.specification.id = '{specificationId}'", true, 1000);
 
             List<PublishedProviderCalculationResultExisting> results = new List<PublishedProviderCalculationResultExisting>();
             foreach (dynamic existingResult in existingResults)
@@ -62,7 +62,9 @@ namespace CalculateFunding.Services.Results
                 {
                     Id = existingResult.id,
                     ProviderId = existingResult.providerId,
-                    Value = existingResult.value
+                    Value = existingResult.value,
+                    CalculationSpecificationId = existingResult.calculationSpecificationId,
+                    CalculationVersion = (int)existingResult.calculationVersion
                 };
 
                 results.Add(result);
@@ -70,7 +72,7 @@ namespace CalculateFunding.Services.Results
             return results;
         }
 
-        public async Task<IEnumerable<PublishedProviderCalculationResult>> GetPublishedProviderCalculationResultsBySpecificationIdAndProviderId(string specificationId, IEnumerable<string> providerIds)
+        public async Task<IEnumerable<PublishedProviderCalculationResult>> GetFundingOrPublicPublishedProviderCalculationResultsBySpecificationIdAndProviderId(string specificationId, IEnumerable<string> providerIds)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
@@ -86,7 +88,7 @@ namespace CalculateFunding.Services.Results
                     {
                         try
                         {
-                            string sql = $"select * from root c where c.content.specification.id = \"{specificationId}\" and c.documentType = \"PublishedProviderCalculationResult\" and c.content.providerId = \"{providerId}\" and c.deleted = false";
+                            string sql = $"select * from root c where c.content.specification.id = \"{specificationId}\" and c.documentType = \"PublishedProviderCalculationResult\" and (c.content.current.calculationType = 'Funding' or c.content.isPublic = true) and c.content.providerId = \"{providerId}\" and c.deleted = false";
 
                             IEnumerable<PublishedProviderCalculationResult> publishedCalcResults = await _cosmosRepository.QueryPartitionedEntity<PublishedProviderCalculationResult>(sql, partitionEntityId: providerId);
                             foreach (PublishedProviderCalculationResult result in publishedCalcResults)

@@ -11,5 +11,9 @@
         public decimal? Value { get; set; }
 
         public string ProviderId { get; set; }
+
+        public int Minor { get; set; }
+
+        public int Major { get; set; }
     }
 }

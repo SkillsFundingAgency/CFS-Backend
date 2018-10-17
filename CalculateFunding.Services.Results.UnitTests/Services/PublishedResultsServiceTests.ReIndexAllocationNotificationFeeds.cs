@@ -16,7 +16,7 @@ using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Services.Results.Services
 {
-    public partial class ResultsServiceTests
+    public partial class PublishedResultsServiceTests
     {
         [TestMethod]
         public async Task ReIndexAllocationNotificationFeeds_GivenNoPublishedProviderResultsFound_LogsWarning()
@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            ResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository);
+            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is("spec-1"))
                 .Returns(specification);
 
-            ResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository, 
+            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository, 
                 allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository);
 
             //Act
@@ -117,7 +117,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is("spec-1"))
                 .Returns(specification);
 
-            ResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository, 
+            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository, 
                 allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository);
 
             //Act
@@ -161,7 +161,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is("spec-1"))
                 .Returns(specification);
 
-            ResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
+            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
                 allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository);
 
             //Act

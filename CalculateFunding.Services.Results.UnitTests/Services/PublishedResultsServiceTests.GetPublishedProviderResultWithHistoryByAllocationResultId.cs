@@ -11,7 +11,7 @@ using NSubstitute;
 
 namespace CalculateFunding.Services.Results.Services
 {
-    public partial class ResultsServiceTests
+    public partial class PublishedResultsServiceTests
     {
         [TestMethod]
         public async Task GetPublishedProviderResultWithHistoryByAllocationResultId_GivenResultNotFound_ResturnsNull()
@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultForIdInPublishedState(Arg.Is(allocationResultId))
                 .Returns((PublishedProviderResult)null);
 
-            ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
+            PublishedResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
 
             //Act
             PublishedProviderResultWithHistory result = await service.GetPublishedProviderResultWithHistoryByAllocationResultId(allocationResultId);
@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetVersions(Arg.Is(query), Arg.Is("1111"))
                 .Returns((IEnumerable<PublishedAllocationLineResultVersion>)null);
 
-            ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository, publishedProviderResultsVersionRepository: versionRepository);
+            PublishedResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository, publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
             PublishedProviderResultWithHistory result = await service.GetPublishedProviderResultWithHistoryByAllocationResultId(allocationResultId);
@@ -98,7 +98,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetVersions(Arg.Is(allocationResultId), Arg.Is("1111"))
                 .Returns(history);
 
-            ResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository, publishedProviderResultsVersionRepository: versionRepository);
+            PublishedResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository, publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
             PublishedProviderResultWithHistory result = await service.GetPublishedProviderResultWithHistoryByAllocationResultId(allocationResultId);

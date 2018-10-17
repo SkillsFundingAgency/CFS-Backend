@@ -10,5 +10,8 @@ namespace CalculateFunding.Api.External.V1.Models
         public DateTimeOffset Date { get; set; }
         public string Comment { get; set; }
         public string Author { get; set; }
+        public decimal AllocationVersion { get; set; }
+        public int AllocationMajorVersion { get; set; }
+        public int AllocationMinorVersion { get; set; }
     }
 }

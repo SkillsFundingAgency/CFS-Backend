@@ -25,6 +25,12 @@ namespace CalculateFunding.Models
 
         public DateTimeOffset? PublishedResultsRefreshedAt { get; set; }
 
+        public int ApprovedCount { get; set; }
+
+        public int UpdatedCount { get; set; }
+
+        public int PublishedCount { get; set; }
+
         protected bool Equals(SpecificationCalculationExecutionStatus other)
 		{
 			return string.Equals(SpecificationId, other.SpecificationId) && PercentageCompleted == other.PercentageCompleted && CalculationProgress == other.CalculationProgress && string.Equals(ErrorMessage, other.ErrorMessage);

@@ -30,6 +30,9 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("value")]
         public decimal? Value { get; set; }
 
+        [JsonProperty("calculationVersion")]
+        public int CalculationVersion { get; set; }
+
         [JsonProperty("calculationType")]
         public PublishedCalculationType CalculationType { get; set; }
 

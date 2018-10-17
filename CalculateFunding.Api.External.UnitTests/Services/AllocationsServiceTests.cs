@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Api.External.V1.Services;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Results.Interfaces;
@@ -52,7 +53,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
             HttpRequest request = Substitute.For<HttpRequest>();
 
-            IResultsService resultsService = CreateResultsService();
+            IPublishedResultsService resultsService = CreateResultsService();
             resultsService
                 .GetPublishedProviderResultByAllocationResultId(Arg.Is(allocationResultId))
                 .Returns((PublishedProviderResult)null);
@@ -83,7 +84,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
             PublishedProviderResult publishedProviderResult = CreatePublishedProviderResult();
 
-            IResultsService resultsService = CreateResultsService();
+            IPublishedResultsService resultsService = CreateResultsService();
             resultsService
                 .GetPublishedProviderResultByAllocationResultId(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
@@ -115,7 +116,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
             PublishedProviderResult publishedProviderResult = CreatePublishedProviderResult();
 
-            IResultsService resultsService = CreateResultsService();
+            IPublishedResultsService resultsService = CreateResultsService();
             resultsService
                 .GetPublishedProviderResultByAllocationResultId(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
@@ -163,7 +164,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
             HttpRequest request = Substitute.For<HttpRequest>();
 
-            IResultsService resultsService = CreateResultsService();
+            IPublishedResultsService resultsService = CreateResultsService();
             resultsService
                 .GetPublishedProviderResultWithHistoryByAllocationResultId(Arg.Is(allocationResultId))
                 .Returns((PublishedProviderResultWithHistory)null);
@@ -194,7 +195,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
             PublishedProviderResultWithHistory publishedProviderResult = CreatePublishedProviderResultWithHistory();
 
-            IResultsService resultsService = CreateResultsService();
+            IPublishedResultsService resultsService = CreateResultsService();
             resultsService
                 .GetPublishedProviderResultWithHistoryByAllocationResultId(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
@@ -225,9 +226,9 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                 .Returns(headerDictionary);
 
             PublishedProviderResultWithHistory publishedProviderResult = CreatePublishedProviderResultWithHistory();
-           
 
-            IResultsService resultsService = CreateResultsService();
+
+            IPublishedResultsService resultsService = CreateResultsService();
             resultsService
                 .GetPublishedProviderResultWithHistoryByAllocationResultId(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
@@ -274,14 +275,19 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             allocationModel.History[1].Status.Should().Be("Held");
         }
 
-        static AllocationsService CreateService(IResultsService resultsService = null)
+        static AllocationsService CreateService(IPublishedResultsService resultsService = null, IFeatureToggle featureToggle = null)
         {
-            return new AllocationsService(resultsService ?? CreateResultsService());
+            return new AllocationsService(resultsService ?? CreateResultsService(), featureToggle ?? CreateFeatureToggle());
         }
 
-        static IResultsService CreateResultsService()
+        static IFeatureToggle CreateFeatureToggle()
         {
-            return Substitute.For<IResultsService>();
+            return Substitute.For<IFeatureToggle>();
+        }
+
+        static IPublishedResultsService CreateResultsService()
+        {
+            return Substitute.For<IPublishedResultsService>();
         }
 
         static PublishedProviderResult CreatePublishedProviderResult()
@@ -311,6 +317,8 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                             Status = AllocationLineStatus.Published,
                             Value = 50,
                             Version = 1,
+                            Major = 1,
+                            Minor = 1,
                             Date = DateTimeOffset.Now,
                             Provider = new ProviderSummary
                             {

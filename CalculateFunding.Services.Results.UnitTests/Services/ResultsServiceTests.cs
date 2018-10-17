@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -18,13 +17,11 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using Newtonsoft.Json;
-using System.Net;
 using System.IO;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Models;
-using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Results.UnitTests;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Caching;
@@ -1214,16 +1211,9 @@ namespace CalculateFunding.Services.Results.Services
             ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository = null,
             ISpecificationsRepository specificationsRepository = null,
             IResultsResilliencePolicies resiliencePolicies = null,
-            IPublishedProviderResultsAssemblerService publishedProviderResultsAssemblerService = null,
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = null,
-            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = null,
             IProviderImportMappingService providerImportMappingService = null,
             ICacheProvider cacheProvider = null,
-            ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationFeedSearchRepository = null,
-            IProviderProfilingRepository providerProfilingRepository = null,
-            IMessengerService messengerService = null,
-            IVersionRepository<PublishedAllocationLineResultVersion> publishedProviderResultsVersionRepository = null,
-            IVersionRepository<PublishedProviderCalculationResultVersion> publishedProviderCalcResultsVersionRepository = null)
+            IMessengerService messengerService = null)
         {
             return new ResultsService(
                 logger ?? CreateLogger(),
@@ -1235,31 +1225,9 @@ namespace CalculateFunding.Services.Results.Services
                 calculationProviderResultsSearchRepository ?? CreateCalculationProviderResultsSearchRepository(),
                 specificationsRepository ?? CreateSpecificationsRepository(),
                 resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies(),
-                publishedProviderResultsAssemblerService ?? CreateResultsAssembler(),
-                publishedProviderResultsRepository ?? CreatePublishedProviderResultsRepository(),
-                publishedProviderCalculationResultsRepository ?? CreatePublishedProviderCalculationResultsRepository(),
                 providerImportMappingService ?? CreateProviderImportMappingService(),
                 cacheProvider ?? CreateCacheProvider(),
-                allocationNotificationFeedSearchRepository ?? CreateAllocationNotificationFeedSearchRepository(),
-                providerProfilingRepository ?? CreateProfilingRepository(),
-                messengerService ?? CreateMessengerService(),
-                publishedProviderResultsVersionRepository ?? CreatePublishedProviderResultsVersionRepository(),
-                publishedProviderCalcResultsVersionRepository ?? CreatePublishedProviderCalcResultsVersionRepository());
-        }
-
-        static IVersionRepository<PublishedProviderCalculationResultVersion> CreatePublishedProviderCalcResultsVersionRepository()
-        {
-            return Substitute.For<IVersionRepository<PublishedProviderCalculationResultVersion>>();
-        }
-
-        static IVersionRepository<PublishedAllocationLineResultVersion> CreatePublishedProviderResultsVersionRepository()
-        {
-            return Substitute.For<IVersionRepository<PublishedAllocationLineResultVersion>>();
-        }
-
-        static IProviderProfilingRepository CreateProfilingRepository()
-        {
-            return Substitute.For<IProviderProfilingRepository>();
+                messengerService ?? CreateMessengerService());
         }
 
         static ISearchRepository<AllocationNotificationFeedIndex> CreateAllocationNotificationFeedSearchRepository()
@@ -1275,21 +1243,6 @@ namespace CalculateFunding.Services.Results.Services
         static IProviderImportMappingService CreateProviderImportMappingService()
         {
             return Substitute.For<IProviderImportMappingService>();
-        }
-
-        static IPublishedProviderCalculationResultsRepository CreatePublishedProviderCalculationResultsRepository()
-        {
-            return Substitute.For<IPublishedProviderCalculationResultsRepository>();
-        }
-
-        static IPublishedProviderResultsAssemblerService CreateResultsAssembler()
-        {
-            return Substitute.For<IPublishedProviderResultsAssemblerService>();
-        }
-
-        static IPublishedProviderResultsRepository CreatePublishedProviderResultsRepository()
-        {
-            return Substitute.For<IPublishedProviderResultsRepository>();
         }
 
         static ILogger CreateLogger()

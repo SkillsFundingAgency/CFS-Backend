@@ -301,6 +301,13 @@
         "description": "Feature toggle to enable the mock profiling api"
       }
     },
+    "EnableMajorMinorVersioning": {
+      "defaultValue": false,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable the major minor versioning"
+      }
+    },
     "storageFirewallEnabled": {
       "type": "bool",
       "metadata": {
@@ -1454,6 +1461,10 @@
             {
               "name": "features:providerProfilingServiceDisabled",
               "value": "[parameters('DisableProviderProfilingService')]"
+            },
+            {
+              "name": "features:allocationLineMajorMinorVersioningEnabled",
+              "value": "[parameters('EnableMajorMinorVersioning')]"
             }
           ]
         }
@@ -2160,6 +2171,10 @@
             {
               "name": "features:providerProfilingServiceDisabled",
               "value": "[parameters('DisableProviderProfilingService')]"
+            },
+            {
+              "name": "features:allocationLineMajorMinorVersioningEnabled",
+              "value": "[parameters('EnableMajorMinorVersioning')]"
             }
           ]
         }
@@ -2341,6 +2356,10 @@
             {
               "name": "apiKeyMiddleware:apiKey",
               "value": "[parameters('ApiKeyResults')]"
+            },
+            {
+              "name": "features:allocationLineMajorMinorVersioningEnabled",
+              "value": "[parameters('EnableMajorMinorVersioning')]"
             }
           ]
         }

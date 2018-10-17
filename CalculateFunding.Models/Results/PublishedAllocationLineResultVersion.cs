@@ -37,6 +37,23 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("provider")]
         public ProviderSummary Provider { get; set; }
 
+        [JsonProperty("major")]
+
+        public int Major { get; set; }
+
+        [JsonProperty("minor")]
+
+        public int Minor { get; set; }
+
+        [JsonProperty("versionNumber")]
+        public string VersionNumber
+        {
+            get
+            {
+                return $"{Major}.{Minor}";
+            }
+        }
+
         public override VersionedItem Clone()
         {
             // Serialise to perform a deep copy

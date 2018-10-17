@@ -6,6 +6,7 @@ using CalculateFunding.Api.External.MappingProfiles;
 using CalculateFunding.Api.External.Swagger;
 using CalculateFunding.Api.External.V1.Interfaces;
 using CalculateFunding.Api.External.V1.Services;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
@@ -49,6 +50,8 @@ namespace CalculateFunding.Api.External
         }
 
         public IConfiguration Configuration { get; }
+
+        public IServiceProvider ServiceProvider { get; private set; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -121,6 +124,8 @@ namespace CalculateFunding.Api.External
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddFeatureToggling(Configuration);
+
             builder
                 .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>()
                 .AddSingleton<IHealthChecker, AllocationNotificationsFeedsSearchService>();
@@ -137,11 +142,9 @@ namespace CalculateFunding.Api.External
             builder
                 .AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder
-                .AddSingleton<IResultsService, ResultsService>()
-                .AddSingleton<IHealthChecker, ResultsService>();
-            builder
-                .AddSingleton<IResultsSearchService, ResultsSearchService>()
-                .AddSingleton<IHealthChecker, ResultsSearchService>();
+               .AddSingleton<IPublishedResultsService, PublishedResultsService>()
+               .AddSingleton<IHealthChecker, PublishedResultsService>();
+    
             builder
                 .AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>()
                 .AddSingleton<IHealthChecker, CalculationProviderResultsSearchService>();
@@ -230,19 +233,6 @@ namespace CalculateFunding.Api.External
             builder
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
-            bool enableMockProvider = Configuration.GetValue<bool>("FeatureToggles:EnableMockProfilingApi");
-
-            if (enableMockProvider)
-            {
-                builder
-                    .AddSingleton<IProviderProfilingRepository, MockProviderProfilingRepository>();
-            }
-            else
-            {
-                builder
-                    .AddSingleton<IProviderProfilingRepository, ProviderProfilingRepository>();
-            }
-
             builder.AddSingleton<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>(
 		        ctx =>
 		        {
@@ -283,6 +273,22 @@ namespace CalculateFunding.Api.External
                 return new VersionRepository<PublishedProviderCalculationResultVersion>(resultsRepostory);
             });
 
+            builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService>((ctx) =>
+            {
+                IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
+
+                bool enableMajorMinorVersioning = featureToggle.IsAllocationLineMajorMinorVersioningEnabled();
+
+                if (enableMajorMinorVersioning)
+                {
+                   return new PublishedAllocationLineLogicalResultVersionService();
+                }
+                else
+                {
+                    return new RedundantPublishedAllocationLineLogicalResultVersionService();
+                }
+            });
+          
             builder.AddSingleton<ITimePeriodsService, TimePeriodsService>();
             builder.AddSingleton<IFundingStreamService, FundingStreamService>();
 	        builder.AddSingleton<ISpecificationsService, SpecificationsService>();
@@ -336,6 +342,8 @@ namespace CalculateFunding.Api.External
                 };
             });
 			builder.AddHealthCheckMiddleware();
-		}
+
+            ServiceProvider = builder.BuildServiceProvider();
+        }
     }
 }

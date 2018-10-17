@@ -1122,17 +1122,23 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = new List<ProviderResult>();
             Reference author = new Reference("a", "Author Name");
             SpecificationCurrentVersion specification = new SpecificationCurrentVersion();
-
+            IEnumerable<PublishedProviderCalculationResultExisting> existingResults = Enumerable.Empty<PublishedProviderCalculationResultExisting>();
 
             PublishedProviderResultsAssemblerService service = CreateAssemblerService();
 
             // Act
-            IEnumerable<PublishedProviderCalculationResult> results = service.AssemblePublishedCalculationResults(providerResults, author, specification);
+            (IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults, bool isCalcsUpdated) results = service.AssemblePublishedCalculationResults(providerResults, author, specification, existingResults);
 
             // Assert
             results
+                .publishedProviderCalculationResults
                 .Should()
                 .BeEmpty();
+
+            results
+                .isCalcsUpdated
+                .Should()
+                .BeFalse();
         }
 
         [TestMethod]
@@ -1209,17 +1215,20 @@ namespace CalculateFunding.Services.Results.Services
                 SpecificationId = specification.Id,
             });
 
+            IEnumerable<PublishedProviderCalculationResultExisting> existingResults = Enumerable.Empty<PublishedProviderCalculationResultExisting>();
+
             PublishedProviderResultsAssemblerService service = CreateAssemblerService();
 
             // Act
-            IEnumerable<PublishedProviderCalculationResult> results = service.AssemblePublishedCalculationResults(providerResults, author, specification);
+            (IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults, bool isCalcsUpdated) results = service.AssemblePublishedCalculationResults(providerResults, author, specification, existingResults);
 
             // Assert
             results
+                .publishedProviderCalculationResults
                 .Should()
                 .HaveCount(1);
 
-            PublishedProviderCalculationResult result = results.First();
+            PublishedProviderCalculationResult result = results.publishedProviderCalculationResults.First();
 
             result.Current.Author.Should().BeEquivalentTo(author);
             result.Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
@@ -1267,17 +1276,20 @@ namespace CalculateFunding.Services.Results.Services
                 SpecificationId = specification.Id,
             });
 
+            IEnumerable<PublishedProviderCalculationResultExisting> existingResults = Enumerable.Empty<PublishedProviderCalculationResultExisting>();
+
             PublishedProviderResultsAssemblerService service = CreateAssemblerService();
 
             // Act
-            IEnumerable<PublishedProviderCalculationResult> results = service.AssemblePublishedCalculationResults(providerResults, author, specification);
+            (IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults, bool hasCalcChanged) results = service.AssemblePublishedCalculationResults(providerResults, author, specification, existingResults);
 
             // Assert
             results
+                .publishedProviderCalculationResults
                 .Should()
                 .HaveCount(1);
 
-            PublishedProviderCalculationResult result = results.First();
+            PublishedProviderCalculationResult result = results.publishedProviderCalculationResults.First();
 
             result.Current.Author.Should().BeEquivalentTo(author);
             result.Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
@@ -1372,19 +1384,27 @@ namespace CalculateFunding.Services.Results.Services
                 SpecificationId = specification.Id,
             });
 
+            IEnumerable<PublishedProviderCalculationResultExisting> existingResults = Enumerable.Empty<PublishedProviderCalculationResultExisting>();
+
             PublishedProviderResultsAssemblerService service = CreateAssemblerService();
 
             // Act
-            IEnumerable<PublishedProviderCalculationResult> results = service.AssemblePublishedCalculationResults(providerResults, author, specification);
+            (IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults, bool isCalcsUpdated) results = service.AssemblePublishedCalculationResults(providerResults, author, specification, existingResults);
 
             // Assert
             results
+                .publishedProviderCalculationResults
                 .Should()
-                .HaveCount(5);
+                .HaveCount(6);
 
-            PublishedProviderCalculationResult result = results.First();
+            results
+              .isCalcsUpdated
+              .Should()
+              .BeFalse();
 
-            List<PublishedProviderCalculationResult> resultsList = new List<PublishedProviderCalculationResult>(results);
+            PublishedProviderCalculationResult result = results.publishedProviderCalculationResults.First();
+
+            List<PublishedProviderCalculationResult> resultsList = new List<PublishedProviderCalculationResult>(results.publishedProviderCalculationResults);
 
             result.CalculationSpecification.Should().BeEquivalentTo(new Reference("subpolicy2Calc2", "Subpolicy 1 Calculation 2"));
             result.Current.Author.Should().BeEquivalentTo(author);
@@ -1415,19 +1435,143 @@ namespace CalculateFunding.Services.Results.Services
             resultsList[2].ParentPolicy.Should().BeNull();
             resultsList[2].Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
 
-            resultsList[3].CalculationSpecification.Should().BeEquivalentTo(new Reference("calc1", "Calculation 1 - Policy 2"));
-            resultsList[3].ProviderId.Should().Be("provider2");
-            resultsList[3].Current.Value.Should().Be(2.2M);
-            resultsList[3].Policy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
-            resultsList[3].ParentPolicy.Should().BeNull();
-            resultsList[3].Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
-
-            resultsList[4].CalculationSpecification.Should().BeEquivalentTo(new Reference("calc2", "Calculation 2 - Policy 2"));
+            resultsList[3].CalculationSpecification.Should().BeEquivalentTo(new Reference("subpolicy2Calc3", "Subpolicy 1 Calculation 3"));
             resultsList[4].ProviderId.Should().Be("provider2");
-            resultsList[4].Current.Value.Should().Be(2.3M);
+            resultsList[4].Current.Value.Should().Be(2.2M);
             resultsList[4].Policy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
             resultsList[4].ParentPolicy.Should().BeNull();
             resultsList[4].Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
+
+            resultsList[4].CalculationSpecification.Should().BeEquivalentTo(new Reference("calc1", "Calculation 1 - Policy 2"));
+            resultsList[4].ProviderId.Should().Be("provider2");
+            resultsList[4].Current.Value.Should().Be(2.2M);
+            resultsList[4].Policy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
+            resultsList[4].ParentPolicy.Should().BeNull();
+            resultsList[4].Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
+
+            resultsList[5].CalculationSpecification.Should().BeEquivalentTo(new Reference("calc2", "Calculation 2 - Policy 2"));
+            resultsList[5].ProviderId.Should().Be("provider2");
+            resultsList[5].Current.Value.Should().Be(2.3M);
+            resultsList[5].Policy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
+            resultsList[5].ParentPolicy.Should().BeNull();
+            resultsList[5].Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
+        }
+
+        [TestMethod]
+        public void AssemblePublishedCalculationResults_WhenMultipleCalculationResultsGeneratedForPoliciesAndSubpoliciesAndAtLeastOneCalcHasChanged_ThenPublishedProviderCalculationResultsAndHasCalcsIsTrueAreReturned()
+        {
+            // Arrange
+            List<ProviderResult> providerResults = new List<ProviderResult>();
+            Reference author = new Reference("a", "Author Name");
+            SpecificationCurrentVersion specification = GenerateSpecificationWithPoliciesAndSubpolicies();
+
+            providerResults.Add(new ProviderResult()
+            {
+                AllocationLineResults = new List<AllocationLineResult>(),
+                CalculationResults = new List<CalculationResult>()
+                {
+                    new CalculationResult()
+                    {
+                        CalculationSpecification = new Reference("subpolicy2Calc2", "Subpolicy 1 Calculation 2"),
+                        CalculationType = Models.Calcs.CalculationType.Funding,
+                        Value = 12345.66M,
+                        Version = 2
+                    },
+                    new CalculationResult()
+                    {
+                        CalculationSpecification = new Reference("calc1", "Calculation 1 - Policy 2"),
+                        CalculationType = Models.Calcs.CalculationType.Funding,
+                        Value = 12345.2M,
+                        Version = 2
+                    },
+                    new CalculationResult()
+                    {
+                        CalculationSpecification = new Reference("calc2", "Calculation 2 - Policy 2"),
+                        CalculationType = Models.Calcs.CalculationType.Funding,
+                        Value = 12345.3M,
+                        Version = 2
+                    },
+                },
+                Id = "p1",
+                Provider = new ProviderSummary()
+                {
+                    Id = "provider1",
+                    Name = "Provider 1",
+                    UKPRN = "123"
+                },
+                SourceDatasets = new List<object>(),
+                SpecificationId = specification.Id,
+            });
+
+            providerResults.Add(new ProviderResult()
+            {
+                AllocationLineResults = new List<AllocationLineResult>(),
+                CalculationResults = new List<CalculationResult>()
+                {
+                    new CalculationResult()
+                    {
+                        CalculationSpecification = new Reference("subpolicy2Calc3", "Subpolicy 1 Calculation 3"),
+                        CalculationType = Models.Calcs.CalculationType.Number,
+                        Value = 2.1M,
+                        Version = 2
+                    },
+                    new CalculationResult()
+                    {
+                        CalculationSpecification = new Reference("calc1", "Calculation 1 - Policy 2"),
+                        CalculationType = Models.Calcs.CalculationType.Funding,
+                        Value = 2.2M,
+                        Version = 2
+                    },
+                    new CalculationResult()
+                    {
+                        CalculationSpecification = new Reference("calc2", "Calculation 2 - Policy 2"),
+                        CalculationType = Models.Calcs.CalculationType.Funding,
+                        Value = 2.3M,
+                        Version = 2
+                    },
+                },
+                Id = "p2",
+                Provider = new ProviderSummary()
+                {
+                    Id = "provider2",
+                    Name = "Provider 1",
+                    UKPRN = "456"
+                },
+                SourceDatasets = new List<object>(),
+                SpecificationId = specification.Id,
+            });
+
+            IEnumerable<PublishedProviderCalculationResultExisting> existingResults = new[]
+            {
+                new PublishedProviderCalculationResultExisting
+                {
+                    CalculationVersion = 2,
+                    ProviderId = "provider1",
+                    CalculationSpecificationId = "calc1"
+                },
+                new PublishedProviderCalculationResultExisting
+                {
+                    CalculationVersion = 1,
+                    ProviderId = "provider2",
+                    CalculationSpecificationId = "calc1"
+                }
+            };
+
+            PublishedProviderResultsAssemblerService service = CreateAssemblerService();
+
+            // Act
+            (IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults, bool isCalcsUpdated) results = service.AssemblePublishedCalculationResults(providerResults, author, specification, existingResults);
+
+            // Assert
+            results
+                .publishedProviderCalculationResults
+                .Should()
+                .HaveCount(6);
+
+            results
+              .isCalcsUpdated
+              .Should()
+              .BeTrue();
         }
 
         [TestMethod]

@@ -60,6 +60,16 @@ namespace CalculateFunding.Api.External.V1.Models
         public int AllocationVersionNumber { get; set; }
 
         /// <summary>
+        /// The current allocation major version
+        /// </summary>
+        public int AllocationMajorVersion { get; set; }
+
+        /// <summary>
+        /// The current allocation minor version
+        /// </summary>
+        public int AllocationMinorVersion { get; set; }
+
+        /// <summary>
         /// The current allocation status
         /// </summary>
         public string AllocationStatus { get; set; }

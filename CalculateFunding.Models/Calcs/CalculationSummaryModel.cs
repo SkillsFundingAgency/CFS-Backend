@@ -16,5 +16,8 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("status")]
         public PublishStatus Status { get; set; }
+
+        [JsonProperty("version")]
+        public int Version { get; set; }
     }
 }

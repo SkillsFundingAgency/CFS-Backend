@@ -7,5 +7,9 @@
         public string ProviderId { get; set; }
 
         public decimal? Value { get; set; }
+
+        public int CalculationVersion { get; set; }
+
+        public string CalculationSpecificationId { get; set; }
     }
 }

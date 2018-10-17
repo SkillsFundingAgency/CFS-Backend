@@ -17,6 +17,7 @@ using CalculateFunding.Models.External.AtomItems;
 using Newtonsoft.Json;
 using CalculateFunding.Api.External.V1.Models;
 using Microsoft.AspNetCore.Http.Internal;
+using CalculateFunding.Common.FeatureToggles;
 
 namespace CalculateFunding.Api.External.UnitTests.Services
 {
@@ -567,9 +568,14 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                 .BeOfType<BadRequestResult>();
         }
 
-        static AllocationNotificationFeedsService CreateService(IAllocationNotificationsFeedsSearchService searchService = null)
+        static AllocationNotificationFeedsService CreateService(IAllocationNotificationsFeedsSearchService searchService = null, IFeatureToggle featureToggle = null)
         {
-            return new AllocationNotificationFeedsService(searchService ?? CreateSearchService());
+            return new AllocationNotificationFeedsService(searchService ?? CreateSearchService(), featureToggle ?? CreateFeatureToggle());
+        }
+
+        static IFeatureToggle CreateFeatureToggle()
+        {
+            return Substitute.For<IFeatureToggle>();
         }
 
         static IAllocationNotificationsFeedsSearchService CreateSearchService()
@@ -625,7 +631,9 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                          ProviderStatus = "Active",
                          ProviderType = "type 1",
                          SubProviderType = "sub type 1",
-                         ProviderUrn = "01"
+                         ProviderUrn = "01",
+                         MajorVersion = 1,
+                         MinorVersion = 1
                     },
                     new AllocationNotificationFeedIndex
                     {
@@ -671,7 +679,9 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                          ProviderStatus = "Active",
                          ProviderType = "type 2",
                          SubProviderType = "sub type 2",
-                         ProviderUrn = "02"
+                         ProviderUrn = "02",
+                         MajorVersion = 1,
+                         MinorVersion = 1
                     },
                     new AllocationNotificationFeedIndex
                     {
@@ -717,7 +727,9 @@ namespace CalculateFunding.Api.External.UnitTests.Services
                          ProviderStatus = "Active",
                          ProviderType = "type 3",
                          SubProviderType = "sub type 3",
-                         ProviderUrn = "03"
+                         ProviderUrn = "03",
+                         MajorVersion = 1,
+                         MinorVersion = 1
                     }
                 };
         }

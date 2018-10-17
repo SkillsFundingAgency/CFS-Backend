@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Api.External.Swagger.Helpers;
 using CalculateFunding.Api.External.V1.Interfaces;
 using CalculateFunding.Api.External.V1.Models;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.External;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Helpers;
@@ -14,11 +15,16 @@ namespace CalculateFunding.Api.External.V1.Services
 {
     public class AllocationsService : IAllocationsService
     {
-        private readonly IResultsService _resultsService;
+        private readonly IPublishedResultsService _publishedResultsService;
+        private readonly IFeatureToggle _featureToggle;
 
-        public AllocationsService(IResultsService resultsService)
+        public AllocationsService(IPublishedResultsService publishedResultsService, IFeatureToggle featureToggle)
         {
-            _resultsService = resultsService;
+            Guard.ArgumentNotNull(publishedResultsService, nameof(publishedResultsService));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+
+            _publishedResultsService = publishedResultsService;
+            _featureToggle = featureToggle;
         }
 
         public async Task<IActionResult> GetAllocationByAllocationResultId(string allocationResultId, int? version, HttpRequest httpRequest)
@@ -31,7 +37,7 @@ namespace CalculateFunding.Api.External.V1.Services
                 return new BadRequestObjectResult("Invalid version supplied");
             }
 
-            PublishedProviderResult publishedProviderResult = await _resultsService.GetPublishedProviderResultByAllocationResultId(allocationResultId, version);
+            PublishedProviderResult publishedProviderResult = await _publishedResultsService.GetPublishedProviderResultByAllocationResultId(allocationResultId, version);
 
             if(publishedProviderResult == null)
             {
@@ -48,7 +54,7 @@ namespace CalculateFunding.Api.External.V1.Services
             Guard.IsNullOrWhiteSpace(allocationResultId, nameof(allocationResultId));
             Guard.ArgumentNotNull(httpRequest, nameof(httpRequest));
 
-            PublishedProviderResultWithHistory publishedProviderResultWithHistory = await _resultsService.GetPublishedProviderResultWithHistoryByAllocationResultId(allocationResultId);
+            PublishedProviderResultWithHistory publishedProviderResultWithHistory = await _publishedResultsService.GetPublishedProviderResultWithHistoryByAllocationResultId(allocationResultId);
 
             if (publishedProviderResultWithHistory == null)
             {
@@ -67,6 +73,8 @@ namespace CalculateFunding.Api.External.V1.Services
                 AllocationResultId = publishedProviderResult.Id,
                 AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue ? (decimal)publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.Value : 0,
                 AllocationVersionNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Version,
+                AllocationMajorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Major : 0,
+                AllocationMinorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Minor : 0,
                 AllocationLine = new Models.AllocationLine
                 {
                     Id = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id,
@@ -144,7 +152,9 @@ namespace CalculateFunding.Api.External.V1.Services
                        Status = m.Status.ToString(),
                        Date = m.Date,
                        Author = m.Author.Name,
-                       Comment = m.Commment
+                       Comment = m.Commment,
+                       AllocationMajorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? m.Major : 0,
+                       AllocationMinorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? m.Minor : 0,
                    }
                 ).OrderByDescending(m => m.Date).ToArraySafe();
 

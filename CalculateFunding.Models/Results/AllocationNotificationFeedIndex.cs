@@ -159,5 +159,13 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("status")]
         public string ProviderStatus { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("majorVersion")]
+        public int? MajorVersion { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("minorVersion")]
+        public int? MinorVersion { get; set; }
     }
 }

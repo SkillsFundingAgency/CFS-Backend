@@ -27,5 +27,9 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("calculationType")]
         public CalculationType CalculationType { get; set; }
+
+        [JsonProperty("version")]
+        public int Version { get; set; }
+
     }
 }

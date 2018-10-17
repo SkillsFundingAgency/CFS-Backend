@@ -10,17 +10,23 @@ namespace CalculateFunding.Api.Results.Controllers
 		private readonly IResultsService _resultsService;
 		private readonly IResultsSearchService _resultsSearchService;
         private readonly ICalculationProviderResultsSearchService _calculationProviderResultsSearchService;
+        private readonly IPublishedResultsService _publishedResultsService;
 
         public ResultsController(
 			 IResultsService resultsService,
              IResultsSearchService resultsSearchService,
-             ICalculationProviderResultsSearchService calculationProviderResultsSearchService)
+             ICalculationProviderResultsSearchService calculationProviderResultsSearchService,
+             IPublishedResultsService publishedResultsService)
 		{
 			Guard.ArgumentNotNull(resultsSearchService, nameof(resultsSearchService));
+            Guard.ArgumentNotNull(resultsService, nameof(resultsService));
+            Guard.ArgumentNotNull(calculationProviderResultsSearchService, nameof(calculationProviderResultsSearchService));
+            Guard.ArgumentNotNull(publishedResultsService, nameof(publishedResultsService));
 
-			_resultsService = resultsService;
-			_resultsSearchService = resultsSearchService; 
+            _resultsSearchService = resultsSearchService; 
             _calculationProviderResultsSearchService = calculationProviderResultsSearchService;
+            _publishedResultsService = publishedResultsService;
+            _resultsService = resultsService;
         }
 
 		[Route("api/results/providers-search")]
@@ -90,28 +96,28 @@ namespace CalculateFunding.Api.Results.Controllers
         [HttpGet]
         public async Task<IActionResult> RunGetPublishedProviderResultsForSpecification()
         {
-            return await _resultsService.GetPublishedProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
+            return await _publishedResultsService.GetPublishedProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/get-published-provider-results-for-funding-stream")]
         [HttpGet]
         public async Task<IActionResult> RunGetPublishedProviderResultsByFundingPeriodAndSpecificationAndFundingStream()
         {
-            return await _resultsService.GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(ControllerContext.HttpContext.Request);
+            return await _publishedResultsService.GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/get-confirmation-details-for-approve-publish-provider-results")]
         [HttpPost]
         public async Task<IActionResult> RunGetConfirmationDetailsForApprovePublishProviderResults()
         {
-            return await _resultsService.GetConfirmationDetailsForApprovePublishProviderResults(ControllerContext.HttpContext.Request);
+            return await _publishedResultsService.GetConfirmationDetailsForApprovePublishProviderResults(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/update-published-allocationline-results-status")]
         [HttpPost]
         public async Task<IActionResult> RunUpdatePublishedAllocationLineResultsStatus()
         {
-            return await _resultsService.UpdatePublishedAllocationLineResultsStatus(ControllerContext.HttpContext.Request);
+            return await _publishedResultsService.UpdatePublishedAllocationLineResultsStatus(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/get-specification-provider-results")]
@@ -139,7 +145,7 @@ namespace CalculateFunding.Api.Results.Controllers
         [HttpGet]
         public async Task<IActionResult> ReIndexAllocationFeeds()
         {
-            return await _resultsService.ReIndexAllocationNotificationFeeds();
+            return await _publishedResultsService.ReIndexAllocationNotificationFeeds();
         }
     }
 }

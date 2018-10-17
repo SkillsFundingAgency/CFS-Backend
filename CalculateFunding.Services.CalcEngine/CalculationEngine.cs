@@ -106,7 +106,8 @@ namespace CalculateFunding.Services.Calculator
                     CalculationResult result = new CalculationResult
                     {
                         Calculation = calculation.GetReference(),
-                        CalculationType = calculation.CalculationType
+                        CalculationType = calculation.CalculationType,
+                        Version = calculation.Version
                     };
 
                     if (providerCalResults.TryGetValue(calculation.Id, out CalculationResult calculationResult))

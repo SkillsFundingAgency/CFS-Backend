@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Api.External.Swagger.Helpers;
 using CalculateFunding.Api.External.V1.Interfaces;
 using CalculateFunding.Api.External.V1.Models;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.External;
 using CalculateFunding.Models.External.AtomItems;
 using CalculateFunding.Models.Results;
@@ -21,10 +22,12 @@ namespace CalculateFunding.Api.External.V1.Services
         const int MaxRecords = 500;
 
         private readonly IAllocationNotificationsFeedsSearchService _feedsService;
+        private readonly IFeatureToggle _featureToggle;
 
-        public AllocationNotificationFeedsService(IAllocationNotificationsFeedsSearchService feedsService)
+        public AllocationNotificationFeedsService(IAllocationNotificationsFeedsSearchService feedsService, IFeatureToggle featureToggle)
         {
             _feedsService = feedsService;
+            _featureToggle = featureToggle;
         }
 
         public async Task<IActionResult> GetNotifications(int? pageRef, string allocationStatuses, int? pageSize, HttpRequest request)
@@ -165,6 +168,8 @@ namespace CalculateFunding.Api.External.V1.Services
                                 ContractRequired = feedIndex.AllocationLineContractRequired ? "Y" : "N"
                             },
                             AllocationVersionNumber = feedIndex.AllocationVersionNumber,
+                            AllocationMajorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MajorVersion.HasValue) ? feedIndex.MajorVersion.Value : 0,
+                            AllocationMinorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MinorVersion.HasValue) ? feedIndex.MinorVersion.Value : 0,
                             AllocationStatus = feedIndex.AllocationStatus,
                             AllocationAmount = (decimal)feedIndex.AllocationAmount,
                             AllocationResultId = feedIndex.Id,

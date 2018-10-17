@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.Common.Middleware;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
@@ -19,6 +20,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
+using System;
 
 namespace CalculateFunding.Api.Results
 {
@@ -28,7 +30,10 @@ namespace CalculateFunding.Api.Results
         {
             Configuration = configuration;
         }
+
         public IConfiguration Configuration { get; }
+
+        public IServiceProvider ServiceProvider { get; private set; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -66,6 +71,9 @@ namespace CalculateFunding.Api.Results
             builder
                 .AddSingleton<IResultsService, ResultsService>()
                 .AddSingleton<IHealthChecker, ResultsService>();
+            builder
+              .AddSingleton<IPublishedResultsService, PublishedResultsService>()
+              .AddSingleton<IHealthChecker, PublishedResultsService>();
             builder
                 .AddSingleton<IResultsSearchService, ResultsSearchService>()
                 .AddSingleton<IHealthChecker, ResultsSearchService>();
@@ -186,6 +194,24 @@ namespace CalculateFunding.Api.Results
 
             builder.AddHttpContextAccessor();
 
+            builder.AddFeatureToggling(Configuration);
+
+            builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService>((ctx) =>
+            {
+                IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
+
+                bool enableAllocationLineMajorMinorVersioning = featureToggle.IsAllocationLineMajorMinorVersioningEnabled();
+
+                if (enableAllocationLineMajorMinorVersioning)
+                {
+                    return new PublishedAllocationLineLogicalResultVersionService();
+                }
+                else
+                {
+                    return new RedundantPublishedAllocationLineLogicalResultVersionService();
+                }
+            });
+
             builder.AddSingleton<IResultsResilliencePolicies>((ctx) =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
@@ -208,6 +234,8 @@ namespace CalculateFunding.Api.Results
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder.AddHealthCheckMiddleware();
+
+            ServiceProvider = builder.BuildServiceProvider();
         }
     }
 }

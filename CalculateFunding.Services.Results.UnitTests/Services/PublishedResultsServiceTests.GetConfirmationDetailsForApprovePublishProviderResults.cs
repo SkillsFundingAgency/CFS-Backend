@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Services
 {
-    public partial class ResultsServiceTests
+    public partial class PublishedResultsServiceTests
     {
         [TestMethod]
         public async Task GetConfirmationDetailsForApprovePublishProviderResults_GivenNoSpecificationIdProvided_ReturnsBadRequest()
@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            ResultsService resultsService = CreateResultsService(logger);
+            PublishedResultsService resultsService = CreateResultsService(logger);
 
             //Act
             IActionResult actionResult = await resultsService.GetConfirmationDetailsForApprovePublishProviderResults(request);
@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            ResultsService resultsService = CreateResultsService(logger);
+            PublishedResultsService resultsService = CreateResultsService(logger);
 
             //Act
             IActionResult actionResult = await resultsService.GetConfirmationDetailsForApprovePublishProviderResults(request);
@@ -108,7 +108,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            ResultsService resultsService = CreateResultsService(logger);
+            PublishedResultsService resultsService = CreateResultsService(logger);
 
             //Act
             IActionResult actionResult = await resultsService.GetConfirmationDetailsForApprovePublishProviderResults(request);
@@ -166,7 +166,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
                 .Returns(Enumerable.Empty<PublishedProviderResult>());
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
 
             //Act
             IActionResult actionResult = await resultsService.GetConfirmationDetailsForApprovePublishProviderResults(request);
@@ -242,7 +242,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultsForSpecificationAndStatus(Arg.Is(specificationId), Arg.Any<UpdatePublishedAllocationLineResultStatusModel>())
                 .Returns(publishedProviderResults);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
 
             // Act
             IActionResult actionResult = await resultsService.GetConfirmationDetailsForApprovePublishProviderResults(request);
@@ -325,7 +325,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultsForSpecificationAndStatus(Arg.Is(specificationId), Arg.Any<UpdatePublishedAllocationLineResultStatusModel>())
                 .Returns(publishedProviderResults);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
 
             // Act
             IActionResult actionResult = await resultsService.GetConfirmationDetailsForApprovePublishProviderResults(request);
@@ -408,7 +408,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultsForSpecificationAndStatus(Arg.Is(specificationId), Arg.Any<UpdatePublishedAllocationLineResultStatusModel>())
                 .Returns(publishedProviderResults);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
 
             // Act
             IActionResult actionResult = await resultsService.GetConfirmationDetailsForApprovePublishProviderResults(request);
@@ -489,7 +489,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultsForSpecificationAndStatus(Arg.Is(specificationId), Arg.Any<UpdatePublishedAllocationLineResultStatusModel>())
                 .Returns(publishedProviderResults);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
 
             // Act
             IActionResult actionResult = await resultsService.GetConfirmationDetailsForApprovePublishProviderResults(request);
@@ -575,7 +575,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultsForSpecificationAndStatus(Arg.Is(specificationId), Arg.Any<UpdatePublishedAllocationLineResultStatusModel>())
                 .Returns(publishedProviderResults);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
 
             // Act
             IActionResult actionResult = await resultsService.GetConfirmationDetailsForApprovePublishProviderResults(request);
@@ -661,7 +661,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultsForSpecificationAndStatus(Arg.Is(specificationId), Arg.Any<UpdatePublishedAllocationLineResultStatusModel>())
                 .Returns(publishedProviderResults);
 
-            ResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
 
             // Act
             IActionResult actionResult = await resultsService.GetConfirmationDetailsForApprovePublishProviderResults(request);

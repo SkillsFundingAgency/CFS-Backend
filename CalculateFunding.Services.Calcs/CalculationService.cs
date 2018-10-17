@@ -1135,7 +1135,8 @@ namespace CalculateFunding.Services.Calcs
                 Name = calculation.Name,
                 CalculationType = calculation.CalculationType,
                 IsPublic = calculation.IsPublic,
-                Status = calculation.Current.PublishStatus
+                Status = calculation.Current.PublishStatus,
+                Version = calculation.Current.Version
             };
 
             return calculationCurrentVersion;

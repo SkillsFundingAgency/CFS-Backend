@@ -18,6 +18,12 @@ namespace CalculateFunding.Api.External.V1.Models
 
         public decimal AllocationAmount { get; set; }
 
+        public string Version { get; set; }
+
         public ProfilePeriod[] ProfilePeriods { get; set; }
+
+        public int AllocationMajorVersion { get; set; }
+
+        public int AllocationMinorVersion { get; set; }
     }
 }

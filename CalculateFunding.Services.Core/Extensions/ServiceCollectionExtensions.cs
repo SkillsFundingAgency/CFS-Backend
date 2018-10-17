@@ -34,6 +34,27 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
+using System;
+using System.Security.Claims;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Caching;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Models.Scenarios;
+using CalculateFunding.Services.Core.ServiceBus;
+using System.Linq;
+using CalculateFunding.Models.Users;
+using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Models;
+using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Services.Core.Interfaces.Proxies.External;
+using CalculateFunding.Services.Core.Proxies.External;
+using CalculateFunding.Common.FeatureToggles;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -145,6 +166,18 @@ namespace CalculateFunding.Services.Core.Extensions
                      ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
 
                      return new ResultsApiProxy(apiOptions, logger, correlationIdProvider);
+                 });
+
+            return builder;
+        }
+
+        public static IServiceCollection AddFeatureToggling(this IServiceCollection builder, IConfiguration config)
+        {
+            builder
+                 .AddSingleton<IFeatureToggle, Features>((ctx) =>
+                 {
+                     IConfigurationSection featuresConfig = config.GetSection("features");
+                     return new Features(featuresConfig);
                  });
 
             return builder;

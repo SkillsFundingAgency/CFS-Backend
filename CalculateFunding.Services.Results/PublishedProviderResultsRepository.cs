@@ -86,7 +86,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IEnumerable<PublishedProviderResultExisting>> GetExistingPublishedProviderResultsForSpecificationId(string specificationId)
         {
-            IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic<dynamic>($"SELECT r.id, r.content.providerId, r.content.fundingStreamResult.allocationLineResult.current.status,r.content.fundingStreamResult.allocationLineResult.current[\"value\"], r.content.fundingStreamResult.allocationLineResult.allocationLine.id as allocationLineId FROM Root r where r.documentType = 'PublishedProviderResult' and r.deleted = false and r.content.specificationId = '{specificationId}'", true, 1000);
+            IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic<dynamic>($"SELECT r.id, r.content.providerId,r.content.fundingStreamResult.allocationLineResult.current[\"value\"], r.content.fundingStreamResult.allocationLineResult.allocationLine.id as allocationLineId, r.content.fundingStreamResult.allocationLineResult.current.major as major, r.content.fundingStreamResult.allocationLineResult.current.minor as minor, r.content.fundingStreamResult.allocationLineResult.current.status as status FROM Root r where r.documentType = 'PublishedProviderResult' and r.deleted = false and r.content.specificationId = '{specificationId}'", true, 1000);
 
             List<PublishedProviderResultExisting> results = new List<PublishedProviderResultExisting>();
             foreach (dynamic existingResult in existingResults)
@@ -97,6 +97,8 @@ namespace CalculateFunding.Services.Results
                     Id = existingResult.id,
                     ProviderId = existingResult.providerId,
                     Value = existingResult.value != null ? Convert.ToDecimal(existingResult.value) : null,
+                    Minor = existingResult.minor != null ? (int)existingResult.minor : 0,
+                    Major = existingResult.major != null ? (int)existingResult.major : 0,
                 };
 
                 result.Status = Enum.Parse(typeof(AllocationLineStatus), existingResult.status);
