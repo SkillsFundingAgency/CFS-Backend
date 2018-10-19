@@ -14,12 +14,6 @@
         "description": "Api key for the Calcs Service"
       }
     },
-    "ApiKeyCalcEngine": {
-      "type": "string",
-      "metadata": {
-        "description": "Api key for the Calc Engine Service"
-      }
-    },
     "ApiKeyDatasets": {
       "type": "string",
       "metadata": {
@@ -321,6 +315,68 @@
         "description": "Enables a restricted set of users access to provisioned cosmos database"
       },
       "defaultValue": true
+    },
+    "aadAuthIssuer": {
+      "type": "string",
+      "metadata": {
+        "description": "The issuer for the platform level auth AAD provider"
+      },
+      "defaultValue": "https://sts.windows.net/1a92889b-8ea1-4a16-8132-347814051567/"
+    },
+    "enablePlatformAuth": {
+      "type": "bool",
+      "metadata": {
+        "description": "Should platform authentication be enabled"
+      },
+      "defaultValue": false
+    },
+    "calcsApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Calcs Api"
+      }
+    },
+    "datasetsApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Datasets Api"
+      }
+    },
+    "externalApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the External Api"
+      }
+    },
+    "resultsApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Results Api"
+      }
+    },
+    "scenariosApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Scenarios Api"
+      }
+    },
+    "specsApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Specs Api"
+      }
+    },
+    "testEngineApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the TestEngine Api"
+      }
+    },
+    "usersApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Users Api"
+      }
     }
   },
   "variables": {
@@ -1729,7 +1785,25 @@
         "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
         "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
       ],
-      "properties": {
+      "resources": [
+        {
+            "name": "authSettings",
+            "type": "config",
+            "apiVersion": "2018-02-01",
+            "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('datasetsApiAppName'))]"],
+            "properties":{
+              "enabled": "[parameters('enablePlatformAuth')]",
+              "unauthenticatedClientAction": 0,
+              "tokenStoreEnabled": true,
+              "defaultProvider": 0,
+              "clientId": "[parameters('datasetsApiAadClientId')]",
+              "issuer": "[parameters('aadAuthIssuer')]",
+              "allowedAudiences": null,
+              "isAadAutoProvisioned": false
+            }
+          }
+        ],
+        "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
@@ -1838,7 +1912,25 @@
         "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
         "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
       ],
-      "properties": {
+      "resources": [
+        {
+            "name": "authSettings",
+            "type": "config",
+            "apiVersion": "2018-02-01",
+            "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('calcsApiAppName'))]"],
+            "properties":{
+              "enabled": "[parameters('enablePlatformAuth')]",
+              "unauthenticatedClientAction": 0,
+              "tokenStoreEnabled": true,
+              "defaultProvider": 0,
+              "clientId": "[parameters('calcsApiAadClientId')]",
+              "issuer": "[parameters('aadAuthIssuer')]",
+              "allowedAudiences": null,
+              "isAadAutoProvisioned": false
+            }
+          }
+        ],
+        "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
@@ -1930,99 +2022,6 @@
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
-      "name": "[variables('calcEngineApiAppName')]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
-        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
-        "[variables('applicationInsightsName')]",
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
-        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
-      ],
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
-        "siteConfig": {
-          "alwaysOn": true,
-          "use32BitWorkerProcess": false,
-          "http20Enabled": true,
-          "phpVersion": "",
-          "pythonVersion": "",
-          "nodeVersion": "",
-          "httpsOnly": true,
-          "minTlsVersion": "1.2",
-          "ftpsState": "Disabled",
-          "appSettings": [
-            {
-              "name": "WEBSITE_TIME_ZONE",
-              "value": "GMT Standard Time"
-            },
-            {
-              "name": "WEBSITE_RUN_FROM_PACKAGE",
-              "value": "1"
-            },
-            {
-              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "ApplicationInsightsOptions:InstrumentationKey",
-              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
-            },
-            {
-              "name": "RedisSettings:CacheConnection",
-              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
-            },
-            {
-              "name": "ServiceBusSettings:ConnectionString",
-              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
-            },
-            {
-              "name": "CosmosDbSettings:ConnectionString",
-              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
-            },
-            {
-              "name": "CosmosDbSettings:DatabaseName",
-              "value": "calculate-funding"
-            },
-            {
-              "name": "CosmosDbSettings:CollectionName",
-              "value": "providersourcedatasets"
-            },
-            {
-              "name": "SearchServiceName",
-              "value": "[variables('azureSearchName')]"
-            },
-            {
-              "name": "SearchServiceKey",
-              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
-            },
-            {
-              "name": "calcsClient:ApiKey",
-              "value": "[parameters('ApiKeyCalcs')]"
-            },
-            {
-              "name": "calcsClient:ApiEndpoint",
-              "value": "[concat('https://app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
-            },
-            {
-              "name": "specificationsClient:ApiKey",
-              "value": "[parameters('ApiKeySpecs')]"
-            },
-            {
-              "name": "specificationsClient:ApiEndpoint",
-              "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
-            },
-            {
-              "name": "apiKeyMiddleware:apiKey",
-              "value": "[parameters('ApiKeyCalcEngine')]"
-            }
-          ]
-        }
-      }
-    },
-    {
-      "apiVersion": "2016-08-01",
-      "type": "Microsoft.Web/sites",
       "name": "[variables('externalApiAppName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
@@ -2032,7 +2031,25 @@
         "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
         "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
       ],
-      "properties": {
+      "resources": [
+        {
+            "name": "authSettings",
+            "type": "config",
+            "apiVersion": "2018-02-01",
+            "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('externalApiAppName'))]"],
+            "properties":{
+              "enabled": "[parameters('enablePlatformAuth')]",
+              "unauthenticatedClientAction": 0,
+              "tokenStoreEnabled": true,
+              "defaultProvider": 0,
+              "clientId": "[parameters('externalApiAadClientId')]",
+              "issuer": "[parameters('aadAuthIssuer')]",
+              "allowedAudiences": null,
+              "isAadAutoProvisioned": false
+            }
+          }
+        ],
+        "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
@@ -2149,7 +2166,25 @@
         "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
         "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
       ],
-      "properties": {
+      "resources": [
+        {
+            "name": "authSettings",
+            "type": "config",
+            "apiVersion": "2018-02-01",
+            "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('testEngineApiAppName'))]"],
+            "properties":{
+              "enabled": "[parameters('enablePlatformAuth')]",
+              "unauthenticatedClientAction": 0,
+              "tokenStoreEnabled": true,
+              "defaultProvider": 0,
+              "clientId": "[parameters('testEngineApiAadClientId')]",
+              "issuer": "[parameters('aadAuthIssuer')]",
+              "allowedAudiences": null,
+              "isAadAutoProvisioned": false
+            }
+          }
+        ],
+        "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
@@ -2249,7 +2284,25 @@
         "[variables('applicationInsightsName')]",
         "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
       ],
-      "properties": {
+      "resources": [
+        {
+            "name": "authSettings",
+            "type": "config",
+            "apiVersion": "2018-02-01",
+            "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('resultsApiAppName'))]"],
+            "properties":{
+              "enabled": "[parameters('enablePlatformAuth')]",
+              "unauthenticatedClientAction": 0,
+              "tokenStoreEnabled": true,
+              "defaultProvider": 0,
+              "clientId": "[parameters('resultsApiAadClientId')]",
+              "issuer": "[parameters('aadAuthIssuer')]",
+              "allowedAudiences": null,
+              "isAadAutoProvisioned": false
+            }
+          }
+        ],
+        "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
@@ -2341,7 +2394,25 @@
         "[variables('applicationInsightsName')]",
         "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
       ],
-      "properties": {
+      "resources": [
+        {
+            "name": "authSettings",
+            "type": "config",
+            "apiVersion": "2018-02-01",
+            "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('specsApiAppName'))]"],
+            "properties":{
+              "enabled": "[parameters('enablePlatformAuth')]",
+              "unauthenticatedClientAction": 0,
+              "tokenStoreEnabled": true,
+              "defaultProvider": 0,
+              "clientId": "[parameters('specsApiAadClientId')]",
+              "issuer": "[parameters('aadAuthIssuer')]",
+              "allowedAudiences": null,
+              "isAadAutoProvisioned": false
+            }
+          }
+        ],
+        "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
@@ -2429,7 +2500,25 @@
         "[variables('applicationInsightsName')]",
         "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
       ],
-      "properties": {
+      "resources": [
+        {
+            "name": "authSettings",
+            "type": "config",
+            "apiVersion": "2018-02-01",
+            "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('scenariosApiAppName'))]"],
+            "properties":{
+              "enabled": "[parameters('enablePlatformAuth')]",
+              "unauthenticatedClientAction": 0,
+              "tokenStoreEnabled": true,
+              "defaultProvider": 0,
+              "clientId": "[parameters('scenariosApiAadClientId')]",
+              "issuer": "[parameters('aadAuthIssuer')]",
+              "allowedAudiences": null,
+              "isAadAutoProvisioned": false
+            }
+          }
+        ],
+        "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
@@ -2526,7 +2615,25 @@
         "[variables('applicationInsightsName')]",
         "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
       ],
-      "properties": {
+      "resources": [
+        {
+            "name": "authSettings",
+            "type": "config",
+            "apiVersion": "2018-02-01",
+            "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('usersApiAppName'))]"],
+            "properties":{
+              "enabled": "[parameters('enablePlatformAuth')]",
+              "unauthenticatedClientAction": 0,
+              "tokenStoreEnabled": true,
+              "defaultProvider": 0,
+              "clientId": "[parameters('usersApiAadClientId')]",
+              "issuer": "[parameters('aadAuthIssuer')]",
+              "allowedAudiences": null,
+              "isAadAutoProvisioned": false
+            }
+          }
+        ],
+        "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "siteConfig": {
           "alwaysOn": true,
