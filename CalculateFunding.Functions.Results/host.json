@@ -8,5 +8,5 @@
       "prefetchCount": 0
     }
   },
-  "functionTimeout": "00:60:00"
+  "functionTimeout": "01:00:00"
 }

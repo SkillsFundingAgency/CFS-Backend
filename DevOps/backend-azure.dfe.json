@@ -1279,6 +1279,10 @@
             {
               "name": "specificationsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "features:allocationLineMajorMinorVersioningEnabled",
+              "value": "[parameters('EnableMajorMinorVersioning')]"
             }
           ]
         }
