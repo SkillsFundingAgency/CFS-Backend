@@ -102,8 +102,6 @@ namespace CalculateFunding.Services.Results
             var searchRepoHealth = await _searchRepository.IsHealthOk();
             ServiceHealth providerSourceDatasetRepoHealth = await ((IHealthChecker)_providerSourceDatasetRepository).IsHealthOk();
             var calcSearchRepoHealth = await _calculationProviderResultsSearchRepository.IsHealthOk();
-            ServiceHealth providerRepoHealth = await ((IHealthChecker)_publishedProviderResultsRepository).IsHealthOk();
-            var cacheHealth = await _cacheProvider.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -113,8 +111,6 @@ namespace CalculateFunding.Services.Results
             health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
             health.Dependencies.AddRange(providerSourceDatasetRepoHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth { HealthOk = calcSearchRepoHealth.Ok, DependencyName = _calculationProviderResultsSearchRepository.GetType().GetFriendlyName(), Message = calcSearchRepoHealth.Message });
-            health.Dependencies.AddRange(providerRepoHealth.Dependencies);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
 
             return health;
         }
