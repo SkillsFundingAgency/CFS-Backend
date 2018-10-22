@@ -77,5 +77,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> CheckPublishResultStatus(HttpRequest request);
 
         Task<IActionResult> UpdatePublishedRefreshedDate(HttpRequest request);
+
+        Task<IActionResult> UpdateCalculationLastUpdatedDate(HttpRequest request);
     }
 }

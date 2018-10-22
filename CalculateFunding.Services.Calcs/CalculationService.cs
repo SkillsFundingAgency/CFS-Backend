@@ -752,7 +752,7 @@ namespace CalculateFunding.Services.Calcs
             await UpdateSearch(calculation, specificationSummary.Name);
 
             CalculationCurrentVersion currentVersion = GetCurrentVersionFromCalculation(calculation);
-            await UpdateCalculationInCache(calculation, currentVersion);
+            await UpdateCalculationInCache(calculation, currentVersion);           
 
             return new UpdateCalculationResult()
             {

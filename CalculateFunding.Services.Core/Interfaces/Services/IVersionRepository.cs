@@ -6,7 +6,7 @@ namespace CalculateFunding.Services.Core.Interfaces
 {
     public interface IVersionRepository<T> where T : VersionedItem
     {
-        Task<T> CreateVersion(T newVersion, T currentVersion = null, string partitionKey = null);
+        Task<T> CreateVersion(T newVersion, T currentVersion = null, string partitionKey = null, bool incrementFromCurrentVersion = false);
 
         Task SaveVersion(T newVersion);
 
@@ -18,6 +18,6 @@ namespace CalculateFunding.Services.Core.Interfaces
 
         Task SaveVersions(IEnumerable<KeyValuePair<string, T>> newVersions, int maxDegreesOfParallelism = 30);
 
-        Task<int> GetNextVersionNumber(T version, string partitionKeyId = null);
+        Task<int> GetNextVersionNumber(T version = null, int currentVersion = 0, string partitionKeyId = null, bool incrementFromCurrentVersion = false);
     }
 }

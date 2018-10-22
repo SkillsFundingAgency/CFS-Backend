@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Cosmos.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
@@ -38,7 +39,7 @@ namespace CalculateFunding.Services.Core.Services
             return _cosmosRepository.BulkCreateAsync<T>(newVersions.ToList(), degreeOfParallelism: maxDegreesOfParallelism);
         }
 
-        public async Task<T> CreateVersion(T newVersion, T currentVersion = null, string partitionKey = null)
+        public async Task<T> CreateVersion(T newVersion, T currentVersion = null, string partitionKey = null, bool incrementFromCurrentVersion = false)
         {
             Guard.ArgumentNotNull(newVersion, nameof(newVersion));
 
@@ -52,7 +53,7 @@ namespace CalculateFunding.Services.Core.Services
             }
             else
             {
-                newVersion.Version = await GetNextVersionNumber(newVersion, partitionKey);
+                newVersion.Version = await GetNextVersionNumber(newVersion, currentVersion.Version, partitionKey, incrementFromCurrentVersion);
 
                 if (newVersion.PublishStatus == PublishStatus.Approved && (currentVersion.PublishStatus == PublishStatus.Draft || currentVersion.PublishStatus == PublishStatus.Updated))
                 {
@@ -103,10 +104,14 @@ namespace CalculateFunding.Services.Core.Services
             return Task.FromResult(versions.AsEnumerable().FirstOrDefault());
         }
 
-        public Task<int> GetNextVersionNumber(T version, string partitionKeyId = null)
+        public Task<int> GetNextVersionNumber(T version = null, int currentVersion = 0, string partitionKeyId = null, bool incrementFromCurrentVersion = false)
         {
-
             Guard.ArgumentNotNull(version, nameof(version));
+
+            if(incrementFromCurrentVersion)
+            {
+                return Task.FromResult(currentVersion + 1);
+            }
 
             string entityId = version.EntityId;
 

@@ -16,6 +16,7 @@ using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Common.FeatureToggles;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -52,7 +53,8 @@ namespace CalculateFunding.Services.Specs.Services
             IValidator<PolicyEditModel> policyEditModelValidator = null,
             IValidator<CalculationEditModel> calculationEditModelValidator = null,
             IResultsRepository resultsRepository = null,
-            IVersionRepository<SpecificationVersion> specificationVersionRepository = null)
+            IVersionRepository<SpecificationVersion> specificationVersionRepository = null,
+            IFeatureToggle featureToggle = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(),
                 specificationsRepository ?? CreateSpecificationsRepository(),
@@ -68,7 +70,18 @@ namespace CalculateFunding.Services.Specs.Services
                 policyEditModelValidator ?? CreateEditPolicyValidator(),
                 calculationEditModelValidator ?? CreateEditCalculationValidator(),
                 resultsRepository ?? CreateResultsRepository(),
-                specificationVersionRepository ?? CreateVersionRepository());
+                specificationVersionRepository ?? CreateVersionRepository(),
+                featureToggle ?? CreateFeatureToggle());
+        }
+
+        static IFeatureToggle CreateFeatureToggle()
+        {
+            IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
+            featureToggle
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(true);
+
+            return featureToggle;
         }
 
         static IVersionRepository<SpecificationVersion> CreateVersionRepository()

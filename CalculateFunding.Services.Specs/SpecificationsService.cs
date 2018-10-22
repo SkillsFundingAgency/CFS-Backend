@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Health;
@@ -51,6 +52,7 @@ namespace CalculateFunding.Services.Specs
         private readonly IValidator<CalculationEditModel> _calculationEditModelValidator;
         private readonly IResultsRepository _resultsRepository;
         private readonly IVersionRepository<SpecificationVersion> _specificationVersionRepository;
+        private readonly IFeatureToggle _featureToggle;
 
         public SpecificationsService(
             IMapper mapper,
@@ -67,7 +69,8 @@ namespace CalculateFunding.Services.Specs
             IValidator<PolicyEditModel> policyEditModelValidator,
             IValidator<CalculationEditModel> calculationEditModelValidator,
             IResultsRepository resultsRepository,
-            IVersionRepository<SpecificationVersion> specificationVersionRepository)
+            IVersionRepository<SpecificationVersion> specificationVersionRepository,
+            IFeatureToggle featureToggle)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -83,6 +86,7 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(policyEditModelValidator, nameof(policyEditModelValidator));
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(specificationVersionRepository, nameof(specificationVersionRepository));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -99,6 +103,7 @@ namespace CalculateFunding.Services.Specs
             _calculationEditModelValidator = calculationEditModelValidator;
             _resultsRepository = resultsRepository;
             _specificationVersionRepository = specificationVersionRepository;
+            _featureToggle = featureToggle;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -450,6 +455,46 @@ namespace CalculateFunding.Services.Specs
                     ).Select(s => _mapper.Map<FundingStream>(s));
 
             return new OkObjectResult(fundingStreams);
+        }
+
+        public async Task<IActionResult> UpdateCalculationLastUpdatedDate(HttpRequest request)
+        {
+            request.Query.TryGetValue("specificationId", out var specId);
+
+            string specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification id was provided to UpdateCalculationLastUpdatedDate");
+
+                return new BadRequestObjectResult("Null or empty specification id was provided");
+            }
+
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+
+            if (specification == null)
+            {
+                _logger.Warning($"A specification for id {specificationId} could not found");
+
+                return new NotFoundResult();
+            }
+
+            specification.LastCalculationUpdatedAt = DateTimeOffset.Now.ToLocalTime();
+
+            HttpStatusCode result = await _specificationsRepository.UpdateSpecification(specification);
+
+            if (!result.IsSuccess())
+            {
+                string message = $"Failed to update calculation last updated date on specification {specificationId}";
+
+                _logger.Error(message);
+
+                return new InternalServerErrorResult(message);
+            }
+
+            await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+
+            return new NoContentResult();
         }
 
 
@@ -1846,31 +1891,73 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> RefreshPublishedResults(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationIds", out StringValues specificationIds);
-            string specificationIdsRetrieved = specificationIds.FirstOrDefault();
-            if (specificationIdsRetrieved.IsNullOrEmpty())
+            if (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled())
             {
-                return new BadRequestObjectResult("Null or empty specification ids parameter was provided");
-            }
+                request.Query.TryGetValue("specificationId", out var specId);
 
-            string[] specificationIdsAsArray = specificationIdsRetrieved.Split(',');
-            foreach (string specificationId in specificationIdsAsArray)
-            {
+                string specificationId = specId.FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(specificationId))
+                {
+                    _logger.Warning("No specification Id was provided to SelectSpecificationForFunding");
+                    return new BadRequestObjectResult("Null or empty specification Id provided");
+                }
+
                 Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+
                 if (specification == null)
                 {
                     return new BadRequestObjectResult($"Specification {specificationId} - was not found");
                 }
+
+                if (!specification.ShouldRefresh)
+                {
+                    SpecificationCalculationExecutionStatus statusToCache = new SpecificationCalculationExecutionStatus(specificationId, 100, CalculationProgressStatus.Finished);
+                    statusToCache.PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt;
+
+                    CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{specificationId}", statusToCache, _cacheProvider);
+                }
+                else
+                {
+                    try
+                    {
+                        await CalculateSpecification(request, specificationId);
+                    }
+                    catch (Exception e)
+                    {
+                        return new InternalServerErrorResult(e.Message);
+                    }
+                }
             }
-            IEnumerable<Task> calculationTasks = specificationIdsAsArray.Select(specificationId => CalculateSpecification(request, specificationId));
-            try
+            else
             {
-                await Task.WhenAll(calculationTasks.ToArray());
+                request.Query.TryGetValue("specificationIds", out StringValues specificationIds);
+                string specificationIdsRetrieved = specificationIds.FirstOrDefault();
+                if (specificationIdsRetrieved.IsNullOrEmpty())
+                {
+                    return new BadRequestObjectResult("Null or empty specification ids parameter was provided");
+                }
+
+                string[] specificationIdsAsArray = specificationIdsRetrieved.Split(',');
+                foreach (string specificationId in specificationIdsAsArray)
+                {
+                    Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+                    if (specification == null)
+                    {
+                        return new BadRequestObjectResult($"Specification {specificationId} - was not found");
+                    }
+                }
+                IEnumerable<Task> calculationTasks = specificationIdsAsArray.Select(specificationId => CalculateSpecification(request, specificationId));
+                try
+                {
+                    await Task.WhenAll(calculationTasks.ToArray());
+                }
+                catch (Exception e)
+                {
+                    return new InternalServerErrorResult(e.Message);
+                }
             }
-            catch (Exception e)
-            {
-                return new InternalServerErrorResult(e.Message);
-            }
+
             return new NoContentResult();
         }
 

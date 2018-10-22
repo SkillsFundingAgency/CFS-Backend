@@ -141,6 +141,8 @@ namespace CalculateFunding.Functions.Calcs
                 builder.AddCosmosDb(config);
             }
 
+            builder.AddFeatureToggling(config);
+
             builder.AddSearch(config);
 
             builder.AddServiceBus(config);

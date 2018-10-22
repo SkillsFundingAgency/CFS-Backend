@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
@@ -23,7 +24,7 @@ namespace CalculateFunding.Services.Specs.Services
 		const string CalculationProgressPrependKey = "calculation-progress:";
 
 		[TestMethod]
-		public async Task ExecuteCalculations_GivenRequestParametersAreEmpty_ShouldReturnBadRequestObjectResult()
+		public async Task RefreshPublishResults_GivenRequestParametersAreEmpty_ShouldReturnBadRequestObjectResult()
 		{
 			// Arrange
 			SpecificationsService specificationsService = CreateService();
@@ -42,19 +43,17 @@ namespace CalculateFunding.Services.Specs.Services
 		}
 
 		[TestMethod]
-		public async Task ExecuteCalculations_GivenValidRequestParameters_ShouldReturnNoContentResult()
+		public async Task RefreshPublishResults_GivenValidRequestParameters_ShouldReturnNoContentResult()
 		{
 			// Arrange
-			const string specificationId1 = "123";
-			const string specificationId2 = "333";
+			const string specificationId = "123";
 
 			HttpRequest httpRequest = Substitute.For<HttpRequest>();
 
 			ISpecificationsRepository mockSpecificationsRepository = Substitute.For<ISpecificationsRepository>();
 			mockSpecificationsRepository.GetSpecificationById(Arg.Any<string>()).Returns(new Specification());
 
-			SpecificationCalculationExecutionStatus expectedSpecificationStatusCall1 = new SpecificationCalculationExecutionStatus(specificationId1, 0, CalculationProgressStatus.NotStarted);
-			SpecificationCalculationExecutionStatus expectedSpecificationStatusCall2 = new SpecificationCalculationExecutionStatus(specificationId2, 0, CalculationProgressStatus.NotStarted);
+			SpecificationCalculationExecutionStatus expectedSpecificationStatusCall1 = new SpecificationCalculationExecutionStatus(specificationId, 0, CalculationProgressStatus.NotStarted);
 
 			ICacheProvider mockCacheProvider = Substitute.For<ICacheProvider>();
 
@@ -63,7 +62,7 @@ namespace CalculateFunding.Services.Specs.Services
 
 			httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
 			{
-				{ "specificationIds", new StringValues($"{specificationId1},{specificationId2}") }
+				{ "specificationId", new StringValues(specificationId) }
 			}));
 
 			// Act
@@ -71,13 +70,48 @@ namespace CalculateFunding.Services.Specs.Services
 
 			// Assert
 			actionResultReturned.Should().BeOfType<NoContentResult>();
-			mockCacheProvider.Received().SetAsync($"{CalculationProgressPrependKey}{specificationId1}", expectedSpecificationStatusCall1, TimeSpan.FromHours(6), false);
-			mockCacheProvider.Received().SetAsync($"{CalculationProgressPrependKey}{specificationId2}", expectedSpecificationStatusCall2, TimeSpan.FromHours(6), false);
-			
+			await mockCacheProvider.Received().SetAsync($"{CalculationProgressPrependKey}{specificationId}", expectedSpecificationStatusCall1, TimeSpan.FromHours(6), false);		
 		}
 
-		[TestMethod]
-		public async Task ExecuteCalculations_WhenACallToCalculateResultThrowsAnException_ShouldReturnInternalServerError()
+        [TestMethod]
+        public async Task RefreshPublishResults_GivenSpecShouldNotBeRefreshed_CreatesFinishedCacheItemAndReturnsNoContentResult()
+        {
+            // Arrange
+            const string specificationId = "123";
+
+            Specification specification = new Specification
+            {
+                Id = specificationId,
+                LastCalculationUpdatedAt = DateTimeOffset.Now.AddHours(-1).ToLocalTime(),
+                PublishedResultsRefreshedAt = DateTimeOffset.Now.ToLocalTime()
+            };
+
+            HttpRequest httpRequest = Substitute.For<HttpRequest>();
+
+            ISpecificationsRepository mockSpecificationsRepository = Substitute.For<ISpecificationsRepository>();
+            mockSpecificationsRepository.GetSpecificationById(Arg.Any<string>()).Returns(specification);
+
+            ICacheProvider mockCacheProvider = Substitute.For<ICacheProvider>();
+
+            SpecificationsService specificationsService = CreateService(specificationsRepository: mockSpecificationsRepository,
+                cacheProvider: mockCacheProvider);
+
+            httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
+            { 
+                { "specificationId", new StringValues(specificationId) }
+            }));
+
+            // Act
+            IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
+
+            // Assert
+            actionResultReturned.Should().BeOfType<NoContentResult>();
+            await mockCacheProvider.Received().SetAsync(Arg.Is($"{CalculationProgressPrependKey}{specificationId}"), 
+                Arg.Is<SpecificationCalculationExecutionStatus>(m => m.PercentageCompleted == 100 && m.CalculationProgress == CalculationProgressStatus.Finished), TimeSpan.FromHours(6), false);
+        }
+
+        [TestMethod]
+		public async Task RefreshPublishResults_WhenACallToCalculateResultThrowsAnException_ShouldReturnInternalServerError()
 		{
 			// Arrange
 			IMessengerService messengerService = Substitute.For<IMessengerService>();
@@ -90,8 +124,8 @@ namespace CalculateFunding.Services.Specs.Services
 			HttpRequest httpRequest = Substitute.For<HttpRequest>();
 			httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
 			{
-				{ "specificationIds", new StringValues("123, 333, 422, 122") }
-			}));
+                { "specificationId", new StringValues("123") }
+            }));
 
 			// Act
 			IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
@@ -101,23 +135,22 @@ namespace CalculateFunding.Services.Specs.Services
 		}
 
 		[TestMethod]
-		public async Task ExecuteCalculations_GivenASpecificationIdThatDoesNotExist_ShouldReturnBadRequestObjectResult()
+		public async Task RefreshPublishResults_GivenASpecificationIdThatDoesNotExist_ShouldReturnBadRequestObjectResult()
 		{
 			// Arrange
-			const string validSpecificationId = "123";
-			const string invalidSpecificationId = "333";
-
+			const string specificationId = "123";
+			
 			IMessengerService messengerService = Substitute.For<IMessengerService>();
 
 			ISpecificationsRepository mockSpecificationsRepository = Substitute.For<ISpecificationsRepository>();
-			mockSpecificationsRepository.GetSpecificationById(validSpecificationId).Returns(new Specification());
+			mockSpecificationsRepository.GetSpecificationById(specificationId).Returns(new Specification());
 
 			SpecificationsService specificationsService = CreateService(messengerService: messengerService);
 			HttpRequest httpRequest = Substitute.For<HttpRequest>();
 			httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
 			{
-				{ "specificationIds", new StringValues($"{validSpecificationId}, {invalidSpecificationId}") }
-			}));
+                { "specificationId", new StringValues(specificationId) }
+            }));
 
 			// Act
 			IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
@@ -127,7 +160,7 @@ namespace CalculateFunding.Services.Specs.Services
 		}
 
 		[TestMethod]
-		public async Task ExecuteCalculations_WhenACallToCalculateResultThrowsAnException_ShouldReportOnCacheWithError()
+		public async Task RefreshPublishResults_WhenACallToCalculateResultThrowsAnException_ShouldReportOnCacheWithError()
 		{
 			// Arrange
 			const string specificationId = "123";
@@ -150,7 +183,7 @@ namespace CalculateFunding.Services.Specs.Services
 			HttpRequest httpRequest = Substitute.For<HttpRequest>();
 			httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
 			{
-				{ "specificationIds", new StringValues(specificationId) }
+				{ "specificationId", new StringValues(specificationId) }
 			}));
 
 			// Act
@@ -158,7 +191,147 @@ namespace CalculateFunding.Services.Specs.Services
 
 			// Assert
 			actionResultReturned.Should().BeOfType<InternalServerErrorResult>();
-			mockCacheProvider.Received().SetAsync($"{CalculationProgressPrependKey}{specificationId}", expectedSpecificationStatusCall1, TimeSpan.FromHours(6), false);
+			await mockCacheProvider.Received().SetAsync($"{CalculationProgressPrependKey}{specificationId}", expectedSpecificationStatusCall1, TimeSpan.FromHours(6), false);
 		}
-	}
+
+        [TestMethod]
+        public async Task RefreshPublishResults_GivenValidRequestParametersAndFeatureToggleIsFalse_ShouldReturnNoContentResult()
+        {
+            // Arrange
+            const string specificationId1 = "123";
+            const string specificationId2 = "333";
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(false);
+
+            HttpRequest httpRequest = Substitute.For<HttpRequest>();
+
+            ISpecificationsRepository mockSpecificationsRepository = Substitute.For<ISpecificationsRepository>();
+            mockSpecificationsRepository.GetSpecificationById(Arg.Any<string>()).Returns(new Specification());
+
+            SpecificationCalculationExecutionStatus expectedSpecificationStatusCall1 = new SpecificationCalculationExecutionStatus(specificationId1, 0, CalculationProgressStatus.NotStarted);
+            SpecificationCalculationExecutionStatus expectedSpecificationStatusCall2 = new SpecificationCalculationExecutionStatus(specificationId2, 0, CalculationProgressStatus.NotStarted);
+
+            ICacheProvider mockCacheProvider = Substitute.For<ICacheProvider>();
+
+            SpecificationsService specificationsService = CreateService(specificationsRepository: mockSpecificationsRepository,
+                cacheProvider: mockCacheProvider, featureToggle: featureToggle);
+
+            httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
+            {
+                { "specificationIds", new StringValues($"{specificationId1},{specificationId2}") }
+            }));
+
+            // Act
+            IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
+
+            // Assert
+            actionResultReturned.Should().BeOfType<NoContentResult>();
+            await mockCacheProvider.Received().SetAsync($"{CalculationProgressPrependKey}{specificationId1}", expectedSpecificationStatusCall1, TimeSpan.FromHours(6), false);
+            await mockCacheProvider.Received().SetAsync($"{CalculationProgressPrependKey}{specificationId2}", expectedSpecificationStatusCall2, TimeSpan.FromHours(6), false);
+
+        }
+
+        [TestMethod]
+        public async Task RefreshPublishResults_WhenACallToCalculateResultThrowsAnExceptionAndFeatureToggleIsFalse_ShouldReturnInternalServerError()
+        {
+            // Arrange
+            IMessengerService messengerService = Substitute.For<IMessengerService>();
+            messengerService.SendToQueue(Arg.Any<string>(), Arg.Any<string>(), new Dictionary<string, string>()).ThrowsForAnyArgs(new ArgumentException());
+
+            ISpecificationsRepository mockSpecificationsRepository = Substitute.For<ISpecificationsRepository>();
+            mockSpecificationsRepository.GetSpecificationById(Arg.Any<string>()).Returns(new Specification());
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(false);
+
+            SpecificationsService specificationsService = CreateService(messengerService: messengerService, specificationsRepository: mockSpecificationsRepository, featureToggle: featureToggle);
+            HttpRequest httpRequest = Substitute.For<HttpRequest>();
+            httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
+            {
+                { "specificationIds", new StringValues("123, 333, 422, 122") }
+            }));
+
+            // Act
+            IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
+
+            // Assert
+            actionResultReturned.Should().BeOfType<InternalServerErrorResult>();
+        }
+
+        [TestMethod]
+        public async Task RefreshPublishResults_GivenASpecificationIdThatDoesNotExistAndFeatureToggleIsFalse_ShouldReturnBadRequestObjectResult()
+        {
+            // Arrange
+            const string validSpecificationId = "123";
+            const string invalidSpecificationId = "333";
+
+            IMessengerService messengerService = Substitute.For<IMessengerService>();
+
+            ISpecificationsRepository mockSpecificationsRepository = Substitute.For<ISpecificationsRepository>();
+            mockSpecificationsRepository.GetSpecificationById(validSpecificationId).Returns(new Specification());
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(false);
+
+            SpecificationsService specificationsService = CreateService(messengerService: messengerService, featureToggle: featureToggle);
+            HttpRequest httpRequest = Substitute.For<HttpRequest>();
+            httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
+            {
+                { "specificationIds", new StringValues($"{validSpecificationId}, {invalidSpecificationId}") }
+            }));
+
+            // Act
+            IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
+
+            // Assert
+            actionResultReturned.Should().BeOfType<BadRequestObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task RefreshPublishResults_WhenACallToCalculateResultThrowsAnExceptionAndFeatureToggleIsFalse_ShouldReportOnCacheWithError()
+        {
+            // Arrange
+            const string specificationId = "123";
+
+            IMessengerService messengerService = Substitute.For<IMessengerService>();
+            messengerService.SendToQueue(Arg.Any<string>(), Arg.Any<string>(), new Dictionary<string, string>()).ThrowsForAnyArgs(new ArgumentException());
+
+            SpecificationCalculationExecutionStatus expectedSpecificationStatusCall1 =
+                new SpecificationCalculationExecutionStatus(specificationId, 0, CalculationProgressStatus.Error)
+                {
+                    ErrorMessage = $"Failed to queue publishing of provider results for specification id: {specificationId}"
+                };
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(false);
+
+            ICacheProvider mockCacheProvider = Substitute.For<ICacheProvider>();
+
+            ISpecificationsRepository mockSpecificationsRepository = Substitute.For<ISpecificationsRepository>();
+            mockSpecificationsRepository.GetSpecificationById(Arg.Any<string>()).Returns(new Specification());
+
+            SpecificationsService specificationsService = CreateService(messengerService: messengerService, specificationsRepository: mockSpecificationsRepository, cacheProvider: mockCacheProvider, featureToggle: featureToggle);
+            HttpRequest httpRequest = Substitute.For<HttpRequest>();
+            httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
+            {
+                { "specificationIds", new StringValues(specificationId) }
+            }));
+
+            // Act
+            IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
+
+            // Assert
+            actionResultReturned.Should().BeOfType<InternalServerErrorResult>();
+            await mockCacheProvider.Received().SetAsync($"{CalculationProgressPrependKey}{specificationId}", expectedSpecificationStatusCall1, TimeSpan.FromHours(6), false);
+        }
+    }
 }

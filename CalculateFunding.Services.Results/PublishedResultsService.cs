@@ -171,12 +171,12 @@ namespace CalculateFunding.Services.Results
             _publishedProviderCalcResultsVersionRepository = publishedProviderCalcResultsVersionRepository;
             _publishedAllocationLineLogicalResultVersionService = publishedAllocationLineLogicalResultVersionService;
             _featureToggle = featureToggle;
-        }        
+        }
 
         public async Task<ServiceHealth> IsHealthOk()
         {
+
             ServiceHealth providerRepoHealth = await ((IHealthChecker)_publishedProviderResultsRepository).IsHealthOk();
-      
             var cacheHealth = await _cacheProvider.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
@@ -259,7 +259,7 @@ namespace CalculateFunding.Services.Results
             UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.InProgress);
 
             Stopwatch getSpecificationStopwatch = Stopwatch.StartNew();
-            SpecificationCurrentVersion specification = await _specificationsRepository.GetCurrentSpecificationById(specificationId);
+            SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(specificationId));
             getSpecificationStopwatch.Stop();
 
             UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
@@ -285,17 +285,9 @@ namespace CalculateFunding.Services.Results
 
             Reference author = message.GetUserDetails();
 
-            Stopwatch existingPublishedProviderCalculationResultsStopwatch = Stopwatch.StartNew();
-            IEnumerable<PublishedProviderCalculationResultExisting> existingPublishedProviderCalculationResults = await _publishedProviderCalculationResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderCalculationResultsRepository.GetExistingPublishedProviderCalculationResultsForSpecificationId(specificationId));
-            existingPublishedProviderCalculationResultsStopwatch.Stop();
-
             Stopwatch assemblePublishedCalculationResults = Stopwatch.StartNew();
-            (IEnumerable<PublishedProviderCalculationResult> publishedProviderCalcuationResults, bool hasCalcsChanged) = _publishedProviderResultsAssemblerService.AssemblePublishedCalculationResults(providerResults, author, specification, existingPublishedProviderCalculationResults);
+            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = _publishedProviderResultsAssemblerService.AssemblePublishedCalculationResults(providerResults, author, specification);
             assemblePublishedCalculationResults.Stop();
-
-            Stopwatch publishedProviderCalculationResultsStopwatch = Stopwatch.StartNew();
-            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = await _publishedProviderCalculationResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsAssemblerService.GeneratePublishedProviderCalculationResultsToSave(publishedProviderCalcuationResults, existingPublishedProviderCalculationResults));
-            publishedProviderCalculationResultsStopwatch.Stop();
 
             UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
 
@@ -310,7 +302,7 @@ namespace CalculateFunding.Services.Results
                 UpdateCacheForSegmentDone(specificationId, calculationProgress += 7, CalculationProgressStatus.InProgress);
 
                 saveCalculationResultsHistoryStopwatch.Start();
-                await SavePublishedCalculationResultVersionHistory(publishedProviderCalcuationResults);
+                await SavePublishedCalculationResultVersionHistory(publishedProviderCalculationResults);
                 saveCalculationResultsHistoryStopwatch.Stop();
                 UpdateCacheForSegmentDone(specificationId, calculationProgress += 10, CalculationProgressStatus.InProgress);
             }
@@ -333,8 +325,8 @@ namespace CalculateFunding.Services.Results
             List<PublishedProviderResult> publishedProviderResultsToSave = new List<PublishedProviderResult>();
 
             Stopwatch assembleSaveAndExcludeStopwatch = Stopwatch.StartNew();
-            (IEnumerable<PublishedProviderResult> newOrUpdatedPublishedProviderResults, IEnumerable<PublishedProviderResultExisting> existingRecordsToZero) = 
-                await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsAssemblerService.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingPublishedProviderResults, hasCalcsChanged));
+            (IEnumerable<PublishedProviderResult> newOrUpdatedPublishedProviderResults, IEnumerable<PublishedProviderResultExisting> existingRecordsToZero) =
+                await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsAssemblerService.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingPublishedProviderResults));
             assembleSaveAndExcludeStopwatch.Stop();
 
             if (newOrUpdatedPublishedProviderResults.AnyWithNullCheck())
@@ -406,15 +398,13 @@ namespace CalculateFunding.Services.Results
                         { "publishproviderresults-getCalculationResultsMs", getCalculationResultsStopwatch.ElapsedMilliseconds },
                         { "publishproviderresults-getSpecificationMs", getSpecificationStopwatch.ElapsedMilliseconds },
                         { "publishproviderresults-assemblePublishedCalculationResultsMs", assemblePublishedCalculationResults.ElapsedMilliseconds },
-                        { "publishproviderresults-assemblePublishedCalculationResultsTotal", publishedProviderCalcuationResults.Count() },
+                        { "publishproviderresults-assemblePublishedCalculationResultsTotal", publishedProviderCalculationResults.Count() },
                         { "publishproviderresults-saveCalculationResultsMs", saveCalculationResultsStopwatch.ElapsedMilliseconds },
                         { "publishproviderresults-saveCalculationResultsHistoryMs", saveCalculationResultsHistoryStopwatch.ElapsedMilliseconds },
                         { "publishproviderresults-assemblePublishedProviderResultsMs", assemblePublishedProviderResultsStopwatch.ElapsedMilliseconds },
                         { "publishproviderresults-existingPublishedProviderResultsMs", existingPublishedProviderResultsStopwatch.ElapsedMilliseconds },
                         { "publishproviderresults-assembleSaveAndExcludeMs", assembleSaveAndExcludeStopwatch.ElapsedMilliseconds },
                         { "publishproviderresults-savePublishedResultsCount", publishedProviderResultsToSave.Count },
-                        { "publishproviderresults-existingPublishedProviderCalculationResultsStopwatch", existingPublishedProviderCalculationResultsStopwatch.ElapsedMilliseconds},
-                        { "publishproviderresults-publishedProviderCalculationResultsStopwatch", publishedProviderCalculationResultsStopwatch.ElapsedMilliseconds },
                         { "publishproviderresults-savePublishedCalculationsResultsCount", publishedProviderCalculationResults.Count() },
                     };
 
@@ -466,7 +456,8 @@ namespace CalculateFunding.Services.Results
                                     existingResult.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Updated;
                                 }
 
-                                existingResult.FundingStreamResult.AllocationLineResult.Current.Version = await _publishedProviderResultsVersionRepository.GetNextVersionNumber(existingResult.FundingStreamResult.AllocationLineResult.Current, existingResult.ProviderId);
+                                existingResult.FundingStreamResult.AllocationLineResult.Current.Version =
+                                    await _publishedProviderResultsVersionRepository.GetNextVersionNumber(existingResult.FundingStreamResult.AllocationLineResult.Current, existing.Version, incrementFromCurrentVersion: true);
 
                                 results.Add(existingResult);
                             }
@@ -820,7 +811,7 @@ namespace CalculateFunding.Services.Results
                             newVersion.Date = DateTimeOffset.Now.ToLocalTime();
                             newVersion.Status = updateStatusModel.Status;
 
-                            newVersion = await _publishedProviderResultsVersionRepository.CreateVersion(newVersion, allocationLineResult.Current, providerstatusModel.ProviderId);
+                            newVersion = await _publishedProviderResultsVersionRepository.CreateVersion(newVersion, allocationLineResult.Current, providerstatusModel.ProviderId, true);
 
                             if (updateStatusModel.Status != AllocationLineStatus.Approved)
                             {
@@ -1210,7 +1201,7 @@ namespace CalculateFunding.Services.Results
                     DfeEstablishmentNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DfeEstablishmentNumber,
                     ProviderStatus = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Status,
                     PolicySummaries = JsonConvert.SerializeObject(CreatePolicySummaries(providerCalculationResults, specification))
-                   
+
                 };
 
                 if (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled())
@@ -1221,7 +1212,7 @@ namespace CalculateFunding.Services.Results
 
                 notifications.Add(feedIndex);
             }
-           
+
             return notifications;
         }
 

@@ -429,8 +429,7 @@ namespace CalculateFunding.Api.External.V1.Services
                             AllocationStatus = allocationFeedIndex.AllocationStatus,
                             AllocationAmount = Convert.ToDecimal(allocationFeedIndex.AllocationAmount),
                             ProfilePeriods = JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(allocationFeedIndex.ProviderProfiling).Select(
-                                    m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod)).ToArraySafe(),
-                            Version = (allocationFeedIndex.MajorVersion == null || allocationFeedIndex.MinorVersion == null) ? "" : $"{allocationFeedIndex.MajorVersion}.{allocationFeedIndex.MinorVersion}"
+                                    m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod)).ToArraySafe()
                         });
                     }
 

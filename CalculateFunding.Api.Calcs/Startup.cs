@@ -153,6 +153,8 @@ namespace CalculateFunding.Api.Calcs
 
             builder.AddPolicySettings(Configuration);
 
+            builder.AddFeatureToggling(Configuration);
+
             builder.AddSingleton<ICalcsResilliencePolicies>((ctx) =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();

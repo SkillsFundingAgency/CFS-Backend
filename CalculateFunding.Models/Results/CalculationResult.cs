@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
+    [Serializable]
     public class CalculationResult
     {
         [JsonProperty("calculation")]

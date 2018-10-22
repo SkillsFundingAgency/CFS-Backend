@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Models.Results
+﻿using System;
+
+namespace CalculateFunding.Models.Results
 {
     public class PublishedProviderResultExisting
     {
@@ -15,5 +17,9 @@
         public int Minor { get; set; }
 
         public int Major { get; set; }
+
+        public int Version { get; set; }
+
+        public DateTimeOffset? UpdatedAt { get; set; }
     }
 }

@@ -155,19 +155,13 @@ namespace CalculateFunding.Services.Results.Services
             publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
                 .Returns(ex => { throw new Exception("Error saving published results"); });
 
-            bool hasCalcsChanged = true;
-
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
             assembler
-               .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion, Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
-               .Returns((publishedProviderCalculationResults, hasCalcsChanged));
+               .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion)
+               .Returns(publishedProviderCalculationResults);
 
             assembler
-                .GeneratePublishedProviderCalculationResultsToSave(Arg.Is(publishedProviderCalculationResults), Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
-                .Returns(publishedProviderCalculationResults);
-
-            assembler
-                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(hasCalcsChanged))
+                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
                 .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
 
             PublishedResultsService resultsService = CreateResultsService(
@@ -260,15 +254,13 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
 
-            bool hasCalcsChanged = true;
-
             assembler
-                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(hasCalcsChanged))
+                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
                 .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
 
             assembler
-              .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion, Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
-              .Returns((publishedProviderCalculationResults, hasCalcsChanged));
+              .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion)
+              .Returns(publishedProviderCalculationResults);
 
 
             PublishedResultsService resultsService = CreateResultsService(
@@ -396,8 +388,8 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
             assembler
-               .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion, Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
-               .Returns((publishedProviderCalculationResults, hasCalcsChanged));
+               .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion)
+               .Returns(publishedProviderCalculationResults);
 
             ILogger logger = CreateLogger();
 
@@ -469,15 +461,9 @@ namespace CalculateFunding.Services.Results.Services
 
             IVersionRepository<PublishedProviderCalculationResultVersion> calcsVersionRepository = CreatePublishedProviderCalcResultsVersionRepository();
 
-            bool hasCalcChanges = true;
-
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
             assembler
-                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion, Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
-                .Returns((publishedProviderCalculationResults, hasCalcChanges));
-
-            assembler
-                .GeneratePublishedProviderCalculationResultsToSave(Arg.Is(publishedProviderCalculationResults), Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
+                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion)
                 .Returns(publishedProviderCalculationResults);
 
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
@@ -554,8 +540,8 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
             assembler
-                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion, Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
-                .Returns((publishedProviderCalculationResults, true));
+                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion)
+                .Returns(publishedProviderCalculationResults);
 
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
 
@@ -649,11 +635,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
             assembler
-                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion, Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
-                .Returns((publishedProviderCalculationResults, true));
-
-            assembler
-                .GeneratePublishedProviderCalculationResultsToSave(Arg.Is(publishedProviderCalculationResults), Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
+                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion)
                 .Returns(publishedProviderCalculationResults);
 
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
@@ -770,12 +752,8 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
             assembler
-                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion, Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
-                .Returns((publishedProviderCalculationResults, true));
-
-            assembler
-               .GeneratePublishedProviderCalculationResultsToSave(Arg.Is(publishedProviderCalculationResults), Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
-               .Returns(publishedProviderCalculationResults);
+                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion)
+                .Returns(publishedProviderCalculationResults);
 
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
 
@@ -914,12 +892,8 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
             assembler
-                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion, Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
-                .Returns((publishedProviderCalculationResults, true));
-
-            assembler
-               .GeneratePublishedProviderCalculationResultsToSave(Arg.Is(publishedProviderCalculationResults), Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
-               .Returns(publishedProviderCalculationResults);
+                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion)
+                .Returns(publishedProviderCalculationResults);
 
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
 
@@ -968,12 +942,6 @@ namespace CalculateFunding.Services.Results.Services
         {
             // Arrange
             string specificationId = SpecificationId1;
-
-            SpecificationCurrentVersion specificationCurrentVersion = new SpecificationCurrentVersion
-            {
-                Id = SpecificationId1
-            };
-
             IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
             {
                 new ProviderResult()
@@ -1002,29 +970,13 @@ namespace CalculateFunding.Services.Results.Services
                 },
             };
 
-            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = new[]
-{
-                new PublishedProviderCalculationResult
-                {
-                    Current = new PublishedProviderCalculationResultVersion
-                    {
-                        Provider = new ProviderSummary
-                        {
-                            Id = "prov-1"
-                        }
-                    },
-                    Specification = new Reference{ Id = SpecificationId1, Name ="spec1" },
-                    CalculationSpecification = new Reference { Id = "calc-1", Name = "calc1" }
-                }
-            };
-
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
                 .Returns(Task.FromResult(providerResults));
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
-                .Returns(specificationCurrentVersion);
+                .Returns(Task.FromResult(new SpecificationCurrentVersion()));
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository =
                 CreatePublishedProviderResultsRepository();
@@ -1042,15 +994,10 @@ namespace CalculateFunding.Services.Results.Services
                 .CreatePublishedCalculationResults(Arg.Any<IEnumerable<PublishedProviderCalculationResult>>())
                 .Returns(Task.CompletedTask);
 
-            bool hasCalcsChanged = true;
-
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
-            assembler
-               .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion, Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
-               .Returns((publishedProviderCalculationResults, hasCalcsChanged));
 
             assembler
-                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), hasCalcsChanged)
+                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
                 .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
 
             ICacheProvider mockCacheProvider = CreateCacheProvider();
@@ -1238,11 +1185,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
             assembler
-                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion, Arg.Any <IEnumerable<PublishedProviderCalculationResultExisting>>())
-                .Returns((publishedProviderCalculationResults, hasCalcChanges));
-
-            assembler
-                .GeneratePublishedProviderCalculationResultsToSave(Arg.Is(publishedProviderCalculationResults), Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
+                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion)
                 .Returns(publishedProviderCalculationResults);
 
             assembler
@@ -1250,7 +1193,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(publishedProviderResults);
 
             assembler
-                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(hasCalcChanges))
+                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
                 .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
 
             IVersionRepository<PublishedProviderCalculationResultVersion> calcsVersionRepository = CreatePublishedProviderCalcResultsVersionRepository();
@@ -1389,19 +1332,17 @@ namespace CalculateFunding.Services.Results.Services
             versionRepository.SaveVersions(Arg.Any<IEnumerable<PublishedAllocationLineResultVersion>>())
                 .Returns(Task.CompletedTask);
 
-            bool hasCalcUpdates = true;
-
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
             assembler
-                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion, Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
-                .Returns((publishedProviderCalculationResults, hasCalcUpdates));
+                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion)
+                .Returns(publishedProviderCalculationResults);
 
             assembler
                 .AssemblePublishedProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<Reference>(), Arg.Any<SpecificationCurrentVersion>())
                 .Returns(publishedProviderResults);
 
             assembler
-                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(hasCalcUpdates))
+                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
                 .Returns((publishedProviderResults, existingToRemove));
 
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
@@ -1496,15 +1437,9 @@ namespace CalculateFunding.Services.Results.Services
             publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(Arg.Any<IEnumerable<PublishedProviderCalculationResult>>())
                 .Returns(Task.CompletedTask);
 
-            bool hasCalcChanges = true;
-
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
             assembler
-                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion, Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
-                .Returns((publishedProviderCalculationResults, hasCalcChanges));
-
-            assembler
-                .GeneratePublishedProviderCalculationResultsToSave(Arg.Is(publishedProviderCalculationResults), Arg.Any<IEnumerable<PublishedProviderCalculationResultExisting>>())
+                .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion)
                 .Returns(publishedProviderCalculationResults);
 
             ILogger logger = CreateLogger();

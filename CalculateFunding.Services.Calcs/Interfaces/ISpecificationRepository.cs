@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Models.Specs;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs.Interfaces
@@ -11,5 +12,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IEnumerable<Calculation>> GetCalculationSpecificationsForSpecification(string specificationId);
 
         Task<IEnumerable<FundingStream>> GetFundingStreams();
+
+        Task<HttpStatusCode> UpdateCalculationLastUpdatedDate(string specificationId);
     }
 }

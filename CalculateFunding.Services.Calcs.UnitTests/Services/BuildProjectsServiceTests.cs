@@ -26,6 +26,10 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Languages;
+using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Services.Core.Constants;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -792,6 +796,295 @@ namespace CalculateFunding.Services.Calcs.Services
             buildProject.Build.Success.Should().BeTrue();
         }
 
+        [TestMethod]
+        public void UpdateAllocations_GivenBuildProjectNotFound_ThrowsArgumentException()
+        {
+            //Arrange
+            string specificationId = "test-spec1";
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+
+            message.UserProperties.Add("specification-id", specificationId);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns((BuildProject)null);
+
+            ILogger logger = CreateLogger();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, logger: logger);
+
+            //Act
+            Func<Task> test = async () => await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<ArgumentNullException>();
+        }
+
+        [TestMethod]
+        public async Task UpdateAllocations_GivenBuildProjectButNoSummariesInCache_CallsPopulateSummaries()
+        {
+            //Arrange
+            string specificationId = "test-spec1";
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+
+            message.UserProperties.Add("specification-id", specificationId);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(false);
+
+            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            ILogger logger = CreateLogger();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, 
+                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider);
+
+            //Act
+            await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            await
+                providerResultsRepository
+                    .Received(1)
+                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
+        }
+
+        [TestMethod]
+        public async Task UpdateAllocations_GivenBuildProjectAndSummariesInCache_DoesntCallPopulateSummaries()
+        {
+            //Arrange
+            string specificationId = "test-spec1";
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+
+            message.UserProperties.Add("specification-id", specificationId);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(true);
+
+            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            ILogger logger = CreateLogger();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, 
+                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider);
+
+            //Act
+            await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            await
+                providerResultsRepository
+                    .DidNotReceive()
+                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
+        }
+
+        [TestMethod]
+        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenThousandProviders_AddsTenMessagesToQueue()
+        {
+            //Arrange
+            string specificationId = "test-spec1";
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+
+            message.UserProperties.Add("specification-id", specificationId);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(true);
+
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(10000);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            ILogger logger = CreateLogger();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
+                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
+                messengerService: messengerService);
+
+            //Act
+            await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            await
+                providerResultsRepository
+                    .DidNotReceive()
+                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
+
+            await
+                messengerService
+                    .Received(10)
+                    .SendToQueue<string>(Arg.Is(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>());
+        }
+
+        [TestMethod]
+        public async Task UpdateAllocations_GivenBuildProjectAndFeatureToggleIsOn_CallsUpdateCalculationLastupdatedDate()
+        {
+            //Arrange
+            string specificationId = "test-spec1";
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+
+            message.UserProperties.Add("specification-id", specificationId);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(true);
+
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(10000);
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(true);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
+                logger: logger, cacheProvider: cacheProvider, featureToggle: featureToggle, specificationsRepository: specificationRepository);
+
+            //Act
+            await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            await
+                specificationRepository
+                    .Received(1)
+                    .UpdateCalculationLastUpdatedDate(Arg.Is(specificationId));
+        }
+
+
+        [TestMethod]
+        public async Task UpdateAllocations_GivenBuildProjectAndFeatureToggleIsOff_DoesNotCallUpdateCalculationLastupdatedDate()
+        {
+            //Arrange
+            string specificationId = "test-spec1";
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+
+            message.UserProperties.Add("specification-id", specificationId);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(true);
+
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(10000);
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(false);
+
+            ILogger logger = CreateLogger();
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
+                logger: logger, cacheProvider: cacheProvider, featureToggle: featureToggle, specificationsRepository: specificationRepository);
+
+            //Act
+            await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            await
+                specificationRepository
+                    .DidNotReceive()
+                    .UpdateCalculationLastUpdatedDate(Arg.Any<string>());
+        }
+
         private BuildProjectsService CreateBuildProjectsServiceWithRealCompiler(IBuildProjectsRepository buildProjectsRepository, ICalculationsRepository calculationsRepository)
         {
             ILogger logger = CreateLogger();
@@ -812,9 +1105,10 @@ namespace CalculateFunding.Services.Calcs.Services
             ISpecificationRepository specificationsRepository = null,
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
             ICompilerFactory compilerFactory = null,
-            ICacheProvider caheProvider = null,
+            ICacheProvider cacheProvider = null,
             ICalculationService calculationService = null,
-            ICalculationsRepository calculationsRepository = null)
+            ICalculationsRepository calculationsRepository = null,
+            IFeatureToggle featureToggle = null)
         {
             return new BuildProjectsService(
                 buildProjectsRepository ?? CreateBuildProjectsRepository(),
@@ -825,10 +1119,15 @@ namespace CalculateFunding.Services.Calcs.Services
                 specificationsRepository ?? CreateSpecificationRepository(),
                 sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(),
                 compilerFactory ?? CreateCompilerfactory(),
-                caheProvider ?? CreateCacheProvider(),
+                cacheProvider ?? CreateCacheProvider(),
                 calculationService ?? CreateCalculationService(),
-                calculationsRepository ?? CreateCalculationsRepository()
-                );
+                calculationsRepository ?? CreateCalculationsRepository(),
+                featureToggle ?? CreateFeatureToggle());
+        }
+
+        static IFeatureToggle CreateFeatureToggle()
+        {
+            return Substitute.For<IFeatureToggle>();
         }
 
         private static Message CreateMessage(string specificationId = SpecificationId)

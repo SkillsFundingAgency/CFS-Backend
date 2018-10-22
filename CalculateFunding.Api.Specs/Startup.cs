@@ -95,6 +95,8 @@ namespace CalculateFunding.Api.Specs
 
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
 
+            builder.AddFeatureToggling(Configuration);
+
             builder.AddSingleton(mappingConfig.CreateMapper());
 
             builder.AddUserProviderFromRequest();

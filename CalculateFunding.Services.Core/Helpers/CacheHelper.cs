@@ -11,7 +11,5 @@ namespace CalculateFunding.Services.Core.Helpers
 			await cacheProvider.SetAsync(key, item, TimeSpan.FromHours(cacheExpiryInHours), false);
 
 		}
-
-
 	}
 }

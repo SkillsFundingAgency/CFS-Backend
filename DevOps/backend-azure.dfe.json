@@ -1160,6 +1160,10 @@
             {
               "name": "AzureStorageSettings:ConnectionString",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "features:allocationLineMajorMinorVersioningEnabled",
+              "value": "[parameters('EnableMajorMinorVersioning')]"
             }
           ]
         }
@@ -2484,6 +2488,10 @@
             {
               "name": "apiKeyMiddleware:apiKey",
               "value": "[parameters('ApiKeySpecs')]"
+            },
+            {
+              "name": "features:allocationLineMajorMinorVersioningEnabled",
+              "value": "[parameters('EnableMajorMinorVersioning')]"
             }
           ]
         }

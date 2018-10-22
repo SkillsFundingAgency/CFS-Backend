@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
@@ -44,6 +45,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICacheProvider _cacheProvider;
         private readonly ICalculationService _calculationService;
         private readonly ICalculationsRepository _calculationsRepository;
+        private readonly IFeatureToggle _featureToggle;
 
         public BuildProjectsService(
             IBuildProjectsRepository buildProjectsRepository,
@@ -56,7 +58,8 @@ namespace CalculateFunding.Services.Calcs
             ICompilerFactory compilerFactory,
             ICacheProvider cacheProvider,
             ICalculationService calculationService,
-            ICalculationsRepository calculationsRepository)
+            ICalculationsRepository calculationsRepository,
+            IFeatureToggle featureToggle)
         {
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -69,6 +72,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(calculationService, nameof(calculationService));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
 
             _buildProjectsRepository = buildProjectsRepository;
             _messengerService = messengerService;
@@ -82,6 +86,7 @@ namespace CalculateFunding.Services.Calcs
             _cacheProvider = cacheProvider;
             _calculationService = calculationService;
             _calculationsRepository = calculationsRepository;
+            _featureToggle = featureToggle;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -116,7 +121,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 _logger.Error("A null build project was provided to UpdateAllocations");
 
-                throw new ArgumentNullException(nameof(buildProject));
+                throw new ArgumentNullException(nameof(buildProject), $"A null build project was provided to UpdateAllocations for specification Id {specificationId}");
             }
 
             if (message.UserProperties.ContainsKey("ignore-save-provider-results"))
@@ -156,7 +161,6 @@ namespace CalculateFunding.Services.Calcs
 
             for (int partitionIndex = 0; partitionIndex < totalCount; partitionIndex += MaxPartitionSize)
             {
-
                 if (properties.ContainsKey(providerSummariesPartitionIndex))
                 {
                     properties[providerSummariesPartitionIndex] = partitionIndex.ToString();
@@ -167,6 +171,11 @@ namespace CalculateFunding.Services.Calcs
                 }
 
                 await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, null, properties);
+            }
+
+            if (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled())
+            {
+                await _specificationsRepository.UpdateCalculationLastUpdatedDate(specificationId);
             }
         }
 

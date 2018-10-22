@@ -286,5 +286,12 @@ namespace CalculateFunding.Api.Specs.Controllers
         {
             return await _specService.UpdatePublishedRefreshedDate(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/specs/update-calculation-last-updated-date")]
+        [HttpPost]
+        public async Task<IActionResult> RunUpdateCalculationLastUpdatedDate()
+        {
+            return await _specService.UpdateCalculationLastUpdatedDate(ControllerContext.HttpContext.Request);
+        }
     }
 }

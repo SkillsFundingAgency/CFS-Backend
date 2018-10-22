@@ -4,6 +4,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
@@ -47,6 +48,14 @@ namespace CalculateFunding.Services.Calcs
             string url = $"specs/funding-streams";
 
             return _apiClient.GetAsync<IEnumerable<FundingStream>>(url);
+        }
+
+
+        public async Task<HttpStatusCode> UpdateCalculationLastUpdatedDate(string specificationId)
+        {
+            string url = $"specs/update-Calculation-Last-Updated-Date?specificationId={specificationId}";
+
+            return await _apiClient.PostAsync(url);
         }
     }
 }

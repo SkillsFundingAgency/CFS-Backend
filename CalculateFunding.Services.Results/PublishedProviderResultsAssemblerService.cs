@@ -91,15 +91,13 @@ namespace CalculateFunding.Services.Results
         /// <param name="author">Author - user who performed this action</param>
         /// <param name="specificationCurrentVersion">Specification</param>
         /// <returns></returns>
-        public (IEnumerable<PublishedProviderCalculationResult>, bool) AssemblePublishedCalculationResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion, IEnumerable<PublishedProviderCalculationResultExisting> existingResults)
+        public IEnumerable<PublishedProviderCalculationResult> AssemblePublishedCalculationResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion)
         {
             Guard.ArgumentNotNull(providerResults, nameof(providerResults));
             Guard.ArgumentNotNull(author, nameof(author));
             Guard.ArgumentNotNull(specificationCurrentVersion, nameof(specificationCurrentVersion));
         
             string specificationId = specificationCurrentVersion.Id;
-
-            bool hasCalcsChanged = false;
 
             IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id);
 
@@ -116,20 +114,9 @@ namespace CalculateFunding.Services.Results
 
                 foreach (CalculationResult calculationResult in providerResult.CalculationResults)
                 {
+                    (Policy policy, Policy parentPolicy, Calculation calculation) = FindPolicy(calculationResult.CalculationSpecification?.Id, specificationCurrentVersion.Policies);
 
-                    if (!hasCalcsChanged)
-                    {
-                        PublishedProviderCalculationResultExisting existing = existingResults.FirstOrDefault(m => m.ProviderId == providerResult.Provider.Id && m.CalculationSpecificationId == calculationResult.CalculationSpecification.Id);
-
-                        if (existing != null && calculationResult.Version > 0 && (existing.CalculationVersion != calculationResult.Version))
-                        {
-                            hasCalcsChanged = true;
-                        }
-                    }
-
-                    (Policy policy, Policy parentPolicy, Models.Specs.Calculation calculation) = FindPolicy(calculationResult.CalculationSpecification?.Id, specificationCurrentVersion.Policies);
-
-                    if (calculation == null)
+                    if (calculation.CalculationType == CalculationType.Number && !calculation.IsPublic)
                     {
                         continue;
                     }
@@ -173,10 +160,10 @@ namespace CalculateFunding.Services.Results
                 
             }
 
-            return (publishedProviderCalculationResults, hasCalcsChanged);
+            return publishedProviderCalculationResults;
         }
 
-        public async Task<(IEnumerable<PublishedProviderResult>, IEnumerable<PublishedProviderResultExisting>)> GeneratePublishedProviderResultsToSave(IEnumerable<PublishedProviderResult> providerResults, IEnumerable<PublishedProviderResultExisting> existingResults, bool hasCalcsChanged = false)
+        public async Task<(IEnumerable<PublishedProviderResult>, IEnumerable<PublishedProviderResultExisting>)> GeneratePublishedProviderResultsToSave(IEnumerable<PublishedProviderResult> providerResults, IEnumerable<PublishedProviderResultExisting> existingResults)
         {
             Guard.ArgumentNotNull(providerResults, nameof(providerResults));
             Guard.ArgumentNotNull(existingResults, nameof(existingResults));
@@ -194,7 +181,6 @@ namespace CalculateFunding.Services.Results
 
                 existingProviderResults[providerResult.ProviderId].TryAdd(providerResult.AllocationLineId, providerResult);
             }
-
        
             List<Task> allTasks = new List<Task>();
 
@@ -222,12 +208,8 @@ namespace CalculateFunding.Services.Results
                                         existingProviderResults.TryRemove(providerResult.ProviderId, out var removedProviderResult);
                                     }
 
-                                    if (providerResult.FundingStreamResult.AllocationLineResult.Current.Value == existingResult.Value && !hasCalcsChanged)
-                                    {
-                                        return;
-                                    }
-
-                                    providerResult.FundingStreamResult.AllocationLineResult.Current.Version = await _allocationResultsVersionRepository.GetNextVersionNumber(providerResult.FundingStreamResult.AllocationLineResult.Current, providerResult.ProviderId);
+                                    providerResult.FundingStreamResult.AllocationLineResult.Current.Version = 
+                                        await _allocationResultsVersionRepository.GetNextVersionNumber(providerResult.FundingStreamResult.AllocationLineResult.Current, existingResult.Version, incrementFromCurrentVersion: true);
 
                                     if (existingResult.Status != AllocationLineStatus.Held)
                                     {
@@ -265,80 +247,6 @@ namespace CalculateFunding.Services.Results
             }
 
             return (publishedProviderResultsToSave, existingRecordsExclude);
-        }
-
-        public async Task<IEnumerable<PublishedProviderCalculationResult>> GeneratePublishedProviderCalculationResultsToSave(IEnumerable<PublishedProviderCalculationResult> providerCalculationResults, IEnumerable<PublishedProviderCalculationResultExisting> existingResults)
-        {
-            Guard.ArgumentNotNull(providerCalculationResults, nameof(providerCalculationResults));
-            Guard.ArgumentNotNull(existingResults, nameof(existingResults));
-
-            ConcurrentBag<PublishedProviderCalculationResult> publishedProviderCalculationResultsToSave = new ConcurrentBag<PublishedProviderCalculationResult>();
-
-            Dictionary<string, List<PublishedProviderCalculationResultExisting>> existingProviderCalculationResults = new Dictionary<string, List<PublishedProviderCalculationResultExisting>>();
-
-            foreach (PublishedProviderCalculationResultExisting providerCalculationResult in existingResults)
-            {
-                if (!existingProviderCalculationResults.ContainsKey(providerCalculationResult.ProviderId))
-                {
-                    existingProviderCalculationResults.Add(providerCalculationResult.ProviderId, new List<PublishedProviderCalculationResultExisting>());
-                }
-
-                existingProviderCalculationResults[providerCalculationResult.ProviderId].Add(providerCalculationResult);
-            }
-
-            List<Task> allTasks = new List<Task>();
-
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
-
-            int resultsCount = providerCalculationResults.Count();
-
-            PublishedProviderCalculationResult[] publishedProviderCalcResults = providerCalculationResults.ToArraySafe();
-
-            foreach(PublishedProviderCalculationResult providerCalculationResult in providerCalculationResults)
-            {
-                await throttler.WaitAsync();
-                allTasks.Add(
-                    Task.Run(async () =>
-                    {
-                        try
-                        {
-
-                            if (existingProviderCalculationResults.ContainsKey(providerCalculationResult.ProviderId))
-                            {
-                                List<PublishedProviderCalculationResultExisting> existingResultsForProvider = existingProviderCalculationResults[providerCalculationResult.ProviderId];
-                                PublishedProviderCalculationResultExisting existingResult = existingResultsForProvider.FirstOrDefault(p => p.Id == providerCalculationResult.Id);
-                                if (existingResult != null)
-                                {
-                                    if (providerCalculationResult.Current.Value == existingResult.Value && providerCalculationResult.Current.CalculationVersion == existingResult.CalculationVersion)
-                                    {
-                                        return;
-                                    }
-
-                                    providerCalculationResult.Current.CalculationVersion = existingResult.CalculationVersion;
-
-                                    providerCalculationResult.Current.Version = await _calculationResultsVersionRepository.GetNextVersionNumber(providerCalculationResult.Current, providerCalculationResult.ProviderId);
-                                }
-                                else
-                                {
-                                    providerCalculationResult.Current.Version = 1;
-                                }
-                            }
-                            else
-                            {
-                                providerCalculationResult.Current.Version = 1;
-                            }
-
-                            publishedProviderCalculationResultsToSave.Add(providerCalculationResult);
-                        }
-                        finally
-                        {
-                            throttler.Release();
-                        }
-                    }));
-            }
-            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
-
-            return publishedProviderCalculationResultsToSave;
         }
 
         private (Policy policy, Policy parentPolicy, Models.Specs.Calculation calculation) FindPolicy(string calculationSpecificationId, IEnumerable<Policy> policies)
