@@ -80,15 +80,22 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             }
 
             builder.AppendLine($"Public Function {GenerateIdentifier(calc.Name)} As System.Nullable(Of Decimal)");
-	        builder.AppendLine($"#ExternalSource(\"{calc.Id}|{calc.Name}\", 1)");
-			builder.Append(calc.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode);
             builder.AppendLine();
-	        builder.AppendLine("#End ExternalSource");
-			builder.AppendLine("End Function");
+            builder.AppendLine("Dim frameCount = New System.Diagnostics.StackTrace().FrameCount");
+            builder.AppendLine("If frameCount > 300 Then");
+            builder.AppendLine("Throw New Exception(\"The system detected a stackoverflow, this is probably due to recursive methods stuck in an infinite loop\")");
+            builder.AppendLine("End If");
+            builder.AppendLine();
+            builder.AppendLine($"#ExternalSource(\"{calc.Id}|{calc.Name}\", 1)");
+            builder.AppendLine();
+            builder.Append(calc.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode);
+            builder.AppendLine();
+            builder.AppendLine("#End ExternalSource");
+            builder.AppendLine("End Function");
             builder.AppendLine();
             var tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
 
-            
+
             return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
                 .FirstOrDefault();
         }
