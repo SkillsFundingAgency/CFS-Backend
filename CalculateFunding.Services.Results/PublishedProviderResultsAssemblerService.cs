@@ -127,6 +127,7 @@ namespace CalculateFunding.Services.Results
                         CalculationSpecification = calculationResult.CalculationSpecification,
                         FundingPeriod = specificationCurrentVersion.FundingPeriod,
                         AllocationLine = calculationResult.AllocationLine,
+                        IsPublic = calculation.IsPublic,
                         Current = new PublishedProviderCalculationResultVersion()
                         {
                             Author = author,
