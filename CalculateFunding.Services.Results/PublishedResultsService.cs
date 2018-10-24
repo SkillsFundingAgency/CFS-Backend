@@ -719,7 +719,8 @@ namespace CalculateFunding.Services.Results
                 PublishedProviderResultModel publishedProviderResultModel = new PublishedProviderResultModel
                 {
                     ProviderId = providerResult.ProviderId,
-                    ProviderName = providerResult.FundingStreamResult.AllocationLineResult.Current.Provider?.Name
+                    ProviderName = providerResult.FundingStreamResult.AllocationLineResult.Current.Provider?.Name,
+					ProviderType = providerResult.FundingStreamResult.AllocationLineResult.Current.Provider?.ProviderType
                 };
 
                 if (!results.Any(m => m.ProviderId == providerResultGroup.Key))
