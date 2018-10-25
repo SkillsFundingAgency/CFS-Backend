@@ -1,4 +1,7 @@
-﻿using CalculateFunding.Models.Health;
+﻿using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
@@ -6,15 +9,11 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Users.Interfaces;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Users
 {
@@ -23,16 +22,23 @@ namespace CalculateFunding.Services.Users
         private readonly IUserRepository _userRepository;
         private readonly ILogger _logger;
         private readonly ICacheProvider _cacheProvider;
+        private readonly IValidator<UserCreateModel> _userCreateModelValidator;
 
-        public UserService(IUserRepository userRepository, ILogger logger, ICacheProvider cacheProvider)
+        public UserService(
+            IUserRepository userRepository,
+            ILogger logger,
+            ICacheProvider cacheProvider,
+            IValidator<UserCreateModel> userCreateModelValidator)
         {
             Guard.ArgumentNotNull(userRepository, nameof(userRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(userCreateModelValidator, nameof(userCreateModelValidator));
 
             _userRepository = userRepository;
             _logger = logger;
             _cacheProvider = cacheProvider;
+            _userCreateModelValidator = userCreateModelValidator;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -46,91 +52,106 @@ namespace CalculateFunding.Services.Users
             };
             health.Dependencies.AddRange(userRepoHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
- 
+
             return health;
         }
 
-        public async Task<IActionResult> GetUserByUsername(HttpRequest request)
+        public async Task<IActionResult> GetUserByUserId(HttpRequest request)
         {
-            request.Query.TryGetValue("username", out var username);
+            request.Query.TryGetValue("userId", out var username);
 
             string id = username.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(id))
             {
-                _logger.Error("No username was provided to GetUserByUsername");
+                _logger.Error($"No userId was provided to {nameof(GetUserByUserId)}");
 
-                return new BadRequestObjectResult("Null or empty username provided");
+                return new BadRequestObjectResult("Null or empty userId provided");
             }
 
-            User user = await GetUserByUsername(id);
+            User user = await GetUserByUserId(id);
 
             if (user == null)
             {
                 return new NotFoundResult();
             }
 
-            await _cacheProvider.SetAsync($"{CacheKeys.UserByUsername}-{username}", user);
+            await _cacheProvider.SetAsync($"{CacheKeys.UserById}-{username}", user);
 
             return new OkObjectResult(user);
         }
 
         public async Task<IActionResult> ConfirmSkills(HttpRequest request)
         {
-            request.Query.TryGetValue("username", out var username);
+            request.Query.TryGetValue("userId", out var userId);
 
-            string id = username.FirstOrDefault();
+            string id = userId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(id))
             {
-                _logger.Error("No username was provided to ConfirmSkills");
+                _logger.Error("No userId was provided to ConfirmSkills");
 
-                return new BadRequestObjectResult("Null or empty username provided");
+                return new BadRequestObjectResult("Null or empty userId provided");
             }
 
-            User user = await GetUserByUsername(id);
+            string json = await request.GetRawBodyStringAsync();
+
+            UserCreateModel userCreateModel = JsonConvert.DeserializeObject<UserCreateModel>(json);
+            var validationResult = (await _userCreateModelValidator.ValidateAsync(userCreateModel)).PopulateModelState();
+            if (validationResult != null)
+            {
+                return validationResult;
+            }
+
+            User user = await GetUserByUserId(id);
 
             if (user == null)
             {
-                user = new User
-                {
-                    Username = id,
-                    HasConfirmedSkills = false
-                };
+                user = new User();
             }
-
-            if (!user.HasConfirmedSkills)
+            else
             {
-                user.HasConfirmedSkills = true;
-
-                HttpStatusCode statusCode = await _userRepository.SaveUser(user);
-
-                if (!statusCode.IsSuccess())
+                // Check if there is nothing to update, if so return without saving details
+                if (user.HasConfirmedSkills && user.Username == userCreateModel.Username && user.Name == userCreateModel.Name)
                 {
-                    _logger.Error($"Failed to confirm skills in database with status code: {statusCode.ToString()}");
-
-                    return new InternalServerErrorResult("Failed to confirm skills");
+                    return new OkObjectResult(user);
                 }
-
-                await _cacheProvider.SetAsync($"{CacheKeys.UserByUsername}-{username}", user);
             }
 
-            return new NoContentResult();
+            user.HasConfirmedSkills = true;
+            user.UserId = id;
+            user.Name = userCreateModel.Name;
+            user.Username = userCreateModel.Username;
+            user.HasConfirmedSkills = true;
+
+            HttpStatusCode statusCode = await _userRepository.SaveUser(user);
+
+            if (!statusCode.IsSuccess())
+            {
+                _logger.Error($"Failed to confirm skills in database with status code: {statusCode.ToString()}");
+
+                return new InternalServerErrorResult("Failed to confirm skills");
+            }
+
+            await _cacheProvider.SetAsync($"{CacheKeys.UserById}-{userId}", user);
+
+
+            return new OkObjectResult(user);
         }
 
-        async Task<User> GetUserByUsername(string username)
+        async Task<User> GetUserByUserId(string userId)
         {
-            string cacheKey = $"{CacheKeys.UserByUsername}-{username}";
+            string cacheKey = $"{CacheKeys.UserById}-{userId}";
 
             User user = await _cacheProvider.GetAsync<User>(cacheKey);
 
             if (user == null)
             {
-                user = await _userRepository.GetUserById(username);
+                user = await _userRepository.GetUserById(userId);
 
                 if (user == null)
                 {
-                    _logger.Warning($"A user for id {username} could not found");
+                    _logger.Warning($"A user for id {userId} could not found");
 
                     return null;
                 }

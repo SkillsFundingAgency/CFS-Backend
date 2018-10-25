@@ -1,10 +1,13 @@
 ﻿using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.Common.Middleware;
+using CalculateFunding.Models.Users;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Users;
 using CalculateFunding.Services.Users.Interfaces;
+using CalculateFunding.Services.Users.Validators;
+using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -60,6 +63,8 @@ namespace CalculateFunding.Api.Users
             builder
                .AddSingleton<IUserService, UserService>()
                .AddSingleton<IHealthChecker, UserService>();
+
+            builder.AddSingleton<IValidator<UserCreateModel>, UserCreateModelValidator>();
 
             builder.AddSingleton<IUserRepository, UserRepository>((ctx) =>
             {

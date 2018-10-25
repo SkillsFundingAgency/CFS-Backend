@@ -68,10 +68,14 @@ namespace CalculateFunding.Services.Core.Caching
                 }
 
                 if (redisCacheValue == null)
+                {
                     return default(T);
+                }
 
                 if (redisCacheValue.SlidingExpiration.HasValue)
+                {
                     await database.KeyExpireAsync(key, redisCacheValue.SlidingExpiration.Value, CommandFlags.FireAndForget).ConfigureAwait(false);
+                }
 
                 return (T)redisCacheValue.Value;
 
@@ -183,7 +187,9 @@ namespace CalculateFunding.Services.Core.Caching
         async Task SetAsyncImpl<T>(string key, T item, MemoryCacheEntryOptions memoryCacheEntryOptions, JsonSerializerSettings jsonSerializerSettings = null)
         {
             if (item == null)
+            {
                 return;
+            }
 
             key = GenerateCacheKey(item.GetType(), key);
 
@@ -205,7 +211,9 @@ namespace CalculateFunding.Services.Core.Caching
 
                 var expirationTimespan = ConvertToTimeSpan(memoryCacheEntryOptions);
                 if (expirationTimespan < TimeSpan.Zero)
+                {
                     expirationTimespan = TimeSpan.FromHours(72);
+                }
 
                 var database = GetDatabase();
                 await database.StringSetAsync(key, valueToCache, expirationTimespan, flags: CommandFlags.FireAndForget).ConfigureAwait(false);
@@ -236,16 +244,24 @@ namespace CalculateFunding.Services.Core.Caching
             if (!memoryCacheEntryOptions.AbsoluteExpiration.HasValue
                 && !memoryCacheEntryOptions.AbsoluteExpirationRelativeToNow.HasValue
                 && !memoryCacheEntryOptions.SlidingExpiration.HasValue)
+            {
                 return TimeSpan.FromHours(72);
+            }
 
             if (memoryCacheEntryOptions.AbsoluteExpiration.HasValue)
+            {
                 return memoryCacheEntryOptions.AbsoluteExpiration.Value - DateTimeOffset.Now;
+            }
 
             if (memoryCacheEntryOptions.AbsoluteExpirationRelativeToNow.HasValue)
+            {
                 return memoryCacheEntryOptions.AbsoluteExpirationRelativeToNow.Value;
+            }
 
             if (memoryCacheEntryOptions.SlidingExpiration.HasValue)
+            {
                 return memoryCacheEntryOptions.SlidingExpiration.Value;
+            }
 
             return TimeSpan.FromHours(72);
         }
@@ -270,7 +286,9 @@ namespace CalculateFunding.Services.Core.Caching
         public void Dispose()
         {
             if (_connectionMultiplexer.IsValueCreated)
+            {
                 _connectionMultiplexer.Value.Dispose();
+            }
         }
 
         public class RedisCacheValue<T>

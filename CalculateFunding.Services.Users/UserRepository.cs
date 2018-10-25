@@ -1,10 +1,12 @@
-﻿using CalculateFunding.Models.Health;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Users.Interfaces;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Users
 {
@@ -32,17 +34,20 @@ namespace CalculateFunding.Services.Users
 
         public async Task<User> GetUserById(string id)
         {
-            DocumentEntity<User> user = await _cosmosRepository.ReadAsync<User>(id);
+            IEnumerable<User> user = await _cosmosRepository.QueryPartitionedEntity<User>($"SELECT * FROM Root r WHERE r.content.userId = '{id}' AND r.documentType = '{nameof(User)}' and r.deleted = false", partitionEntityId: id);
 
-            if (user == null)
+            if (!user.AnyWithNullCheck())
+            {
                 return null;
+            }
 
-            return user.Content;
+
+            return user.Single();
         }
 
         public Task<HttpStatusCode> SaveUser(User user)
         {
-            return _cosmosRepository.UpsertAsync(user);
+            return _cosmosRepository.UpsertAsync(user, user.UserId);
         }
     }
 }

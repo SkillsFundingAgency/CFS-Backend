@@ -1,7 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Models.Users
 {
@@ -12,8 +9,20 @@ namespace CalculateFunding.Models.Users
         {
             get
             {
-                return Username;
+                return UserId;
             }
+        }
+
+        [JsonProperty("userId")]
+        public string UserId
+        {
+            get; set;
+        }
+
+        [JsonProperty("name")]
+        public string Name
+        {
+            get; set;
         }
 
         [JsonProperty("userName")]

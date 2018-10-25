@@ -6,7 +6,7 @@ namespace CalculateFunding.Services.Users.Interfaces
 {
     public interface IUserService
     {
-        Task<IActionResult> GetUserByUsername(HttpRequest request);
+        Task<IActionResult> GetUserByUserId(HttpRequest request);
 
         Task<IActionResult> ConfirmSkills(HttpRequest request);
     }

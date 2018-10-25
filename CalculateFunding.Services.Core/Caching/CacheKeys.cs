@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Core.Caching
 
         public static string AllFundingStreams { get; set; } = "all-funding-streams";
 
-        public static string UserByUsername { get; set; } = "user";
+        public static string UserById { get; set; } = "user";
 
         public static string DatasetRows { get; set; } = "ds-table-rows";
 

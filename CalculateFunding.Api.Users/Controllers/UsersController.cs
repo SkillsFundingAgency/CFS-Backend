@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Helpers;
+﻿using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Users.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Users.Controllers
 {
@@ -23,11 +23,11 @@ namespace CalculateFunding.Api.Users.Controllers
             return _userService.ConfirmSkills(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/users/get-user-by-username")]
+        [Route("api/users/get-user-by-userid")]
         [HttpGet]
-        public Task<IActionResult> RunGetUserByUsername()
+        public Task<IActionResult> RunGetUserByUserId()
         {
-            return _userService.GetUserByUsername(ControllerContext.HttpContext.Request);
+            return _userService.GetUserByUserId(ControllerContext.HttpContext.Request);
         }
     }
 }

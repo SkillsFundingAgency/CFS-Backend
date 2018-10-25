@@ -382,7 +382,12 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
         public async Task<HttpStatusCode> UpsertAsync<T>(T entity, string partitionKey = null) where T : IIdentifiable
         {
-            DocumentEntity<T> doc = _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri).Where(d => d.Id == entity.Id).AsEnumerable().SingleOrDefault();
+            FeedOptions feedOptions = new FeedOptions()
+            {
+                PartitionKey = new PartitionKey(partitionKey),
+            };
+
+            DocumentEntity<T> doc = _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, feedOptions).Where(d => d.Id == entity.Id).AsEnumerable().SingleOrDefault();
 
             if (doc == null)
             {
