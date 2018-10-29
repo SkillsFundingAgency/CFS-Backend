@@ -384,7 +384,7 @@ namespace CalculateFunding.Repositories.Common.Cosmos
         {
             FeedOptions feedOptions = new FeedOptions()
             {
-                PartitionKey = new PartitionKey(partitionKey),
+                PartitionKey = string.IsNullOrWhiteSpace(partitionKey) ? null : new PartitionKey(partitionKey)
             };
 
             DocumentEntity<T> doc = _documentClient.CreateDocumentQuery<DocumentEntity<T>>(_collectionUri, feedOptions).Where(d => d.Id == entity.Id).AsEnumerable().SingleOrDefault();
