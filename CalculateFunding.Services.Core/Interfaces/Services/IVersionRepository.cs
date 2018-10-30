@@ -10,6 +10,8 @@ namespace CalculateFunding.Services.Core.Interfaces
 
         Task SaveVersion(T newVersion);
 
+        Task SaveVersion(T newVersion, string partitionKey);
+
         Task<IEnumerable<T>> GetVersions(string entityId, string partitionKeyId = null);
 
         Task<T> GetVersion(string entityId, int version);

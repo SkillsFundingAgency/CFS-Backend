@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Cosmos.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
@@ -21,22 +20,30 @@ namespace CalculateFunding.Services.Core.Services
             _cosmosRepository = cosmosRepository;
         }
 
-        public Task SaveVersion(T newVersion)
+        public async Task SaveVersion(T newVersion)
         {
             Guard.ArgumentNotNull(newVersion, nameof(newVersion));
-            return _cosmosRepository.CreateAsync<T>(newVersion);
+            await _cosmosRepository.CreateAsync<T>(newVersion);
         }
 
-        public Task SaveVersions(IEnumerable<T> newVersions, int maxDegreesOfParallelism = 30)
+        public async Task SaveVersion(T newVersion, string partitionKey)
         {
-            Guard.ArgumentNotNull(newVersions, nameof(newVersions));
-            return _cosmosRepository.BulkCreateAsync<T>(newVersions.ToList(), degreeOfParallelism: maxDegreesOfParallelism);
+            Guard.ArgumentNotNull(newVersion, nameof(newVersion));
+            Guard.IsNullOrWhiteSpace(partitionKey, nameof(partitionKey));
+
+            await _cosmosRepository.UpsertAsync<T>(newVersion, partitionKey);
         }
 
-        public Task SaveVersions(IEnumerable<KeyValuePair<string, T>> newVersions, int maxDegreesOfParallelism = 30)
+        public async Task SaveVersions(IEnumerable<T> newVersions, int maxDegreesOfParallelism = 30)
         {
             Guard.ArgumentNotNull(newVersions, nameof(newVersions));
-            return _cosmosRepository.BulkCreateAsync<T>(newVersions.ToList(), degreeOfParallelism: maxDegreesOfParallelism);
+            await _cosmosRepository.BulkCreateAsync<T>(newVersions.ToList(), degreeOfParallelism: maxDegreesOfParallelism);
+        }
+
+        public async Task SaveVersions(IEnumerable<KeyValuePair<string, T>> newVersions, int maxDegreesOfParallelism = 30)
+        {
+            Guard.ArgumentNotNull(newVersions, nameof(newVersions));
+            await _cosmosRepository.BulkCreateAsync<T>(newVersions.ToList(), degreeOfParallelism: maxDegreesOfParallelism);
         }
 
         public async Task<T> CreateVersion(T newVersion, T currentVersion = null, string partitionKey = null, bool incrementFromCurrentVersion = false)
@@ -108,7 +115,7 @@ namespace CalculateFunding.Services.Core.Services
         {
             Guard.ArgumentNotNull(version, nameof(version));
 
-            if(incrementFromCurrentVersion)
+            if (incrementFromCurrentVersion)
             {
                 return Task.FromResult(currentVersion + 1);
             }
@@ -157,6 +164,5 @@ namespace CalculateFunding.Services.Core.Services
 
             return versions;
         }
-
     }
 }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CalculateFunding.Services.Core.Caching
+﻿namespace CalculateFunding.Services.Core.Caching
 {
     public static class CacheKeys
     {
@@ -16,7 +12,7 @@ namespace CalculateFunding.Services.Core.Caching
 
         public const string FundingPeriods = "funding-periods";
 
-	    public const string CalculationProgress = "calculation-progress:";
+        public const string CalculationProgress = "calculation-progress:";
 
         public static string SpecificationSummaryById { get; set; } = "specification-summary:";
 
@@ -43,5 +39,10 @@ namespace CalculateFunding.Services.Core.Caching
         public static string DatasetRows { get; set; } = "ds-table-rows";
 
         public static string DatasetValidationStatus { get; set; } = "ds-validation-status";
+
+        /// <summary>
+        /// Effective Permissions - eg effective-permissions:userId
+        /// </summary>
+        public static string EffectivePermissions { get; set; } = "effective-permissions";
     }
 }

@@ -1,9 +1,7 @@
-﻿using CalculateFunding.Models.Users;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Users;
 
 namespace CalculateFunding.Services.Users.Interfaces
 {
@@ -12,5 +10,12 @@ namespace CalculateFunding.Services.Users.Interfaces
         Task<User> GetUserById(string id);
 
         Task<HttpStatusCode> SaveUser(User user);
+
+        Task<FundingStreamPermission> GetFundingStreamPermission(string userId, string fundingStreamId);
+
+        Task<IEnumerable<FundingStreamPermission>> GetFundingStreamPermissions(string userId);
+
+        Task<HttpStatusCode> UpdateFundingStreamPermission(FundingStreamPermission fundingStreamPermission);
+
     }
 }

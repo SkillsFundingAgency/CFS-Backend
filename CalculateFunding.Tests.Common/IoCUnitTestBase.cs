@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc.Internal;
+﻿using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Tests.Common
 {
@@ -44,7 +44,9 @@ namespace CalculateFunding.Tests.Common
                 { "Logging:LogLevel:Default", "Debug" },
                 { "Logging:LogLevel:System", "Information" },
                 { "Logging:LogLevel:Microsoft", "Information" },
-                { "apiKeyMiddleware:apiKey", "Local" }
+                { "apiKeyMiddleware:apiKey", "Local" },
+                { "specificationsClient:ApiEndpoint", "https://localhost:7001/api/" },
+                { "specificationsClient:ApiKey", "Local" },
             };
 
             var cb = new ConfigurationBuilder()

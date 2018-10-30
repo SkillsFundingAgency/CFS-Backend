@@ -151,9 +151,9 @@ namespace CalculateFunding.Api.Calcs
             builder.AddLogging("CalculateFunding.Api.Calcs");
             builder.AddTelemetry();
 
-            builder.AddPolicySettings(Configuration);
-
             builder.AddFeatureToggling(Configuration);
+
+            builder.AddPolicySettings(Configuration);
 
             builder.AddSingleton<ICalcsResilliencePolicies>((ctx) =>
             {

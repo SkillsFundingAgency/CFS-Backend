@@ -2697,6 +2697,14 @@
             {
               "name": "apiKeyMiddleware:apiKey",
               "value": "[parameters('ApiKeyUsers')]"
+            },
+            {
+              "name": "specificationsClient:ApiKey",
+              "value": "[parameters('ApiKeySpecs')]"
+            },
+            {
+              "name": "specificationsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             }
           ]
         }

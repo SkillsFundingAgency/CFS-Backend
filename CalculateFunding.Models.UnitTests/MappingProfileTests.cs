@@ -1,8 +1,8 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
 using CalculateFunding.Models.MappingProfiles;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
 namespace CalculateFunding.Models.UnitTests
 {
@@ -52,6 +52,21 @@ namespace CalculateFunding.Models.UnitTests
             //Act/Assert
             action
                 .Should().NotThrow("Mapping configuration should be valid for SpecificationsMappingProfile");
+        }
+
+        [TestMethod]
+        public void UsersMappingProfile_ShouldBeValid()
+        {
+            // Arrange
+            MapperConfiguration config = new MapperConfiguration(c => c.AddProfile<UsersMappingProfile>());
+            Action action = new Action(() =>
+            {
+                config.AssertConfigurationIsValid();
+            });
+
+            //Act/Assert
+            action
+                .Should().NotThrow("Mapping configuration should be valid for UsersMappingProfile");
         }
     }
 }

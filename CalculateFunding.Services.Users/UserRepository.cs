@@ -49,5 +49,27 @@ namespace CalculateFunding.Services.Users
         {
             return _cosmosRepository.UpsertAsync(user, user.UserId);
         }
+
+        public async Task<FundingStreamPermission> GetFundingStreamPermission(string userId, string fundingStreamId)
+        {
+            IEnumerable<FundingStreamPermission> permission = await _cosmosRepository.QueryPartitionedEntity<FundingStreamPermission>($"SELECT * FROM Root r WHERE r.content.userId = '{userId}' AND r.content.fundingStreamId = '{fundingStreamId}' AND r.documentType = '{nameof(FundingStreamPermission)}' and r.deleted = false", partitionEntityId: userId);
+
+            if (!permission.AnyWithNullCheck())
+            {
+                return null;
+            }
+
+            return permission.Single();
+        }
+
+        public async Task<HttpStatusCode> UpdateFundingStreamPermission(FundingStreamPermission fundingStreamPermission)
+        {
+            return await _cosmosRepository.UpsertAsync(fundingStreamPermission, fundingStreamPermission.UserId);
+        }
+
+        public async Task<IEnumerable<FundingStreamPermission>> GetFundingStreamPermissions(string userId)
+        {
+            return await _cosmosRepository.QueryPartitionedEntity<FundingStreamPermission>($"SELECT * FROM Root r WHERE r.content.userId = '{userId}' AND r.documentType = '{nameof(FundingStreamPermission)}' and r.deleted = false", partitionEntityId: userId);
+        }
     }
 }
