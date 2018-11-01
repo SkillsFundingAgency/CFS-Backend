@@ -2035,6 +2035,14 @@
               "value": "[concat('https://app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
             },
             {
+              "name": "datasetsClient:ApiKey",
+              "value": "[parameters('ApiKeyResults')]"
+            },
+            {
+              "name": "datasetsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-datasets.azurewebsites.net/api/')]"
+            },
+            {
               "name": "ServiceBusSettings:ConnectionString",
               "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             },
