@@ -68,7 +68,12 @@ namespace CalculateFunding.Services.Calcs
                 _logger.Error("A null or invalid search model was provided for searching calculations");
 
                 return new BadRequestObjectResult("An invalid search model was provided");
-            }    
+            } 
+            
+            if(searchModel.FacetCount < 0 || searchModel.FacetCount > 1000)
+            {
+                return new BadRequestObjectResult("An invalid facet count was specified");
+            }
 
             IEnumerable<Task<SearchResults<CalculationIndex>>> searchTasks = BuildSearchTasks(searchModel);
 
@@ -133,7 +138,7 @@ namespace CalculateFunding.Services.Calcs
 
                             return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
                             {
-                                Facets = new[]{ filterPair.Key },
+                                Facets = new[]{ $"{filterPair.Key},count:{searchModel.FacetCount}" },
                                 SearchMode = SearchMode.Any,
                                 SearchFields = new List<string>{ "name" },
                                 IncludeTotalResultCount = true,

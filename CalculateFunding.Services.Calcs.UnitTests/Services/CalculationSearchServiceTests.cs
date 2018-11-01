@@ -708,6 +708,187 @@ namespace CalculateFunding.Services.Calcs.Services
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 
+        [TestMethod]
+        public async Task SearchCalculation_GivenValidModelWithSpecifiedFacetCount_CallsSearchWithUpdatedFacetCount()
+        {
+            //Arrange
+            SearchModel model = new SearchModel
+            {
+                PageNumber = 10,
+                Top = 50,
+                IncludeFacets = true,
+                FacetCount = 50
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>
+            {
+                Facets = new List<Facet>
+                {
+                    new Facet
+                    {
+                        Name = "allocationLineName"
+                    }
+                }
+            };
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
+                .Returns(searchResults);
+
+            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SearchCalculations(request);
+
+            //Assert
+            result
+                 .Should()
+                 .BeOfType<OkObjectResult>();
+
+            await
+               searchRepository
+                   .Received(1)
+                   .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(m => m.Facets[0] == $"allocationLineName,count:50"));
+        }
+
+        [TestMethod]
+        public async Task SearchCalculation_GivenValidModelWithNonSpecifiedFacetCount_CallsSearchWithUpdatedFacetCount()
+        {
+            //Arrange
+            SearchModel model = new SearchModel
+            {
+                PageNumber = 10,
+                Top = 50,
+                IncludeFacets = true
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            SearchResults<CalculationIndex> searchResults = new SearchResults<CalculationIndex>
+            {
+                Facets = new List<Facet>
+                {
+                    new Facet
+                    {
+                        Name = "allocationLineName"
+                    }
+                }
+            };
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
+                .Returns(searchResults);
+
+            CalculationSearchService service = CreateCalculationSearchService(logger: logger, serachRepository: searchRepository);
+
+            //Act
+            IActionResult result = await service.SearchCalculations(request);
+
+            //Assert
+            result
+                 .Should()
+                 .BeOfType<OkObjectResult>();
+
+            await
+               searchRepository
+                   .Received(1)
+                   .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(m => m.Facets[0] == $"allocationLineName,count:10"));
+        }
+
+        [TestMethod]
+        public async Task SearchCalculation_GivenValidModelWithSpecifiedFacetCountOfMinusOne_ReturnsBadRequest()
+        {
+            //Arrange
+            SearchModel model = new SearchModel
+            {
+                PageNumber = 10,
+                Top = 50,
+                IncludeFacets = true,
+                FacetCount = -1
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            CalculationSearchService service = CreateCalculationSearchService();
+
+            //Act
+            IActionResult result = await service.SearchCalculations(request);
+
+            //Assert
+            result
+                  .Should()
+                  .BeOfType<BadRequestObjectResult>()
+                  .Which
+                  .Value
+                  .Should()
+                  .Be("An invalid facet count was specified");
+        }
+
+        [TestMethod]
+        public async Task SearchCalculation_GivenValidModelWithSpecifiedFacetCountOf1001_ReturnsBadRequest()
+        {
+            //Arrange
+            SearchModel model = new SearchModel
+            {
+                PageNumber = 10,
+                Top = 50,
+                IncludeFacets = true,
+                FacetCount = 1001
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            CalculationSearchService service = CreateCalculationSearchService();
+
+            //Act
+            IActionResult result = await service.SearchCalculations(request);
+
+            //Assert
+            result
+                  .Should()
+                  .BeOfType<BadRequestObjectResult>()
+                  .Which
+                  .Value
+                  .Should()
+                  .Be("An invalid facet count was specified");
+        }
+
         static CalculationSearchService CreateCalculationSearchService(
            ILogger logger = null, ISearchRepository<CalculationIndex> serachRepository = null)
         {

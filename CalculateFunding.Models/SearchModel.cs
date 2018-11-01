@@ -25,6 +25,8 @@ namespace CalculateFunding.Models
 
         public bool IncludeFacets { get; set; }
 
+        public int FacetCount { get; set; } = 10;
+
         public bool CountOnly { get; set; }
 
         public IEnumerable<string> SearchFields { get; set; }
