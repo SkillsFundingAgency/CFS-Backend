@@ -1,23 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <AzureFunctionsVersion>v2</AzureFunctionsVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="EventHub\**" />
-    <EmbeddedResource Remove="EventHub\**" />
-    <None Remove="EventHub\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="7.0.1" />
-    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.1" />
     <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta8" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.23" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Services.Scenarios\CalculateFunding.Services.Scenarios.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Users\CalculateFunding.Services.Users.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

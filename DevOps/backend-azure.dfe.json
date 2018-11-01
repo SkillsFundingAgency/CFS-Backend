@@ -400,6 +400,7 @@
     "calcEngineFunctionAppName": "[concat('fa-', parameters('environmentKey'), '-calcengine')]",
     "testEngineFunctionAppName": "[concat('fa-', parameters('environmentKey'), '-testengine')]",
     "scenariosFunctionAppName": "[concat('fa-', parameters('environmentKey'), '-scenarios')]",
+    "usersFunctionAppName": "[concat('fa-', parameters('environmentKey'), '-users')]",
     "datasetsApiAppName": "[concat('app-', parameters('environmentKey'), '-datasets')]",
     "resultsApiAppName": "[concat('app-', parameters('environmentKey'), '-results')]",
     "specsApiAppName": "[concat('app-', parameters('environmentKey'), '-specs')]",
@@ -934,6 +935,7 @@
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
@@ -941,7 +943,6 @@
           "phpVersion": "",
           "pythonVersion": "",
           "nodeVersion": "",
-          "httpsOnly": true,
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled",
           "appSettings": [
@@ -1069,6 +1070,7 @@
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
@@ -1076,7 +1078,6 @@
           "phpVersion": "",
           "pythonVersion": "",
           "nodeVersion": "",
-          "httpsOnly": true,
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled",
           "appSettings": [
@@ -1208,6 +1209,7 @@
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
+        "httpsOnly": true,
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
@@ -1215,7 +1217,6 @@
           "phpVersion": "",
           "pythonVersion": "",
           "nodeVersion": "",
-          "httpsOnly": true,
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled",
           "appSettings": [
@@ -1339,6 +1340,7 @@
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
+        "httpsOnly": true,
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
@@ -1346,7 +1348,6 @@
           "phpVersion": "",
           "pythonVersion": "",
           "nodeVersion": "",
-          "httpsOnly": true,
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled",
           "appSettings": [
@@ -1461,6 +1462,7 @@
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
@@ -1468,7 +1470,6 @@
           "phpVersion": "",
           "pythonVersion": "",
           "nodeVersion": "",
-          "httpsOnly": true,
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled",
           "appSettings": [
@@ -1603,6 +1604,7 @@
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
@@ -1610,7 +1612,6 @@
           "phpVersion": "",
           "pythonVersion": "",
           "nodeVersion": "",
-          "httpsOnly": true,
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled",
           "appSettings": [
@@ -1713,6 +1714,7 @@
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
@@ -1720,7 +1722,6 @@
           "phpVersion": "",
           "pythonVersion": "",
           "nodeVersion": "",
-          "httpsOnly": true,
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled",
           "appSettings": [
@@ -1819,6 +1820,100 @@
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
+      "name": "[variables('usersFunctionAppName')]",
+      "location": "[resourceGroup().location]",
+      "kind": "functionapp",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+        "[variables('applicationInsightsName')]",
+        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
+        "siteConfig": {
+          "alwaysOn": true,
+          "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
+          "appSettings": [
+            {
+              "name": "AzureWebJobsDashboard",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTSHARE",
+              "value": "[toLower(variables('scenariosFunctionAppName'))]"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~2"
+            },
+            {
+              "name": "ROUTING_EXTENSION_VERSION",
+              "value": "~.2"
+            },
+            {
+              "name": "WEBSITE_RUN_FROM_PACKAGE",
+              "value": "1"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "ApplicationInsightsOptions:InstrumentationKey",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "GMT Standard Time"
+            },
+            {
+              "name": "RedisSettings:CacheConnection",
+              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+            },
+            {
+              "name": "CosmosDbSettings:ConnectionString",
+              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+            },
+            {
+              "name": "CosmosDbSettings:DatabaseName",
+              "value": "calculate-funding"
+            },
+            {
+              "name": "CosmosDbSettings:CollectionName",
+              "value": "users"
+            },
+            {
+              "name": "specificationsClient:ApiKey",
+              "value": "[parameters('ApiKeySpecs')]"
+            },
+            {
+              "name": "specificationsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "apiVersion": "2016-08-01",
+      "type": "Microsoft.Web/sites",
       "name": "[variables('datasetsApiAppName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
@@ -1848,6 +1943,7 @@
         ],
         "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
@@ -1855,7 +1951,6 @@
           "phpVersion": "",
           "pythonVersion": "",
           "nodeVersion": "",
-          "httpsOnly": true,
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled",
           "appSettings": [
@@ -1975,6 +2070,7 @@
         ],
         "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
@@ -1982,7 +2078,6 @@
           "phpVersion": "",
           "pythonVersion": "",
           "nodeVersion": "",
-          "httpsOnly": true,
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled",
           "appSettings": [
@@ -2106,6 +2201,7 @@
         ],
         "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
@@ -2113,7 +2209,7 @@
           "phpVersion": "",
           "pythonVersion": "",
           "nodeVersion": "",
-          "httpsOnly": true,
+          
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled",
           "appSettings": [
@@ -2241,6 +2337,7 @@
         ],
         "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
+        "httpsOnly": true,
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
@@ -2248,7 +2345,6 @@
           "phpVersion": "",
           "pythonVersion": "",
           "nodeVersion": "",
-          "httpsOnly": true,
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled",
           "appSettings": [
@@ -2359,6 +2455,7 @@
         ],
         "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
@@ -2366,7 +2463,6 @@
           "phpVersion": "",
           "pythonVersion": "",
           "nodeVersion": "",
-          "httpsOnly": true,
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled",
           "appSettings": [
@@ -2469,6 +2565,7 @@
         ],
         "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
@@ -2476,7 +2573,6 @@
           "phpVersion": "",
           "pythonVersion": "",
           "nodeVersion": "",
-          "httpsOnly": true,
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled",
           "appSettings": [
@@ -2579,6 +2675,7 @@
         ],
         "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
@@ -2586,7 +2683,6 @@
           "phpVersion": "",
           "pythonVersion": "",
           "nodeVersion": "",
-          "httpsOnly": true,
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled",
           "appSettings": [
@@ -2694,6 +2790,7 @@
         ],
         "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
         "siteConfig": {
           "alwaysOn": true,
           "use32BitWorkerProcess": false,
@@ -2701,7 +2798,6 @@
           "phpVersion": "",
           "pythonVersion": "",
           "nodeVersion": "",
-          "httpsOnly": true,
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled",
           "appSettings": [

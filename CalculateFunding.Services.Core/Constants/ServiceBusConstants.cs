@@ -36,11 +36,13 @@
 
         public static class TopicSubscribers
         {
-            public const string UpdateCaclulationsForEditSpecification = "calculation-update";
+            public const string UpdateCalculationsForEditSpecification = "calculation-update";
 
             public const string UpdateScenariosForEditSpecification = "test-scenario-update";
 
             public const string UpdateScenarioResultsForEditSpecification = "test-scenario-result-update";
+
+            public const string UpdateUsersForEditSpecification = "users-update";
 
             public const string UpdateScenariosForEditCalculation = "test-scenario-update";
 

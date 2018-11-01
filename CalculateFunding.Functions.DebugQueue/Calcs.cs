@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Core.Constants;
@@ -46,16 +45,6 @@ namespace CalculateFunding.Functions.DebugQueue
             Message message = Helpers.ConvertToMessage<Models.Specs.CalculationVersionComparisonModel>(item);
 
             await Functions.Calcs.ServiceBus.OnEditCalculationSpecificationEvent.Run(message);
-
-            log.Info($"C# Queue trigger function processed: {item}");
-        }
-
-        [FunctionName("on-edit-specification")]
-        public static async Task RunOnEditSpecificationEvent([QueueTrigger(ServiceBusConstants.TopicNames.EditSpecification, Connection = "AzureConnectionString")] string item, TraceWriter log)
-        {
-            Message message = Helpers.ConvertToMessage<Models.Specs.SpecificationVersionComparisonModel>(item);
-
-            await Functions.Calcs.ServiceBus.OnEditSpecificationEvent.Run(message);
 
             log.Info($"C# Queue trigger function processed: {item}");
         }

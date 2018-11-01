@@ -17,6 +17,7 @@ using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Users.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Users
@@ -155,6 +156,11 @@ namespace CalculateFunding.Services.Users
             }
 
             return new OkObjectResult(_mapper.Map<FundingStreamPermissionCurrent>(newPermissions));
+        }
+
+        public Task OnSpecificationUpdate(Message message)
+        {
+            return Task.CompletedTask;
         }
 
         public async Task<IActionResult> GetEffectivePermissionsForUser(string userId, string specificationId, HttpRequest request)

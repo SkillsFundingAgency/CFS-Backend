@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <AzureFunctionsVersion>v2</AzureFunctionsVersion>
     <UserSecretsId>df0d69d5-a6db-4598-909f-262fc39cb8c8</UserSecretsId>
   </PropertyGroup>
@@ -18,12 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="3.0.0" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Host.Storage" Version="3.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="3.0.1" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Host.Storage" Version="3.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.1.1" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.23" />
-    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 
@@ -35,7 +35,7 @@
     <ProjectReference Include="..\CalculateFunding.Functions.Scenarios\CalculateFunding.Functions.Scenarios.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Specs\CalculateFunding.Functions.Specs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.TestEngine\CalculateFunding.Functions.TestEngine.csproj" />
-    <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Functions.Users\CalculateFunding.Functions.Users.csproj" />
   </ItemGroup>
 
   <ItemGroup>
