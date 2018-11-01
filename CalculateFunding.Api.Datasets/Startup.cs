@@ -133,6 +133,19 @@ namespace CalculateFunding.Api.Datasets
                 return new ProvidersResultsRepository(calcsCosmosRepostory);
             });
 
+            builder.AddSingleton<IDatasetsAggregationsRepository, DatasetsAggregationsRepository>((ctx) =>
+            {
+                CosmosDbSettings dbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", dbSettings);
+
+                dbSettings.CollectionName = "datasetaggregations";
+
+                CosmosRepository aggsCosmosRepostory = new CosmosRepository(dbSettings);
+
+                return new DatasetsAggregationsRepository(aggsCosmosRepostory);
+            });
+
             builder.AddSingleton<IVersionRepository<ProviderSourceDatasetVersion>, VersionRepository<ProviderSourceDatasetVersion>>((ctx) =>
             {
                 CosmosDbSettings ProviderSourceDatasetVersioningDbSettings = new CosmosDbSettings();
@@ -186,6 +199,8 @@ namespace CalculateFunding.Api.Datasets
             builder.AddServiceBus(Configuration);
 
             builder.AddCaching(Configuration);
+
+            builder.AddFeatureToggling(Configuration);
 
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Datasets");
             builder.AddLogging("CalculateFunding.Api.Datasets");

@@ -96,6 +96,23 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
+        public static IServiceCollection AddDatasetsInterServiceClient(this IServiceCollection builder, IConfiguration config)
+        {
+            builder
+                .AddSingleton<IDatasetsApiClientProxy, DatasetsApiProxy>((ctx) => {
+                    ApiOptions apiOptions = new ApiOptions();
+
+                    config.Bind("datasetsClient", apiOptions);
+
+                    ILogger logger = ctx.GetService<ILogger>();
+                    ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
+
+                    return new DatasetsApiProxy(apiOptions, logger, correlationIdProvider);
+                });
+
+            return builder;
+        }
+
         public static IServiceCollection AddScenariosInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder

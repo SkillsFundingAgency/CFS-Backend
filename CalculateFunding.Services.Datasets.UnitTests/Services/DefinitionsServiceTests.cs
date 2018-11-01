@@ -519,7 +519,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Index(Arg.Is<IEnumerable<DatasetDefinitionIndex>>(
                     i => i.First().Description == "14/15 description" &&
                     i.First().Id == "9183" &&
-                    i.First().ModelHash == "597D073AD3193A956A067711EECC236D9593D25704D6EA101F3B8FF6B0212297" &&
+                    i.First().ModelHash == "DFBD0E1ACD29CEBCF5AD45674688D3780D916294C4DF878074AFD01B67BF129C" &&
                     i.First().Name == "14/15" &&
                     i.First().ProviderIdentifier == "None"
                    ));
@@ -574,7 +574,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Description = "14/15 description",
                 Id = "9183",
                 LastUpdatedDate = new DateTimeOffset(2018, 6, 19, 14, 10, 2, TimeSpan.Zero),
-                ModelHash = "597D073AD3193A956A067711EECC236D9593D25704D6EA101F3B8FF6B0212297",
+                ModelHash = "DFBD0E1ACD29CEBCF5AD45674688D3780D916294C4DF878074AFD01B67BF129C",
                 Name = "14/15",
                 ProviderIdentifier = "None",
             };

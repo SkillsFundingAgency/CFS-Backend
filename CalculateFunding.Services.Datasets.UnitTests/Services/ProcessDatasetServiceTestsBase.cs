@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Results;
+﻿using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Caching;
@@ -33,7 +34,9 @@ namespace CalculateFunding.Services.Datasets.Services
             IProvidersResultsRepository providerResultsRepository = null,
             ITelemetry telemetry = null,
             IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
-            IVersionRepository<ProviderSourceDatasetVersion> versionRepository = null)
+            IVersionRepository<ProviderSourceDatasetVersion> versionRepository = null,
+            IDatasetsAggregationsRepository datasetsAggregationsRepository = null,
+            IFeatureToggle featureToggle = null)
         {
 
             return new ProcessDatasetService(
@@ -48,7 +51,24 @@ namespace CalculateFunding.Services.Datasets.Services
                 versionRepository ?? CreateVersionRepository(),
                 logger ?? CreateLogger(),
                 telemetry ?? CreateTelemetry(),
-                datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies());
+                datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies(),
+                datasetsAggregationsRepository ?? CreateDatasetsAggregationsRepository(),
+                featureToggle ?? CreateFeatureToggle());
+        }
+
+        protected static IFeatureToggle CreateFeatureToggle()
+        {
+            IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
+            featureToggle
+                .IsAggregateSupportInCalculationsEnabled()
+                .Returns(false);
+
+            return featureToggle;
+        }
+
+        protected static IDatasetsAggregationsRepository CreateDatasetsAggregationsRepository()
+        {
+            return Substitute.For<IDatasetsAggregationsRepository>();
         }
 
         protected static IVersionRepository<ProviderSourceDatasetVersion> CreateVersionRepository()

@@ -11,9 +11,12 @@ using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -34,11 +37,14 @@ namespace CalculateFunding.Services.Datasets
         private readonly IMessengerService _messengerService;
         private readonly IDatasetService _datasetService;
         private readonly ICalcsRepository _calcsRepository;
+        private readonly IDefinitionsService _definitionService;
+        private readonly ICacheProvider _cacheProvider;
 
         public DefinitionSpecificationRelationshipService(IDatasetRepository datasetRepository,
             ILogger logger, ISpecificationsRepository specificationsRepository,
             IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator,
-            IMessengerService messengerService, IDatasetService datasetService, ICalcsRepository calcsRepository)
+            IMessengerService messengerService, IDatasetService datasetService, 
+            ICalcsRepository calcsRepository, IDefinitionsService definitionService, ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -47,6 +53,8 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(datasetService, nameof(datasetService));
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
+            Guard.ArgumentNotNull(definitionService, nameof(definitionService));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
 
             _datasetRepository = datasetRepository;
             _logger = logger;
@@ -55,6 +63,8 @@ namespace CalculateFunding.Services.Datasets
             _messengerService = messengerService;
             _datasetService = datasetService;
             _calcsRepository = calcsRepository;
+            _definitionService = definitionService;
+            _cacheProvider = cacheProvider;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -62,6 +72,7 @@ namespace CalculateFunding.Services.Datasets
             ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_datasetRepository).IsHealthOk();
             string queueName = ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification;
             (bool Ok, string Message) messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
+            (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -69,6 +80,7 @@ namespace CalculateFunding.Services.Datasets
             };
             health.Dependencies.AddRange(datasetsRepoHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth { HealthOk = messengerServiceHealth.Ok, DependencyName = $"{_messengerService.GetType().GetFriendlyName()} for queue: {queueName}", Message = messengerServiceHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
 
             return health;
         }
@@ -151,6 +163,8 @@ namespace CalculateFunding.Services.Datasets
             };
 
             BuildProject buildProject = await _calcsRepository.UpdateBuildProjectRelationships(specification.Id, relationshipSummary);
+
+            await _cacheProvider.RemoveAsync<IEnumerable<DatasetSchemaRelationshipModel>>($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{specification.Id}");
 
             return new OkObjectResult(relationship);
         }
@@ -373,6 +387,48 @@ namespace CalculateFunding.Services.Datasets
             }
 
             return new OkObjectResult(tasks.Select(m => m.Result));
+        }
+
+        public async Task<IActionResult> GetCurrentDatasetRelationshipFieldsBySpecificationId(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            IEnumerable<DefinitionSpecificationRelationship> relationships =
+               (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Specification.Id == specificationId)).ToList();
+
+            if (relationships.IsNullOrEmpty())
+            {
+                relationships = new DefinitionSpecificationRelationship[0];
+            }
+
+            IEnumerable<string> definitionIds = relationships.Select(m => m.DatasetDefinition.Id);
+
+            IEnumerable<DatasetDefinition> definitions = await _datasetRepository.GetDatasetDefinitionsByQuery(d => definitionIds.Contains(d.Id));
+
+            IList<DatasetSchemaRelationshipModel> schemaRelationshipModels = new List<DatasetSchemaRelationshipModel>();
+
+            foreach(DefinitionSpecificationRelationship definitionSpecificationRelationship in relationships)
+            {
+                string relationshipName = definitionSpecificationRelationship.Name;
+                string datasetName = VisualBasicTypeGenerator.GenerateIdentifier(relationshipName);
+                DatasetDefinition datasetDefinition = definitions.FirstOrDefault(m => m.Id == definitionSpecificationRelationship.DatasetDefinition.Id);
+
+                schemaRelationshipModels.Add(new DatasetSchemaRelationshipModel
+                {
+                    DefinitionId = datasetDefinition.Id,
+                    RelationshipId = definitionSpecificationRelationship.Id,
+                    RelationshipName = relationshipName,
+                    Fields = datasetDefinition.TableDefinitions.SelectMany(m => m.FieldDefinitions.Select(f => new DatasetSchemaRelationshipField
+                    {
+                         Name = f.Name,
+                         SourceName = VisualBasicTypeGenerator.GenerateIdentifier(f.Name),
+                         SourceRelationshipName = datasetName,
+                         IsAggregable = f.IsAggregable
+                    }))
+                });
+            }
+
+            return new OkObjectResult(schemaRelationshipModels);
         }
 
         private async Task<DatasetSpecificationRelationshipViewModel> CreateViewModel(DefinitionSpecificationRelationship relationship)

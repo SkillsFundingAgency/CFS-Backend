@@ -197,5 +197,29 @@ namespace CalculateFunding.Api.Datasets.Controllers
         {
             return _datasetService.GetValidateDatasetStatus(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/datasets/{specificationId}/datasetAggregations")]
+        [HttpGet]
+        public async Task<IActionResult> GetDatasetAggregations(string specificationId)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                return new BadRequestObjectResult("Misssing specification id");
+            }
+
+            return await _processDatasetService.GetDatasetAggregationsBySpecificationId(specificationId);
+        }
+
+        [Route("api/datasets/{specificationId}/schemaRelationshipFields")]
+        [HttpGet]
+        public async Task<IActionResult> GetSchemaRelationshipsBySpecificationId(string specificationId)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                return new BadRequestObjectResult("Misssing specification id");
+            }
+
+            return await _definitionSpecificationRelationshipService.GetCurrentDatasetRelationshipFieldsBySpecificationId(specificationId);
+        }
     }
 }

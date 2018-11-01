@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
@@ -12,6 +6,7 @@ using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Versioning;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -31,6 +26,13 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Polly;
 using Serilog;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -48,6 +50,8 @@ namespace CalculateFunding.Services.Datasets
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
         private readonly Policy _providerResultsRepositoryPolicy;
+        private readonly IDatasetsAggregationsRepository _datasetsAggregationsRepository;
+        private readonly IFeatureToggle _featureToggle;
 
         public ProcessDatasetService(
             IDatasetRepository datasetRepository,
@@ -61,7 +65,9 @@ namespace CalculateFunding.Services.Datasets
             IVersionRepository<ProviderSourceDatasetVersion> sourceDatasetsVersionRepository,
             ILogger logger,
             ITelemetry telemetry,
-            IDatasetsResiliencePolicies datasetsResiliencePolicies)
+            IDatasetsResiliencePolicies datasetsResiliencePolicies,
+            IDatasetsAggregationsRepository datasetsAggregationsRepository,
+            IFeatureToggle featureToggle)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -72,6 +78,8 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(providerRepository, nameof(providerRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
+            Guard.ArgumentNotNull(datasetsAggregationsRepository, nameof(datasetsAggregationsRepository));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
 
             _datasetRepository = datasetRepository;
             _messengerService = messengerService;
@@ -84,8 +92,9 @@ namespace CalculateFunding.Services.Datasets
             _sourceDatasetsVersionRepository = sourceDatasetsVersionRepository;
             _logger = logger;
             _telemetry = telemetry;
-
             _providerResultsRepositoryPolicy = datasetsResiliencePolicies.ProviderResultsRepository;
+            _datasetsAggregationsRepository = datasetsAggregationsRepository;
+            _featureToggle = featureToggle;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -97,6 +106,7 @@ namespace CalculateFunding.Services.Datasets
             var cacheHealth = await _cacheProvider.IsHealthOk();
             ServiceHealth providersResultsRepoHealth = await ((IHealthChecker)_providersResultsRepository).IsHealthOk();
             ServiceHealth providerRepoHealth = await ((IHealthChecker)_providerRepository).IsHealthOk();
+            ServiceHealth datasetsAggregationsRepoHealth = await ((IHealthChecker)_datasetsAggregationsRepository).IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -108,7 +118,7 @@ namespace CalculateFunding.Services.Datasets
             health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
             health.Dependencies.AddRange(providersResultsRepoHealth.Dependencies);
             health.Dependencies.AddRange(providerRepoHealth.Dependencies);
-
+            health.Dependencies.AddRange(datasetsAggregationsRepoHealth.Dependencies);
             return health;
         }
 
@@ -281,10 +291,90 @@ namespace CalculateFunding.Services.Datasets
             }
         }
 
-        // This work is still underway, checking in current progress and will resume later
-        public Task<DatasetAggregations> GenerateAggregations(DatasetDefinition datasetDefinition, TableLoadResult tableLoadResult)
+        async public Task<IActionResult> GetDatasetAggregationsBySpecificationId(string specificationId)
         {
-            return null;
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            IEnumerable<DatasetAggregations> aggregates = await _datasetsAggregationsRepository.GetDatasetAggregationsForSpecificationId(specificationId);
+
+            if (aggregates == null)
+            {
+                aggregates = Enumerable.Empty<DatasetAggregations>();
+            }
+
+            return new OkObjectResult(aggregates);
+        }
+
+        private DatasetAggregations GenerateAggregations(DatasetDefinition datasetDefinition, TableLoadResult tableLoadResult, string specificationId, Reference datasetRelationship)
+        {
+            DatasetAggregations datasetAggregations = new DatasetAggregations
+            {
+                SpecificationId = specificationId,
+                DatasetRelationshipId = datasetRelationship.Id,
+                Fields = new List<AggregatedField>()
+            };
+
+            string identifierPrefix = $"Datasets.{DatasetTypeGenerator.GenerateIdentifier(datasetRelationship.Name)}";
+
+            IEnumerable<FieldDefinition> fieldDefinitions = datasetDefinition.TableDefinitions.SelectMany(m => m.FieldDefinitions);
+
+            RowLoadResult rowLoadResult = tableLoadResult.Rows.FirstOrDefault();
+
+            if (rowLoadResult != null)
+            {
+                foreach (KeyValuePair<string, object> field in rowLoadResult.Fields)
+                {
+                    FieldDefinition fieldDefinition = fieldDefinitions.FirstOrDefault(m => m.Name == field.Key);
+
+                    string fieldName = fieldDefinition.Name;
+
+                    if (fieldDefinition.IsAggregable && fieldDefinition.IsNumeric)
+                    {
+                        string identifierName = $"{identifierPrefix}.{DatasetTypeGenerator.GenerateIdentifier(fieldName)}";
+
+                        decimal sum = tableLoadResult.Rows.SelectMany(m => m.Fields.Where(f => f.Key == fieldName)).Sum(s => s.Value != null ? Convert.ToDecimal(s.Value) : 0);
+                        decimal average = tableLoadResult.Rows.SelectMany(m => m.Fields.Where(f => f.Key == fieldName)).Average(s => s.Value != null ? Convert.ToDecimal(s.Value) : 0);
+                        decimal min = tableLoadResult.Rows.SelectMany(m => m.Fields.Where(f => f.Key == fieldName)).Min(s => s.Value != null ? Convert.ToDecimal(s.Value) : 0);
+                        decimal max = tableLoadResult.Rows.SelectMany(m => m.Fields.Where(f => f.Key == fieldName)).Max(s => s.Value != null ? Convert.ToDecimal(s.Value) : 0);
+
+                        IList<AggregatedField> aggregatedFields = new List<AggregatedField>
+                        {
+                            new AggregatedField
+                            {
+                                FieldDefinitionName = identifierName,
+                                FieldType = AggregatedFieldType.Sum,
+                                Value = sum
+                            },
+
+                            new AggregatedField
+                            {
+                                FieldDefinitionName = identifierName,
+                                FieldType = AggregatedFieldType.Average,
+                                Value = average
+                            },
+
+                            new AggregatedField
+                            {
+                                FieldDefinitionName = identifierName,
+                                FieldType = AggregatedFieldType.Min,
+                                Value = min
+                            },
+
+                            new AggregatedField
+                            {
+                                FieldDefinitionName = identifierName,
+                                FieldType = AggregatedFieldType.Max,
+                                Value = max
+                            }
+                        };
+
+                        datasetAggregations.Fields = datasetAggregations.Fields.Concat(aggregatedFields);
+
+                    }
+                }
+            }
+
+            return datasetAggregations;
         }
 
         async Task<BuildProject> ProcessDataset(Dataset dataset, string specificationId, string relationshipId, int version, Reference user)
@@ -369,9 +459,7 @@ namespace CalculateFunding.Services.Datasets
 
         async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, string specificationId, string relationshipId, int version, Reference user)
         {
-
             IEnumerable<ProviderSummary> providerSummaries = await _providerRepository.GetAllProviderSummaries();
-
 
             Guard.IsNullOrWhiteSpace(relationshipId, nameof(relationshipId));
 
@@ -516,6 +604,20 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Information($"Saving {historyToSave.Count()} items to history");
                 await _sourceDatasetsVersionRepository.SaveVersions(historyToSave);
+            }
+
+            if (_featureToggle.IsAggregateSupportInCalculationsEnabled())
+            {
+                Reference relationshipReference = new Reference(relationshipSummary.Relationship.Id, relationshipSummary.Relationship.Name);
+
+                DatasetAggregations datasetAggregations = GenerateAggregations(datasetDefinition, loadResult, specificationId, relationshipReference);
+
+                if (!datasetAggregations.Fields.IsNullOrEmpty())
+                {
+                    await _datasetsAggregationsRepository.CreateDatasetAggregations(datasetAggregations);
+                }
+
+                await _cacheProvider.RemoveAsync<IEnumerable<DatasetAggregations>>($"{CacheKeys.DatasetAggregationsForSpecification}{specificationId}");
             }
 
             await PopulateProviderSummariesForSpecification(specificationId, providerSummaries);

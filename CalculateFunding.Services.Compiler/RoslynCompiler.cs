@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 using Serilog;

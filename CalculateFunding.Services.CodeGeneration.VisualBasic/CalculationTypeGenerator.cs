@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 
 namespace CalculateFunding.Services.CodeGeneration.VisualBasic
@@ -49,7 +50,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     yield return GetMethod(calc);
                 }
             }
-           
         }
 
         private static StatementSyntax GetMethod(Calculation calc)
@@ -77,6 +77,11 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             if (!string.IsNullOrWhiteSpace(calc.Description))
             {
                 builder.AppendLine($"<Description(Description := \"{calc.Description?.Replace("\"","\"\"")}\")>");
+            }
+
+            if (!string.IsNullOrWhiteSpace(calc.Current?.SourceCode))
+            {
+                calc.Current.SourceCode = QuoteAggregateFunctionCalls(calc.Current.SourceCode);
             }
 
             builder.AppendLine($"Public Function {GenerateIdentifier(calc.Name)} As System.Nullable(Of Decimal)");
@@ -114,6 +119,28 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
                 .WithAsClause(
                     SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(GenerateIdentifier("Provider"))));
+        }
+
+        private static string QuoteAggregateFunctionCalls(string sourceCode)
+        {
+            Regex x = new Regex("( Min|Avg|Max|Sum\\()(.*?)(\\))");
+
+            foreach (Match match in x.Matches(sourceCode))
+            {
+                string result = match.Value
+                    .Replace("Sum(", "Sum(\"")
+                    .Replace("Max(", "Max(\"")
+                    .Replace("Min(", "Min(\"")
+                    .Replace("Avg(", "Avg(\"")
+                    .Replace(")", "\")");
+
+                if (match.Success)
+                {
+                    sourceCode = sourceCode.Replace(match.Value, result);
+                }
+            }
+
+            return sourceCode;
         }
     }
 }

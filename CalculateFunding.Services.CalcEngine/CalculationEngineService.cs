@@ -6,7 +6,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.Calculator.Interfaces;
@@ -45,6 +47,8 @@ namespace CalculateFunding.Services.Calculator
         private readonly Policy _providerResultsRepositoryPolicy;
         private readonly Policy _calculationsRepositoryPolicy;
         private readonly IValidator<ICalculatorResiliencePolicies> _calculatorResiliencePoliciesValidator;
+        private readonly IDatasetAggregationsRepository _datasetAggregationsRepository;
+        private readonly IFeatureToggle _featureToggle;
 
         public CalculationEngineService(
             ILogger logger,
@@ -57,7 +61,9 @@ namespace CalculateFunding.Services.Calculator
             ICalculationsRepository calculationsRepository,
             EngineSettings engineSettings,
             ICalculatorResiliencePolicies resiliencePolicies,
-            IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator)
+            IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator,
+            IDatasetAggregationsRepository datasetAggregationsRepository,
+            IFeatureToggle featureToggle)
         {
             _calculatorResiliencePoliciesValidator = calculatorResiliencePoliciesValidator;
 
@@ -73,12 +79,13 @@ namespace CalculateFunding.Services.Calculator
             _providerResultsRepository = providerResultsRepository;
             _calculationsRepository = calculationsRepository;
             _engineSettings = engineSettings;
-
             _cacheProviderPolicy = resiliencePolicies.CacheProvider;
             _messengerServicePolicy = resiliencePolicies.Messenger;
             _providerSourceDatasetsRepositoryPolicy = resiliencePolicies.ProviderSourceDatasetsRepository;
             _providerResultsRepositoryPolicy = resiliencePolicies.ProviderResultsRepository;
             _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
+            _datasetAggregationsRepository = datasetAggregationsRepository;
+            _featureToggle = featureToggle;
         }
 
         async public Task<IActionResult> GenerateAllocations(HttpRequest request)
@@ -166,6 +173,20 @@ namespace CalculateFunding.Services.Calculator
             }
             calculationsLookupStopwatch.Stop();
 
+            IEnumerable<DatasetAggregations> datasetAggregations = null;
+
+            if (_featureToggle.IsAggregateSupportInCalculationsEnabled())
+            {
+                datasetAggregations = await _cacheProvider.GetAsync<IEnumerable<DatasetAggregations>>($"{ CacheKeys.DatasetAggregationsForSpecification}{specificationId}");
+
+                if (datasetAggregations.IsNullOrEmpty())
+                {
+                    datasetAggregations = await _datasetAggregationsRepository.GetDatasetAggregationsForSpecificationId(specificationId);
+
+                    await _cacheProvider.SetAsync<IEnumerable<DatasetAggregations>>($"{CacheKeys.DatasetAggregationsForSpecification}{specificationId}", datasetAggregations);
+                }
+            }
+
             for (int i = 0; i < summaries.Count(); i += providerBatchSize)
             {
                 var calcTiming = Stopwatch.StartNew();
@@ -204,7 +225,7 @@ namespace CalculateFunding.Services.Calculator
 
                     IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.ProviderId == provider.Id);
 
-                    ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets);
+                    ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets, datasetAggregations);
 
                     if (result != null)
                     {

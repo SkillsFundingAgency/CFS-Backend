@@ -17,6 +17,7 @@
     <None Remove="CodeResources\Common\Attributes\DatasetRelationshipAttribute.vb" />
     <None Remove="CodeResources\Common\Attributes\DescriptionAttribute.vb" />
     <None Remove="CodeResources\Common\Attributes\FieldAttribute.vb" />
+    <None Remove="CodeResources\Common\Attributes\IsAggregableAttribute.vb" />
     <None Remove="CodeResources\Common\Provider.vb" />
     <None Remove="CodeResources\Common\Scenario.vb" />
     <None Remove="CodeResources\PolicySpecificationAttribute.vb" />
@@ -24,6 +25,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="CodeResources\Common\Attributes\DescriptionAttribute.vb" />
+    <EmbeddedResource Include="CodeResources\Common\Attributes\IsAggregableAttribute.vb" />
     <EmbeddedResource Include="CodeResources\Common\Attributes\FieldAttribute.vb" />
     <EmbeddedResource Include="CodeResources\Common\Attributes\DatasetRelationshipAttribute.vb" />
     <EmbeddedResource Include="CodeResources\Common\Attributes\AllocationLineAttribute.vb" />

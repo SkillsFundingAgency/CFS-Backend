@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Datasets.Schema;
+﻿using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -62,6 +63,89 @@ namespace CalculateFunding.Services.Calculator
             calcResults.ElementAt(1).Value.Should().BeNull();
             calcResults.ElementAt(1).Exception.InnerException.Message.Should().Be("The system detected a stackoverflow, this is probably due to recursive methods stuck in an infinite loop");
             calcResults.ElementAt(2).Value.Should().NotBeNull();
+        }
+
+        [TestMethod]
+        public void Execute_GivenAssemblyWithAggregation_ExecutesEnsuresResult()
+        {
+            //Arrange
+            Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.test-assembly-with-aggregation.txt");
+
+            AllocationModel allocationModel = new AllocationFactory().CreateAllocationModel(assembly) as AllocationModel;
+
+            IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
+            sourceDatasets.First().DataDefinition.Name = "PE and Sport premium AB Test";
+
+            IEnumerable<DatasetAggregations> aggregations = new[]
+            {
+                new DatasetAggregations
+                {
+                    DatasetRelationshipId = "relationship-id",
+                    SpecificationId = "spec-id",
+                    Fields = new[]
+                    {
+                        new AggregatedField
+                        {
+                            FieldDefinitionName = "Datasets.ABPESportsAggregated2910003.FullTimeNumberOfPupilsInYearGroup1SoleRegistrations",
+                            FieldType = AggregatedFieldType.Sum,
+                            Value = 9033
+                        }
+                    }
+                }
+            };
+
+            ProviderSummary providerSummary = CreateProviderSummary();
+
+            //Act
+            IEnumerable<CalculationResult> calcResults = allocationModel.Execute(sourceDatasets.ToList(), providerSummary, aggregations);
+
+            //Assert
+            calcResults.Any().Should().BeTrue();
+            calcResults.Count().Should().Be(1);
+            calcResults.ElementAt(0).Value.Should().NotBeNull();
+            calcResults.ElementAt(0).Value.Should().Be(9033);
+        }
+
+        [TestMethod]
+        public void Execute_GivenAssemblyWithAggregationButFieldNotInAggregations_ReturnsNullValueRecordsException()
+        {
+            //Arrange
+            Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.test-assembly-with-aggregation.txt");
+
+            AllocationModel allocationModel = new AllocationFactory().CreateAllocationModel(assembly) as AllocationModel;
+
+            IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
+            sourceDatasets.First().DataDefinition.Name = "PE and Sport premium AB Test";
+
+            IEnumerable<DatasetAggregations> aggregations = new[]
+            {
+                new DatasetAggregations
+                {
+                    DatasetRelationshipId = "relationship-id",
+                    SpecificationId = "spec-id",
+                    Fields = new[]
+                    {
+                        new AggregatedField
+                        {
+                            FieldDefinitionName = "Whatever",
+                            FieldType = AggregatedFieldType.Sum,
+                            Value = 9033
+                        }
+                    }
+                }
+            };
+
+            ProviderSummary providerSummary = CreateProviderSummary();
+
+            //Act
+            IEnumerable<CalculationResult> calcResults = allocationModel.Execute(sourceDatasets.ToList(), providerSummary, aggregations);
+
+            //Assert
+            calcResults.Any().Should().BeTrue();
+            calcResults.Count().Should().Be(1);
+            calcResults.ElementAt(0).Value.Should().BeNull();
+            calcResults.ElementAt(0).Exception.Should().NotBeNull();
+            calcResults.ElementAt(0).Exception.InnerException.Message.Should().Be("Datasets.ABPESportsAggregated2910003.FullTimeNumberOfPupilsInYearGroup1SoleRegistrations does not have an aggregated value");
         }
 
         [TestMethod]

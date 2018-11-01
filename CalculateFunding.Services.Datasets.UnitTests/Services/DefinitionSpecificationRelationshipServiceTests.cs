@@ -24,6 +24,8 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -309,8 +311,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .SaveDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
                 .Returns(HttpStatusCode.Created);
 
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
-                datasetRepository: datasetRepository, specificationsRepository: specificationsRepository);
+                datasetRepository: datasetRepository, specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
 
             //Act
             IActionResult result = await service.CreateRelationship(request);
@@ -329,6 +333,11 @@ namespace CalculateFunding.Services.Datasets.Services
                         m.Name == "test-name" &&
                         m.Specification.Id == specificationId &&
                         m.DatasetDefinition.Id == datasetDefinitionId));
+
+            await
+              cacheProvider
+                  .Received(1)
+                  .RemoveAsync<IEnumerable<DatasetSchemaRelationshipModel>>(Arg.Is($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{specificationId}"));
         }
 
         [TestMethod]
@@ -1546,11 +1555,13 @@ namespace CalculateFunding.Services.Datasets.Services
 
         static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,
             ILogger logger = null, ISpecificationsRepository specificationsRepository = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
-            IMessengerService messengerService = null, IDatasetService datasetService = null, ICalcsRepository calcsRepository = null)
+            IMessengerService messengerService = null, IDatasetService datasetService = null, ICalcsRepository calcsRepository = null, 
+            IDefinitionsService definitionsService = null, ICacheProvider cacheProvider = null )
         {
             return new DefinitionSpecificationRelationshipService(datasetRepository ?? CreateDatasetRepository(), logger ?? CreateLogger(),
                 specificationsRepository ?? CreateSpecificationsRepository(), relationshipModelValidator ?? CreateRelationshipModelValidator(),
-                messengerService ?? CreateMessengerService(), datasetService ?? CreateDatasetService(), calcsRepository ?? CreateCalcsRepository());
+                messengerService ?? CreateMessengerService(), datasetService ?? CreateDatasetService(), 
+                calcsRepository ?? CreateCalcsRepository(), definitionsService ?? CreateDefinitionService(), cacheProvider ?? CreateCacheProvider());
         }
 
         static IValidator<CreateDefinitionSpecificationRelationshipModel> CreateRelationshipModelValidator(ValidationResult validationResult = null)
@@ -1565,6 +1576,11 @@ namespace CalculateFunding.Services.Datasets.Services
                .Returns(validationResult);
 
             return validator;
+        }
+
+        static IDefinitionsService CreateDefinitionService()
+        {
+            return Substitute.For<IDefinitionsService>();
         }
 
         static ISpecificationsRepository CreateSpecificationsRepository()
@@ -1595,6 +1611,11 @@ namespace CalculateFunding.Services.Datasets.Services
         static IMessengerService CreateMessengerService()
         {
             return Substitute.For<IMessengerService>();
+        }
+
+        static ICacheProvider CreateCacheProvider()
+        {
+            return Substitute.For<ICacheProvider>();
         }
     }
 }

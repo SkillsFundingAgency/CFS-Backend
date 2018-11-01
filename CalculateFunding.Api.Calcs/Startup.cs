@@ -121,6 +121,9 @@ namespace CalculateFunding.Api.Calcs
             builder
                 .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
 
+            builder
+              .AddSingleton<IDatasetRepository, DatasetRepository>();
+
             builder.AddSingleton<IVersionRepository<CalculationVersion>, VersionRepository<CalculationVersion>>((ctx) =>
             {
                 CosmosDbSettings calcsVersioningDbSettings = new CosmosDbSettings();
@@ -144,6 +147,7 @@ namespace CalculateFunding.Api.Calcs
 
             builder.AddResultsInterServiceClient(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);
+            builder.AddDatasetsInterServiceClient(Configuration);
 
             builder.AddCaching(Configuration);
 

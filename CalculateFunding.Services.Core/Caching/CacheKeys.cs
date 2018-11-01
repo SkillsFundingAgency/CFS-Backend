@@ -44,5 +44,9 @@
         /// Effective Permissions - eg effective-permissions:userId
         /// </summary>
         public static string EffectivePermissions { get; set; } = "effective-permissions";
+
+        public static string DatasetRelationshipFieldsForSpecification { get; set; } = "dataset-relationship-fields-for-specification:";
+
+        public static string DatasetAggregationsForSpecification { get; set; } = "dataset-aggregations-for-specification:";
     }
 }

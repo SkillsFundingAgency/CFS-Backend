@@ -97,6 +97,9 @@ namespace CalculateFunding.Functions.Calcs
                .AddSingleton<ICompilerFactory, CompilerFactory>();
 
             builder
+              .AddSingleton<IDatasetRepository, DatasetRepository>();
+
+            builder
                 .AddSingleton<CSharpCompiler>()
                 .AddSingleton<VisualBasicCompiler>()
                 .AddSingleton<VisualBasicSourceFileGenerator>();
@@ -149,6 +152,7 @@ namespace CalculateFunding.Functions.Calcs
 
             builder.AddResultsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
+            builder.AddDatasetsInterServiceClient(config);
 
             builder.AddCaching(config);
 

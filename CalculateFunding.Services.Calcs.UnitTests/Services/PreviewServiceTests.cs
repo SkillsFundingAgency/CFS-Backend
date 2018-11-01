@@ -18,6 +18,11 @@ using System.IO;
 using System.Collections.Generic;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Common.FeatureToggles;
+using System.Linq;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -873,24 +878,815 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Information(Arg.Is($"Build compiled succesfully for calculation id {calculation.Id}"));
         }
 
+        [TestMethod]
+        public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndNoAggregateFunctionsUsed_CompilesCodeAndReturnsOk()
+        {
+            //Arrange
+            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = stringCompareCode,
+                SpecificationId = SpecificationId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                BuildProjectId = BuildProjectId,
+                Current = new CalculationVersion(),
+                SpecificationId = SpecificationId
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject();
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
+                new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
+                new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
+            };
+
+            sourceFileGenerator
+                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
+                .Returns(sourceFiles);
+
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
+
+            ICompilerFactory compilerFactory = new CompilerFactory(new Compiler.Languages.CSharpCompiler(logger), new Compiler.Languages.VisualBasicCompiler(logger));
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAggregateSupportInCalculationsEnabled()
+                .Returns(true);
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+           
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
+                datasetRepository: datasetRepository, featureToggle: featureToggle);
+
+            //Act
+            IActionResult result = await service.Compile(request);
+
+            //Assert
+            OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+
+            PreviewResponse previewResponse = okResult.Value.Should().BeOfType<PreviewResponse>().Subject;
+
+            previewResponse
+                .Calculation
+                .Current
+                .SourceCode
+                .Should()
+                .Be(stringCompareCode);
+
+            previewResponse
+                .CompilerOutput
+                .Success
+                .Should()
+                .BeTrue();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Build compiled succesfully for calculation id {calculation.Id}"));
+        }
+
+        [TestMethod]
+        public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndAggregateFunctionsUsedButNoAggreatesFound_CompilesCodeAndReturnsOk()
+        {
+            //Arrange
+            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nDim a = Sum(whatever) as Decimal\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = stringCompareCode,
+                SpecificationId = SpecificationId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                BuildProjectId = BuildProjectId,
+                Current = new CalculationVersion(),
+                SpecificationId = SpecificationId
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject();
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
+                new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
+                new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
+            };
+
+            sourceFileGenerator
+                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
+                .Returns(sourceFiles);
+
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
+
+            ICompilerFactory compilerFactory = new CompilerFactory(new Compiler.Languages.CSharpCompiler(logger), new Compiler.Languages.VisualBasicCompiler(logger));
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAggregateSupportInCalculationsEnabled()
+                .Returns(true);
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
+                datasetRepository: datasetRepository, featureToggle: featureToggle);
+
+            //Act
+            IActionResult result = await service.Compile(request);
+
+            //Assert
+            OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+
+            PreviewResponse previewResponse = okResult.Value.Should().BeOfType<PreviewResponse>().Subject;
+
+            previewResponse
+                .Calculation
+                .Current
+                .SourceCode
+                .Should()
+                .Be(stringCompareCode);
+
+            previewResponse
+                .CompilerOutput
+                .Success
+                .Should()
+                .BeFalse();
+
+            previewResponse
+               .CompilerOutput
+               .CompilerMessages
+               .First()
+               .Severity
+               .Should()
+               .Be(Models.Calcs.Severity.Error);
+        }
+
+        [TestMethod]
+        public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndAggregateFunctionsUsedButNotContainedInAggregateFields_ReturnsCompileError()
+        {
+            //Arrange
+            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nDim summedUp = Sum(whatever) as Decimal\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = stringCompareCode,
+                SpecificationId = SpecificationId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                BuildProjectId = BuildProjectId,
+                Current = new CalculationVersion(),
+                SpecificationId = SpecificationId
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject();
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
+                new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
+                new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
+            };
+
+            sourceFileGenerator
+                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
+                .Returns(sourceFiles);
+
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
+
+            ICompilerFactory compilerFactory = new CompilerFactory(new Compiler.Languages.CSharpCompiler(logger), new Compiler.Languages.VisualBasicCompiler(logger));
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAggregateSupportInCalculationsEnabled()
+                .Returns(true);
+
+            IEnumerable<DatasetSchemaRelationshipModel> relationshipModels = new[]
+            {
+                new DatasetSchemaRelationshipModel
+                {
+                    Fields = new[]
+                    {
+                        new DatasetSchemaRelationshipField{ Name = "field Def 1", SourceName = "FieldDef1", SourceRelationshipName = "Rel1" }
+                    }
+                }
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDatasetSchemaRelationshipModelsForSpecificationId(Arg.Is(SpecificationId))
+                .Returns(relationshipModels);
+
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
+                datasetRepository: datasetRepository, featureToggle: featureToggle);
+
+            //Act
+            IActionResult result = await service.Compile(request);
+
+            //Assert
+            OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+
+            PreviewResponse previewResponse = okResult.Value.Should().BeOfType<PreviewResponse>().Subject;
+
+            previewResponse
+                .Calculation
+                .Current
+                .SourceCode
+                .Should()
+                .Be(stringCompareCode);
+
+            previewResponse
+                .CompilerOutput
+                .Success
+                .Should()
+                .BeFalse();
+
+            previewResponse
+               .CompilerOutput
+               .CompilerMessages
+               .First()
+               .Severity
+               .Should()
+               .Be(Models.Calcs.Severity.Error);
+
+            previewResponse
+              .CompilerOutput
+              .CompilerMessages
+              .First()
+              .Message
+              .Should()
+              .Be("whatever is not an aggretable field");
+        }
+
+        [TestMethod]
+        public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndMultipleAggregateFunctionsUsedWithSameParameterButNotContinedInAggregateFields_ReturnsCompileErrorWithOneMessage()
+        {
+            //Arrange
+            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nDim average = Avg(whatever) as Decimal\nDim summedUp = Sum(whatever) as Decimal\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = stringCompareCode,
+                SpecificationId = SpecificationId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                BuildProjectId = BuildProjectId,
+                Current = new CalculationVersion(),
+                SpecificationId = SpecificationId
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject();
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
+                new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
+                new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
+            };
+
+            sourceFileGenerator
+                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
+                .Returns(sourceFiles);
+
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
+
+            ICompilerFactory compilerFactory = new CompilerFactory(new Compiler.Languages.CSharpCompiler(logger), new Compiler.Languages.VisualBasicCompiler(logger));
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAggregateSupportInCalculationsEnabled()
+                .Returns(true);
+
+            IEnumerable<DatasetSchemaRelationshipModel> relationshipModels = new[]
+             {
+                new DatasetSchemaRelationshipModel
+                {
+                    Fields = new[]
+                    {
+                        new DatasetSchemaRelationshipField{ Name = "field Def 1", SourceName = "FieldDef1", SourceRelationshipName = "Rel1" }
+                    }
+                }
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDatasetSchemaRelationshipModelsForSpecificationId(Arg.Is(SpecificationId))
+                .Returns(relationshipModels);
+
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
+                datasetRepository: datasetRepository, featureToggle: featureToggle);
+
+            //Act
+            IActionResult result = await service.Compile(request);
+
+            //Assert
+            OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+
+            PreviewResponse previewResponse = okResult.Value.Should().BeOfType<PreviewResponse>().Subject;
+
+            previewResponse
+                .Calculation
+                .Current
+                .SourceCode
+                .Should()
+                .Be(stringCompareCode);
+
+            previewResponse
+                .CompilerOutput
+                .Success
+                .Should()
+                .BeFalse();
+
+            previewResponse
+               .CompilerOutput
+               .CompilerMessages
+               .Count()
+               .Should()
+               .Be(1);
+
+            previewResponse
+               .CompilerOutput
+               .CompilerMessages
+               .First()
+               .Severity
+               .Should()
+               .Be(Models.Calcs.Severity.Error);
+
+            previewResponse
+              .CompilerOutput
+              .CompilerMessages
+              .First()
+              .Message
+              .Should()
+              .Be("whatever is not an aggretable field");
+        }
+
+        [TestMethod]
+        public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndMultipleAggregateFunctionsUsedWithDiffrentSameParametersButNotContinedInAggregateFields_ReturnsCompileErrorWithOneMessage()
+        {
+            //Arrange
+            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nDim average = Avg(whatever1) as Decimal\nDim summedUp = Sum(whatever2) as Decimal\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = stringCompareCode,
+                SpecificationId = SpecificationId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                BuildProjectId = BuildProjectId,
+                Current = new CalculationVersion(),
+                SpecificationId = SpecificationId
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject();
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
+                new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
+                new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
+            };
+
+            sourceFileGenerator
+                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
+                .Returns(sourceFiles);
+
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
+
+            ICompilerFactory compilerFactory = new CompilerFactory(new Compiler.Languages.CSharpCompiler(logger), new Compiler.Languages.VisualBasicCompiler(logger));
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAggregateSupportInCalculationsEnabled()
+                .Returns(true);
+
+            IEnumerable<DatasetSchemaRelationshipModel> relationshipModels = new[]
+            {
+                new DatasetSchemaRelationshipModel
+                {
+                    Fields = new[]
+                    {
+                        new DatasetSchemaRelationshipField{ Name = "field Def 1", SourceName = "FieldDef1", SourceRelationshipName = "Rel1" }
+                    }
+                }
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDatasetSchemaRelationshipModelsForSpecificationId(Arg.Is(SpecificationId))
+                .Returns(relationshipModels);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
+                datasetRepository: datasetRepository, featureToggle: featureToggle, cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult result = await service.Compile(request);
+
+            //Assert
+            OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+
+            PreviewResponse previewResponse = okResult.Value.Should().BeOfType<PreviewResponse>().Subject;
+
+            previewResponse
+                .Calculation
+                .Current
+                .SourceCode
+                .Should()
+                .Be(stringCompareCode);
+
+            previewResponse
+                .CompilerOutput
+                .Success
+                .Should()
+                .BeFalse();
+
+            previewResponse
+               .CompilerOutput
+               .CompilerMessages
+               .Count()
+               .Should()
+               .Be(2);
+
+            previewResponse
+               .CompilerOutput
+               .CompilerMessages
+               .First()
+               .Severity
+               .Should()
+               .Be(Models.Calcs.Severity.Error);
+
+            previewResponse
+              .CompilerOutput
+              .CompilerMessages
+              .First()
+              .Message
+              .Should()
+              .Be("whatever1 is not an aggretable field");
+
+            previewResponse
+              .CompilerOutput
+              .CompilerMessages
+              .ElementAt(1)
+              .Message
+              .Should()
+              .Be("whatever2 is not an aggretable field");
+
+            await
+                cacheProvider
+                    .Received(1)
+                    .SetAsync<IEnumerable<DatasetSchemaRelationshipModel>>(Arg.Is($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{SpecificationId}"), Arg.Is(relationshipModels));
+        }
+
+        [TestMethod]
+        public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndAggregateFunctionsUsedAndFieldsInCacheButNotContainedInAggregateFields_ReturnsCompileErrorDoesNotFetchFieldsFromDatabase()
+        {
+            //Arrange
+            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nDim summedUp = Sum(whatever) as Decimal\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = stringCompareCode,
+                SpecificationId = SpecificationId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                BuildProjectId = BuildProjectId,
+                Current = new CalculationVersion(),
+                SpecificationId = SpecificationId
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject();
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
+                new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
+                new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
+            };
+
+            sourceFileGenerator
+                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
+                .Returns(sourceFiles);
+
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
+
+            ICompilerFactory compilerFactory = new CompilerFactory(new Compiler.Languages.CSharpCompiler(logger), new Compiler.Languages.VisualBasicCompiler(logger));
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAggregateSupportInCalculationsEnabled()
+                .Returns(true);
+
+            IEnumerable<DatasetSchemaRelationshipModel> relationshipModels = new[]
+            {
+                new DatasetSchemaRelationshipModel
+                {
+                    Fields = new[]
+                    {
+                        new DatasetSchemaRelationshipField{ Name = "field Def 1", SourceName = "FieldDef1", SourceRelationshipName = "Rel1" }
+                    }
+                }
+            };
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<IEnumerable<DatasetSchemaRelationshipModel>>(Arg.Is($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{SpecificationId}"))
+                .Returns(relationshipModels);
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+           
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
+                datasetRepository: datasetRepository, featureToggle: featureToggle, cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult result = await service.Compile(request);
+
+            //Assert
+            OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+
+            PreviewResponse previewResponse = okResult.Value.Should().BeOfType<PreviewResponse>().Subject;
+
+            previewResponse
+                .Calculation
+                .Current
+                .SourceCode
+                .Should()
+                .Be(stringCompareCode);
+
+            previewResponse
+                .CompilerOutput
+                .Success
+                .Should()
+                .BeFalse();
+
+            previewResponse
+               .CompilerOutput
+               .CompilerMessages
+               .First()
+               .Severity
+               .Should()
+               .Be(Models.Calcs.Severity.Error);
+
+            previewResponse
+              .CompilerOutput
+              .CompilerMessages
+              .First()
+              .Message
+              .Should()
+              .Be("whatever is not an aggretable field");
+
+            await
+                datasetRepository
+                .DidNotReceive()
+                .GetDatasetSchemaRelationshipModelsForSpecificationId(Arg.Any<string>());
+
+        }
+
         static PreviewService CreateService(ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
             ILogger logger = null, IBuildProjectsRepository buildProjectsRepository = null, ICompilerFactory compilerFactory = null,
-            IValidator<PreviewRequest> previewRequestValidator = null, ICalculationsRepository calculationsRepository = null)
+            IValidator<PreviewRequest> previewRequestValidator = null, ICalculationsRepository calculationsRepository = null, 
+            IDatasetRepository datasetRepository = null, IFeatureToggle featureToggle = null, ICacheProvider cacheProvider = null)
         {
             return new PreviewService(sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(), logger ?? CreateLogger(),
                 buildProjectsRepository ?? CreateBuildProjectsRepository(), compilerFactory ?? CreateCompilerFactory(), previewRequestValidator ?? CreatePreviewRequestValidator(),
-                calculationsRepository ?? CreateCalculationsRepository());
+                calculationsRepository ?? CreateCalculationsRepository(), datasetRepository ?? CreateDatasetRepository(), featureToggle ?? CreateFeatureToggle(), cacheProvider ?? CreateCacheProvider());
         }
 
         static ISourceFileGeneratorProvider CreateSourceFileGeneratorProvider(ISourceFileGenerator sourceFileGenerator = null)
         {
-
             ISourceFileGeneratorProvider provider = Substitute.For<ISourceFileGeneratorProvider>();
             provider
                 .CreateSourceFileGenerator(Arg.Is(TargetLanguage.VisualBasic))
                 .Returns(sourceFileGenerator);
 
             return provider;
+        }
+
+        static IFeatureToggle CreateFeatureToggle()
+        {
+            IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
+            featureToggle
+                .IsAggregateSupportInCalculationsEnabled()
+                .Returns(false);
+
+            return featureToggle;
         }
 
         static ILogger CreateLogger()
@@ -906,6 +1702,11 @@ namespace CalculateFunding.Services.Calcs.Services
         static ICompilerFactory CreateCompilerFactory()
         {
             return Substitute.For<ICompilerFactory>();
+        }
+
+        static ICacheProvider CreateCacheProvider()
+        {
+            return Substitute.For<ICacheProvider>();
         }
 
         static IValidator<PreviewRequest> CreatePreviewRequestValidator(ValidationResult validationResult = null)
@@ -925,6 +1726,11 @@ namespace CalculateFunding.Services.Calcs.Services
         static ICalculationsRepository CreateCalculationsRepository()
         {
             return Substitute.For<ICalculationsRepository>();
+        }
+
+        static IDatasetRepository CreateDatasetRepository()
+        {
+            return Substitute.For<IDatasetRepository>();
         }
 
         static PreviewRequest CreatePreviewRequest()

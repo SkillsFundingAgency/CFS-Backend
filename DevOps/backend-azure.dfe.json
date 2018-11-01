@@ -302,6 +302,13 @@
         "description": "Feature toggle to enable the major minor versioning"
       }
     },
+    "EnableDatasetAggregations": {
+      "defaultValue": false,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable dataset aggregations"
+      }
+    },
     "storageFirewallEnabled": {
       "type": "bool",
       "metadata": {
@@ -1037,6 +1044,10 @@
             {
               "name": "AzureStorageSettings:ConnectionString",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "features:aggregateSupportInCalculationsEnabled",
+              "value": "[parameters('EnableDatasetAggregations')]"
             }
           ]
         }
@@ -1142,6 +1153,14 @@
               "value": "[concat('https://app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
             },
             {
+              "name": "datasetsClient:ApiKey",
+              "value": "[parameters('ApiKeyResults')]"
+            },
+            {
+              "name": "datasetsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-datasets.azurewebsites.net/api/')]"
+            },
+            {
               "name": "ServiceBusSettings:ConnectionString",
               "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             },
@@ -1164,6 +1183,10 @@
             {
               "name": "features:allocationLineMajorMinorVersioningEnabled",
               "value": "[parameters('EnableMajorMinorVersioning')]"
+            },
+            {
+              "name": "features:aggregateSupportInCalculationsEnabled",
+              "value": "[parameters('EnableDatasetAggregations')]"
             }
           ]
         }
@@ -1281,8 +1304,20 @@
               "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
+              "name": "datasetsClient:ApiKey",
+              "value": "[parameters('ApiKeyResults')]"
+            },
+            {
+              "name": "datasetsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-datasets.azurewebsites.net/api/')]"
+            },
+            {
               "name": "features:allocationLineMajorMinorVersioningEnabled",
               "value": "[parameters('EnableMajorMinorVersioning')]"
+            },
+            {
+              "name": "features:aggregateSupportInCalculationsEnabled",
+              "value": "[parameters('EnableDatasetAggregations')]"
             }
           ]
         }
@@ -2022,6 +2057,10 @@
             {
               "name": "apiKeyMiddleware:apiKey",
               "value": "[parameters('ApiKeyCalcs')]"
+            },
+            {
+              "name": "features:aggregateSupportInCalculationsEnabled",
+              "value": "[parameters('EnableDatasetAggregations')]"
             }
           ]
         }

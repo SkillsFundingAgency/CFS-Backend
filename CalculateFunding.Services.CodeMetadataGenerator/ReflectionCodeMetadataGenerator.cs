@@ -47,50 +47,57 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                     List<MethodInformation> methods = new List<MethodInformation>();
                     foreach (MethodInfo methodInfo in typeInfo.GetMethods())
                     {
-                        if (!methodInfo.IsSpecialName)
+                        if (IsAggregateFunction(methodInfo.Name))
                         {
-                            List<ParameterInformation> parameters = new List<ParameterInformation>();
-
-                            foreach (ParameterInfo parameter in methodInfo.GetParameters())
+                            methods.Add(ConfigureAggregateFunctionMetadata(methodInfo));
+                        }
+                        else
+                        {
+                            if (!methodInfo.IsSpecialName)
                             {
-                                ParameterInformation parameterInformation = new ParameterInformation()
+                                List<ParameterInformation> parameters = new List<ParameterInformation>();
+
+                                foreach (ParameterInfo parameter in methodInfo.GetParameters())
                                 {
-                                    Name = parameter.Name,
-                                    Description = parameter.Name,
-                                    Type = ConvertTypeName(parameter.ParameterType),
+                                    ParameterInformation parameterInformation = new ParameterInformation()
+                                    {
+                                        Name = parameter.Name,
+                                        Description = parameter.Name,
+                                        Type = ConvertTypeName(parameter.ParameterType),
+                                    };
+
+                                    parameters.Add(parameterInformation);
+                                }
+
+                                string entityId = null;
+
+                                var calculationAttribute = methodInfo.CustomAttributes.Where(c => c.AttributeType.Name == "CalculationAttribute").FirstOrDefault();
+
+                                if (calculationAttribute != null)
+                                {
+                                    entityId = calculationAttribute.NamedArguments.Where(a => a.MemberName == "Id").FirstOrDefault().TypedValue.Value?.ToString();
+                                }
+
+                                MethodInformation methodInformation = new MethodInformation()
+                                {
+                                    Name = methodInfo.Name,
+                                    ReturnType = ConvertTypeName(methodInfo.ReturnType),
+                                    Parameters = parameters,
+                                    EntityId = entityId,
                                 };
 
-                                parameters.Add(parameterInformation);
+                                if (string.IsNullOrWhiteSpace(methodInformation.FriendlyName))
+                                {
+                                    methodInformation.FriendlyName = GetAttributeProperty(methodInfo.CustomAttributes, "Calculation", "Name");
+                                }
+
+                                if (string.IsNullOrWhiteSpace(methodInformation.Description))
+                                {
+                                    methodInformation.Description = GetAttributeProperty(methodInfo.CustomAttributes, "Description", "Description");
+                                }
+
+                                methods.Add(methodInformation);
                             }
-
-                            string entityId = null;
-
-                            var calculationAttribute = methodInfo.CustomAttributes.Where(c => c.AttributeType.Name == "CalculationAttribute").FirstOrDefault();
-
-                            if (calculationAttribute != null)
-                            {
-                                entityId = calculationAttribute.NamedArguments.Where(a => a.MemberName == "Id").FirstOrDefault().TypedValue.Value?.ToString();
-                            }
-
-                            MethodInformation methodInformation = new MethodInformation()
-                            {
-                                Name = methodInfo.Name,
-                                ReturnType = ConvertTypeName(methodInfo.ReturnType),
-                                Parameters = parameters,
-                                EntityId = entityId,
-                            };
-
-                            if (string.IsNullOrWhiteSpace(methodInformation.FriendlyName))
-                            {
-                                methodInformation.FriendlyName = GetAttributeProperty(methodInfo.CustomAttributes, "Calculation", "Name");
-                            }
-
-                            if (string.IsNullOrWhiteSpace(methodInformation.Description))
-                            {
-                                methodInformation.Description = GetAttributeProperty(methodInfo.CustomAttributes, "Description", "Description");
-                            }
-
-                            methods.Add(methodInformation);
                         }
                     }
 
@@ -126,6 +133,11 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                                 propertyInformation.Description = GetAttributeProperty(property.CustomAttributes, "Description", "Description");
                             }
 
+                            if (string.IsNullOrWhiteSpace(propertyInformation.IsAggregable))
+                            {
+                                propertyInformation.IsAggregable = GetAttributeProperty(property.CustomAttributes, "IsAggregable", "IsAggregable");
+                            }
+
                             properties.Add(propertyInformation);
                         }
                     }
@@ -136,9 +148,6 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                     results.Add(typeInformationModel);
                 }
             }
-
-
-
             return results;
         }
 
@@ -186,6 +195,48 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                 default:
                     return typeFriendlyName;
             }
+        }
+
+        private bool IsAggregateFunction(string methodName)
+        {
+            return methodName == "Sum" || methodName == "Avg" || methodName == "Min" || methodName == "Max";
+        }
+
+        private MethodInformation ConfigureAggregateFunctionMetadata(MethodInfo methodInfo)
+        {
+            string description = "";
+
+            switch (methodInfo.Name)
+            {
+                case "Sum":
+                    description = "Sums all values for selected dataset field";
+                    break;
+                case "Avg":
+                    description = "Averages all values for selected dataset field";
+                    break;
+                case "Min":
+                    description = "Gets the minimum of all values for selected dataset field";
+                    break;
+                case "Max":
+                    description = "Gets the maximum of all values for selected dataset field";
+                    break;
+                default:
+                    throw new ArgumentException("Invalid aggregate function name was provided");
+            }
+
+            return new MethodInformation()
+            {
+                Name = methodInfo.Name,
+                ReturnType = ConvertTypeName(methodInfo.ReturnType),
+                Parameters = new[] { new ParameterInformation()
+                    {
+                        Name = "field",
+                        Description = "Selected dataset field",
+                        Type = "DatasetField"
+                    }
+                },
+                Description = description
+            };
         }
     }
 }

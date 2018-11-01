@@ -1,12 +1,16 @@
-﻿using CalculateFunding.Models.Calcs;
+﻿using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
@@ -27,10 +31,14 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICompilerFactory _compilerFactory;
         private readonly IValidator<PreviewRequest> _previewRequestValidator;
         private readonly ICalculationsRepository _calculationsRepository;
+        private readonly IDatasetRepository _datasetRepository;
+        private readonly IFeatureToggle _featureToggle;
+        private readonly ICacheProvider _cacheProvider;
 
         public PreviewService(ISourceFileGeneratorProvider sourceFileGeneratorProvider,
             ILogger logger, IBuildProjectsRepository buildProjectsRepository, ICompilerFactory compilerFactory,
-            IValidator<PreviewRequest> previewRequestValidator, ICalculationsRepository calculationsRepository)
+            IValidator<PreviewRequest> previewRequestValidator, ICalculationsRepository calculationsRepository,
+            IDatasetRepository datasetRepository, IFeatureToggle featureToggle, ICacheProvider cacheProvider)
         {
             _sourceFileGeneratorProvider = sourceFileGeneratorProvider;
             _logger = logger;
@@ -38,6 +46,9 @@ namespace CalculateFunding.Services.Calcs
             _compilerFactory = compilerFactory;
             _previewRequestValidator = previewRequestValidator;
             _calculationsRepository = calculationsRepository;
+            _datasetRepository = datasetRepository;
+            _featureToggle = featureToggle;
+            _cacheProvider = cacheProvider;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -101,10 +112,26 @@ namespace CalculateFunding.Services.Calcs
 
             calculation.Current.SourceCode = previewRequest.SourceCode;
 
+            if (_featureToggle.IsAggregateSupportInCalculationsEnabled())
+            {
+                Build build = await CheckValidAggregations(calculation, previewRequest);
+
+                if (build != null && build.CompilerMessages.Any(m => m.Severity == Models.Calcs.Severity.Error))
+                {
+                    PreviewResponse response = new PreviewResponse
+                    {
+                        Calculation = calculation,
+                        CompilerOutput = build
+                    };
+
+                    return new OkObjectResult(response);
+                }
+            }
+
             return GenerateAndCompile(buildProject, calculation, calculations);
         }
 
-        IActionResult GenerateAndCompile(BuildProject buildProject, Calculation calculationToPreview, IEnumerable<Calculation> calculations)
+        private IActionResult GenerateAndCompile(BuildProject buildProject, Calculation calculationToPreview, IEnumerable<Calculation> calculations)
         {
             ISourceFileGenerator sourceFileGenerator = _sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
 
@@ -135,7 +162,6 @@ namespace CalculateFunding.Services.Calcs
                 _logger.Information($"Build did not compile succesfully for calculation id {calculationToPreview.Id}");
             }
 
-
             PreviewResponse response = new PreviewResponse()
             {
                 Calculation = calculationToPreview,
@@ -144,5 +170,54 @@ namespace CalculateFunding.Services.Calcs
 
             return new OkObjectResult(response);
         }
+
+        private async Task<Build> CheckValidAggregations(Calculation calculation, PreviewRequest previewRequest)
+        {
+            Build build = null;
+
+            IEnumerable<string> aggregateParameters = SourceCodeHelpers.GetAggregateFunctionParameter(previewRequest.SourceCode);
+
+            if (aggregateParameters.IsNullOrEmpty())
+            {
+                return build;
+            }
+
+            string cacheKey = $"{CacheKeys.DatasetRelationshipFieldsForSpecification}{previewRequest.SpecificationId}";
+
+            IEnumerable<DatasetSchemaRelationshipModel> datasetSchemaRelationshipModels = Enumerable.Empty<DatasetSchemaRelationshipModel>();
+
+            datasetSchemaRelationshipModels = await _cacheProvider.GetAsync<IEnumerable<DatasetSchemaRelationshipModel>>(cacheKey);
+
+            if (datasetSchemaRelationshipModels.IsNullOrEmpty())
+            {
+                datasetSchemaRelationshipModels = await _datasetRepository.GetDatasetSchemaRelationshipModelsForSpecificationId(previewRequest.SpecificationId);
+
+                await _cacheProvider.SetAsync<IEnumerable<DatasetSchemaRelationshipModel>>(cacheKey, datasetSchemaRelationshipModels);
+            }
+
+            HashSet<string> compilerErrors = new HashSet<string>();
+
+            IEnumerable<string> datasetAggregationFields = datasetSchemaRelationshipModels?.SelectMany(m => m.Fields?.Where(f => f.IsAggregable).Select(f => f.FullyQualifiedSourceName));
+
+            foreach (string aggregateParameter in aggregateParameters)
+            {
+                if (datasetAggregationFields.IsNullOrEmpty() || !datasetAggregationFields.Any(m => string.Equals(m.Trim(), aggregateParameter.Trim(), System.StringComparison.CurrentCultureIgnoreCase)))
+                {
+                    compilerErrors.Add($"{aggregateParameter} is not an aggretable field");
+                }
+            }
+
+            if (compilerErrors.Any())
+            {
+                build = new Build
+                {
+                    CompilerMessages = compilerErrors.Select(m => new CompilerMessage { Message = m, Severity = Models.Calcs.Severity.Error }).ToList()
+                };
+
+            }
+  
+            return build;
+        }
+
     }
 }

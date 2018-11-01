@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calculator.Interfaces;
@@ -103,7 +104,7 @@ namespace CalculateFunding.Services.Calculator
 
         private Dictionary<string, Type> DatasetTypes { get; }
 
-        public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary)
+        public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary, IEnumerable<DatasetAggregations> datasetAggregations = null)
         {
             var datasetNamesUsed = new HashSet<string>();
             foreach (var dataset in datasets)
@@ -135,11 +136,35 @@ namespace CalculateFunding.Services.Calculator
                 }
             }
 
-            PropertyInfo providerSetter = _instance.GetType().GetProperty("Provider"); 
+            PropertyInfo providerSetter = _instance.GetType().GetProperty("Provider");
 
             object provider = PopulateProvider(providerSummary, providerSetter);
             providerSetter.SetValue(_instance, provider);
-           
+
+            if (datasetAggregations != null)
+            {
+                PropertyInfo aggregationsSetter = _instance.GetType().GetProperty("Aggregations");
+
+                if (aggregationsSetter != null)
+                {
+                    Type propType = aggregationsSetter.PropertyType;
+
+                    object data = Activator.CreateInstance(propType);
+
+                    MethodInfo add = data.GetType().GetMethod("Add", new[] { typeof(String), typeof(Decimal) });
+
+                    foreach (DatasetAggregations aggregations in datasetAggregations)
+                    {
+                        foreach (AggregatedField aggregatedField in aggregations.Fields)
+                        {
+                            add.Invoke(data, new object[] { aggregatedField.FieldReference, aggregatedField.Value.HasValue ? aggregatedField.Value.Value : 0 });
+                        }
+                    }
+
+                    aggregationsSetter.SetValue(_instance, data);
+                }
+            }
+
             // Add default object for any missing datasets to help reduce null exceptions
             foreach (var key in _datasetSetters.Keys.Where(x => !datasetNamesUsed.Contains(x)))
             {
@@ -148,7 +173,7 @@ namespace CalculateFunding.Services.Calculator
                     setter.SetValue(_datasetsInstance, Activator.CreateInstance(setter.PropertyType));
                 }
             }
-        
+
             foreach (var executeMethod in _methods)
             {
                 var result = executeMethod.Item2;

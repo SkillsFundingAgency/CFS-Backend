@@ -1,19 +1,23 @@
-﻿Public Class BaseCalculation
+﻿Imports System.Collections.Generic
+
+Public Class BaseCalculation
+
+    Public Property Aggregations As Dictionary(Of String, Decimal)
 
 #Region "Legacy Store Support"
 
-    Public Property rid as String
+    Public Property rid As String
     Public Property currentscenario As Scenario
 
-    Public Sub Print(Of T) (value As T, name As String, rid As String)
-        
+    Public Sub Print(Of T)(value As T, name As String, rid As String)
+
     End Sub
 
-    public Function LAToProv(Of T)(value as T) As T
+    Public Function LAToProv(Of T)(value As T) As T
         Return value
     End Function
 
-    public Function IIf(Of T)(value as T, one As Boolean, two as Boolean) As T
+    Public Function IIf(Of T)(value As T, one As Boolean, two As Boolean) As T
         Return value
     End Function
 
@@ -23,4 +27,31 @@
         Return Nothing
     End Function
 
+    Public Function Sum(ByVal fieldName As String) As Decimal
+        If Aggregations.ContainsKey(fieldName + "_Sum") Then
+            Return Aggregations.Item(fieldName + "_Sum")
+        End If
+        Throw New System.ArgumentException(fieldName + " does not have an aggregated value")
+    End Function
+
+    Public Function Avg(ByVal fieldName As String) As Decimal
+        If Aggregations.ContainsKey(fieldName + "_Average") Then
+            Return Aggregations.Item(fieldName + "_Average")
+        End If
+        Throw New System.ArgumentException(fieldName + " does not have an aggregated value")
+    End Function
+
+    Public Function Min(ByVal fieldName As String) As Decimal
+        If Aggregations.ContainsKey(fieldName + "_Min") Then
+            Return Aggregations.Item(fieldName + "_Min")
+        End If
+        Throw New System.ArgumentException(fieldName + " does not have an aggregated value")
+    End Function
+
+    Public Function Max(ByVal fieldName As String) As Decimal
+        If Aggregations.ContainsKey(fieldName + "_Max") Then
+            Return Aggregations.Item(fieldName + "_Max")
+        End If
+        Throw New System.ArgumentException(fieldName + " does not have an aggregated value")
+    End Function
 End Class

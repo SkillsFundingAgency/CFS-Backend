@@ -178,6 +178,19 @@ namespace CalculateFunding.Functions.Datasets
                 return new VersionRepository<ProviderSourceDatasetVersion>(cosmosRepository);
             });
 
+            builder.AddSingleton<IDatasetsAggregationsRepository, DatasetsAggregationsRepository>((ctx) =>
+            {
+                CosmosDbSettings dbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", dbSettings);
+
+                dbSettings.CollectionName = "datasetaggregations";
+
+                CosmosRepository aggsCosmosRepostory = new CosmosRepository(dbSettings);
+
+                return new DatasetsAggregationsRepository(aggsCosmosRepostory);
+            });
+
             builder.AddCalcsInterServiceClient(config);
             builder.AddResultsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
@@ -202,6 +215,8 @@ namespace CalculateFunding.Functions.Datasets
             builder.AddTelemetry();
 
             builder.AddPolicySettings(config);
+
+            builder.AddFeatureToggling(config);
 
             builder.AddSingleton<IDatasetsResiliencePolicies>((ctx) =>
             {

@@ -69,7 +69,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             }
         }
 
-
         private static StatementSyntax CreateStaticDefinitionName(DatasetDefinition datasetDefinition)
         {
             var token = SyntaxFactory.Literal(datasetDefinition.Name);
@@ -94,6 +93,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             var propertyType = GetType(fieldDefinition.Type);
             var builder = new StringBuilder();
             builder.AppendLine($"<Field(Id := \"{fieldDefinition.Id}\", Name := \"{fieldDefinition.Name}\")>");
+            builder.AppendLine($"<IsAggregable(IsAggregable := \"{fieldDefinition.IsAggregable.ToString()}\")>");
             builder.AppendLine($"<Description(Description := \"{fieldDefinition.Description?.Replace("\"", "\"\"")}\")>");
             builder.AppendLine($"Public Property {GenerateIdentifier(fieldDefinition.Name)}() As {GenerateIdentifier($"{propertyType}")}");
             var tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());

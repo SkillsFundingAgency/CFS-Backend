@@ -12,6 +12,8 @@ namespace CalculateFunding.Models.Code
 
         public string Type { get; set; }
 
+        public string IsAggregable { get; set; }
+
         public IEnumerable<PropertyInformation> Children { get; set; }
     }
 }

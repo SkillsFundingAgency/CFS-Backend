@@ -83,8 +83,13 @@ namespace CalculateFunding.Functions.CalcEngine
             builder
                 .AddSingleton<ICalculationsRepository, CalculationsRepository>();
 
+            builder
+               .AddSingleton<IDatasetAggregationsRepository, DatasetAggregationsRepository>();
+
             builder.AddCalcsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
+
+            builder.AddDatasetsInterServiceClient(config);
 
             builder.AddEngineSettings(config);
 
@@ -101,6 +106,8 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddSearch(config);
 
             builder.AddPolicySettings(config);
+
+            builder.AddFeatureToggling(config);
 
             builder.AddSingleton<ICalculatorResiliencePolicies>((ctx) =>
             {

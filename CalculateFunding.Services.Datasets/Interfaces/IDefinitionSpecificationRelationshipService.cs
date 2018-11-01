@@ -17,5 +17,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> GetDataSourcesByRelationshipId(HttpRequest request);
 
         Task<IActionResult> AssignDatasourceVersionToRelationship(HttpRequest request);
+
+        Task<IActionResult> GetCurrentDatasetRelationshipFieldsBySpecificationId(string specificationId);
     }
 }

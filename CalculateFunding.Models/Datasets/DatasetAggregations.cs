@@ -1,15 +1,26 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Models.Datasets
 {
-    public class DatasetAggregations
+    public class DatasetAggregations : IIdentifiable
     {
+        [JsonProperty("id")]
+        public string Id
+        {
+            get
+            {
+                return $"{SpecificationId}_{DatasetRelationshipId}";
+            }
+        }
+
+        [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }
 
+        [JsonProperty("datasetRelationshipId")]
         public string DatasetRelationshipId { get; set; }
 
-        public string DatasetDefinitionId { get; set; }
-
+        [JsonProperty("fields")]
         public IEnumerable<AggregatedField> Fields { get; set; }
     }
 }

@@ -10,5 +10,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task ProcessDataset(Message message);
 
         Task<IActionResult> ProcessDataset(HttpRequest request);
+
+        Task<IActionResult> GetDatasetAggregationsBySpecificationId(string specificationId);
     }
 }

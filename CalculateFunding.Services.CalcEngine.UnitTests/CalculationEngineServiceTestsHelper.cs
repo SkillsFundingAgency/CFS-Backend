@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Services.Calculator.Interfaces;
+﻿using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
@@ -39,7 +40,9 @@ namespace CalculateFunding.Services.Calculator
                     MockCalculationRepository,
                     MockEngineSettings,
                     MockCalculatorResiliencePolicies,
-                    MockCalculatorResiliencePoliciesValidator);
+                    MockCalculatorResiliencePoliciesValidator,
+                    DatasetAggregationsRepository,
+                    FeatureToggle);
 
             return service;
         }
@@ -55,6 +58,8 @@ namespace CalculateFunding.Services.Calculator
         public ICalculatorResiliencePolicies MockCalculatorResiliencePolicies { get; set; } = Substitute.For<ICalculatorResiliencePolicies>();
         public ICalculationEngine MockCalculationEngine { get; set; } = Substitute.For<ICalculationEngine>();
         public IValidator<ICalculatorResiliencePolicies> MockCalculatorResiliencePoliciesValidator { get; set; } = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
+        public IDatasetAggregationsRepository DatasetAggregationsRepository { get; set; } = Substitute.For<IDatasetAggregationsRepository>();
+        public IFeatureToggle FeatureToggle { get; set; } = Substitute.For<IFeatureToggle>();
         public Policy MockCacheProviderPolicy { get; set; } = Policy.NoOpAsync();
         public Policy MockMessengerPolicy { get; set; } = Policy.NoOpAsync();
         public Policy MockProviderSourceDatasetsRepositoryPolicy { get; set; } = Policy.NoOpAsync();

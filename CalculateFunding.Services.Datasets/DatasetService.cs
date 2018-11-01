@@ -670,8 +670,6 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(relationships);
         }
 
-
-
         private async Task<Dataset> SaveNewDatasetAndVersion(ICloudBlob blob, DatasetDefinition datasetDefinition, int rowCount)
         {
             Guard.ArgumentNotNull(blob, nameof(blob));
@@ -827,8 +825,6 @@ namespace CalculateFunding.Services.Datasets
             });
         }
 
-
-
         private async Task<(IDictionary<string, IEnumerable<string>> validationFailures, int providersProcessed)> ValidateTableResults(DatasetDefinition datasetDefinition, ICloudBlob blob)
         {
             int rowCount = 0;
@@ -879,14 +875,6 @@ namespace CalculateFunding.Services.Datasets
 
             return (validationFailures, rowCount);
         }
-
-
-
-
-
-
-
-
 
         public async Task<IActionResult> GetCurrentDatasetVersionByDatasetId(HttpRequest request)
         {
@@ -940,8 +928,6 @@ namespace CalculateFunding.Services.Datasets
 
             return new OkObjectResult(result);
         }
-
-
 
         IDictionary<string, string> CreateMessageProperties(HttpRequest request)
         {
