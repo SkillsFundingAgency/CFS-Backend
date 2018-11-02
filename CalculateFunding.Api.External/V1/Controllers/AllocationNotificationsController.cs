@@ -11,8 +11,8 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace CalculateFunding.Api.External.V1.Controllers
 {
-    [Authorize(Roles = Constants.ExecuteApiRole)]
-    [ApiVersion("1.0")]
+	[Authorize(Roles = Constants.ExecuteApiRole)]
+	[ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/allocations/notifications")]
     public class AllocationNotificationsController : Controller
     {
@@ -49,6 +49,7 @@ namespace CalculateFunding.Api.External.V1.Controllers
         [ProducesResponseType(401)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
+        [ProducesResponseType(406)]
         [ProducesResponseType(410)]
         [ProducesResponseType(415)]
         [ProducesResponseType(500)]

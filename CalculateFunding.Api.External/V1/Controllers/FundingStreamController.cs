@@ -37,6 +37,7 @@ namespace CalculateFunding.Api.External.V1.Controllers
         [ProducesResponseType(typeof(IEnumerable<FundingStream>), 200)]
         [ProducesResponseType(304)]
         [ProducesResponseType(401)]
+        [ProducesResponseType(406)]
         [ProducesResponseType(500)]
         [SwaggerResponseHeader(200, "ETag", "string", "An ETag of the resource")]
         [SwaggerResponseHeader(200, "Cache-Control", "string", "Caching information for the resource")]

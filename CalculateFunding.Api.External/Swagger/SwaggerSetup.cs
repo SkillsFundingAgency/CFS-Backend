@@ -26,9 +26,9 @@ namespace CalculateFunding.Api.External.Swagger
                 Description = swaggerDocsTopContents,
                 Contact = new Contact
                 {
-                    Name = "Clifford Smith",
-                    Email = "cliffordsmith@education.gov.uk"
-                },
+                    Name = "Calculate Funding Team",
+                    Email = "calculate-funding@education.gov.uk"
+				},
                 License = new License
                 {
                     Name = "MIT License",

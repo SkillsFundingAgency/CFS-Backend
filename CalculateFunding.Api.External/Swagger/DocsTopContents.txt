@@ -36,10 +36,10 @@ The following table lists the media types used by the service:
 
 | Media Type    | Description |
 | ------------- |-------------| 
-| application/vnd.sfa.allocation.{VERSION}+xml | An allocation in XML format |
-| application/vnd.sfa.allocation.{VERSION}+json | An allocation in JSON format  |
-| application/vnd.sfa.allocation.{VERSION}+atom+xml | An atom feed representing a stream of allocations in XML format. Each content item in the feed will be vnd.sfa.allocation.{VERSION} |
-| application/vnd.sfa.allocation.{VERSION}+atom+json | An atom feed representing a stream of allocations in JSON format.* Each content item in the feed will be vnd.sfa.allocation.{VERSION}  |
+| application/xml | An allocation in XML format |
+| application/json | An allocation in JSON format  |
+| application/atom+xml | An atom feed representing a stream of allocations in XML format. Each content item in the feed will be the AllocationModel |
+| application/atom+json | An atom feed representing a stream of allocations in JSON format.* Each content item in the feed will be the AllocationModel  |
 
 * This not a part of the ATOM standard but is a convenience feature for native JSON clients.
 The media Type above conform to the Accept Header specification. In simple terms that states that the media Type is vendor specific, is a given representation (sfa.allocation and version) and delivered in a particular wire format (JSON or XML).

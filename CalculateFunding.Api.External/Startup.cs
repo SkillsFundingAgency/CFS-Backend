@@ -3,6 +3,7 @@ using System.Linq;
 using AutoMapper;
 using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.External.MappingProfiles;
+using CalculateFunding.Api.External.Middleware;
 using CalculateFunding.Api.External.Swagger;
 using CalculateFunding.Api.External.V1.Interfaces;
 using CalculateFunding.Api.External.V1.Services;
@@ -56,15 +57,15 @@ namespace CalculateFunding.Api.External
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var azureADConfig = Configuration.GetSection("AzureAD");
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.Authority = $"{azureADConfig.GetValue<string>("Authority")}/{azureADConfig.GetValue<string>("TenantId")}/";
-                    options.Audience = azureADConfig.GetValue<string>("Audience");
-                });
+			var azureADConfig = Configuration.GetSection("AzureAD");
+			services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+				.AddJwtBearer(options =>
+				{
+					options.Authority = $"{azureADConfig.GetValue<string>("Authority")}/{azureADConfig.GetValue<string>("TenantId")}/";
+					options.Audience = azureADConfig.GetValue<string>("Audience");
+				});
 
-            services.AddMvcCore().AddVersionedApiExplorer(
+			services.AddMvcCore().AddVersionedApiExplorer(
                 options =>
                 {
                     options.GroupNameFormat = "'v'VVV";
@@ -72,24 +73,23 @@ namespace CalculateFunding.Api.External
                 });
 
             services.AddMvc(options =>
-            {
-                options.OutputFormatters.RemoveType<StringOutputFormatter>();
+	        {
+				options.OutputFormatters.RemoveType<StringOutputFormatter>();
                 options.OutputFormatters.Add(new XmlSerializerOutputFormatter());
 
-                var jFormatter =
+				var jFormatter =
                     options.OutputFormatters.FirstOrDefault(f => f.GetType() == typeof(JsonOutputFormatter)) as
                         JsonOutputFormatter;
                 jFormatter?.SupportedMediaTypes.Clear();
-                jFormatter?.SupportedMediaTypes.Add("text/plain");
-                jFormatter?.SupportedMediaTypes.Add("application/vnd.sfa.allocation.1+json");
-                jFormatter?.SupportedMediaTypes.Add("application/vnd.sfa.allocation.1+atom+json");
+                jFormatter?.SupportedMediaTypes.Add("application/atom+json");
+                jFormatter?.SupportedMediaTypes.Add("application/json");
 
                 var xFormatter =
                     options.OutputFormatters.FirstOrDefault(f => f.GetType() == typeof(XmlSerializerOutputFormatter)) as
                         XmlSerializerOutputFormatter;
                 xFormatter?.SupportedMediaTypes.Clear();
-                xFormatter?.SupportedMediaTypes.Add("application/vnd.sfa.allocation.1+xml");
-                xFormatter?.SupportedMediaTypes.Add("application/vnd.sfa.allocation.1+atom+xml");
+                xFormatter?.SupportedMediaTypes.Add("application/atom+xml");
+                xFormatter?.SupportedMediaTypes.Add("application/xml");
             }).AddJsonOptions(options => { options.SerializerSettings.Formatting = Formatting.Indented; })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
@@ -109,18 +109,19 @@ namespace CalculateFunding.Api.External
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApiVersionDescriptionProvider provider)
         {
-            if (env.IsDevelopment())
+			if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
             else
                 app.UseHsts();
 
-            app.UseAuthentication();
+			app.UseAuthentication();
+	        app.UseMiddleware<ContentTypeCheckMiddleware>();
 
-            app.UseMvc();
+			app.UseMvc();
             SwaggerSetup.ConfigureSwagger(app, provider);
-
-            app.UseHealthCheckMiddleware();
-		}
+	        
+			app.UseHealthCheckMiddleware();
+        }
 
         public void RegisterComponents(IServiceCollection builder)
         {
@@ -342,8 +343,9 @@ namespace CalculateFunding.Api.External
                 };
             });
 			builder.AddHealthCheckMiddleware();
+	        builder.AddTransient<ContentTypeCheckMiddleware>();
 
-            ServiceProvider = builder.BuildServiceProvider();
-        }
+	        ServiceProvider = builder.BuildServiceProvider();
+		}
     }
 }
