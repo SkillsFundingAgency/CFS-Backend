@@ -148,6 +148,13 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                     results.Add(typeInformationModel);
                 }
             }
+            IEnumerable<TypeInformation> dataTypes = GetDefaultTypes();
+
+            foreach(TypeInformation typeInformation in dataTypes)
+            {
+                results.Add(typeInformation);
+            }
+
             return results;
         }
 
@@ -236,6 +243,29 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                     }
                 },
                 Description = description
+            };
+        }
+
+        private static IEnumerable<TypeInformation> GetDefaultTypes()
+        {
+            return new[]
+            {
+                new TypeInformation("Boolean", "True or False"),
+                new TypeInformation("Byte", "0 through 255 (unsigned)"),
+                new TypeInformation("Char", "0 through 65535 (unsigned)"),
+                new TypeInformation("Date", "0:00:00 (midnight) on January 1, 0001 through 11:59:59 PM on December 31, 9999"),
+                new TypeInformation("Decimal", "0 through +/-79,228,162,514,264,337,593,543,950,335 (+/-7.9...E+28) with no decimal point; 0 through +/-7.9228162514264337593543950335 with 28 places to the right of the decimal"),
+                new TypeInformation("Double", "-1.79769313486231570E+308 through -4.94065645841246544E-324, for negative values 4.94065645841246544E-324 through 1.79769313486231570E+308, for positive values"),
+                new TypeInformation("Integer", "-2,147,483,648 through 2,147,483,647 (signed)"),
+                new TypeInformation("Long", "-9,223,372,036,854,775,808 through 9,223,372,036,854,775,807(signed)"),
+                new TypeInformation("Object", "Any type can be stored in a variable of type Object"),
+                new TypeInformation("SByte", "-128 through 127 (signed)"),
+                new TypeInformation("Short", "-32,768 through 32,767 (signed)"),
+                new TypeInformation("Single", "-3.4028235E+38 through -1.401298E-45 for negative values; 1.401298E-45 through 3.4028235E+38 for positive values"),
+                new TypeInformation("String", "0 to approximately 2 billion Unicode characters"),
+                new TypeInformation("UInteger", "0 through 4,294,967,295 (unsigned)"),
+                new TypeInformation("ULong", "0 through 18,446,744,073,709,551,615 (unsigned)"),
+                new TypeInformation("UShort", "0 through 65,535 (unsigned)"),
             };
         }
     }

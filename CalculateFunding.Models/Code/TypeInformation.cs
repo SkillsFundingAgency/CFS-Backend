@@ -4,6 +4,15 @@ namespace CalculateFunding.Models.Code
 {
     public class TypeInformation
     {
+        public TypeInformation(){}
+
+        public TypeInformation(string name, string description)
+        {
+            Name = name;
+            Description = description;
+            Type = "DefaultType";
+        }
+
         /// <summary>
         /// Type Name eg Class Name
         /// </summary>

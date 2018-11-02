@@ -295,6 +295,37 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
             firstCalculation.Description.Should().Be("test");
         }
 
+        [TestMethod]
+        public void GetTypeInformation_WhenListDatasetsThenEnsureDefaultTypesShouldBeReturned()
+        {
+            // Arrange
+            ICodeMetadataGeneratorService generator = GetCodeGenerator();
+            byte[] assembly = GetCalculationClassWithListDescriptionsExampleAssembly();
+
+            // Act
+            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+
+            // Assert
+            result.Should().NotBeNull("Result should not be null");
+
+            result.FirstOrDefault(m => m.Name == "Boolean").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "Byte").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "Char").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "Date").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "Decimal").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "Double").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "Integer").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "Long").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "Object").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "SByte").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "Short").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "Single").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "String").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "UInteger").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "ULong").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "UShort").Should().NotBeNull();
+        }
+
         private ICodeMetadataGeneratorService GetCodeGenerator()
         {
             return new ReflectionCodeMetadataGenerator();
