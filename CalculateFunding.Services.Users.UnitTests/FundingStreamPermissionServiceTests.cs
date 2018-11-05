@@ -6,6 +6,7 @@ using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Users.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using Serilog;
 
 namespace CalculateFunding.Services.Users
 {
@@ -22,6 +23,7 @@ namespace CalculateFunding.Services.Users
             IVersionRepository<FundingStreamPermissionVersion> fundingStreamPermissionVersionRepository = null,
             ICacheProvider cacheProvider = null,
             IMapper mapper = null,
+            ILogger logger = null,
             IUsersResiliencePolicies policies = null)
         {
             return new FundingStreamPermissionService(
@@ -30,6 +32,7 @@ namespace CalculateFunding.Services.Users
                 fundingStreamPermissionVersionRepository ?? CreateFundingStreamPermissionRepository(),
                 cacheProvider ?? CreateCacheProvider(),
                 mapper ?? CreateMappingConfiguration(),
+                logger ?? CreateLogger(),
                 policies ?? CreatePoliciesNoOp()
                 );
         }
@@ -59,6 +62,11 @@ namespace CalculateFunding.Services.Users
             MapperConfiguration mapperConfiguration = new MapperConfiguration(c => c.AddProfile<UsersMappingProfile>());
 
             return mapperConfiguration.CreateMapper();
+        }
+
+        public ILogger CreateLogger()
+        {
+            return Substitute.For<ILogger>();
         }
 
         public IUsersResiliencePolicies CreatePoliciesNoOp()

@@ -15,7 +15,10 @@ namespace CalculateFunding.Services.Users.Interfaces
 
         Task<IEnumerable<FundingStreamPermission>> GetFundingStreamPermissions(string userId);
 
+        Task<IEnumerable<FundingStreamPermission>> GetUsersWithFundingStreamPermissions(string fundingStreamId);
+
         Task<HttpStatusCode> UpdateFundingStreamPermission(FundingStreamPermission fundingStreamPermission);
+
 
     }
 }

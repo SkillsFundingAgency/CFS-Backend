@@ -67,5 +67,13 @@ namespace CalculateFunding.Services.Core.Interfaces.Caching
         /// <param name="cacheKey">Cache Key</param>
         /// <returns></returns>
         Task<bool> HashSetExists(string cacheKey);
+
+        /// <summary>
+        /// Deletes hash key within a Hash Set
+        /// </summary>
+        /// <param name="cacheKey">Cache Key</param>
+        /// <param name="hashKey">Hash Key</param>
+        /// <returns></returns>
+        Task<bool> DeleteHashKey<T>(string cacheKey, string hashKey);
     }
 }

@@ -101,6 +101,11 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanPublishFunding = false,
+                    CanAdministerFundingStream = false,
+                    CanApproveSpecification = false,
+                    CanCreateQaTests = false,
+                    CanEditQaTests = false,
+                    CanRefreshFunding = false,
                 });
 
             await cacheProvider
@@ -205,6 +210,11 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanPublishFunding = false,
+                CanAdministerFundingStream = false,
+                CanApproveSpecification = false,
+                CanCreateQaTests = false,
+                CanEditQaTests = false,
+                CanRefreshFunding = false,
             };
 
             userRepository
@@ -235,6 +245,11 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanPublishFunding = false,
+                    CanAdministerFundingStream = false,
+                    CanApproveSpecification = false,
+                    CanCreateQaTests = false,
+                    CanEditQaTests = false,
+                    CanRefreshFunding = false,
                 });
 
             await cacheProvider
@@ -254,6 +269,11 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
                         !p.CanPublishFunding &&
+                        !p.CanAdministerFundingStream &&
+                        !p.CanApproveSpecification &&
+                        !p.CanCreateQaTests &&
+                        !p.CanEditQaTests &&
+                        !p.CanRefreshFunding &&
                         p.SpecificationId == SpecificationId &&
                         p.UserId == UserId
                         ));
@@ -306,6 +326,11 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanPublishFunding = false,
+                CanAdministerFundingStream = false,
+                CanApproveSpecification = false,
+                CanCreateQaTests = false,
+                CanEditQaTests = false,
+                CanRefreshFunding = false,
             };
 
             userRepository
@@ -336,6 +361,11 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanPublishFunding = false,
+                    CanAdministerFundingStream = false,
+                    CanApproveSpecification = false,
+                    CanCreateQaTests = false,
+                    CanEditQaTests = false,
+                    CanRefreshFunding = false,
                 });
 
             await cacheProvider
@@ -355,6 +385,11 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
                         !p.CanPublishFunding &&
+                        !p.CanAdministerFundingStream &&
+                        !p.CanApproveSpecification &&
+                        !p.CanCreateQaTests &&
+                        !p.CanEditQaTests &&
+                        !p.CanRefreshFunding &&
                         p.SpecificationId == SpecificationId &&
                         p.UserId == UserId
                         ));
@@ -405,6 +440,11 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanPublishFunding = false,
+                CanAdministerFundingStream = false,
+                CanApproveSpecification = false,
+                CanCreateQaTests = false,
+                CanEditQaTests = false,
+                CanRefreshFunding = false,
             };
 
             FundingStreamPermission fs2Permission = new FundingStreamPermission()
@@ -418,6 +458,11 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanPublishFunding = false,
+                CanAdministerFundingStream = false,
+                CanApproveSpecification = false,
+                CanCreateQaTests = false,
+                CanEditQaTests = false,
+                CanRefreshFunding = false,
             };
 
             userRepository
@@ -452,6 +497,11 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanPublishFunding = false,
+                    CanAdministerFundingStream = false,
+                    CanApproveSpecification = false,
+                    CanCreateQaTests = false,
+                    CanEditQaTests = false,
+                    CanRefreshFunding = false,
                 });
 
             await cacheProvider
@@ -467,6 +517,11 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
                         !p.CanPublishFunding &&
+                        !p.CanAdministerFundingStream &&
+                        !p.CanApproveSpecification &&
+                        !p.CanCreateQaTests &&
+                        !p.CanEditQaTests &&
+                        !p.CanRefreshFunding &&
                         p.SpecificationId == SpecificationId &&
                         p.UserId == UserId
                         ));
@@ -530,6 +585,11 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanPublishFunding = false,
+                    CanAdministerFundingStream = false,
+                    CanApproveSpecification = false,
+                    CanCreateQaTests = false,
+                    CanEditQaTests = false,
+                    CanRefreshFunding = false,
                 });
 
             await cacheProvider
@@ -545,6 +605,11 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
                         !p.CanPublishFunding &&
+                        !p.CanAdministerFundingStream &&
+                        !p.CanApproveSpecification &&
+                        !p.CanCreateQaTests &&
+                        !p.CanEditQaTests &&
+                        !p.CanRefreshFunding &&
                         p.SpecificationId == SpecificationId &&
                         p.UserId == UserId
                         ));
@@ -590,6 +655,11 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanPublishFunding = false,
+                CanAdministerFundingStream = false,
+                CanApproveSpecification = false,
+                CanCreateQaTests = false,
+                CanEditQaTests = false,
+                CanRefreshFunding = false,
             };
 
             FundingStreamPermission fs2Permission = new FundingStreamPermission()
@@ -603,6 +673,11 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = false,
                 CanMapDatasets = false,
                 CanPublishFunding = false,
+                CanAdministerFundingStream = false,
+                CanApproveSpecification = false,
+                CanCreateQaTests = false,
+                CanEditQaTests = false,
+                CanRefreshFunding = false,
             };
 
             userRepository
@@ -637,6 +712,11 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanPublishFunding = false,
+                    CanAdministerFundingStream = false,
+                    CanApproveSpecification = false,
+                    CanCreateQaTests = false,
+                    CanEditQaTests = false,
+                    CanRefreshFunding = false,
                 });
 
             await cacheProvider
@@ -652,6 +732,11 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
                         !p.CanPublishFunding &&
+                        !p.CanAdministerFundingStream &&
+                        !p.CanApproveSpecification &&
+                        !p.CanCreateQaTests &&
+                        !p.CanEditQaTests &&
+                        !p.CanRefreshFunding &&
                         p.SpecificationId == SpecificationId &&
                         p.UserId == UserId
                         ));
@@ -722,6 +807,11 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanPublishFunding = false,
+                    CanAdministerFundingStream = false,
+                    CanApproveSpecification = false,
+                    CanCreateQaTests = false,
+                    CanEditQaTests = false,
+                    CanRefreshFunding = false,
                 });
 
             await cacheProvider
@@ -737,6 +827,11 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
                         !p.CanPublishFunding &&
+                        !p.CanAdministerFundingStream &&
+                        !p.CanApproveSpecification &&
+                        !p.CanCreateQaTests &&
+                        !p.CanEditQaTests &&
+                        !p.CanRefreshFunding &&
                         p.SpecificationId == SpecificationId &&
                         p.UserId == UserId
                         ));

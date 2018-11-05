@@ -270,6 +270,17 @@ namespace CalculateFunding.Services.Core.Caching
             return await database.KeyDeleteAsync(cacheKey);
         }
 
+        public async Task<bool> DeleteHashKey<T>(string cacheKey, string hashKey)
+        {
+            Guard.IsNullOrWhiteSpace(cacheKey, nameof(cacheKey));
+
+            IDatabase database = GetDatabase();
+
+            string key = GenerateCacheKey<T>(hashKey);
+
+            return await database.HashDeleteAsync(cacheKey, key);
+        }
+
         public async Task<bool> SetHashExpiry(string cacheKey, DateTime? expiry)
         {
             Guard.IsNullOrWhiteSpace(cacheKey, nameof(cacheKey));

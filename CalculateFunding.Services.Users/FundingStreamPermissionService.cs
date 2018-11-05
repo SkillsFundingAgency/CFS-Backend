@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Users;
@@ -19,6 +20,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace CalculateFunding.Services.Users
 {
@@ -29,7 +31,7 @@ namespace CalculateFunding.Services.Users
         private readonly IVersionRepository<FundingStreamPermissionVersion> _fundingStreamPermissionVersionRepository;
         private readonly ICacheProvider _cacheProvider;
         private readonly IMapper _mapper;
-
+        private readonly ILogger _logger;
         private readonly Polly.Policy _userRepositoryPolicy;
         private readonly Polly.Policy _specificationsRepositoryPolicy;
         private readonly Polly.Policy _fundingStreamPermissionVersionRepositoryPolicy;
@@ -41,6 +43,7 @@ namespace CalculateFunding.Services.Users
             IVersionRepository<FundingStreamPermissionVersion> fundingStreamPermissionVersionRepository,
             ICacheProvider cacheProvider,
             IMapper mapper,
+            ILogger logger,
             IUsersResiliencePolicies policies)
         {
             Guard.ArgumentNotNull(userRepository, nameof(userRepository));
@@ -48,6 +51,7 @@ namespace CalculateFunding.Services.Users
             Guard.ArgumentNotNull(fundingStreamPermissionVersionRepository, nameof(fundingStreamPermissionVersionRepository));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(policies, nameof(policies));
 
             _userRepository = userRepository;
@@ -55,6 +59,7 @@ namespace CalculateFunding.Services.Users
             _fundingStreamPermissionVersionRepository = fundingStreamPermissionVersionRepository;
             _cacheProvider = cacheProvider;
             _mapper = mapper;
+            _logger = logger;
 
             _userRepositoryPolicy = policies.UserRepositoryPolicy;
             _specificationsRepositoryPolicy = policies.SpecificationRepositoryPolicy;
@@ -158,9 +163,58 @@ namespace CalculateFunding.Services.Users
             return new OkObjectResult(_mapper.Map<FundingStreamPermissionCurrent>(newPermissions));
         }
 
-        public Task OnSpecificationUpdate(Message message)
+        public async Task OnSpecificationUpdate(Message message)
         {
-            return Task.CompletedTask;
+            SpecificationVersionComparisonModel versionComparison = message.GetPayloadAsInstanceOf<SpecificationVersionComparisonModel>();
+
+            if (versionComparison == null || versionComparison.Current == null || versionComparison.Previous == null)
+            {
+                _logger.Error($"A null versionComparison was provided to users {nameof(OnSpecificationUpdate)}");
+
+                throw new InvalidModelException(nameof(SpecificationVersionComparisonModel), new[] { "Null or invalid model provided" });
+            }
+
+            string specificationId = versionComparison.Id;
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error($"A null specificationId was provided to users {nameof(OnSpecificationUpdate)} in model");
+
+                throw new InvalidModelException(nameof(SpecificationVersionComparisonModel), new[] { "Null or invalid specificationId on model" });
+            }
+
+            IEnumerable<string> previousFundingStreams = versionComparison.Previous.FundingStreams.OrderBy(c => c.Id).Select(f => f.Id);
+            IEnumerable<string> currentFundingStreams = versionComparison.Current.FundingStreams.OrderBy(c => c.Id).Select(f => f.Id);
+
+            if (!previousFundingStreams.SequenceEqual(currentFundingStreams))
+            {
+                _logger.Information("Found changed funding streams for specification '{SpecificationId}' Previous: {PreviousFundingStreams} Current {CurrentFundingStreams}", specificationId, previousFundingStreams, currentFundingStreams);
+
+                Dictionary<string, bool> userIds = new Dictionary<string, bool>();
+
+                IEnumerable<string> allFundingStreamIds = previousFundingStreams.Union(currentFundingStreams);
+
+                foreach (string fundingStreamId in allFundingStreamIds)
+                {
+                    IEnumerable<FundingStreamPermission> userPermissions = await _userRepositoryPolicy.ExecuteAsync(() => _userRepository.GetUsersWithFundingStreamPermissions(fundingStreamId));
+                    foreach (FundingStreamPermission permission in userPermissions)
+                    {
+                        if (!userIds.ContainsKey(permission.UserId))
+                        {
+                            userIds.Add(permission.UserId, true);
+                        }
+                    }
+                }
+
+                foreach (string userId in userIds.Keys)
+                {
+                    _logger.Information("Clearing effective permissions for userId '{UserId}' for specification '{SpecificationId}'", userId, specificationId);
+                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.DeleteHashKey<EffectiveSpecificationPermission>($"{CacheKeys.EffectivePermissions}:{userId}", specificationId));
+                }
+            }
+            else
+            {
+                _logger.Information("No funding streams have changed for specification '{SpecificationId}' which require effective permission clearing.", specificationId);
+            }
         }
 
         public async Task<IActionResult> GetEffectivePermissionsForUser(string userId, string specificationId, HttpRequest request)
@@ -209,7 +263,12 @@ namespace CalculateFunding.Services.Users
                             CanEditCalculations = false,
                             CanEditSpecification = false,
                             CanMapDatasets = false,
-                            CanPublishFunding = false
+                            CanPublishFunding = false,
+                            CanAdministerFundingStream = false,
+                            CanApproveSpecification = false,
+                            CanCreateQaTests = false,
+                            CanEditQaTests = false,
+                            CanRefreshFunding = false,
                         });
                     }
                 }
@@ -250,6 +309,11 @@ namespace CalculateFunding.Services.Users
                     CanEditSpecification = false,
                     CanMapDatasets = false,
                     CanPublishFunding = false,
+                    CanRefreshFunding = false,
+                    CanEditQaTests = false,
+                    CanCreateQaTests = false,
+                    CanApproveSpecification = false,
+                    CanAdministerFundingStream = false,
                 };
             }
 
@@ -265,6 +329,11 @@ namespace CalculateFunding.Services.Users
                 CanEditSpecification = permissionsForUser.All(p => p.CanEditSpecification),
                 CanMapDatasets = permissionsForUser.All(p => p.CanMapDatasets),
                 CanPublishFunding = permissionsForUser.All(p => p.CanPublishFunding),
+                CanAdministerFundingStream = permissionsForUser.All(p => p.CanAdministerFundingStream),
+                CanApproveSpecification = permissionsForUser.All(p => p.CanApproveSpecification),
+                CanCreateQaTests = permissionsForUser.All(p => p.CanCreateQaTests),
+                CanEditQaTests = permissionsForUser.All(p => p.CanEditQaTests),
+                CanRefreshFunding = permissionsForUser.All(p => p.CanRefreshFunding),
             };
         }
 
