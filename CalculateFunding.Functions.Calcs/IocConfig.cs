@@ -24,6 +24,7 @@ using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Models;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Repositories.Common.Search;
 
 namespace CalculateFunding.Functions.Calcs
 {
@@ -171,6 +172,12 @@ namespace CalculateFunding.Functions.Calcs
                 return new ResiliencePolicies
                 {
                     CalculationsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    CalculationsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                    CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
+                    CalculationsVersionsRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    BuildProjectRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }

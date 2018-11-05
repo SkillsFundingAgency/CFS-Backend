@@ -396,7 +396,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
 		[TestMethod]
-		public async Task UpdateCalculationsForCalculationSpecificationChange_GivenAllocationLineHasChanged_UpdatesCosmosWithNewFundingStream()
+		public async Task UpdateCalculationsForCalculationSpecificationChange_GivenAllocationLineHasChangedButNoBuildProject_UpdatesCosmosWithNewFundingStreamCreatesBuildProject()
 		{
 			//Arrange
 			const string specificationId = "spec-id";
@@ -507,11 +507,14 @@ namespace CalculateFunding.Services.Calcs.Services
 
 			ISearchRepository<CalculationIndex> mockSearchRepository = CreateSearchRepository();
 
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+
 			CalculationService service =
 				CreateCalculationService(logger: mockLogger,
 					specificationRepository: mockSpecificationRepository,
 					calculationsRepository: mockCalculationsRepository,
-					searchRepository: mockSearchRepository);
+					searchRepository: mockSearchRepository,
+                    buildProjectsRepository: buildProjectsRepository);
 			
 			//Act
 			await service.UpdateCalculationsForCalculationSpecificationChange(message);
@@ -532,14 +535,174 @@ namespace CalculateFunding.Services.Calcs.Services
 							 m.First().FundingStream.Id == expectedFundingStream.Id
 					));
 
-
 			await
 				mockSearchRepository
 				.Received(1)
 				.Index(Arg.Is<IEnumerable<CalculationIndex>>(m => m.Count() == 1));
+
+            await
+                buildProjectsRepository
+                .Received(1)
+                .CreateBuildProject(Arg.Any<BuildProject>());
 		}
 
-		[TestMethod]
+        [TestMethod]
+        public async Task UpdateCalculationsForCalculationSpecificationChange_GivenAllocationLineHasChangedAndBuildProjectExists_UpdatesCosmosWithNewFundingStreamUpdatesBuildProject()
+        {
+            //Arrange
+            const string specificationId = "spec-id";
+            const string allocationLineIdForFs1 = "AllocLineFS1";
+
+            CalculationVersionComparisonModel model = new CalculationVersionComparisonModel
+            {
+                Current = new Models.Specs.Calculation
+                {
+                    Name = "name",
+                    AllocationLine = new Reference { Id = allocationLineIdForFs1 },
+                    CalculationType = Models.Specs.CalculationType.Funding
+                },
+                Previous = new Models.Specs.Calculation
+                {
+                    Name = "name",
+                    AllocationLine = new Reference { Id = "1" },
+                    CalculationType = Models.Specs.CalculationType.Number
+                },
+                CalculationId = CalculationId,
+                SpecificationId = specificationId,
+            };
+
+            Models.Calcs.Calculation specCalculation = new Models.Calcs.Calculation
+            {
+                Name = "name",
+                AllocationLine = new Reference { Id = "1" },
+                CalculationType = Models.Calcs.CalculationType.Funding,
+                Id = CalculationId,
+                FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
+                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
+                Current = new CalculationVersion
+                {
+                    SourceCode = "source code",
+                    PublishStatus = PublishStatus.Approved
+                },
+                CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
+                SpecificationId = specificationId,
+            };
+
+            FundingStream expectedFundingStream = new FundingStream()
+            {
+                Name = "FundingStream1",
+                Id = "FS1",
+                AllocationLines = new List<AllocationLine>()
+                {
+                    new AllocationLine()
+                    {
+                        Id = allocationLineIdForFs1
+                    }
+                }
+            };
+            IEnumerable<FundingStream> fundingStreamsToReturn = new List<FundingStream>()
+            {
+                new FundingStream()
+                {
+                    Name = "FundingStream2",
+                    Id = "FS2",
+                    AllocationLines = new List<AllocationLine>()
+                    {
+                        new AllocationLine()
+                        {
+                            Id = "AllocLineFS2"
+                        }
+                    }
+                },
+                expectedFundingStream,
+                new FundingStream()
+                {
+                    Name = "FundingStream2",
+                    Id = "FS3",
+                    AllocationLines = new List<AllocationLine>()
+                    {
+                        new AllocationLine()
+                        {
+                            Id = "AllocLineFS3"
+                        }
+                    }
+                }
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ILogger mockLogger = CreateLogger();
+
+            SpecificationSummary specification = new SpecificationSummary
+            {
+                Name = "spec name",
+                FundingStreams = fundingStreamsToReturn
+            };
+
+            BuildProject buildProject = new BuildProject();
+
+            ISpecificationRepository mockSpecificationRepository = CreateSpecificationRepository();
+
+            mockSpecificationRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            mockSpecificationRepository
+                .GetFundingStreams()
+                .Returns(fundingStreamsToReturn);
+
+            ICalculationsRepository mockCalculationsRepository = CreateCalculationsRepository();
+            mockCalculationsRepository
+                .GetCalculationByCalculationSpecificationId(Arg.Is(CalculationId))
+                .Returns(specCalculation);
+
+            ISearchRepository<CalculationIndex> mockSearchRepository = CreateSearchRepository();
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            CalculationService service =
+                CreateCalculationService(logger: mockLogger,
+                    specificationRepository: mockSpecificationRepository,
+                    calculationsRepository: mockCalculationsRepository,
+                    searchRepository: mockSearchRepository,
+                    buildProjectsRepository: buildProjectsRepository);
+
+            //Act
+            await service.UpdateCalculationsForCalculationSpecificationChange(message);
+
+            //Assert
+            await
+                mockCalculationsRepository
+                .Received(1)
+                .UpdateCalculations(Arg.Is<IEnumerable<Models.Calcs.Calculation>>(m => m.Count() == 1));
+
+            await
+                mockCalculationsRepository
+                    .Received(1)
+                    .UpdateCalculations(Arg.Is<IEnumerable<Models.Calcs.Calculation>>(
+                        m => m.First().Name == "name" &&
+                             m.First().AllocationLine.Id == allocationLineIdForFs1 &&
+                             m.First().FundingStream.Name == expectedFundingStream.Name &&
+                             m.First().FundingStream.Id == expectedFundingStream.Id
+                    ));
+
+            await
+                mockSearchRepository
+                .Received(1)
+                .Index(Arg.Is<IEnumerable<CalculationIndex>>(m => m.Count() == 1));
+
+            await
+                buildProjectsRepository
+                .Received(1)
+                .UpdateBuildProject(Arg.Is(buildProject));
+        }
+
+        [TestMethod]
 		public async Task UpdateCalculationsForCalculationSpecificationChange_GivenAllocationLineHasNotChangedButFundingStreamIsNull_UpdatesCosmosWithFundingStream()
 		{
 			//Arrange

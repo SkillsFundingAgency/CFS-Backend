@@ -9,7 +9,13 @@ namespace CalculateFunding.Services.Calcs
         {
             return new ResiliencePolicies()
             {
-                CalculationsRepository = Policy.NoOpAsync()
+                CalculationsRepository = Policy.NoOpAsync(),
+                CalculationsSearchRepository = Policy.NoOpAsync(),
+                CacheProviderPolicy = Policy.NoOpAsync(),
+                CalculationsVersionsRepositoryPolicy = Policy.NoOpAsync(),
+                BuildProjectRepositoryPolicy = Policy.NoOpAsync(),
+                SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
+                MessagePolicy = Policy.NoOpAsync()
             };
         }
     }
