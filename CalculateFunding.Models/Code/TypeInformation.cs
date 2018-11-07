@@ -6,6 +6,12 @@ namespace CalculateFunding.Models.Code
     {
         public TypeInformation(){}
 
+        public TypeInformation(string name)
+        {
+            Name = name;
+            Type = "Keyword";
+        }
+
         public TypeInformation(string name, string description)
         {
             Name = name;

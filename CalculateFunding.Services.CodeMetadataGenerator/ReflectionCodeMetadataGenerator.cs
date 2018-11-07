@@ -155,6 +155,13 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                 results.Add(typeInformation);
             }
 
+            IEnumerable<TypeInformation> keywords = GetKeywords();
+
+            foreach (TypeInformation typeInformation in keywords)
+            {
+                results.Add(typeInformation);
+            }
+
             return results;
         }
 
@@ -266,6 +273,20 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                 new TypeInformation("UInteger", "0 through 4,294,967,295 (unsigned)"),
                 new TypeInformation("ULong", "0 through 18,446,744,073,709,551,615 (unsigned)"),
                 new TypeInformation("UShort", "0 through 65,535 (unsigned)"),
+            };
+        }
+
+        private static IEnumerable<TypeInformation> GetKeywords()
+        {
+            return new[]
+            {
+                new TypeInformation("If"),
+                new TypeInformation("ElseIf"),
+                new TypeInformation("EndIf"),
+                new TypeInformation("Then"),
+                new TypeInformation("If-Then"),
+                new TypeInformation("If-Then-Else"),
+                new TypeInformation("If-Then-ElseIf-Then"),
             };
         }
     }

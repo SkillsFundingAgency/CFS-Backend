@@ -326,6 +326,28 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
             result.FirstOrDefault(m => m.Name == "UShort").Should().NotBeNull();
         }
 
+        [TestMethod]
+        public void GetTypeInformation_WhenListDatasetsThenEnsureKeywordsShouldBeReturned()
+        {
+            // Arrange
+            ICodeMetadataGeneratorService generator = GetCodeGenerator();
+            byte[] assembly = GetCalculationClassWithListDescriptionsExampleAssembly();
+
+            // Act
+            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+
+            // Assert
+            result.Should().NotBeNull("Result should not be null");
+
+            result.FirstOrDefault(m => m.Name == "If").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "ElseIf").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "EndIf").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "Then").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "If-Then").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "If-Then-Else").Should().NotBeNull();
+            result.FirstOrDefault(m => m.Name == "If-Then-ElseIf-Then").Should().NotBeNull();
+        }
+
         private ICodeMetadataGeneratorService GetCodeGenerator()
         {
             return new ReflectionCodeMetadataGenerator();
