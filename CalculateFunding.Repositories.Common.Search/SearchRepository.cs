@@ -179,8 +179,6 @@ namespace CalculateFunding.Repositories.Common.Search
 
         public async Task<IEnumerable<IndexError>> Index(IEnumerable<T> documents)
         {
-            try
-            {
                 var client = await GetOrCreateIndex();
                 var errors = new List<IndexError>();
 
@@ -211,14 +209,7 @@ namespace CalculateFunding.Repositories.Common.Search
                         }
                     }
                 }
-
                 return errors;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-
         }
 
         public async Task DeleteIndex()

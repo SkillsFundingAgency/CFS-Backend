@@ -1180,12 +1180,21 @@ namespace CalculateFunding.Services.Specs
                 return new StatusCodeResult((int)statusCode);
             }
 
-            await _searchRepository.Index(new[]
-            {
-                CreateSpecificationIndex(specification)
-            });
+	        IEnumerable<IndexError> specificationIndexingErrors = await _searchRepository.Index(new[]
+	        {
+		        CreateSpecificationIndex(specification)
+	        });
 
-            await TaskHelper.WhenAllAndThrow(
+	        var specificationIndexingErrorsAsList = specificationIndexingErrors.ToList();
+	        if (!specificationIndexingErrorsAsList.IsNullOrEmpty())
+	        {
+				string specificationIndexingErrorsConcatted = string.Join(". ", specificationIndexingErrorsAsList);
+		        string formattedErrorMessage = $"Could not index specification {specificationVersion.Id} because: {specificationIndexingErrorsConcatted}";
+		        _logger.Error(formattedErrorMessage);
+				throw new ApplicationException(formattedErrorMessage);
+			}
+
+	        await TaskHelper.WhenAllAndThrow(
                  ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id),
                 _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}")
                 );
