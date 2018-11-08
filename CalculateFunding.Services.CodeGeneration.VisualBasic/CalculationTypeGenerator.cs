@@ -87,7 +87,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             builder.AppendLine($"Public Function {GenerateIdentifier(calc.Name)} As System.Nullable(Of Decimal)");
             builder.AppendLine();
             builder.AppendLine("Dim frameCount = New System.Diagnostics.StackTrace().FrameCount");
-            builder.AppendLine("If frameCount > 300 Then");
+            builder.AppendLine("If frameCount > 1000 Then");
             builder.AppendLine("Throw New Exception(\"The system detected a stackoverflow, this is probably due to recursive methods stuck in an infinite loop\")");
             builder.AppendLine("End If");
             builder.AppendLine();
