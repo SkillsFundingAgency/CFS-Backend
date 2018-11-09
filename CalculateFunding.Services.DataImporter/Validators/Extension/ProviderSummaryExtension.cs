@@ -20,9 +20,9 @@ namespace CalculateFunding.Services.DataImporter.Validators.Extension
             {
                 return providerSummary.URN;
             }
-            if (identifierType == IdentifierFieldType.Authority)
+            if (identifierType == IdentifierFieldType.LACode)
             {
-                return providerSummary.Authority;
+                return providerSummary.LACode;
             }
             if (identifierType == IdentifierFieldType.EstablishmentNumber)
             {

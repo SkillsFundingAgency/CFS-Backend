@@ -11,7 +11,7 @@ namespace CalculateFunding.Models.Datasets.Schema
         UPIN,
         URN,
         EstablishmentNumber,
-        Authority
+        LACode
     }
 
 }

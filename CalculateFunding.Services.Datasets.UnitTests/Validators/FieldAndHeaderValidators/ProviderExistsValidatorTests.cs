@@ -42,7 +42,71 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 		    result.Should().BeNull();
 	    }
 
-	    [TestMethod]
+        [TestMethod]
+        public void Validate_WhenFieldProviderExistsWithLaCode_ShouldReturnCorrectValidationResult()
+        {
+            // Arrange
+            IList<ProviderSummary> providerSummaries = CreateProviderSummaries().Values.ToList();
+            var providerExistsValidator = new ProviderExistsValidator(providerSummaries);
+
+            FieldDefinition definition = new FieldDefinition
+            {
+                Name = "LACode",
+                Description = "The LaCode identifier for the provider",
+                Id = "12345",
+                IdentifierFieldType = IdentifierFieldType.LACode,
+                MatchExpression = null,
+                Maximum = null,
+                Minimum = null,
+                Required = false,
+                Type = FieldType.String
+            };
+
+
+            Field field = new Field(new DatasetUploadCellReference(0, 2), "12345", definition);
+
+            // Act
+            FieldValidationResult result = providerExistsValidator.ValidateField(field);
+
+            // Assert
+            result.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void Validate_WhenFieldProviderDoesNotExistWithLaCode_ShouldReturnCorrectValidationResult()
+        {
+            // Arrange
+            IList<ProviderSummary> providerSummaries = CreateProviderSummaries().Values.ToList();
+            var providerExistsValidator = new ProviderExistsValidator(providerSummaries);
+
+            FieldDefinition definition = new FieldDefinition
+            {
+                Name = "LACode",
+                Description = "The LaCode identifier for the provider",
+                Id = "12345",
+                IdentifierFieldType = IdentifierFieldType.LACode,
+                MatchExpression = null,
+                Maximum = null,
+                Minimum = null,
+                Required = false,
+                Type = FieldType.String
+            };
+
+
+            Field field = new Field(new DatasetUploadCellReference(0, 2), "12345888", definition);
+
+            // Act
+            FieldValidationResult result = providerExistsValidator.ValidateField(field);
+
+            // Assert
+            result.FieldValidated
+                .Should().Be(field);
+
+            result.ReasonOfFailure
+                .Should().Be(FieldValidationResult.ReasonForFailure.ProviderIdMismatchWithServiceProvider);
+        }
+
+        [TestMethod]
 	    public void Validate_WhenFieldProviderDoesNotExist_ShouldReturnCorrectValidationResult()
 	    {
 		    // Arrange
@@ -117,7 +181,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 					DateOpened = null,
 					EstablishmentNumber = "8001",
 					Id = null,
-					LACode = null,
+					LACode = "12345",
 					LegalName = null,
 					Name = "Barnsley College",
 					NavVendorNo = null,

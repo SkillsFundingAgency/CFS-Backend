@@ -705,9 +705,9 @@ namespace CalculateFunding.Services.Datasets
             {
                 return x => x.URN;
             }
-            else if (identifierFieldType == IdentifierFieldType.Authority)
+            else if (identifierFieldType == IdentifierFieldType.LACode)
             {
-                return x => x.Authority;
+                return x => x.LACode;
             }
             else if (identifierFieldType == IdentifierFieldType.EstablishmentNumber)
             {

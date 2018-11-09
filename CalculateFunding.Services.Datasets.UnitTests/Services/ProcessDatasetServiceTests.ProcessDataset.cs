@@ -1335,6 +1335,182 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndLaCodesAsIdentifiers_SavesDataset()
+        {
+            //Arrange
+            const string blobPath = "dataset-id/v1/ds.xlsx";
+
+            string dataset_cache_key = $"ds-table-rows:{blobPath}:{DataDefintionId}";
+
+            string dataset_aggregations_cache_key = $"{CacheKeys.DatasetAggregationsForSpecification}{SpecificationId}";
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult
+                {
+                    Rows = new List<RowLoadResult>
+                    {
+                        new RowLoadResult { Identifier = "111", IdentifierFieldType = IdentifierFieldType.LACode, Fields = new Dictionary<string, object>{ { "UPIN", "123456" }, { "LACode", "111" } } }
+                    }
+                }
+            };
+
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1, };
+
+            Dataset dataset = new Dataset
+            {
+                Definition = new Reference { Id = DataDefintionId },
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion,
+                }
+            };
+
+            var json = JsonConvert.SerializeObject(dataset);
+
+            string relationshipId = "relId";
+            string relationshipName = "Relationship Name";
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message
+                .UserProperties
+                .Add("specification-id", SpecificationId);
+
+            message
+               .UserProperties
+               .Add("relationship-id", relationshipId);
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                new DatasetDefinition
+                {
+                    Id = DataDefintionId,
+                    TableDefinitions = new List<TableDefinition>
+                    {
+                        new TableDefinition
+                        {
+                            FieldDefinitions = new List<FieldDefinition>
+                            {
+                                new FieldDefinition
+                                {
+                                    Name = "UPIN",
+                                },
+                                new FieldDefinition
+                                {
+                                    IdentifierFieldType = IdentifierFieldType.LACode,
+                                    Name = "LACode",
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(datasetDefinitions);
+
+            ILogger logger = CreateLogger();
+
+            IBlobClient blobClient = CreateBlobClient();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<TableLoadResult[]>(Arg.Is(dataset_cache_key))
+                .Returns(tableLoadResults.ToArraySafe());
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = BuildProjectId,
+                DatasetRelationships = new List<DatasetRelationshipSummary>
+                {
+                    new DatasetRelationshipSummary{
+                        DatasetDefinition = new DatasetDefinition { Id = DataDefintionId },
+                        Relationship = new Reference(relationshipId, relationshipName),
+                    }
+                },
+                SpecificationId = SpecificationId,
+            };
+
+            ICalcsRepository calcsRepository = CreateCalcsRepository();
+            calcsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(buildProject);
+
+            IEnumerable<ProviderSummary> summaries = new[]
+            {
+                new ProviderSummary { Id = "123",  UPIN = "123456", LACode = "111" },
+            };
+
+            IProviderRepository resultsRepository = CreateProviderRepository();
+            resultsRepository
+                .GetAllProviderSummaries()
+                .Returns(summaries);
+
+            IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
+
+            blobClient
+                .GetBlobReferenceFromServerAsync(blobPath)
+                .Returns(Substitute.For<ICloudBlob>());
+
+            Stream mockedExcelStream = Substitute.For<Stream>();
+            mockedExcelStream
+                .Length
+                .Returns(1);
+
+            blobClient
+                .DownloadToStreamAsync(Arg.Any<ICloudBlob>())
+                .Returns(mockedExcelStream);
+
+            IExcelDatasetReader excelDatasetReader = CreateExcelDatasetReader();
+            excelDatasetReader
+                .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
+                .Returns(tableLoadResults.ToArraySafe());
+
+            ProcessDatasetService service = CreateProcessDatasetService(
+                datasetRepository: datasetRepository,
+                logger: logger,
+                calcsRepository: calcsRepository,
+                blobClient: blobClient,
+                cacheProvider: cacheProvider,
+                providerRepository: resultsRepository,
+                providerResultsRepository: providerResultsRepository,
+                excelDatasetReader: excelDatasetReader);
+
+            // Act
+            await service.ProcessDataset(message);
+
+            // Assert
+            await
+                providerResultsRepository
+                    .Received(1)
+                    .UpdateCurrentProviderSourceDatasets(Arg.Is<IEnumerable<ProviderSourceDataset>>(
+                        m => m.First().DataDefinition.Id == DataDefintionId &&
+                             m.First().DataGranularity == DataGranularity.SingleRowPerProvider &&
+                             m.First().DefinesScope == false &&
+                             !string.IsNullOrWhiteSpace(m.First().Id) &&
+                             m.First().SpecificationId == SpecificationId &&
+                             m.First().ProviderId == "123" &&
+                             m.First().Current.Rows[0]["LACode"].ToString() == "111"
+                        ));
+        }
+
+        [TestMethod]
         async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndIsAggregatesFeatureToggleEnabledButNoAggretableFields_SavesDataset()
         {
             //Arrange

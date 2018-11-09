@@ -155,7 +155,7 @@ namespace CalculateFunding.Services.Scenarios
                                 Name = "Test field name 1",
                                 Description = "Test description 1",
                                 Type = FieldType.String,
-                                IdentifierFieldType = IdentifierFieldType.Authority
+                                IdentifierFieldType = IdentifierFieldType.LACode
                             },
                             new FieldDefinition
                             {
@@ -191,7 +191,7 @@ namespace CalculateFunding.Services.Scenarios
                                 Name = "Test field name 1",
                                 Description = "Test description 1",
                                 Type = FieldType.String,
-                                IdentifierFieldType = IdentifierFieldType.Authority
+                                IdentifierFieldType = IdentifierFieldType.LACode
                             },
                             new FieldDefinition
                             {
@@ -215,7 +215,7 @@ namespace CalculateFunding.Services.Scenarios
                                 Name = "Test field name 3",
                                 Description = "Test description 3",
                                 Type = FieldType.String,
-                                IdentifierFieldType = IdentifierFieldType.Authority
+                                IdentifierFieldType = IdentifierFieldType.LACode
                             },
                             new FieldDefinition
                             {
