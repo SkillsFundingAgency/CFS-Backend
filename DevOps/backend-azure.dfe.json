@@ -1174,7 +1174,7 @@
             },
             {
               "name": "datasetsClient:ApiKey",
-              "value": "[parameters('ApiKeyResults')]"
+              "value": "[parameters('ApiKeyDatasets')]"
             },
             {
               "name": "datasetsClient:ApiEndpoint",
@@ -1325,7 +1325,7 @@
             },
             {
               "name": "datasetsClient:ApiKey",
-              "value": "[parameters('ApiKeyResults')]"
+              "value": "[parameters('ApiKeyDatasets')]"
             },
             {
               "name": "datasetsClient:ApiEndpoint",
@@ -2154,7 +2154,7 @@
             },
             {
               "name": "datasetsClient:ApiKey",
-              "value": "[parameters('ApiKeyResults')]"
+              "value": "[parameters('ApiKeyDatasets')]"
             },
             {
               "name": "datasetsClient:ApiEndpoint",

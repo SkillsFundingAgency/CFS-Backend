@@ -177,13 +177,13 @@ namespace CalculateFunding.Services.Calculator
 
             if (_featureToggle.IsAggregateSupportInCalculationsEnabled())
             {
-                datasetAggregations = await _cacheProvider.GetAsync<IEnumerable<DatasetAggregations>>($"{ CacheKeys.DatasetAggregationsForSpecification}{specificationId}");
+                datasetAggregations = await _cacheProvider.GetAsync<List<DatasetAggregations>>($"{ CacheKeys.DatasetAggregationsForSpecification}{specificationId}");
 
                 if (datasetAggregations.IsNullOrEmpty())
                 {
                     datasetAggregations = await _datasetAggregationsRepository.GetDatasetAggregationsForSpecificationId(specificationId);
 
-                    await _cacheProvider.SetAsync<IEnumerable<DatasetAggregations>>($"{CacheKeys.DatasetAggregationsForSpecification}{specificationId}", datasetAggregations);
+                    await _cacheProvider.SetAsync<List<DatasetAggregations>>($"{CacheKeys.DatasetAggregationsForSpecification}{specificationId}", datasetAggregations.ToList());
                 }
             }
 

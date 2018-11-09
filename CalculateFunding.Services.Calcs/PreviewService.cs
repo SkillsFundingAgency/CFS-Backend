@@ -186,13 +186,13 @@ namespace CalculateFunding.Services.Calcs
 
             IEnumerable<DatasetSchemaRelationshipModel> datasetSchemaRelationshipModels = Enumerable.Empty<DatasetSchemaRelationshipModel>();
 
-            datasetSchemaRelationshipModels = await _cacheProvider.GetAsync<IEnumerable<DatasetSchemaRelationshipModel>>(cacheKey);
+            datasetSchemaRelationshipModels = await _cacheProvider.GetAsync<List<DatasetSchemaRelationshipModel>>(cacheKey);
 
             if (datasetSchemaRelationshipModels.IsNullOrEmpty())
             {
                 datasetSchemaRelationshipModels = await _datasetRepository.GetDatasetSchemaRelationshipModelsForSpecificationId(previewRequest.SpecificationId);
 
-                await _cacheProvider.SetAsync<IEnumerable<DatasetSchemaRelationshipModel>>(cacheKey, datasetSchemaRelationshipModels);
+                await _cacheProvider.SetAsync<List<DatasetSchemaRelationshipModel>>(cacheKey, datasetSchemaRelationshipModels.ToList());
             }
 
             HashSet<string> compilerErrors = new HashSet<string>();

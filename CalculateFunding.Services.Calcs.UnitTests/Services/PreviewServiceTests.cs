@@ -1516,7 +1516,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 cacheProvider
                     .Received(1)
-                    .SetAsync<IEnumerable<DatasetSchemaRelationshipModel>>(Arg.Is($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{SpecificationId}"), Arg.Is(relationshipModels));
+                    .SetAsync<List<DatasetSchemaRelationshipModel>>(Arg.Is($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{SpecificationId}"), Arg.Any<List<DatasetSchemaRelationshipModel>>());
         }
 
         [TestMethod]
@@ -1606,8 +1606,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
-                .GetAsync<IEnumerable<DatasetSchemaRelationshipModel>>(Arg.Is($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{SpecificationId}"))
-                .Returns(relationshipModels);
+                .GetAsync<List<DatasetSchemaRelationshipModel>>(Arg.Is($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{SpecificationId}"))
+                .Returns(relationshipModels.ToList());
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
            
