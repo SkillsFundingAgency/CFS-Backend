@@ -10,6 +10,8 @@
 
             public const string CalcEngineGenerateAllocationResults = "calc-events-generate-allocations-results";
 
+            public const string CalcEngineGenerateAllocationResultsPoisoned = "calc-events-generate-allocations-results$poisoned";
+
             public const string TestEngineExecuteTests = "test-events-execute-tests";
 
             public const string AddDefinitionRelationshipToSpecification = "spec-events-add-definition-relationship";
@@ -32,6 +34,8 @@
             public const string EditSpecification = "edit-specification";
 
             public const string EditCalculation = "edit-calculation";
+
+            public const string JobNotifications = "job-notifications";
         }
 
         public static class TopicSubscribers
