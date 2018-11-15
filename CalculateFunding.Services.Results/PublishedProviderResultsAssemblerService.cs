@@ -70,7 +70,6 @@ namespace CalculateFunding.Services.Results
                         ProviderId = providerResult.Provider.Id,
                         SpecificationId = specificationId,
                         FundingStreamResult = publishedFundingStreamResult,
-                        Summary = $"{providerResult.Provider.ProviderProfileIdType}: {providerResult.Provider.Id}, version {publishedFundingStreamResult.AllocationLineResult.Current.Version}",
                         Title = $"Allocation {publishedFundingStreamResult.AllocationLineResult.AllocationLine.Name} was {publishedFundingStreamResult.AllocationLineResult.Current.Status.ToString()}",
                         FundingPeriod = fundingPeriod
                     };

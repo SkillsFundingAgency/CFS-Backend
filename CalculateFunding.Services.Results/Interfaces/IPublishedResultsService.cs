@@ -17,5 +17,6 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<PublishedProviderResultWithHistory> GetPublishedProviderResultWithHistoryByAllocationResultId(string allocationResultId);
         Task<IActionResult> ReIndexAllocationNotificationFeeds();
         Task FetchProviderProfile(Message message);
+        Task MigrateVersionNumbers(Message message);
     }
 }

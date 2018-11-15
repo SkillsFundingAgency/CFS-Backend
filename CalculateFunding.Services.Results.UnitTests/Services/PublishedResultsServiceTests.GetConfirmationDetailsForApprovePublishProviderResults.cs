@@ -211,7 +211,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "Test 1",
-                    Summary = "testing",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -279,7 +278,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "Test 1",
-                    Summary = "testing",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -294,7 +292,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "Test 2",
-                    Summary = "testing",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -362,7 +359,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "Test 1",
-                    Summary = "testing",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -377,7 +373,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "Test 2",
-                    Summary = "testing",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -443,7 +438,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "Test 1",
-                    Summary = "testing",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -458,7 +452,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "Test 2",
-                    Summary = "testing",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -529,7 +522,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "Test 1",
-                    Summary = "testing",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -544,7 +536,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "Test 2",
-                    Summary = "testing",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -615,7 +606,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "Test 1",
-                    Summary = "testing",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -630,7 +620,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "Test 2",
-                    Summary = "testing",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {

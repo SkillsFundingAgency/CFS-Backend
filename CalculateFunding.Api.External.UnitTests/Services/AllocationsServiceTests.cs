@@ -295,8 +295,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             return new PublishedProviderResult
             {
                 Title = "test title 1",
-                Summary = "test summary 1",
-
+                
                 SpecificationId = "spec-1",
                 FundingStreamResult = new PublishedFundingStreamResult
                 {
