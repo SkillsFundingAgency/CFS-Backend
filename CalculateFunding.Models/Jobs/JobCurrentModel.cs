@@ -3,10 +3,7 @@ using System.Collections.Generic;
 
 namespace CalculateFunding.Models.Jobs
 {
-    /// <summary>
-    /// Job entity - current version to be persisted into Cosmos
-    /// </summary>
-    public class Job : IIdentifiable
+    public class JobCurrentModel
     {
         /// <summary>
         /// Required - randomly generated GUID for this job ID
@@ -78,14 +75,8 @@ namespace CalculateFunding.Models.Jobs
         public string Outcome { get; set; }
 
         /// <summary>
-        /// Cosmos ID
+        /// Optional child jobs
         /// </summary>
-        public string Id
-        {
-            get
-            {
-                return JobId;
-            }
-        }
+        public IEnumerable<JobCurrentModel> ChildJobs { get; set; }
     }
 }

@@ -5,13 +5,11 @@ namespace CalculateFunding.Models.Jobs
     public class JobCreateModel
     {
         /// <summary>
-        /// Required Job Type (from list of known jobs)
+        /// Required Job Definition ID (from list of known jobs)
         /// </summary>
-        public string JobType { get; set; }
+        public string JobDefinitionId { get; set; }
 
         public string InvokerUserId { get; set; }
-
-        public string InvokerUserName { get; set; }
 
         public string InvokerUserDisplayName { get; set; }
 
@@ -19,11 +17,7 @@ namespace CalculateFunding.Models.Jobs
 
         public string SpecificationId { get; set; }
 
-        public string TriggerMessage { get; set; }
-
-        public string TriggerEntityId { get; set; }
-
-        public string TriggerEntityType { get; set; }
+        public Trigger Trigger { get; set; }
 
         /// <summary>
         /// Optional Parent Job Id
@@ -36,7 +30,7 @@ namespace CalculateFunding.Models.Jobs
         public string CorrelationId { get; set; }
 
         /// <summary>
-        /// Job properties (also set as message bus properties)
+        /// Optional: Job properties (also set as message bus properties)
         /// </summary>
         public IDictionary<string, string> Properties { get; set; }
 

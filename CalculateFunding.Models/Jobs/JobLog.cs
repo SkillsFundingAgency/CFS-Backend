@@ -8,6 +8,9 @@ namespace CalculateFunding.Models.Jobs
     /// </summary>
     public class JobLog
     {
+        /// <summary>
+        /// Randomly generated GUID for ID
+        /// </summary>
         public string JobLogId { get; set; }
 
         public string JobId { get; set; }
@@ -24,8 +27,12 @@ namespace CalculateFunding.Models.Jobs
         /// </summary>
         public string Outcome { get; set; }
 
-        public CompletionStatus CompletionStatus { get; set; }
+        public bool? CompletedSuccessfully { get; set; }
 
-        public TimeSpan? Duration { get; set; }
+        public DateTimeOffset Started { get; set; }
+
+        public DateTimeOffset Finished { get; set; }
+
+        public TimeSpan Duration { get; set; }
     }
 }

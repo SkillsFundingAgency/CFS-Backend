@@ -21,6 +21,8 @@ namespace CalculateFunding.Models.Jobs
 
         public CompletionStatus? CompletionStatus { get; set; }
 
+        public string SpecificationId { get; set; }
+
         public string InvokerUserId { get; set; }
 
         public string InvokerUserDisplayName { get; set; }
@@ -31,23 +33,9 @@ namespace CalculateFunding.Models.Jobs
 
         public int? OverallItemsSucceeded { get; set; }
 
-        /// <summary>
-        /// Specification ID job relates to. This is required based on the Job Definition
-        /// </summary>
-        public string SpecificationId { get; set; }
+        public int? OverallItemsFailed { get; set; }
 
-        /// <summary>
-        /// Trigger entity ID, eg Calculation Specification ID
-        /// Optional depending on JobType configuration.
-        /// </summary>
-        public string TriggerEntityId { get; set; }
-
-        /// <summary>
-        /// Trigger Entity Type
-        /// eg CalculationSpecification
-        /// Optional depending on JobType configuration.
-        /// </summary>
-        public string TriggerEntityType { get; set; }
+        public Trigger Trigger { get; set; }
 
         /// <summary>
         /// Optional Parent Job Id

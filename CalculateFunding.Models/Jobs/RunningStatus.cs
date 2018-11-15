@@ -3,10 +3,8 @@
     public enum RunningStatus
     {
         Queued,
+        QueuedWithService,
         InProgress,
-        Cancelled,
-        Timeout,
-        Complete,
-        Superseded,
+        Completed,
     }
 }

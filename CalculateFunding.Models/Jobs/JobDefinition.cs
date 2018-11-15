@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Models.Jobs
 {
@@ -6,12 +7,12 @@ namespace CalculateFunding.Models.Jobs
     /// Job definition (loading from config source at runtime) describing a particular job type
     /// A job instance must reference a job type and the behaviour configured in this class will be used to transition this job and related jobs for the specification through different states
     /// </summary>
-    public class JobType
+    public class JobDefinition
     {
         /// <summary>
         /// A unique, human readable string, eg CalculationRun, MapDataset, ChooseFunding
         /// </summary>
-        public string JobTypeId { get; set; }
+        public string JobDefinitionId { get; set; }
 
         public string Name { get; set; }
 
@@ -39,6 +40,16 @@ namespace CalculateFunding.Models.Jobs
         /// Require an entity id when a job is enqueued
         /// </summary>
         public bool RequireEntityId { get; set; }
+
+        /// <summary>
+        /// Require a message body to set as service bus message body
+        /// </summary>
+        public bool RequireMessageBody { get; set; }
+
+        /// <summary>
+        /// Require the following keys to be set and have values to be valid on job create
+        /// </summary>
+        public IEnumerable<string> RequireMessageProperties { get; set; }
 
         /// <summary>
         /// Treat the Item Count of the job as a percentage

@@ -11,7 +11,9 @@ namespace CalculateFunding.Services.Jobs.Interfaces
         Task<JobLog> CreateJobLog(JobLog jobLog);
 
         Task<Job> UpdateJob(string jobId, Job job);
-        Task<JobType> GetJobType(string jobType);
+
+        Task<JobDefinition> GetJobDefinition(string jobType);
+
         Task<IEnumerable<Job>> GetRunningJobsForSpecificationAndType(string specificationId, string jobType);
     }
 }

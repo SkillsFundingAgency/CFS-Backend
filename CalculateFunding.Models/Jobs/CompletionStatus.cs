@@ -2,7 +2,10 @@
 {
     public enum CompletionStatus
     {
-        Success,
-        Fail,
+        Succeeded,
+        Failed,
+        Cancelled,
+        TimedOut,
+        Superseded,
     }
 }

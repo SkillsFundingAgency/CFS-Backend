@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Jobs
             // Use properties so the topic can be filtered by consumers based on these fields
             Dictionary<string, string> properties = new Dictionary<string, string>();
             properties.Add("specificationId", jobNotification.SpecificationId);
-            properties.Add("entityId", jobNotification.TriggerEntityId);
+            properties.Add("entityId", jobNotification.Trigger.EntityId);
             properties.Add("jobType", jobNotification.JobType);
             properties.Add("jobId", jobNotification.JobId);
 

@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Jobs
 
         public async Task<IActionResult> CreateJob(JobCreateModel job, HttpRequest request)
         {
-            JobType jobType = await _jobRepository.GetJobType(job.JobType);
+            JobDefinition jobDefinition = await _jobRepository.GetJobDefinition(job.JobDefinitionId);
 
             // Validate job type
 
@@ -33,12 +33,17 @@ namespace CalculateFunding.Services.Jobs
             };
 
             Job newJobResult = await _jobRepository.CreateJob(newJob);
-            await CheckForSupersededAndCancelOtherJobs(newJobResult, jobType);
+            await CheckForSupersededAndCancelOtherJobs(newJobResult, jobDefinition);
 
             // Notifiy this job has started and is queued
             await _notificationService.SendNotification(new JobNotification());
 
             throw new System.NotImplementedException();
+        }
+
+        public Task<IActionResult> CreateJobs(IEnumerable<JobCreateModel> jobs, HttpRequest request)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -51,6 +56,9 @@ namespace CalculateFunding.Services.Jobs
         {
             // This method will be responsible for saving job logs, plus performing state management based on reported status
             // Lots of logic will be triggered from this function, eg RunningStatus, CompletionStatus, setting Outcome on Job
+
+            // A job is complete (CompletedStatus is updated to Successful or Failed) on the job 
+            // when the JobLogUpdateModel.CompletedSuccessfully is set to a non null value
 
             await _jobRepository.CreateJobLog(new JobLog());
 
@@ -107,18 +115,18 @@ namespace CalculateFunding.Services.Jobs
             throw new System.NotImplementedException();
         }
 
-        private async Task CheckForSupersededAndCancelOtherJobs(Job currentJob, JobType jobType)
+        private async Task CheckForSupersededAndCancelOtherJobs(Job currentJob, JobDefinition jobDefinition)
         {
-            if (jobType.SupersedeExistingRunningJobOnEnqueue)
+            if (jobDefinition.SupersedeExistingRunningJobOnEnqueue)
             {
-                IEnumerable<Job> runningJobs = await _jobRepository.GetRunningJobsForSpecificationAndType(currentJob.SpecificationId, jobType.JobTypeId);
+                IEnumerable<Job> runningJobs = await _jobRepository.GetRunningJobsForSpecificationAndType(currentJob.SpecificationId, jobDefinition.JobDefinitionId);
                 foreach (Job runningJob in runningJobs)
                 {
                     await SupersedeJob(runningJob.JobId, currentJob.JobId);
 
                     // Set all properties
                     runningJob.Completed = DateTimeOffset.UtcNow;
-                    runningJob.CompletionStatus = CompletionStatus.Fail;
+                    runningJob.CompletionStatus = CompletionStatus.Superseded;
                     runningJob.SupersededByJobId = currentJob.JobId;
 
                     await _jobRepository.UpdateJob(runningJob.JobId, runningJob);
