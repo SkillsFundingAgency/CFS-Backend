@@ -1006,6 +1006,8 @@ namespace CalculateFunding.Services.Specs.Services
 		public async Task EditSpecification_WhenIndexingReturnsErrors_ShouldThrowException()
 		{
 			//Arrange
+			const string errorMessage = "Encountered error 802 code";
+
 			SpecificationEditModel specificationEditModel = new SpecificationEditModel
 			{
 				FundingPeriodId = "fp10",
@@ -1078,7 +1080,7 @@ namespace CalculateFunding.Services.Specs.Services
 			ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
 			searchRepository
 				.Index(Arg.Any<IEnumerable<SpecificationIndex>>())
-				.Returns(new []{new IndexError()});
+				.Returns(new []{new IndexError(){ErrorMessage = errorMessage } });
 
 			ICacheProvider cacheProvider = CreateCacheProvider();
 
@@ -1102,17 +1104,13 @@ namespace CalculateFunding.Services.Specs.Services
 			Func<Task<IActionResult>> editSpecification = async () => await service.EditSpecification(request);
 
 			//Assert
-			editSpecification.Should().Throw<ApplicationException>();
-
-			await
-				searchRepository
-					.Received(1)
-					.Index(Arg.Is<IEnumerable<SpecificationIndex>>(
-							m => m.First().Id == SpecificationId &&
-							m.First().Name == "new spec name" &&
-							m.First().FundingPeriodId == "fp10" &&
-							m.First().FundingStreamIds.Count() == 1
-						));
+			editSpecification
+				.Should()
+				.Throw<ApplicationException>()
+				.Which
+				.Message
+				.Should()
+				.Be($"Could not index specification {specification.Current.Id} because: {errorMessage}");
 		}
 	}
 }
