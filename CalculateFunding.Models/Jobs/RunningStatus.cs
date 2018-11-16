@@ -2,9 +2,9 @@
 {
     public enum RunningStatus
     {
-        Queued,
-        QueuedWithService,
-        InProgress,
-        Completed,
+        Queued, // Created and waiting to be actioned
+        QueuedWithService, // Sent to the microservice to action
+        InProgress, // Job is running
+        Completed, // Job has completed
     }
 }
