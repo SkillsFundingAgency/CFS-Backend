@@ -8,7 +8,7 @@ namespace CalculateFunding.Services.Jobs
 {
     public class JobService : IJobService
     {
-        public Task<IActionResult> GetJobById(string jobId, HttpRequest request)
+        public Task<IActionResult> GetJobById(string jobId, bool includeChildJobs, HttpRequest request)
         {
             throw new System.NotImplementedException();
         }
@@ -22,8 +22,13 @@ namespace CalculateFunding.Services.Jobs
         {
             throw new System.NotImplementedException();
         }
+       
+        public Task<IActionResult> GetJobs(string specificationId, string jobType, string entityId, RunningStatus? runningStatus, CompletionStatus? completionStatus, bool excludeChildJobs, int pageNumber, HttpRequest request)
+        {
+            throw new System.NotImplementedException();
+        }
 
-        public Task<IActionResult> GetJobs(string specificationId, string jobType, string entityId, RunningStatus? runningStatus, CompletionStatus? completionStatus, int pageNumber, HttpRequest request)
+        public Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate, HttpRequest request)
         {
             throw new System.NotImplementedException();
         }
