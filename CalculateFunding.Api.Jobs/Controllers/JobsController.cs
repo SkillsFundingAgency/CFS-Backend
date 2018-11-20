@@ -9,12 +9,15 @@ namespace CalculateFunding.Api.Jobs.Controllers
     public class JobsController : Controller
     {
         private readonly IJobService _jobService;
-        private readonly IJobManagementService _managementService;
+        private readonly IJobManagementService _jobManagementService;
+        private readonly IJobDefinitionsService _jobDefinitionsService;
 
-        public JobsController(IJobService jobService, IJobManagementService jobManagementService)
+        public JobsController(IJobService jobService,
+            IJobManagementService jobManagementService, IJobDefinitionsService jobDefinitionsService)
         {
             _jobService = jobService;
-            _managementService = jobManagementService;
+            _jobManagementService = jobManagementService;
+            _jobDefinitionsService = jobDefinitionsService;
         }
 
         [HttpGet]
@@ -38,7 +41,7 @@ namespace CalculateFunding.Api.Jobs.Controllers
         [ProducesResponseType(201, Type = typeof(JobSummary))]
         public async Task<IActionResult> CreateJob(JobCreateModel job)
         {
-            return await _managementService.CreateJob(job, ControllerContext.HttpContext.Request);
+            return await _jobManagementService.CreateJob(job, ControllerContext.HttpContext.Request);
         }
 
         [HttpPost]
@@ -46,15 +49,31 @@ namespace CalculateFunding.Api.Jobs.Controllers
         [ProducesResponseType(201, Type = typeof(IEnumerable<JobSummary>))]
         public async Task<IActionResult> CreateJobs(IEnumerable<JobCreateModel> jobs)
         {
-            return await _managementService.CreateJobs(jobs, ControllerContext.HttpContext.Request);
+            return await _jobManagementService.CreateJobs(jobs, ControllerContext.HttpContext.Request);
         }
 
         [HttpGet]
-        [Route("api/jobsdefinitions")]
+        [Route("api/jobs/jobdefinitions/{jobDefinitionId}")]
+        [ProducesResponseType(200, Type = typeof(JobDefinition))]
+        public async Task<IActionResult> GetJobDefinitionById(string jobDefinitionId)
+        {
+            return await _jobDefinitionsService.GetJobDefinitionById(jobDefinitionId);
+        }
+
+        [HttpGet]
+        [Route("api/jobs/jobdefinitions")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<JobDefinition>))]
         public async Task<IActionResult> GetJobDefinitions()
         {
-            return await _jobService.GetJobDefinitions(ControllerContext.HttpContext.Request);
+            return await _jobDefinitionsService.GetJobDefinitions();
+        }
+
+        [HttpPost]
+        [Route("api/jobs/jobdefinitions")]
+        [ProducesResponseType(204)]
+        public async Task<IActionResult> SaveJobDefinition()
+        {
+            return await _jobDefinitionsService.SaveDefinition(ControllerContext.HttpContext.Request);
         }
 
         [HttpGet]
@@ -77,8 +96,6 @@ namespace CalculateFunding.Api.Jobs.Controllers
             return await _jobService.GetJobs(specificationId, jobType, entityId, runningStatus, completionStatus, excludeChildJobs, pageNumber, ControllerContext.HttpContext.Request);
         }
 
-
-
         [HttpGet]
         [Route("api/jobs/{jobId}/logs")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<JobLog>))]
@@ -92,7 +109,7 @@ namespace CalculateFunding.Api.Jobs.Controllers
         [ProducesResponseType(202)]
         public async Task<IActionResult> UpdateJobStatusLog(JobLogUpdateModel job)
         {
-            return await _managementService.AddJobLog(job, ControllerContext.HttpContext.Request);
+            return await _jobManagementService.AddJobLog(job, ControllerContext.HttpContext.Request);
         }
 
         /// <summary>
@@ -106,7 +123,7 @@ namespace CalculateFunding.Api.Jobs.Controllers
         [ProducesResponseType(202)]
         public async Task<IActionResult> CancelJob(string jobId)
         {
-            return await _managementService.CancelJob(jobId, ControllerContext.HttpContext.Request);
+            return await _jobManagementService.CancelJob(jobId, ControllerContext.HttpContext.Request);
         }
     }
 }

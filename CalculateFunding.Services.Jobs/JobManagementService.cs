@@ -119,7 +119,7 @@ namespace CalculateFunding.Services.Jobs
         {
             if (jobDefinition.SupersedeExistingRunningJobOnEnqueue)
             {
-                IEnumerable<Job> runningJobs = await _jobRepository.GetRunningJobsForSpecificationAndType(currentJob.SpecificationId, jobDefinition.JobDefinitionId);
+                IEnumerable<Job> runningJobs = await _jobRepository.GetRunningJobsForSpecificationAndType(currentJob.SpecificationId, jobDefinition.Id);
                 foreach (Job runningJob in runningJobs)
                 {
                     await SupersedeJob(runningJob.JobId, currentJob.JobId);

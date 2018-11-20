@@ -1,15 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using CalculateFunding.Api.Common.Middleware;
+using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.Jobs.Interfaces;
+using CalculateFunding.Services.Jobs.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Jobs;
+using Polly.Bulkhead;
+using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Api.Common.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Services;
 
 namespace CalculateFunding.Api.Jobs
 {
@@ -26,6 +30,8 @@ namespace CalculateFunding.Api.Jobs
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            RegisterComponents(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -41,7 +47,86 @@ namespace CalculateFunding.Api.Jobs
             }
 
             app.UseHttpsRedirection();
+
+            app.UseMiddleware<LoggedInUserMiddleware>();
+
+            app.UseMiddleware<ApiKeyMiddleware>();
+
             app.UseMvc();
+
+            app.UseHealthCheckMiddleware();
         }
+
+        public void RegisterComponents(IServiceCollection builder)
+        {
+            builder
+                .AddSingleton<IJobDefinitionsService, JobDefinitionsService>()
+                .AddSingleton<IHealthChecker, JobDefinitionsService>();
+
+            builder
+                .AddSingleton<IJobService, JobService>();
+
+            builder
+                .AddSingleton<INotificationService, NotificationService>();
+
+            builder
+                .AddSingleton<IJobManagementService, JobManagementService>();
+            builder
+                 .AddSingleton<IJobDefinitionsRepository, JobDefinitionsRepository>((ctx) => {
+                     CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+
+                     Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
+
+                     cosmosDbSettings.CollectionName = "jobdefinitions";
+
+                     CosmosRepository jobDefinitionsCosmosRepostory = new CosmosRepository(cosmosDbSettings);
+
+                     return new JobDefinitionsRepository(jobDefinitionsCosmosRepostory);
+                 });
+
+            builder
+                .AddSingleton<IJobRepository, JobRepository>((ctx) => {
+                    CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+
+                    Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
+
+                    cosmosDbSettings.CollectionName = "jobs";
+
+                    CosmosRepository jobCosmosRepostory = new CosmosRepository(cosmosDbSettings);
+
+                    return new JobRepository(jobCosmosRepostory);
+                });
+
+            builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Jobs");
+            builder.AddLogging("CalculateFunding.Api.Jobs");
+            builder.AddTelemetry();
+
+            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
+
+            builder.AddPolicySettings(Configuration);
+
+            builder.AddCaching(Configuration);
+
+            builder.AddServiceBus(Configuration);
+
+            builder.AddSingleton<IJobsResilliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new ResiliencePolicies
+                {
+                    JobDefinitionsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy)
+                };
+            });
+
+            builder.AddHealthCheckMiddleware();
+
+        }
+
+
+
     }
 }

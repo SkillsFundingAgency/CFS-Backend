@@ -7,14 +7,12 @@ namespace CalculateFunding.Models.Jobs
     /// Job definition (loading from config source at runtime) describing a particular job type
     /// A job instance must reference a job type and the behaviour configured in this class will be used to transition this job and related jobs for the specification through different states
     /// </summary>
-    public class JobDefinition
+    public class JobDefinition : IIdentifiable
     {
         /// <summary>
-        /// A unique, human readable string, eg CalculationRun, MapDataset, ChooseFunding
+        /// Friendly identifier
         /// </summary>
-        public string JobDefinitionId { get; set; }
-
-        public string Name { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
         /// Optional - enqueue job message on this message bus queue
@@ -81,6 +79,5 @@ namespace CalculateFunding.Models.Jobs
         /// Copy the status message from the log when only a single log entry is reported and job is finished
         /// </summary>
         public bool CopyOutcomeFromLogWhenSingleLogReported { get; set; }
-
     }
 }

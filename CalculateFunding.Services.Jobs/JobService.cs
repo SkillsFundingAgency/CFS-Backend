@@ -13,11 +13,6 @@ namespace CalculateFunding.Services.Jobs
             throw new System.NotImplementedException();
         }
 
-        public Task<IActionResult> GetJobDefinitions(HttpRequest request)
-        {
-            throw new System.NotImplementedException();
-        }
-
         public Task<IActionResult> GetJobLogs(string jobId, HttpRequest request)
         {
             throw new System.NotImplementedException();
