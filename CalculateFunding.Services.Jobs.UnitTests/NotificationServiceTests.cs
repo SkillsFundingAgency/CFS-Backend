@@ -9,6 +9,7 @@ using CalculateFunding.Services.Jobs.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using Serilog;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -126,7 +127,9 @@ namespace CalculateFunding.Services.Calcs
             IMessengerService messengerService = CreateMessengerService();
             await messengerService.SendToTopic(Arg.Any<string>(), Arg.Any<JobNotification>(), Arg.Do<IDictionary<string, string>>(p => topicMessageProperties = p));
 
-            INotificationService notificationService = CreateNotificationService(messengerService);
+            ILogger logger = CreateLogger();
+
+            INotificationService notificationService = CreateNotificationService(messengerService, logger);
 
             JobNotification jobNotification = CreateJobNotification();
 
@@ -143,6 +146,10 @@ namespace CalculateFunding.Services.Calcs
             topicMessageProperties["jobType"].Should().Be(jobNotification.JobType, "JobType");
             topicMessageProperties["entityId"].Should().Be(jobNotification.Trigger.EntityId, "EntityId");
             topicMessageProperties["specificationId"].Should().Be(jobNotification.SpecificationId, "SpecficationId");
+
+            logger
+                .Received(1)
+                .Information(Arg.Is("Sent notification for job with id '{JobId}' of type '{JobType}' for entity '{EntityType}' with id '{EntityId} and status '{CompletionStatus}"), Arg.Is(jobNotification.JobId), Arg.Is(jobNotification.JobType), Arg.Is(jobNotification.Trigger.EntityType), Arg.Is(jobNotification.Trigger.EntityId), Arg.Is(jobNotification.CompletionStatus));
         }
 
         private JobNotification CreateJobNotification()
@@ -165,16 +172,21 @@ namespace CalculateFunding.Services.Calcs
             };
         }
 
-        private INotificationService CreateNotificationService(IMessengerService messengerService = null)
+        private INotificationService CreateNotificationService(IMessengerService messengerService = null, ILogger logger = null)
         {
             IJobsResiliencePolicies policies = JobsResilienceTestHelper.GenerateTestPolicies();
 
-            return new NotificationService(messengerService ?? CreateMessengerService(), policies);
+            return new NotificationService(messengerService ?? CreateMessengerService(), policies, logger ?? CreateLogger());
         }
 
         private IMessengerService CreateMessengerService()
         {
             return Substitute.For<IMessengerService>();
+        }
+
+        private ILogger CreateLogger()
+        {
+            return Substitute.For<ILogger>();
         }
     }
 }
