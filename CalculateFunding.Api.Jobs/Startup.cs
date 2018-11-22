@@ -109,7 +109,7 @@ namespace CalculateFunding.Api.Jobs
 
             builder.AddServiceBus(Configuration);
 
-            builder.AddSingleton<IJobsResilliencePolicies>((ctx) =>
+            builder.AddSingleton<IJobsResiliencePolicies>((ctx) =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
 

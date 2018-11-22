@@ -6,7 +6,7 @@ namespace CalculateFunding.Services.Calcs
 {
     public static class JobsResilienceTestHelper
     {
-        public static IJobsResilliencePolicies GenerateTestPolicies()
+        public static IJobsResiliencePolicies GenerateTestPolicies()
         {
             return new ResiliencePolicies()
             {
