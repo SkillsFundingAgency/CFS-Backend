@@ -167,10 +167,7 @@ namespace CalculateFunding.Services.Calcs
 
         private INotificationService CreateNotificationService(IMessengerService messengerService = null)
         {
-            IJobsResiliencePolicies policies = new ResiliencePolicies
-            {
-                MessengerServicePolicy = Polly.Policy.NoOpAsync()
-            };
+            IJobsResiliencePolicies policies = JobsResilienceTestHelper.GenerateTestPolicies();
 
             return new NotificationService(messengerService ?? CreateMessengerService(), policies);
         }

@@ -11,7 +11,8 @@ namespace CalculateFunding.Services.Calcs
             return new ResiliencePolicies()
             {
                 JobDefinitionsRepository = Policy.NoOpAsync(),
-                CacheProviderPolicy = Policy.NoOpAsync()
+                CacheProviderPolicy = Policy.NoOpAsync(),
+                MessengerServicePolicy = Policy.NoOpAsync()
             };
         }
     }
