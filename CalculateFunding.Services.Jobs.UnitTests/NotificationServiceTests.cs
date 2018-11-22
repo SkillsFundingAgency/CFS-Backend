@@ -9,6 +9,7 @@ using CalculateFunding.Services.Jobs.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using Serilog;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -168,8 +169,9 @@ namespace CalculateFunding.Services.Calcs
         private INotificationService CreateNotificationService(IMessengerService messengerService = null)
         {
             IJobsResiliencePolicies policies = JobsResilienceTestHelper.GenerateTestPolicies();
+            ILogger logger = Substitute.For<ILogger>();
 
-            return new NotificationService(messengerService ?? CreateMessengerService(), policies);
+            return new NotificationService(messengerService ?? CreateMessengerService(), policies, logger);
         }
 
         private IMessengerService CreateMessengerService()
