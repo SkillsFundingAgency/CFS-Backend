@@ -495,7 +495,7 @@ namespace CalculateFunding.Services.Calcs
         public JobDefinitionsService CreateJobDefinitionService(
             IJobDefinitionsRepository jobDefinitionsRepository = null, 
             ILogger logger = null,
-            IJobsResilliencePolicies resilliencePolicies = null,
+            IJobsResiliencePolicies resilliencePolicies = null,
             ICacheProvider cacheProvider = null)
         {
             return new JobDefinitionsService(
@@ -521,7 +521,7 @@ namespace CalculateFunding.Services.Calcs
             return Substitute.For<ICacheProvider>();
         }
 
-        public static IJobsResilliencePolicies GenerateTestPolicies()
+        public static IJobsResiliencePolicies GenerateTestPolicies()
         {
             return new ResiliencePolicies()
             {

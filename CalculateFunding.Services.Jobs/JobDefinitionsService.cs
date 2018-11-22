@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Jobs
         private readonly Polly.Policy _cachePolicy;
 
         public JobDefinitionsService(IJobDefinitionsRepository jobDefinitionsRepository, 
-            ILogger logger, IJobsResilliencePolicies resilliencePolicies, ICacheProvider cacheProvider)
+            ILogger logger, IJobsResiliencePolicies resilliencePolicies, ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(jobDefinitionsRepository, nameof(jobDefinitionsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));

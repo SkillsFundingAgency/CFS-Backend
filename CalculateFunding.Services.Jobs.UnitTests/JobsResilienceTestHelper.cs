@@ -6,12 +6,13 @@ namespace CalculateFunding.Services.Calcs
 {
     public static class JobsResilienceTestHelper
     {
-        public static IJobsResilliencePolicies GenerateTestPolicies()
+        public static IJobsResiliencePolicies GenerateTestPolicies()
         {
             return new ResiliencePolicies()
             {
                 JobDefinitionsRepository = Policy.NoOpAsync(),
-                CacheProviderPolicy = Policy.NoOpAsync()
+                CacheProviderPolicy = Policy.NoOpAsync(),
+                MessengerServicePolicy = Policy.NoOpAsync()
             };
         }
     }
