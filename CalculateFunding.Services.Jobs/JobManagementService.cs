@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Jobs;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Jobs
 {
@@ -113,6 +116,44 @@ namespace CalculateFunding.Services.Jobs
             await _notificationService.SendNotification(new JobNotification());
 
             throw new System.NotImplementedException();
+        }
+
+        public async Task ProcessJobCompletion(Message message)
+        {
+            // When a job completes see if the parent job can be completed
+            JobNotification jobNotification = message.GetPayloadAsInstanceOf<JobNotification>();
+
+            if (jobNotification.RunningStatus == RunningStatus.Completed)
+            {
+                string jobId = message.UserProperties["jobId"].ToString();
+
+                if (string.IsNullOrEmpty(jobId))
+                {
+                    _logger.Error("Job Notification message has no JobId");
+                    return;
+                }
+
+                Job job = await _jobRepository.GetJobById(jobId);
+
+                if (!string.IsNullOrEmpty(job.ParentJobId))
+                {
+                    IEnumerable<Job> childJobs = await _jobRepository.GetChildJobsForParent(job.ParentJobId);
+
+                    if (childJobs.Count() > 0 && childJobs.All(j => j.RunningStatus == RunningStatus.Completed))
+                    {
+                        Job parentJob = await _jobRepository.GetJobById(job.ParentJobId);
+
+                        parentJob.Completed = DateTimeOffset.Now;
+                        parentJob.RunningStatus = RunningStatus.Completed;
+                        parentJob.CompletionStatus = DetermineCompletionStatus(childJobs);
+
+                        await _jobRepository.UpdateJob(parentJob.Id, parentJob);
+
+                        _notificationService.SendNotification(CreateJobNotificationFromJob(parentJob));
+                    }
+
+                }
+            }
         }
 
         private async Task CheckForSupersededAndCancelOtherJobs(Job currentJob, JobDefinition jobDefinition)
