@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Jobs;
 
@@ -10,10 +11,10 @@ namespace CalculateFunding.Services.Jobs.Interfaces
 
         Task<JobLog> CreateJobLog(JobLog jobLog);
 
-        Task<Job> UpdateJob(string jobId, Job job);
+        Task<HttpStatusCode> UpdateJob(Job job);
 
         Task<JobDefinition> GetJobDefinition(string jobType);
 
-        Task<IEnumerable<Job>> GetRunningJobsForSpecificationAndType(string specificationId, string jobType);
+        IEnumerable<Job> GetRunningJobsForSpecificationAndJobDefinitionId(string specificationId, string jobDefinitionId);
     }
 }

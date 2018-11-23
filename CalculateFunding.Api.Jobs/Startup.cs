@@ -15,6 +15,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Services;
 
+
 namespace CalculateFunding.Api.Jobs
 {
     public class Startup
@@ -70,7 +71,9 @@ namespace CalculateFunding.Api.Jobs
                 .AddSingleton<INotificationService, NotificationService>();
 
             builder
-                .AddSingleton<IJobManagementService, JobManagementService>();
+                .AddSingleton<IJobManagementService, JobManagementService>()
+                .AddSingleton<IHealthChecker, JobManagementService>();
+
             builder
                  .AddSingleton<IJobDefinitionsRepository, JobDefinitionsRepository>((ctx) => {
                      CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
@@ -118,15 +121,14 @@ namespace CalculateFunding.Api.Jobs
                 return new ResiliencePolicies
                 {
                     JobDefinitionsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy)
+                    CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
+                    JobRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    JobRepositoryNonAsync = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
                 };
             });
 
             builder.AddHealthCheckMiddleware();
 
         }
-
-
-
     }
 }

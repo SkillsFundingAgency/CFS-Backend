@@ -9,5 +9,9 @@ namespace CalculateFunding.Services.Jobs.Interfaces
         Policy CacheProviderPolicy { get; set; }
 
         Policy MessengerServicePolicy { get; set; }
+
+        Policy JobRepository { get; set; }
+
+        Policy JobRepositoryNonAsync { get; set; }
     }
 }

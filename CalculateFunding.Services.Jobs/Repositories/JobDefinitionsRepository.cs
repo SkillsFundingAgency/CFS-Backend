@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Health;
+﻿using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Interfaces.Services;
@@ -25,7 +26,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
         {
             ServiceHealth health = new ServiceHealth();
 
-            var cosmosHealth = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) cosmosHealth = await _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(JobDefinitionsRepository);
             health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
@@ -43,6 +44,20 @@ namespace CalculateFunding.Services.Jobs.Repositories
             IQueryable<JobDefinition> jobDefinitions = _cosmosRepository.Query<JobDefinition>();
 
             return jobDefinitions.AsEnumerable();
+        }
+
+        public async Task<JobDefinition> GetJobDefinitionById(string jobDefinitionId)
+        {
+            Guard.IsNullOrWhiteSpace(jobDefinitionId, nameof(jobDefinitionId));
+
+            DocumentEntity<JobDefinition> jobDefinition = await _cosmosRepository.ReadAsync<JobDefinition>(jobDefinitionId);
+
+            if(jobDefinition != null)
+            {
+                return jobDefinition.Content;
+            }
+
+            return null;
         }
     }
 }

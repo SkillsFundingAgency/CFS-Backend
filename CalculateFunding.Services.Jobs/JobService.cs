@@ -8,6 +8,7 @@ namespace CalculateFunding.Services.Jobs
 {
     public class JobService : IJobService
     {
+
         public Task<IActionResult> GetJobById(string jobId, bool includeChildJobs, HttpRequest request)
         {
             throw new System.NotImplementedException();
