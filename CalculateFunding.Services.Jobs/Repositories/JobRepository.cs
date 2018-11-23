@@ -1,14 +1,19 @@
-﻿using CalculateFunding.Models.Jobs;
+﻿using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Jobs.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Jobs.Repositories
 {
-    public class JobRepository : IJobRepository
+    public class JobRepository : IJobRepository, IHealthChecker
     {
         private readonly CosmosRepository _cosmosRepository;
 
@@ -17,9 +22,32 @@ namespace CalculateFunding.Services.Jobs.Repositories
             _cosmosRepository = cosmosRepository;
         }
 
-        public Task<Job> CreateJob(Job job)
+        public async Task<ServiceHealth> IsHealthOk()
         {
-            throw new NotImplementedException();
+            ServiceHealth health = new ServiceHealth();
+
+            (bool Ok, string Message) cosmosHealth = await _cosmosRepository.IsHealthOk();
+
+            health.Name = nameof(JobDefinitionsRepository);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
+
+            return health;
+        }
+
+        public async Task<Job> CreateJob(Job job)
+        {
+            job.Created = DateTimeOffset.Now;
+            job.RunningStatus = RunningStatus.Queued;
+            job.Id = Guid.NewGuid().ToString();
+
+            HttpStatusCode result = await _cosmosRepository.CreateAsync(job);
+
+            if (!result.IsSuccess())
+            {
+                throw new Exception($"Failed to save new job to cosmos with status code: {(int)result}");
+            }
+
+            return job;
         }
 
         public Task<JobLog> CreateJobLog(JobLog jobLog)
@@ -32,14 +60,16 @@ namespace CalculateFunding.Services.Jobs.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<Job>> GetRunningJobsForSpecificationAndType(string specificationId, string jobType)
+        public IEnumerable<Job> GetRunningJobsForSpecificationAndJobDefinitionId(string specificationId, string jobDefinitionId)
         {
-            throw new NotImplementedException();
+            IQueryable<Job> query = _cosmosRepository.Query<Job>().Where(m => m.SpecificationId == specificationId && m.JobDefinitionId == jobDefinitionId && m.RunningStatus != RunningStatus.Completed);
+
+            return query.AsEnumerable();
         }
 
-        public Task<Job> UpdateJob(string jobId, Job job)
+        public async Task<HttpStatusCode> UpdateJob(Job job)
         {
-            throw new NotImplementedException();
+            return await _cosmosRepository.UpsertAsync<Job>(job);
         }
     }
 }

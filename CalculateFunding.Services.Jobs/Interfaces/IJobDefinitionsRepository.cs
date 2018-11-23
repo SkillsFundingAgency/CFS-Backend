@@ -12,5 +12,7 @@ namespace CalculateFunding.Services.Jobs.Interfaces
         Task<HttpStatusCode> SaveJobDefinition(JobDefinition definition);
 
         IEnumerable<JobDefinition> GetJobDefinitions();
+
+        Task<JobDefinition> GetJobDefinitionById(string jobDefinitionId);
     }
 }

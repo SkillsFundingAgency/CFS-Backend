@@ -11,7 +11,7 @@ namespace CalculateFunding.Models.Jobs
         /// <summary>
         /// Required - randomly generated GUID for this job ID
         /// </summary>
-        public string JobId { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
         /// Required Job Definition (from list of known jobs)
@@ -76,16 +76,5 @@ namespace CalculateFunding.Models.Jobs
         /// eg Calculation engine ran for 1000 providers and completed successfully
         /// </summary>
         public string Outcome { get; set; }
-
-        /// <summary>
-        /// Cosmos ID
-        /// </summary>
-        public string Id
-        {
-            get
-            {
-                return JobId;
-            }
-        }
     }
 }

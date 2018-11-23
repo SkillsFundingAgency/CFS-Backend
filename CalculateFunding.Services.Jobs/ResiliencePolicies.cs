@@ -10,5 +10,9 @@ namespace CalculateFunding.Services.Jobs
         public Policy CacheProviderPolicy { get; set; }
 
         public Policy MessengerServicePolicy { get; set; }
+
+        public Policy JobRepository { get; set; }
+
+        public Policy JobRepositoryNonAsync { get; set; }
     }
 }

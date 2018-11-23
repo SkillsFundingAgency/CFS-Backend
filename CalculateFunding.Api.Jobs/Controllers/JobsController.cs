@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Jobs;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,14 +36,6 @@ namespace CalculateFunding.Api.Jobs.Controllers
         public async Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate)
         {
             return await _jobService.UpdateJob(jobId, jobUpdate, ControllerContext.HttpContext.Request);
-        }
-
-        [HttpPost]
-        [Route("api/jobs")]
-        [ProducesResponseType(201, Type = typeof(JobSummary))]
-        public async Task<IActionResult> CreateJob(JobCreateModel job)
-        {
-            return await _jobManagementService.CreateJob(job, ControllerContext.HttpContext.Request);
         }
 
         [HttpPost]
