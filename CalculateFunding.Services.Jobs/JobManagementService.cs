@@ -185,7 +185,7 @@ namespace CalculateFunding.Services.Jobs
 
         public async Task SupersedeJob(Job runningJob, string replacementJobId)
         {
-            runningJob.Completed = DateTimeOffset.Now.ToLocalTime();
+            runningJob.Completed = DateTimeOffset.UtcNow;
             runningJob.CompletionStatus = CompletionStatus.Superseded;
             runningJob.SupersededByJobId = replacementJobId;
             runningJob.RunningStatus = RunningStatus.Completed;
@@ -232,16 +232,22 @@ namespace CalculateFunding.Services.Jobs
                 string jobId = message.UserProperties["jobId"].ToString();
 
                 Job job = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetJobById(jobId));
+                
+                if (job == null)
+                {
+                    _logger.Error("Could not find job with id {JobId}", jobId);
+                    return;
+                }
 
                 if (!string.IsNullOrEmpty(job.ParentJobId))
                 {
                     IEnumerable<Job> childJobs = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetChildJobsForParent(job.ParentJobId));
 
-                    if (childJobs.Count() > 0 && childJobs.All(j => j.RunningStatus == RunningStatus.Completed))
+                    if (!childJobs.IsNullOrEmpty() && childJobs.All(j => j.RunningStatus == RunningStatus.Completed))
                     {
                         Job parentJob = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetJobById(job.ParentJobId));
 
-                        parentJob.Completed = DateTimeOffset.Now;
+                        parentJob.Completed = DateTimeOffset.UtcNow;
                         parentJob.RunningStatus = RunningStatus.Completed;
                         parentJob.CompletionStatus = DetermineCompletionStatus(childJobs);
                         parentJob.Outcome = "All child jobs completed";
@@ -311,7 +317,7 @@ namespace CalculateFunding.Services.Jobs
                 Outcome = job.Outcome,
                 RunningStatus = job.RunningStatus,
                 SpecificationId = job.SpecificationId,
-                StatusDateTime = DateTimeOffset.Now.ToLocalTime(),
+                StatusDateTime = DateTimeOffset.UtcNow,
                 SupersededByJobId = job.SupersededByJobId,
                 Trigger = job.Trigger
             };

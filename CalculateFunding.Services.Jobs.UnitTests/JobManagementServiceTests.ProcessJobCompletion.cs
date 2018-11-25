@@ -114,6 +114,37 @@ namespace CalculateFunding.Services.Jobs.Services
         }
 
         [TestMethod]
+        public async Task ProcessJobCompletion_JobIdNotFound_ThenNoActionTakenAndErrorLogged()
+        {
+            // Arrange
+            string jobId = "abc123";
+
+            ILogger logger = CreateLogger();
+            IJobRepository jobRepository = CreateJobRepository();
+
+            jobRepository
+                .GetJobById(Arg.Is(jobId))
+                .Returns((Job)null);
+
+            JobManagementService jobManagementService = CreateJobManagementService(jobRepository, logger: logger);
+
+            JobNotification jobNotification = new JobNotification { RunningStatus = RunningStatus.Completed };
+
+            string json = JsonConvert.SerializeObject(jobNotification);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties["jobId"] = jobId;
+
+            // Act
+            await jobManagementService.ProcessJobCompletion(message);
+
+            // Assert
+            logger
+                .Received(1)
+                .Error(Arg.Is("Could not find job with id {JobId}"), Arg.Is(jobId));
+        }
+
+        [TestMethod]
         public async Task ProcessJobCompletion_JobHasNoParent_ThenNoActionTakenAndMessageLogged()
         {
             // Arrange
