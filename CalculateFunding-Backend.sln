@@ -185,7 +185,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Jobs.UnitTests", "CalculateFunding.Services.Jobs.UnitTests\CalculateFunding.Services.Jobs.UnitTests.csproj", "{8F75C726-F8E3-49A7-8553-14F44C21B5C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Api.Jobs.UnitTests", "CalculateFunding.Api.Jobs.UnitTests\CalculateFunding.Api.Jobs.UnitTests.csproj", "{B712951B-B7FC-4E5C-8B22-2449DA742146}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Api.Jobs.UnitTests", "CalculateFunding.Api.Jobs.UnitTests\CalculateFunding.Api.Jobs.UnitTests.csproj", "{B712951B-B7FC-4E5C-8B22-2449DA742146}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -71,5 +71,19 @@ namespace CalculateFunding.Services.Jobs.Repositories
         {
             return await _cosmosRepository.UpsertAsync<Job>(job);
         }
+
+        public Job GetJobById(string jobId)
+        {
+            IQueryable<Job> query = _cosmosRepository.Query<Job>().Where(m => m.Id == jobId);
+
+            return query.SingleOrDefault();
+        }
+
+        public IEnumerable<Job> GetChildJobsForParent(string jobId)
+        {
+            IQueryable<Job> query = _cosmosRepository.Query<Job>().Where(m => m.ParentJobId == jobId);
+
+            return query.AsEnumerable();
+        }
     }
 }

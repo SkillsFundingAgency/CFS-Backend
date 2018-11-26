@@ -1,8 +1,7 @@
-﻿using CalculateFunding.Services.Jobs;
-using CalculateFunding.Services.Jobs.Interfaces;
+﻿using CalculateFunding.Services.Jobs.Interfaces;
 using Polly;
 
-namespace CalculateFunding.Services.Calcs
+namespace CalculateFunding.Services.Jobs
 {
     public static class JobsResilienceTestHelper
     {

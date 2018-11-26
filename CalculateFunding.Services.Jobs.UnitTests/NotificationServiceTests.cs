@@ -4,14 +4,13 @@ using System.Threading.Tasks;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Jobs.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 
-namespace CalculateFunding.Services.Calcs
+namespace CalculateFunding.Services.Jobs.Services
 {
     [TestClass]
     public class NotificationServiceTests

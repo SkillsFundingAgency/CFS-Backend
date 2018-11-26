@@ -51,6 +51,8 @@
             public const string UpdateScenariosForEditCalculation = "test-scenario-update";
 
             public const string UpdateCalculationsForEditCalculation = "calcs-calculation-update";
+
+            public const string UpdateJobsOnCompletion = "jobs-completion-update";
         }
     }
 }

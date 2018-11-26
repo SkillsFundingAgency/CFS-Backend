@@ -10,9 +10,9 @@ using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Jobs.Interfaces;
-using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Serilog;
 
 namespace CalculateFunding.Services.Jobs
@@ -124,19 +124,7 @@ namespace CalculateFunding.Services.Jobs
 
                 await CheckForSupersededAndCancelOtherJobs(newJobResult, jobDefinition);
 
-                JobNotification jobNotification = new JobNotification
-                {
-                    JobId = newJobResult.Id,
-                    JobType = jobDefinition.Id,
-                    RunningStatus = RunningStatus.Queued,
-                    SpecificationId = newJobResult.SpecificationId,
-                    InvokerUserDisplayName = newJobResult.InvokerUserDisplayName,
-                    InvokerUserId = newJobResult.InvokerUserId,
-                    ItemCount = newJobResult.ItemCount,
-                    Trigger = newJobResult.Trigger,
-                    ParentJobId = newJobResult.ParentJobId,
-                    StatusDateTime = DateTimeOffset.Now.ToLocalTime()
-                };
+                JobNotification jobNotification = CreateJobNotificationFromJob(newJobResult);
 
                 await _notificationService.SendNotification(jobNotification);
             }
@@ -197,7 +185,7 @@ namespace CalculateFunding.Services.Jobs
 
         public async Task SupersedeJob(Job runningJob, string replacementJobId)
         {
-            runningJob.Completed = DateTimeOffset.Now.ToLocalTime();
+            runningJob.Completed = DateTimeOffset.UtcNow;
             runningJob.CompletionStatus = CompletionStatus.Superseded;
             runningJob.SupersededByJobId = replacementJobId;
             runningJob.RunningStatus = RunningStatus.Completed;
@@ -206,21 +194,7 @@ namespace CalculateFunding.Services.Jobs
 
             if (statusCode.IsSuccess())
             {
-                JobNotification jobNotification = new JobNotification
-                {
-                    JobId = runningJob.Id,
-                    JobType = runningJob.JobDefinitionId,
-                    RunningStatus = runningJob.RunningStatus,
-                    CompletionStatus = runningJob.CompletionStatus,
-                    SpecificationId = runningJob.SpecificationId,
-                    InvokerUserDisplayName = runningJob.InvokerUserDisplayName,
-                    InvokerUserId = runningJob.InvokerUserId,
-                    ItemCount = runningJob.ItemCount,
-                    Trigger = runningJob.Trigger,
-                    ParentJobId = runningJob.ParentJobId,
-                    SupersededByJobId = runningJob.SupersededByJobId,
-                    StatusDateTime = DateTimeOffset.Now.ToLocalTime()
-                };
+                JobNotification jobNotification = CreateJobNotificationFromJob(runningJob);
 
                 await _notificationService.SendNotification(jobNotification);
             }
@@ -236,6 +210,117 @@ namespace CalculateFunding.Services.Jobs
             await _notificationService.SendNotification(new JobNotification());
 
             throw new System.NotImplementedException();
+        }
+
+        public async Task ProcessJobCompletion(Message message)
+        {
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            // When a job completes see if the parent job can be completed
+            JobNotification jobNotification = message.GetPayloadAsInstanceOf<JobNotification>();
+
+            Guard.ArgumentNotNull(jobNotification, "message payload");
+
+            if (jobNotification.RunningStatus == RunningStatus.Completed)
+            {
+                if (!message.UserProperties.ContainsKey("jobId"))
+                {
+                    _logger.Error("Job Notification message has no JobId");
+                    return;
+                }
+
+                string jobId = message.UserProperties["jobId"].ToString();
+
+                Job job = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetJobById(jobId));
+                
+                if (job == null)
+                {
+                    _logger.Error("Could not find job with id {JobId}", jobId);
+                    return;
+                }
+
+                if (!string.IsNullOrEmpty(job.ParentJobId))
+                {
+                    IEnumerable<Job> childJobs = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetChildJobsForParent(job.ParentJobId));
+
+                    if (!childJobs.IsNullOrEmpty() && childJobs.All(j => j.RunningStatus == RunningStatus.Completed))
+                    {
+                        Job parentJob = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetJobById(job.ParentJobId));
+
+                        parentJob.Completed = DateTimeOffset.UtcNow;
+                        parentJob.RunningStatus = RunningStatus.Completed;
+                        parentJob.CompletionStatus = DetermineCompletionStatus(childJobs);
+                        parentJob.Outcome = "All child jobs completed";
+
+                        await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(parentJob));
+                        _logger.Information("Parent Job {ParentJobId} of Completed Job {JobId} has been completed because all child jobs are now complete", job.ParentJobId, jobId);
+
+                        await _notificationService.SendNotification(CreateJobNotificationFromJob(parentJob));
+                    }
+                    else
+                    {
+                        _logger.Information("Completed Job {JobId} parent {ParentJobId} has in progress child jobs and cannot be completed", jobId, job.ParentJobId);
+                    }
+                }
+                else
+                {
+                    _logger.Information("Completed Job {JobId} has no parent", jobId);
+                }
+            }
+        }
+
+        private CompletionStatus? DetermineCompletionStatus(IEnumerable<Job> jobs)
+        {
+            if (jobs.Any(j => !j.CompletionStatus.HasValue))
+            {
+                // There are still some jobs in progress so there is no completion status
+                return null;
+            }
+            else if (jobs.Any(j => j.CompletionStatus == CompletionStatus.TimedOut))
+            {
+                // At least one job timed out so that is the overall completion status for the group of jobs
+                return CompletionStatus.TimedOut;
+            }
+            else if (jobs.Any(j => j.CompletionStatus == CompletionStatus.Cancelled))
+            {
+                // At least one job was cancelled so that is the overall completion status for the group of jobs
+                return CompletionStatus.Cancelled;
+            }
+            else if (jobs.Any(j => j.CompletionStatus == CompletionStatus.Superseded))
+            {
+                // At least one job was superseded so that is the overall completion status for the group of jobs
+                return CompletionStatus.Superseded;
+            }
+            else if (jobs.Any(j => j.CompletionStatus == CompletionStatus.Failed))
+            {
+                // At least one job failed so that is the overall completion status for the group of jobs
+                return CompletionStatus.Failed;
+            }
+            else
+            {
+                // Got to here so that must mean all jobs succeeded
+                return CompletionStatus.Succeeded;
+            }
+        }
+
+        private JobNotification CreateJobNotificationFromJob(Job job)
+        {
+            return new JobNotification
+            {
+                CompletionStatus = job.CompletionStatus,
+                InvokerUserDisplayName = job.InvokerUserDisplayName,
+                InvokerUserId = job.InvokerUserId,
+                ItemCount = job.ItemCount,
+                JobId = job.Id,
+                JobType = job.JobDefinitionId,
+                ParentJobId = job.ParentJobId,
+                Outcome = job.Outcome,
+                RunningStatus = job.RunningStatus,
+                SpecificationId = job.SpecificationId,
+                StatusDateTime = DateTimeOffset.UtcNow,
+                SupersededByJobId = job.SupersededByJobId,
+                Trigger = job.Trigger
+            };
         }
 
         private async Task CheckForSupersededAndCancelOtherJobs(Job currentJob, JobDefinition jobDefinition)
