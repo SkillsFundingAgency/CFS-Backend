@@ -23,6 +23,7 @@ namespace CalculateFunding.Services.Jobs
         private readonly IJobDefinitionsRepository _jobDefinitionsRepository;
         private readonly ILogger _logger;
         private readonly Polly.Policy _jobDefinitionsRepositoryPolicy;
+        private readonly Polly.Policy _jobDefinitionsRepositoryNonAsyncPolicy;
         private readonly ICacheProvider _cacheProvider;
         private readonly Polly.Policy _cachePolicy;
 
@@ -37,6 +38,7 @@ namespace CalculateFunding.Services.Jobs
             _jobDefinitionsRepository = jobDefinitionsRepository;
             _logger = logger;
             _jobDefinitionsRepositoryPolicy = resilliencePolicies.JobDefinitionsRepository;
+            _jobDefinitionsRepositoryNonAsyncPolicy = resilliencePolicies.JobRepositoryNonAsync;
             _cacheProvider = cacheProvider;
             _cachePolicy = resilliencePolicies.CacheProviderPolicy;
         }
@@ -144,7 +146,7 @@ namespace CalculateFunding.Services.Jobs
                 return jobDefinitions;
             }
 
-            jobDefinitions = _jobDefinitionsRepositoryPolicy.Execute(() => _jobDefinitionsRepository.GetJobDefinitions());
+            jobDefinitions = _jobDefinitionsRepositoryNonAsyncPolicy.Execute(() => _jobDefinitionsRepository.GetJobDefinitions());
 
             if (!jobDefinitions.IsNullOrEmpty())
             {

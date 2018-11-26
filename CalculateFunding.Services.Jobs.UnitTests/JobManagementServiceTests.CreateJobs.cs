@@ -6,8 +6,11 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Jobs.Interfaces;
 using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -1070,6 +1073,449 @@ namespace CalculateFunding.Services.Jobs.Services
                 notificationService
                     .Received(3)
                     .SendNotification(Arg.Any<JobNotification>());
+        }
+
+        [TestMethod]
+        public async Task CreateJobs_GivenCreateJobModelThatDoesNotValidate_ReturnsBadRequest()
+        {
+            //Arrange
+            IEnumerable<JobCreateModel> jobs = new[]
+            {
+                new JobCreateModel
+                {
+                    JobDefinitionId = jobDefinitionId,
+                    Trigger = new Trigger(),
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname"
+                }
+            };
+
+            IEnumerable<JobDefinition> jobDefinitions = new[]
+            {
+                new JobDefinition
+                {
+                    Id = jobDefinitionId
+                }
+            };
+
+            ValidationResult validationResult = new ValidationResult(new[]{
+                    new ValidationFailure("prop1", "any error")
+                });
+
+            IValidator<CreateJobValidationModel> validator = CreateNewCreateJobValidator(validationResult);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
+            jobDefinitionsService
+                .GetAllJobDefinitions()
+                .Returns(jobDefinitions);
+
+            ILogger logger = CreateLogger();
+
+            INotificationService notificationService = CreateNotificationsService();
+
+            JobManagementService jobManagementService = CreateJobManagementService(jobDefinitionsService: jobDefinitionsService,
+                logger: logger, notificationService: notificationService, createJobValidator: validator);
+
+            //Act
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            BadRequestObjectResult badRequestObject = actionResult as BadRequestObjectResult;
+            IList<ValidationResult> validationResults = badRequestObject.Value as IList<ValidationResult>;
+
+            validationResults
+                .Count()
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public async Task CreateJobs_GivenCreateJobForQueueing_EnsuresMessageIsPlacedOnQueue()
+        {
+            //Arrange
+            string jobId = Guid.NewGuid().ToString();
+
+            IEnumerable<JobCreateModel> jobs = new[]
+            {
+                new JobCreateModel
+                {
+                    JobDefinitionId = jobDefinitionId,
+                    Trigger = new Trigger(),
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    SpecificationId = "spec-id-1"
+                }
+            };
+
+            IEnumerable<JobDefinition> jobDefinitions = new[]
+            {
+                new JobDefinition
+                {
+                    Id = jobDefinitionId,
+                    SupersedeExistingRunningJobOnEnqueue = true,
+                    MessageBusQueue = "TestQueue"
+                }
+            };
+
+            Job job = new Job
+            {
+                JobDefinitionId = jobDefinitionId,
+                SpecificationId = "spec-id-1",
+                Id = jobId,
+                ItemCount = 1000,
+                InvokerUserId = "authorId",
+                InvokerUserDisplayName = "authorname",
+                Trigger = new Trigger
+                {
+                    EntityId = "e-1",
+                    EntityType = "e-type",
+                    Message = "test"
+                },
+                Properties = new Dictionary<string, string>
+                {
+                    { "specificationId", "spec-id-1" }
+                },
+                MessageBody = "a message"
+            };
+
+            IEnumerable<Job> currentJobs = new[]
+            {
+                new Job {
+                    JobDefinitionId = jobDefinitionId,
+                    SpecificationId = "spec-id-1",
+                    Id = "current-job-1",
+                    ItemCount = 100,
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    Trigger = new Trigger
+                    {
+                        EntityId = "e-2",
+                        EntityType = "e-type-1",
+                        Message = "test"
+                    },
+                    RunningStatus = RunningStatus.InProgress
+                },
+                new Job {
+                    JobDefinitionId = jobDefinitionId,
+                    SpecificationId = "spec-id-1",
+                    Id = "current-job-2",
+                    ItemCount = 100,
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    Trigger = new Trigger
+                    {
+                        EntityId = "e-3",
+                        EntityType = "e-type-2",
+                        Message = "test"
+                    },
+                    RunningStatus = RunningStatus.InProgress
+                },
+            };
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
+            jobDefinitionsService
+                .GetAllJobDefinitions()
+                .Returns(jobDefinitions);
+
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .CreateJob(Arg.Any<Job>())
+                .Returns(job);
+
+            jobRepository
+                .UpdateJob(Arg.Any<Job>())
+                .Returns(HttpStatusCode.OK);
+
+            jobRepository
+                .GetRunningJobsForSpecificationAndJobDefinitionId(Arg.Is(jobs.First().SpecificationId), Arg.Is(jobDefinitionId))
+                .Returns(currentJobs);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            ILogger logger = CreateLogger();
+
+            JobManagementService jobManagementService = CreateJobManagementService(
+                jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository,
+                logger: logger, messengerService: messengerService);
+
+            //Act
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .NotBeNull();
+
+            await
+                messengerService
+                    .Received(1)
+                    .SendToQueue<string>(
+                        Arg.Is("TestQueue"), 
+                        Arg.Is("a message"), 
+                        Arg.Is<Dictionary<string, string>>(m => m.ContainsKey("specificationId") && m["specificationId"] == "spec-id-1"));
+        }
+
+        [TestMethod]
+        public async Task CreateJobs_GivenCreateJobForQueueingOnTopic_EnsuresMessageIsPlacedOnTopicQueue()
+        {
+            //Arrange
+            string jobId = Guid.NewGuid().ToString();
+
+            IEnumerable<JobCreateModel> jobs = new[]
+            {
+                new JobCreateModel
+                {
+                    JobDefinitionId = jobDefinitionId,
+                    Trigger = new Trigger(),
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    SpecificationId = "spec-id-1"
+                }
+            };
+
+            IEnumerable<JobDefinition> jobDefinitions = new[]
+            {
+                new JobDefinition
+                {
+                    Id = jobDefinitionId,
+                    SupersedeExistingRunningJobOnEnqueue = true,
+                    MessageBusTopic = "TestTopic"
+                }
+            };
+
+            Job job = new Job
+            {
+                JobDefinitionId = jobDefinitionId,
+                SpecificationId = "spec-id-1",
+                Id = jobId,
+                ItemCount = 1000,
+                InvokerUserId = "authorId",
+                InvokerUserDisplayName = "authorname",
+                Trigger = new Trigger
+                {
+                    EntityId = "e-1",
+                    EntityType = "e-type",
+                    Message = "test"
+                }
+            };
+
+            IEnumerable<Job> currentJobs = new[]
+            {
+                new Job {
+                    JobDefinitionId = jobDefinitionId,
+                    SpecificationId = "spec-id-1",
+                    Id = "current-job-1",
+                    ItemCount = 100,
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    Trigger = new Trigger
+                    {
+                        EntityId = "e-2",
+                        EntityType = "e-type-1",
+                        Message = "test"
+                    },
+                    RunningStatus = RunningStatus.InProgress
+                },
+                new Job {
+                    JobDefinitionId = jobDefinitionId,
+                    SpecificationId = "spec-id-1",
+                    Id = "current-job-2",
+                    ItemCount = 100,
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    Trigger = new Trigger
+                    {
+                        EntityId = "e-3",
+                        EntityType = "e-type-2",
+                        Message = "test"
+                    },
+                    RunningStatus = RunningStatus.InProgress
+                },
+            };
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
+            jobDefinitionsService
+                .GetAllJobDefinitions()
+                .Returns(jobDefinitions);
+
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .CreateJob(Arg.Any<Job>())
+                .Returns(job);
+
+            jobRepository
+                .UpdateJob(Arg.Any<Job>())
+                .Returns(HttpStatusCode.OK);
+
+            jobRepository
+                .GetRunningJobsForSpecificationAndJobDefinitionId(Arg.Is(jobs.First().SpecificationId), Arg.Is(jobDefinitionId))
+                .Returns(currentJobs);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            ILogger logger = CreateLogger();
+
+            JobManagementService jobManagementService = CreateJobManagementService(
+                jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository,
+                logger: logger, messengerService: messengerService);
+
+            //Act
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .NotBeNull();
+
+            await
+                messengerService
+                    .Received(1)
+                    .SendToTopic<string>(Arg.Is("TestTopic"), Arg.Any<string>(), Arg.Any<Dictionary<string, string>>());
+        }
+
+        [TestMethod]
+        public async Task CreateJobs_GivenCreateJobForQueueingOnTopicButThrowsException_LogsException()
+        {
+            //Arrange
+            string jobId = Guid.NewGuid().ToString();
+
+            IEnumerable<JobCreateModel> jobs = new[]
+            {
+                new JobCreateModel
+                {
+                    JobDefinitionId = jobDefinitionId,
+                    Trigger = new Trigger(),
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    SpecificationId = "spec-id-1"
+                }
+            };
+
+            IEnumerable<JobDefinition> jobDefinitions = new[]
+            {
+                new JobDefinition
+                {
+                    Id = jobDefinitionId,
+                    SupersedeExistingRunningJobOnEnqueue = true,
+                    MessageBusTopic = "TestTopic"
+                }
+            };
+
+            Job job = new Job
+            {
+                JobDefinitionId = jobDefinitionId,
+                SpecificationId = "spec-id-1",
+                Id = jobId,
+                ItemCount = 1000,
+                InvokerUserId = "authorId",
+                InvokerUserDisplayName = "authorname",
+                Trigger = new Trigger
+                {
+                    EntityId = "e-1",
+                    EntityType = "e-type",
+                    Message = "test"
+                }
+            };
+
+            IEnumerable<Job> currentJobs = new[]
+            {
+                new Job {
+                    JobDefinitionId = jobDefinitionId,
+                    SpecificationId = "spec-id-1",
+                    Id = "current-job-1",
+                    ItemCount = 100,
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    Trigger = new Trigger
+                    {
+                        EntityId = "e-2",
+                        EntityType = "e-type-1",
+                        Message = "test"
+                    },
+                    RunningStatus = RunningStatus.InProgress
+                },
+                new Job {
+                    JobDefinitionId = jobDefinitionId,
+                    SpecificationId = "spec-id-1",
+                    Id = "current-job-2",
+                    ItemCount = 100,
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    Trigger = new Trigger
+                    {
+                        EntityId = "e-3",
+                        EntityType = "e-type-2",
+                        Message = "test"
+                    },
+                    RunningStatus = RunningStatus.InProgress
+                },
+            };
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
+            jobDefinitionsService
+                .GetAllJobDefinitions()
+                .Returns(jobDefinitions);
+
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .CreateJob(Arg.Any<Job>())
+                .Returns(job);
+
+            jobRepository
+                .UpdateJob(Arg.Any<Job>())
+                .Returns(HttpStatusCode.OK);
+
+            jobRepository
+                .GetRunningJobsForSpecificationAndJobDefinitionId(Arg.Is(jobs.First().SpecificationId), Arg.Is(jobDefinitionId))
+                .Returns(currentJobs);
+
+            IMessengerService messengerService = CreateMessengerService();
+            messengerService
+                .When(x => x.SendToTopic<string>(Arg.Is("TestTopic"), Arg.Any<string>(), Arg.Any<Dictionary<string,string>>()))
+                .Do(x => { throw new Exception("Failed to send to topic"); });
+
+
+            ILogger logger = CreateLogger();
+
+            JobManagementService jobManagementService = CreateJobManagementService(
+                jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository,
+                logger: logger, messengerService: messengerService);
+
+            //Act
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .NotBeNull();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is<Exception>(m => m.Message == "Failed to send to topic"), Arg.Is($"Failed to queue job with id: {jobId} on Queue/topic TestTopic"));
         }
     }
 }

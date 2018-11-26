@@ -1,4 +1,5 @@
 ﻿using System;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -6,6 +7,8 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Jobs.Interfaces;
 using CalculateFunding.Services.Jobs.Repositories;
+using CalculateFunding.Services.Jobs.Validators;
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
@@ -39,6 +42,9 @@ namespace CalculateFunding.Functions.Jobs
         {
             builder
                 .AddSingleton<IJobManagementService, JobManagementService>();
+
+            builder.
+                AddSingleton<IValidator<CreateJobValidationModel>, CreateJobValidator>();
 
             builder
                 .AddSingleton<IJobRepository, JobRepository>((ctx) =>
