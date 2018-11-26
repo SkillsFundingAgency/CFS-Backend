@@ -9,7 +9,9 @@ namespace CalculateFunding.Services.Jobs.Services
     [TestClass]
     public partial class JobManagementServiceTests
     {
-        private JobManagementService CreateJobManagementService(
+        const string jobDefinitionId = "JobDefinition";
+
+        public JobManagementService CreateJobManagementService(
             IJobRepository jobRepository = null,
             INotificationService notificationService = null,
             IJobDefinitionsService jobDefinitionsService = null,

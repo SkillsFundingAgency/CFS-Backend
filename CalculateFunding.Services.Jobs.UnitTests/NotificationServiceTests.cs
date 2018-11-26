@@ -145,6 +145,7 @@ namespace CalculateFunding.Services.Jobs.Services
             topicMessageProperties["jobType"].Should().Be(jobNotification.JobType, "JobType");
             topicMessageProperties["entityId"].Should().Be(jobNotification.Trigger.EntityId, "EntityId");
             topicMessageProperties["specificationId"].Should().Be(jobNotification.SpecificationId, "SpecficationId");
+            topicMessageProperties["parentJobId"].Should().Be(jobNotification.ParentJobId, "ParentJobId");
 
             logger
                 .Received(1)
@@ -162,6 +163,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 JobType = "Run Calculation",
                 RunningStatus = RunningStatus.Queued,
                 StatusDateTime = DateTimeOffset.Now,
+                ParentJobId = "parent-job-1",
                 Trigger = new Trigger
                 {
                     EntityId = Guid.NewGuid().ToString(),

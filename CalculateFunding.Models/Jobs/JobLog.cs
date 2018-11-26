@@ -6,12 +6,12 @@ namespace CalculateFunding.Models.Jobs
     /// Job log - one or more of these will be reported into the job service to form a log of status updates
     /// Persisted in cosmos and used to trigger status changes for a job
     /// </summary>
-    public class JobLog
+    public class JobLog : IIdentifiable
     {
         /// <summary>
         /// Randomly generated GUID for ID
         /// </summary>
-        public string JobLogId { get; set; }
+        public string Id { get; set; }
 
         public string JobId { get; set; }
 
@@ -29,10 +29,6 @@ namespace CalculateFunding.Models.Jobs
 
         public bool? CompletedSuccessfully { get; set; }
 
-        public DateTimeOffset Started { get; set; }
-
-        public DateTimeOffset Finished { get; set; }
-
-        public TimeSpan Duration { get; set; }
+        public DateTimeOffset Timestamp { get; set; }
     }
 }

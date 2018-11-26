@@ -132,26 +132,73 @@ namespace CalculateFunding.Services.Jobs
             return new OkObjectResult(createdJobs);
         }
 
-        /// <summary>
-        /// Add job log
-        /// </summary>
-        /// <param name="job"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public async Task<IActionResult> AddJobLog(JobLogUpdateModel job, HttpRequest request)
+        public async Task<IActionResult> AddJobLog(string jobId, JobLogUpdateModel jobLogUpdateModel)
         {
-            // This method will be responsible for saving job logs, plus performing state management based on reported status
-            // Lots of logic will be triggered from this function, eg RunningStatus, CompletionStatus, setting Outcome on Job
+            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
+            Guard.ArgumentNotNull(jobLogUpdateModel, nameof(jobLogUpdateModel));
 
-            // A job is complete (CompletedStatus is updated to Successful or Failed) on the job 
-            // when the JobLogUpdateModel.CompletedSuccessfully is set to a non null value
+            Job job = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobById(jobId));
 
-            await _jobRepository.CreateJobLog(new JobLog());
+            if(job == null)
+            {
+                _logger.Error($"A job could not be found for job id: '{jobId}'");
 
-            // Send notification after status logged
-            await _notificationService.SendNotification(new JobNotification());
+                return new NotFoundObjectResult($"A job could not be found for job id: '{jobId}'");
+            }
 
-            throw new System.NotImplementedException();
+            bool saveJob = false;
+
+            if (jobLogUpdateModel.CompletedSuccessfully.HasValue)
+            {
+                job.Completed = DateTimeOffset.Now.ToLocalTime();
+                job.RunningStatus = RunningStatus.Completed;
+                job.CompletionStatus = jobLogUpdateModel.CompletedSuccessfully.Value ? CompletionStatus.Succeeded : CompletionStatus.Failed;
+                job.Outcome = jobLogUpdateModel.Outcome;
+                saveJob = true;
+            }
+            else
+            {
+                if(job.RunningStatus != RunningStatus.InProgress)
+                {
+                    job.RunningStatus = RunningStatus.InProgress;
+                    saveJob = true;
+                }
+            }
+
+            if (saveJob)
+            {
+                HttpStatusCode statusCode = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(job));
+
+                if (!statusCode.IsSuccess())
+                {
+                    _logger.Error($"Failed to update job id: '{jobId}' with status code '{(int)statusCode}'");
+                    return new InternalServerErrorResult($"Failed to update job id: '{jobId}' with status code '{(int)statusCode}'");
+                }
+            }
+
+            JobLog jobLog = new JobLog
+            {
+                Id = Guid.NewGuid().ToString(),
+                JobId = jobId,
+                ItemsProcessed = jobLogUpdateModel.ItemsProcessed,
+                ItemsSucceeded = jobLogUpdateModel.ItemsSucceeded,
+                ItemsFailed = jobLogUpdateModel.ItemsFailed,
+                Outcome = jobLogUpdateModel.Outcome,
+                CompletedSuccessfully = jobLogUpdateModel.CompletedSuccessfully,
+                Timestamp = DateTimeOffset.Now.ToLocalTime()
+            };
+
+            HttpStatusCode createJobLogStatus = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.CreateJobLog(jobLog));
+
+            if (!createJobLogStatus.IsSuccess())
+            {
+                _logger.Error($"Failed to create a job log for job id: '{jobId}'");
+                throw new Exception($"Failed to create a job log for job id: '{jobId}'");
+            }
+
+            await SendJobLogNotification(job, jobLog);
+
+            return new OkObjectResult(jobLog);
         }
 
         /// <summary>
@@ -231,7 +278,7 @@ namespace CalculateFunding.Services.Jobs
 
                 string jobId = message.UserProperties["jobId"].ToString();
 
-                Job job = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetJobById(jobId));
+                Job job = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobById(jobId));
                 
                 if (job == null)
                 {
@@ -245,7 +292,7 @@ namespace CalculateFunding.Services.Jobs
 
                     if (!childJobs.IsNullOrEmpty() && childJobs.All(j => j.RunningStatus == RunningStatus.Completed))
                     {
-                        Job parentJob = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetJobById(job.ParentJobId));
+                        Job parentJob = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobById(job.ParentJobId));
 
                         parentJob.Completed = DateTimeOffset.UtcNow;
                         parentJob.RunningStatus = RunningStatus.Completed;
@@ -367,6 +414,31 @@ namespace CalculateFunding.Services.Jobs
             }
 
             return newJobResult;
+        }
+
+        private async Task SendJobLogNotification(Job job, JobLog jobLog)
+        {
+            JobNotification jobNotification = new JobNotification
+            {
+                JobId = job.Id,
+                JobType = job.JobDefinitionId,
+                RunningStatus = job.RunningStatus,
+                CompletionStatus = job.CompletionStatus,
+                SpecificationId = job.SpecificationId,
+                InvokerUserDisplayName = job.InvokerUserDisplayName,
+                InvokerUserId = job.InvokerUserId,
+                ItemCount = job.ItemCount,
+                Trigger = job.Trigger,
+                ParentJobId = job.ParentJobId,
+                SupersededByJobId = job.SupersededByJobId,
+                Outcome = jobLog.Outcome,
+                StatusDateTime = DateTimeOffset.Now.ToLocalTime(),
+                OverallItemsFailed = jobLog.ItemsFailed,
+                OverallItemsProcessed = jobLog.ItemsProcessed,
+                OverallItemsSucceeded = jobLog.ItemsSucceeded
+            };
+
+            await _notificationService.SendNotification(jobNotification);
         }
     }
 }

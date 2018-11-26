@@ -100,10 +100,10 @@ namespace CalculateFunding.Api.Jobs.Controllers
 
         [HttpPost]
         [Route("api/jobs/{jobId}/logs")]
-        [ProducesResponseType(202)]
-        public async Task<IActionResult> UpdateJobStatusLog(JobLogUpdateModel job)
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> UpdateJobStatusLog([FromRoute]string jobId, [FromBody]JobLogUpdateModel job)
         {
-            return await _jobManagementService.AddJobLog(job, ControllerContext.HttpContext.Request);
+            return await _jobManagementService.AddJobLog(jobId, job);
         }
 
         /// <summary>

@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Jobs.Interfaces
     {
         Task<IActionResult> CreateJobs(IEnumerable<JobCreateModel> jobs, HttpRequest request);
 
-        Task<IActionResult> AddJobLog(JobLogUpdateModel job, HttpRequest request);
+        Task<IActionResult> AddJobLog(string jobId, JobLogUpdateModel jobLogUpdateModel);
 
         Task<IActionResult> CancelJob(string jobId, HttpRequest request);
 

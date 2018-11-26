@@ -42,7 +42,8 @@ namespace CalculateFunding.Services.Jobs
                 { "specificationId", jobNotification.SpecificationId },
                 { "entityId", jobNotification.Trigger.EntityId },
                 { "jobType", jobNotification.JobType },
-                { "jobId", jobNotification.JobId }
+                { "jobId", jobNotification.JobId },
+                { "parentJobId", jobNotification.ParentJobId }
             };
 
             await _messengerServicePolicy.ExecuteAsync(() => _messengerService.SendToTopic(ServiceBusConstants.TopicNames.JobNotifications, jobNotification, properties));

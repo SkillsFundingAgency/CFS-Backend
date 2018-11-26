@@ -9,16 +9,16 @@ namespace CalculateFunding.Services.Jobs.Interfaces
     {
         Task<Job> CreateJob(Job job);
 
-        Task<JobLog> CreateJobLog(JobLog jobLog);
+        Task<HttpStatusCode> CreateJobLog(JobLog jobLog);
 
         Task<HttpStatusCode> UpdateJob(Job job);
 
-        Task<JobDefinition> GetJobDefinition(string jobType);
-
         IEnumerable<Job> GetRunningJobsForSpecificationAndJobDefinitionId(string specificationId, string jobDefinitionId);
 
-        Job GetJobById(string jobId);
+        Task<Job> GetJobById(string jobId);
 
         IEnumerable<Job> GetChildJobsForParent(string jobId);
+
+        IEnumerable<JobLog> GetJobLogsByJobId(string jobId);
     }
 }

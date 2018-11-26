@@ -2,6 +2,7 @@
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Jobs.Interfaces;
 using System;
@@ -50,14 +51,23 @@ namespace CalculateFunding.Services.Jobs.Repositories
             return job;
         }
 
-        public Task<JobLog> CreateJobLog(JobLog jobLog)
+        public async Task<HttpStatusCode> CreateJobLog(JobLog jobLog)
         {
-            throw new NotImplementedException();
+            return await _cosmosRepository.CreateAsync(jobLog);
         }
 
-        public Task<JobDefinition> GetJobDefinition(string jobType)
+        public async Task<Job> GetJobById(string jobId)
         {
-            throw new NotImplementedException();
+            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
+
+            DocumentEntity<Job> job = await _cosmosRepository.ReadAsync<Job>(jobId);
+
+            if(job == null)
+            {
+                return null;
+            }
+
+            return job.Content;
         }
 
         public IEnumerable<Job> GetRunningJobsForSpecificationAndJobDefinitionId(string specificationId, string jobDefinitionId)
@@ -67,16 +77,18 @@ namespace CalculateFunding.Services.Jobs.Repositories
             return query.AsEnumerable();
         }
 
+        public IEnumerable<JobLog> GetJobLogsByJobId(string jobId)
+        {
+            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
+
+            IQueryable<JobLog> jobLogs = _cosmosRepository.Query<JobLog>().Where(m => m.JobId == jobId);
+
+            return jobLogs.AsEnumerable();
+        }
+
         public async Task<HttpStatusCode> UpdateJob(Job job)
         {
             return await _cosmosRepository.UpsertAsync<Job>(job);
-        }
-
-        public Job GetJobById(string jobId)
-        {
-            IQueryable<Job> query = _cosmosRepository.Query<Job>().Where(m => m.Id == jobId);
-
-            return query.SingleOrDefault();
         }
 
         public IEnumerable<Job> GetChildJobsForParent(string jobId)

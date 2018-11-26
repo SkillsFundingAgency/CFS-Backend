@@ -18,8 +18,6 @@ namespace CalculateFunding.Services.Jobs.Services
 {
     public partial class JobManagementServiceTests
     {
-        const string jobDefinitionId = "JobDefinition";
-
         [TestMethod]
         public async Task CreateJobs_GivenEmptyArrayOfJobCreateModels_ReturnsBadrequest()
         {
