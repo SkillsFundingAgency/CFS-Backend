@@ -1,22 +1,24 @@
-﻿using CalculateFunding.Api.Common.Middleware;
+﻿using AutoMapper;
+using CalculateFunding.Api.Common.Extensions;
+using CalculateFunding.Api.Common.Middleware;
+using CalculateFunding.Models.Jobs;
+using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Cosmos;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Jobs.Interfaces;
 using CalculateFunding.Services.Jobs.Repositories;
+using CalculateFunding.Services.Jobs.Validators;
+using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Jobs;
 using Polly.Bulkhead;
-using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Api.Common.Extensions;
-using CalculateFunding.Services.Core.Interfaces.Services;
-using FluentValidation;
-using CalculateFunding.Models.Jobs;
-using CalculateFunding.Services.Jobs.Validators;
 
 namespace CalculateFunding.Api.Jobs
 {
@@ -80,7 +82,8 @@ namespace CalculateFunding.Api.Jobs
                 AddSingleton<IValidator<CreateJobValidationModel>, CreateJobValidator>();
 
             builder
-                 .AddSingleton<IJobDefinitionsRepository, JobDefinitionsRepository>((ctx) => {
+                 .AddSingleton<IJobDefinitionsRepository, JobDefinitionsRepository>((ctx) =>
+                 {
                      CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
                      Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
@@ -93,7 +96,8 @@ namespace CalculateFunding.Api.Jobs
                  });
 
             builder
-                .AddSingleton<IJobRepository, JobRepository>((ctx) => {
+                .AddSingleton<IJobRepository, JobRepository>((ctx) =>
+                {
                     CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
 
                     Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
@@ -104,6 +108,10 @@ namespace CalculateFunding.Api.Jobs
 
                     return new JobRepository(jobCosmosRepostory);
                 });
+
+            MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<JobsMappingProfile>());
+
+            builder.AddSingleton(mappingConfig.CreateMapper());
 
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Jobs");
             builder.AddLogging("CalculateFunding.Api.Jobs");

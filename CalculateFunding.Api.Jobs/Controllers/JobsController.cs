@@ -23,11 +23,11 @@ namespace CalculateFunding.Api.Jobs.Controllers
         }
 
         [HttpGet]
-        [Route("api/jobs/{jobId}")]
+        [Route("api/jobs/{jobId}/{includeChildJobs?}")]
         [ProducesResponseType(200, Type = typeof(JobCurrentModel))]
-        public async Task<IActionResult> GetJobById(string jobId, bool includeChildJobs = false)
+        public async Task<IActionResult> GetJobById([FromRoute] string jobId, bool includeChildJobs = false)
         {
-            return await _jobService.GetJobById(jobId, includeChildJobs, ControllerContext.HttpContext.Request);
+            return await _jobService.GetJobById(jobId, includeChildJobs);
         }
 
         [HttpPut]
@@ -95,7 +95,7 @@ namespace CalculateFunding.Api.Jobs.Controllers
         [ProducesResponseType(200, Type = typeof(IEnumerable<JobLog>))]
         public async Task<IActionResult> GetJobLogs([FromRoute] string jobId)
         {
-            return await _jobService.GetJobLogs(jobId, ControllerContext.HttpContext.Request);
+            return await _jobService.GetJobLogs(jobId);
         }
 
         [HttpPost]
