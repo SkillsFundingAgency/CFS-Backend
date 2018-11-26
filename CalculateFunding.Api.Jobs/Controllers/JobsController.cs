@@ -40,8 +40,8 @@ namespace CalculateFunding.Api.Jobs.Controllers
 
         [HttpPost]
         [Route("api/jobs")]
-        [ProducesResponseType(201, Type = typeof(IEnumerable<JobSummary>))]
-        public async Task<IActionResult> CreateJobs(IEnumerable<JobCreateModel> jobs)
+        [ProducesResponseType(200, Type = typeof(IEnumerable<JobSummary>))]
+        public async Task<IActionResult> CreateJobs([FromBody]IEnumerable<JobCreateModel> jobs)
         {
             return await _jobManagementService.CreateJobs(jobs, ControllerContext.HttpContext.Request);
         }

@@ -8,8 +8,11 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Jobs.Interfaces;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -25,20 +28,27 @@ namespace CalculateFunding.Services.Jobs
         private readonly Polly.Policy _jobsRepositoryPolicy;
         private readonly Polly.Policy _jobsRepositoryNonAsyncPolicy;
         private readonly Polly.Policy _jobDefinitionsRepositoryPolicy;
+        private readonly Polly.Policy _messengerServicePolicy;
         private readonly ILogger _logger;
+        private readonly IValidator<CreateJobValidationModel> _createJobValidator;
+        private readonly IMessengerService _messengerService;
 
         public JobManagementService(
             IJobRepository jobRepository, 
             INotificationService notificationService, 
             IJobDefinitionsService jobDefinitionsService, 
             IJobsResiliencePolicies resilliencePolicies,
-            ILogger logger)
+            ILogger logger,
+            IValidator<CreateJobValidationModel> createJobValidator,
+            IMessengerService messengerService)
         {
             Guard.ArgumentNotNull(jobRepository, nameof(jobRepository));
             Guard.ArgumentNotNull(notificationService, nameof(notificationService));
             Guard.ArgumentNotNull(jobDefinitionsService, nameof(jobDefinitionsService));
             Guard.ArgumentNotNull(resilliencePolicies, nameof(resilliencePolicies));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(createJobValidator, nameof(createJobValidator));
+            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
 
             _jobRepository = jobRepository;
             _notificationService = notificationService;
@@ -47,6 +57,9 @@ namespace CalculateFunding.Services.Jobs
             _jobDefinitionsRepositoryPolicy = resilliencePolicies.JobDefinitionsRepository;
             _jobsRepositoryNonAsyncPolicy = resilliencePolicies.JobRepositoryNonAsync;
             _logger = logger;
+            _createJobValidator = createJobValidator;
+            _messengerService = messengerService;
+            _messengerServicePolicy = resilliencePolicies.MessengerServicePolicy;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -81,8 +94,10 @@ namespace CalculateFunding.Services.Jobs
                 return new InternalServerErrorResult("Failed to retrieve job definitions");
             }
 
+            IList<ValidationResult> validationResults = new List<ValidationResult>();
+
             //ensure all jobs in batch have the correct job definition
-            foreach(JobCreateModel jobCreateModel in jobs)
+            foreach (JobCreateModel jobCreateModel in jobs)
             {
                 Guard.IsNullOrWhiteSpace(jobCreateModel.JobDefinitionId, nameof(jobCreateModel.JobDefinitionId));
 
@@ -94,6 +109,23 @@ namespace CalculateFunding.Services.Jobs
 
                     return new PreconditionFailedResult($"A job definition could not be found for id: {jobCreateModel.JobDefinitionId}");
                 }
+
+                CreateJobValidationModel createJobValidationModel = new CreateJobValidationModel
+                {
+                    JobCreateModel = jobCreateModel,
+                    JobDefinition = jobDefinition
+                };
+
+                ValidationResult validationResult = _createJobValidator.Validate(createJobValidationModel);
+                if (validationResult != null && !validationResult.IsValid)
+                {
+                    validationResults.Add(validationResult);
+                }
+            }
+
+            if (validationResults.Any())
+            {
+                return new BadRequestObjectResult(validationResults);
             }
 
             IList<Job> createdJobs = new List<Job>();
@@ -105,6 +137,7 @@ namespace CalculateFunding.Services.Jobs
                 Guard.ArgumentNotNull(job.Trigger, nameof(job.Trigger));
 
                 JobDefinition jobDefinition = jobDefinitions.First(m => m.Id == job.JobDefinitionId);
+
 
                 if (string.IsNullOrWhiteSpace(job.InvokerUserId) || string.IsNullOrWhiteSpace(job.InvokerUserDisplayName))
                 {
@@ -123,6 +156,8 @@ namespace CalculateFunding.Services.Jobs
                 createdJobs.Add(newJobResult);
 
                 await CheckForSupersededAndCancelOtherJobs(newJobResult, jobDefinition);
+
+                await QueueNewJob(newJobResult, jobDefinition);
 
                 JobNotification jobNotification = CreateJobNotificationFromJob(newJobResult);
 
@@ -439,6 +474,29 @@ namespace CalculateFunding.Services.Jobs
             };
 
             await _notificationService.SendNotification(jobNotification);
+        }
+
+        private async Task QueueNewJob(Job job, JobDefinition jobDefinition)
+        {
+            string queueOrTopic = !string.IsNullOrWhiteSpace(jobDefinition.MessageBusQueue) ? jobDefinition.MessageBusQueue : jobDefinition.MessageBusTopic;
+            string data = !string.IsNullOrWhiteSpace(job.MessageBody) ? job.MessageBody : null;
+            IDictionary<string, string> messageProperties = job.Properties;
+                
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(jobDefinition.MessageBusQueue))
+                {
+                    await _messengerService.SendToQueue<string>(jobDefinition.MessageBusQueue, data, messageProperties);
+                }
+                else
+                {
+                    await _messengerService.SendToTopic<string>(jobDefinition.MessageBusTopic, data, messageProperties);
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.Error(ex, $"Failed to queue job with id: {job.Id} on Queue/topic {queueOrTopic}");
+            }
         }
     }
 }

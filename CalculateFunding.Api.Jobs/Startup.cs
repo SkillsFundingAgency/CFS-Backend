@@ -14,7 +14,9 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Services;
-
+using FluentValidation;
+using CalculateFunding.Models.Jobs;
+using CalculateFunding.Services.Jobs.Validators;
 
 namespace CalculateFunding.Api.Jobs
 {
@@ -74,6 +76,9 @@ namespace CalculateFunding.Api.Jobs
                 .AddSingleton<IJobManagementService, JobManagementService>()
                 .AddSingleton<IHealthChecker, JobManagementService>();
 
+            builder.
+                AddSingleton<IValidator<CreateJobValidationModel>, CreateJobValidator>();
+
             builder
                  .AddSingleton<IJobDefinitionsRepository, JobDefinitionsRepository>((ctx) => {
                      CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
@@ -117,13 +122,13 @@ namespace CalculateFunding.Api.Jobs
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
 
                 BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
-
+                BulkheadPolicy totalNetworkRequestsPolicyNonAsync = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsNonAsyncPolicy(policySettings);
                 return new ResiliencePolicies
                 {
                     JobDefinitionsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
                     JobRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    JobRepositoryNonAsync = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    JobRepositoryNonAsync = CosmosResiliencePolicyHelper.GenerateNonAsyncCosmosPolicy(totalNetworkRequestsPolicyNonAsync),
                     MessengerServicePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy)
                 };
             });

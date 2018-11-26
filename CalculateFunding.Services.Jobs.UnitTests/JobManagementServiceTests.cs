@@ -1,5 +1,9 @@
-﻿using CalculateFunding.Services.Jobs;
+﻿using CalculateFunding.Models.Jobs;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Jobs.Interfaces;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -16,14 +20,18 @@ namespace CalculateFunding.Services.Jobs.Services
             INotificationService notificationService = null,
             IJobDefinitionsService jobDefinitionsService = null,
             IJobsResiliencePolicies resilliencePolicies = null,
-            ILogger logger = null)
+            ILogger logger = null,
+            IValidator<CreateJobValidationModel> createJobValidator = null,
+            IMessengerService messengerService = null)
         {
             return new JobManagementService(
                     jobRepository ?? CreateJobRepository(),
                     notificationService ?? CreateNotificationsService(),
                     jobDefinitionsService ?? CreateJobDefinitionsService(),
                     resilliencePolicies ?? CreateResilliencePolicies(),
-                    logger ?? CreateLogger()
+                    logger ?? CreateLogger(),
+                    createJobValidator ?? CreateNewCreateJobValidator(),
+                    messengerService ?? CreateMessengerService()
                 );
         }
 
@@ -52,5 +60,23 @@ namespace CalculateFunding.Services.Jobs.Services
             return JobsResilienceTestHelper.GenerateTestPolicies();
         }
 
+        private static IValidator<CreateJobValidationModel> CreateNewCreateJobValidator(ValidationResult validationResult = null)
+        {
+            if (validationResult == null)
+                validationResult = new ValidationResult();
+
+            IValidator<CreateJobValidationModel> validator = Substitute.For<IValidator<CreateJobValidationModel>>();
+
+            validator
+               .Validate(Arg.Any<CreateJobValidationModel>())
+               .Returns(validationResult);
+
+            return validator;
+        }
+
+        private static IMessengerService CreateMessengerService()
+        {
+            return Substitute.For<IMessengerService>();
+        }
     }
 }

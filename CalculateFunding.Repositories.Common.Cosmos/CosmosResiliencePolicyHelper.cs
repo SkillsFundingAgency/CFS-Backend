@@ -41,5 +41,38 @@ namespace CalculateFunding.Repositories.Common.Cosmos
 
             return policyWrap;
         }
+
+        public static Policy GenerateNonAsyncCosmosPolicy(Policy chainedPolicy)
+        {
+            return GenerateNonAsyncCosmosPolicy(new[] { chainedPolicy });
+        }
+
+        public static Policy GenerateNonAsyncCosmosPolicy(Policy[] chainedPolicies = null)
+        {
+            Policy documentClientExceptionRetry = Policy.Handle<DocumentClientException>(e => (int)e.StatusCode != 429)
+                .WaitAndRetry(new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30) });
+
+            Policy requestRateTooLargeExceptionRetry = Policy.Handle<DocumentClientException>(e => (int)e.StatusCode == 429)
+                .WaitAndRetry(new[] { TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(120) });
+
+
+            Policy circuitBreaker = Policy.Handle<DocumentClientException>().CircuitBreaker(1000, TimeSpan.FromMinutes(1));
+
+            List<Policy> policies = new List<Policy>(8)
+            { 
+                documentClientExceptionRetry,
+                requestRateTooLargeExceptionRetry,
+                circuitBreaker,
+            };
+
+            if (chainedPolicies != null && chainedPolicies.Any())
+            {
+                policies.AddRange(chainedPolicies);
+            }
+
+            PolicyWrap policyWrap = Policy.Wrap(policies.ToArray());
+
+            return policyWrap;
+        }
     }
 }
