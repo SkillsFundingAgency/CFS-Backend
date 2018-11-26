@@ -16,5 +16,9 @@ namespace CalculateFunding.Services.Jobs.Interfaces
         Task<JobDefinition> GetJobDefinition(string jobType);
 
         IEnumerable<Job> GetRunningJobsForSpecificationAndJobDefinitionId(string specificationId, string jobDefinitionId);
+
+        Job GetJobById(string jobId);
+
+        IEnumerable<Job> GetChildJobsForParent(string jobId);
     }
 }

@@ -1,9 +1,14 @@
-﻿using CalculateFunding.Models.Jobs;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Jobs.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -14,15 +19,8 @@ using Newtonsoft.Json;
 using NSubstitute;
 using Polly;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Calcs
+namespace CalculateFunding.Services.Jobs.Services
 {
     [TestClass]
     public class JobDefinitionsServiceTests
@@ -181,7 +179,7 @@ namespace CalculateFunding.Services.Calcs
             jobDefinitionsRepository
                 .When(x => x.SaveJobDefinition(Arg.Any<JobDefinition>()))
                 .Do(x => { throw new Exception(); });
-              
+
 
             JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(logger: logger, jobDefinitionsRepository: jobDefinitionsRepository);
 
@@ -286,7 +284,7 @@ namespace CalculateFunding.Services.Calcs
         {
             //Arrange
             List<JobDefinition> jobDefinitions = null;
-            
+
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
                 .GetAsync<List<JobDefinition>>(Arg.Is(CacheKeys.JobDefinitions))
@@ -298,7 +296,7 @@ namespace CalculateFunding.Services.Calcs
                .Returns(jobDefinitions);
 
             JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(jobDefinitionsRepository, resilliencePolicies: GenerateTestPolicies(), cacheProvider: cacheProvider);
-       
+
             //Act
             IEnumerable<JobDefinition> definitions = await jobDefinitionsService.GetAllJobDefinitions();
 
@@ -493,7 +491,7 @@ namespace CalculateFunding.Services.Calcs
         }
 
         public JobDefinitionsService CreateJobDefinitionService(
-            IJobDefinitionsRepository jobDefinitionsRepository = null, 
+            IJobDefinitionsRepository jobDefinitionsRepository = null,
             ILogger logger = null,
             IJobsResiliencePolicies resilliencePolicies = null,
             ICacheProvider cacheProvider = null)
@@ -505,7 +503,7 @@ namespace CalculateFunding.Services.Calcs
                     cacheProvider ?? CreateCacheProvider()
                 );
         }
-   
+
         public static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
