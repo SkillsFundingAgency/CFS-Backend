@@ -95,7 +95,7 @@ namespace CalculateFunding.Api.Jobs.Controllers
         [ProducesResponseType(200, Type = typeof(IEnumerable<JobLog>))]
         public async Task<IActionResult> GetJobLogs([FromRoute] string jobId)
         {
-            return await _jobService.GetJobLogs(jobId, ControllerContext.HttpContext.Request);
+            return await _jobService.GetJobLogs(jobId);
         }
 
         [HttpPost]

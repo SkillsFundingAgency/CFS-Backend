@@ -50,11 +50,20 @@ namespace CalculateFunding.Services.Jobs
             return new OkObjectResult(jobViewModel);
         }
 
-        public Task<IActionResult> GetJobLogs(string jobId, HttpRequest request)
+        public async Task<IActionResult> GetJobLogs(string jobId)
         {
-            throw new System.NotImplementedException();
+            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
+
+            Job job = await _jobRepository.GetJobById(jobId);
+
+            if (job == null)
+            {
+                return new NotFoundResult();
+            }
+
+            return new OkObjectResult(_jobRepository.GetJobLogsByJobId(jobId));
         }
-       
+
         public Task<IActionResult> GetJobs(string specificationId, string jobType, string entityId, RunningStatus? runningStatus, CompletionStatus? completionStatus, bool excludeChildJobs, int pageNumber, HttpRequest request)
         {
             throw new System.NotImplementedException();
