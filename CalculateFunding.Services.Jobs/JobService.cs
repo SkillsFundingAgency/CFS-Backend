@@ -14,21 +14,26 @@ namespace CalculateFunding.Services.Jobs
     {
         private readonly IJobRepository _jobRepository;
         private readonly IMapper _mapper;
+        private readonly Polly.Policy _jobsRepositoryPolicy;
+        private readonly Polly.Policy _jobsRepositoryNonAsyncPolicy;
 
-        public JobService(IJobRepository jobRepository, IMapper mapper)
+        public JobService(IJobRepository jobRepository, IMapper mapper, IJobsResiliencePolicies resilliencePolicies)
         {
             Guard.ArgumentNotNull(jobRepository, nameof(jobRepository));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(resilliencePolicies, nameof(resilliencePolicies));
 
             _jobRepository = jobRepository;
             _mapper = mapper;
+            _jobsRepositoryPolicy = resilliencePolicies.JobRepository;
+            _jobsRepositoryNonAsyncPolicy = resilliencePolicies.JobRepositoryNonAsync;
         }
 
         public async Task<IActionResult> GetJobById(string jobId, bool includeChildJobs)
         {
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            Job job = await _jobRepository.GetJobById(jobId);
+            Job job = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobById(jobId));
 
             if (job == null)
             {
@@ -37,7 +42,7 @@ namespace CalculateFunding.Services.Jobs
 
             JobViewModel jobViewModel = _mapper.Map<JobViewModel>(job);
 
-            IEnumerable<Job> childJobs = _jobRepository.GetChildJobsForParent(jobId);
+            IEnumerable<Job> childJobs = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetChildJobsForParent(jobId));
 
             if (!childJobs.IsNullOrEmpty())
             {
@@ -54,14 +59,15 @@ namespace CalculateFunding.Services.Jobs
         {
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            Job job = await _jobRepository.GetJobById(jobId);
+            Job job = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobById(jobId));
 
             if (job == null)
             {
                 return new NotFoundResult();
             }
 
-            return new OkObjectResult(_jobRepository.GetJobLogsByJobId(jobId));
+            IEnumerable<JobLog> logs = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetJobLogsByJobId(jobId));
+            return new OkObjectResult(logs);
         }
 
         public Task<IActionResult> GetJobs(string specificationId, string jobType, string entityId, RunningStatus? runningStatus, CompletionStatus? completionStatus, bool excludeChildJobs, int pageNumber, HttpRequest request)

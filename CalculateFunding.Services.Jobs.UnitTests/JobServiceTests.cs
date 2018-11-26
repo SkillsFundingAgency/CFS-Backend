@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Jobs
     {
         public IJobService CreateJobService(IJobRepository jobRepository = null, IMapper mapper = null)
         {
-            return new JobService(jobRepository ?? CreateJobRepository(), mapper ?? CreateMapper());
+            return new JobService(jobRepository ?? CreateJobRepository(), mapper ?? CreateMapper(), JobsResilienceTestHelper.GenerateTestPolicies());
         }
 
         private IJobRepository CreateJobRepository()
