@@ -14,7 +14,8 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Services;
-
+using AutoMapper;
+using CalculateFunding.Models.MappingProfiles;
 
 namespace CalculateFunding.Api.Jobs
 {
@@ -99,6 +100,10 @@ namespace CalculateFunding.Api.Jobs
 
                     return new JobRepository(jobCosmosRepostory);
                 });
+
+            MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<JobsMappingProfile>());
+
+            builder.AddSingleton(mappingConfig.CreateMapper());
 
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Jobs");
             builder.AddLogging("CalculateFunding.Api.Jobs");
