@@ -154,6 +154,7 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddResultsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddDatasetsInterServiceClient(config);
+            builder.AddJobsInterServiceClient(config);
 
             builder.AddCaching(config);
 

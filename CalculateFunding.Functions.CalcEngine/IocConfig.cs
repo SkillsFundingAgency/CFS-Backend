@@ -89,6 +89,8 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddCalcsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
 
+            builder.AddJobsInterServiceClient(config);
+
             builder.AddDatasetsInterServiceClient(config);
 
             builder.AddEngineSettings(config);
