@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Calculator.Interfaces;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
@@ -391,6 +394,143 @@ namespace CalculateFunding.Services.Calculator
                     .MockProviderResultRepo
                     .Received(0)
                     .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<int>());
+        }
+
+        [TestMethod]
+        public async Task UpdateDeadLetteredJobLog_GivenMessageButNoJobId_LogsAnErrorAndDoesNotUpdadeJobLog()
+        {
+            //Arrange
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            calculationEngineServiceTestsHelper
+               .FeatureToggle
+               .IsJobServiceEnabled()
+               .Returns(true);
+
+            Message message = new Message();
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            //Act
+            await service.UpdateDeadLetteredJobLog(message);
+
+            //Assert
+            calculationEngineServiceTestsHelper
+                .MockLogger
+                .Received(1)
+                .Error(Arg.Is("Missing job id from dead lettered message"));
+
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .DidNotReceive()
+                    .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
+        }
+
+        [TestMethod]
+        public async Task UpdateDeadLetteredJobLog_GivenMessageButAddingLogCausesException_LogsAnError()
+        {
+            //Arrange
+            const string jobId = "job-id-1";
+
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            calculationEngineServiceTestsHelper
+                .FeatureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+;
+            Message message = new Message();
+            message.UserProperties.Add("jobId", jobId);
+
+            calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .When(x => x.AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>()))
+                    .Do(x => { throw new Exception(); });
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            //Act
+            await service.UpdateDeadLetteredJobLog(message);
+
+            //Assert
+            calculationEngineServiceTestsHelper
+                .MockLogger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is($"Failed to add a job log for job id '{jobId}'"));
+        }
+
+        [TestMethod]
+        public async Task UpdateDeadLetteredJobLog_GivenMessageAndLogIsUpdated_LogsInformation()
+        {
+            //Arrange
+            const string jobId = "job-id-1";
+
+            JobLog jobLog = new JobLog
+            {
+                Id = "job-log-id-1"
+            };
+
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            calculationEngineServiceTestsHelper
+               .FeatureToggle
+               .IsJobServiceEnabled()
+               .Returns(true);
+
+            Message message = new Message();
+            message.UserProperties.Add("jobId", jobId);
+
+            calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>())
+                    .Returns(jobLog);
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            //Act
+            await service.UpdateDeadLetteredJobLog(message);
+
+            //Assert
+            calculationEngineServiceTestsHelper
+                .MockLogger
+                .Received(1)
+                .Information(Arg.Is($"A new job log was added to inform of a dead lettered message with job log id '{jobLog.Id}' on job with id '{jobId}' while attempting to generate allocations"));
+        }
+
+        [TestMethod]
+        public async Task UpdateDeadLetteredJobLog_GivenMessageAndFeatureToggleIsTurnedOff_DoesNotAddJobLog()
+        {
+            //Arrange
+            JobLog jobLog = new JobLog
+            {
+                Id = "job-log-id-1"
+            };
+
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            calculationEngineServiceTestsHelper
+               .FeatureToggle
+               .IsJobServiceEnabled()
+               .Returns(false);
+
+            Message message = new Message();
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            //Act
+            await service.UpdateDeadLetteredJobLog(message);
+
+            //Assert
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .DidNotReceive()
+                    .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
         }
 
         private static BuildProject CreateBuildProject()

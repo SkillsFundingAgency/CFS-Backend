@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
@@ -24,6 +25,7 @@ namespace CalculateFunding.Services.Calculator
             MockCalculatorResiliencePoliciesValidator
                 .Validate(Arg.Any<ICalculatorResiliencePolicies>())
                 .Returns(new ValidationResult());
+            MockCalculatorResiliencePolicies.JobsRepository.Returns(MockJobsRepositoryPolicy);
         }
 
         public CalculationEngineService CreateCalculationEngineService()
@@ -42,7 +44,8 @@ namespace CalculateFunding.Services.Calculator
                     MockCalculatorResiliencePolicies,
                     MockCalculatorResiliencePoliciesValidator,
                     DatasetAggregationsRepository,
-                    FeatureToggle);
+                    FeatureToggle,
+                    MockJobsRepository);
 
             return service;
         }
@@ -59,11 +62,13 @@ namespace CalculateFunding.Services.Calculator
         public ICalculationEngine MockCalculationEngine { get; set; } = Substitute.For<ICalculationEngine>();
         public IValidator<ICalculatorResiliencePolicies> MockCalculatorResiliencePoliciesValidator { get; set; } = Substitute.For<IValidator<ICalculatorResiliencePolicies>>();
         public IDatasetAggregationsRepository DatasetAggregationsRepository { get; set; } = Substitute.For<IDatasetAggregationsRepository>();
+        public IJobsRepository MockJobsRepository { get; set; } = Substitute.For<IJobsRepository>();
         public IFeatureToggle FeatureToggle { get; set; } = Substitute.For<IFeatureToggle>();
         public Policy MockCacheProviderPolicy { get; set; } = Policy.NoOpAsync();
         public Policy MockMessengerPolicy { get; set; } = Policy.NoOpAsync();
         public Policy MockProviderSourceDatasetsRepositoryPolicy { get; set; } = Policy.NoOpAsync();
         public Policy MockProviderResultsRepositoryPolicy { get; set; } = Policy.NoOpAsync();
         public Policy MockCalculationRepositoryPolicy { get; set; } = Policy.NoOpAsync();
+        public Policy MockJobsRepositoryPolicy { get; set; } = Policy.NoOpAsync();
     }
 }

@@ -30,6 +30,7 @@ using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Models.Jobs;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -1085,6 +1086,139 @@ namespace CalculateFunding.Services.Calcs.Services
                     .UpdateCalculationLastUpdatedDate(Arg.Any<string>());
         }
 
+        [TestMethod]
+        public async Task UpdateDeadLetteredJobLog_GivenMessageButNoJobId_LogsAnErrorAndDoesNotUpdadeJobLog()
+        {
+            //Arrange
+            Message message = new Message();
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+
+            ILogger logger = CreateLogger();
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            BuildProjectsService service = CreateBuildProjectsService(logger: logger, jobsRepository: jobsRepository, featureToggle: featureToggle);
+
+            //Act
+            await service.UpdateDeadLetteredJobLog(message);
+
+            //Assert
+            logger
+                .Received(1)
+                .Error(Arg.Is("Missing job id from dead lettered message"));
+
+            await
+                jobsRepository
+                    .DidNotReceive()
+                    .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
+        }
+
+        [TestMethod]
+        public async Task UpdateDeadLetteredJobLog_GivenMessageButAddingLogCausesException_LogsAnError()
+        {
+            //Arrange
+            const string jobId = "job-id-1";
+
+            Message message = new Message();
+            message.UserProperties.Add("jobId", jobId);
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                    .When(x => x.AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>()))
+                    .Do(x => { throw new Exception(); });
+
+            ILogger logger = CreateLogger();
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsRepository: jobsRepository, logger: logger, featureToggle: featureToggle);
+
+            //Act
+            await buildProjectsService.UpdateDeadLetteredJobLog(message);
+
+            //Assert
+           logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is($"Failed to add a job log for job id '{jobId}'"));
+        }
+
+        [TestMethod]
+        public async Task UpdateDeadLetteredJobLog_GivenMessageAndLogIsUpdated_LogsInformation()
+        {
+            //Arrange
+            const string jobId = "job-id-1";
+
+            JobLog jobLog = new JobLog
+            {
+                Id = "job-log-id-1"
+            };
+
+            Message message = new Message();
+            message.UserProperties.Add("jobId", jobId);
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>())
+                .Returns(jobLog);
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            ILogger logger = CreateLogger();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsRepository: jobsRepository, logger: logger, featureToggle: featureToggle);
+
+            //Act
+            await buildProjectsService.UpdateDeadLetteredJobLog(message);
+
+            //Assert
+            logger
+                .Received(1)
+                .Information(Arg.Is($"A new job log was added to inform of a dead lettered message with job log id '{jobLog.Id}' on job with id '{jobId}' while attempting to instruct allocations"));
+        }
+
+        [TestMethod]
+        public async Task UpdateDeadLetteredJobLog_GivenMessageAndFeatureToggleIsOff_DoesNotAddJobLog()
+        {
+            //Arrange
+            const string jobId = "job-id-1";
+
+            JobLog jobLog = new JobLog
+            {
+                Id = "job-log-id-1"
+            };
+
+            Message message = new Message();
+            message.UserProperties.Add("jobId", jobId);
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(false);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsRepository: jobsRepository, featureToggle: featureToggle);
+
+            //Act
+            await buildProjectsService.UpdateDeadLetteredJobLog(message);
+
+            //Assert
+            await
+                jobsRepository
+                    .DidNotReceive()
+                    .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
+        }
+
         private BuildProjectsService CreateBuildProjectsServiceWithRealCompiler(IBuildProjectsRepository buildProjectsRepository, ICalculationsRepository calculationsRepository)
         {
             ILogger logger = CreateLogger();
@@ -1108,7 +1242,8 @@ namespace CalculateFunding.Services.Calcs.Services
             ICacheProvider cacheProvider = null,
             ICalculationService calculationService = null,
             ICalculationsRepository calculationsRepository = null,
-            IFeatureToggle featureToggle = null)
+            IFeatureToggle featureToggle = null,
+            IJobsRepository jobsRepository = null)
         {
             return new BuildProjectsService(
                 buildProjectsRepository ?? CreateBuildProjectsRepository(),
@@ -1122,7 +1257,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider ?? CreateCacheProvider(),
                 calculationService ?? CreateCalculationService(),
                 calculationsRepository ?? CreateCalculationsRepository(),
-                featureToggle ?? CreateFeatureToggle());
+                featureToggle ?? CreateFeatureToggle(),
+                jobsRepository ?? CreateJobsRepository(),
+                CalcsResilienceTestHelper.GenerateTestPolicies());
         }
 
         static IFeatureToggle CreateFeatureToggle()
@@ -1192,6 +1329,11 @@ namespace CalculateFunding.Services.Calcs.Services
         private static ICalculationsRepository CreateCalculationsRepository()
         {
             return Substitute.For<ICalculationsRepository>();
+        }
+
+        private static IJobsRepository CreateJobsRepository()
+        {
+            return Substitute.For<IJobsRepository>();
         }
     }
 }

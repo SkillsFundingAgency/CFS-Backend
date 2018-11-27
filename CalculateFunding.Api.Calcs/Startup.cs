@@ -125,6 +125,9 @@ namespace CalculateFunding.Api.Calcs
             builder
               .AddSingleton<IDatasetRepository, DatasetRepository>();
 
+            builder
+                .AddSingleton<IJobsRepository, JobsRepository>();
+
             builder.AddSingleton<IVersionRepository<CalculationVersion>, VersionRepository<CalculationVersion>>((ctx) =>
             {
                 CosmosDbSettings calcsVersioningDbSettings = new CosmosDbSettings();
@@ -149,6 +152,7 @@ namespace CalculateFunding.Api.Calcs
             builder.AddResultsInterServiceClient(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddDatasetsInterServiceClient(Configuration);
+            builder.AddJobsInterServiceClient(Configuration);
 
             builder.AddCaching(Configuration);
 
@@ -174,7 +178,8 @@ namespace CalculateFunding.Api.Calcs
                     CalculationsVersionsRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     BuildProjectRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy)
+                    MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
+                    JobsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

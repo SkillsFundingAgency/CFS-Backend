@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -46,6 +47,8 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationService _calculationService;
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IFeatureToggle _featureToggle;
+        private readonly IJobsRepository _jobsRepository;
+        private readonly Polly.Policy _jobsRepositoryPolicy;
 
         public BuildProjectsService(
             IBuildProjectsRepository buildProjectsRepository,
@@ -59,7 +62,9 @@ namespace CalculateFunding.Services.Calcs
             ICacheProvider cacheProvider,
             ICalculationService calculationService,
             ICalculationsRepository calculationsRepository,
-            IFeatureToggle featureToggle)
+            IFeatureToggle featureToggle,
+            IJobsRepository jobsRepository,
+            ICalcsResilliencePolicies resilliencePolicies)
         {
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -73,6 +78,8 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(calculationService, nameof(calculationService));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(jobsRepository, nameof(jobsRepository));
+            Guard.ArgumentNotNull(resilliencePolicies, nameof(resilliencePolicies));
 
             _buildProjectsRepository = buildProjectsRepository;
             _messengerService = messengerService;
@@ -87,6 +94,8 @@ namespace CalculateFunding.Services.Calcs
             _calculationService = calculationService;
             _calculationsRepository = calculationsRepository;
             _featureToggle = featureToggle;
+            _jobsRepository = jobsRepository;
+            _jobsRepositoryPolicy = resilliencePolicies.JobsRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -392,6 +401,41 @@ namespace CalculateFunding.Services.Calcs
 
             return new OkObjectResult(buildProject);
 
+        }
+
+        public async Task UpdateDeadLetteredJobLog(Message message)
+        {
+            if (!_featureToggle.IsJobServiceEnabled())
+            {
+                return;
+            }
+
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            if (!message.UserProperties.ContainsKey("jobId"))
+            {
+                _logger.Error("Missing job id from dead lettered message");
+                return;
+            }
+
+            string jobId = message.UserProperties["jobId"].ToString();
+
+            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
+            {
+                CompletedSuccessfully = false,
+                Outcome = $"The job has exceeded its maximum retry count and failed to complete successfully"
+            };
+
+            try
+            {
+                JobLog jobLog = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(jobId, jobLogUpdateModel));
+
+                _logger.Information($"A new job log was added to inform of a dead lettered message with job log id '{jobLog.Id}' on job with id '{jobId}' while attempting to instruct allocations");
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"Failed to add a job log for job id '{jobId}'");
+            }
         }
 
         Task<HttpStatusCode> UpdateBuildProject(BuildProject buildProject)

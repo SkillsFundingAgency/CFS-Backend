@@ -101,6 +101,9 @@ namespace CalculateFunding.Functions.Calcs
               .AddSingleton<IDatasetRepository, DatasetRepository>();
 
             builder
+               .AddSingleton<IJobsRepository, JobsRepository>();
+
+            builder
                 .AddSingleton<CSharpCompiler>()
                 .AddSingleton<VisualBasicCompiler>()
                 .AddSingleton<VisualBasicSourceFileGenerator>();
@@ -178,7 +181,8 @@ namespace CalculateFunding.Functions.Calcs
                     CalculationsVersionsRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     BuildProjectRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy)
+                    MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
+                    JobsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }

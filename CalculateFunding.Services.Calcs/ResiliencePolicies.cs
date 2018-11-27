@@ -18,5 +18,7 @@ namespace CalculateFunding.Services.Calcs
         public Policy BuildProjectRepositoryPolicy { get; set; }
 
         public Policy MessagePolicy { get; set; }
+
+        public Policy JobsRepository { get; set; }
     }
 }
