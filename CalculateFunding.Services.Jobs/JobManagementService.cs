@@ -481,7 +481,19 @@ namespace CalculateFunding.Services.Jobs
             string queueOrTopic = !string.IsNullOrWhiteSpace(jobDefinition.MessageBusQueue) ? jobDefinition.MessageBusQueue : jobDefinition.MessageBusTopic;
             string data = !string.IsNullOrWhiteSpace(job.MessageBody) ? job.MessageBody : null;
             IDictionary<string, string> messageProperties = job.Properties;
-                
+
+            if (messageProperties == null)
+            {
+                messageProperties = new Dictionary<string, string> { { "jobId", job.Id } };
+            }
+            else
+            {
+                if (!messageProperties.ContainsKey("jobId"))
+                {
+                    messageProperties.Add("jobId", job.Id);
+                }
+            }
+
             try
             {
                 if (!string.IsNullOrWhiteSpace(jobDefinition.MessageBusQueue))

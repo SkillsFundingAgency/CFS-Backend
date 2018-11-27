@@ -1264,7 +1264,12 @@ namespace CalculateFunding.Services.Jobs.Services
                     .SendToQueue<string>(
                         Arg.Is("TestQueue"), 
                         Arg.Is("a message"), 
-                        Arg.Is<Dictionary<string, string>>(m => m.ContainsKey("specificationId") && m["specificationId"] == "spec-id-1"));
+                        Arg.Is<Dictionary<string, string>>(
+                            m => m.ContainsKey("specificationId") &&
+                            m["specificationId"] == "spec-id-1" &&
+                            m.ContainsKey("jobId") &&
+                            m["jobId"] == jobId
+                ));
         }
 
         [TestMethod]
@@ -1388,7 +1393,8 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 messengerService
                     .Received(1)
-                    .SendToTopic<string>(Arg.Is("TestTopic"), Arg.Any<string>(), Arg.Any<Dictionary<string, string>>());
+                    .SendToTopic<string>(Arg.Is("TestTopic"), Arg.Any<string>(),
+                            Arg.Is<Dictionary<string, string>>(m => m.ContainsKey("jobId") && m["jobId"] == jobId));
         }
 
         [TestMethod]
