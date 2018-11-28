@@ -5,12 +5,14 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
@@ -64,7 +66,10 @@ namespace CalculateFunding.Services.Calcs
         private readonly Polly.Policy _specificationsRepositoryPolicy;
         private readonly Polly.Policy _buildProjectRepositoryPolicy;
         private readonly Polly.Policy _messagePolicy;
+        private readonly Polly.Policy _jobsRepositoryPolicy;
         private readonly IVersionRepository<CalculationVersion> _calculationVersionRepository;
+        private readonly IJobsRepository _jobsRepository;
+        private readonly IFeatureToggle _featureToggle;
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
@@ -80,7 +85,9 @@ namespace CalculateFunding.Services.Calcs
             ISpecificationRepository specificationRepository,
             ICacheProvider cacheProvider,
             ICalcsResilliencePolicies resilliencePolicies,
-            IVersionRepository<CalculationVersion> calculationVersionRepository)
+            IVersionRepository<CalculationVersion> calculationVersionRepository,
+            IJobsRepository jobsRepository,
+            IFeatureToggle featureToggle)
         {
             Guard.ArgumentNotNull(codeMetadataGenerator, nameof(codeMetadataGenerator));
             Guard.ArgumentNotNull(specificationRepository, nameof(specificationRepository));
@@ -92,6 +99,8 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(compilerFactory, nameof(compilerFactory));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(calculationVersionRepository, nameof(calculationVersionRepository));
+            Guard.ArgumentNotNull(jobsRepository, nameof(jobsRepository));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -113,6 +122,9 @@ namespace CalculateFunding.Services.Calcs
             _buildProjectRepositoryPolicy = resilliencePolicies.BuildProjectRepositoryPolicy;
             _messagePolicy = resilliencePolicies.MessagePolicy;
             _calculationVersionsRepositoryPolicy = resilliencePolicies.CalculationsVersionsRepositoryPolicy;
+            _jobsRepository = jobsRepository;
+            _jobsRepositoryPolicy = resilliencePolicies.JobsRepository;
+            _featureToggle = featureToggle;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -501,11 +513,33 @@ namespace CalculateFunding.Services.Calcs
 
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
-            properties.Add("specification-id", specificationId);
+            if (_featureToggle.IsJobServiceEnabled())
+            {
+                string userId = properties.ContainsKey("user-id") ? properties["user-id"] : "";
+                string userName = properties.ContainsKey("user-name") ? properties["user-name"] : "";
 
-            await _messagePolicy.ExecuteAsync(() => _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
-                null,
-                properties));
+                try
+                {
+                    Job job = await SendInstructAllocationsToJobService(buildProject.Id, specificationId, userId, userName);
+
+                    _logger.Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'");
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'");
+
+                    throw new Exception($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'", ex);
+                }
+            }
+            else
+            {
+
+                properties.Add("specification-id", specificationId);
+
+                await _messagePolicy.ExecuteAsync(() => _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
+                    null,
+                    properties));
+            }
         }
 
         public async Task UpdateCalculationsForCalculationSpecificationChange(Message message)
@@ -720,7 +754,28 @@ namespace CalculateFunding.Services.Calcs
 
             UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, user);
 
-            await SendGenerateAllocationsMessage(result.BuildProject, request);
+            if (_featureToggle.IsJobServiceEnabled())
+            {
+                string userId = !string.IsNullOrWhiteSpace(user.Id) ? user.Id : "";
+                string userName = !string.IsNullOrWhiteSpace(user.Name) ? user.Name : "";
+
+                try
+                {
+                    Job job = await SendInstructAllocationsToJobService(result.BuildProject.Id, result.BuildProject.SpecificationId, userId, userName);
+
+                    _logger.Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'");
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{result.BuildProject.SpecificationId}'");
+
+                    return new InternalServerErrorResult($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{result.BuildProject.SpecificationId}'");
+                }
+            }
+            else
+            {
+                await SendGenerateAllocationsMessage(result.BuildProject, request);
+            }
 
             _telemetry.TrackEvent("InstructCalculationAllocationEventRun",
                  new Dictionary<string, string>()
@@ -1169,7 +1224,7 @@ namespace CalculateFunding.Services.Calcs
             return calculationCurrentVersion;
         }
 
-        Task SendGenerateAllocationsMessage(BuildProject buildProject, HttpRequest request)
+        private Task SendGenerateAllocationsMessage(BuildProject buildProject, HttpRequest request)
         {
             IDictionary<string, string> properties = request.BuildMessageProperties();
 
@@ -1179,6 +1234,24 @@ namespace CalculateFunding.Services.Calcs
             return _messagePolicy.ExecuteAsync(() => _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
                 null,
                 properties));
+        }
+
+        private async Task<Job> SendInstructAllocationsToJobService(string buildProjectId, string specificationId, string userId, string userName)
+        {
+            JobCreateModel job = new JobCreateModel
+            {
+                InvokerUserDisplayName = userName,
+                InvokerUserId = userId,
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob,
+                SpecificationId = specificationId,
+                Properties = new Dictionary<string, string>
+                {
+                    { "specification-id", specificationId },
+                    { "buildproject-id", buildProjectId }
+                }
+            };
+
+            return await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.CreateJob(job));
         }
 
         IDictionary<string, string> CreateMessageProperties(HttpRequest request)

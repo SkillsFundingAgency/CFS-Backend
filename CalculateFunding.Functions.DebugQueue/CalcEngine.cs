@@ -17,5 +17,15 @@ namespace CalculateFunding.Functions.DebugQueue
 
             log.Info($"C# Queue trigger function processed: {item}");
         }
+
+        [FunctionName("on-calcs-generate-allocations-event-poisoned")]
+        public static async Task RunOnCalculationGenerateFailure([QueueTrigger(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResultsPoisonedLocal, Connection = "AzureConnectionString")] string item, TraceWriter log)
+        {
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            await Functions.CalcEngine.ServiceBus.OnCalculationGenerateFailure.Run(message);
+
+            log.Info($"C# Queue trigger function processed: {item}");
+        }
     }
 }

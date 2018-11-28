@@ -16,5 +16,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IActionResult> UpdateBuildProjectRelationships(HttpRequest request);
 
         Task<IActionResult> OutputBuildProjectToFilesystem(HttpRequest request);
+
+        Task UpdateDeadLetteredJobLog(Message message);
     }
 }

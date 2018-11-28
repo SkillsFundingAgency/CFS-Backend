@@ -188,6 +188,23 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
+        public static IServiceCollection AddJobsInterServiceClient(this IServiceCollection builder, IConfiguration config)
+        {
+            builder
+                 .AddSingleton<IJobsApiClientProxy, JobsApiProxy>((ctx) => {
+                     ApiOptions apiOptions = new ApiOptions();
+
+                     config.Bind("jobsClient", apiOptions);
+
+                     ILogger logger = ctx.GetService<ILogger>();
+                     ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
+
+                     return new JobsApiProxy(apiOptions, logger, correlationIdProvider);
+                 });
+
+            return builder;
+        }
+
         public static IServiceCollection AddFeatureToggling(this IServiceCollection builder, IConfiguration config)
         {
             builder

@@ -159,6 +159,9 @@ namespace CalculateFunding.Functions.Datasets
             builder
                .AddSingleton<ICalcsRepository, CalcsRepository>();
 
+            builder
+                .AddSingleton<IJobsRepository, JobsRepository>();
+
             builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetItemValidator>();
 
             MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
@@ -194,6 +197,7 @@ namespace CalculateFunding.Functions.Datasets
             builder.AddCalcsInterServiceClient(config);
             builder.AddResultsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
+            builder.AddJobsInterServiceClient(config);
 
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
@@ -235,7 +239,8 @@ namespace CalculateFunding.Functions.Datasets
                     DatasetRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     DatasetSearchService = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     DatasetDefinitionSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
-                    BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    JobsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }

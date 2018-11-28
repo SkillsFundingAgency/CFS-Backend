@@ -3,14 +3,17 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.CalcEngine;
+using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
@@ -49,6 +52,8 @@ namespace CalculateFunding.Services.Calculator
         private readonly IValidator<ICalculatorResiliencePolicies> _calculatorResiliencePoliciesValidator;
         private readonly IDatasetAggregationsRepository _datasetAggregationsRepository;
         private readonly IFeatureToggle _featureToggle;
+        private readonly IJobsRepository _jobsRepository;
+        private readonly Policy _jobsRepositoryPolicy;
 
         public CalculationEngineService(
             ILogger logger,
@@ -63,7 +68,8 @@ namespace CalculateFunding.Services.Calculator
             ICalculatorResiliencePolicies resiliencePolicies,
             IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator,
             IDatasetAggregationsRepository datasetAggregationsRepository,
-            IFeatureToggle featureToggle)
+            IFeatureToggle featureToggle,
+            IJobsRepository jobsRepository)
         {
             _calculatorResiliencePoliciesValidator = calculatorResiliencePoliciesValidator;
 
@@ -86,6 +92,8 @@ namespace CalculateFunding.Services.Calculator
             _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _datasetAggregationsRepository = datasetAggregationsRepository;
             _featureToggle = featureToggle;
+            _jobsRepository = jobsRepository;
+            _jobsRepositoryPolicy = resiliencePolicies.JobsRepository;
         }
 
         async public Task<IActionResult> GenerateAllocations(HttpRequest request)
@@ -321,6 +329,41 @@ namespace CalculateFunding.Services.Calculator
                     },
                     metrics
                 );
+            }
+        }
+
+        public async Task UpdateDeadLetteredJobLog(Message message)
+        {
+            if (!_featureToggle.IsJobServiceEnabled())
+            {
+                return;
+            }
+
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            if (!message.UserProperties.ContainsKey("jobId"))
+            {
+                _logger.Error("Missing job id from dead lettered message");
+                return;
+            }
+
+            string jobId = message.UserProperties["jobId"].ToString();
+
+            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
+            {
+                CompletedSuccessfully = false,
+                Outcome = $"The job has exceeded its maximum retry count and failed to complete successfully"
+            };
+
+            try
+            {
+                JobLog jobLog = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(jobId, jobLogUpdateModel));
+
+                _logger.Information($"A new job log was added to inform of a dead lettered message with job log id '{jobLog.Id}' on job with id '{jobId}' while attempting to generate allocations");
+            }
+            catch(Exception exception)
+            {
+                _logger.Error(exception, $"Failed to add a job log for job id '{jobId}'");
             }
         }
     }

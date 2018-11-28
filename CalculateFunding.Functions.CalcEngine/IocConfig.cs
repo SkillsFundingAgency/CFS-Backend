@@ -2,6 +2,8 @@
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.CalcEngine;
+using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CalcEngine.Validators;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Calculator.Interfaces;
@@ -86,8 +88,13 @@ namespace CalculateFunding.Functions.CalcEngine
             builder
                .AddSingleton<IDatasetAggregationsRepository, DatasetAggregationsRepository>();
 
+            builder
+                .AddSingleton<IJobsRepository, JobsRepository>();
+
             builder.AddCalcsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
+
+            builder.AddJobsInterServiceClient(config);
 
             builder.AddDatasetsInterServiceClient(config);
 
@@ -122,6 +129,7 @@ namespace CalculateFunding.Functions.CalcEngine
                     CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
                     Messenger = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
                     CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    JobsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
 
                 return resiliencePolicies;

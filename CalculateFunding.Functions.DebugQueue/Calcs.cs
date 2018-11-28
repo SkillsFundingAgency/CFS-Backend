@@ -39,6 +39,16 @@ namespace CalculateFunding.Functions.DebugQueue
             log.Info($"C# Queue trigger function processed: {item}");
         }
 
+        [FunctionName("on-calcs-instruct-allocations-poisoned")]
+        public static async Task RunOnCalcsInstructAllocationResultsFailure([QueueTrigger(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResultsPoisonedLocal, Connection = "AzureConnectionString")] string item, TraceWriter log)
+        {
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            await Functions.Calcs.ServiceBus.OnCalcsInstructAllocationResultsFailure.Run(message);
+
+            log.Info($"C# Queue trigger function processed: {item}");
+        }
+
         [FunctionName("on-edit-calculation-for-calcs")]
         public static async Task RunOnEditCalculationSpecificationEvent([QueueTrigger(ServiceBusConstants.TopicNames.EditCalculation, Connection = "AzureConnectionString")] string item, TraceWriter log)
         {
