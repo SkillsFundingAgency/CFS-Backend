@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Models;
 using CalculateFunding.Models.Jobs;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -72,22 +70,16 @@ namespace CalculateFunding.Api.Jobs.Controllers
 
         [HttpGet]
         [Route("api/jobs")]
-        [ProducesResponseType(200, Type = typeof(IEnumerable<JobSummary>))]
-        public async Task<IActionResult> GetJobs(
-                                                    [FromQuery] string specificationId = null,
-                                                    [FromQuery] string jobType = null,
-                                                    [FromQuery] string entityId = null,
-                                                    [FromQuery] RunningStatus? runningStatus = null,
-                                                    [FromQuery] CompletionStatus? completionStatus = null,
-                                                    [FromQuery] bool excludeChildJobs = false,
-                                                    [FromQuery] int pageNumber = 1)
+        [ProducesResponseType(200, Type = typeof(JobQueryResponseModel))]
+        public IActionResult GetJobs([FromQuery] string specificationId = null,
+                                      [FromQuery] string jobType = null,
+                                      [FromQuery] string entityId = null,
+                                      [FromQuery] RunningStatus? runningStatus = null,
+                                      [FromQuery] CompletionStatus? completionStatus = null,
+                                      [FromQuery] bool excludeChildJobs = false,
+                                      [FromQuery] int pageNumber = 1)
         {
-            // Sorted by last updated DESC
-            // When excludeChildJobs == true, then return jobs with null ParentJobId
-
-            // Any combination of above filters, when a filter is null, all jobs for that filter is displayed
-            // Have fun with cross partition queries :)
-            return await _jobService.GetJobs(specificationId, jobType, entityId, runningStatus, completionStatus, excludeChildJobs, pageNumber, ControllerContext.HttpContext.Request);
+            return _jobService.GetJobs(specificationId, jobType, entityId, runningStatus, completionStatus, excludeChildJobs, pageNumber);
         }
 
         [HttpGet]

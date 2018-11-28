@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.Jobs.Interfaces
     {
         Task<IActionResult> GetJobById(string jobId, bool includeChildJobs);
 
-        Task<IActionResult> GetJobs(string specificationId, string jobType, string entityId, RunningStatus? runningStatus, CompletionStatus? completionStatus, bool excludeChildJobs, int pageNumber, HttpRequest request);
+        IActionResult GetJobs(string specificationId, string jobType, string entityId, RunningStatus? runningStatus, CompletionStatus? completionStatus, bool excludeChildJobs, int pageNumber);
 
         Task<IActionResult> GetJobLogs(string jobId);
 

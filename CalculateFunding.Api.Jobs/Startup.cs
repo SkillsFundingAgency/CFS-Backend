@@ -69,7 +69,8 @@ namespace CalculateFunding.Api.Jobs
                 .AddSingleton<IHealthChecker, JobDefinitionsService>();
 
             builder
-                .AddSingleton<IJobService, JobService>();
+                .AddSingleton<IJobService, JobService>()
+                .AddSingleton<IHealthChecker, JobService>();
 
             builder
                 .AddSingleton<INotificationService, NotificationService>();
