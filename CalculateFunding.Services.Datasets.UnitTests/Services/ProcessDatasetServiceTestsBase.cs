@@ -36,7 +36,8 @@ namespace CalculateFunding.Services.Datasets.Services
             IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
             IVersionRepository<ProviderSourceDatasetVersion> versionRepository = null,
             IDatasetsAggregationsRepository datasetsAggregationsRepository = null,
-            IFeatureToggle featureToggle = null)
+            IFeatureToggle featureToggle = null,
+            IJobsRepository jobsRepository = null)
         {
 
             return new ProcessDatasetService(
@@ -53,7 +54,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 telemetry ?? CreateTelemetry(),
                 datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies(),
                 datasetsAggregationsRepository ?? CreateDatasetsAggregationsRepository(),
-                featureToggle ?? CreateFeatureToggle());
+                featureToggle ?? CreateFeatureToggle(),
+                jobsRepository ?? CreateJobsRepository());
         }
 
         protected static IFeatureToggle CreateFeatureToggle()
@@ -63,7 +65,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 .IsAggregateSupportInCalculationsEnabled()
                 .Returns(false);
 
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(false);
+
             return featureToggle;
+        }
+
+        protected static IJobsRepository CreateJobsRepository()
+        {
+            return Substitute.For<IJobsRepository>();
         }
 
         protected static IDatasetsAggregationsRepository CreateDatasetsAggregationsRepository()

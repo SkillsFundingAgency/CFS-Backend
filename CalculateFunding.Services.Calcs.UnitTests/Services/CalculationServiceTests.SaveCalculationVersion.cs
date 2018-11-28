@@ -22,6 +22,11 @@ using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Models.Jobs;
+using System.Security.Claims;
+using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -1408,7 +1413,485 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenCalculationUpdateFails_ThenExceptionIsThrown()
+        async public Task SaveCalculationVersion_GivenFeatureToggleIsOn_SetsPublishStateToUpdatedAddNewJob()
+        {
+            //Arrange
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            string specificationId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId,
+                SpecificationId = specificationId
+            };
+
+            Calculation calculation = CreateCalculation();
+            calculation.BuildProjectId = buildProjectId;
+            calculation.SpecificationId = specificationId;
+
+            calculation.Current.PublishStatus = PublishStatus.Updated;
+
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
+            {
+                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
+            });
+
+            HttpContext context = Substitute.For<HttpContext>();
+            context
+                .User
+                .Returns(principle);
+
+            request
+                .HttpContext
+                .Returns(context);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            CalculationVersion calculationVersion = calculation.Current as CalculationVersion;
+            calculationVersion.PublishStatus = PublishStatus.Updated;
+
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
+                calculationsRepository: calculationsRepository,
+               buildProjectsRepository: buildProjectsRepository,
+               searchRepository: searchRepository,
+               messengerService: messengerService,
+               specificationRepository: specificationRepository,
+               calculationVersionRepository: versionRepository,
+               featureToggle: featureToggle,
+               jobsRepository: jobsRepository);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            calculation
+                .Current
+                .PublishStatus
+                .Should()
+                .Be(PublishStatus.Updated);
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
+
+            await
+                messengerService
+                    .DidNotReceive()
+                    .SendToQueue(Arg.Is("calc-events-instruct-generate-allocations"),
+                        Arg.Any<string>(),
+                        Arg.Any<IDictionary<string, string>>());
+            await
+                jobsRepository
+                    .Received(1)
+                    .CreateJob(Arg.Is<JobCreateModel>(
+                        m => 
+                            m.InvokerUserDisplayName == Username &&
+                            m.InvokerUserId == UserId &&
+                            m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
+                            m.Properties["specification-id"] == specificationId &&
+                            m.Properties["buildproject-id"] == buildProjectId
+                        ));
+
+            logger
+               .Received(1)
+               .Information(Arg.Is($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: 'job-id-1'"));
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenFeatureToggleIsOnAndUserIsNull_SetsPublishStateToUpdatedAddNewJobWithEmptyUser()
+        {
+            //Arrange
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            string specificationId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId,
+                SpecificationId = specificationId
+            };
+
+            Calculation calculation = CreateCalculation();
+            calculation.BuildProjectId = buildProjectId;
+            calculation.SpecificationId = specificationId;
+
+            calculation.Current.PublishStatus = PublishStatus.Updated;
+
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
+            {
+                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
+            });
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            CalculationVersion calculationVersion = calculation.Current as CalculationVersion;
+            calculationVersion.PublishStatus = PublishStatus.Updated;
+
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
+                calculationsRepository: calculationsRepository,
+               buildProjectsRepository: buildProjectsRepository,
+               searchRepository: searchRepository,
+               messengerService: messengerService,
+               specificationRepository: specificationRepository,
+               calculationVersionRepository: versionRepository,
+               featureToggle: featureToggle,
+               jobsRepository: jobsRepository);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            calculation
+                .Current
+                .PublishStatus
+                .Should()
+                .Be(PublishStatus.Updated);
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
+
+            await
+                messengerService
+                    .DidNotReceive()
+                    .SendToQueue(Arg.Is("calc-events-instruct-generate-allocations"),
+                        Arg.Any<string>(),
+                        Arg.Any<IDictionary<string, string>>());
+            await
+                jobsRepository
+                    .Received(1)
+                    .CreateJob(Arg.Is<JobCreateModel>(
+                        m =>
+                            m.InvokerUserDisplayName == "" &&
+                            m.InvokerUserId == "" &&
+                            m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
+                            m.Properties["specification-id"] == specificationId &&
+                            m.Properties["buildproject-id"] == buildProjectId
+                        ));
+
+            logger
+               .Received(1)
+               .Information(Arg.Is($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: 'job-id-1'"));
+        }
+
+        [TestMethod]
+        async public Task SaveCalculationVersion_GivenFeatureToggleIsOnButCreatingJobReturnsNull_LogsErrorReturnsInternalServerError()
+        {
+            //Arrange
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            string buildProjectId = Guid.NewGuid().ToString();
+
+            string specificationId = Guid.NewGuid().ToString();
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = buildProjectId,
+                SpecificationId = specificationId
+            };
+
+            Calculation calculation = CreateCalculation();
+            calculation.BuildProjectId = buildProjectId;
+            calculation.SpecificationId = specificationId;
+
+            calculation.Current.PublishStatus = PublishStatus.Updated;
+
+            SaveSourceCodeVersion model = new SaveSourceCodeVersion
+            {
+                SourceCode = "source code"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "calculationId", new StringValues(CalculationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
+            {
+                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
+            });
+
+            HttpContext context = Substitute.For<HttpContext>();
+            context
+                .User
+                .Returns(principle);
+
+            request
+                .HttpContext
+                .Returns(context);
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            CalculationIndex calcIndex = new CalculationIndex();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .SearchById(Arg.Is(CalculationId))
+                .Returns(calcIndex);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            CalculationVersion calculationVersion = calculation.Current as CalculationVersion;
+            calculationVersion.PublishStatus = PublishStatus.Updated;
+
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(calculationVersion);
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns((Job)null);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
+                calculationsRepository: calculationsRepository,
+               buildProjectsRepository: buildProjectsRepository,
+               searchRepository: searchRepository,
+               messengerService: messengerService,
+               specificationRepository: specificationRepository,
+               calculationVersionRepository: versionRepository,
+               featureToggle: featureToggle,
+               jobsRepository: jobsRepository);
+
+            //Act
+            IActionResult result = await service.SaveCalculationVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
+                .Should()
+                .Be($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'");
+
+            await
+                messengerService
+                    .DidNotReceive()
+                    .SendToQueue(Arg.Is("calc-events-instruct-generate-allocations"),
+                        Arg.Any<string>(),
+                        Arg.Any<IDictionary<string, string>>());
+            await
+                jobsRepository
+                    .Received(1)
+                    .CreateJob(Arg.Is<JobCreateModel>(
+                        m =>
+                            m.InvokerUserDisplayName == Username &&
+                            m.InvokerUserId == UserId &&
+                            m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
+                            m.Properties["specification-id"] == specificationId &&
+                            m.Properties["buildproject-id"] == buildProjectId
+                        ));
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'"));
+        }
+
+
+
+        [TestMethod]
+        public void SaveCalculationVersion_GivenCalculationUpdateFails_ThenExceptionIsThrown()
         {
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();

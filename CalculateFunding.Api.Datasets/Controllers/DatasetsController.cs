@@ -170,13 +170,6 @@ namespace CalculateFunding.Api.Datasets.Controllers
             return _datasetService.GetCurrentDatasetVersionByDatasetId(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/datasets/process-dataset")]
-        [HttpPost]
-        public Task<IActionResult> RunProcessDataset()
-        {
-            return _processDatasetService.ProcessDataset(ControllerContext.HttpContext.Request);
-        }
-
         [Route("api/datasets/get-schema-download-url")]
         [HttpPost]
         public Task<IActionResult> RunGetDatasetSchemaSasUrl()

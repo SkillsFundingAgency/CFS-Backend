@@ -42,7 +42,9 @@ namespace CalculateFunding.Services.Calcs.Services
             ISpecificationRepository specificationRepository = null,
             ICacheProvider cacheProvider = null,
             ICalcsResilliencePolicies resilliencePolicies = null,
-            IVersionRepository<CalculationVersion> calculationVersionRepository = null)
+            IVersionRepository<CalculationVersion> calculationVersionRepository = null,
+            IJobsRepository jobsRepository = null,
+            IFeatureToggle featureToggle = null)
         {
             return new CalculationService
                 (calculationsRepository ?? CreateCalculationsRepository(),
@@ -58,7 +60,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 specificationRepository ?? CreateSpecificationRepository(),
                 cacheProvider ?? CreateCacheProvider(),
                 resilliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
-                calculationVersionRepository ?? CreateCalculationVersionRepository());
+                calculationVersionRepository ?? CreateCalculationVersionRepository(),
+                jobsRepository ?? CreateJobsRepository(),
+                featureToggle ?? CreateFeatureToggle());
+        }
+
+        static IJobsRepository CreateJobsRepository()
+        {
+            return Substitute.For<IJobsRepository>();
+        }
+
+        static IFeatureToggle CreateFeatureToggle()
+        {
+            return Substitute.For<IFeatureToggle>();
         }
 
         static IVersionRepository<CalculationVersion> CreateCalculationVersionRepository()

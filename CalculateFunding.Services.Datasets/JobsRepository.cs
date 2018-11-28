@@ -1,15 +1,13 @@
 ﻿using CalculateFunding.Models.Jobs;
-using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
+using CalculateFunding.Services.Datasets.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Calcs
+namespace CalculateFunding.Services.Datasets
 {
     public class JobsRepository : IJobsRepository
     {
@@ -18,16 +16,6 @@ namespace CalculateFunding.Services.Calcs
         public JobsRepository(IJobsApiClientProxy apiClient)
         {
             _apiClient = apiClient;
-        }
-
-        public async Task<JobLog> AddJobLog(string jobId, JobLogUpdateModel jobLogUpdateModel)
-        {
-            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
-            Guard.ArgumentNotNull(jobLogUpdateModel, nameof(jobLogUpdateModel));
-
-            string url = $"jobs/{jobId}/logs";
-
-            return await _apiClient.PostAsync<JobLog, JobLogUpdateModel>(url, jobLogUpdateModel);
         }
 
         public async Task<Job> CreateJob(JobCreateModel jobCreateModel)

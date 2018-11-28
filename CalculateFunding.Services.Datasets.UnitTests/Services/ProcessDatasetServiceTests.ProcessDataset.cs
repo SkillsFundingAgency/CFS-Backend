@@ -10,8 +10,10 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Caching;
@@ -68,7 +70,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             Dataset dataset = new Dataset();
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
@@ -88,7 +90,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             Dataset dataset = new Dataset();
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message
@@ -124,7 +126,7 @@ namespace CalculateFunding.Services.Datasets.Services
             };
 
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
 
@@ -198,7 +200,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
 
@@ -282,7 +284,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
 
@@ -375,7 +377,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
 
@@ -475,7 +477,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
 
@@ -581,7 +583,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
 
@@ -693,7 +695,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
 
@@ -813,7 +815,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
 
@@ -935,7 +937,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
 
@@ -1056,7 +1058,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
 
@@ -1196,7 +1198,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
             string relationshipName = "Relationship Name";
@@ -1367,7 +1369,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
             string relationshipName = "Relationship Name";
@@ -1543,7 +1545,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
             string relationshipName = "Relationship Name";
@@ -1733,7 +1735,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
             string relationshipName = "Relationship Name";
@@ -1938,7 +1940,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
             string relationshipName = "Relationship Name";
@@ -2136,7 +2138,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
             string relationshipName = "Relationship Name";
@@ -2299,7 +2301,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
             string relationshipName = "Relationship Name";
@@ -2492,7 +2494,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Name = "ds-1"
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
             string relationshipName = "Relationship Name";
@@ -2685,7 +2687,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Name = "ds-1"
             };
 
-            var json = JsonConvert.SerializeObject(dataset);
+            string json = JsonConvert.SerializeObject(dataset);
 
             string relationshipId = "relId";
             string relationshipName = "Relationship Name";
@@ -2870,6 +2872,406 @@ namespace CalculateFunding.Services.Datasets.Services
             logger
                 .Received(1)
                 .Information(Arg.Is("Saving 1 items to history"));
+        }
+
+        [TestMethod]
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndJobServiceFeatureIsOn_EnsuresCreatesNewJob()
+        {
+            //Arrange
+            const string blobPath = "dataset-id/v1/ds.xlsx";
+
+            string dataset_cache_key = $"ds-table-rows:{blobPath}:{DataDefintionId}";
+
+            string dataset_aggregations_cache_key = $"{CacheKeys.DatasetAggregationsForSpecification}{SpecificationId}";
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult
+                {
+                    Rows = new List<RowLoadResult>
+                    {
+                        new RowLoadResult { Identifier = "123456", IdentifierFieldType = IdentifierFieldType.UPIN, Fields = new Dictionary<string, object>{ { "UPIN", "123456" } } }
+                    }
+                }
+            };
+
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1, };
+
+            Dataset dataset = new Dataset
+            {
+                Definition = new Reference { Id = DataDefintionId },
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion,
+                }
+            };
+
+            string json = JsonConvert.SerializeObject(dataset);
+
+            string relationshipId = "relId";
+            string relationshipName = "Relationship Name";
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message
+                .UserProperties
+                .Add("specification-id", SpecificationId);
+
+            message
+               .UserProperties
+               .Add("relationship-id", relationshipId);
+
+            message
+               .UserProperties
+               .Add("user-id", UserId);
+
+            message
+               .UserProperties
+               .Add("user-name", Username);
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                new DatasetDefinition
+                {
+                    Id = DataDefintionId,
+                    TableDefinitions = new List<TableDefinition>
+                    {
+                        new TableDefinition
+                        {
+                            FieldDefinitions = new List<FieldDefinition>
+                            {
+                                new FieldDefinition
+                                {
+                                    IdentifierFieldType = IdentifierFieldType.UPIN,
+                                    Name = "UPIN",
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(datasetDefinitions);
+
+            ILogger logger = CreateLogger();
+
+            IBlobClient blobClient = CreateBlobClient();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<TableLoadResult[]>(Arg.Is(dataset_cache_key))
+                .Returns(tableLoadResults.ToArraySafe());
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = BuildProjectId,
+                DatasetRelationships = new List<DatasetRelationshipSummary>
+                {
+                    new DatasetRelationshipSummary{
+                        DatasetDefinition = new DatasetDefinition { Id = DataDefintionId },
+                        Relationship = new Reference(relationshipId, relationshipName),
+                        DefinesScope = true
+                    }
+                },
+                SpecificationId = SpecificationId,
+            };
+
+            ICalcsRepository calcsRepository = CreateCalcsRepository();
+            calcsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(buildProject);
+
+            IEnumerable<ProviderSummary> summaries = new[]
+            {
+                new ProviderSummary { Id = "123",  UPIN = "123456" },
+            };
+
+            IProviderRepository resultsRepository = CreateProviderRepository();
+            resultsRepository
+                .GetAllProviderSummaries()
+                .Returns(summaries);
+
+            IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
+
+            blobClient
+                .GetBlobReferenceFromServerAsync(blobPath)
+                .Returns(Substitute.For<ICloudBlob>());
+
+            Stream mockedExcelStream = Substitute.For<Stream>();
+            mockedExcelStream
+                .Length
+                .Returns(1);
+
+            blobClient
+                .DownloadToStreamAsync(Arg.Any<ICloudBlob>())
+                .Returns(mockedExcelStream);
+
+            IExcelDatasetReader excelDatasetReader = CreateExcelDatasetReader();
+            excelDatasetReader
+                .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
+                .Returns(tableLoadResults.ToArraySafe());
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
+            ProcessDatasetService service = CreateProcessDatasetService(
+                datasetRepository: datasetRepository,
+                logger: logger,
+                calcsRepository: calcsRepository,
+                blobClient: blobClient,
+                cacheProvider: cacheProvider,
+                providerRepository: resultsRepository,
+                providerResultsRepository: providerResultsRepository,
+                excelDatasetReader: excelDatasetReader,
+                jobsRepository: jobsRepository,
+                featureToggle: featureToggle);
+
+            // Act
+            await service.ProcessDataset(message);
+
+            // Assert
+            await
+                 jobsRepository
+                     .Received(1)
+                     .CreateJob(Arg.Is<JobCreateModel>(
+                         m =>
+                             m.InvokerUserDisplayName == Username &&
+                             m.InvokerUserId == UserId &&
+                             m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
+                             m.Properties["specification-id"] == SpecificationId &&
+                             m.Properties["provider-cache-key"] == $"{CacheKeys.ScopedProviderSummariesPrefix}{SpecificationId}"
+                         ));
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: 'job-id-1'"));
+        }
+
+        [TestMethod]
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndJobServiceFeatureIsOnButcreatingJobReturnsNull_LogsErrorAndThrowsException()
+        {
+            //Arrange
+            const string blobPath = "dataset-id/v1/ds.xlsx";
+
+            string dataset_cache_key = $"ds-table-rows:{blobPath}:{DataDefintionId}";
+
+            string dataset_aggregations_cache_key = $"{CacheKeys.DatasetAggregationsForSpecification}{SpecificationId}";
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult
+                {
+                    Rows = new List<RowLoadResult>
+                    {
+                        new RowLoadResult { Identifier = "123456", IdentifierFieldType = IdentifierFieldType.UPIN, Fields = new Dictionary<string, object>{ { "UPIN", "123456" } } }
+                    }
+                }
+            };
+
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1, };
+
+            Dataset dataset = new Dataset
+            {
+                Definition = new Reference { Id = DataDefintionId },
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion,
+                }
+            };
+
+            string json = JsonConvert.SerializeObject(dataset);
+
+            string relationshipId = "relId";
+            string relationshipName = "Relationship Name";
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message
+                .UserProperties
+                .Add("specification-id", SpecificationId);
+
+            message
+               .UserProperties
+               .Add("relationship-id", relationshipId);
+
+            message
+               .UserProperties
+               .Add("user-id", UserId);
+
+            message
+               .UserProperties
+               .Add("user-name", Username);
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                new DatasetDefinition
+                {
+                    Id = DataDefintionId,
+                    TableDefinitions = new List<TableDefinition>
+                    {
+                        new TableDefinition
+                        {
+                            FieldDefinitions = new List<FieldDefinition>
+                            {
+                                new FieldDefinition
+                                {
+                                    IdentifierFieldType = IdentifierFieldType.UPIN,
+                                    Name = "UPIN",
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(datasetDefinitions);
+
+            ILogger logger = CreateLogger();
+
+            IBlobClient blobClient = CreateBlobClient();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<TableLoadResult[]>(Arg.Is(dataset_cache_key))
+                .Returns(tableLoadResults.ToArraySafe());
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = BuildProjectId,
+                DatasetRelationships = new List<DatasetRelationshipSummary>
+                {
+                    new DatasetRelationshipSummary{
+                        DatasetDefinition = new DatasetDefinition { Id = DataDefintionId },
+                        Relationship = new Reference(relationshipId, relationshipName),
+                        DefinesScope = true
+                    }
+                },
+                SpecificationId = SpecificationId,
+            };
+
+            ICalcsRepository calcsRepository = CreateCalcsRepository();
+            calcsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(buildProject);
+
+            IEnumerable<ProviderSummary> summaries = new[]
+            {
+                new ProviderSummary { Id = "123",  UPIN = "123456" },
+            };
+
+            IProviderRepository resultsRepository = CreateProviderRepository();
+            resultsRepository
+                .GetAllProviderSummaries()
+                .Returns(summaries);
+
+            IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
+
+            blobClient
+                .GetBlobReferenceFromServerAsync(blobPath)
+                .Returns(Substitute.For<ICloudBlob>());
+
+            Stream mockedExcelStream = Substitute.For<Stream>();
+            mockedExcelStream
+                .Length
+                .Returns(1);
+
+            blobClient
+                .DownloadToStreamAsync(Arg.Any<ICloudBlob>())
+                .Returns(mockedExcelStream);
+
+            IExcelDatasetReader excelDatasetReader = CreateExcelDatasetReader();
+            excelDatasetReader
+                .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
+                .Returns(tableLoadResults.ToArraySafe());
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns((Job)null);
+
+            ProcessDatasetService service = CreateProcessDatasetService(
+                datasetRepository: datasetRepository,
+                logger: logger,
+                calcsRepository: calcsRepository,
+                blobClient: blobClient,
+                cacheProvider: cacheProvider,
+                providerRepository: resultsRepository,
+                providerResultsRepository: providerResultsRepository,
+                excelDatasetReader: excelDatasetReader,
+                jobsRepository: jobsRepository,
+                featureToggle: featureToggle);
+
+            // Act
+            Func<Task> test = async() => await service.ProcessDataset(message);
+
+            // Assert
+            test
+                .ShouldThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{SpecificationId}'");
+
+            await
+                 jobsRepository
+                     .Received(1)
+                     .CreateJob(Arg.Is<JobCreateModel>(
+                         m =>
+                             m.InvokerUserDisplayName == Username &&
+                             m.InvokerUserId == UserId &&
+                             m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
+                             m.Properties["specification-id"] == SpecificationId &&
+                             m.Properties["provider-cache-key"] == $"{CacheKeys.ScopedProviderSummariesPrefix}{SpecificationId}"
+                         ));
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{SpecificationId}'"));
+           
         }
     }
 }

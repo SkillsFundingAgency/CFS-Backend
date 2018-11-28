@@ -20,5 +20,7 @@ namespace CalculateFunding.Services.Datasets
         public Policy DatasetDefinitionSearchRepository { get; set; }
 
         public Policy BlobClient { get; set; }
+
+        public Policy JobsRepository { get; set; }
     }
 }
