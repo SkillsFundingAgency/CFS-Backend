@@ -204,7 +204,15 @@ namespace CalculateFunding.Services.Datasets
 
                     try
                     {
-                        Job job = await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", specificationId, userId, userName);
+                        Trigger trigger = new Trigger
+                        {
+                            EntityId = specificationId,
+                            EntityType = "Specification",
+                            Message = $"Processes dataset relationship: '{relationship.Id}' for specification: '{specificationId}'"
+                        };
+                        string correlationId = message.GetCorrelationId();
+
+                        Job job = await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", specificationId, userId, userName, trigger, correlationId);
 
                         _logger.Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'");
                     }
@@ -683,7 +691,7 @@ namespace CalculateFunding.Services.Datasets
             return Convert.ToBase64String(plainTextBytes);
         }
 
-        private async Task<Job> SendInstructAllocationsToJobService(string providerCacheKey, string specificationId, string userId, string userName)
+        private async Task<Job> SendInstructAllocationsToJobService(string providerCacheKey, string specificationId, string userId, string userName, Trigger trigger, string correlationId)
         {
             JobCreateModel job = new JobCreateModel
             {
@@ -695,7 +703,9 @@ namespace CalculateFunding.Services.Datasets
                 {
                     { "specification-id", specificationId },
                     { "provider-cache-key", providerCacheKey }
-                }
+                },
+                Trigger = trigger,
+                CorrelationId = correlationId
             };
 
             return await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.CreateJob(job));

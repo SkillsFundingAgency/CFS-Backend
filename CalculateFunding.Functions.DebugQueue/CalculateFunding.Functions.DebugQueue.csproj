@@ -31,6 +31,7 @@
     <ProjectReference Include="..\CalculateFunding.Functions.CalcEngine\CalculateFunding.Functions.CalcEngine.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Calcs\CalculateFunding.Functions.Calcs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Datasets\CalculateFunding.Functions.Datasets.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Functions.Jobs\CalculateFunding.Functions.Jobs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Results\CalculateFunding.Functions.Results.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Scenarios\CalculateFunding.Functions.Scenarios.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Specs\CalculateFunding.Functions.Specs.csproj" />

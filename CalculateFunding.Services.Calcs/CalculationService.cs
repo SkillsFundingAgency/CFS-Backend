@@ -517,10 +517,18 @@ namespace CalculateFunding.Services.Calcs
             {
                 string userId = properties.ContainsKey("user-id") ? properties["user-id"] : "";
                 string userName = properties.ContainsKey("user-name") ? properties["user-name"] : "";
+                string correlationId = message.GetCorrelationId();
 
                 try
                 {
-                    Job job = await SendInstructAllocationsToJobService(buildProject.Id, specificationId, userId, userName);
+                    Trigger trigger = new Trigger
+                    {
+                        EntityId = specificationId,
+                        EntityType = "Specification",
+                        Message = $"Updating calculations for specification: '{specificationId}'"
+                    };
+
+                    Job job = await SendInstructAllocationsToJobService(specificationId, userId, userName, trigger, correlationId);
 
                     _logger.Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'");
                 }
@@ -761,7 +769,16 @@ namespace CalculateFunding.Services.Calcs
 
                 try
                 {
-                    Job job = await SendInstructAllocationsToJobService(result.BuildProject.Id, result.BuildProject.SpecificationId, userId, userName);
+                    Trigger trigger = new Trigger
+                    {
+                        EntityId = result.BuildProject.SpecificationId,
+                        EntityType = "Specification",
+                        Message = $"Saving calculation: '{calculationId}' for specification: '{calculation.SpecificationId}'"
+                    };
+
+                    string correlationId = request.GetCorrelationId();
+
+                    Job job = await SendInstructAllocationsToJobService(result.BuildProject.SpecificationId, userId, userName, trigger, correlationId);
 
                     _logger.Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'");
                 }
@@ -1236,7 +1253,7 @@ namespace CalculateFunding.Services.Calcs
                 properties));
         }
 
-        private async Task<Job> SendInstructAllocationsToJobService(string buildProjectId, string specificationId, string userId, string userName)
+        private async Task<Job> SendInstructAllocationsToJobService(string specificationId, string userId, string userName, Trigger trigger, string correlationId)
         {
             JobCreateModel job = new JobCreateModel
             {
@@ -1246,9 +1263,10 @@ namespace CalculateFunding.Services.Calcs
                 SpecificationId = specificationId,
                 Properties = new Dictionary<string, string>
                 {
-                    { "specification-id", specificationId },
-                    { "buildproject-id", buildProjectId }
-                }
+                    { "specification-id", specificationId }
+                },
+                Trigger = trigger,
+                CorrelationId = correlationId
             };
 
             return await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.CreateJob(job));

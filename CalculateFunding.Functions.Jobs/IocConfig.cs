@@ -60,22 +60,45 @@ namespace CalculateFunding.Functions.Jobs
                     return new JobRepository(jobCosmosRepostory);
                 });
 
+            builder
+               .AddSingleton<INotificationService, NotificationService>();
+
+            builder
+              .AddSingleton<IJobDefinitionsService, JobDefinitionsService>();
+
+            builder
+                .AddSingleton<IJobDefinitionsRepository, JobDefinitionsRepository>((ctx) =>
+                {
+                    CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+
+                    config.Bind("CosmosDbSettings", cosmosDbSettings);
+
+                    cosmosDbSettings.CollectionName = "jobdefinitions";
+
+                    CosmosRepository jobDefinitionsCosmosRepostory = new CosmosRepository(cosmosDbSettings);
+
+                    return new JobDefinitionsRepository(jobDefinitionsCosmosRepostory);
+                });
+
             builder.AddServiceBus(config);
 
             builder.AddPolicySettings(config);
+
+            builder.AddCaching(config);
 
             builder.AddSingleton<IJobsResiliencePolicies>((ctx) =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
 
                 BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+                BulkheadPolicy totalNetworkRequestsPolicyNonAsync = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsNonAsyncPolicy(policySettings);
 
                 return new ResiliencePolicies
                 {
                     JobDefinitionsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
                     JobRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    JobRepositoryNonAsync = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    JobRepositoryNonAsync = CosmosResiliencePolicyHelper.GenerateNonAsyncCosmosPolicy(totalNetworkRequestsPolicyNonAsync),
                     MessengerServicePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy)
                 };
             });

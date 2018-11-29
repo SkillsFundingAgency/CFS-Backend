@@ -149,7 +149,12 @@ namespace CalculateFunding.Services.Jobs.Services
                 new JobCreateModel
                 {
                     JobDefinitionId = jobDefinitionId,
-                    Trigger = new Trigger()
+                    Trigger = new Trigger(),
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
                 }
             };
 
@@ -203,7 +208,12 @@ namespace CalculateFunding.Services.Jobs.Services
                     JobDefinitionId = jobDefinitionId,
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
-                    InvokerUserDisplayName = "authorname"
+                    InvokerUserDisplayName = "authorname",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
                 }
             };
 
@@ -259,7 +269,12 @@ namespace CalculateFunding.Services.Jobs.Services
                     JobDefinitionId = jobDefinitionId,
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
-                    InvokerUserDisplayName = "authorname"
+                    InvokerUserDisplayName = "authorname",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
                 }
             };
 
@@ -315,7 +330,12 @@ namespace CalculateFunding.Services.Jobs.Services
                     JobDefinitionId = jobDefinitionId,
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
-                    InvokerUserDisplayName = "authorname"
+                    InvokerUserDisplayName = "authorname",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
                 }
             };
 
@@ -373,7 +393,12 @@ namespace CalculateFunding.Services.Jobs.Services
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
                     InvokerUserDisplayName = "authorname",
-                    SpecificationId = "spec-id-1"
+                    SpecificationId = "spec-id-1",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
                 }
             };
 
@@ -441,7 +466,12 @@ namespace CalculateFunding.Services.Jobs.Services
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
                     InvokerUserDisplayName = "authorname",
-                    SpecificationId = "spec-id-1"
+                    SpecificationId = "spec-id-1",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
                 }
             };
 
@@ -551,7 +581,12 @@ namespace CalculateFunding.Services.Jobs.Services
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
                     InvokerUserDisplayName = "authorname",
-                    SpecificationId = "spec-id-1"
+                    SpecificationId = "spec-id-1",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
                 }
             };
 
@@ -728,7 +763,12 @@ namespace CalculateFunding.Services.Jobs.Services
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
                     InvokerUserDisplayName = "authorname",
-                    SpecificationId = "spec-id-1"
+                    SpecificationId = "spec-id-1",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
                 }
             };
 
@@ -882,14 +922,24 @@ namespace CalculateFunding.Services.Jobs.Services
                     JobDefinitionId = jobDefinitionId,
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
-                    InvokerUserDisplayName = "authorname"
+                    InvokerUserDisplayName = "authorname",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
                 },
                 new JobCreateModel
                 {
                     JobDefinitionId = jobDefinitionId,
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
-                    InvokerUserDisplayName = "authorname"
+                    InvokerUserDisplayName = "authorname",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
                 }
             };
 
@@ -968,14 +1018,24 @@ namespace CalculateFunding.Services.Jobs.Services
                     JobDefinitionId = jobDefinitionId,
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
-                    InvokerUserDisplayName = "authorname"
+                    InvokerUserDisplayName = "authorname",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
                 },
                 new JobCreateModel
                 {
                     JobDefinitionId = "job=def-2",
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
-                    InvokerUserDisplayName = "authorname"
+                    InvokerUserDisplayName = "authorname",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
                 }
             };
 
@@ -1086,7 +1146,12 @@ namespace CalculateFunding.Services.Jobs.Services
                     JobDefinitionId = jobDefinitionId,
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
-                    InvokerUserDisplayName = "authorname"
+                    InvokerUserDisplayName = "authorname",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
                 }
             };
 
@@ -1149,7 +1214,12 @@ namespace CalculateFunding.Services.Jobs.Services
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
                     InvokerUserDisplayName = "authorname",
-                    SpecificationId = "spec-id-1"
+                    SpecificationId = "spec-id-1",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
                 }
             };
 
@@ -1286,7 +1356,12 @@ namespace CalculateFunding.Services.Jobs.Services
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
                     InvokerUserDisplayName = "authorname",
-                    SpecificationId = "spec-id-1"
+                    SpecificationId = "spec-id-1",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
                 }
             };
 
@@ -1411,7 +1486,12 @@ namespace CalculateFunding.Services.Jobs.Services
                     Trigger = new Trigger(),
                     InvokerUserId = "authorId",
                     InvokerUserDisplayName = "authorname",
-                    SpecificationId = "spec-id-1"
+                    SpecificationId = "spec-id-1",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
                 }
             };
 

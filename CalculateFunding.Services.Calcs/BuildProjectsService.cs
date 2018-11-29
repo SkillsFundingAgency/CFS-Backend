@@ -226,7 +226,14 @@ namespace CalculateFunding.Services.Calcs
 
                 try
                 {
-                    IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(parentJob, jobProperties);
+                    Trigger trigger = new Trigger
+                    {
+                        EntityId = specificationId,
+                        EntityType = "Specification",
+                        Message = $"Instructing generate allocations for specification: '{specificationId}'"
+                    };
+
+                    IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(parentJob, jobProperties, trigger);
 
                     int newJobsCount = newJobs.Count();
                     int batchCount = jobProperties.Count();
@@ -513,20 +520,22 @@ namespace CalculateFunding.Services.Calcs
             return compiler.GenerateCode(sourceFiles?.ToList());
         }
 
-        private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(JobViewModel parentJob, IEnumerable<IDictionary<string,string>> jobProperties)
+        private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(JobViewModel parentJob, IEnumerable<IDictionary<string,string>> jobProperties, Trigger trigger)
         {
             IList<JobCreateModel> jobCreateModels = new List<JobCreateModel>();
 
             foreach(IDictionary<string, string> properties in jobProperties)
             {
-                JobCreateModel jobCreateModel= new JobCreateModel
+                JobCreateModel jobCreateModel = new JobCreateModel
                 {
                     InvokerUserDisplayName = parentJob.InvokerUserDisplayName,
                     InvokerUserId = parentJob.InvokerUserId,
-                    JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob,
+                    JobDefinitionId = JobConstants.DefinitionNames.CreateAllocationJob,
                     SpecificationId = parentJob.SpecificationId,
                     Properties = properties,
-                    ParentJobId = parentJob.Id
+                    ParentJobId = parentJob.Id,
+                    Trigger = trigger,
+                    CorrelationId = parentJob.CorrelationId
                 };
 
                 jobCreateModels.Add(jobCreateModel);

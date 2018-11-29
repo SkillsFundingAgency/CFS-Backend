@@ -1268,7 +1268,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = parentJobId,
                 InvokerUserDisplayName = "Username",
                 InvokerUserId = "UserId",
-                SpecificationId = specificationId
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1"
             };
 
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
@@ -1334,7 +1335,8 @@ namespace CalculateFunding.Services.Calcs.Services
                             m.Count(p => p.SpecificationId == specificationId) == 10 &&
                             m.Count(p => p.ParentJobId == parentJobId) == 10 &&
                             m.Count(p => p.InvokerUserDisplayName == parentJob.InvokerUserDisplayName) == 10 &&
-                            m.Count(p => p.InvokerUserId == parentJob.InvokerUserId) == 10
+                            m.Count(p => p.InvokerUserId == parentJob.InvokerUserId) == 10 &&
+                            m.Count(p => p.CorrelationId == parentJob.CorrelationId) == 10
                         ));
             await
                 messengerService

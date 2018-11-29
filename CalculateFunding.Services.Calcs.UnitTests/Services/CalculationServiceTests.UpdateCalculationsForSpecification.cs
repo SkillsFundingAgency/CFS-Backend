@@ -550,8 +550,7 @@ namespace CalculateFunding.Services.Calcs.Services
                              m.InvokerUserDisplayName == Username &&
                              m.InvokerUserId == UserId &&
                              m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
-                             m.Properties["specification-id"] == specificationId &&
-                             m.Properties["buildproject-id"] == "build-project-1"
+                             m.Properties["specification-id"] == specificationId
                          ));
 
             logger
@@ -676,8 +675,7 @@ namespace CalculateFunding.Services.Calcs.Services
                              m.InvokerUserDisplayName == Username &&
                              m.InvokerUserId == UserId &&
                              m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
-                             m.Properties["specification-id"] == specificationId &&
-                             m.Properties["buildproject-id"] == "build-project-1"
+                             m.Properties["specification-id"] == specificationId
                          ));
 
             logger

@@ -25,6 +25,8 @@ namespace CalculateFunding.Models.Jobs
 
         public string ParentJobId { get; set; }
 
+        public string CorrelationId { get; set; }
+
         public string SupersededByJobId { get; set; }
 
         public IDictionary<string, string> Properties { get; set; }

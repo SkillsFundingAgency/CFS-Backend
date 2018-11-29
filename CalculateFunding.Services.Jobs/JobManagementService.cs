@@ -96,6 +96,8 @@ namespace CalculateFunding.Services.Jobs
 
             IList<ValidationResult> validationResults = new List<ValidationResult>();
 
+            Reference user = request.GetUser();
+
             //ensure all jobs in batch have the correct job definition
             foreach (JobCreateModel jobCreateModel in jobs)
             {
@@ -108,6 +110,11 @@ namespace CalculateFunding.Services.Jobs
                     _logger.Warning($"A job definition could not be found for id: {jobCreateModel.JobDefinitionId}");
 
                     return new PreconditionFailedResult($"A job definition could not be found for id: {jobCreateModel.JobDefinitionId}");
+                }
+
+                if (!jobCreateModel.Properties.ContainsKey("sfa-correlationId"))
+                {
+                    jobCreateModel.Properties.Add("sfa-correlationId", request.GetCorrelationId());
                 }
 
                 CreateJobValidationModel createJobValidationModel = new CreateJobValidationModel
@@ -129,8 +136,6 @@ namespace CalculateFunding.Services.Jobs
             }
 
             IList<Job> createdJobs = new List<Job>();
-
-            Reference user = request.GetUser();
 
             foreach (JobCreateModel job in jobs)
             {
