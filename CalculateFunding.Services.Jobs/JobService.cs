@@ -93,48 +93,41 @@ namespace CalculateFunding.Services.Jobs
                 return new BadRequestObjectResult("Invalid page number, pages start from 1");
             }
 
-            IQueryable<Job> allJobs = _jobRepository.GetJobs();
-            IQueryable<Job> allJobsForCount = _jobRepository.GetJobs();
+            IQueryable<Job> allJobs = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetJobs());
 
             if (!string.IsNullOrEmpty(specificationId))
             {
                 allJobs = allJobs.Where(j => j.SpecificationId == specificationId);
-                allJobsForCount = allJobsForCount.Where(j => j.SpecificationId == specificationId);
             }
 
             if (!string.IsNullOrEmpty(jobType))
             {
                 allJobs = allJobs.Where(j => j.JobDefinitionId == jobType);
-                allJobsForCount = allJobsForCount.Where(j => j.JobDefinitionId == jobType);
             }
 
             if (!string.IsNullOrEmpty(entityId))
             {
                 allJobs = allJobs.Where(j => j.Trigger.EntityId == entityId);
-                allJobsForCount = allJobsForCount.Where(j => j.Trigger.EntityId == entityId);
             }
 
             if (runningStatus.HasValue)
             {
                 allJobs = allJobs.Where(j => j.RunningStatus == runningStatus.Value);
-                allJobsForCount = allJobsForCount.Where(j => j.RunningStatus == runningStatus.Value);
             }
 
             if (completionStatus.HasValue)
             {
                 allJobs = allJobs.Where(j => j.CompletionStatus == completionStatus.Value);
-                allJobsForCount = allJobsForCount.Where(j => j.CompletionStatus == completionStatus.Value);
             }
 
             if (excludeChildJobs)
             {
                 allJobs = allJobs.Where(j => j.ParentJobId == null);
-                allJobsForCount = allJobsForCount.Where(j => j.ParentJobId == null);
             }
 
             allJobs = allJobs.OrderByDescending(j => j.LastUpdated);
 
-            int totalItems = allJobsForCount.Count();
+            int totalItems = allJobs.Count();
 
             // Limit the query to end of the requested page
             const int pageSize = 50;

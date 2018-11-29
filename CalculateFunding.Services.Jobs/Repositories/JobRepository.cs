@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
 
         public IQueryable<Job> GetJobs()
         {
-            return _cosmosRepository.Query<Job>(enableCrossPartitionQuery: true);
+            return _cosmosRepository.Query<Job>();
         }
 
         public async Task<Job> GetJobById(string jobId)
