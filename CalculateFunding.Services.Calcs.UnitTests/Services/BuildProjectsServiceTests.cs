@@ -871,6 +871,38 @@ namespace CalculateFunding.Services.Calcs.Services
                     .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
         }
 
+
+        [TestMethod]
+        public async Task UpdateAllocations_GivenJobServiceEnabledIsOnAndMessageDoesNotHaveAJobId_DoesntAddAJobLog()
+        {
+            //Arrange
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+
+            ILogger logger = CreateLogger();
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, jobsRepository: jobsRepository, featureToggle: featureToggle);
+
+            //Act
+            await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            await
+                jobsRepository
+                    .DidNotReceive()
+                    .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("Missing parent job id to instruct generating allocations"));
+        }
+
         [TestMethod]
         public async Task UpdateAllocations_GivenBuildProjectAndSummariesInCache_DoesntCallPopulateSummaries()
         {
@@ -1029,7 +1061,6 @@ namespace CalculateFunding.Services.Calcs.Services
                     .Received(1)
                     .UpdateCalculationLastUpdatedDate(Arg.Is(specificationId));
         }
-
 
         [TestMethod]
         public async Task UpdateAllocations_GivenBuildProjectAndFeatureToggleIsOff_DoesNotCallUpdateCalculationLastupdatedDate()
@@ -1217,6 +1248,310 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobsRepository
                     .DidNotReceive()
                     .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
+        }
+
+        [TestMethod]
+        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenThousandProvidersAndIsJobServiceEnabledOn_CreatesTenJobs()
+        {
+            //Arrange
+            string parentJobId = "job-id-1";
+
+            string specificationId = "test-spec1";
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId
+            };
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+            message.UserProperties.Add("jobId", "job-id-1");
+            message.UserProperties.Add("specification-id", specificationId);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(true);
+
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(10000);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJob);
+
+            jobsRepository
+                .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
+                .Returns(CreateJobs());
+
+            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            ILogger logger = CreateLogger();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
+                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
+                messengerService: messengerService, featureToggle: featureToggle, jobsRepository: jobsRepository);
+
+            //Act
+            await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            await
+                providerResultsRepository
+                    .DidNotReceive()
+                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
+
+            await
+                jobsRepository
+                    .Received(1)
+                    .CreateJobs(Arg.Is<IEnumerable<JobCreateModel>>(
+                            m => m.Count() == 10 &&
+                            m.Count(p => p.SpecificationId == specificationId) == 10 &&
+                            m.Count(p => p.ParentJobId == parentJobId) == 10 &&
+                            m.Count(p => p.InvokerUserDisplayName == parentJob.InvokerUserDisplayName) == 10 &&
+                            m.Count(p => p.InvokerUserId == parentJob.InvokerUserId) == 10
+                        ));
+            await
+                messengerService
+                    .DidNotReceive()
+                    .SendToQueue<string>(Arg.Is(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>());
+
+            logger
+                .Received(1)
+                .Information($"10 child jobs were created for parent id: '{parentJobId}'");
+
+            await
+                jobsRepository
+                    .Received(1)
+                    .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
+        }
+
+        [TestMethod]
+        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenThousandProvidersAndIsJobServiceEnabledOnButOnlyCreatedFiveJobs_ThrowsExceptionLogsAnError()
+        {
+            //Arrange
+            string parentJobId = "job-id-1";
+
+            string specificationId = "test-spec1";
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId
+            };
+
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+            message.UserProperties.Add("jobId", "job-id-1");
+            message.UserProperties.Add("specification-id", specificationId);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(true);
+
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(10000);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJob);
+
+            jobsRepository
+                .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
+                .Returns(CreateJobs(5));
+
+            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            ILogger logger = CreateLogger();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
+                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
+                messengerService: messengerService, featureToggle: featureToggle, jobsRepository: jobsRepository);
+
+            //Act
+            Func<Task> test = async () => await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Failed to create child jobs for parent job: '{parentJobId}'");
+                
+
+            await
+                jobsRepository
+                    .Received(1)
+                    .CreateJobs(Arg.Is<IEnumerable<JobCreateModel>>(
+                            m => m.Count() == 10 &&
+                            m.Count(p => p.SpecificationId == specificationId) == 10 &&
+                            m.Count(p => p.ParentJobId == parentJobId) == 10 &&
+                            m.Count(p => p.InvokerUserDisplayName == parentJob.InvokerUserDisplayName) == 10 &&
+                            m.Count(p => p.InvokerUserId == parentJob.InvokerUserId) == 10
+                        ));
+            
+            logger
+                .Received(1)
+                .Error($"Only 5 child jobs from 10 were created with parent id: '{parentJob.Id}'");
+
+            await
+                jobsRepository
+                    .Received(1)
+                    .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
+        }
+
+        [TestMethod]
+        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenThousandProvidersButParentJobNotFound_ThrowsExceptionLogsAnError()
+        {
+            //Arrange
+            string parentJobId = "job-id-1";
+
+            string specificationId = "test-spec1";
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId
+            };
+
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+            message.UserProperties.Add("jobId", "job-id-1");
+            message.UserProperties.Add("specification-id", specificationId);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(true);
+
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(10000);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns((JobViewModel)null);
+
+            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            ILogger logger = CreateLogger();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
+                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
+                messengerService: messengerService, featureToggle: featureToggle, jobsRepository: jobsRepository);
+
+            //Act
+            Func<Task> test = async () => await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Could not find the parent job with job id: '{parentJobId}'");
+
+            logger
+                .Received(1)
+                .Error($"Could not find the parent job with job id: '{parentJobId}'");
+
+            await
+                jobsRepository
+                    .Received(1)
+                    .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
+        }
+
+        private IEnumerable<Job> CreateJobs(int count = 10)
+        {
+            IList<Job> jobs = new List<Job>();
+
+            for(int i=1; i<=count; i++)
+            {
+                jobs.Add(new Job
+                {
+                    Id = $"job-{count}"
+                });
+            }
+
+            return jobs;
         }
 
         private BuildProjectsService CreateBuildProjectsServiceWithRealCompiler(IBuildProjectsRepository buildProjectsRepository, ICalculationsRepository calculationsRepository)

@@ -397,6 +397,140 @@ namespace CalculateFunding.Services.Calculator
         }
 
         [TestMethod]
+        public async Task GenerateAllocations_GivenIsJobServiceEnabledSwitcheOnButJobIdMisingFromMessage_LogsErrorDoesNotAddJoblog()
+        {
+            //Arrange
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            Message message = new Message();
+
+            calculationEngineServiceTestsHelper
+                .FeatureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            //Act
+            await service.GenerateAllocations(message);
+
+            //Assert
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .DidNotReceive()
+                    .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
+
+            calculationEngineServiceTestsHelper
+                .MockLogger
+                .Received(1)
+                .Error("Missing job id for generating allocations");
+        }
+
+        [TestMethod]
+        public async Task GenerateAllocations_GivenIsJobServiceEnabledSwitcheOn_EnsuresJobLogsAdded()
+        {
+            //Arrange
+            const string cacheKey = "Cache-key";
+            const string specificationId = "spec1";
+            const int partitionIndex = 0;
+            const int partitionSize = 100;
+            const int stop = partitionIndex + partitionSize - 1;
+            const string jobId = "job-id-1";
+
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            BuildProject buildProject = CreateBuildProject();
+
+            IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
+
+            IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
+            mockAllocationModel
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Returns(new List<CalculationResult>());
+
+            calculationEngineServiceTestsHelper
+                .MockCacheProvider
+                .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
+                .Returns(providerSummaries);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetBuildProjectBySpecificationId(Arg.Any<string>())
+                .Returns(buildProject);
+
+            calculationEngineServiceTestsHelper
+                .FeatureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            IList<CalculationSummaryModel> calculationSummaryModelsReturn = CreateDummyCalculationSummaryModels();
+            calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetCalculationSummariesForSpecification(specificationId)
+                .Returns(calculationSummaryModelsReturn);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .GenerateAllocationModel(Arg.Any<Assembly>())
+                .Returns(mockAllocationModel);
+            calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                    Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>())
+                .Returns(new ProviderResult()
+                {
+
+                });
+
+            calculationEngineServiceTestsHelper
+                .MockEngineSettings
+                .ProviderBatchSize = 3;
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            Message message = new Message();
+            IDictionary<string, object> messageUserProperties = message.UserProperties;
+
+            messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
+            messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
+            messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-id", specificationId);
+            messageUserProperties.Add("ignore-save-provider-results", "true");
+            messageUserProperties.Add("jobId", jobId);
+
+            //Act
+            await service.GenerateAllocations(message);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .Received(providerSummaries.Count)
+                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Is((IEnumerable<DatasetAggregations>)null));
+
+            //Assert
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .Received(1)
+                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m => m.CompletedSuccessfully == null));
+
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .Received(1)
+                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(
+                        m => m.CompletedSuccessfully.Value &&
+                             m.ItemsSucceeded == 20 &&
+                             m.ItemsFailed == 0 &&
+                             m.ItemsProcessed == 20 &&
+                             m.Outcome == "20 provider results were generated successfully from 20 providers"));
+        }
+
+        [TestMethod]
         public async Task UpdateDeadLetteredJobLog_GivenMessageButNoJobId_LogsAnErrorAndDoesNotUpdadeJobLog()
         {
             //Arrange

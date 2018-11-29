@@ -45,5 +45,30 @@ namespace CalculateFunding.Services.Calcs
 
             return jobs.First();
         }
+
+        public async Task<IEnumerable<Job>> CreateJobs(IEnumerable<JobCreateModel> jobCreateModels)
+        {
+            Guard.ArgumentNotNull(jobCreateModels, nameof(jobCreateModels));
+
+            string url = $"jobs";
+
+            IEnumerable<Job> jobs = await _apiClient.PostAsync<IEnumerable<Job>, IEnumerable<JobCreateModel>>(url, jobCreateModels);
+
+            if (jobs.IsNullOrEmpty())
+            {
+                throw new Exception($"Failed to create jobs");
+            }
+
+            return jobs;
+        }
+
+        public async Task<JobViewModel> GetJobById(string jobId)
+        {
+            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
+
+            string url = $"jobs/{jobId}";
+
+            return await _apiClient.GetAsync<JobViewModel>(url);
+        }
     }
 }

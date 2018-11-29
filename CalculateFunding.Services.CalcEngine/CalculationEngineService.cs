@@ -134,6 +134,22 @@ namespace CalculateFunding.Services.Calculator
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
+            if (_featureToggle.IsJobServiceEnabled())
+            {
+                if (!message.UserProperties.ContainsKey("jobId"))
+                {
+                    _logger.Error("Missing job id for generating allocations");
+
+                    return;
+                }
+                else
+                {
+                    string jobId = message.UserProperties["jobId"].ToString();
+
+                    await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(jobId, new JobLogUpdateModel()));
+                }
+            }
+
             IEnumerable<ProviderSummary> summaries = null;
 
             string specificationId = message.UserProperties["specification-id"].ToString();
@@ -194,6 +210,8 @@ namespace CalculateFunding.Services.Calculator
                     await _cacheProvider.SetAsync<List<DatasetAggregations>>($"{CacheKeys.DatasetAggregationsForSpecification}{specificationId}", datasetAggregations.ToList());
                 }
             }
+
+            int totalProviderResults = 0;
 
             for (int i = 0; i < summaries.Count(); i += providerBatchSize)
             {
@@ -295,6 +313,8 @@ namespace CalculateFunding.Services.Calculator
                     saveQueueElapsedMs = saveQueueStopwatch.ElapsedMilliseconds;
 
                     _logger.Information($"Message sent for test exceution for specification id {specificationId}");
+
+                    totalProviderResults += providerResults.Count();
                 }
 
                 calcTiming.Stop();
@@ -329,6 +349,24 @@ namespace CalculateFunding.Services.Calculator
                     },
                     metrics
                 );
+            }
+
+            if (_featureToggle.IsJobServiceEnabled())
+            {
+                string jobId = message.UserProperties["jobId"].ToString();
+
+                int itemsProcessed = summaries.Count();
+                int itemsSucceeded = totalProviderResults;
+                int itemsFailed = itemsProcessed - itemsSucceeded;
+
+                await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(jobId, new JobLogUpdateModel
+                {
+                    CompletedSuccessfully = true,
+                    ItemsSucceeded = itemsSucceeded,
+                    ItemsFailed = itemsFailed,
+                    ItemsProcessed = itemsProcessed,
+                    Outcome = $"{itemsSucceeded} provider results were generated successfully from {itemsProcessed} providers"
+                }));
             }
         }
 

@@ -120,6 +120,20 @@ namespace CalculateFunding.Services.Calcs
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
+            if (_featureToggle.IsJobServiceEnabled() && !message.UserProperties.ContainsKey("jobId"))
+            {
+                _logger.Error("Missing parent job id to instruct generating allocations");
+
+                return;
+            }
+
+            if (_featureToggle.IsJobServiceEnabled())
+            {
+                string jobId = message.UserProperties["jobId"].ToString();
+
+                await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(jobId, new JobLogUpdateModel()));
+            }
+
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
             string specificationId = message.UserProperties["specification-id"].ToString();
@@ -168,6 +182,8 @@ namespace CalculateFunding.Services.Calcs
 
             properties.Add("specification-id", specificationId);
 
+            IList<IDictionary<string, string>> jobProperties = new List<IDictionary<string, string>>();
+
             for (int partitionIndex = 0; partitionIndex < totalCount; partitionIndex += MaxPartitionSize)
             {
                 if (properties.ContainsKey(providerSummariesPartitionIndex))
@@ -179,12 +195,57 @@ namespace CalculateFunding.Services.Calcs
                     properties.Add(providerSummariesPartitionIndex, partitionIndex.ToString());
                 }
 
-                await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, null, properties);
+
+                if (!_featureToggle.IsJobServiceEnabled())
+                {
+                    await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, null, properties);
+                }
+                else
+                {
+                    jobProperties.Add(properties);
+                }
             }
 
             if (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled())
             {
                 await _specificationsRepository.UpdateCalculationLastUpdatedDate(specificationId);
+            }
+
+            if (_featureToggle.IsJobServiceEnabled())
+            {
+                string parentJobId = message.UserProperties["jobId"].ToString();
+
+                JobViewModel parentJob = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.GetJobById(parentJobId));
+
+                if(parentJob == null)
+                {
+                    _logger.Error($"Could not find the parent job with job id: '{parentJobId}'");
+
+                    throw new Exception($"Could not find the parent job with job id: '{parentJobId}'");
+                }
+
+                try
+                {
+                    IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(parentJob, jobProperties);
+
+                    int newJobsCount = newJobs.Count();
+                    int batchCount = jobProperties.Count();
+
+                    if(newJobsCount != batchCount)
+                    {
+                        throw new Exception($"Only {newJobsCount} child jobs from {batchCount} were created with parent id: '{parentJob.Id}'");
+                    }
+                    else
+                    {
+                        _logger.Information($"{newJobsCount} child jobs were created for parent id: '{parentJob.Id}'");
+                    }
+                }
+                catch(Exception ex)
+                {
+                    _logger.Error(ex.Message);
+
+                    throw new Exception($"Failed to create child jobs for parent job: '{parentJob.Id}'");
+                }
             }
         }
 
@@ -450,6 +511,28 @@ namespace CalculateFunding.Services.Calcs
             ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
 
             return compiler.GenerateCode(sourceFiles?.ToList());
+        }
+
+        private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(JobViewModel parentJob, IEnumerable<IDictionary<string,string>> jobProperties)
+        {
+            IList<JobCreateModel> jobCreateModels = new List<JobCreateModel>();
+
+            foreach(IDictionary<string, string> properties in jobProperties)
+            {
+                JobCreateModel jobCreateModel= new JobCreateModel
+                {
+                    InvokerUserDisplayName = parentJob.InvokerUserDisplayName,
+                    InvokerUserId = parentJob.InvokerUserId,
+                    JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob,
+                    SpecificationId = parentJob.SpecificationId,
+                    Properties = properties,
+                    ParentJobId = parentJob.Id
+                };
+
+                jobCreateModels.Add(jobCreateModel);
+            }
+
+            return await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.CreateJobs(jobCreateModels));
         }
     }
 }

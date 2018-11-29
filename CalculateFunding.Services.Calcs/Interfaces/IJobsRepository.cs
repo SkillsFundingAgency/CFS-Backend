@@ -9,5 +9,9 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<JobLog> AddJobLog(string jobId, JobLogUpdateModel jobLogUpdateModel);
 
         Task<Job> CreateJob(JobCreateModel jobCreateModel);
+
+        Task<IEnumerable<Job>> CreateJobs(IEnumerable<JobCreateModel> jobCreateModels);
+
+        Task<JobViewModel> GetJobById(string jobId);
     }
 }
