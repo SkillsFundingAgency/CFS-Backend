@@ -76,5 +76,10 @@ namespace CalculateFunding.Models.Jobs
         /// eg Calculation engine ran for 1000 providers and completed successfully
         /// </summary>
         public string Outcome { get; set; }
+
+        /// <summary>
+        /// Date and time job was last updated
+        /// </summary>
+        public DateTimeOffset LastUpdated { get; set; }
     }
 }

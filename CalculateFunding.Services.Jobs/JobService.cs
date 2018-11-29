@@ -1,16 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Jobs;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Services.Jobs
 {
-    public class JobService : IJobService
+    public class JobService : IJobService, IHealthChecker
     {
         private readonly IJobRepository _jobRepository;
         private readonly IMapper _mapper;
@@ -27,6 +31,18 @@ namespace CalculateFunding.Services.Jobs
             _mapper = mapper;
             _jobsRepositoryPolicy = resilliencePolicies.JobRepository;
             _jobsRepositoryNonAsyncPolicy = resilliencePolicies.JobRepositoryNonAsync;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth jobsRepoHealth = await ((IHealthChecker)_jobRepository).IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(JobManagementService)
+            };
+            health.Dependencies.AddRange(jobsRepoHealth.Dependencies);
+            return health;
         }
 
         public async Task<IActionResult> GetJobById(string jobId, bool includeChildJobs)
@@ -70,9 +86,71 @@ namespace CalculateFunding.Services.Jobs
             return new OkObjectResult(logs);
         }
 
-        public Task<IActionResult> GetJobs(string specificationId, string jobType, string entityId, RunningStatus? runningStatus, CompletionStatus? completionStatus, bool excludeChildJobs, int pageNumber, HttpRequest request)
+        public IActionResult GetJobs(string specificationId, string jobType, string entityId, RunningStatus? runningStatus, CompletionStatus? completionStatus, bool excludeChildJobs, int pageNumber)
         {
-            throw new System.NotImplementedException();
+            if (pageNumber < 1)
+            {
+                return new BadRequestObjectResult("Invalid page number, pages start from 1");
+            }
+
+            IQueryable<Job> allJobs = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetJobs());
+
+            if (!string.IsNullOrEmpty(specificationId))
+            {
+                allJobs = allJobs.Where(j => j.SpecificationId == specificationId);
+            }
+
+            if (!string.IsNullOrEmpty(jobType))
+            {
+                allJobs = allJobs.Where(j => j.JobDefinitionId == jobType);
+            }
+
+            if (!string.IsNullOrEmpty(entityId))
+            {
+                allJobs = allJobs.Where(j => j.Trigger.EntityId == entityId);
+            }
+
+            if (runningStatus.HasValue)
+            {
+                allJobs = allJobs.Where(j => j.RunningStatus == runningStatus.Value);
+            }
+
+            if (completionStatus.HasValue)
+            {
+                allJobs = allJobs.Where(j => j.CompletionStatus == completionStatus.Value);
+            }
+
+            if (excludeChildJobs)
+            {
+                allJobs = allJobs.Where(j => j.ParentJobId == null);
+            }
+
+            allJobs = allJobs.OrderByDescending(j => j.LastUpdated);
+
+            int totalItems = allJobs.Count();
+
+            // Limit the query to end of the requested page
+            const int pageSize = 50;
+            allJobs = allJobs.Take(pageNumber * pageSize);
+
+            // Need to do actual page selection in memory as Cosmos doesn't support Skip
+            IEnumerable<Job> executedJobs = allJobs.AsEnumerable();
+
+            executedJobs = executedJobs.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+            System.Diagnostics.Debug.WriteLine("Executed Jobs: {0}", executedJobs.Count());
+
+            IEnumerable<JobSummary> summaries = _mapper.Map<IEnumerable<JobSummary>>(executedJobs);
+
+            JobQueryResponseModel jobQueryResponse = new JobQueryResponseModel
+            {
+                Results = summaries,
+                CurrentPage = pageNumber,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                TotalPages = (int)Math.Ceiling((double)totalItems / pageSize)
+            };
+
+            return new OkObjectResult(jobQueryResponse);
         }
 
         public Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate, HttpRequest request)

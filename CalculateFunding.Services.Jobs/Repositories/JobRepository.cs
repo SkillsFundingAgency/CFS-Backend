@@ -1,16 +1,15 @@
-﻿using CalculateFunding.Models.Health;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Jobs.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Jobs.Repositories
 {
@@ -37,9 +36,10 @@ namespace CalculateFunding.Services.Jobs.Repositories
 
         public async Task<Job> CreateJob(Job job)
         {
-            job.Created = DateTimeOffset.Now;
+            job.Created = DateTimeOffset.UtcNow;
             job.RunningStatus = RunningStatus.Queued;
             job.Id = Guid.NewGuid().ToString();
+            job.LastUpdated = DateTimeOffset.UtcNow;
 
             HttpStatusCode result = await _cosmosRepository.CreateAsync(job);
 
@@ -56,13 +56,18 @@ namespace CalculateFunding.Services.Jobs.Repositories
             return await _cosmosRepository.CreateAsync(jobLog);
         }
 
+        public IQueryable<Job> GetJobs()
+        {
+            return _cosmosRepository.Query<Job>();
+        }
+
         public async Task<Job> GetJobById(string jobId)
         {
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
             DocumentEntity<Job> job = await _cosmosRepository.ReadAsync<Job>(jobId);
 
-            if(job == null)
+            if (job == null)
             {
                 return null;
             }
@@ -88,6 +93,8 @@ namespace CalculateFunding.Services.Jobs.Repositories
 
         public async Task<HttpStatusCode> UpdateJob(Job job)
         {
+            job.LastUpdated = DateTimeOffset.UtcNow;
+
             return await _cosmosRepository.UpsertAsync<Job>(job);
         }
 

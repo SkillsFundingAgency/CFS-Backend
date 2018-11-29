@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Jobs;
@@ -14,6 +15,8 @@ namespace CalculateFunding.Services.Jobs.Interfaces
         Task<HttpStatusCode> UpdateJob(Job job);
 
         IEnumerable<Job> GetRunningJobsForSpecificationAndJobDefinitionId(string specificationId, string jobDefinitionId);
+
+        IQueryable<Job> GetJobs();
 
         Task<Job> GetJobById(string jobId);
 

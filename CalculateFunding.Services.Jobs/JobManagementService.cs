@@ -34,9 +34,9 @@ namespace CalculateFunding.Services.Jobs
         private readonly IMessengerService _messengerService;
 
         public JobManagementService(
-            IJobRepository jobRepository, 
-            INotificationService notificationService, 
-            IJobDefinitionsService jobDefinitionsService, 
+            IJobRepository jobRepository,
+            INotificationService notificationService,
+            IJobDefinitionsService jobDefinitionsService,
             IJobsResiliencePolicies resilliencePolicies,
             ILogger logger,
             IValidator<CreateJobValidationModel> createJobValidator,
@@ -174,7 +174,7 @@ namespace CalculateFunding.Services.Jobs
 
             Job job = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobById(jobId));
 
-            if(job == null)
+            if (job == null)
             {
                 _logger.Error($"A job could not be found for job id: '{jobId}'");
 
@@ -185,7 +185,7 @@ namespace CalculateFunding.Services.Jobs
 
             if (jobLogUpdateModel.CompletedSuccessfully.HasValue)
             {
-                job.Completed = DateTimeOffset.Now.ToLocalTime();
+                job.Completed = DateTimeOffset.UtcNow;
                 job.RunningStatus = RunningStatus.Completed;
                 job.CompletionStatus = jobLogUpdateModel.CompletedSuccessfully.Value ? CompletionStatus.Succeeded : CompletionStatus.Failed;
                 job.Outcome = jobLogUpdateModel.Outcome;
@@ -193,7 +193,7 @@ namespace CalculateFunding.Services.Jobs
             }
             else
             {
-                if(job.RunningStatus != RunningStatus.InProgress)
+                if (job.RunningStatus != RunningStatus.InProgress)
                 {
                     job.RunningStatus = RunningStatus.InProgress;
                     saveJob = true;
@@ -220,7 +220,7 @@ namespace CalculateFunding.Services.Jobs
                 ItemsFailed = jobLogUpdateModel.ItemsFailed,
                 Outcome = jobLogUpdateModel.Outcome,
                 CompletedSuccessfully = jobLogUpdateModel.CompletedSuccessfully,
-                Timestamp = DateTimeOffset.Now.ToLocalTime()
+                Timestamp = DateTimeOffset.UtcNow
             };
 
             HttpStatusCode createJobLogStatus = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.CreateJobLog(jobLog));
@@ -314,7 +314,7 @@ namespace CalculateFunding.Services.Jobs
                 string jobId = message.UserProperties["jobId"].ToString();
 
                 Job job = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobById(jobId));
-                
+
                 if (job == null)
                 {
                     _logger.Error("Could not find job with id {JobId}", jobId);
@@ -467,7 +467,7 @@ namespace CalculateFunding.Services.Jobs
                 ParentJobId = job.ParentJobId,
                 SupersededByJobId = job.SupersededByJobId,
                 Outcome = jobLog.Outcome,
-                StatusDateTime = DateTimeOffset.Now.ToLocalTime(),
+                StatusDateTime = DateTimeOffset.UtcNow,
                 OverallItemsFailed = jobLog.ItemsFailed,
                 OverallItemsProcessed = jobLog.ItemsProcessed,
                 OverallItemsSucceeded = jobLog.ItemsSucceeded
@@ -505,7 +505,7 @@ namespace CalculateFunding.Services.Jobs
                     await _messengerService.SendToTopic<string>(jobDefinition.MessageBusTopic, data, messageProperties);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.Error(ex, $"Failed to queue job with id: {job.Id} on Queue/topic {queueOrTopic}");
             }

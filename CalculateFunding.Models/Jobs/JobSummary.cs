@@ -1,16 +1,16 @@
-﻿namespace CalculateFunding.Models.Jobs
+﻿using System;
+
+namespace CalculateFunding.Models.Jobs
 {
     public class JobSummary
     {
-        /// <summary>
-        /// Required - randomly generated GUID for this job ID
-        /// </summary>
         public string JobId { get; set; }
 
-        /// <summary>
-        /// Required Job Definition (from list of known jobs)
-        /// </summary>
-        public string JobDefinitionId { get; set; }
+        public string JobType { get; set; }
+
+        public string SpecificationId { get; set; }
+
+        public string EntityId { get; set; }
 
         public RunningStatus RunningStatus { get; set; }
 
@@ -20,9 +20,8 @@
 
         public string InvokerUserDisplayName { get; set; }
 
-        /// <summary>
-        /// Optional Parent Job Id
-        /// </summary>
         public string ParentJobId { get; set; }
+
+        public DateTimeOffset LastUpdated { get; set; }
     }
 }

@@ -68,5 +68,20 @@ namespace CalculateFunding.Models.UnitTests
             action
                 .Should().NotThrow("Mapping configuration should be valid for UsersMappingProfile");
         }
+
+        [TestMethod]
+        public void JobsMappingProfile_ShouldBeValid()
+        {
+            // Arrange
+            MapperConfiguration config = new MapperConfiguration(c => c.AddProfile<JobsMappingProfile>());
+            Action action = new Action(() =>
+            {
+                config.AssertConfigurationIsValid();
+            });
+
+            //Act/Assert
+            action
+                .Should().NotThrow("Mapping configuration should be valid for JobsMappingProfile");
+        }
     }
 }
