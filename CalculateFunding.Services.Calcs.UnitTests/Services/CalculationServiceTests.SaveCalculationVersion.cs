@@ -1567,7 +1567,10 @@ namespace CalculateFunding.Services.Calcs.Services
                             m.InvokerUserDisplayName == Username &&
                             m.InvokerUserId == UserId &&
                             m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
-                            m.Properties["specification-id"] == specificationId
+                            m.Properties["specification-id"] == specificationId &&
+                            m.Trigger.EntityId == CalculationId &&
+                            m.Trigger.EntityType == nameof(Calculation) &&
+                            m.Trigger.Message == $"Saving calculation: '{CalculationId}' for specification: '{calculation.SpecificationId}'"
                         ));
 
             logger
@@ -1721,7 +1724,10 @@ namespace CalculateFunding.Services.Calcs.Services
                             m.InvokerUserDisplayName == "" &&
                             m.InvokerUserId == "" &&
                             m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
-                            m.Properties["specification-id"] == specificationId
+                            m.Properties["specification-id"] == specificationId &&
+                            m.Trigger.EntityId == CalculationId &&
+                            m.Trigger.EntityType == nameof(Calculation) &&
+                            m.Trigger.Message == $"Saving calculation: '{CalculationId}' for specification: '{calculation.SpecificationId}'"
                         ));
 
             logger
@@ -1877,7 +1883,10 @@ namespace CalculateFunding.Services.Calcs.Services
                             m.InvokerUserDisplayName == Username &&
                             m.InvokerUserId == UserId &&
                             m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
-                            m.Properties["specification-id"] == specificationId
+                            m.Properties["specification-id"] == specificationId &&
+                            m.Trigger.EntityId == CalculationId &&
+                            m.Trigger.EntityType == nameof(Calculation) &&
+                            m.Trigger.Message == $"Saving calculation: '{CalculationId}' for specification: '{calculation.SpecificationId}'"
                         ));
 
             logger

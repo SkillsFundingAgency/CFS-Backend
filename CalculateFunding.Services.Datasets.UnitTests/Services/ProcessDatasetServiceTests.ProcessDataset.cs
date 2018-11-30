@@ -3062,7 +3062,10 @@ namespace CalculateFunding.Services.Datasets.Services
                              m.InvokerUserId == UserId &&
                              m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
                              m.Properties["specification-id"] == SpecificationId &&
-                             m.Properties["provider-cache-key"] == $"{CacheKeys.ScopedProviderSummariesPrefix}{SpecificationId}"
+                             m.Properties["provider-cache-key"] == $"{CacheKeys.ScopedProviderSummariesPrefix}{SpecificationId}" &&
+                             m.Trigger.EntityId == relationshipId &&
+                             m.Trigger.EntityType == nameof(DefinitionSpecificationRelationship) &&
+                             m.Trigger.Message == $"Processed dataset relationship: '{relationshipId}' for specification: '{SpecificationId}'"
                          ));
 
             logger
@@ -3265,7 +3268,10 @@ namespace CalculateFunding.Services.Datasets.Services
                              m.InvokerUserId == UserId &&
                              m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
                              m.Properties["specification-id"] == SpecificationId &&
-                             m.Properties["provider-cache-key"] == $"{CacheKeys.ScopedProviderSummariesPrefix}{SpecificationId}"
+                             m.Properties["provider-cache-key"] == $"{CacheKeys.ScopedProviderSummariesPrefix}{SpecificationId}" &&
+                             m.Trigger.EntityId == relationshipId &&
+                             m.Trigger.EntityType == nameof(DefinitionSpecificationRelationship) &&
+                             m.Trigger.Message == $"Processed dataset relationship: '{relationshipId}' for specification: '{SpecificationId}'"
                          ));
 
             logger
