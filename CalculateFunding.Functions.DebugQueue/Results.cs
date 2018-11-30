@@ -29,5 +29,15 @@ namespace CalculateFunding.Functions.DebugQueue
 
             log.Info($"C# Queue trigger function processed: {item}");
         }
+
+        [FunctionName("on-migrate-result-versions")]
+        public static async Task RunMigrateResultVersions([QueueTrigger(ServiceBusConstants.QueueNames.MigrateResultVersions, Connection = "AzureConnectionString")] string item, TraceWriter log)
+        {
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            await Functions.Results.ServiceBus.OnMigrateResultVersionsEvent.Run(message);
+
+            log.Info($"C# Queue trigger function processed: {item}");
+        }
     }
 }

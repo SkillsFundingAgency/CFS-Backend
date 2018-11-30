@@ -991,6 +991,131 @@ namespace CalculateFunding.Services.Results
                 );
         }
 
+        /// <summary>
+        /// This is to be removed once it has done its stuff
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public async Task MigrateVersionNumbers(Message message)
+        {
+            if (!message.UserProperties.ContainsKey("specification-id"))
+            {
+                _logger.Error("No specification id was present on the message");
+                throw new ArgumentException("Message must contain a specification id in user properties");
+            }
+
+            string specificationId = message.UserProperties["specification-id"].ToString();
+
+            SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(specificationId));
+
+            if(specification == null)
+            {
+                _logger.Error($"Unable to locate a specification with id {specificationId}");
+            }
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationId(specificationId));
+
+            if (publishedProviderResults.IsNullOrEmpty())
+            {
+                _logger.Warning($"No published provider results found for specification id {specificationId}");
+            }
+
+            ConcurrentBag<PublishedAllocationLineResultVersion> updatedVersions = new ConcurrentBag<PublishedAllocationLineResultVersion>();
+            ConcurrentBag<PublishedProviderResult> updatedResults = new ConcurrentBag<PublishedProviderResult>();
+
+            List<Task> allTasks = new List<Task>(publishedProviderResults.Count());
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 5);
+            foreach(PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            IEnumerable<PublishedAllocationLineResultVersion> versions = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.GetVersions(publishedProviderResult.Id, publishedProviderResult.ProviderId));
+
+                            versions = versions.OrderBy(m => m.Version);
+
+                            foreach (PublishedAllocationLineResultVersion version in versions)
+                            {
+                                if (version.Status == AllocationLineStatus.Held)
+                                {
+                                    version.Major = 0;
+                                    version.Minor = version.Version <= 1 ? 1 : version.Version;
+
+                                }
+                                else if (version.Status == AllocationLineStatus.Approved)
+                                {
+                                    version.Major = 0;
+                                    version.Minor = version.Version <= 1 ? 1 : version.Version - 1;
+                                }
+                                else
+                                {
+                                    version.Major = 1;
+                                    version.Minor = 0;
+                                }
+
+                                updatedVersions.Add(version);
+                            }
+
+                            PublishedAllocationLineResultVersion mosetRecentVersion = versions.Last();
+
+                            publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Major = mosetRecentVersion.Major;
+                            publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Minor = mosetRecentVersion.Minor;
+
+                            updatedResults.Add(publishedProviderResult);
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+            await Task.WhenAll(allTasks.ToArray());
+
+            foreach (Task task in allTasks)
+            {
+                if (task.Exception != null)
+                {
+                    throw task.Exception;
+                }
+            }
+
+            try
+            {
+                await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.SaveVersions(updatedVersions));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "MigrationError: Failed to index save updated versions");
+
+                throw new Exception(ex.Message);
+            }
+
+            try
+            {
+                await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(updatedResults));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "MigrationError: Failed to save updated published results");
+
+                throw new Exception(ex.Message);
+            }
+
+            try
+            {
+                await UpdateAllocationNotificationsFeedIndex(updatedResults, specification);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "MigrationError: Failed to index allocation feeds with updated results");
+
+                throw new Exception(ex.Message);
+            }
+        }
+
         private async Task<(PublishedProviderResult, long)> ProfileResult(FetchProviderProfilingMessageItem messageItem)
         {
             PublishedProviderResult result = await _publishedProviderResultsRepository.GetPublishedProviderResultForId(messageItem.AllocationLineResultId, messageItem.ProviderId);

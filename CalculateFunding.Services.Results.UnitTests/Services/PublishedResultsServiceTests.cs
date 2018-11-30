@@ -281,7 +281,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "test title 1",
-                    Summary = "test summary 1",
                     SpecificationId = "spec-1",
                     ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
@@ -336,7 +335,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "test title 2",
-                    Summary = "test summary 2",
                     SpecificationId = "spec-1",
                     ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
@@ -391,7 +389,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "test title 3",
-                    Summary = "test summary 3",
                     SpecificationId = "spec-1",
                     ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
@@ -453,7 +450,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "test title 1",
-                    Summary = "test summary 1",
                     SpecificationId = "spec-1",
                     ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
@@ -490,6 +486,8 @@ namespace CalculateFunding.Services.Results.Services
                                 Version = 1,
                                 Date = DateTimeOffset.Now,
                                 PublishedProviderResultId = "res1",
+                                Major = 0,
+                                Minor = 1,
                                 Provider = new ProviderSummary
                                 {
                                     URN = "12345",
@@ -519,7 +517,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "test title 2",
-                    Summary = "test summary 2",
                     SpecificationId = "spec-1",
                     ProviderId = "1111-1",
                     FundingStreamResult = new PublishedFundingStreamResult
@@ -555,7 +552,9 @@ namespace CalculateFunding.Services.Results.Services
                                 Value = 100,
                                 Version = 1,
                                 Date = DateTimeOffset.Now,
-                                  PublishedProviderResultId = "res2",
+                                PublishedProviderResultId = "res2",
+                                Major = 0,
+                                Minor = 1,
                                 Provider = new ProviderSummary
                                 {
                                     URN = "12345",
@@ -585,7 +584,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult
                 {
                     Title = "test title 3",
-                    Summary = "test summary 3",
                     SpecificationId = "spec-1",
                     ProviderId = "1111-2",
                     FundingStreamResult = new PublishedFundingStreamResult
@@ -621,7 +619,9 @@ namespace CalculateFunding.Services.Results.Services
                                 Value = 100,
                                 Version = 1,
                                 Date = DateTimeOffset.Now,
-                                 PublishedProviderResultId = "res3",
+                                PublishedProviderResultId = "res3",
+                                Major = 0,
+                                Minor = 1,
                                 Provider = new ProviderSummary
                                 {
                                     URN = "12345",

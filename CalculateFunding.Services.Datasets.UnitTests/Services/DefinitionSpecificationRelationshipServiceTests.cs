@@ -807,7 +807,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 Specification = new Reference { Id = specificationId },
                 Id = relationshipId,
                 Name = relationshipName,
-                DatasetDefinition = new Reference { Id  = definitionId }
+                DatasetDefinition = new Reference { Id  = definitionId },
+				IsSetAsProviderData = true
             });
 
 
@@ -862,7 +863,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Should()
                 .Be(relationshipId);
 
-            content
+	        content
+		        .First()
+		        .IsProviderData
+		        .Should()
+		        .BeTrue();
+
+			content
                .First()
                .Name
                .Should()
@@ -915,7 +922,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 {
                     Id = datasetId,
                     Version = 1
-                }
+                },
+				IsSetAsProviderData = true
             });
 
 
@@ -976,7 +984,13 @@ namespace CalculateFunding.Services.Datasets.Services
                .Should()
                .Be(relationshipName);
 
-            logger
+	        content
+		        .First()
+		        .IsProviderData
+		        .Should()
+		        .BeTrue();
+
+			logger
                 .Received(1)
                 .Warning($"Dataset could not be found for Id {datasetId}");
         }
@@ -1029,7 +1043,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 {
                     Id = datasetId,
                     Version = 1
-                }
+                },
+				IsSetAsProviderData = true
             });
 
             Dataset dataset = new Dataset
@@ -1116,7 +1131,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Should()
                 .Be(1);
 
-            content
+	        content
+		        .First()
+		        .IsProviderData
+		        .Should()
+		        .BeTrue();
+
+			content
                .First()
                .RelationshipDescription
                .Should()

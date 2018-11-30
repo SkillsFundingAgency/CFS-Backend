@@ -33,6 +33,8 @@
             public const string PublishProviderResults = "publish-provider-results";
 
             public const string FetchProviderProfile = "fetch-provider-profile";
+
+            public const string MigrateResultVersions = "migrate-result-versions";
         }
 
         public static class TopicNames

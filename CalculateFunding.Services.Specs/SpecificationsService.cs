@@ -890,6 +890,8 @@ namespace CalculateFunding.Services.Specs
                 return new StatusCodeResult((int)statusCode);
             }
 
+	        await ReindexSpecification(specification);
+
             return new OkObjectResult(policy);
         }
 
@@ -978,6 +980,8 @@ namespace CalculateFunding.Services.Specs
             {
                 return new StatusCodeResult((int)statusCode);
             }
+
+	        await ReindexSpecification(specification);
 
             await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
 
@@ -1180,19 +1184,7 @@ namespace CalculateFunding.Services.Specs
                 return new StatusCodeResult((int)statusCode);
             }
 
-	        IEnumerable<IndexError> specificationIndexingErrors = await _searchRepository.Index(new[]
-	        {
-		        CreateSpecificationIndex(specification)
-	        });
-
-	        var specificationIndexingErrorsAsList = specificationIndexingErrors.ToList();
-	        if (!specificationIndexingErrorsAsList.IsNullOrEmpty())
-	        {
-				string specificationIndexingErrorsConcatted = string.Join(". ", specificationIndexingErrorsAsList);
-		        string formattedErrorMessage = $"Could not index specification {specificationVersion.Id} because: {specificationIndexingErrorsConcatted}";
-		        _logger.Error(formattedErrorMessage);
-				throw new ApplicationException(formattedErrorMessage);
-			}
+	        await ReindexSpecification(specification);
 
 	        await TaskHelper.WhenAllAndThrow(
                  ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id),
@@ -1210,7 +1202,25 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specification);
         }
 
-        public async Task<IActionResult> EditSpecificationStatus(HttpRequest request)
+	    private async Task ReindexSpecification(Specification specification)
+	    {
+		    IEnumerable<IndexError> specificationIndexingErrors = await _searchRepository.Index(new[]
+		    {
+			    CreateSpecificationIndex(specification)
+		    });
+
+		    var specificationIndexingErrorsAsList = specificationIndexingErrors.ToList();
+		    if (!specificationIndexingErrorsAsList.IsNullOrEmpty())
+		    {
+			    string specificationIndexingErrorsConcatted = string.Join(". ", specificationIndexingErrorsAsList.Select(e => e.ErrorMessage));
+			    string formattedErrorMessage =
+				    $"Could not index specification {specification.Current.Id} because: {specificationIndexingErrorsConcatted}";
+			    _logger.Error(formattedErrorMessage);
+			    throw new ApplicationException(formattedErrorMessage);
+		    }
+	    }
+
+	    public async Task<IActionResult> EditSpecificationStatus(HttpRequest request)
         {
             request.Query.TryGetValue("specificationId", out var specId);
             string specificationId = specId.FirstOrDefault();
@@ -1284,10 +1294,7 @@ namespace CalculateFunding.Services.Specs
                 return new StatusCodeResult((int)statusCode);
             }
 
-            await _searchRepository.Index(new[]
-            {
-                CreateSpecificationIndex(specification)
-            });
+	        await ReindexSpecification(specification);
 
             await TaskHelper.WhenAllAndThrow(
                  ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id),
@@ -1501,6 +1508,8 @@ namespace CalculateFunding.Services.Specs
                 return new StatusCodeResult((int)statusCode);
             }
 
+	        await ReindexSpecification(specification);
+
             IDictionary<string, string> properties = request.BuildMessageProperties();
 
             await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CreateDraftCalculation,
@@ -1663,6 +1672,8 @@ namespace CalculateFunding.Services.Specs
                 _logger.Error($"Failed to update specification when creating a calc with status {statusCode}");
                 return new StatusCodeResult((int)statusCode);
             }
+
+	        await ReindexSpecification(specification);
 
             await SendCalculationComparisonModelMessageToTopic(specificationId, calculationId, ServiceBusConstants.TopicNames.EditCalculation, calculation, previousCalculation, request);
 
@@ -2197,21 +2208,21 @@ namespace CalculateFunding.Services.Specs
         {
             SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
 
-            return new SpecificationIndex
-            {
-                Id = specification.Id,
-                Name = specification.Name,
-                IsSelectedForFunding = specification.IsSelectedForFunding,
-                Status = Enum.GetName(typeof(PublishStatus), specificationVersion.PublishStatus),
-                Description = specificationVersion.Description,
-                FundingStreamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray(),
-                FundingStreamNames = specificationVersion.FundingStreams.Select(s => s.Name).ToArray(),
-                FundingPeriodId = specificationVersion.FundingPeriod.Id,
-                FundingPeriodName = specificationVersion.FundingPeriod.Name,
-                LastUpdatedDate = DateTimeOffset.Now,
-                DataDefinitionRelationshipIds = specificationVersion.DataDefinitionRelationshipIds.ToArraySafe(),
-                PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt
-            };
+			return new SpecificationIndex
+			{
+		        Id = specification.Id,
+		        Name = specification.Name,
+		        IsSelectedForFunding = specification.IsSelectedForFunding,
+		        Status = Enum.GetName(typeof(PublishStatus), specificationVersion.PublishStatus),
+		        Description = specificationVersion.Description,
+		        FundingStreamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray(),
+		        FundingStreamNames = specificationVersion.FundingStreams.Select(s => s.Name).ToArray(),
+		        FundingPeriodId = specificationVersion.FundingPeriod.Id,
+		        FundingPeriodName = specificationVersion.FundingPeriod.Name,
+		        LastUpdatedDate = DateTimeOffset.Now,
+		        DataDefinitionRelationshipIds = specificationVersion.DataDefinitionRelationshipIds.ToArraySafe(),
+		        PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt
+	        };
         }
     }
 }

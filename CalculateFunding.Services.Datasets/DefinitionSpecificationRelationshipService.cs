@@ -433,11 +433,12 @@ namespace CalculateFunding.Services.Datasets
 
         private async Task<DatasetSpecificationRelationshipViewModel> CreateViewModel(DefinitionSpecificationRelationship relationship)
         {
-            DatasetSpecificationRelationshipViewModel relationshipViewModel = new DatasetSpecificationRelationshipViewModel
-            {
-                Id = relationship.Id,
-                Name = relationship.Name,
-                RelationshipDescription = relationship.Description
+			DatasetSpecificationRelationshipViewModel relationshipViewModel = new DatasetSpecificationRelationshipViewModel
+			{
+				Id = relationship.Id,
+				Name = relationship.Name,
+				RelationshipDescription = relationship.Description,
+				IsProviderData = relationship.IsSetAsProviderData
             };
 
             if (relationship.DatasetVersion != null)
