@@ -1357,6 +1357,97 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
+        public async Task UpdateAllocations_GivenBuildProjectAndProviderListIsNotAMultipleOfTheBatchSizeAndIsJobServiceIsEnabled_CreatesJobsWithCorrectBatches()
+        {
+            //Arrange
+            string parentJobId = "job-id-1";
+
+            string specificationId = "test-spec1";
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1"
+            };
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+            message.UserProperties.Add("jobId", "job-id-1");
+            message.UserProperties.Add("specification-id", specificationId);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(true);
+
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(9999);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJob);
+
+            jobsRepository
+                .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
+                .Returns(CreateJobs());
+
+            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            ILogger logger = CreateLogger();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
+                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
+                messengerService: messengerService, featureToggle: featureToggle, jobsRepository: jobsRepository);
+
+            IEnumerable<JobCreateModel> jobModelsToTest = null;
+
+            jobsRepository
+                .When(x => x.CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>()))
+                .Do(y => jobModelsToTest = y.Arg<IEnumerable<JobCreateModel>>());
+                
+            //Act
+            await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            jobModelsToTest.Should().HaveCount(10);
+            jobModelsToTest.ElementAt(0).Properties["provider-summaries-partition-index"].Should().Be("0");
+            jobModelsToTest.ElementAt(1).Properties["provider-summaries-partition-index"].Should().Be("1000");
+            jobModelsToTest.ElementAt(2).Properties["provider-summaries-partition-index"].Should().Be("2000");
+            jobModelsToTest.ElementAt(3).Properties["provider-summaries-partition-index"].Should().Be("3000");
+            jobModelsToTest.ElementAt(4).Properties["provider-summaries-partition-index"].Should().Be("4000");
+            jobModelsToTest.ElementAt(5).Properties["provider-summaries-partition-index"].Should().Be("5000");
+            jobModelsToTest.ElementAt(6).Properties["provider-summaries-partition-index"].Should().Be("6000");
+            jobModelsToTest.ElementAt(7).Properties["provider-summaries-partition-index"].Should().Be("7000");
+            jobModelsToTest.ElementAt(8).Properties["provider-summaries-partition-index"].Should().Be("8000");
+            jobModelsToTest.ElementAt(9).Properties["provider-summaries-partition-index"].Should().Be("9000");
+        }
+
+        [TestMethod]
         public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenThousandProvidersAndIsJobServiceEnabledOnButOnlyCreatedFiveJobs_ThrowsExceptionLogsAnError()
         {
             //Arrange

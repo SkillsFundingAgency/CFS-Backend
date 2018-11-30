@@ -163,6 +163,5 @@ namespace CalculateFunding.Services.Specs.Services
                 .Received(1)
                 .Information(Arg.Is($"A calculation was not found for specification id {SpecificationId} and name {CalculationName}"));
         }
-
     }
 }

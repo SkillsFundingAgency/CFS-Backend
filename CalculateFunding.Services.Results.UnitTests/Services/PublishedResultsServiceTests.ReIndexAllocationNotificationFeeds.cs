@@ -182,7 +182,7 @@ namespace CalculateFunding.Services.Results.Services
                    .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
                        m.First().ProviderId == "1111" &&
                        m.First().Title == "test title 1" &&
-                       m.First().Summary == "test summary 1" &&
+                       m.First().Summary == "UKPRN: 1111, version 0.1" &&
                        m.First().DatePublished.HasValue == false &&
                        m.First().FundingStreamId == "fs-1" &&
                        m.First().FundingStreamName == "funding stream 1" &&

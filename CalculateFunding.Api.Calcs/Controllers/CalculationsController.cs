@@ -1,7 +1,6 @@
 ﻿using CalculateFunding.Services.Calcs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using System;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Calcs.Controllers
@@ -147,5 +146,12 @@ namespace CalculateFunding.Api.Calcs.Controllers
             await _buildProjectsService.UpdateAllocations(message);
             return new OkResult();
         }
+
+	    [Route("api/calcs/{calcSpecId}/calculation")]
+	    [HttpGet]
+	    public async Task<IActionResult> GetCalculationByCalculationSpecificationId(string calcSpecId)
+	    {
+		    return await _calcsService.GetCalculationByCalculationSpecificationId(calcSpecId);
+	    }
     }
 }

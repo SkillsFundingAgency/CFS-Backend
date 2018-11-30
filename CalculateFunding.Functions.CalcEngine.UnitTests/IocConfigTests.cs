@@ -42,7 +42,9 @@ namespace CalculateFunding.Functions.CalcEngine.UnitTests
                 { "calcsClient:ApiEndpoint", "https://localhost:7002/api/" },
                 { "calcsClient:ApiKey", "Local" },
                 { "datasetsClient:ApiEndpoint", "https://localhost:7004/api/"},
-                { "datasetsClient:ApiKey", "Local"}
+                { "datasetsClient:ApiKey", "Local"},
+                { "jobsClient:ApiEndpoint", "https://localhost:7010/api/"},
+                { "jobsClient:ApiKey", "Local"}
             };
 
             return configData;

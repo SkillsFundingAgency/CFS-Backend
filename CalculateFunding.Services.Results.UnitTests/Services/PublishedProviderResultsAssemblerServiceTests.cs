@@ -9,6 +9,7 @@ using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 
@@ -1593,6 +1594,13 @@ namespace CalculateFunding.Services.Results.Services
                             {
                                 Status = AllocationLineStatus.Held,
                                 Value = 123,
+                                Major = 0,
+                                Minor = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    UKPRN = "2",
+                                    ProviderProfileIdType = "UKPRN"
+                                }
                             }
                         }
                     }
@@ -1615,6 +1623,13 @@ namespace CalculateFunding.Services.Results.Services
                            {
                                Status = AllocationLineStatus.Held,
                                Value = 456,
+                               Major = 0,
+                               Minor = 1,
+                               Provider = new ProviderSummary
+                               {
+                                   UKPRN = "2",
+                                   ProviderProfileIdType = "UKPRN"
+                               }
                            }
                        }
                    }
@@ -1668,6 +1683,13 @@ namespace CalculateFunding.Services.Results.Services
                             {
                                 Status = AllocationLineStatus.Held,
                                 Value = 123,
+                                Major = 0,
+                                Minor = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    UKPRN = "2",
+                                    ProviderProfileIdType = "UKPRN"
+                                }
                             }
                         }
                     }
@@ -1686,6 +1708,13 @@ namespace CalculateFunding.Services.Results.Services
                            {
                                Status = AllocationLineStatus.Held,
                                Value = 789,
+                               Major = 0,
+                               Minor = 1,
+                               Provider = new ProviderSummary
+                               {
+                                   UKPRN = "2",
+                                   ProviderProfileIdType = "UKPRN"
+                               }
                            }
                        }
                    }
@@ -1762,6 +1791,14 @@ namespace CalculateFunding.Services.Results.Services
                             {
                                 Status = AllocationLineStatus.Held,
                                 Value = 123,
+                                Major = 0,
+                                Minor = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    Id = "1",
+                                    UKPRN = "1",
+                                    ProviderProfileIdType = "UKPRN"
+                                }
                             }
                         }
                     }
@@ -1780,6 +1817,14 @@ namespace CalculateFunding.Services.Results.Services
                            {
                                Status = AllocationLineStatus.Approved,
                                Value = 789,
+                               Major = 0,
+                               Minor = 1,
+                               Provider = new ProviderSummary
+                               {
+                                   Id = "2",
+                                   UKPRN = "2",
+                                   ProviderProfileIdType = "UKPRN"
+                               }
                            }
                        }
                    }
@@ -1792,6 +1837,9 @@ namespace CalculateFunding.Services.Results.Services
                 ProviderId = "1",
                 Status = AllocationLineStatus.Held,
                 Value = 123,
+                Version = 1,
+                Major = 0,
+                Minor = 1
             });
 
             existingResults.Add(new PublishedProviderResultExisting()
@@ -1800,7 +1848,9 @@ namespace CalculateFunding.Services.Results.Services
                 ProviderId = "2",
                 Status = AllocationLineStatus.Approved,
                 Value = 456,
-                Version = 1
+                Version = 1,
+                Major = 0,
+                Minor = 1
             });
 
             allocationResultsVersionRepository
@@ -1810,6 +1860,8 @@ namespace CalculateFunding.Services.Results.Services
             // Act
             (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = await assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
 
+            string resultsJson = JsonConvert.SerializeObject(resultsToSave);
+
             // Assert
             resultsToSave
                 .Should()
@@ -1818,6 +1870,9 @@ namespace CalculateFunding.Services.Results.Services
             resultsToSave
                 .Should()
                 .BeEquivalentTo(new List<PublishedProviderResult>() { publishedProviderResults[0], publishedProviderResults[1] });
+
+            resultsToSave.FirstOrDefault(m => m.Summary == "UKPRN: 1, version 0.1").Should().NotBeNull();
+            resultsToSave.FirstOrDefault(m => m.Summary == "UKPRN: 2, version 0.1").Should().NotBeNull();
 
             resultsToExclude
                 .Should()
@@ -1874,6 +1929,13 @@ namespace CalculateFunding.Services.Results.Services
                             {
                                 Status = AllocationLineStatus.Held,
                                 Value = 123,
+                                Major = 0,
+                                Minor = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    UKPRN = "1",
+                                    ProviderProfileIdType = "UKPRN"
+                                }
                             }
                         }
                     }
@@ -1892,6 +1954,14 @@ namespace CalculateFunding.Services.Results.Services
                             {
                                 Status = AllocationLineStatus.Held,
                                 Value = 234,
+                                Major = 0,
+                                Minor = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    UKPRN = "2",
+                                    ProviderProfileIdType = "UKPRN"
+                                }
+
                             }
                         }
                     }
@@ -1910,6 +1980,13 @@ namespace CalculateFunding.Services.Results.Services
                             {
                                 Status = AllocationLineStatus.Held,
                                 Value = 345,
+                                Major = 0,
+                                Minor = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    UKPRN = "1",
+                                    ProviderProfileIdType = "UKPRN"
+                                }
                             }
                         }
                     }
@@ -1928,6 +2005,13 @@ namespace CalculateFunding.Services.Results.Services
                             {
                                 Status = AllocationLineStatus.Held,
                                 Value = 456,
+                                Major = 0,
+                                Minor = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    UKPRN = "2",
+                                    ProviderProfileIdType = "UKPRN"
+                                }
                             }
                         }
                     }
@@ -1966,14 +2050,13 @@ namespace CalculateFunding.Services.Results.Services
             resultsToSave
                 .Should()
                 .BeEquivalentTo(new List<PublishedProviderResult>()
-                { 
+                {
                     publishedProviderResults[0],
                     publishedProviderResults[1],
                     publishedProviderResults[2],
                     publishedProviderResults[3]
                 });
 
-           
             await
                 allocationResultsVersionRepository
                     .Received(2)

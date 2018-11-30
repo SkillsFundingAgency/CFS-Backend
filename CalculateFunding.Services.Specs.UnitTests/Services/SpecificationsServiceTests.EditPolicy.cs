@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Specs;
+﻿using System;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
@@ -17,6 +18,8 @@ using System.Linq;
 using Newtonsoft.Json;
 using System.IO;
 using System.Net;
+using CalculateFunding.Models.Versioning;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Constants;
@@ -356,10 +359,11 @@ namespace CalculateFunding.Services.Specs.Services
         public async Task EditPolicy_WhenValidModelAndUpdateCosmos_SendsMessageAndReturnsOK()
         {
             // Arrange
-            PolicyEditModel policyEditModel = new PolicyEditModel
+	        const string newPolicyName = "new policy name";
+	        PolicyEditModel policyEditModel = new PolicyEditModel
             {
                 SpecificationId = SpecificationId,
-                Name = "new policy name"
+                Name = newPolicyName
             };
 
             string json = JsonConvert.SerializeObject(policyEditModel);
@@ -403,7 +407,21 @@ namespace CalculateFunding.Services.Specs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, messengerService: messengerService);
+	        ISearchRepository<SpecificationIndex> mockSearchRepository = CreateSearchRepository();
+
+	        SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+	        newSpecVersion.Policies.First().Name = newPolicyName;
+	        newSpecVersion.Version = 2;
+	        newSpecVersion.PublishStatus = PublishStatus.Updated;
+
+			IVersionRepository<SpecificationVersion> mockVersionRepository = CreateVersionRepository();
+	        mockVersionRepository
+		        .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+		        .Returns(newSpecVersion);
+
+			SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository,
+		        messengerService: messengerService, searchRepository: mockSearchRepository, specificationVersionRepository: mockVersionRepository);
+
 
             // Act
             IActionResult result = await specificationsService.EditPolicy(request);
@@ -425,7 +443,15 @@ namespace CalculateFunding.Services.Specs.Services
                                 Arg.Is<SpecificationVersionComparisonModel>(
                                     m => m.Id == SpecificationId
                                     ), Arg.Any<IDictionary<string, string>>());
-        }
+
+	        await
+		        mockSearchRepository
+			        .Received(1)
+			        .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
+				        m => m.First().Id == SpecificationId &&
+							 m.First().Status == newSpecVersion.PublishStatus.ToString()
+					));
+		}
 
         [TestMethod]
         public async Task EditPolicy_WhenValidModelAndUpdateCosmosAndIsASubPolicy_SendsMessageAndReturnsOK()
@@ -489,7 +515,23 @@ namespace CalculateFunding.Services.Specs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, messengerService: messengerService);
+	        ISearchRepository<SpecificationIndex> mockSearchRepository = CreateSearchRepository();
+	        mockSearchRepository
+		        .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
+		        .Returns(new List<IndexError>());
+
+			SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+	        Policy editedNewSubpolicy = newSpecVersion.Policies.First().SubPolicies.First();
+	        editedNewSubpolicy.Name = policyEditModel.Name;
+			newSpecVersion.PublishStatus = PublishStatus.Updated;
+
+			IVersionRepository<SpecificationVersion> mockVersionRepository = CreateVersionRepository();
+			mockVersionRepository
+				.CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+				.Returns(newSpecVersion);
+
+			SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository,
+		        messengerService: messengerService, searchRepository: mockSearchRepository, specificationVersionRepository: mockVersionRepository);
 
             // Act
             IActionResult result = await specificationsService.EditPolicy(request);
@@ -514,7 +556,15 @@ namespace CalculateFunding.Services.Specs.Services
                                 Arg.Is<SpecificationVersionComparisonModel>(
                                     m => m.Id == SpecificationId
                                     ), Arg.Any<IDictionary<string, string>>());
-        }
+
+	        await
+		        mockSearchRepository
+			        .Received(1)
+			        .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
+				        m => m.First().Id == SpecificationId &&
+				             m.First().Status == newSpecVersion.PublishStatus.ToString()
+			        ));
+		}
 
         [TestMethod]
         public async Task EditPolicy_WhenPolicyWasASubPolicyButNowTopLevelPolicy_SavesChanges()
@@ -620,118 +670,214 @@ namespace CalculateFunding.Services.Specs.Services
                .SaveVersion(Arg.Is(newSpecVersion));
         }
 
-        [TestMethod]
-        public async Task EditPolicy_WhenPolicyASubPolicyForOnePolicyButSubPolicyOfAnotherPolicy_SavesChanges()
-        {
-            // Arrange
-            PolicyEditModel policyEditModel = new PolicyEditModel
-            {
-                SpecificationId = SpecificationId,
-                Name = "new policy name",
-                Description = "new policy description",
-                ParentPolicyId = "new-parent-policy-id"
-            };
+		[TestMethod]
+		public async Task EditPolicy_WhenPolicyASubPolicyForOnePolicyButSubPolicyOfAnotherPolicy_SavesChanges()
+		{
+			// Arrange
+			PolicyEditModel policyEditModel = new PolicyEditModel
+			{
+				SpecificationId = SpecificationId,
+				Name = "new policy name",
+				Description = "new policy description",
+				ParentPolicyId = "new-parent-policy-id"
+			};
 
-            string json = JsonConvert.SerializeObject(policyEditModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+			string json = JsonConvert.SerializeObject(policyEditModel);
+			byte[] byteArray = Encoding.UTF8.GetBytes(json);
+			MemoryStream stream = new MemoryStream(byteArray);
 
-            HttpContext context = Substitute.For<HttpContext>();
+			HttpContext context = Substitute.For<HttpContext>();
 
-            HttpRequest request = Substitute.For<HttpRequest>();
+			HttpRequest request = Substitute.For<HttpRequest>();
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-                { "policyId", new StringValues(PolicyId) },
-            });
+			IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+			{
+				{ "specificationId", new StringValues(SpecificationId) },
+				{ "policyId", new StringValues(PolicyId) },
+			});
 
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
+			request
+				.Query
+				.Returns(queryStringValues);
+			request
+				.Body
+				.Returns(stream);
 
-            request
-                .HttpContext
-                .Returns(context);
+			request
+				.HttpContext
+				.Returns(context);
 
-            Specification specification = CreateSpecification();
-            specification
-                .Current
-                .Policies = new[]
-                {
-                    new Policy
-                        {
-                            Id = "parent-policy-id" ,
-                            Name = "policy name",
-                            SubPolicies = new[] { new Policy { Id = PolicyId, Name =  PolicyName }
-                         }
-                    },
-                    new Policy
-                    {
-                        Id = "new-parent-policy-id" ,
-                        Name = "policy name",
-                        SubPolicies = Enumerable.Empty<Policy>()
-                    }
-                };
+			Specification specification = CreateSpecification();
+			specification
+				.Current
+				.Policies = new[]
+				{
+					new Policy
+						{
+							Id = "parent-policy-id" ,
+							Name = "policy name",
+							SubPolicies = new[] { new Policy { Id = PolicyId, Name =  PolicyName }
+						 }
+					},
+					new Policy
+					{
+						Id = "new-parent-policy-id" ,
+						Name = "policy name",
+						SubPolicies = Enumerable.Empty<Policy>()
+					}
+				};
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
+			ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+			specificationsRepository
+				.GetSpecificationById(Arg.Is(SpecificationId))
+				.Returns(specification);
 
-            specificationsRepository
-                .UpdateSpecification(Arg.Is(specification))
-                .Returns(HttpStatusCode.OK);
+			specificationsRepository
+				.UpdateSpecification(Arg.Is(specification))
+				.Returns(HttpStatusCode.OK);
 
-            IMessengerService messengerService = CreateMessengerService();
+			IMessengerService messengerService = CreateMessengerService();
 
-            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-            newSpecVersion.Policies.Last().SubPolicies = newSpecVersion.Policies.Concat(new[] { specification.Current.Policies.First().SubPolicies.First() });
-            newSpecVersion.Policies.First().SubPolicies = Enumerable.Empty<Policy>();
+			SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+			newSpecVersion.Policies.Last().SubPolicies = newSpecVersion.Policies.Last().SubPolicies.Concat(new[] { specification.Current.Policies.First().SubPolicies.First() });
+			newSpecVersion.Policies.First().SubPolicies = Enumerable.Empty<Policy>();
 
-            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
-            versionRepository
-                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
-                .Returns(newSpecVersion);
+			IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+			versionRepository
+				.CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+				.Returns(newSpecVersion);
 
-            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, 
-                messengerService: messengerService, specificationVersionRepository: versionRepository);
+			SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository,
+				messengerService: messengerService, specificationVersionRepository: versionRepository);
 
-            // Act
-            IActionResult result = await specificationsService.EditPolicy(request);
+			// Act
+			IActionResult result = await specificationsService.EditPolicy(request);
 
-            // Assert
-            result
-                .Should()
-                .BeOfType<OkObjectResult>();
+			// Assert
+			result
+				.Should()
+				.BeOfType<OkObjectResult>();
 
-            specification
-                .Current
-                .Policies
-                .Count()
-                .Should()
-                .Be(2);
+			specification
+				.Current
+				.Policies
+				.Count()
+				.Should()
+				.Be(2);
 
-            specification
-               .Current
-               .Policies
-               .First()
-               .SubPolicies
-               .Any()
-               .Should()
-               .BeFalse();
+			specification
+			   .Current
+			   .Policies
+			   .First()
+			   .SubPolicies
+			   .Any()
+			   .Should()
+			   .BeFalse();
 
-            specification
-               .Current
-               .Policies
-               .Last()
-               .SubPolicies
-               .Any()
-               .Should()
-               .BeTrue();
-        }
-    }
+			specification
+			   .Current
+			   .Policies
+			   .Last()
+			   .SubPolicies
+			   .Any()
+			   .Should()
+			   .BeTrue();
+		}
+
+		[TestMethod]
+		public void EditPolicy_WhenSomethingGoesWrongDuringIndexing_ShouldThrowException()
+		{
+			// Arrange
+			const string errorMessage = "Encountered error code 802";
+
+			PolicyEditModel policyEditModel = new PolicyEditModel
+			{
+				SpecificationId = SpecificationId,
+				Name = "new policy name",
+				Description = "new policy description",
+				ParentPolicyId = "parent-policy-id"
+			};
+
+			string json = JsonConvert.SerializeObject(policyEditModel);
+			byte[] byteArray = Encoding.UTF8.GetBytes(json);
+			MemoryStream stream = new MemoryStream(byteArray);
+
+			HttpContext context = Substitute.For<HttpContext>();
+
+			HttpRequest request = Substitute.For<HttpRequest>();
+
+			IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+			{
+				{ "specificationId", new StringValues(SpecificationId) },
+				{ "policyId", new StringValues(PolicyId) },
+			});
+
+			request
+				.Query
+				.Returns(queryStringValues);
+			request
+				.Body
+				.Returns(stream);
+
+			request
+				.HttpContext
+				.Returns(context);
+
+			Specification specification = CreateSpecification();
+			specification
+				.Current
+				.Policies = new[]
+				{
+					new Policy
+						{
+							Id = "parent-policy-id" ,
+							Name = "policy name",
+							SubPolicies = new[] { new Policy { Id = PolicyId, Name =  PolicyName }
+						 }
+					}
+				};
+
+			ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+			specificationsRepository
+				.GetSpecificationById(Arg.Is(SpecificationId))
+				.Returns(specification);
+
+			specificationsRepository
+				.UpdateSpecification(Arg.Is(specification))
+				.Returns(HttpStatusCode.OK);
+
+			IMessengerService messengerService = CreateMessengerService();
+
+			ISearchRepository<SpecificationIndex> mockSearchRepository = CreateSearchRepository();
+			mockSearchRepository
+				.Index(Arg.Any<IEnumerable<SpecificationIndex>>())
+				.Returns(new List<IndexError> {new IndexError(){ErrorMessage = errorMessage}});
+
+			SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+			Policy editedNewSubpolicy = newSpecVersion.Policies.First().SubPolicies.First();
+			editedNewSubpolicy.Name = policyEditModel.Name;
+			newSpecVersion.PublishStatus = PublishStatus.Updated;
+
+			IVersionRepository<SpecificationVersion> mockVersionRepository = CreateVersionRepository();
+			mockVersionRepository
+				.CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+				.Returns(newSpecVersion);
+
+			SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository,
+				messengerService: messengerService, searchRepository: mockSearchRepository, specificationVersionRepository: mockVersionRepository);
+			
+			//Act
+			Func<Task<IActionResult>> editPolicy = async () => await specificationsService.EditPolicy(request);
+
+			//Assert
+			editPolicy
+				.Should()
+				.Throw<ApplicationException>()
+				.Which
+				.Message
+				.Should()
+				.Be($"Could not index specification {specification.Current.Id} because: {errorMessage}");
+
+		}
+	}
 }

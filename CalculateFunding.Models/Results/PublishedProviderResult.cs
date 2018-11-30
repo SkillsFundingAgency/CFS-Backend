@@ -21,7 +21,13 @@ namespace CalculateFunding.Models.Results
         public string Title { get; set; }
 
         [JsonProperty("summary")]
-        public string Summary { get; set; }
+        public string Summary
+        {
+            get
+            {
+                return $"{FundingStreamResult.AllocationLineResult.Current.Provider.ProviderProfileIdType}: {FundingStreamResult.AllocationLineResult.Current.Provider.Id}, version {FundingStreamResult.AllocationLineResult.Current.VersionNumber}";
+            }
+        }
 
         [JsonProperty("id")]
         public string Id

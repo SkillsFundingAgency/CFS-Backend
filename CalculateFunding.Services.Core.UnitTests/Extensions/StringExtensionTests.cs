@@ -38,5 +38,50 @@ namespace CalculateFunding.Services.Core.Extensions
                 .Should()
                 .Be("mary had a little lamb");
         }
+
+        [TestMethod]
+        public void RemoveAllSpaces_GivenNullText_ReturnsEmptyString()
+        {
+            //arrange
+            string text = null;
+
+            //act
+            string result = text.RemoveAllSpaces();
+
+            //Assert
+            result
+                .Should()
+                .BeEmpty();
+        }
+
+        [TestMethod]
+        public void RemoveAllSpaces_GivenEmptyText_ReturnsEmptyString()
+        {
+            //arrange
+            string text = "";
+
+            //act
+            string result = text.RemoveAllSpaces();
+
+            //Assert
+            result
+                .Should()
+                .BeEmpty();
+        }
+
+        [TestMethod]
+        public void RemoveAllSpaces_GivenText_ReturnsTextWithNoSpaces()
+        {
+            //arrange
+            string text = "mary had a little lamb ";
+
+            //act
+            string result = text.RemoveAllSpaces();
+
+            //Assert
+            result
+                .Should()
+                .Be("maryhadalittlelamb");
+        }
     }
 }

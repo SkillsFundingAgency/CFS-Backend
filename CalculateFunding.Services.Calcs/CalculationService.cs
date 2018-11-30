@@ -1113,7 +1113,23 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(statusCountModels);
         }
 
-        async Task UpdateSearch(Calculation calculation, string specificationName)
+		public async Task<IActionResult> GetCalculationByCalculationSpecificationId(string calculationSpecificationId)
+		{
+			if (calculationSpecificationId.IsNullOrEmpty())
+			{
+				return new BadRequestObjectResult($"nameof(calculationSpecificationId) was null or empty");
+			}
+
+			Calculation calculationFound = await _calculationsRepository.GetCalculationByCalculationSpecificationId(calculationSpecificationId);
+			if (calculationFound != null)
+			{
+				return new OkObjectResult(calculationFound);
+			}
+
+			return new NotFoundObjectResult($"No result was found for {calculationSpecificationId}");
+		}
+
+		async Task UpdateSearch(Calculation calculation, string specificationName)
         {
             IEnumerable<IndexError> indexingResults = await _searchRepository.Index(new List<CalculationIndex>
             {

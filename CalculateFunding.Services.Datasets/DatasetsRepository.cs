@@ -101,7 +101,7 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<DefinitionSpecificationRelationship> GetRelationshipBySpecificationIdAndName(string specificationId, string name)
         {
-            IEnumerable<DefinitionSpecificationRelationship> relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Specification.Id == specificationId && m.Name.ToLower() == name.ToLower());
+            IEnumerable<DefinitionSpecificationRelationship> relationships = await GetDefinitionSpecificationRelationshipsByQuery(m => m.Specification.Id == specificationId && m.Name.RemoveAllSpaces().ToLower() == name.RemoveAllSpaces().ToLower());
 
             return relationships.FirstOrDefault();
         }

@@ -10,13 +10,13 @@
 
             public const string CalculationJobInitialiserPoisoned = "calc-events-instruct-generate-allocations$poisoned";
 
-            public const string CalculationJobInitialiserPoisonedLocal = "calc-events-instruct-generate-allocations-poisoned";
+            public const string CalculationJobInitialiserPoisonedLocal = "calc-events-instruct-generate-allocations-poison";
 
             public const string CalcEngineGenerateAllocationResults = "calc-events-generate-allocations-results";
 
             public const string CalcEngineGenerateAllocationResultsPoisoned = "calc-events-generate-allocations-results$poisoned";
 
-            public const string CalcEngineGenerateAllocationResultsPoisonedLocal = "calc-events-generate-allocations-results-poisoned";
+            public const string CalcEngineGenerateAllocationResultsPoisonedLocal = "calc-events-generate-allocations-results-poison";
 
             public const string TestEngineExecuteTests = "test-events-execute-tests";
 
@@ -33,6 +33,8 @@
             public const string PublishProviderResults = "publish-provider-results";
 
             public const string FetchProviderProfile = "fetch-provider-profile";
+
+            public const string MigrateResultVersions = "migrate-result-versions";
         }
 
         public static class TopicNames

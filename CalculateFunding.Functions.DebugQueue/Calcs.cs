@@ -40,7 +40,7 @@ namespace CalculateFunding.Functions.DebugQueue
         }
 
         [FunctionName("on-calcs-instruct-allocations-poisoned")]
-        public static async Task RunOnCalcsInstructAllocationResultsFailure([QueueTrigger(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResultsPoisonedLocal, Connection = "AzureConnectionString")] string item, TraceWriter log)
+        public static async Task RunOnCalcsInstructAllocationResultsFailure([QueueTrigger(ServiceBusConstants.QueueNames.CalculationJobInitialiserPoisonedLocal, Connection = "AzureConnectionString")] string item, TraceWriter log)
         {
             Message message = Helpers.ConvertToMessage<string>(item);
 

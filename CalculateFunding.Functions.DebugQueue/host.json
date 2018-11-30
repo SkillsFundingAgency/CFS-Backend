@@ -2,8 +2,9 @@
   "version": "2.0",
   "extensions": {
     "queues": {
-      "visibilityTimeout": "00:00:10",
+      "visibilityTimeout": "01:00:00",
       "maxDequeueCount": 3
     }
-  }
+  },
+  "functionTimeout": "01:00:00"
 }

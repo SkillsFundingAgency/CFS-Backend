@@ -146,7 +146,7 @@ namespace CalculateFunding.Services.Specs
             if (specification == null)
                 return null;
 
-            return specification.Current.GetCalculations().FirstOrDefault(m => m.Name == calculationName);
+            return specification.Current.GetCalculations().FirstOrDefault(m => string.Equals(m.Name.RemoveAllSpaces(), calculationName.RemoveAllSpaces(), StringComparison.CurrentCultureIgnoreCase));
         }
 
         async public Task<Calculation> GetCalculationBySpecificationIdAndCalculationId(string specificationId, string calculationId)

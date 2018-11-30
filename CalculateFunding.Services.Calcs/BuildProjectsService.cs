@@ -182,7 +182,7 @@ namespace CalculateFunding.Services.Calcs
 
             properties.Add("specification-id", specificationId);
 
-            IList<IDictionary<string, string>> jobProperties = new List<IDictionary<string, string>>();
+            IList<IDictionary<string, string>> allJobProperties = new List<IDictionary<string, string>>();
 
             for (int partitionIndex = 0; partitionIndex < totalCount; partitionIndex += MaxPartitionSize)
             {
@@ -202,7 +202,14 @@ namespace CalculateFunding.Services.Calcs
                 }
                 else
                 {
-                    jobProperties.Add(properties);
+                    IDictionary<string, string> jobProperties = new Dictionary<string, string>();
+
+                    foreach (KeyValuePair<string, string> item in properties)
+                    {
+                        jobProperties.Add(item.Key, item.Value);
+
+                    }
+                    allJobProperties.Add(jobProperties);
                 }
             }
 
@@ -226,10 +233,10 @@ namespace CalculateFunding.Services.Calcs
 
                 try
                 {
-                    IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(parentJob, jobProperties);
+                    IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(parentJob, allJobProperties);
 
                     int newJobsCount = newJobs.Count();
-                    int batchCount = jobProperties.Count();
+                    int batchCount = allJobProperties.Count();
 
                     if(newJobsCount != batchCount)
                     {
