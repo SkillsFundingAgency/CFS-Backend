@@ -233,14 +233,7 @@ namespace CalculateFunding.Services.Calcs
 
                 try
                 {
-                    Trigger trigger = new Trigger
-                    {
-                        EntityId = specificationId,
-                        EntityType = "Specification",
-                        Message = $"Instructing generate allocations for specification: '{specificationId}'"
-                    };
-
-                    IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(parentJob, allJobProperties, trigger);
+                    IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(parentJob, allJobProperties);
 
                     int newJobsCount = newJobs.Count();
                     int batchCount = allJobProperties.Count();
@@ -527,9 +520,16 @@ namespace CalculateFunding.Services.Calcs
             return compiler.GenerateCode(sourceFiles?.ToList());
         }
 
-        private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(JobViewModel parentJob, IEnumerable<IDictionary<string,string>> jobProperties, Trigger trigger)
+        private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(JobViewModel parentJob, IEnumerable<IDictionary<string,string>> jobProperties)
         {
             IList<JobCreateModel> jobCreateModels = new List<JobCreateModel>();
+
+            Trigger trigger = new Trigger
+            {
+                EntityId = parentJob.Id,
+                EntityType = nameof(Job),
+                Message = $"Triggered by parent job with id: '{parentJob.Id}"
+            };
 
             foreach(IDictionary<string, string> properties in jobProperties)
             {

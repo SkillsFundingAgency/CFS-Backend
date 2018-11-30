@@ -550,7 +550,10 @@ namespace CalculateFunding.Services.Calcs.Services
                              m.InvokerUserDisplayName == Username &&
                              m.InvokerUserId == UserId &&
                              m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
-                             m.Properties["specification-id"] == specificationId
+                             m.Properties["specification-id"] == specificationId &&
+                             m.Trigger.EntityId == specificationId &&
+                             m.Trigger.EntityType == nameof(Models.Specs.Specification) &&
+                             m.Trigger.Message == $"Updating calculations for specification: '{specificationId}'"
                          ));
 
             logger
@@ -675,7 +678,10 @@ namespace CalculateFunding.Services.Calcs.Services
                              m.InvokerUserDisplayName == Username &&
                              m.InvokerUserId == UserId &&
                              m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
-                             m.Properties["specification-id"] == specificationId
+                             m.Properties["specification-id"] == specificationId &&
+                             m.Trigger.EntityId == specificationId &&
+                             m.Trigger.EntityType == nameof(Models.Specs.Specification) &&
+                             m.Trigger.Message == $"Updating calculations for specification: '{specificationId}'"
                          ));
 
             logger

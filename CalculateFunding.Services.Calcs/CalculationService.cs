@@ -524,7 +524,7 @@ namespace CalculateFunding.Services.Calcs
                     Trigger trigger = new Trigger
                     {
                         EntityId = specificationId,
-                        EntityType = "Specification",
+                        EntityType = nameof(Specification),
                         Message = $"Updating calculations for specification: '{specificationId}'"
                     };
 
@@ -771,8 +771,8 @@ namespace CalculateFunding.Services.Calcs
                 {
                     Trigger trigger = new Trigger
                     {
-                        EntityId = result.BuildProject.SpecificationId,
-                        EntityType = "Specification",
+                        EntityId = calculation.Id,
+                        EntityType = nameof(Calculation),
                         Message = $"Saving calculation: '{calculationId}' for specification: '{calculation.SpecificationId}'"
                     };
 

@@ -206,9 +206,9 @@ namespace CalculateFunding.Services.Datasets
                     {
                         Trigger trigger = new Trigger
                         {
-                            EntityId = specificationId,
-                            EntityType = "Specification",
-                            Message = $"Processes dataset relationship: '{relationship.Id}' for specification: '{specificationId}'"
+                            EntityId = relationshipId,
+                            EntityType = nameof(DefinitionSpecificationRelationship),
+                            Message = $"Processed dataset relationship: '{relationshipId}' for specification: '{specificationId}'"
                         };
                         string correlationId = message.GetCorrelationId();
 

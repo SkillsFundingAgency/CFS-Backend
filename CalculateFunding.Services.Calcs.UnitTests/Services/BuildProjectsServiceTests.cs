@@ -1336,7 +1336,10 @@ namespace CalculateFunding.Services.Calcs.Services
                             m.Count(p => p.ParentJobId == parentJobId) == 10 &&
                             m.Count(p => p.InvokerUserDisplayName == parentJob.InvokerUserDisplayName) == 10 &&
                             m.Count(p => p.InvokerUserId == parentJob.InvokerUserId) == 10 &&
-                            m.Count(p => p.CorrelationId == parentJob.CorrelationId) == 10
+                            m.Count(p => p.CorrelationId == parentJob.CorrelationId) == 10 &&
+                            m.Count(p => p.Trigger.EntityId == parentJob.Id) == 10 &&
+                            m.Count(p => p.Trigger.EntityType == nameof(Job)) == 10 &&
+                            m.Count(p => p.Trigger.Message == $"Triggered by parent job with id: '{parentJob.Id}") == 10
                         ));
             await
                 messengerService
@@ -1533,7 +1536,10 @@ namespace CalculateFunding.Services.Calcs.Services
                             m.Count(p => p.SpecificationId == specificationId) == 10 &&
                             m.Count(p => p.ParentJobId == parentJobId) == 10 &&
                             m.Count(p => p.InvokerUserDisplayName == parentJob.InvokerUserDisplayName) == 10 &&
-                            m.Count(p => p.InvokerUserId == parentJob.InvokerUserId) == 10
+                            m.Count(p => p.InvokerUserId == parentJob.InvokerUserId) == 10 &&
+                            m.Count(p => p.Trigger.EntityId == parentJob.Id) == 10 &&
+                            m.Count(p => p.Trigger.EntityType == nameof(Job)) == 10 &&
+                            m.Count(p => p.Trigger.Message == $"Triggered by parent job with id: '{parentJob.Id}") == 10
                         ));
             
             logger
