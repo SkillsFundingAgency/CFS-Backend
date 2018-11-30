@@ -20,5 +20,15 @@ namespace System
 
             return "";
         }
+
+        public static string RemoveAllSpaces(this string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return string.Empty;
+            }
+
+            return text.Trim().Replace(" ", "");
+        }
     }
 }
