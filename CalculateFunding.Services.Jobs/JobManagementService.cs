@@ -291,14 +291,6 @@ namespace CalculateFunding.Services.Jobs
             }
         }
 
-        public async Task TimeoutJob(string jobId)
-        {
-            // Send notification after status logged
-            await _notificationService.SendNotification(new JobNotification());
-
-            throw new System.NotImplementedException();
-        }
-
         public async Task ProcessJobCompletion(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
@@ -353,6 +345,76 @@ namespace CalculateFunding.Services.Jobs
                 {
                     _logger.Information("Completed Job {JobId} has no parent", jobId);
                 }
+            }
+        }
+
+        public async Task CheckAndProcessTimedOutJobs()
+        {
+            IEnumerable<Job> nonCompletedJobs = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetNonCompletedJobs());
+
+            if (nonCompletedJobs.IsNullOrEmpty())
+            {
+                _logger.Information("Zero non completed jobs to process, finished processing timed out jobs");
+
+                return;
+            }
+
+            int countOfJobsToProcess = nonCompletedJobs.Count();
+
+            _logger.Information($"{countOfJobsToProcess} non completed jobs to process");
+
+            IEnumerable<JobDefinition> jobDefinitions = await _jobDefinitionsService.GetAllJobDefinitions();
+
+            if (jobDefinitions.IsNullOrEmpty())
+            {
+                _logger.Error("Failed to retrieve job definitions when processing timed out jobs");
+                throw new Exception("Failed to retrieve job definitions when processing timed out jobs");
+            }
+
+            foreach(Job job in nonCompletedJobs)
+            {
+                JobDefinition jobDefinition = jobDefinitions.FirstOrDefault(m => m.Id == job.JobDefinitionId);
+
+                if(jobDefinition == null)
+                {
+                    _logger.Error($"Failed to find job definition : '{job.JobDefinitionId}' for job id: '{job.Id}'");
+
+                    continue;
+                }
+                else
+                {
+                    DateTimeOffset jobStartDate = job.Created;
+
+                    TimeSpan timeout = jobDefinition.Timeout;
+
+                    if(DateTimeOffset.UtcNow > jobStartDate.Add(timeout))
+                    {
+                        _logger.Information($"Job with id: '{job.Id}' as exceeded its maximum timeout threshold");
+
+                        await TimeoutJob(job);
+                    }
+                }
+            }
+
+        }
+
+        private async Task TimeoutJob(Job runningJob)
+        {
+            runningJob.Completed = DateTimeOffset.UtcNow;
+            runningJob.CompletionStatus = CompletionStatus.TimedOut;
+            runningJob.RunningStatus = RunningStatus.Completed;
+
+            HttpStatusCode statusCode = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(runningJob));
+
+            if (statusCode.IsSuccess())
+            {
+                JobNotification jobNotification = CreateJobNotificationFromJob(runningJob);
+
+                await _notificationService.SendNotification(jobNotification);
+            }
+            else
+            {
+                _logger.Error($"Failed to update timeout job, Id: '{runningJob.Id}' with status code {(int)statusCode}");
             }
         }
 

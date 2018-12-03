@@ -17,10 +17,10 @@ namespace CalculateFunding.Services.Jobs.Interfaces
 
         Task CancelJob(string jobId);
 
-        Task TimeoutJob(string jobId);
-
         Task SupersedeJob(Job runningJob, string replacementJobId);
         
         Task ProcessJobCompletion(Message message);
+
+        Task CheckAndProcessTimedOutJobs();
     }
 }

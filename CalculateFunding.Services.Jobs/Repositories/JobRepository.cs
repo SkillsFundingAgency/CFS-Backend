@@ -104,5 +104,12 @@ namespace CalculateFunding.Services.Jobs.Repositories
 
             return query.AsEnumerable();
         }
+
+        public IEnumerable<Job> GetNonCompletedJobs()
+        {
+            IQueryable<Job> query = _cosmosRepository.Query<Job>().Where(m => !m.CompletionStatus.HasValue);
+
+            return query.AsEnumerable();
+        }
     }
 }
