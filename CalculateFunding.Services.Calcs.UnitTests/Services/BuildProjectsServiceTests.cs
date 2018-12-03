@@ -678,6 +678,483 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
+        public async Task CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsLessThanSign_ThenCompilesOkEnsuresLessThanSignTranslatesToLessThanText()
+        {
+            // Arrange
+            string specificationId = "test-spec1";
+            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            {
+                new Models.Calcs.Calculation
+                {
+                    Id = "calcId1",
+                    Name = "calc 1 <",
+                    Description = "test calc",
+                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Models.Reference>
+                    {
+                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                    },
+                    Current = new CalculationVersion
+                    {
+                         SourceCode = "return 10"
+                    }
+                }
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            // Act
+            await buildProjectsService.CompileBuildProject(buildProject);
+
+            // Assert
+
+            buildProject
+                .Build
+                .SourceFiles.First(m => m.FileName == "Calculations.vb")
+                .SourceCode
+                .Should()
+                .Contain("Calc1LessThan");
+        }
+
+        [TestMethod]
+        public async Task CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsGreaterThanSign_ThenCompilesOkEnsuresGreaterThanSignTranslatesToGreaterThanText()
+        {
+            // Arrange
+            string specificationId = "test-spec1";
+            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            {
+                new Models.Calcs.Calculation
+                {
+                    Id = "calcId1",
+                    Name = "calc 1 >",
+                    Description = "test calc",
+                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Models.Reference>
+                    {
+                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                    },
+                    Current = new CalculationVersion
+                    {
+                         SourceCode = "return 10"
+                    }
+                }
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            // Act
+            await buildProjectsService.CompileBuildProject(buildProject);
+
+            // Assert
+
+            buildProject
+                .Build
+                .SourceFiles.First(m => m.FileName == "Calculations.vb")
+                .SourceCode
+                .Should()
+                .Contain("Calc1GreaterThan");
+        }
+
+        [TestMethod]
+        public async Task CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsPoundSign_ThenCompilesOkEnsuresPoundSignTranslatesToPoundText()
+        {
+            // Arrange
+            string specificationId = "test-spec1";
+            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            {
+                new Models.Calcs.Calculation
+                {
+                    Id = "calcId1",
+                    Name = "calc 1 £",
+                    Description = "test calc",
+                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Models.Reference>
+                    {
+                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                    },
+                    Current = new CalculationVersion
+                    {
+                         SourceCode = "return 10"
+                    }
+                }
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            // Act
+            await buildProjectsService.CompileBuildProject(buildProject);
+
+            // Assert
+
+            buildProject
+                .Build
+                .SourceFiles.First(m => m.FileName == "Calculations.vb")
+                .SourceCode
+                .Should()
+                .Contain("Calc1Pound");
+        }
+
+        [TestMethod]
+        public async Task CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsEqualsSign_ThenCompilesOkEnsuresEqualsSignTranslatesToEqualsText()
+        {
+            // Arrange
+            string specificationId = "test-spec1";
+            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            {
+                new Models.Calcs.Calculation
+                {
+                    Id = "calcId1",
+                    Name = "calc 1 =",
+                    Description = "test calc",
+                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Models.Reference>
+                    {
+                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                    },
+                    Current = new CalculationVersion
+                    {
+                         SourceCode = "return 10"
+                    }
+                }
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            // Act
+            await buildProjectsService.CompileBuildProject(buildProject);
+
+            // Assert
+
+            buildProject
+                .Build
+                .SourceFiles.First(m => m.FileName == "Calculations.vb")
+                .SourceCode
+                .Should()
+                .Contain("Calc1Equals");
+        }
+
+        [TestMethod]
+        public async Task CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsPercentSign_ThenCompilesOkEnsuresPercentSignTranslatesToPercentText()
+        {
+            // Arrange
+            string specificationId = "test-spec1";
+            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            {
+                new Models.Calcs.Calculation
+                {
+                    Id = "calcId1",
+                    Name = "calc 1 %",
+                    Description = "test calc",
+                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Models.Reference>
+                    {
+                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                    },
+                    Current = new CalculationVersion
+                    {
+                         SourceCode = "return 10"
+                    }
+                }
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            // Act
+            await buildProjectsService.CompileBuildProject(buildProject);
+
+            // Assert
+
+            buildProject
+                .Build
+                .SourceFiles.First(m => m.FileName == "Calculations.vb")
+                .SourceCode
+                .Should()
+                .Contain("Calc1Percent");
+        }
+
+        [TestMethod]
+        public async Task CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsPlusSign_ThenCompilesOkEnsuresPlusSignTranslatesToPlusText()
+        {
+            // Arrange
+            string specificationId = "test-spec1";
+            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            {
+                new Models.Calcs.Calculation
+                {
+                    Id = "calcId1",
+                    Name = "calc 1 +",
+                    Description = "test calc",
+                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Models.Reference>
+                    {
+                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                    },
+                    Current = new CalculationVersion
+                    {
+                         SourceCode = "return 10"
+                    }
+                }
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            // Act
+            await buildProjectsService.CompileBuildProject(buildProject);
+
+            // Assert
+
+            buildProject
+                .Build
+                .SourceFiles.First(m => m.FileName == "Calculations.vb")
+                .SourceCode
+                .Should()
+                .Contain("Calc1Plus");
+        }
+
+        [TestMethod]
+        public async Task CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsMultiplySign_ThenCompilesOkEnsuresMultiplySignTranslatesToMultiplyText()
+        {
+            // Arrange
+            string specificationId = "test-spec1";
+            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            {
+                new Models.Calcs.Calculation
+                {
+                    Id = "calcId1",
+                    Name = "calc 1 *",
+                    Description = "test calc",
+                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Models.Reference>
+                    {
+                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                    },
+                    Current = new CalculationVersion
+                    {
+                         SourceCode = "return 10"
+                    }
+                }
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            // Act
+            await buildProjectsService.CompileBuildProject(buildProject);
+
+            // Assert
+
+            buildProject
+                .Build
+                .SourceFiles.First(m => m.FileName == "Calculations.vb")
+                .SourceCode
+                .Should()
+                .Contain("Calc1Multiply");
+        }
+
+        [TestMethod]
+        public async Task CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsDivideSign_ThenCompilesOkEnsuresDivideSignTranslatesToDivideText()
+        {
+            // Arrange
+            string specificationId = "test-spec1";
+            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            {
+                new Models.Calcs.Calculation
+                {
+                    Id = "calcId1",
+                    Name = "calc 1 /",
+                    Description = "test calc",
+                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Models.Reference>
+                    {
+                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                    },
+                    Current = new CalculationVersion
+                    {
+                         SourceCode = "return 10"
+                    }
+                }
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            // Act
+            await buildProjectsService.CompileBuildProject(buildProject);
+
+            // Assert
+
+            buildProject
+                .Build
+                .SourceFiles.First(m => m.FileName == "Calculations.vb")
+                .SourceCode
+                .Should()
+                .Contain("Calc1Divide");
+        }
+
+        [TestMethod]
+        public async Task CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsSubtractSign_ThenCompilesOkEnsuresSubtractSignTranslatesToSubtractText()
+        {
+            // Arrange
+            string specificationId = "test-spec1";
+            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            {
+                new Models.Calcs.Calculation
+                {
+                    Id = "calcId1",
+                    Name = "calc 1 -",
+                    Description = "test calc",
+                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Models.Reference>
+                    {
+                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                    },
+                    Current = new CalculationVersion
+                    {
+                         SourceCode = "return 10"
+                    }
+                }
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            // Act
+            await buildProjectsService.CompileBuildProject(buildProject);
+
+            // Assert
+
+            buildProject
+                .Build
+                .SourceFiles.First(m => m.FileName == "Calculations.vb")
+                .SourceCode
+                .Should()
+                .Contain("Calc1Subtract");
+        }
+
+        [TestMethod]
         public void CompileBuildProject_WhenBuildingCalculationWithMinimumDetail_ThenCompilesOk()
         {
             // Arrange
