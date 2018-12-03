@@ -120,6 +120,8 @@ namespace CalculateFunding.Services.Calcs
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
+            JobViewModel job = null;
+
             if (_featureToggle.IsJobServiceEnabled() && !message.UserProperties.ContainsKey("jobId"))
             {
                 _logger.Error("Missing parent job id to instruct generating allocations");
@@ -130,6 +132,22 @@ namespace CalculateFunding.Services.Calcs
             if (_featureToggle.IsJobServiceEnabled())
             {
                 string jobId = message.UserProperties["jobId"].ToString();
+
+                job = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.GetJobById(jobId));
+
+                if (job == null)
+                {
+                    _logger.Error($"Could not find the parent job with job id: '{jobId}'");
+
+                    throw new Exception($"Could not find the parent job with job id: '{jobId}'");
+                }
+
+                if (job.CompletionStatus.HasValue)
+                {
+                    _logger.Information($"Received job with id: '{job.Id}' is already in a completed state with status {job.CompletionStatus.ToString()}");
+
+                    return;
+                }
 
                 await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(jobId, new JobLogUpdateModel()));
             }
@@ -220,38 +238,27 @@ namespace CalculateFunding.Services.Calcs
 
             if (_featureToggle.IsJobServiceEnabled())
             {
-                string parentJobId = message.UserProperties["jobId"].ToString();
-
-                JobViewModel parentJob = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.GetJobById(parentJobId));
-
-                if(parentJob == null)
-                {
-                    _logger.Error($"Could not find the parent job with job id: '{parentJobId}'");
-
-                    throw new Exception($"Could not find the parent job with job id: '{parentJobId}'");
-                }
-
                 try
                 {
-                    IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(parentJob, allJobProperties);
+                    IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(job, allJobProperties);
 
                     int newJobsCount = newJobs.Count();
                     int batchCount = allJobProperties.Count();
 
                     if(newJobsCount != batchCount)
                     {
-                        throw new Exception($"Only {newJobsCount} child jobs from {batchCount} were created with parent id: '{parentJob.Id}'");
+                        throw new Exception($"Only {newJobsCount} child jobs from {batchCount} were created with parent id: '{job.Id}'");
                     }
                     else
                     {
-                        _logger.Information($"{newJobsCount} child jobs were created for parent id: '{parentJob.Id}'");
+                        _logger.Information($"{newJobsCount} child jobs were created for parent id: '{job.Id}'");
                     }
                 }
                 catch(Exception ex)
                 {
                     _logger.Error(ex.Message);
 
-                    throw new Exception($"Failed to create child jobs for parent job: '{parentJob.Id}'");
+                    throw new Exception($"Failed to create child jobs for parent job: '{job.Id}'");
                 }
             }
         }

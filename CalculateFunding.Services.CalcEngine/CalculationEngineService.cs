@@ -146,6 +146,22 @@ namespace CalculateFunding.Services.Calculator
                 {
                     string jobId = message.UserProperties["jobId"].ToString();
 
+                    JobViewModel job = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.GetJobById(jobId));
+
+                    if (job == null)
+                    {
+                        _logger.Error($"Could not find the parent job with job id: '{jobId}'");
+
+                        throw new Exception($"Could not find the parent job with job id: '{jobId}'");
+                    }
+
+                    if (job.CompletionStatus.HasValue)
+                    {
+                        _logger.Information($"Received job with id: '{job.Id}' is already in a completed state with status {job.CompletionStatus.ToString()}");
+
+                        return;
+                    }
+
                     await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(jobId, new JobLogUpdateModel()));
                 }
             }

@@ -28,5 +28,14 @@ namespace CalculateFunding.Services.CalcEngine
 
             return await _apiClient.PostAsync<JobLog, JobLogUpdateModel>(url, jobLogUpdateModel);
         }
+
+        public async Task<JobViewModel> GetJobById(string jobId)
+        {
+            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
+
+            string url = $"jobs/{jobId}";
+
+            return await _apiClient.GetAsync<JobViewModel>(url);
+        }
     }
 }

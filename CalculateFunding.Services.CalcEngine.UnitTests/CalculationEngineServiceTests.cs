@@ -444,6 +444,11 @@ namespace CalculateFunding.Services.Calculator
 
             BuildProject buildProject = CreateBuildProject();
 
+            JobViewModel jobViewModel = new JobViewModel
+            {
+                Id = jobId
+            };
+
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
@@ -465,6 +470,11 @@ namespace CalculateFunding.Services.Calculator
                 .FeatureToggle
                 .IsJobServiceEnabled()
                 .Returns(true);
+
+            calculationEngineServiceTestsHelper
+                .MockJobsRepository
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobViewModel);
 
             IList<CalculationSummaryModel> calculationSummaryModelsReturn = CreateDummyCalculationSummaryModels();
             calculationEngineServiceTestsHelper
@@ -528,6 +538,107 @@ namespace CalculateFunding.Services.Calculator
                              m.ItemsFailed == 0 &&
                              m.ItemsProcessed == 20 &&
                              m.Outcome == "20 provider results were generated successfully from 20 providers"));
+        }
+
+        [TestMethod]
+        public async Task GenerateAllocations_GivenIsJobServiceEnabledSwitcheOnAndMessgeCompletionStatusAlredaySet_LogsDoesntUpdateJobLog()
+        {
+            //Arrange
+            const string jobId = "job-id-1";
+
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            BuildProject buildProject = CreateBuildProject();
+
+            JobViewModel jobViewModel = new JobViewModel
+            {
+                Id = jobId,
+                CompletionStatus = CompletionStatus.Superseded
+            };
+
+            calculationEngineServiceTestsHelper
+                .FeatureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            calculationEngineServiceTestsHelper
+                .MockJobsRepository
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobViewModel);
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            Message message = new Message();
+            IDictionary<string, object> messageUserProperties = message.UserProperties;
+
+            messageUserProperties.Add("jobId", jobId);
+
+            //Act
+            await service.GenerateAllocations(message);
+
+            //Assert
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .DidNotReceive()
+                    .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>());
+
+            calculationEngineServiceTestsHelper
+                .MockLogger
+                .Received(1)
+                .Information($"Received job with id: '{jobId}' is already in a completed state with status {jobViewModel.CompletionStatus.ToString()}");
+        }
+
+        [TestMethod]
+        public async Task GenerateAllocations_GivenIsJobServiceEnabledSwitcheOnButJobNotFound_LogsAnThrowsException()
+        {
+            //Arrange
+            const string jobId = "job-id-1";
+
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            BuildProject buildProject = CreateBuildProject();
+
+            calculationEngineServiceTestsHelper
+                .FeatureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            calculationEngineServiceTestsHelper
+                .MockJobsRepository
+                .GetJobById(Arg.Is(jobId))
+                .Returns((JobViewModel)null);
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            Message message = new Message();
+            IDictionary<string, object> messageUserProperties = message.UserProperties;
+
+            messageUserProperties.Add("jobId", jobId);
+
+            //Act
+            Func<Task> test = async () => await service.GenerateAllocations(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Could not find the parent job with job id: '{jobId}'");
+               
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .DidNotReceive()
+                    .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>());
+
+            calculationEngineServiceTestsHelper
+                .MockLogger
+                .Received(1)
+                .Error(Arg.Is($"Could not find the parent job with job id: '{jobId}'"));
         }
 
         [TestMethod]
