@@ -4,6 +4,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
@@ -52,6 +53,8 @@ namespace CalculateFunding.Services.Datasets
         private readonly Policy _providerResultsRepositoryPolicy;
         private readonly IDatasetsAggregationsRepository _datasetsAggregationsRepository;
         private readonly IFeatureToggle _featureToggle;
+        private readonly Policy _jobsRepositoryPolicy;
+        private readonly IJobsRepository _jobsRepository;
 
         public ProcessDatasetService(
             IDatasetRepository datasetRepository,
@@ -67,7 +70,8 @@ namespace CalculateFunding.Services.Datasets
             ITelemetry telemetry,
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
             IDatasetsAggregationsRepository datasetsAggregationsRepository,
-            IFeatureToggle featureToggle)
+            IFeatureToggle featureToggle,
+            IJobsRepository jobsRepository)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -80,6 +84,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(datasetsAggregationsRepository, nameof(datasetsAggregationsRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(jobsRepository, nameof(jobsRepository));
 
             _datasetRepository = datasetRepository;
             _messengerService = messengerService;
@@ -95,6 +100,8 @@ namespace CalculateFunding.Services.Datasets
             _providerResultsRepositoryPolicy = datasetsResiliencePolicies.ProviderResultsRepository;
             _datasetsAggregationsRepository = datasetsAggregationsRepository;
             _featureToggle = featureToggle;
+            _jobsRepository = jobsRepository;
+            _jobsRepositoryPolicy = datasetsResiliencePolicies.JobsRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -120,84 +127,6 @@ namespace CalculateFunding.Services.Datasets
             health.Dependencies.AddRange(providerRepoHealth.Dependencies);
             health.Dependencies.AddRange(datasetsAggregationsRepoHealth.Dependencies);
             return health;
-        }
-
-        async public Task<IActionResult> ProcessDataset(HttpRequest request)
-        {
-            string json = await request.GetRawBodyStringAsync();
-
-            Dataset dataset = JsonConvert.DeserializeObject<Dataset>(json);
-
-            request.Query.TryGetValue("specificationId", out var specId);
-
-            string specificationId = specId.FirstOrDefault();
-
-            if (string.IsNullOrWhiteSpace(specificationId))
-            {
-                _logger.Error($"No {nameof(specificationId)}");
-
-                return new BadRequestObjectResult($"Null or empty {nameof(specificationId)} provided");
-            }
-
-            request.Query.TryGetValue("relationshipId", out var relId);
-
-            var relationshipId = relId.FirstOrDefault();
-
-            if (string.IsNullOrWhiteSpace(relationshipId))
-            {
-                _logger.Error($"No {nameof(relationshipId)}");
-
-                return new BadRequestObjectResult($"Null or empty {nameof(relationshipId)} provided");
-            }
-
-            DefinitionSpecificationRelationship relationship = await _datasetRepository.GetDefinitionSpecificationRelationshipById(relationshipId);
-
-            if (relationship == null)
-            {
-                _logger.Error($"Relationship not found for relationship id: {relationshipId}");
-                throw new ArgumentNullException(nameof(relationshipId), "A null or empty relationship returned from repository");
-            }
-
-            BuildProject buildProject = null;
-
-            Reference user = request.GetUser();
-
-            try
-            {
-                buildProject = await ProcessDataset(dataset, specificationId, relationshipId, relationship.DatasetVersion.Version, user);
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(exception, $"Failed to process data with exception: {exception.Message}");
-            }
-
-            if (buildProject != null && !buildProject.DatasetRelationships.IsNullOrEmpty() && buildProject.DatasetRelationships.Any(m => m.DefinesScope))
-            {
-                Message message = new Message();
-
-                IDictionary<string, string> messageProperties = message.BuildMessageProperties();
-                messageProperties.Add("specification-id", specificationId);
-                messageProperties.Add("provider-cache-key", $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}");
-
-                await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
-                        null, messageProperties);
-
-                _telemetry.TrackEvent("InstructCalculationAllocationEventRun",
-                      new Dictionary<string, string>()
-                      {
-                            { "specificationId" , buildProject.SpecificationId },
-                            { "buildProjectId" , buildProject.Id },
-                            { "datasetId", dataset.Id }
-                      },
-                      new Dictionary<string, double>()
-                      {
-                            { "InstructCalculationAllocationEventRunDataset" , 1 },
-                            { "InstructCalculationAllocationEventRun" , 1 }
-                      }
-                );
-            }
-
-            return new OkResult();
         }
 
         async public Task ProcessDataset(Message message)
@@ -268,12 +197,41 @@ namespace CalculateFunding.Services.Datasets
 
             if (buildProject != null && !buildProject.DatasetRelationships.IsNullOrEmpty() && buildProject.DatasetRelationships.Any(m => m.DefinesScope))
             {
-                IDictionary<string, string> messageProperties = message.BuildMessageProperties();
-                messageProperties.Add("specification-id", specificationId);
-                messageProperties.Add("provider-cache-key", $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}");
+                if (_featureToggle.IsJobServiceEnabled())
+                {
+                    string userId = user != null ? user.Id : "";
+                    string userName = user != null ? user.Name : "";
 
-                await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
-                        null, messageProperties);
+                    try
+                    {
+                        Trigger trigger = new Trigger
+                        {
+                            EntityId = relationshipId,
+                            EntityType = nameof(DefinitionSpecificationRelationship),
+                            Message = $"Processed dataset relationship: '{relationshipId}' for specification: '{specificationId}'"
+                        };
+                        string correlationId = message.GetCorrelationId();
+
+                        Job job = await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", specificationId, userId, userName, trigger, correlationId);
+
+                        _logger.Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex, $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'");
+
+                        throw new Exception($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'", ex);
+                    }
+                }
+                else
+                {
+                    IDictionary<string, string> messageProperties = message.BuildMessageProperties();
+                    messageProperties.Add("specification-id", specificationId);
+                    messageProperties.Add("provider-cache-key", $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}");
+
+                    await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
+                            null, messageProperties);
+                }
 
                 _telemetry.TrackEvent("InstructCalculationAllocationEventRun",
                       new Dictionary<string, string>()
@@ -377,7 +335,7 @@ namespace CalculateFunding.Services.Datasets
             return datasetAggregations;
         }
 
-        async Task<BuildProject> ProcessDataset(Dataset dataset, string specificationId, string relationshipId, int version, Reference user)
+        private async Task<BuildProject> ProcessDataset(Dataset dataset, string specificationId, string relationshipId, int version, Reference user)
         {
             string dataDefinitionId = dataset.Definition.Id;
 
@@ -423,7 +381,7 @@ namespace CalculateFunding.Services.Datasets
             return buildProject;
         }
 
-        async Task<TableLoadResult> GetTableResult(string fullBlobName, DatasetDefinition datasetDefinition)
+        private async Task<TableLoadResult> GetTableResult(string fullBlobName, DatasetDefinition datasetDefinition)
         {
 
             string dataset_cache_key = $"{CacheKeys.DatasetRows}:{datasetDefinition.Id}:{GetBlobNameCacheKey(fullBlobName)}".ToLowerInvariant();
@@ -457,7 +415,7 @@ namespace CalculateFunding.Services.Datasets
             return tableLoadResults.FirstOrDefault();
         }
 
-        async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, string specificationId, string relationshipId, int version, Reference user)
+        private async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, string specificationId, string relationshipId, int version, Reference user)
         {
             IEnumerable<ProviderSummary> providerSummaries = await _providerRepository.GetAllProviderSummaries();
 
@@ -731,6 +689,26 @@ namespace CalculateFunding.Services.Datasets
         {
             byte[] plainTextBytes = System.Text.Encoding.UTF8.GetBytes(blobPath.ToLowerInvariant());
             return Convert.ToBase64String(plainTextBytes);
+        }
+
+        private async Task<Job> SendInstructAllocationsToJobService(string providerCacheKey, string specificationId, string userId, string userName, Trigger trigger, string correlationId)
+        {
+            JobCreateModel job = new JobCreateModel
+            {
+                InvokerUserDisplayName = userName,
+                InvokerUserId = userId,
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob,
+                SpecificationId = specificationId,
+                Properties = new Dictionary<string, string>
+                {
+                    { "specification-id", specificationId },
+                    { "provider-cache-key", providerCacheKey }
+                },
+                Trigger = trigger,
+                CorrelationId = correlationId
+            };
+
+            return await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.CreateJob(job));
         }
     }
 }

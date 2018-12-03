@@ -3,14 +3,17 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.CalcEngine;
+using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
@@ -49,6 +52,8 @@ namespace CalculateFunding.Services.Calculator
         private readonly IValidator<ICalculatorResiliencePolicies> _calculatorResiliencePoliciesValidator;
         private readonly IDatasetAggregationsRepository _datasetAggregationsRepository;
         private readonly IFeatureToggle _featureToggle;
+        private readonly IJobsRepository _jobsRepository;
+        private readonly Policy _jobsRepositoryPolicy;
 
         public CalculationEngineService(
             ILogger logger,
@@ -63,7 +68,8 @@ namespace CalculateFunding.Services.Calculator
             ICalculatorResiliencePolicies resiliencePolicies,
             IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator,
             IDatasetAggregationsRepository datasetAggregationsRepository,
-            IFeatureToggle featureToggle)
+            IFeatureToggle featureToggle,
+            IJobsRepository jobsRepository)
         {
             _calculatorResiliencePoliciesValidator = calculatorResiliencePoliciesValidator;
 
@@ -86,6 +92,8 @@ namespace CalculateFunding.Services.Calculator
             _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _datasetAggregationsRepository = datasetAggregationsRepository;
             _featureToggle = featureToggle;
+            _jobsRepository = jobsRepository;
+            _jobsRepositoryPolicy = resiliencePolicies.JobsRepository;
         }
 
         async public Task<IActionResult> GenerateAllocations(HttpRequest request)
@@ -125,6 +133,38 @@ namespace CalculateFunding.Services.Calculator
         public async Task GenerateAllocations(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
+
+            if (_featureToggle.IsJobServiceEnabled())
+            {
+                if (!message.UserProperties.ContainsKey("jobId"))
+                {
+                    _logger.Error("Missing job id for generating allocations");
+
+                    return;
+                }
+                else
+                {
+                    string jobId = message.UserProperties["jobId"].ToString();
+
+                    JobViewModel job = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.GetJobById(jobId));
+
+                    if (job == null)
+                    {
+                        _logger.Error($"Could not find the parent job with job id: '{jobId}'");
+
+                        throw new Exception($"Could not find the parent job with job id: '{jobId}'");
+                    }
+
+                    if (job.CompletionStatus.HasValue)
+                    {
+                        _logger.Information($"Received job with id: '{job.Id}' is already in a completed state with status {job.CompletionStatus.ToString()}");
+
+                        return;
+                    }
+
+                    await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(jobId, new JobLogUpdateModel()));
+                }
+            }
 
             IEnumerable<ProviderSummary> summaries = null;
 
@@ -186,6 +226,8 @@ namespace CalculateFunding.Services.Calculator
                     await _cacheProvider.SetAsync<List<DatasetAggregations>>($"{CacheKeys.DatasetAggregationsForSpecification}{specificationId}", datasetAggregations.ToList());
                 }
             }
+
+            int totalProviderResults = 0;
 
             for (int i = 0; i < summaries.Count(); i += providerBatchSize)
             {
@@ -287,6 +329,8 @@ namespace CalculateFunding.Services.Calculator
                     saveQueueElapsedMs = saveQueueStopwatch.ElapsedMilliseconds;
 
                     _logger.Information($"Message sent for test exceution for specification id {specificationId}");
+
+                    totalProviderResults += providerResults.Count();
                 }
 
                 calcTiming.Stop();
@@ -321,6 +365,59 @@ namespace CalculateFunding.Services.Calculator
                     },
                     metrics
                 );
+            }
+
+            if (_featureToggle.IsJobServiceEnabled())
+            {
+                string jobId = message.UserProperties["jobId"].ToString();
+
+                int itemsProcessed = summaries.Count();
+                int itemsSucceeded = totalProviderResults;
+                int itemsFailed = itemsProcessed - itemsSucceeded;
+
+                await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(jobId, new JobLogUpdateModel
+                {
+                    CompletedSuccessfully = true,
+                    ItemsSucceeded = itemsSucceeded,
+                    ItemsFailed = itemsFailed,
+                    ItemsProcessed = itemsProcessed,
+                    Outcome = $"{itemsSucceeded} provider results were generated successfully from {itemsProcessed} providers"
+                }));
+            }
+        }
+
+        public async Task UpdateDeadLetteredJobLog(Message message)
+        {
+            if (!_featureToggle.IsJobServiceEnabled())
+            {
+                return;
+            }
+
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            if (!message.UserProperties.ContainsKey("jobId"))
+            {
+                _logger.Error("Missing job id from dead lettered message");
+                return;
+            }
+
+            string jobId = message.UserProperties["jobId"].ToString();
+
+            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
+            {
+                CompletedSuccessfully = false,
+                Outcome = $"The job has exceeded its maximum retry count and failed to complete successfully"
+            };
+
+            try
+            {
+                JobLog jobLog = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(jobId, jobLogUpdateModel));
+
+                _logger.Information($"A new job log was added to inform of a dead lettered message with job log id '{jobLog.Id}' on job with id '{jobId}' while attempting to generate allocations");
+            }
+            catch(Exception exception)
+            {
+                _logger.Error(exception, $"Failed to add a job log for job id '{jobId}'");
             }
         }
     }

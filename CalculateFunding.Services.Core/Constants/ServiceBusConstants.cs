@@ -8,7 +8,15 @@
         {
             public const string CalculationJobInitialiser = "calc-events-instruct-generate-allocations";
 
+            public const string CalculationJobInitialiserPoisoned = "calc-events-instruct-generate-allocations$poisoned";
+
+            public const string CalculationJobInitialiserPoisonedLocal = "calc-events-instruct-generate-allocations-poison";
+
             public const string CalcEngineGenerateAllocationResults = "calc-events-generate-allocations-results";
+
+            public const string CalcEngineGenerateAllocationResultsPoisoned = "calc-events-generate-allocations-results$poisoned";
+
+            public const string CalcEngineGenerateAllocationResultsPoisonedLocal = "calc-events-generate-allocations-results-poison";
 
             public const string TestEngineExecuteTests = "test-events-execute-tests";
 
@@ -34,6 +42,8 @@
             public const string EditSpecification = "edit-specification";
 
             public const string EditCalculation = "edit-calculation";
+
+            public const string JobNotifications = "job-notifications";
         }
 
         public static class TopicSubscribers
@@ -49,6 +59,8 @@
             public const string UpdateScenariosForEditCalculation = "test-scenario-update";
 
             public const string UpdateCalculationsForEditCalculation = "calcs-calculation-update";
+
+            public const string UpdateJobsOnCompletion = "jobs-completion-update";
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Constants;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
@@ -42,6 +43,25 @@ namespace CalculateFunding.Functions.DebugQueue
                 log.Error("Error while executing Users OnEditSpecificationEvent", ex);
             }
 
+            log.Info($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName("on-job-completion")]
+        public static async Task OnJobCompletion([QueueTrigger(ServiceBusConstants.TopicNames.JobNotifications, Connection = "AzureConnectionString")] string item, TraceWriter log)
+        {
+            Message message = Helpers.ConvertToMessage<JobNotification>(item);
+
+            try
+            {
+                await Jobs.ServiceBus.OnJobCompletion.Run(message);
+            }
+            catch (Exception ex)
+            {
+
+                log.Error("Error while executing Jobs OnEditSpecificationEvent", ex);
+            }
+
+            
             log.Info($"C# Queue trigger function processed: {item}");
         }
     }

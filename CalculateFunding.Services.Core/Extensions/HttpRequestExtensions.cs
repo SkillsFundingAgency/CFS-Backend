@@ -40,6 +40,16 @@ namespace CalculateFunding.Services.Core.Extensions
             return "File name not provided";
         }
 
+        public static string GetJsonFileNameFromRequest(this HttpRequest request)
+        {
+            if (request.Headers.ContainsKey("json-file"))
+            {
+                return request.Headers["json-file"].FirstOrDefault();
+            }
+
+            return "File name not provided";
+        }
+
         public static string GetCorrelationId(this HttpRequest request)
         {
             const string sfaCorellationId = "sfa-correlationId";

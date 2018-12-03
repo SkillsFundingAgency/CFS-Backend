@@ -48,5 +48,7 @@
         public static string DatasetRelationshipFieldsForSpecification { get; set; } = "dataset-relationship-fields-for-specification:";
 
         public static string DatasetAggregationsForSpecification { get; set; } = "dataset-aggregations-for-specification:";
+
+        public static string JobDefinitions { get; set; } = "job-definitions";
     }
 }

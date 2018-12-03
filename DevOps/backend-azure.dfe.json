@@ -56,6 +56,12 @@
         "description": "Api key for the Users Service"
       }
     },
+    "ApiKeyJobs": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Jobs Service"
+      }
+    },
     "apiSkuName": {
       "type": "string",
       "defaultValue": "P3v2",
@@ -309,6 +315,13 @@
         "description": "Feature toggle to enable dataset aggregations"
       }
     },
+    "EnableJobService": {
+      "defaultValue": false,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable the job service"
+      }
+    },
     "storageFirewallEnabled": {
       "type": "bool",
       "metadata": {
@@ -384,6 +397,42 @@
       "metadata": {
         "description": "AAD Client Id for the Users Api"
       }
+    },
+    "jobsApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Jobs Api"
+      }
+    },
+    "signalRSkuName": {
+      "type": "string",
+      "allowedValues": [
+          "Free_DS2",
+          "Basic_DS2"
+      ],
+      "defaultValue": "Free_DS2",
+      "metadata": {
+          "description": "SignalR Service Sku"
+      }
+    },
+    "signalRTier": {
+      "type": "string",
+      "allowedValues": [
+          "Free",
+          "Basic",
+          "Premium"
+      ],
+      "defaultValue": "Free",
+      "metadata": {
+          "description": "SignalR Service Tier"
+      }
+    },
+    "signalRCapacity": {
+        "type": "int",
+        "defaultValue": "1",
+        "metadata": {
+            "description": "Number of instances for the SignalR Service"
+        }
     }
   },
   "variables": {
@@ -401,10 +450,13 @@
     "testEngineFunctionAppName": "[concat('fa-', parameters('environmentKey'), '-testengine')]",
     "scenariosFunctionAppName": "[concat('fa-', parameters('environmentKey'), '-scenarios')]",
     "usersFunctionAppName": "[concat('fa-', parameters('environmentKey'), '-users')]",
+    "jobsFunctionAppName": "[concat('fa-', parameters('environmentKey'), '-jobs')]",
+    "notificationsFunctionAppName": "[concat('fa-', parameters('environmentKey'), '-notifications')]",
     "datasetsApiAppName": "[concat('app-', parameters('environmentKey'), '-datasets')]",
     "resultsApiAppName": "[concat('app-', parameters('environmentKey'), '-results')]",
     "specsApiAppName": "[concat('app-', parameters('environmentKey'), '-specs')]",
     "calcsApiAppName": "[concat('app-', parameters('environmentKey'), '-calcs')]",
+    "jobsApiAppName": "[concat('app-', parameters('environmentKey'), '-jobs')]",
     "calcEngineApiAppName": "[concat('app-', parameters('environmentKey'), '-calcengine')]",
     "testEngineApiAppName": "[concat('app-', parameters('environmentKey'), '-testengine')]",
     "scenariosApiAppName": "[concat('app-', parameters('environmentKey'), '-scenarios')]",
@@ -417,7 +469,8 @@
     "storageAccountName": "[concat('strg', parameters('environmentKey'), 'functions')]",
     "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
     "storageFirewallOptions": "{\"bypass\": \"AzureServices\",\r\n                \"virtualNetworkRules\": [],\r\n                \"ipRules\": [\r\n                    {\r\n                        \"value\": \"213.123.63.150\",\r\n                        \"action\": \"Allow\"\r\n                    },\r\n                    {\r\n                        \"value\": \"86.188.174.157\",\r\n                        \"action\": \"Allow\"\r\n                    }\r\n                ],\r\n                \"defaultAction\": \"Deny\"}",
-    "cosmosFirewallOptions": "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26,0.0.0.0"
+    "cosmosFirewallOptions": "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26,0.0.0.0",
+    "signalRName": "[concat('sr-', parameters('environmentKey'), '-cfs')]"
   },
   "resources": [
     {
@@ -471,7 +524,7 @@
       "sku": {
         "name": "Standard_LRS"
       },
-      "properties":{
+      "properties": {
         "supportsHttpsTrafficOnly": true,
         "networkAcls": "[if(parameters('storageFirewallEnabled'), json(variables('storageFirewallOptions')), json('null'))]"
       }
@@ -485,7 +538,7 @@
       "sku": {
         "name": "Standard_LRS"
       },
-      "properties":{
+      "properties": {
         "supportsHttpsTrafficOnly": true,
         "networkAcls": "[if(parameters('storageFirewallEnabled'), json(variables('storageFirewallOptions')), json('null'))]"
       }
@@ -506,7 +559,7 @@
           "capacity": "[parameters('cacheSKUCapacity')]"
         },
         "enableNonSslPort": false,
-        "minimumTlsVersion":1.2
+        "minimumTlsVersion": 1.2
       }
     },
     {
@@ -660,6 +713,68 @@
               "type": "Subscriptions",
               "dependsOn": [
                 "edit-calculation"
+              ],
+              "properties": {
+                "lockDuration": "PT5M",
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P14D",
+                "deadLetteringOnMessageExpiration": false,
+                "deadLetteringOnFilterEvaluationExceptions": true,
+                "maxDeliveryCount": 10,
+                "status": "Active",
+                "enableBatchedOperations": true
+              },
+              "resources": []
+            }
+          ],
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ]
+        },
+        {
+          "type": "topics",
+          "name": "job-notifications",
+          "apiVersion": "2017-04-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "defaultMessageTimeToLive": "P14D",
+            "maxSizeInMegabytes": 1024,
+            "requiresDuplicateDetection": false,
+            "duplicateDetectionHistoryTimeWindow": "PT10M",
+            "enableBatchedOperations": true,
+            "status": "Active",
+            "supportOrdering": true,
+            "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+            "enablePartitioning": false,
+            "enableExpress": false,
+            "path": "job-notifications"
+          },
+          "resources": [
+            {
+              "apiVersion": "2017-04-01",
+              "name": "on-job-completion",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "job-notifications"
+              ],
+              "properties": {
+                "lockDuration": "PT5M",
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P14D",
+                "deadLetteringOnMessageExpiration": false,
+                "deadLetteringOnFilterEvaluationExceptions": true,
+                "maxDeliveryCount": 10,
+                "status": "Active",
+                "enableBatchedOperations": true
+              },
+              "resources": []
+            },
+            {
+              "apiVersion": "2017-04-01",
+              "name": "notifications-to-signalr",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "job-notifications"
               ],
               "properties": {
                 "lockDuration": "PT5M",
@@ -1068,6 +1183,14 @@
               "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
+              "name": "jobsClient:ApiKey",
+              "value": "[parameters('ApiKeyJobs')]"
+            },
+            {
+              "name": "jobsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
+            },
+            {
               "name": "ServiceBusSettings:ConnectionString",
               "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
             },
@@ -1090,6 +1213,10 @@
             {
               "name": "features:aggregateSupportInCalculationsEnabled",
               "value": "[parameters('EnableDatasetAggregations')]"
+            },
+            {
+              "name": "features:jobServiceEnabled",
+              "value": "[parameters('EnableJobService')]"
             }
           ]
         }
@@ -1229,6 +1356,18 @@
             {
               "name": "features:aggregateSupportInCalculationsEnabled",
               "value": "[parameters('EnableDatasetAggregations')]"
+            },
+            {
+              "name": "jobsClient:ApiKey",
+              "value": "[parameters('ApiKeyJobs')]"
+            },
+            {
+              "name": "jobsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "features:jobServiceEnabled",
+              "value": "[parameters('EnableJobService')]"
             }
           ]
         }
@@ -1360,6 +1499,18 @@
             {
               "name": "features:aggregateSupportInCalculationsEnabled",
               "value": "[parameters('EnableDatasetAggregations')]"
+            },
+            {
+              "name": "jobsClient:ApiKey",
+              "value": "[parameters('ApiKeyJobs')]"
+            },
+            {
+              "name": "jobsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "features:jobServiceEnabled",
+              "value": "[parameters('EnableJobService')]"
             }
           ]
         }
@@ -1959,6 +2110,201 @@
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
+      "name": "[variables('jobsFunctionAppName')]",
+      "location": "[resourceGroup().location]",
+      "kind": "functionapp",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+        "[variables('applicationInsightsName')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
+        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
+        "siteConfig": {
+          "alwaysOn": true,
+          "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
+          "appSettings": [
+            {
+              "name": "AzureWebJobsDashboard",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTSHARE",
+              "value": "[toLower(variables('jobsFunctionAppName'))]"
+            },
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "GMT Standard Time"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~2"
+            },
+            {
+              "name": "ROUTING_EXTENSION_VERSION",
+              "value": "~.2"
+            },
+            {
+              "name": "WEBSITE_RUN_FROM_PACKAGE",
+              "value": "1"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "ApplicationInsightsOptions:InstrumentationKey",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "RedisSettings:CacheConnection",
+              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+            },
+            {
+              "name": "CosmosDbSettings:ConnectionString",
+              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+            },
+            {
+              "name": "CosmosDbSettings:DatabaseName",
+              "value": "calculate-funding"
+            },
+            {
+              "name": "CosmosDbSettings:CollectionName",
+              "value": "jobs"
+            },
+            {
+              "name": "ServiceBusSettings:ConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+            },
+            {
+              "name": "AzureStorageSettings:ConnectionString",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "apiVersion": "2016-08-01",
+      "type": "Microsoft.Web/sites",
+      "name": "[variables('notificationsFunctionAppName')]",
+      "location": "[resourceGroup().location]",
+      "kind": "functionapp",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+        "[variables('applicationInsightsName')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('datasetStorageAccountName'))]",
+        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]",
+        "[resourceId('Microsoft.SignalRService/SignalR', variables('signalRName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
+        "siteConfig": {
+          "alwaysOn": true,
+          "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
+          "appSettings": [
+            {
+              "name": "AzureWebJobsDashboard",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTSHARE",
+              "value": "[toLower(variables('notificationsFunctionAppName'))]"
+            },
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "GMT Standard Time"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~2"
+            },
+            {
+              "name": "ROUTING_EXTENSION_VERSION",
+              "value": "~.2"
+            },
+            {
+              "name": "WEBSITE_RUN_FROM_PACKAGE",
+              "value": "1"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "ApplicationInsightsOptions:InstrumentationKey",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "RedisSettings:CacheConnection",
+              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+            },
+            {
+              "name": "CosmosDbSettings:ConnectionString",
+              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+            },
+            {
+              "name": "CosmosDbSettings:DatabaseName",
+              "value": "calculate-funding"
+            },
+            {
+              "name": "CosmosDbSettings:CollectionName",
+              "value": "jobs"
+            },
+            {
+              "name": "ServiceBusSettings:ConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+            },
+            {
+              "name": "AzureStorageSettings:ConnectionString",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "AzureSignalRConnectionString",
+              "value": "[concat('Endpoint=https://', variables('signalRName'), '.service.signalr.net;AccountKey=', listKeys(variables('signalRName'), providers('Microsoft.SignalRService', 'SignalR').apiVersions[0]).keys[0].value)]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "apiVersion": "2016-08-01",
+      "type": "Microsoft.Web/sites",
       "name": "[variables('datasetsApiAppName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
@@ -1970,23 +2316,23 @@
       ],
       "resources": [
         {
-            "name": "authSettings",
-            "type": "config",
-            "apiVersion": "2018-02-01",
-            "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('datasetsApiAppName'))]"],
-            "properties":{
-              "enabled": "[parameters('enablePlatformAuth')]",
-              "unauthenticatedClientAction": 0,
-              "tokenStoreEnabled": true,
-              "defaultProvider": 0,
-              "clientId": "[parameters('datasetsApiAadClientId')]",
-              "issuer": "[parameters('aadAuthIssuer')]",
-              "allowedAudiences": null,
-              "isAadAutoProvisioned": false
-            }
+          "name": "authSettings",
+          "type": "config",
+          "apiVersion": "2018-02-01",
+          "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('datasetsApiAppName'))]" ],
+          "properties": {
+            "enabled": "[parameters('enablePlatformAuth')]",
+            "unauthenticatedClientAction": 0,
+            "tokenStoreEnabled": true,
+            "defaultProvider": 0,
+            "clientId": "[parameters('datasetsApiAadClientId')]",
+            "issuer": "[parameters('aadAuthIssuer')]",
+            "allowedAudiences": null,
+            "isAadAutoProvisioned": false
           }
-        ],
-        "properties": {
+        }
+      ],
+      "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "httpsOnly": true,
         "siteConfig": {
@@ -2078,6 +2424,18 @@
             {
               "name": "WEBSITE_RUN_FROM_PACKAGE",
               "value": "1"
+            },
+            {
+              "name": "jobsClient:ApiKey",
+              "value": "[parameters('ApiKeyJobs')]"
+            },
+            {
+              "name": "jobsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "features:jobServiceEnabled",
+              "value": "[parameters('EnableJobService')]"
             }
           ]
         }
@@ -2097,23 +2455,23 @@
       ],
       "resources": [
         {
-            "name": "authSettings",
-            "type": "config",
-            "apiVersion": "2018-02-01",
-            "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('calcsApiAppName'))]"],
-            "properties":{
-              "enabled": "[parameters('enablePlatformAuth')]",
-              "unauthenticatedClientAction": 0,
-              "tokenStoreEnabled": true,
-              "defaultProvider": 0,
-              "clientId": "[parameters('calcsApiAadClientId')]",
-              "issuer": "[parameters('aadAuthIssuer')]",
-              "allowedAudiences": null,
-              "isAadAutoProvisioned": false
-            }
+          "name": "authSettings",
+          "type": "config",
+          "apiVersion": "2018-02-01",
+          "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('calcsApiAppName'))]" ],
+          "properties": {
+            "enabled": "[parameters('enablePlatformAuth')]",
+            "unauthenticatedClientAction": 0,
+            "tokenStoreEnabled": true,
+            "defaultProvider": 0,
+            "clientId": "[parameters('calcsApiAadClientId')]",
+            "issuer": "[parameters('aadAuthIssuer')]",
+            "allowedAudiences": null,
+            "isAadAutoProvisioned": false
           }
-        ],
-        "properties": {
+        }
+      ],
+      "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "httpsOnly": true,
         "siteConfig": {
@@ -2209,6 +2567,18 @@
             {
               "name": "features:aggregateSupportInCalculationsEnabled",
               "value": "[parameters('EnableDatasetAggregations')]"
+            },
+            {
+              "name": "jobsClient:ApiKey",
+              "value": "[parameters('ApiKeyJobs')]"
+            },
+            {
+              "name": "jobsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "features:jobServiceEnabled",
+              "value": "[parameters('EnableJobService')]"
             }
           ]
         }
@@ -2228,23 +2598,23 @@
       ],
       "resources": [
         {
-            "name": "authSettings",
-            "type": "config",
-            "apiVersion": "2018-02-01",
-            "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('externalApiAppName'))]"],
-            "properties":{
-              "enabled": "[parameters('enablePlatformAuth')]",
-              "unauthenticatedClientAction": 0,
-              "tokenStoreEnabled": true,
-              "defaultProvider": 0,
-              "clientId": "[parameters('externalApiAadClientId')]",
-              "issuer": "[parameters('aadAuthIssuer')]",
-              "allowedAudiences": null,
-              "isAadAutoProvisioned": false
-            }
+          "name": "authSettings",
+          "type": "config",
+          "apiVersion": "2018-02-01",
+          "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('externalApiAppName'))]" ],
+          "properties": {
+            "enabled": "[parameters('enablePlatformAuth')]",
+            "unauthenticatedClientAction": 0,
+            "tokenStoreEnabled": true,
+            "defaultProvider": 0,
+            "clientId": "[parameters('externalApiAadClientId')]",
+            "issuer": "[parameters('aadAuthIssuer')]",
+            "allowedAudiences": null,
+            "isAadAutoProvisioned": false
           }
-        ],
-        "properties": {
+        }
+      ],
+      "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "httpsOnly": true,
         "siteConfig": {
@@ -2254,7 +2624,7 @@
           "phpVersion": "",
           "pythonVersion": "",
           "nodeVersion": "",
-          
+
           "minTlsVersion": "1.2",
           "ftpsState": "Disabled",
           "appSettings": [
@@ -2364,23 +2734,23 @@
       ],
       "resources": [
         {
-            "name": "authSettings",
-            "type": "config",
-            "apiVersion": "2018-02-01",
-            "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('testEngineApiAppName'))]"],
-            "properties":{
-              "enabled": "[parameters('enablePlatformAuth')]",
-              "unauthenticatedClientAction": 0,
-              "tokenStoreEnabled": true,
-              "defaultProvider": 0,
-              "clientId": "[parameters('testEngineApiAadClientId')]",
-              "issuer": "[parameters('aadAuthIssuer')]",
-              "allowedAudiences": null,
-              "isAadAutoProvisioned": false
-            }
+          "name": "authSettings",
+          "type": "config",
+          "apiVersion": "2018-02-01",
+          "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('testEngineApiAppName'))]" ],
+          "properties": {
+            "enabled": "[parameters('enablePlatformAuth')]",
+            "unauthenticatedClientAction": 0,
+            "tokenStoreEnabled": true,
+            "defaultProvider": 0,
+            "clientId": "[parameters('testEngineApiAadClientId')]",
+            "issuer": "[parameters('aadAuthIssuer')]",
+            "allowedAudiences": null,
+            "isAadAutoProvisioned": false
           }
-        ],
-        "properties": {
+        }
+      ],
+      "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
         "httpsOnly": true,
         "siteConfig": {
@@ -2482,23 +2852,23 @@
       ],
       "resources": [
         {
-            "name": "authSettings",
-            "type": "config",
-            "apiVersion": "2018-02-01",
-            "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('resultsApiAppName'))]"],
-            "properties":{
-              "enabled": "[parameters('enablePlatformAuth')]",
-              "unauthenticatedClientAction": 0,
-              "tokenStoreEnabled": true,
-              "defaultProvider": 0,
-              "clientId": "[parameters('resultsApiAadClientId')]",
-              "issuer": "[parameters('aadAuthIssuer')]",
-              "allowedAudiences": null,
-              "isAadAutoProvisioned": false
-            }
+          "name": "authSettings",
+          "type": "config",
+          "apiVersion": "2018-02-01",
+          "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('resultsApiAppName'))]" ],
+          "properties": {
+            "enabled": "[parameters('enablePlatformAuth')]",
+            "unauthenticatedClientAction": 0,
+            "tokenStoreEnabled": true,
+            "defaultProvider": 0,
+            "clientId": "[parameters('resultsApiAadClientId')]",
+            "issuer": "[parameters('aadAuthIssuer')]",
+            "allowedAudiences": null,
+            "isAadAutoProvisioned": false
           }
-        ],
-        "properties": {
+        }
+      ],
+      "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "httpsOnly": true,
         "siteConfig": {
@@ -2592,23 +2962,23 @@
       ],
       "resources": [
         {
-            "name": "authSettings",
-            "type": "config",
-            "apiVersion": "2018-02-01",
-            "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('specsApiAppName'))]"],
-            "properties":{
-              "enabled": "[parameters('enablePlatformAuth')]",
-              "unauthenticatedClientAction": 0,
-              "tokenStoreEnabled": true,
-              "defaultProvider": 0,
-              "clientId": "[parameters('specsApiAadClientId')]",
-              "issuer": "[parameters('aadAuthIssuer')]",
-              "allowedAudiences": null,
-              "isAadAutoProvisioned": false
-            }
+          "name": "authSettings",
+          "type": "config",
+          "apiVersion": "2018-02-01",
+          "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('specsApiAppName'))]" ],
+          "properties": {
+            "enabled": "[parameters('enablePlatformAuth')]",
+            "unauthenticatedClientAction": 0,
+            "tokenStoreEnabled": true,
+            "defaultProvider": 0,
+            "clientId": "[parameters('specsApiAadClientId')]",
+            "issuer": "[parameters('aadAuthIssuer')]",
+            "allowedAudiences": null,
+            "isAadAutoProvisioned": false
           }
-        ],
-        "properties": {
+        }
+      ],
+      "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "httpsOnly": true,
         "siteConfig": {
@@ -2702,23 +3072,23 @@
       ],
       "resources": [
         {
-            "name": "authSettings",
-            "type": "config",
-            "apiVersion": "2018-02-01",
-            "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('scenariosApiAppName'))]"],
-            "properties":{
-              "enabled": "[parameters('enablePlatformAuth')]",
-              "unauthenticatedClientAction": 0,
-              "tokenStoreEnabled": true,
-              "defaultProvider": 0,
-              "clientId": "[parameters('scenariosApiAadClientId')]",
-              "issuer": "[parameters('aadAuthIssuer')]",
-              "allowedAudiences": null,
-              "isAadAutoProvisioned": false
-            }
+          "name": "authSettings",
+          "type": "config",
+          "apiVersion": "2018-02-01",
+          "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('scenariosApiAppName'))]" ],
+          "properties": {
+            "enabled": "[parameters('enablePlatformAuth')]",
+            "unauthenticatedClientAction": 0,
+            "tokenStoreEnabled": true,
+            "defaultProvider": 0,
+            "clientId": "[parameters('scenariosApiAadClientId')]",
+            "issuer": "[parameters('aadAuthIssuer')]",
+            "allowedAudiences": null,
+            "isAadAutoProvisioned": false
           }
-        ],
-        "properties": {
+        }
+      ],
+      "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "httpsOnly": true,
         "siteConfig": {
@@ -2817,23 +3187,23 @@
       ],
       "resources": [
         {
-            "name": "authSettings",
-            "type": "config",
-            "apiVersion": "2018-02-01",
-            "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('usersApiAppName'))]"],
-            "properties":{
-              "enabled": "[parameters('enablePlatformAuth')]",
-              "unauthenticatedClientAction": 0,
-              "tokenStoreEnabled": true,
-              "defaultProvider": 0,
-              "clientId": "[parameters('usersApiAadClientId')]",
-              "issuer": "[parameters('aadAuthIssuer')]",
-              "allowedAudiences": null,
-              "isAadAutoProvisioned": false
-            }
+          "name": "authSettings",
+          "type": "config",
+          "apiVersion": "2018-02-01",
+          "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('usersApiAppName'))]" ],
+          "properties": {
+            "enabled": "[parameters('enablePlatformAuth')]",
+            "unauthenticatedClientAction": 0,
+            "tokenStoreEnabled": true,
+            "defaultProvider": 0,
+            "clientId": "[parameters('usersApiAadClientId')]",
+            "issuer": "[parameters('aadAuthIssuer')]",
+            "allowedAudiences": null,
+            "isAadAutoProvisioned": false
           }
-        ],
-        "properties": {
+        }
+      ],
+      "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "httpsOnly": true,
         "siteConfig": {
@@ -2897,6 +3267,109 @@
           ]
         }
       }
+    },
+    {
+      "apiVersion": "2016-08-01",
+      "type": "Microsoft.Web/sites",
+      "name": "[variables('jobsApiAppName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+        "[variables('applicationInsightsName')]",
+        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
+      ],
+      "resources": [
+        {
+          "name": "authSettings",
+          "type": "config",
+          "apiVersion": "2018-02-01",
+          "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('jobsApiAppName'))]" ],
+          "properties": {
+            "enabled": "[parameters('enablePlatformAuth')]",
+            "unauthenticatedClientAction": 0,
+            "tokenStoreEnabled": true,
+            "defaultProvider": 0,
+            "clientId": "[parameters('jobsApiAadClientId')]",
+            "issuer": "[parameters('aadAuthIssuer')]",
+            "allowedAudiences": null,
+            "isAadAutoProvisioned": false
+          }
+        }
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
+        "siteConfig": {
+          "alwaysOn": true,
+          "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
+          "appSettings": [
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "ApplicationInsightsOptions:InstrumentationKey",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "ServiceBusSettings:ConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+            },
+            {
+              "name": "RedisSettings:CacheConnection",
+              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+            },
+            {
+              "name": "CosmosDbSettings:ConnectionString",
+              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+            },
+            {
+              "name": "CosmosDbSettings:DatabaseName",
+              "value": "calculate-funding"
+            },
+            {
+              "name": "CosmosDbSettings:CollectionName",
+              "value": "jobs"
+            },
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "GMT Standard Time"
+            },
+            {
+              "name": "WEBSITE_RUN_FROM_PACKAGE",
+              "value": "1"
+            },
+            {
+              "name": "AzureStorageSettings:ConnectionString",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('datasetStorageAccountName'), ';AccountKey=', listKeys(variables('datasetStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "apiKeyMiddleware:apiKey",
+              "value": "[parameters('ApiKeyJobs')]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.SignalRService/SignalR",
+      "sku": {
+          "name": "[parameters('signalRSkuName')]",
+          "tier": "[parameters('signalRTier')]",
+          "capacity": "[parameters('signalRCapacity')]",
+          "size": "DS2"
+      },
+      "name": "[variables('signalRName')]",
+      "apiVersion": "[providers('Microsoft.SignalRService', 'SignalR').apiVersions[0]]",
+      "location": "[resourceGroup().location]"
     }
   ],
   "outputs": {

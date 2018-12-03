@@ -107,5 +107,10 @@ namespace CalculateFunding.Services.Core.Helpers
         {
             return Policy.BulkheadAsync(settings.MaximumSimultaneousNetworkRequests);
         }
+
+        public static BulkheadPolicy GenerateTotalNetworkRequestsNonAsyncPolicy(PolicySettings settings)
+        {
+            return Policy.Bulkhead(settings.MaximumSimultaneousNetworkRequests);
+        }
     }
 }

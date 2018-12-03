@@ -101,6 +101,9 @@ namespace CalculateFunding.Functions.Calcs
               .AddSingleton<IDatasetRepository, DatasetRepository>();
 
             builder
+               .AddSingleton<IJobsRepository, JobsRepository>();
+
+            builder
                 .AddSingleton<CSharpCompiler>()
                 .AddSingleton<VisualBasicCompiler>()
                 .AddSingleton<VisualBasicSourceFileGenerator>();
@@ -154,6 +157,7 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddResultsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddDatasetsInterServiceClient(config);
+            builder.AddJobsInterServiceClient(config);
 
             builder.AddCaching(config);
 
@@ -169,7 +173,7 @@ namespace CalculateFunding.Functions.Calcs
 
                 BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
-                return new ResiliencePolicies
+                return new Services.Calcs.ResiliencePolicies
                 {
                     CalculationsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     CalculationsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
@@ -177,7 +181,8 @@ namespace CalculateFunding.Functions.Calcs
                     CalculationsVersionsRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     BuildProjectRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy)
+                    MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
+                    JobsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }

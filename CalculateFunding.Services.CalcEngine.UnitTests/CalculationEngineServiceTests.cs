@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Calculator.Interfaces;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
@@ -391,6 +394,388 @@ namespace CalculateFunding.Services.Calculator
                     .MockProviderResultRepo
                     .Received(0)
                     .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<int>());
+        }
+
+        [TestMethod]
+        public async Task GenerateAllocations_GivenIsJobServiceEnabledSwitcheOnButJobIdMisingFromMessage_LogsErrorDoesNotAddJoblog()
+        {
+            //Arrange
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            Message message = new Message();
+
+            calculationEngineServiceTestsHelper
+                .FeatureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            //Act
+            await service.GenerateAllocations(message);
+
+            //Assert
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .DidNotReceive()
+                    .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
+
+            calculationEngineServiceTestsHelper
+                .MockLogger
+                .Received(1)
+                .Error("Missing job id for generating allocations");
+        }
+
+        [TestMethod]
+        public async Task GenerateAllocations_GivenIsJobServiceEnabledSwitcheOn_EnsuresJobLogsAdded()
+        {
+            //Arrange
+            const string cacheKey = "Cache-key";
+            const string specificationId = "spec1";
+            const int partitionIndex = 0;
+            const int partitionSize = 100;
+            const int stop = partitionIndex + partitionSize - 1;
+            const string jobId = "job-id-1";
+
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            BuildProject buildProject = CreateBuildProject();
+
+            JobViewModel jobViewModel = new JobViewModel
+            {
+                Id = jobId
+            };
+
+            IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
+
+            IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
+            mockAllocationModel
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Returns(new List<CalculationResult>());
+
+            calculationEngineServiceTestsHelper
+                .MockCacheProvider
+                .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
+                .Returns(providerSummaries);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetBuildProjectBySpecificationId(Arg.Any<string>())
+                .Returns(buildProject);
+
+            calculationEngineServiceTestsHelper
+                .FeatureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            calculationEngineServiceTestsHelper
+                .MockJobsRepository
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobViewModel);
+
+            IList<CalculationSummaryModel> calculationSummaryModelsReturn = CreateDummyCalculationSummaryModels();
+            calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetCalculationSummariesForSpecification(specificationId)
+                .Returns(calculationSummaryModelsReturn);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .GenerateAllocationModel(Arg.Any<Assembly>())
+                .Returns(mockAllocationModel);
+            calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                    Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>())
+                .Returns(new ProviderResult()
+                {
+
+                });
+
+            calculationEngineServiceTestsHelper
+                .MockEngineSettings
+                .ProviderBatchSize = 3;
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            Message message = new Message();
+            IDictionary<string, object> messageUserProperties = message.UserProperties;
+
+            messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
+            messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
+            messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-id", specificationId);
+            messageUserProperties.Add("ignore-save-provider-results", "true");
+            messageUserProperties.Add("jobId", jobId);
+
+            //Act
+            await service.GenerateAllocations(message);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .Received(providerSummaries.Count)
+                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Is((IEnumerable<DatasetAggregations>)null));
+
+            //Assert
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .Received(1)
+                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m => m.CompletedSuccessfully == null));
+
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .Received(1)
+                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(
+                        m => m.CompletedSuccessfully.Value &&
+                             m.ItemsSucceeded == 20 &&
+                             m.ItemsFailed == 0 &&
+                             m.ItemsProcessed == 20 &&
+                             m.Outcome == "20 provider results were generated successfully from 20 providers"));
+        }
+
+        [TestMethod]
+        public async Task GenerateAllocations_GivenIsJobServiceEnabledSwitcheOnAndMessgeCompletionStatusAlredaySet_LogsDoesntUpdateJobLog()
+        {
+            //Arrange
+            const string jobId = "job-id-1";
+
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            BuildProject buildProject = CreateBuildProject();
+
+            JobViewModel jobViewModel = new JobViewModel
+            {
+                Id = jobId,
+                CompletionStatus = CompletionStatus.Superseded
+            };
+
+            calculationEngineServiceTestsHelper
+                .FeatureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            calculationEngineServiceTestsHelper
+                .MockJobsRepository
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobViewModel);
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            Message message = new Message();
+            IDictionary<string, object> messageUserProperties = message.UserProperties;
+
+            messageUserProperties.Add("jobId", jobId);
+
+            //Act
+            await service.GenerateAllocations(message);
+
+            //Assert
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .DidNotReceive()
+                    .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>());
+
+            calculationEngineServiceTestsHelper
+                .MockLogger
+                .Received(1)
+                .Information($"Received job with id: '{jobId}' is already in a completed state with status {jobViewModel.CompletionStatus.ToString()}");
+        }
+
+        [TestMethod]
+        public async Task GenerateAllocations_GivenIsJobServiceEnabledSwitcheOnButJobNotFound_LogsAnThrowsException()
+        {
+            //Arrange
+            const string jobId = "job-id-1";
+
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            BuildProject buildProject = CreateBuildProject();
+
+            calculationEngineServiceTestsHelper
+                .FeatureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            calculationEngineServiceTestsHelper
+                .MockJobsRepository
+                .GetJobById(Arg.Is(jobId))
+                .Returns((JobViewModel)null);
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            Message message = new Message();
+            IDictionary<string, object> messageUserProperties = message.UserProperties;
+
+            messageUserProperties.Add("jobId", jobId);
+
+            //Act
+            Func<Task> test = async () => await service.GenerateAllocations(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Could not find the parent job with job id: '{jobId}'");
+               
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .DidNotReceive()
+                    .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>());
+
+            calculationEngineServiceTestsHelper
+                .MockLogger
+                .Received(1)
+                .Error(Arg.Is($"Could not find the parent job with job id: '{jobId}'"));
+        }
+
+        [TestMethod]
+        public async Task UpdateDeadLetteredJobLog_GivenMessageButNoJobId_LogsAnErrorAndDoesNotUpdadeJobLog()
+        {
+            //Arrange
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            calculationEngineServiceTestsHelper
+               .FeatureToggle
+               .IsJobServiceEnabled()
+               .Returns(true);
+
+            Message message = new Message();
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            //Act
+            await service.UpdateDeadLetteredJobLog(message);
+
+            //Assert
+            calculationEngineServiceTestsHelper
+                .MockLogger
+                .Received(1)
+                .Error(Arg.Is("Missing job id from dead lettered message"));
+
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .DidNotReceive()
+                    .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
+        }
+
+        [TestMethod]
+        public async Task UpdateDeadLetteredJobLog_GivenMessageButAddingLogCausesException_LogsAnError()
+        {
+            //Arrange
+            const string jobId = "job-id-1";
+
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            calculationEngineServiceTestsHelper
+                .FeatureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+;
+            Message message = new Message();
+            message.UserProperties.Add("jobId", jobId);
+
+            calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .When(x => x.AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>()))
+                    .Do(x => { throw new Exception(); });
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            //Act
+            await service.UpdateDeadLetteredJobLog(message);
+
+            //Assert
+            calculationEngineServiceTestsHelper
+                .MockLogger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is($"Failed to add a job log for job id '{jobId}'"));
+        }
+
+        [TestMethod]
+        public async Task UpdateDeadLetteredJobLog_GivenMessageAndLogIsUpdated_LogsInformation()
+        {
+            //Arrange
+            const string jobId = "job-id-1";
+
+            JobLog jobLog = new JobLog
+            {
+                Id = "job-log-id-1"
+            };
+
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            calculationEngineServiceTestsHelper
+               .FeatureToggle
+               .IsJobServiceEnabled()
+               .Returns(true);
+
+            Message message = new Message();
+            message.UserProperties.Add("jobId", jobId);
+
+            calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>())
+                    .Returns(jobLog);
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            //Act
+            await service.UpdateDeadLetteredJobLog(message);
+
+            //Assert
+            calculationEngineServiceTestsHelper
+                .MockLogger
+                .Received(1)
+                .Information(Arg.Is($"A new job log was added to inform of a dead lettered message with job log id '{jobLog.Id}' on job with id '{jobId}' while attempting to generate allocations"));
+        }
+
+        [TestMethod]
+        public async Task UpdateDeadLetteredJobLog_GivenMessageAndFeatureToggleIsTurnedOff_DoesNotAddJobLog()
+        {
+            //Arrange
+            JobLog jobLog = new JobLog
+            {
+                Id = "job-log-id-1"
+            };
+
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            calculationEngineServiceTestsHelper
+               .FeatureToggle
+               .IsJobServiceEnabled()
+               .Returns(false);
+
+            Message message = new Message();
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            //Act
+            await service.UpdateDeadLetteredJobLog(message);
+
+            //Assert
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .DidNotReceive()
+                    .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
         }
 
         private static BuildProject CreateBuildProject()

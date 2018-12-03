@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -46,6 +47,8 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationService _calculationService;
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IFeatureToggle _featureToggle;
+        private readonly IJobsRepository _jobsRepository;
+        private readonly Polly.Policy _jobsRepositoryPolicy;
 
         public BuildProjectsService(
             IBuildProjectsRepository buildProjectsRepository,
@@ -59,7 +62,9 @@ namespace CalculateFunding.Services.Calcs
             ICacheProvider cacheProvider,
             ICalculationService calculationService,
             ICalculationsRepository calculationsRepository,
-            IFeatureToggle featureToggle)
+            IFeatureToggle featureToggle,
+            IJobsRepository jobsRepository,
+            ICalcsResilliencePolicies resilliencePolicies)
         {
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -73,6 +78,8 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(calculationService, nameof(calculationService));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(jobsRepository, nameof(jobsRepository));
+            Guard.ArgumentNotNull(resilliencePolicies, nameof(resilliencePolicies));
 
             _buildProjectsRepository = buildProjectsRepository;
             _messengerService = messengerService;
@@ -87,6 +94,8 @@ namespace CalculateFunding.Services.Calcs
             _calculationService = calculationService;
             _calculationsRepository = calculationsRepository;
             _featureToggle = featureToggle;
+            _jobsRepository = jobsRepository;
+            _jobsRepositoryPolicy = resilliencePolicies.JobsRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -110,6 +119,38 @@ namespace CalculateFunding.Services.Calcs
         public async Task UpdateAllocations(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
+
+            JobViewModel job = null;
+
+            if (_featureToggle.IsJobServiceEnabled() && !message.UserProperties.ContainsKey("jobId"))
+            {
+                _logger.Error("Missing parent job id to instruct generating allocations");
+
+                return;
+            }
+
+            if (_featureToggle.IsJobServiceEnabled())
+            {
+                string jobId = message.UserProperties["jobId"].ToString();
+
+                job = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.GetJobById(jobId));
+
+                if (job == null)
+                {
+                    _logger.Error($"Could not find the parent job with job id: '{jobId}'");
+
+                    throw new Exception($"Could not find the parent job with job id: '{jobId}'");
+                }
+
+                if (job.CompletionStatus.HasValue)
+                {
+                    _logger.Information($"Received job with id: '{job.Id}' is already in a completed state with status {job.CompletionStatus.ToString()}");
+
+                    return;
+                }
+
+                await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(jobId, new JobLogUpdateModel()));
+            }
 
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
@@ -159,6 +200,8 @@ namespace CalculateFunding.Services.Calcs
 
             properties.Add("specification-id", specificationId);
 
+            IList<IDictionary<string, string>> allJobProperties = new List<IDictionary<string, string>>();
+
             for (int partitionIndex = 0; partitionIndex < totalCount; partitionIndex += MaxPartitionSize)
             {
                 if (properties.ContainsKey(providerSummariesPartitionIndex))
@@ -170,12 +213,53 @@ namespace CalculateFunding.Services.Calcs
                     properties.Add(providerSummariesPartitionIndex, partitionIndex.ToString());
                 }
 
-                await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, null, properties);
+
+                if (!_featureToggle.IsJobServiceEnabled())
+                {
+                    await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, null, properties);
+                }
+                else
+                {
+                    IDictionary<string, string> jobProperties = new Dictionary<string, string>();
+
+                    foreach (KeyValuePair<string, string> item in properties)
+                    {
+                        jobProperties.Add(item.Key, item.Value);
+
+                    }
+                    allJobProperties.Add(jobProperties);
+                }
             }
 
             if (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled())
             {
                 await _specificationsRepository.UpdateCalculationLastUpdatedDate(specificationId);
+            }
+
+            if (_featureToggle.IsJobServiceEnabled())
+            {
+                try
+                {
+                    IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(job, allJobProperties);
+
+                    int newJobsCount = newJobs.Count();
+                    int batchCount = allJobProperties.Count();
+
+                    if(newJobsCount != batchCount)
+                    {
+                        throw new Exception($"Only {newJobsCount} child jobs from {batchCount} were created with parent id: '{job.Id}'");
+                    }
+                    else
+                    {
+                        _logger.Information($"{newJobsCount} child jobs were created for parent id: '{job.Id}'");
+                    }
+                }
+                catch(Exception ex)
+                {
+                    _logger.Error(ex.Message);
+
+                    throw new Exception($"Failed to create child jobs for parent job: '{job.Id}'");
+                }
             }
         }
 
@@ -394,6 +478,41 @@ namespace CalculateFunding.Services.Calcs
 
         }
 
+        public async Task UpdateDeadLetteredJobLog(Message message)
+        {
+            if (!_featureToggle.IsJobServiceEnabled())
+            {
+                return;
+            }
+
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            if (!message.UserProperties.ContainsKey("jobId"))
+            {
+                _logger.Error("Missing job id from dead lettered message");
+                return;
+            }
+
+            string jobId = message.UserProperties["jobId"].ToString();
+
+            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
+            {
+                CompletedSuccessfully = false,
+                Outcome = $"The job has exceeded its maximum retry count and failed to complete successfully"
+            };
+
+            try
+            {
+                JobLog jobLog = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(jobId, jobLogUpdateModel));
+
+                _logger.Information($"A new job log was added to inform of a dead lettered message with job log id '{jobLog.Id}' on job with id '{jobId}' while attempting to instruct allocations");
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"Failed to add a job log for job id '{jobId}'");
+            }
+        }
+
         Task<HttpStatusCode> UpdateBuildProject(BuildProject buildProject)
         {
             return _buildProjectsRepository.UpdateBuildProject(buildProject);
@@ -406,6 +525,37 @@ namespace CalculateFunding.Services.Calcs
             ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
 
             return compiler.GenerateCode(sourceFiles?.ToList());
+        }
+
+        private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(JobViewModel parentJob, IEnumerable<IDictionary<string,string>> jobProperties)
+        {
+            IList<JobCreateModel> jobCreateModels = new List<JobCreateModel>();
+
+            Trigger trigger = new Trigger
+            {
+                EntityId = parentJob.Id,
+                EntityType = nameof(Job),
+                Message = $"Triggered by parent job with id: '{parentJob.Id}"
+            };
+
+            foreach(IDictionary<string, string> properties in jobProperties)
+            {
+                JobCreateModel jobCreateModel = new JobCreateModel
+                {
+                    InvokerUserDisplayName = parentJob.InvokerUserDisplayName,
+                    InvokerUserId = parentJob.InvokerUserId,
+                    JobDefinitionId = JobConstants.DefinitionNames.CreateAllocationJob,
+                    SpecificationId = parentJob.SpecificationId,
+                    Properties = properties,
+                    ParentJobId = parentJob.Id,
+                    Trigger = trigger,
+                    CorrelationId = parentJob.CorrelationId
+                };
+
+                jobCreateModels.Add(jobCreateModel);
+            }
+
+            return await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.CreateJobs(jobCreateModels));
         }
     }
 }
