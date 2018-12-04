@@ -8,13 +8,13 @@
         {
             public const string CalculationJobInitialiser = "calc-events-instruct-generate-allocations";
 
-            public const string CalculationJobInitialiserPoisoned = "calc-events-instruct-generate-allocations$poisoned";
+            public const string CalculationJobInitialiserPoisoned = "calc-events-instruct-generate-allocations/$DeadLetterQueue";
 
             public const string CalculationJobInitialiserPoisonedLocal = "calc-events-instruct-generate-allocations-poison";
 
             public const string CalcEngineGenerateAllocationResults = "calc-events-generate-allocations-results";
 
-            public const string CalcEngineGenerateAllocationResultsPoisoned = "calc-events-generate-allocations-results$poisoned";
+            public const string CalcEngineGenerateAllocationResultsPoisoned = "calc-events-generate-allocations-results/$DeadLetterQueue";
 
             public const string CalcEngineGenerateAllocationResultsPoisonedLocal = "calc-events-generate-allocations-results-poison";
 
