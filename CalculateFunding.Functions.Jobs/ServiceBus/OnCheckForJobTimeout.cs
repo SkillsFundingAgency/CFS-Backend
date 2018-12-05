@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.Azure.WebJobs;
@@ -19,10 +18,10 @@ namespace CalculateFunding.Functions.Jobs.ServiceBus
         /// <param name="myTimer"></param>
         /// <param name="log"></param>
         [FunctionName("check-job-timeout")]
-        public static async Task Run([TimerTrigger("0 */30 * * * *")]TimerInfo timer, ILogger log)
+        public static async Task Run([TimerTrigger("0 */30 * * * *")]TimerInfo timer)
         {
             IConfigurationRoot config = ConfigHelper.AddConfig();
-            
+
             using (IServiceScope scope = IocConfig.Build(config).CreateScope())
             {
                 IJobManagementService jobManagementService = scope.ServiceProvider.GetService<IJobManagementService>();
@@ -34,12 +33,11 @@ namespace CalculateFunding.Functions.Jobs.ServiceBus
                 }
                 catch (Exception exception)
                 {
-                    logger.Error(exception, "An error occurred execiuting timer trigger");
+                    logger.Error(exception, "An error occurred executing timer trigger 'check-job-timeout'");
                     throw;
                 }
 
             }
-            log.Information($"C# Timer trigger function executed at: {DateTime.Now}");
         }
     }
 }
