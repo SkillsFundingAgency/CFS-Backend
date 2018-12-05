@@ -60,7 +60,7 @@
 
             public const string UpdateCalculationsForEditCalculation = "calcs-calculation-update";
 
-            public const string UpdateJobsOnCompletion = "jobs-completion-update";
+            public const string UpdateJobsOnCompletion = "on-job-completion";
 
             public const string JobNotificationsToSignalR = "notifications-to-signalr";
         }
