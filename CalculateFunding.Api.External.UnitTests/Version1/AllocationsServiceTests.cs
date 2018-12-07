@@ -3,7 +3,6 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Api.External.V1.Services;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Results.Interfaces;
@@ -275,22 +274,17 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
             allocationModel.History[1].Status.Should().Be("Held");
         }
 
-        static AllocationsService CreateService(IPublishedResultsService resultsService = null, IFeatureToggle featureToggle = null)
+        private static AllocationsService CreateService(IPublishedResultsService resultsService = null)
         {
-            return new AllocationsService(resultsService ?? CreateResultsService(), featureToggle ?? CreateFeatureToggle());
+            return new AllocationsService(resultsService ?? CreateResultsService());
         }
 
-        static IFeatureToggle CreateFeatureToggle()
-        {
-            return Substitute.For<IFeatureToggle>();
-        }
-
-        static IPublishedResultsService CreateResultsService()
+        private static IPublishedResultsService CreateResultsService()
         {
             return Substitute.For<IPublishedResultsService>();
         }
 
-        static PublishedProviderResult CreatePublishedProviderResult()
+        private static PublishedProviderResult CreatePublishedProviderResult()
         {
             return new PublishedProviderResult
             {
@@ -349,7 +343,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
             };
         }
 
-        static PublishedProviderResultWithHistory CreatePublishedProviderResultWithHistory()
+        private static PublishedProviderResultWithHistory CreatePublishedProviderResultWithHistory()
         {
             return new PublishedProviderResultWithHistory
             {

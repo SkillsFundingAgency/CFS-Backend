@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Api.External.V1.Services;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Search;
 using CalculateFunding.Services.Results.Interfaces;
@@ -1680,137 +1679,22 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
                     .GetLocalAuthorityFeeds(Arg.Is(laCode), Arg.Is(startYear), Arg.Is(endYear), Arg.Is<IList<string>>(m => m.Count == 1 && m.First() == "allocationLineId eq 'AllocationLine1'"));
         }
 
-        [TestMethod]
-        public async Task GetLocalAuthorityProvidersResultsForAllocations_GivenValidResultsFoundFromSearchAndfeatureToggleIsDisabled_ReturnsResults()
+        private static ProviderResultsService CreateService(IAllocationNotificationsFeedsSearchService searchService = null, ILogger logger = null)
         {
-            //Arrange
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary.Add("Accept", new StringValues("application/json"));
-
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-            httpRequest.Headers.Returns(headerDictionary);
-
-            SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
-            {
-                Entries = CreateFeedIndexes()
-            };
-
-            feeds.Entries.ElementAt(0).MajorVersion = 1;
-            feeds.Entries.ElementAt(0).MinorVersion = 1;
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(false);
-
-            IAllocationNotificationsFeedsSearchService searchService = CreateSearchService();
-            searchService
-                .GetLocalAuthorityFeeds(Arg.Is(laCode), Arg.Is(startYear), Arg.Is(endYear), Arg.Any<IEnumerable<string>>())
-                .Returns(feeds);
-
-            ProviderResultsService providerResultsService = CreateService(searchService, featureToggle: featureToggle);
-
-            //Act
-            IActionResult result = await providerResultsService.GetLocalAuthorityProvidersResultsForAllocations(laCode, startYear, endYear, allocationLineIds, httpRequest);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<ContentResult>()
-                .Which
-                .StatusCode
-                .Should()
-                .Be(200);
-
-            ContentResult contentResult = result as ContentResult;
-
-            LocalAuthorityResultsSummary localAuthorityResultSummary = JsonConvert.DeserializeObject<LocalAuthorityResultsSummary>(contentResult.Content);
-
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.ElementAt(0).Allocations.First().AllocationMajorVersion.Should().Be(0);
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.ElementAt(0).Allocations.First().AllocationMinorVersion.Should().Be(0);
-
-            await
-                searchService
-                    .Received(1)
-                    .GetLocalAuthorityFeeds(Arg.Is(laCode), Arg.Is(startYear), Arg.Is(endYear), Arg.Is<IList<string>>(m => m.Count == 1 && m.First() == "allocationLineId eq 'AllocationLine1'"));
+            return new ProviderResultsService(searchService ?? CreateSearchService(), logger ?? CreateLogger());
         }
 
-        [TestMethod]
-        public async Task GetLocalAuthorityProvidersResultsForAllocations_GivenValidResultsFoundFromSearchAndfeatureToggleIsEnabled_ReturnsResults()
-        {
-            //Arrange
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary.Add("Accept", new StringValues("application/json"));
-
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-            httpRequest.Headers.Returns(headerDictionary);
-
-            SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
-            {
-                Entries = CreateFeedIndexes()
-            };
-
-            feeds.Entries.ElementAt(0).MajorVersion = 1;
-            feeds.Entries.ElementAt(1).MajorVersion = 1;
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(true);
-
-            IAllocationNotificationsFeedsSearchService searchService = CreateSearchService();
-            searchService
-                .GetLocalAuthorityFeeds(Arg.Is(laCode), Arg.Is(startYear), Arg.Is(endYear), Arg.Any<IEnumerable<string>>())
-                .Returns(feeds);
-
-            ProviderResultsService providerResultsService = CreateService(searchService, featureToggle: featureToggle);
-
-            //Act
-            IActionResult result = await providerResultsService.GetLocalAuthorityProvidersResultsForAllocations(laCode, startYear, endYear, allocationLineIds, httpRequest);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<ContentResult>()
-                .Which
-                .StatusCode
-                .Should()
-                .Be(200);
-
-            ContentResult contentResult = result as ContentResult;
-
-            LocalAuthorityResultsSummary localAuthorityResultSummary = JsonConvert.DeserializeObject<LocalAuthorityResultsSummary>(contentResult.Content);
-
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.ElementAt(0).Allocations.First().AllocationMajorVersion.Should().Be(1);
-            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).FundingPeriods.ElementAt(0).Allocations.First().AllocationMinorVersion.Should().Be(0);
-
-            await
-                searchService
-                    .Received(1)
-                    .GetLocalAuthorityFeeds(Arg.Is(laCode), Arg.Is(startYear), Arg.Is(endYear), Arg.Is<IList<string>>(m => m.Count == 1 && m.First() == "allocationLineId eq 'AllocationLine1'"));
-        }
-
-        static ProviderResultsService CreateService(IAllocationNotificationsFeedsSearchService searchService = null, ILogger logger = null, IFeatureToggle featureToggle = null)
-        {
-            return new ProviderResultsService(searchService ?? CreateSearchService(), logger ?? CreateLogger(), featureToggle ?? CreateFeatureToggle());
-        }
-
-        static IFeatureToggle CreateFeatureToggle()
-        {
-            return Substitute.For<IFeatureToggle>();
-        }
-
-        static IAllocationNotificationsFeedsSearchService CreateSearchService()
+        private static IAllocationNotificationsFeedsSearchService CreateSearchService()
         {
             return Substitute.For<IAllocationNotificationsFeedsSearchService>();
         }
 
-        static ILogger CreateLogger()
+        private static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
         }
 
-        static IEnumerable<AllocationNotificationFeedIndex> CreateFeedIndexes()
+        private static IEnumerable<AllocationNotificationFeedIndex> CreateFeedIndexes()
         {
             return new[]
                 {
@@ -1958,14 +1842,14 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
                 };
         }
 
-        static string CreatePolicySummaries()
+        private static string CreatePolicySummaries()
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"[{""policy"":{""description"":""This is another etst policy created 9th August 2018"",""parentPolicyId"":null,""id"":""239c8b47-89e6-4906-a3bf-866bd11da2f4"",""name"":""Ab Test Policy 0908-001""},""policies"":[{""policy"":{""description"":""Yet another test sub policy"",""parentPolicyId"":null,""id"":""675143bc-84b0-4948-a0cf-bb3a7dd7e1ef"",""name"":""AB Test Sub Policy""},""policies"":[],""calculations"":[]}],""calculations"":[{""calculationName"":""Learner Count"",""calculationVersionNumber"":1,""calculationType"":""Number"",""calculationAmount"":1003.0},{""calculationName"":""AB Test Calc 0908-001"",""calculationVersionNumber"":1,""calculationType"":""Funding"",""calculationAmount"":300.0},{""calculationName"":""AB Test Calc 0908-002"",""calculationVersionNumber"":1,""calculationType"":""Funding"",""calculationAmount"":0.0}]}]");
             return sb.ToString();
         }
 
-        static string CreateProfiles()
+        private static string CreateProfiles()
         {
             return "[{\"period\":\"Oct\",\"occurrence\":1,\"periodYear\":2017,\"periodType\":\"CalendarMonth\",\"periodValue\":5.5,\"distributionPeriod\":\"2017-2018\"},{\"period\":\"Apr\",\"occurrence\":1,\"periodYear\":2018,\"periodType\":\"CalendarMonth\",\"periodValue\":5.5,\"distributionPeriod\":\"2017-2018\"}]";
         }

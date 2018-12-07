@@ -122,8 +122,6 @@ namespace CalculateFunding.Api.External.Properties {
         ///			&quot;Status&quot;: &quot;Published&quot;,
         ///			&quot;AllocationAmount&quot;: 5000.0,
         ///			&quot;AllocationVersionNumber&quot;: 3,
-        ///			&quot;AllocationMajorVersion&quot;: 1,							
-        ///			&quot;AllocationMinorVersion&quot;: 0,
         ///			&quot;Date&quot;: &quot;2018-09-05T10:45:50.3750937+01:00&quot;,
         ///			&quot;Comment&quot;: null,
         ///			&quot;Author&quot;: &quot;Adam.Bryant@citizenazuresfabisgov.onmicrosoft.com Adam.Bryant&quot;
@@ -132,9 +130,9 @@ namespace CalculateFunding.Api.External.Properties {
         ///			&quot;Status&quot;: &quot;Approved&quot;,
         ///			&quot;AllocationAmount&quot;: 5000.0,
         ///			&quot;AllocationVersionNumber&quot;: 2,
-        ///			&quot;AllocationMajorVersion&quot;: 0,						
-        ///			&quot;AllocationMinorVersion&quot;: 1,
-        /// [rest of string was truncated]&quot;;.
+        ///			&quot;Date&quot;: &quot;2018-09-05T08:35:25.3265352+01:00&quot;,
+        ///			&quot;Comment&quot;: null,
+        ///			&quot;Author&quot;: &quot;Adam.Bryant@citizenazuresfabisgov.onmicrosoft.com Adam.Bryant [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string V1_Sample_Allocation_With_History {
             get {

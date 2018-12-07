@@ -1,7 +1,11 @@
-﻿using CalculateFunding.Api.External.Swagger.Helpers;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Api.External.Swagger.Helpers;
 using CalculateFunding.Api.External.V1.Interfaces;
 using CalculateFunding.Api.External.V1.Models;
-using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Search;
 using CalculateFunding.Services.Results.Interfaces;
@@ -9,23 +13,21 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 namespace CalculateFunding.Api.External.V1.Services
 {
     public class ProviderResultsService : IProviderResultsService
     {
         private readonly IAllocationNotificationsFeedsSearchService _feedsService;
         private readonly ILogger _logger;
-        private readonly IFeatureToggle _featureToggle;
 
-        public ProviderResultsService(IAllocationNotificationsFeedsSearchService feedsService, ILogger logger, IFeatureToggle featureToggle)
+        public ProviderResultsService(IAllocationNotificationsFeedsSearchService feedsService, ILogger logger)
         {
+            Guard.ArgumentNotNull(feedsService, nameof(feedsService));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+
             _feedsService = feedsService;
             _logger = logger;
-            _featureToggle = featureToggle;
         }
 
         public async Task<IActionResult> GetProviderResultsForAllocations(string providerId, int startYear, int endYear, string allocationLineIds, HttpRequest request)
@@ -291,8 +293,6 @@ namespace CalculateFunding.Api.External.V1.Services
                                 },
                                 AllocationStatus = allocationFeedIndex.AllocationStatus,
                                 AllocationVersionNumber = (ushort)allocationFeedIndex.AllocationVersionNumber,
-                                AllocationMajorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MajorVersion.HasValue) ? feedIndex.MajorVersion.Value : 0,
-                                AllocationMinorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MinorVersion.HasValue) ? feedIndex.MinorVersion.Value : 0,
                                 AllocationAmount = Convert.ToDecimal(allocationFeedIndex.AllocationAmount)
                             };
 
@@ -371,7 +371,7 @@ namespace CalculateFunding.Api.External.V1.Services
                 }
             };
 
-            foreach(IGrouping<string, AllocationNotificationFeedIndex> fundingPeriodResultSummaryGroup in fundingPeriodResultSummaryGroups)
+            foreach (IGrouping<string, AllocationNotificationFeedIndex> fundingPeriodResultSummaryGroup in fundingPeriodResultSummaryGroups)
             {
                 AllocationNotificationFeedIndex firstPeriodEntry = fundingPeriodResultSummaryGroup.First();
 
@@ -424,8 +424,6 @@ namespace CalculateFunding.Api.External.V1.Services
                                 ContractRequired = allocationFeedIndex.AllocationLineContractRequired ? "Y" : "N"
                             },
                             AllocationVersionNumber = (ushort)allocationFeedIndex.AllocationVersionNumber,
-                            AllocationMajorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MajorVersion.HasValue) ? feedIndex.MajorVersion.Value : 0,
-                            AllocationMinorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MinorVersion.HasValue) ? feedIndex.MinorVersion.Value : 0,
                             AllocationStatus = allocationFeedIndex.AllocationStatus,
                             AllocationAmount = Convert.ToDecimal(allocationFeedIndex.AllocationAmount),
                             ProfilePeriods = JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(allocationFeedIndex.ProviderProfiling).Select(
@@ -518,7 +516,7 @@ namespace CalculateFunding.Api.External.V1.Services
         {
             IList<AllocationNotificationFeedIndex> validFeeds = new List<AllocationNotificationFeedIndex>();
 
-            foreach(AllocationNotificationFeedIndex feed in feeds)
+            foreach (AllocationNotificationFeedIndex feed in feeds)
             {
                 string logPrefix = $"Feed with id {feed.Id} contains missing data:";
 
@@ -535,14 +533,14 @@ namespace CalculateFunding.Api.External.V1.Services
                     feed.ProviderUkPrn = feed.ProviderId;
                 }
 
-                if(string.IsNullOrWhiteSpace(feed.FundingPeriodId))
+                if (string.IsNullOrWhiteSpace(feed.FundingPeriodId))
                 {
                     _logger.Warning($"{logPrefix} funding period id");
 
                     continue;
                 }
 
-                if(string.IsNullOrWhiteSpace(feed.FundingStreamId) || string.IsNullOrWhiteSpace(feed.FundingStreamName))
+                if (string.IsNullOrWhiteSpace(feed.FundingStreamId) || string.IsNullOrWhiteSpace(feed.FundingStreamName))
                 {
                     _logger.Warning($"{logPrefix} funding stream id or name");
 

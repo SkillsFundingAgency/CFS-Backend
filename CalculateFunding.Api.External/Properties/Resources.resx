@@ -172,8 +172,6 @@
 								"ContractRequired": "N"
 							},
 							"AllocationVersionNumber": 3,
-							"AllocationMajorVersion": 1,
-							"AllocationMinorVersion": 1,
 							"AllocationStatus": "Published",
 							"AllocationAmount": 5000.0,
 							"ProfilePeriods": [
@@ -304,8 +302,6 @@
 										"FundingRoute": "LA",
 										"ContractRequired": "N"
 									},
-									"AllocationMajorVersion": 1,							
-									"AllocationMinorVersion": 1,
 									"AllocationVersionNumber": 2,
 									"AllocationStatus": "Approved",
 									"AllocationAmount": 5000.0
@@ -382,8 +378,6 @@
 										"FundingRoute": "LA",
 										"ContractRequired": "N"
 									},
-									"AllocationMajorVersion": 1,							
-									"AllocationMinorVersion": 1,
 									"AllocationVersionNumber": 3,
 									"AllocationStatus": "Published",
 									"AllocationAmount": 5000.0
@@ -492,8 +486,6 @@
 						"ContractRequired": "N"
 					},
 					"AllocationVersionNumber": 3,
-					"AllocationMajorVersion": 1,				
-					"AllocationMinorVersion": 1,
 					"AllocationStatus": "Published",
 					"AllocationAmount": 5000.0,
 					"ProfilePeriods": [
@@ -576,8 +568,6 @@
 						"ContractRequired": "N"
 					},
 					"AllocationVersionNumber": 3,
-					"AllocationMajorVersion": 1,							
-					"AllocationMinorVersion": 1,
 					"AllocationStatus": "Published",
 					"AllocationAmount": 5000.0,
 					"ProfilePeriods": [
@@ -653,8 +643,6 @@
 		"ContractRequired": "N"
 	},
 	"AllocationVersionNumber": 3,
-	"AllocationMajorVersion": 1,							
-	"AllocationMinorVersion": 1,
 	"AllocationStatus": "Published",
 	"AllocationAmount": 5000.0,
 	"ProfilePeriods": [
@@ -685,8 +673,6 @@
 			"Status": "Published",
 			"AllocationAmount": 5000.0,
 			"AllocationVersionNumber": 3,
-			"AllocationMajorVersion": 1,							
-			"AllocationMinorVersion": 0,
 			"Date": "2018-09-05T10:45:50.3750937+01:00",
 			"Comment": null,
 			"Author": "Adam.Bryant@citizenazuresfabisgov.onmicrosoft.com Adam.Bryant"
@@ -695,8 +681,6 @@
 			"Status": "Approved",
 			"AllocationAmount": 5000.0,
 			"AllocationVersionNumber": 2,
-			"AllocationMajorVersion": 0,						
-			"AllocationMinorVersion": 1,
 			"Date": "2018-09-05T08:35:25.3265352+01:00",
 			"Comment": null,
 			"Author": "Adam.Bryant@citizenazuresfabisgov.onmicrosoft.com Adam.Bryant"
@@ -705,8 +689,6 @@
 			"Status": "Held",
 			"AllocationAmount": 5000.0,
 			"AllocationVersionNumber": 1,
-			"AllocationMajorVersion": 0,							
-			"AllocationMinorVersion": 1,
 			"Date": "2018-09-05T08:32:33.9831596+01:00",
 			"Comment": null,
 			"Author": "Adam.Bryant@citizenazuresfabisgov.onmicrosoft.com Adam.Bryant"
@@ -758,8 +740,6 @@
 		"ContractRequired": "N"
 	},
 	"AllocationVersionNumber": 3,
-	"AllocationMajorVersion": 1,							
-	"AllocationMinorVersion": 1,
 	"AllocationStatus": "Published",
 	"AllocationAmount": 5000.0,
 	"ProfilePeriods": [

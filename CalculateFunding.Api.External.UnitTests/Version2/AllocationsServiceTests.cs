@@ -275,22 +275,124 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             allocationModel.History[1].Status.Should().Be("Held");
         }
 
-        static AllocationsService CreateService(IPublishedResultsService resultsService = null, IFeatureToggle featureToggle = null)
+        [TestMethod]
+        public async Task GetAllocationByAllocationResultId_GivenMajorMinorFeatureToggleOn_ReturnsMajorMinorVersions()
+        {
+            //Arrange
+            string allocationResultId = "12345";
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "Accept", new StringValues("application/json") }
+            };
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            PublishedProviderResult publishedProviderResult = CreatePublishedProviderResult();
+
+            IPublishedResultsService resultsService = CreateResultsService();
+            resultsService
+                .GetPublishedProviderResultByAllocationResultId(Arg.Is(allocationResultId))
+                .Returns(publishedProviderResult);
+
+            IFeatureToggle features = CreateFeatureToggle();
+            features
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(true);
+
+            AllocationsService service = CreateService(resultsService, features);
+
+            //Act
+            IActionResult result = await service.GetAllocationByAllocationResultId(allocationResultId, null, request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<ContentResult>();
+
+            ContentResult contentResult = result as ContentResult;
+
+            string id = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{publishedProviderResult.SpecificationId}{publishedProviderResult.ProviderId}{publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id}"));
+
+            AllocationModel allocationModel = JsonConvert.DeserializeObject<AllocationModel>(contentResult.Content);
+
+            allocationModel
+                .Should()
+                .NotBeNull();
+
+            allocationModel.AllocationMajorVersion.Should().Be(1);
+            allocationModel.AllocationMinorVersion.Should().Be(1);
+        }
+
+        [TestMethod]
+        public async Task GetAllocationByAllocationResultId_GivenMajorMinorFeatureToggleOff_ReturnsMajorMinorVersionsAsZero()
+        {
+            //Arrange
+            string allocationResultId = "12345";
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary.Add("Accept", new StringValues("application/json"));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            PublishedProviderResult publishedProviderResult = CreatePublishedProviderResult();
+
+            IPublishedResultsService resultsService = CreateResultsService();
+            resultsService
+                .GetPublishedProviderResultByAllocationResultId(Arg.Is(allocationResultId))
+                .Returns(publishedProviderResult);
+
+            IFeatureToggle features = CreateFeatureToggle();
+            features
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(false);
+
+            AllocationsService service = CreateService(resultsService, features);
+
+            //Act
+            IActionResult result = await service.GetAllocationByAllocationResultId(allocationResultId, null, request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<ContentResult>();
+
+            ContentResult contentResult = result as ContentResult;
+
+            string id = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{publishedProviderResult.SpecificationId}{publishedProviderResult.ProviderId}{publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id}"));
+
+            AllocationModel allocationModel = JsonConvert.DeserializeObject<AllocationModel>(contentResult.Content);
+
+            allocationModel
+                .Should()
+                .NotBeNull();
+
+            allocationModel.AllocationMajorVersion.Should().Be(0);
+            allocationModel.AllocationMinorVersion.Should().Be(0);
+        }
+
+        private static AllocationsService CreateService(IPublishedResultsService resultsService = null, IFeatureToggle featureToggle = null)
         {
             return new AllocationsService(resultsService ?? CreateResultsService(), featureToggle ?? CreateFeatureToggle());
         }
 
-        static IFeatureToggle CreateFeatureToggle()
+        private static IFeatureToggle CreateFeatureToggle()
         {
             return Substitute.For<IFeatureToggle>();
         }
 
-        static IPublishedResultsService CreateResultsService()
+        private static IPublishedResultsService CreateResultsService()
         {
             return Substitute.For<IPublishedResultsService>();
         }
 
-        static PublishedProviderResult CreatePublishedProviderResult()
+        private static PublishedProviderResult CreatePublishedProviderResult()
         {
             return new PublishedProviderResult
             {
@@ -349,7 +451,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             };
         }
 
-        static PublishedProviderResultWithHistory CreatePublishedProviderResultWithHistory()
+        private static PublishedProviderResultWithHistory CreatePublishedProviderResultWithHistory()
         {
             return new PublishedProviderResultWithHistory
             {

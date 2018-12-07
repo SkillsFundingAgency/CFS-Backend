@@ -1,7 +1,4 @@
-﻿using CalculateFunding.Models.External;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System;
 using System.Xml.Serialization;
 
 namespace CalculateFunding.Api.External.V1.Models
@@ -14,7 +11,7 @@ namespace CalculateFunding.Api.External.V1.Models
     [XmlRoot(Namespace = "urn:TBC", IsNullable = false)]
     public class AllocationModel
     {
-        public AllocationModel(){}
+        public AllocationModel() { }
 
         public AllocationModel(AllocationFundingStreamModel fundingStream, Period period, AllocationProviderModel provider, AllocationLine allocationLine,
            int allocationVersionNumber, string status, decimal allocationAmount, string allocationResultId)
@@ -58,16 +55,6 @@ namespace CalculateFunding.Api.External.V1.Models
         /// The current allocation version number
         /// </summary>
         public int AllocationVersionNumber { get; set; }
-
-        /// <summary>
-        /// The current allocation major version
-        /// </summary>
-        public int AllocationMajorVersion { get; set; }
-
-        /// <summary>
-        /// The current allocation minor version
-        /// </summary>
-        public int AllocationMinorVersion { get; set; }
 
         /// <summary>
         /// The current allocation status

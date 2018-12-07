@@ -1,30 +1,25 @@
-﻿using CalculateFunding.Api.External.Swagger.Helpers;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Api.External.Swagger.Helpers;
 using CalculateFunding.Api.External.V1.Interfaces;
 using CalculateFunding.Api.External.V1.Models;
-using CalculateFunding.Common.FeatureToggles;
-using CalculateFunding.Models.External;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.External.V1.Services
 {
     public class AllocationsService : IAllocationsService
     {
         private readonly IPublishedResultsService _publishedResultsService;
-        private readonly IFeatureToggle _featureToggle;
 
-        public AllocationsService(IPublishedResultsService publishedResultsService, IFeatureToggle featureToggle)
+        public AllocationsService(IPublishedResultsService publishedResultsService)
         {
             Guard.ArgumentNotNull(publishedResultsService, nameof(publishedResultsService));
-            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
 
             _publishedResultsService = publishedResultsService;
-            _featureToggle = featureToggle;
         }
 
         public async Task<IActionResult> GetAllocationByAllocationResultId(string allocationResultId, int? version, HttpRequest httpRequest)
@@ -39,7 +34,7 @@ namespace CalculateFunding.Api.External.V1.Services
 
             PublishedProviderResult publishedProviderResult = await _publishedResultsService.GetPublishedProviderResultByAllocationResultId(allocationResultId, version);
 
-            if(publishedProviderResult == null)
+            if (publishedProviderResult == null)
             {
                 return new NotFoundResult();
             }
@@ -73,8 +68,6 @@ namespace CalculateFunding.Api.External.V1.Services
                 AllocationResultId = publishedProviderResult.Id,
                 AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue ? (decimal)publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.Value : 0,
                 AllocationVersionNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Version,
-                AllocationMajorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Major : 0,
-                AllocationMinorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Minor : 0,
                 AllocationLine = new Models.AllocationLine
                 {
                     Id = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id,
@@ -152,9 +145,7 @@ namespace CalculateFunding.Api.External.V1.Services
                        Status = m.Status.ToString(),
                        Date = m.Date,
                        Author = m.Author.Name,
-                       Comment = m.Commment,
-                       AllocationMajorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? m.Major : 0,
-                       AllocationMinorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? m.Minor : 0,
+                       Comment = m.Commment
                    }
                 ).OrderByDescending(m => m.Date).ToArraySafe();
 
