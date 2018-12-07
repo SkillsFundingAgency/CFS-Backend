@@ -5,8 +5,6 @@ using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.External.MappingProfiles;
 using CalculateFunding.Api.External.Middleware;
 using CalculateFunding.Api.External.Swagger;
-using CalculateFunding.Api.External.V1.Interfaces;
-using CalculateFunding.Api.External.V1.Services;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
@@ -57,15 +55,15 @@ namespace CalculateFunding.Api.External
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-			var azureADConfig = Configuration.GetSection("AzureAD");
-			services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-				.AddJwtBearer(options =>
-				{
-					options.Authority = $"{azureADConfig.GetValue<string>("Authority")}/{azureADConfig.GetValue<string>("TenantId")}/";
-					options.Audience = azureADConfig.GetValue<string>("Audience");
-				});
+            IConfigurationSection azureADConfig = Configuration.GetSection("AzureAD");
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = $"{azureADConfig.GetValue<string>("Authority")}/{azureADConfig.GetValue<string>("TenantId")}/";
+                    options.Audience = azureADConfig.GetValue<string>("Audience");
+                });
 
-			services.AddMvcCore().AddVersionedApiExplorer(
+            services.AddMvcCore().AddVersionedApiExplorer(
                 options =>
                 {
                     options.GroupNameFormat = "'v'VVV";
@@ -73,18 +71,18 @@ namespace CalculateFunding.Api.External
                 });
 
             services.AddMvc(options =>
-	        {
-				options.OutputFormatters.RemoveType<StringOutputFormatter>();
+            {
+                options.OutputFormatters.RemoveType<StringOutputFormatter>();
                 options.OutputFormatters.Add(new XmlSerializerOutputFormatter());
 
-				var jFormatter =
+                JsonOutputFormatter jFormatter =
                     options.OutputFormatters.FirstOrDefault(f => f.GetType() == typeof(JsonOutputFormatter)) as
                         JsonOutputFormatter;
                 jFormatter?.SupportedMediaTypes.Clear();
                 jFormatter?.SupportedMediaTypes.Add("application/atom+json");
                 jFormatter?.SupportedMediaTypes.Add("application/json");
 
-                var xFormatter =
+                XmlSerializerOutputFormatter xFormatter =
                     options.OutputFormatters.FirstOrDefault(f => f.GetType() == typeof(XmlSerializerOutputFormatter)) as
                         XmlSerializerOutputFormatter;
                 xFormatter?.SupportedMediaTypes.Clear();
@@ -109,43 +107,63 @@ namespace CalculateFunding.Api.External
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApiVersionDescriptionProvider provider)
         {
-			if (env.IsDevelopment())
+            if (env.IsDevelopment())
+            {
                 app.UseDeveloperExceptionPage();
+            }
             else
+            {
                 app.UseHsts();
+            }
 
-			app.UseAuthentication();
-	        app.UseMiddleware<ContentTypeCheckMiddleware>();
+            app.UseAuthentication();
+            app.UseMiddleware<ContentTypeCheckMiddleware>();
 
-			app.UseMvc();
+            app.UseMvc();
             SwaggerSetup.ConfigureSwagger(app, provider);
-	        
-			app.UseHealthCheckMiddleware();
+
+            app.UseHealthCheckMiddleware();
         }
 
         public void RegisterComponents(IServiceCollection builder)
         {
             builder.AddFeatureToggling(Configuration);
 
+            // Register v1 services
+            builder
+               .AddSingleton<V1.Interfaces.IAllocationNotificationFeedsService, V1.Services.AllocationNotificationFeedsService>();
+            builder
+               .AddSingleton<V1.Interfaces.IProviderResultsService, V1.Services.ProviderResultsService>();
+            builder
+                .AddSingleton<V1.Interfaces.IAllocationsService, V1.Services.AllocationsService>();
+            builder
+                .AddSingleton<V1.Interfaces.ITimePeriodsService, V1.Services.TimePeriodsService>();
+            builder
+                .AddSingleton<V1.Interfaces.IFundingStreamService, V1.Services.FundingStreamService>();
+
+            // Register v2 services
+            builder
+                .AddSingleton<V2.Interfaces.IAllocationNotificationFeedsService, V2.Services.AllocationNotificationFeedsService>();
+            builder
+               .AddSingleton<V2.Interfaces.IProviderResultsService, V2.Services.ProviderResultsService>();
+            builder
+                .AddSingleton<V2.Interfaces.IAllocationsService, V2.Services.AllocationsService>();
+            builder
+                .AddSingleton<V2.Interfaces.ITimePeriodsService, V2.Services.TimePeriodsService>();
+            builder
+                .AddSingleton<V2.Interfaces.IFundingStreamService, V2.Services.FundingStreamService>();
+
+            // Register dependencies
             builder
                 .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>()
                 .AddSingleton<IHealthChecker, AllocationNotificationsFeedsSearchService>();
-
-            builder
-               .AddSingleton<IAllocationNotificationFeedsService, AllocationNotificationFeedsService>();
-
-            builder
-               .AddSingleton<IProviderResultsService, ProviderResultsService>();
-
-            builder
-                .AddSingleton<IAllocationsService, AllocationsService>();
 
             builder
                 .AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder
                .AddSingleton<IPublishedResultsService, PublishedResultsService>()
                .AddSingleton<IHealthChecker, PublishedResultsService>();
-    
+
             builder
                 .AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>()
                 .AddSingleton<IHealthChecker, CalculationProviderResultsSearchService>();
@@ -156,8 +174,8 @@ namespace CalculateFunding.Api.External
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {
-	            c.AddProfile<DatasetsMappingProfile>();
-				c.AddProfile<ExternalApiMappingProfile>();
+                c.AddProfile<DatasetsMappingProfile>();
+                c.AddProfile<ExternalApiMappingProfile>();
             });
 
             builder
@@ -215,7 +233,7 @@ namespace CalculateFunding.Api.External
                 return new PublishedProviderResultsRepository(resultsRepostory);
             });
 
-			builder.AddSingleton<IPublishedProviderCalculationResultsRepository, PublishedProviderCalculationResultsRepository>((ctx) =>
+            builder.AddSingleton<IPublishedProviderCalculationResultsRepository, PublishedProviderCalculationResultsRepository>((ctx) =>
             {
                 CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
 
@@ -235,18 +253,18 @@ namespace CalculateFunding.Api.External
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
             builder.AddSingleton<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>(
-		        ctx =>
-		        {
-			        CosmosDbSettings specRepoDbSettings = new CosmosDbSettings();
+                ctx =>
+                {
+                    CosmosDbSettings specRepoDbSettings = new CosmosDbSettings();
 
-			        Configuration.Bind("CosmosDbSettings", specRepoDbSettings);
+                    Configuration.Bind("CosmosDbSettings", specRepoDbSettings);
 
-			        specRepoDbSettings.CollectionName = "specs";
+                    specRepoDbSettings.CollectionName = "specs";
 
-			        CosmosRepository cosmosRepository = new CosmosRepository(specRepoDbSettings);
+                    CosmosRepository cosmosRepository = new CosmosRepository(specRepoDbSettings);
 
-			        return new Services.Specs.SpecificationsRepository(cosmosRepository);
-		        });
+                    return new Services.Specs.SpecificationsRepository(cosmosRepository);
+                });
 
             builder.AddSingleton<IVersionRepository<PublishedAllocationLineResultVersion>, VersionRepository<PublishedAllocationLineResultVersion>>((ctx) =>
             {
@@ -282,29 +300,27 @@ namespace CalculateFunding.Api.External
 
                 if (enableMajorMinorVersioning)
                 {
-                   return new PublishedAllocationLineLogicalResultVersionService();
+                    return new PublishedAllocationLineLogicalResultVersionService();
                 }
                 else
                 {
                     return new RedundantPublishedAllocationLineLogicalResultVersionService();
                 }
             });
-          
-            builder.AddSingleton<ITimePeriodsService, TimePeriodsService>();
-            builder.AddSingleton<IFundingStreamService, FundingStreamService>();
-	        builder.AddSingleton<ISpecificationsService, SpecificationsService>();
-			builder.AddSingleton<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
-	        builder.AddSingleton<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
-	        builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
-	        builder.AddSingleton<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
-	        builder.AddSingleton<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
-			builder.AddSingleton<IValidator<PolicyEditModel>, PolicyEditModelValidator>();
-	        builder.AddSingleton<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
-	        builder.AddSingleton<IResultsRepository, ResultsRepository>();
 
-	        builder.AddResultsInterServiceClient(Configuration);
+            builder.AddSingleton<ISpecificationsService, SpecificationsService>();
+            builder.AddSingleton<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
+            builder.AddSingleton<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
+            builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
+            builder.AddSingleton<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
+            builder.AddSingleton<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
+            builder.AddSingleton<IValidator<PolicyEditModel>, PolicyEditModelValidator>();
+            builder.AddSingleton<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
+            builder.AddSingleton<IResultsRepository, ResultsRepository>();
 
-			builder.AddUserProviderFromRequest();
+            builder.AddResultsInterServiceClient(Configuration);
+
+            builder.AddUserProviderFromRequest();
 
             builder.AddSearch(Configuration);
 
@@ -342,10 +358,10 @@ namespace CalculateFunding.Api.External
                     PublishedProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
                 };
             });
-			builder.AddHealthCheckMiddleware();
-	        builder.AddTransient<ContentTypeCheckMiddleware>();
+            builder.AddHealthCheckMiddleware();
+            builder.AddTransient<ContentTypeCheckMiddleware>();
 
-	        ServiceProvider = builder.BuildServiceProvider();
-		}
+            ServiceProvider = builder.BuildServiceProvider();
+        }
     }
 }

@@ -1,4 +1,4 @@
-using CalculateFunding.Api.External.V1.Controllers;
+using CalculateFunding.Api.External;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Tests.Common;
@@ -13,15 +13,14 @@ namespace CalculateFunding.Api.External.UnitTests
     [TestClass]
     public class StartupTests : IoCUnitTestBase
     {
-        bool enableMajorMinorVersioning = true;
-
-        bool disableProviderProfiling = true;
+        private bool _enableMajorMinorVersioning = true;
+        private bool _disableProviderProfiling = true;
 
         [TestInitialize()]
         public void BeforeTest()
         {
-            enableMajorMinorVersioning = true;
-            disableProviderProfiling = true;
+            _enableMajorMinorVersioning = true;
+            _disableProviderProfiling = true;
         }
 
         [TestMethod]
@@ -34,13 +33,20 @@ namespace CalculateFunding.Api.External.UnitTests
             // Act
             target.ConfigureServices(Services);
 
-            // Assert
-            ResolveType<AllocationsController>().Should().NotBeNull(nameof(AllocationsController));
-            ResolveType<AllocationNotificationsController>().Should().NotBeNull(nameof(AllocationNotificationsController));
-            ResolveType<FundingStreamController>().Should().NotBeNull(nameof(FundingStreamController));
-            ResolveType<ProviderResultsController>().Should().NotBeNull(nameof(ProviderResultsController));
-			ResolveType<TimePeriodsController>().Should().NotBeNull(nameof(TimePeriodsController));
-		}
+            // Assert v1
+            ResolveType<V1.Controllers.AllocationsController>().Should().NotBeNull(nameof(V1.Controllers.AllocationsController));
+            ResolveType<V1.Controllers.AllocationNotificationsController>().Should().NotBeNull(nameof(V1.Controllers.AllocationNotificationsController));
+            ResolveType<V1.Controllers.FundingStreamController>().Should().NotBeNull(nameof(V1.Controllers.FundingStreamController));
+            ResolveType<V1.Controllers.ProviderResultsController>().Should().NotBeNull(nameof(V1.Controllers.ProviderResultsController));
+			ResolveType<V1.Controllers.TimePeriodsController>().Should().NotBeNull(nameof(V1.Controllers.TimePeriodsController));
+
+            // Assert v2
+            ResolveType<V2.Controllers.AllocationsController>().Should().NotBeNull(nameof(V2.Controllers.AllocationsController));
+            ResolveType<V2.Controllers.AllocationNotificationsController>().Should().NotBeNull(nameof(V2.Controllers.AllocationNotificationsController));
+            ResolveType<V2.Controllers.FundingStreamController>().Should().NotBeNull(nameof(V2.Controllers.FundingStreamController));
+            ResolveType<V2.Controllers.ProviderResultsController>().Should().NotBeNull(nameof(V2.Controllers.ProviderResultsController));
+            ResolveType<V2.Controllers.TimePeriodsController>().Should().NotBeNull(nameof(V2.Controllers.TimePeriodsController));
+        }
 
         [TestMethod]
         public void ConfigureServices_WhenMajorMinorVersioningIsEnabled_RegisterDependenciesCorrectly()
@@ -66,7 +72,7 @@ namespace CalculateFunding.Api.External.UnitTests
         public void ConfigureServices_WhenMajorMinorVersioningIsDisabled_RegisterDependenciesCorrectly()
         {
             // Arrange
-            enableMajorMinorVersioning = false;
+            _enableMajorMinorVersioning = false;
 
             IConfigurationRoot configuration = CreateTestConfiguration();
 
@@ -104,7 +110,7 @@ namespace CalculateFunding.Api.External.UnitTests
                 { "providerProfilingAzureBearerTokenOptions:Scope", "https://wahetever-scope" },
                 { "providerProfilingAzureBearerTokenOptions:ClientId", "client-id" },
                 { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"},
-                { "features:allocationLineMajorMinorVersioningEnabled", enableMajorMinorVersioning.ToString()}
+                { "features:allocationLineMajorMinorVersioningEnabled", _enableMajorMinorVersioning.ToString()}
             };
 
             return configData;

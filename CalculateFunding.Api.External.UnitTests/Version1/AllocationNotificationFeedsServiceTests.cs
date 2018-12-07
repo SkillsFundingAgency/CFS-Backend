@@ -1,25 +1,24 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using NSubstitute;
-using CalculateFunding.Services.Results.Interfaces;
-using System.Threading.Tasks;
-using CalculateFunding.Api.External.V1.Services;
-using Microsoft.AspNetCore.Mvc;
 using System.Linq;
-using Microsoft.AspNetCore.Http;
-using FluentAssertions;
+using System.Threading.Tasks;
+using CalculateFunding.Api.External.V1.Models;
+using CalculateFunding.Api.External.V1.Services;
+using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Models.External.AtomItems;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Search;
-using Microsoft.Extensions.Primitives;
-using CalculateFunding.Models.External.AtomItems;
-using Newtonsoft.Json;
-using CalculateFunding.Api.External.V1.Models;
+using CalculateFunding.Services.Results.Interfaces;
+using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
-using CalculateFunding.Common.FeatureToggles;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using NSubstitute;
 
-namespace CalculateFunding.Api.External.UnitTests.Services
+namespace CalculateFunding.Api.External.UnitTests.Version1
 {
     [TestClass]
     public class AllocationNotificationFeedsServiceTests
@@ -532,7 +531,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             atomFeed.Link.First(m => m.Rel == "last").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=36");
             atomFeed.Link.First(m => m.Rel == "previous").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=1");
             atomFeed.Link.First(m => m.Rel == "next").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=2");
-        }     
+        }
 
         [TestMethod]
         public async Task GetNotifications_GivenAcceptHeaderNotSupplied_ReturnsBadRequest()

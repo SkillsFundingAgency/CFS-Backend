@@ -1,5 +1,8 @@
-﻿using CalculateFunding.Api.External.V1.Models;
-using CalculateFunding.Api.External.V1.Services;
+﻿using System;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Api.External.V2.Models;
+using CalculateFunding.Api.External.V2.Services;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
@@ -11,11 +14,8 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
-using System;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CalculateFunding.Api.External.UnitTests.Services
+namespace CalculateFunding.Api.External.UnitTests.Version2
 {
     [TestClass]
     public class AllocationsServiceTests
@@ -76,7 +76,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             string allocationResultId = "12345";
 
             IHeaderDictionary headerDictionary = new HeaderDictionary();
-            
+
             HttpRequest request = Substitute.For<HttpRequest>();
             request
                 .Headers
@@ -295,7 +295,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             return new PublishedProviderResult
             {
                 Title = "test title 1",
-                
+
                 SpecificationId = "spec-1",
                 FundingStreamResult = new PublishedFundingStreamResult
                 {
