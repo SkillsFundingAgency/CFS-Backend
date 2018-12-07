@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Api.External.V1.Services;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.External.AtomItems;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Search;
@@ -567,22 +566,17 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
                 .BeOfType<BadRequestResult>();
         }
 
-        static AllocationNotificationFeedsService CreateService(IAllocationNotificationsFeedsSearchService searchService = null, IFeatureToggle featureToggle = null)
+        private static AllocationNotificationFeedsService CreateService(IAllocationNotificationsFeedsSearchService searchService = null)
         {
-            return new AllocationNotificationFeedsService(searchService ?? CreateSearchService(), featureToggle ?? CreateFeatureToggle());
+            return new AllocationNotificationFeedsService(searchService ?? CreateSearchService());
         }
 
-        static IFeatureToggle CreateFeatureToggle()
-        {
-            return Substitute.For<IFeatureToggle>();
-        }
-
-        static IAllocationNotificationsFeedsSearchService CreateSearchService()
+        private static IAllocationNotificationsFeedsSearchService CreateSearchService()
         {
             return Substitute.For<IAllocationNotificationsFeedsSearchService>();
         }
 
-        static IEnumerable<AllocationNotificationFeedIndex> CreateFeedIndexes()
+        private static IEnumerable<AllocationNotificationFeedIndex> CreateFeedIndexes()
         {
             return new[]
                 {

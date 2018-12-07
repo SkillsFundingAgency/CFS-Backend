@@ -567,22 +567,160 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                 .BeOfType<BadRequestResult>();
         }
 
-        static AllocationNotificationFeedsService CreateService(IAllocationNotificationsFeedsSearchService searchService = null, IFeatureToggle featureToggle = null)
+        [TestMethod]
+        public async Task GetNotifications_GivenMajorMinorFeatureToggleOn_ReturnsMajorMinorVersionNumbers()
+        {
+            //Arrange
+            SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
+            {
+                PageRef = 3,
+                Top = 500,
+                TotalCount = 3,
+                Entries = CreateFeedIndexes()
+            };
+
+            IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
+            feedsSearchService
+                .GetFeeds(Arg.Is(3), Arg.Is(2), Arg.Any<IEnumerable<string>>())
+                .Returns(feeds);
+
+            IFeatureToggle features = CreateFeatureToggle();
+            features
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(true);
+
+            AllocationNotificationFeedsService service = CreateService(feedsSearchService, features);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "Accept", new StringValues("application/json") }
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "pageRef", new StringValues("3") },
+                { "allocationStatuses", new StringValues("Published,Approved") },
+                { "pageSize", new StringValues("2") }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request.Scheme.Returns("https");
+            request.Path.Returns(new PathString("/api/v1/test"));
+            request.Host.Returns(new HostString("wherever.naf:12345"));
+            request.QueryString.Returns(new QueryString("?pageRef=3&pageSize=2&allocationStatuses=Published,Approved"));
+            request.Headers.Returns(headerDictionary);
+            request.Query.Returns(queryStringValues);
+
+            //Act
+            IActionResult result = await service.GetNotifications(3, "Published,Approved", 2, request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<ContentResult>();
+
+            ContentResult contentResult = result as ContentResult;
+            AtomFeed<AllocationModel> atomFeed = JsonConvert.DeserializeObject<AtomFeed<AllocationModel>>(contentResult.Content);
+
+            atomFeed
+                .Should()
+                .NotBeNull();
+
+            atomFeed.Id.Should().NotBeEmpty();
+            atomFeed.AtomEntry.Count.Should().Be(3);
+            atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationMajorVersion.Should().Be(1);
+            atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationMinorVersion.Should().Be(0);
+            atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationMajorVersion.Should().Be(2);
+            atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationMinorVersion.Should().Be(0);
+            atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationMajorVersion.Should().Be(0);
+            atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationMinorVersion.Should().Be(3);
+        }
+
+        [TestMethod]
+        public async Task GetNotifications_GivenMajorMinorFeatureToggleOff_ReturnsMajorMinorVersionNumbersAsZero()
+        {
+            //Arrange
+            SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
+            {
+                PageRef = 3,
+                Top = 500,
+                TotalCount = 3,
+                Entries = CreateFeedIndexes()
+            };
+
+            IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
+            feedsSearchService
+                .GetFeeds(Arg.Is(3), Arg.Is(2), Arg.Any<IEnumerable<string>>())
+                .Returns(feeds);
+
+            IFeatureToggle features = CreateFeatureToggle();
+            features
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(false);
+
+            AllocationNotificationFeedsService service = CreateService(feedsSearchService, features);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "Accept", new StringValues("application/json") }
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "pageRef", new StringValues("3") },
+                { "allocationStatuses", new StringValues("Published,Approved") },
+                { "pageSize", new StringValues("2") }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request.Scheme.Returns("https");
+            request.Path.Returns(new PathString("/api/v1/test"));
+            request.Host.Returns(new HostString("wherever.naf:12345"));
+            request.QueryString.Returns(new QueryString("?pageRef=3&pageSize=2&allocationStatuses=Published,Approved"));
+            request.Headers.Returns(headerDictionary);
+            request.Query.Returns(queryStringValues);
+
+            //Act
+            IActionResult result = await service.GetNotifications(3, "Published,Approved", 2, request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<ContentResult>();
+
+            ContentResult contentResult = result as ContentResult;
+            AtomFeed<AllocationModel> atomFeed = JsonConvert.DeserializeObject<AtomFeed<AllocationModel>>(contentResult.Content);
+
+            atomFeed
+                .Should()
+                .NotBeNull();
+
+            atomFeed.Id.Should().NotBeEmpty();
+            atomFeed.AtomEntry.Count.Should().Be(3);
+            atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationMajorVersion.Should().Be(0);
+            atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationMinorVersion.Should().Be(0);
+            atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationMajorVersion.Should().Be(0);
+            atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationMinorVersion.Should().Be(0);
+            atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationMajorVersion.Should().Be(0);
+            atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationMinorVersion.Should().Be(0);
+        }
+
+        private static AllocationNotificationFeedsService CreateService(IAllocationNotificationsFeedsSearchService searchService = null, IFeatureToggle featureToggle = null)
         {
             return new AllocationNotificationFeedsService(searchService ?? CreateSearchService(), featureToggle ?? CreateFeatureToggle());
         }
 
-        static IFeatureToggle CreateFeatureToggle()
+        private static IFeatureToggle CreateFeatureToggle()
         {
             return Substitute.For<IFeatureToggle>();
         }
 
-        static IAllocationNotificationsFeedsSearchService CreateSearchService()
+        private static IAllocationNotificationsFeedsSearchService CreateSearchService()
         {
             return Substitute.For<IAllocationNotificationsFeedsSearchService>();
         }
 
-        static IEnumerable<AllocationNotificationFeedIndex> CreateFeedIndexes()
+        private static IEnumerable<AllocationNotificationFeedIndex> CreateFeedIndexes()
         {
             return new[]
                 {
@@ -632,7 +770,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                          SubProviderType = "sub type 1",
                          ProviderUrn = "01",
                          MajorVersion = 1,
-                         MinorVersion = 1
+                         MinorVersion = 0
                     },
                     new AllocationNotificationFeedIndex
                     {
@@ -679,8 +817,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                          ProviderType = "type 2",
                          SubProviderType = "sub type 2",
                          ProviderUrn = "02",
-                         MajorVersion = 1,
-                         MinorVersion = 1
+                         MajorVersion = 2,
+                         MinorVersion = 0
                     },
                     new AllocationNotificationFeedIndex
                     {
@@ -727,8 +865,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                          ProviderType = "type 3",
                          SubProviderType = "sub type 3",
                          ProviderUrn = "03",
-                         MajorVersion = 1,
-                         MinorVersion = 1
+                         MajorVersion = 0,
+                         MinorVersion = 3
                     }
                 };
         }

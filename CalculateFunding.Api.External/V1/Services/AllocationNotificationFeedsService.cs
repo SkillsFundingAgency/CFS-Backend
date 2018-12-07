@@ -1,8 +1,11 @@
-﻿using CalculateFunding.Api.External.Swagger.Helpers;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Api.External.Swagger.Helpers;
 using CalculateFunding.Api.External.V1.Interfaces;
 using CalculateFunding.Api.External.V1.Models;
-using CalculateFunding.Common.FeatureToggles;
-using CalculateFunding.Models.External;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.External.AtomItems;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Search;
@@ -10,10 +13,6 @@ using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.External.V1.Services
 {
@@ -22,12 +21,12 @@ namespace CalculateFunding.Api.External.V1.Services
         const int MaxRecords = 500;
 
         private readonly IAllocationNotificationsFeedsSearchService _feedsService;
-        private readonly IFeatureToggle _featureToggle;
 
-        public AllocationNotificationFeedsService(IAllocationNotificationsFeedsSearchService feedsService, IFeatureToggle featureToggle)
+        public AllocationNotificationFeedsService(IAllocationNotificationsFeedsSearchService feedsService)
         {
+            Guard.ArgumentNotNull(feedsService, nameof(feedsService));
+
             _feedsService = feedsService;
-            _featureToggle = featureToggle;
         }
 
         public async Task<IActionResult> GetNotifications(int? pageRef, string allocationStatuses, int? pageSize, HttpRequest request)
@@ -47,7 +46,7 @@ namespace CalculateFunding.Api.External.V1.Services
                 pageSize = MaxRecords;
             }
 
-            if(pageSize < 1 || pageSize > 500)
+            if (pageSize < 1 || pageSize > 500)
             {
                 return new BadRequestObjectResult($"Page size should be more that zero and less than or equal to {MaxRecords}");
             }
@@ -61,7 +60,7 @@ namespace CalculateFunding.Api.External.V1.Services
 
             SearchFeed<AllocationNotificationFeedIndex> searchFeed = await _feedsService.GetFeeds(pageRef.Value, pageSize.Value, statusesArray);
 
-            if(searchFeed == null || searchFeed.TotalCount == 0)
+            if (searchFeed == null || searchFeed.TotalCount == 0)
             {
                 return new NotFoundResult();
             }
@@ -168,8 +167,6 @@ namespace CalculateFunding.Api.External.V1.Services
                                 ContractRequired = feedIndex.AllocationLineContractRequired ? "Y" : "N"
                             },
                             AllocationVersionNumber = feedIndex.AllocationVersionNumber,
-                            AllocationMajorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MajorVersion.HasValue) ? feedIndex.MajorVersion.Value : 0,
-                            AllocationMinorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MinorVersion.HasValue) ? feedIndex.MinorVersion.Value : 0,
                             AllocationStatus = feedIndex.AllocationStatus,
                             AllocationAmount = (decimal)feedIndex.AllocationAmount,
                             AllocationResultId = feedIndex.Id,
@@ -189,7 +186,7 @@ namespace CalculateFunding.Api.External.V1.Services
 
             IQueryCollection requestQuery = request.Query;
 
-            foreach (var item in requestQuery)
+            foreach (KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues> item in requestQuery)
             {
                 if (item.Key == "pageRef")
                 {
