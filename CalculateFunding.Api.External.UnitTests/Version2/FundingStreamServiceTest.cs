@@ -4,9 +4,8 @@ using System.Threading.Tasks;
 using AutoMapper;
 using AutoMapper.Configuration;
 using CalculateFunding.Api.External.MappingProfiles;
-using CalculateFunding.Api.External.V1.Models;
-using CalculateFunding.Api.External.V1.Services;
-using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Api.External.V2.Models;
+using CalculateFunding.Api.External.V2.Services;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -14,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
-namespace CalculateFunding.Api.External.UnitTests.Services
+namespace CalculateFunding.Api.External.UnitTests.Version2
 {
     [TestClass]
     public class FundingStreamServiceTest
@@ -55,7 +54,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
             Mapper.Initialize(mappings);
             IMapper mapper = Mapper.Instance;
 
-            OkObjectResult specServiceOkObjectResult = new OkObjectResult(new []
+            OkObjectResult specServiceOkObjectResult = new OkObjectResult(new[]
             {
                 fundingStream
             });

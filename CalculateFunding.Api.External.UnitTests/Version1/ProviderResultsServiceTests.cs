@@ -1,24 +1,24 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using NSubstitute;
-using CalculateFunding.Services.Results.Interfaces;
-using CalculateFunding.Api.External.V1.Services;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using FluentAssertions;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Api.External.V1.Models;
+using CalculateFunding.Api.External.V1.Services;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Search;
+using CalculateFunding.Services.Results.Interfaces;
+using FluentAssertions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
-using Serilog;
-using CalculateFunding.Api.External.V1.Models;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
-using CalculateFunding.Common.FeatureToggles;
+using NSubstitute;
+using Serilog;
 
-namespace CalculateFunding.Api.External.UnitTests.Services
+namespace CalculateFunding.Api.External.UnitTests.Version1
 {
     [TestClass]
     public class ProviderResultsServiceTests
@@ -1697,7 +1697,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
             feeds.Entries.ElementAt(0).MajorVersion = 1;
             feeds.Entries.ElementAt(0).MinorVersion = 1;
-           
+
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsAllocationLineMajorMinorVersioningEnabled()
@@ -1960,7 +1960,7 @@ namespace CalculateFunding.Api.External.UnitTests.Services
 
         static string CreatePolicySummaries()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             sb.AppendLine(@"[{""policy"":{""description"":""This is another etst policy created 9th August 2018"",""parentPolicyId"":null,""id"":""239c8b47-89e6-4906-a3bf-866bd11da2f4"",""name"":""Ab Test Policy 0908-001""},""policies"":[{""policy"":{""description"":""Yet another test sub policy"",""parentPolicyId"":null,""id"":""675143bc-84b0-4948-a0cf-bb3a7dd7e1ef"",""name"":""AB Test Sub Policy""},""policies"":[],""calculations"":[]}],""calculations"":[{""calculationName"":""Learner Count"",""calculationVersionNumber"":1,""calculationType"":""Number"",""calculationAmount"":1003.0},{""calculationName"":""AB Test Calc 0908-001"",""calculationVersionNumber"":1,""calculationType"":""Funding"",""calculationAmount"":300.0},{""calculationName"":""AB Test Calc 0908-002"",""calculationVersionNumber"":1,""calculationType"":""Funding"",""calculationAmount"":0.0}]}]");
             return sb.ToString();
         }
