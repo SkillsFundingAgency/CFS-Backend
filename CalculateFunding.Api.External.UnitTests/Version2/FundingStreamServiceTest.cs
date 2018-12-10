@@ -60,12 +60,12 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             });
 
             ISpecificationsService mockSpecificationsService = Substitute.For<ISpecificationsService>();
-            mockSpecificationsService.GetFundingStreams(Arg.Any<HttpRequest>()).Returns(specServiceOkObjectResult);
+            mockSpecificationsService.GetFundingStreams().Returns(specServiceOkObjectResult);
 
             FundingStreamService fundingStreamService = new FundingStreamService(mockSpecificationsService, mapper);
 
             // Act
-            IActionResult result = await fundingStreamService.GetFundingStreams(Substitute.For<HttpRequest>());
+            IActionResult result = await fundingStreamService.GetFundingStreams();
 
             // Assert
             result
@@ -96,7 +96,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
         }
 
         [TestMethod]
-        public async Task GetFundingStreams_WhenfundingStreamIsEmpty_ShouldReturnInternalServerErrorMessage()
+        public async Task GetFundingStreams_WhenFundingStreamIsEmpty_ShouldReturnEmptyFundingStreams()
         {
             // Arrange
             IMapper mapper = Substitute.For<IMapper>();
@@ -105,16 +105,86 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
             ISpecificationsService mockSpecificationsService = Substitute.For<ISpecificationsService>();
 
-            mockSpecificationsService.GetFundingStreams(Arg.Any<HttpRequest>()).Returns(specServiceOkObjectResult);
+            mockSpecificationsService.GetFundingStreams().Returns(specServiceOkObjectResult);
 
             FundingStreamService fundingStreamService = new FundingStreamService(mockSpecificationsService, mapper);
 
             // Act
-            IActionResult result = await fundingStreamService.GetFundingStreams(Substitute.For<HttpRequest>());
+            IActionResult result = await fundingStreamService.GetFundingStreams();
 
             // Assert
             result
-                .Should().BeOfType<OkResult>();
+                .Should()
+                .BeOfType<OkResult>();
+        }
+
+        [TestMethod]
+        public async Task GetFundingStream_WhenFundingStreamNotFound_ShouldReturnNotFoundResult()
+        {
+            // Arrange
+            string fundingStreamId = "unknown";
+
+            IMapper mapper = Substitute.For<IMapper>();
+
+            ISpecificationsService mockSpecificationsService = Substitute.For<ISpecificationsService>();
+
+            mockSpecificationsService
+                .GetFundingStreamById(Arg.Is(fundingStreamId))
+                .Returns(new NotFoundResult());
+
+            FundingStreamService fundingStreamService = new FundingStreamService(mockSpecificationsService, mapper);
+
+            // Act
+            IActionResult result = await fundingStreamService.GetFundingStream(fundingStreamId);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task GetFundingStream_WhenFundingStreamFound_ShouldReturnOkResult()
+        {
+            // Arrange
+            string fundingStreamId = "PSG";
+
+            Models.Specs.FundingStream fundingStream = new Models.Specs.FundingStream
+            {
+                Id = fundingStreamId,
+                Name = "PE and Sport Grant"
+            };
+
+            Mapper.Reset();
+            MapperConfigurationExpression mappings = new MapperConfigurationExpression();
+            mappings.AddProfile<ExternalApiMappingProfile>();
+            Mapper.Initialize(mappings);
+            IMapper mapper = Mapper.Instance;
+
+            ISpecificationsService mockSpecificationsService = Substitute.For<ISpecificationsService>();
+
+            mockSpecificationsService
+                .GetFundingStreamById(Arg.Is(fundingStreamId))
+                .Returns(new OkObjectResult(fundingStream));
+
+            FundingStreamService fundingStreamService = new FundingStreamService(mockSpecificationsService, mapper);
+
+            // Act
+            IActionResult result = await fundingStreamService.GetFundingStream(fundingStreamId);
+
+            // Assert
+            OkObjectResult okResult = result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Subject;
+
+            FundingStream actualFundingStream = okResult.Value
+                .Should()
+                .BeOfType<FundingStream>()
+                .Subject;
+
+            actualFundingStream.Id.Should().Be(fundingStreamId);
+            actualFundingStream.Name.Should().Be(fundingStream.Name);
         }
     }
 }

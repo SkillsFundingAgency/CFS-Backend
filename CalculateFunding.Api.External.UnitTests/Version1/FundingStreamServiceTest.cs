@@ -8,7 +8,6 @@ using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Api.External.V1.Services;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -60,12 +59,12 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
             });
 
             ISpecificationsService mockSpecificationsService = Substitute.For<ISpecificationsService>();
-            mockSpecificationsService.GetFundingStreams(Arg.Any<HttpRequest>()).Returns(specServiceOkObjectResult);
+            mockSpecificationsService.GetFundingStreams().Returns(specServiceOkObjectResult);
 
             FundingStreamService fundingStreamService = new FundingStreamService(mockSpecificationsService, mapper);
 
             // Act
-            IActionResult result = await fundingStreamService.GetFundingStreams(Substitute.For<HttpRequest>());
+            IActionResult result = await fundingStreamService.GetFundingStreams();
 
             // Assert
             result
@@ -105,12 +104,12 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
 
             ISpecificationsService mockSpecificationsService = Substitute.For<ISpecificationsService>();
 
-            mockSpecificationsService.GetFundingStreams(Arg.Any<HttpRequest>()).Returns(specServiceOkObjectResult);
+            mockSpecificationsService.GetFundingStreams().Returns(specServiceOkObjectResult);
 
             FundingStreamService fundingStreamService = new FundingStreamService(mockSpecificationsService, mapper);
 
             // Act
-            IActionResult result = await fundingStreamService.GetFundingStreams(Substitute.For<HttpRequest>());
+            IActionResult result = await fundingStreamService.GetFundingStreams();
 
             // Assert
             result

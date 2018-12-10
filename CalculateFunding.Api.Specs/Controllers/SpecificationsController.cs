@@ -123,7 +123,7 @@ namespace CalculateFunding.Api.Specs.Controllers
         [HttpGet]
         public async Task<IActionResult> RunFundingStreams()
         {
-            return await _specService.GetFundingStreams(ControllerContext.HttpContext.Request);
+            return await _specService.GetFundingStreams();
         }
 
         [Route("api/specs/policy-by-name")]
@@ -193,7 +193,7 @@ namespace CalculateFunding.Api.Specs.Controllers
         [HttpGet]
         public async Task<IActionResult> RunGetFundingStreams()
         {
-            return await _specService.GetFundingStreams(ControllerContext.HttpContext.Request);
+            return await _specService.GetFundingStreams();
         }
 
         [Route("api/specs/get-fundingstream-by-id")]

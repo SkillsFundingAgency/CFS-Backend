@@ -35,7 +35,6 @@ namespace CalculateFunding.Api.External.V2.Controllers
         [SwaggerOperationFilter(typeof(OperationFilter<Period[]>))]
         [ProducesResponseType(typeof(IEnumerable<Period>), 200)]
         [ProducesResponseType(401)]
-        [ProducesResponseType(406)]
         [ProducesResponseType(500)]
 
         public Task<IActionResult> Get()

@@ -38,12 +38,8 @@ namespace CalculateFunding.Api.External.V2.Controllers
         [SwaggerOperation("getProviderResultSummaryForAllocations")]
         [SwaggerOperationFilter(typeof(OperationFilter<ProviderResultSummary>))]
         [ProducesResponseType(typeof(ProviderResultSummary), 200)]
-        [ProducesResponseType(304)]
         [ProducesResponseType(401)]
         [ProducesResponseType(404)]
-        [ProducesResponseType(406)]
-        [ProducesResponseType(410)]
-        [ProducesResponseType(415)]
         [ProducesResponseType(500)]
         public Task<IActionResult> SummaryForAllocationLines(string ukprn, int startYear, int endYear, string allocationLineIds)
         {
@@ -66,12 +62,8 @@ namespace CalculateFunding.Api.External.V2.Controllers
         [SwaggerOperation("getProviderResultSummaryForFundingStreams")]
         [SwaggerOperationFilter(typeof(OperationFilter<ProviderResultSummary>))]
         [ProducesResponseType(typeof(ProviderResultSummary), 200)]
-        [ProducesResponseType(304)]
         [ProducesResponseType(401)]
         [ProducesResponseType(404)]
-        [ProducesResponseType(406)]
-        [ProducesResponseType(410)]
-        [ProducesResponseType(415)]
         [ProducesResponseType(500)]
         public Task<IActionResult> SummaryForFundingStreams(string ukprn, int startYear, int endYear, string fundingStreamIds)
         {
@@ -94,12 +86,8 @@ namespace CalculateFunding.Api.External.V2.Controllers
         [SwaggerOperation("getProviderResultSummaryForLACodeAndAllocationLines")]
         [SwaggerOperationFilter(typeof(OperationFilter<LocalAuthorityResultsSummary>))]
         [ProducesResponseType(typeof(LocalAuthorityResultsSummary), 200)]
-        [ProducesResponseType(304)]
         [ProducesResponseType(401)]
         [ProducesResponseType(404)]
-        [ProducesResponseType(406)]
-        [ProducesResponseType(410)]
-        [ProducesResponseType(415)]
         [ProducesResponseType(500)]
         public Task<IActionResult> SummaryForLocalAuthorityAllocationLines(string laCode, int startYear, int endYear, string allocationLineIds)
         {

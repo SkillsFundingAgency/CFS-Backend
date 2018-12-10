@@ -24,28 +24,42 @@ namespace CalculateFunding.Api.External.V2.Controllers
             Guard.ArgumentNotNull(fundingStreamService, nameof(fundingStreamService));
             _fundingStreamsService = fundingStreamService;
         }
+
         /// <summary>
         /// Return the funding streams supported by the service
         /// </summary>
-        /// <param name="ifNoneMatch">if a previously provided ETag value is provided, the service will return a 304 Not Modified response is the resource has not changed.</param>
-        /// <param name="Accept">The calculate funding service uses the Media Type provided in the Accept header to determine what representation of a particular resources to serve. In particular this includes the version of the resource and the wire format.</param>
         /// <returns></returns>
         [HttpGet]
         [Produces(typeof(FundingStream[]))]
-        [SwaggerResponseExample(200, typeof(FundingStreamExamples))]
+        [SwaggerResponseExample(200, typeof(FundingStreamsExamples))]
         [SwaggerOperation("getFundingStreams")]
         [SwaggerOperationFilter(typeof(OperationFilter<FundingStream[]>))]
         [ProducesResponseType(typeof(IEnumerable<FundingStream>), 200)]
-        [ProducesResponseType(304)]
         [ProducesResponseType(401)]
-        [ProducesResponseType(406)]
         [ProducesResponseType(500)]
-        [SwaggerResponseHeader(200, "ETag", "string", "An ETag of the resource")]
-        [SwaggerResponseHeader(200, "Cache-Control", "string", "Caching information for the resource")]
-        [SwaggerResponseHeader(200, "Last-Modified", "date", "Date the resource was last modified")]
         public async Task<IActionResult> GetFundingStreams()
         {
-            return await _fundingStreamsService.GetFundingStreams(Request);
+            return await _fundingStreamsService.GetFundingStreams();
+        }
+
+        /// <summary>
+        /// Return the funding stream identified by the fundingStreamId parameter
+        /// </summary>
+        /// <param name="fundingStreamId">The id of the funding stream</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("{fundingStreamId}")]
+        [Produces(typeof(FundingStream))]
+        [SwaggerResponseExample(200, typeof(FundingStreamExample))]
+        [SwaggerOperation("getFundingStreamById")]
+        [SwaggerOperationFilter(typeof(OperationFilter<FundingStream>))]
+        [ProducesResponseType(typeof(FundingStream), 200)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> GetFundingStreamById(string fundingStreamId)
+        {
+            return await _fundingStreamsService.GetFundingStream(fundingStreamId);
         }
     }
 }

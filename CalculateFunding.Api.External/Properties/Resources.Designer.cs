@@ -251,5 +251,37 @@ namespace CalculateFunding.Api.External.Properties {
                 return ResourceManager.GetString("V1_Sample_Provider_Results", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///		&quot;id&quot;: &quot;PSG&quot;,
+        ///		&quot;name&quot;: &quot;PE and Sport Premium Grant&quot;,
+        ///		&quot;shortName&quot;: &quot;PE and Sport&quot;,
+        ///		&quot;periodType&quot;: {
+        ///			&quot;id&quot;: &quot;AY&quot;,
+        ///			&quot;name&quot;: &quot;Schools Academic Year&quot;,
+        ///			&quot;startDay&quot;: 1,
+        ///			&quot;startMonth&quot;: 8,
+        ///			&quot;endDay&quot;: 31,
+        ///			&quot;endMonth&quot;: 7
+        ///		},
+        ///		&quot;allocationLines&quot;: [
+        ///			{
+        ///				&quot;id&quot;: &quot;PSG-001&quot;,
+        ///				&quot;name&quot;: &quot;Non-maintained Special Schools&quot;,
+        ///				&quot;shortName&quot;: &quot;NMSS&quot;,
+        ///				&quot;fundingRoute&quot;: &quot;Provider&quot;,
+        ///				&quot;contractRequired&quot;: &quot;Y&quot;
+        ///			},
+        ///			{
+        ///				&quot;id&quot;: &quot;PSG-002&quot;,
+        ///				&quot;name&quot;: &quot;Academies&quot;,
+        ///				&quot;shortName&quot;: &quot; [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string V2_Sample_FundingStreams {
+            get {
+                return ResourceManager.GetString("V2_Sample_FundingStreams", resourceCulture);
+            }
+        }
     }
 }

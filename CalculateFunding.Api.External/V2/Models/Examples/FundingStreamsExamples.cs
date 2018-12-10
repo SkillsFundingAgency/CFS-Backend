@@ -3,7 +3,7 @@ using Swashbuckle.AspNetCore.Examples;
 
 namespace CalculateFunding.Api.External.V2.Models.Examples
 {
-    public class FundingStreamExamples : IExamplesProvider
+    public class FundingStreamsExamples : IExamplesProvider
     {
         public object GetExamples()
         {

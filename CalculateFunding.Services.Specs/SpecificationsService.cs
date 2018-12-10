@@ -110,9 +110,9 @@ namespace CalculateFunding.Services.Specs
         {
             ServiceHealth specRepoHealth = await ((IHealthChecker)_specificationsRepository).IsHealthOk();
             string queueName = ServiceBusConstants.QueueNames.CalculationJobInitialiser;
-            var messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
-            var searchRepoHealth = await _searchRepository.IsHealthOk();
-            var cacheHealth = await _cacheProvider.IsHealthOk();
+            (bool Ok, string Message) messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
+            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
+            (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -142,9 +142,9 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetSpecificationById(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out StringValues specId);
 
-            var specificationId = specId.FirstOrDefault();
+            string specificationId = specId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -167,9 +167,9 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetSpecificationSummaryById(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out StringValues specId);
 
-            var specificationId = specId.FirstOrDefault();
+            string specificationId = specId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -259,9 +259,9 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetCurrentSpecificationById(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out StringValues specId);
 
-            var specificationId = specId.FirstOrDefault();
+            string specificationId = specId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -312,9 +312,9 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetSpecificationsByFundingPeriodId(HttpRequest request)
         {
-            request.Query.TryGetValue("fundingPeriodId", out var yearId);
+            request.Query.TryGetValue("fundingPeriodId", out StringValues yearId);
 
-            var fundingPeriodId = yearId.FirstOrDefault();
+            string fundingPeriodId = yearId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(fundingPeriodId))
             {
@@ -351,7 +351,7 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(HttpRequest request)
         {
-            request.Query.TryGetValue("fundingPeriodId", out var yearId);
+            request.Query.TryGetValue("fundingPeriodId", out StringValues yearId);
 
             string fundingPeriodId = yearId.FirstOrDefault();
 
@@ -362,7 +362,7 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("Null or empty fundingPeriodId provided");
             }
 
-            request.Query.TryGetValue("fundingStreamId", out var fundingStream);
+            request.Query.TryGetValue("fundingStreamId", out StringValues fundingStream);
 
             string fundingStreamId = fundingStream.FirstOrDefault();
 
@@ -410,7 +410,7 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetSpecificationsSelectedForFundingByPeriod(HttpRequest request)
         {
-            request.Query.TryGetValue("fundingPeriodId", out var yearId);
+            request.Query.TryGetValue("fundingPeriodId", out StringValues yearId);
 
             string fundingPeriodId = yearId.FirstOrDefault();
 
@@ -439,7 +439,7 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetFundingStreamsSelectedForFundingBySpecification(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out StringValues specId);
 
             string specificationId = specId.FirstOrDefault();
 
@@ -459,7 +459,7 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> UpdateCalculationLastUpdatedDate(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out StringValues specId);
 
             string specificationId = specId.FirstOrDefault();
 
@@ -500,9 +500,9 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetSpecificationByName(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationName", out var specName);
+            request.Query.TryGetValue("specificationName", out StringValues specName);
 
-            var specificationName = specName.FirstOrDefault();
+            string specificationName = specName.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specName))
             {
@@ -650,9 +650,9 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetCalculationBySpecificationIdAndCalculationId(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out StringValues specId);
 
-            var specificationId = specId.FirstOrDefault();
+            string specificationId = specId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -661,9 +661,9 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            request.Query.TryGetValue("calculationId", out var calcId);
+            request.Query.TryGetValue("calculationId", out StringValues calcId);
 
-            var calculationId = calcId.FirstOrDefault();
+            string calculationId = calcId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(calculationId))
             {
@@ -740,9 +740,9 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetCalculationsBySpecificationId(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out StringValues specId);
 
-            var specificationId = specId.FirstOrDefault();
+            string specificationId = specId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -788,7 +788,7 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetFundingPeriodById(HttpRequest request)
         {
-            request.Query.TryGetValue("fundingPeriodId", out var fundingPeriodIdParse);
+            request.Query.TryGetValue("fundingPeriodId", out StringValues fundingPeriodIdParse);
 
             string fundingPeriodId = fundingPeriodIdParse.FirstOrDefault();
 
@@ -811,7 +811,7 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(fundingPeriod);
         }
 
-        public async Task<IActionResult> GetFundingStreams(HttpRequest request)
+        public async Task<IActionResult> GetFundingStreams()
         {
             IEnumerable<FundingStream> fundingStreams = await _cacheProvider.GetAsync<FundingStream[]>(CacheKeys.AllFundingStreams);
 
@@ -834,7 +834,7 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetFundingStreamsForSpecificationById(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specificationIdParse);
+            request.Query.TryGetValue("specificationId", out StringValues specificationIdParse);
 
             string specificationId = specificationIdParse.FirstOrDefault();
 
@@ -872,10 +872,14 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> GetFundingStreamById(HttpRequest request)
         {
-            request.Query.TryGetValue("fundingStreamId", out var funStreamId);
-
+            request.Query.TryGetValue("fundingStreamId", out StringValues funStreamId);
             string fundingStreamId = funStreamId.FirstOrDefault();
 
+            return await GetFundingStreamById(fundingStreamId);
+        }
+
+        public async Task<IActionResult> GetFundingStreamById(string fundingStreamId)
+        {
             if (string.IsNullOrWhiteSpace(fundingStreamId))
             {
                 _logger.Error("No funding stream Id was provided to GetFundingStreamById");
@@ -906,7 +910,7 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("Null policy create model provided");
             }
 
-            var validationResult = (await _policyCreateModelValidator.ValidateAsync(createModel)).PopulateModelState();
+            BadRequestObjectResult validationResult = (await _policyCreateModelValidator.ValidateAsync(createModel)).PopulateModelState();
 
             if (validationResult != null)
             {
@@ -957,7 +961,7 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> EditPolicy(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out StringValues specId);
 
             string specificationId = specId.FirstOrDefault();
             if (string.IsNullOrWhiteSpace(specificationId))
@@ -966,7 +970,7 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            request.Query.TryGetValue("policyId", out var polId);
+            request.Query.TryGetValue("policyId", out StringValues polId);
 
             string policyId = polId.FirstOrDefault();
             if (string.IsNullOrWhiteSpace(policyId))
@@ -988,7 +992,7 @@ namespace CalculateFunding.Services.Specs
             editModel.PolicyId = policyId;
             editModel.SpecificationId = specificationId;
 
-            var validationResult = (await _policyEditModelValidator.ValidateAsync(editModel)).PopulateModelState();
+            BadRequestObjectResult validationResult = (await _policyEditModelValidator.ValidateAsync(editModel)).PopulateModelState();
 
             if (validationResult != null)
             {
@@ -1061,7 +1065,7 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("Null policy create model provided");
             }
 
-            var validationResult = (await _specificationCreateModelvalidator.ValidateAsync(createModel)).PopulateModelState();
+            BadRequestObjectResult validationResult = (await _specificationCreateModelvalidator.ValidateAsync(createModel)).PopulateModelState();
 
             if (validationResult != null)
             {
@@ -1150,7 +1154,7 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> EditSpecification(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out StringValues specId);
             string specificationId = specId.FirstOrDefault();
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -1167,7 +1171,7 @@ namespace CalculateFunding.Services.Specs
 
             editModel.SpecificationId = specificationId;
 
-            var validationResult = (await _specificationEditModelValidator.ValidateAsync(editModel)).PopulateModelState();
+            BadRequestObjectResult validationResult = (await _specificationEditModelValidator.ValidateAsync(editModel)).PopulateModelState();
             if (validationResult != null)
             {
                 return validationResult;
@@ -1269,7 +1273,7 @@ namespace CalculateFunding.Services.Specs
                 CreateSpecificationIndex(specification)
             });
 
-            var specificationIndexingErrorsAsList = specificationIndexingErrors.ToList();
+            List<IndexError> specificationIndexingErrorsAsList = specificationIndexingErrors.ToList();
             if (!specificationIndexingErrorsAsList.IsNullOrEmpty())
             {
                 string specificationIndexingErrorsConcatted = string.Join(". ", specificationIndexingErrorsAsList.Select(e => e.ErrorMessage));
@@ -1282,7 +1286,7 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> EditSpecificationStatus(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out StringValues specId);
             string specificationId = specId.FirstOrDefault();
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -1507,7 +1511,7 @@ namespace CalculateFunding.Services.Specs
                 _logger.Error("Null calculation create model provided to CreateCalculation");
                 return new BadRequestObjectResult("Null calculation create model provided");
             }
-            var validationResult = (await _calculationCreateModelValidator.ValidateAsync(createModel)).PopulateModelState();
+            BadRequestObjectResult validationResult = (await _calculationCreateModelValidator.ValidateAsync(createModel)).PopulateModelState();
             if (validationResult != null)
             {
                 _logger.Error("Invalid data was provided for CreateCalculation");
@@ -1595,7 +1599,7 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> EditCalculation(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out StringValues specId);
 
             string specificationId = specId.FirstOrDefault();
             if (string.IsNullOrWhiteSpace(specificationId))
@@ -1604,7 +1608,7 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            request.Query.TryGetValue("calculationId", out var calcId);
+            request.Query.TryGetValue("calculationId", out StringValues calcId);
 
             string calculationId = calcId.FirstOrDefault();
             if (string.IsNullOrWhiteSpace(calculationId))
@@ -1625,7 +1629,7 @@ namespace CalculateFunding.Services.Specs
             editModel.CalculationId = calculationId;
             editModel.SpecificationId = specificationId;
 
-            var validationResult = (await _calculationEditModelValidator.ValidateAsync(editModel)).PopulateModelState();
+            BadRequestObjectResult validationResult = (await _calculationEditModelValidator.ValidateAsync(editModel)).PopulateModelState();
             if (validationResult != null)
             {
                 _logger.Error("Invalid data was provided for EdditCalculation");
@@ -1756,7 +1760,7 @@ namespace CalculateFunding.Services.Specs
             }
             else
             {
-                var validationResult = await _assignDefinitionRelationshipMessageValidator.ValidateAsync(relationshipMessage);
+                FluentValidation.Results.ValidationResult validationResult = await _assignDefinitionRelationshipMessageValidator.ValidateAsync(relationshipMessage);
 
                 if (!validationResult.IsValid)
                 {
@@ -1874,7 +1878,7 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult($"Invalid yaml was provided for file: {yamlFilename}");
             }
 
-            var deserializer = new DeserializerBuilder()
+            IDeserializer deserializer = new DeserializerBuilder()
                 .WithNamingConvention(new CamelCaseNamingConvention())
                 .Build();
 
@@ -1934,7 +1938,7 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult($"Invalid yaml was provided for file: {yamlFilename}");
             }
 
-            var deserializer = new DeserializerBuilder()
+            IDeserializer deserializer = new DeserializerBuilder()
                 .WithNamingConvention(new CamelCaseNamingConvention())
                 .Build();
 
@@ -1977,7 +1981,7 @@ namespace CalculateFunding.Services.Specs
         {
             if (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled())
             {
-                request.Query.TryGetValue("specificationId", out var specId);
+                request.Query.TryGetValue("specificationId", out StringValues specId);
 
                 string specificationId = specId.FirstOrDefault();
 
@@ -2047,7 +2051,7 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> SelectSpecificationForFunding(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out StringValues specId);
 
             string specificationId = specId.FirstOrDefault();
 
@@ -2154,7 +2158,7 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("the request query is empty or null");
             }
 
-            request.Query.TryGetValue("specificationId", out var specificationId);
+            request.Query.TryGetValue("specificationId", out StringValues specificationId);
 
             try
             {

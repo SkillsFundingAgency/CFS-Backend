@@ -1,16 +1,11 @@
-﻿using AutoMapper;
-using CalculateFunding.Api.External.V1.Interfaces;
-using CalculateFunding.Api.External.V1.Models;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Specs.Interfaces;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Api.External.V1.Interfaces;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Specs.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.External.V1.Services
 {
@@ -29,9 +24,9 @@ namespace CalculateFunding.Api.External.V1.Services
             _mapper = mapper;
         }
 
-        public async Task<IActionResult> GetFundingStreams(HttpRequest request)
+        public async Task<IActionResult> GetFundingStreams()
         {
-            IActionResult result = await _specService.GetFundingStreams(request);
+            IActionResult result = await _specService.GetFundingStreams();
 
             if (result is OkObjectResult okObjectResult)
             {
