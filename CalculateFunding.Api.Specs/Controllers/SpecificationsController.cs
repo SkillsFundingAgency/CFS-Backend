@@ -168,6 +168,13 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.GetCalculationsBySpecificationId(ControllerContext.HttpContext.Request);
         }
 
+        [Route("api/specs/specifications/{specificationId}/baseline-calculations")]
+        [HttpGet]
+        public async Task<IActionResult> RunGetBaselineCalculations([FromRoute]string specificationId)
+        {
+            return await _specService.GetBaselineCalculations(specificationId, ControllerContext.HttpContext.Request);
+        }
+
         [Route("api/specs/calculations")]
         [HttpPost]
         public async Task<IActionResult> RunCreateCalculation()

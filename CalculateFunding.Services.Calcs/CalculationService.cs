@@ -493,6 +493,7 @@ namespace CalculateFunding.Services.Calcs
                         calculation.Policies.First().Name = policy.Name;
                     }
                 }
+
                 calcIndexes.Add(CreateCalculationIndexItem(calculation, specificationVersionComparison.Current.Name));
             }
 

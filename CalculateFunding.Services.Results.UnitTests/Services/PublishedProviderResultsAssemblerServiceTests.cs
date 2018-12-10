@@ -1123,7 +1123,7 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = new List<ProviderResult>();
             Reference author = new Reference("a", "Author Name");
             SpecificationCurrentVersion specification = new SpecificationCurrentVersion();
-            
+
             PublishedProviderResultsAssemblerService service = CreateAssemblerService();
 
             // Act
@@ -1214,7 +1214,7 @@ namespace CalculateFunding.Services.Results.Services
             PublishedProviderResultsAssemblerService service = CreateAssemblerService();
 
             // Act
-            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults  = service.AssemblePublishedCalculationResults(providerResults, author, specification);
+            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = service.AssemblePublishedCalculationResults(providerResults, author, specification);
 
             // Assert
             publishedProviderCalculationResults
@@ -2064,8 +2064,8 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         static PublishedProviderResultsAssemblerService CreateAssemblerService(
-            ISpecificationsRepository specificationsRepository = null, 
-            ILogger logger = null, 
+            ISpecificationsRepository specificationsRepository = null,
+            ILogger logger = null,
             IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = null,
             IVersionRepository<PublishedProviderCalculationResultVersion> calculationResultsVersionRepository = null)
         {

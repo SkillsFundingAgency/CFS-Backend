@@ -597,6 +597,57 @@ namespace CalculateFunding.Services.Specs
             return new NotFoundResult();
         }
 
+        public async Task<IActionResult> GetBaselineCalculations(string specificationId, HttpRequest request)
+        {
+            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
+
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+            if (specification == null)
+            {
+                return new PreconditionFailedResult("Specification not found");
+            }
+
+            List<CalculationCurrentVersion> baselineCalculations = new List<CalculationCurrentVersion>();
+
+            if (specification.Current != null && specification.Current.Policies != null)
+            {
+                foreach (Policy policy in specification.Current.Policies)
+                {
+                    if (policy.Calculations != null)
+                    {
+                        foreach (Calculation calculation in policy.Calculations)
+                        {
+                            if (calculation.CalculationType == CalculationType.Baseline)
+                            {
+
+                                baselineCalculations.Add(GenerateCalculationCurrentVersion(specificationId, policy, calculation));
+                            }
+                        }
+                    }
+
+                    if (policy.SubPolicies != null)
+                    {
+                        foreach (Policy subPolicy in policy.SubPolicies)
+                        {
+                            if (subPolicy.Calculations != null)
+                            {
+                                foreach (Calculation calculation in subPolicy.Calculations)
+                                {
+                                    if (calculation.CalculationType == CalculationType.Baseline)
+                                    {
+                                        baselineCalculations.Add(GenerateCalculationCurrentVersion(specificationId, subPolicy, calculation));
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+
+            return new OkObjectResult(baselineCalculations);
+        }
+
         public async Task<IActionResult> GetCalculationBySpecificationIdAndCalculationId(HttpRequest request)
         {
             request.Query.TryGetValue("specificationId", out var specId);
@@ -637,7 +688,7 @@ namespace CalculateFunding.Services.Specs
                         {
                             if (calculation.Id == calculationId)
                             {
-                                return GenerateCalculationCurrentVersion(specificationId, calculationId, policy, calculation);
+                                return GenerateCalculationCurrentVersionActionResult(specificationId, policy, calculation);
                             }
                         }
                     }
@@ -652,7 +703,7 @@ namespace CalculateFunding.Services.Specs
                                 {
                                     if (calculation.Id == calculationId)
                                     {
-                                        return GenerateCalculationCurrentVersion(specificationId, calculationId, subPolicy, calculation);
+                                        return GenerateCalculationCurrentVersionActionResult(specificationId, subPolicy, calculation);
                                     }
                                 }
                             }
@@ -667,15 +718,24 @@ namespace CalculateFunding.Services.Specs
             return new NotFoundObjectResult("Calculation not found");
         }
 
-        private IActionResult GenerateCalculationCurrentVersion(string specificationId, string calculationId, Policy policy, Calculation calculation)
+        private CalculationCurrentVersion GenerateCalculationCurrentVersion(string specificationId, Policy policy, Calculation calculation)
         {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.ArgumentNotNull(policy, nameof(policy));
+            Guard.ArgumentNotNull(calculation, nameof(calculation));
+
             CalculationCurrentVersion calculationCurrentVersion = _mapper.Map<CalculationCurrentVersion>(calculation);
             calculationCurrentVersion.PolicyId = policy.Id;
             calculationCurrentVersion.PolicyName = policy.Name;
 
-            _logger.Information($"A calculation was found for specification id {specificationId} and calculation id {calculationId}");
+            _logger.Information($"A calculation was found for specification id {specificationId} and calculation id {calculation.Id}");
 
-            return new OkObjectResult(calculationCurrentVersion);
+            return calculationCurrentVersion;
+        }
+
+        private IActionResult GenerateCalculationCurrentVersionActionResult(string specificationId, Policy policy, Calculation calculation)
+        {
+            return new OkObjectResult(GenerateCalculationCurrentVersion(specificationId, policy, calculation));
         }
 
         public async Task<IActionResult> GetCalculationsBySpecificationId(HttpRequest request)
@@ -890,7 +950,7 @@ namespace CalculateFunding.Services.Specs
                 return new StatusCodeResult((int)statusCode);
             }
 
-	        await ReindexSpecification(specification);
+            await ReindexSpecification(specification);
 
             return new OkObjectResult(policy);
         }
@@ -981,7 +1041,7 @@ namespace CalculateFunding.Services.Specs
                 return new StatusCodeResult((int)statusCode);
             }
 
-	        await ReindexSpecification(specification);
+            await ReindexSpecification(specification);
 
             await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
 
@@ -1184,9 +1244,9 @@ namespace CalculateFunding.Services.Specs
                 return new StatusCodeResult((int)statusCode);
             }
 
-	        await ReindexSpecification(specification);
+            await ReindexSpecification(specification);
 
-	        await TaskHelper.WhenAllAndThrow(
+            await TaskHelper.WhenAllAndThrow(
                  ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id),
                 _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}")
                 );
@@ -1202,25 +1262,25 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specification);
         }
 
-	    private async Task ReindexSpecification(Specification specification)
-	    {
-		    IEnumerable<IndexError> specificationIndexingErrors = await _searchRepository.Index(new[]
-		    {
-			    CreateSpecificationIndex(specification)
-		    });
+        private async Task ReindexSpecification(Specification specification)
+        {
+            IEnumerable<IndexError> specificationIndexingErrors = await _searchRepository.Index(new[]
+            {
+                CreateSpecificationIndex(specification)
+            });
 
-		    var specificationIndexingErrorsAsList = specificationIndexingErrors.ToList();
-		    if (!specificationIndexingErrorsAsList.IsNullOrEmpty())
-		    {
-			    string specificationIndexingErrorsConcatted = string.Join(". ", specificationIndexingErrorsAsList.Select(e => e.ErrorMessage));
-			    string formattedErrorMessage =
-				    $"Could not index specification {specification.Current.Id} because: {specificationIndexingErrorsConcatted}";
-			    _logger.Error(formattedErrorMessage);
-			    throw new ApplicationException(formattedErrorMessage);
-		    }
-	    }
+            var specificationIndexingErrorsAsList = specificationIndexingErrors.ToList();
+            if (!specificationIndexingErrorsAsList.IsNullOrEmpty())
+            {
+                string specificationIndexingErrorsConcatted = string.Join(". ", specificationIndexingErrorsAsList.Select(e => e.ErrorMessage));
+                string formattedErrorMessage =
+                    $"Could not index specification {specification.Current.Id} because: {specificationIndexingErrorsConcatted}";
+                _logger.Error(formattedErrorMessage);
+                throw new ApplicationException(formattedErrorMessage);
+            }
+        }
 
-	    public async Task<IActionResult> EditSpecificationStatus(HttpRequest request)
+        public async Task<IActionResult> EditSpecificationStatus(HttpRequest request)
         {
             request.Query.TryGetValue("specificationId", out var specId);
             string specificationId = specId.FirstOrDefault();
@@ -1294,7 +1354,7 @@ namespace CalculateFunding.Services.Specs
                 return new StatusCodeResult((int)statusCode);
             }
 
-	        await ReindexSpecification(specification);
+            await ReindexSpecification(specification);
 
             await TaskHelper.WhenAllAndThrow(
                  ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id),
@@ -1508,7 +1568,7 @@ namespace CalculateFunding.Services.Specs
                 return new StatusCodeResult((int)statusCode);
             }
 
-	        await ReindexSpecification(specification);
+            await ReindexSpecification(specification);
 
             IDictionary<string, string> properties = request.BuildMessageProperties();
 
@@ -1602,12 +1662,16 @@ namespace CalculateFunding.Services.Specs
             {
                 calculation.IsPublic = editModel.IsPublic;
             }
+            else if (calculation.CalculationType == CalculationType.Baseline)
+            {
+                calculation.IsPublic = true;
+            }
             else
             {
                 calculation.IsPublic = false;
             }
 
-            if (editModel.CalculationType == CalculationType.Funding)
+            if (editModel.CalculationType == CalculationType.Funding || editModel.CalculationType == CalculationType.Baseline)
             {
                 FundingStream currentFundingStream = null;
                 if (!string.IsNullOrWhiteSpace(editModel.AllocationLineId))
@@ -1673,7 +1737,7 @@ namespace CalculateFunding.Services.Specs
                 return new StatusCodeResult((int)statusCode);
             }
 
-	        await ReindexSpecification(specification);
+            await ReindexSpecification(specification);
 
             await SendCalculationComparisonModelMessageToTopic(specificationId, calculationId, ServiceBusConstants.TopicNames.EditCalculation, calculation, previousCalculation, request);
 
@@ -2208,21 +2272,21 @@ namespace CalculateFunding.Services.Specs
         {
             SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
 
-			return new SpecificationIndex
-			{
-		        Id = specification.Id,
-		        Name = specification.Name,
-		        IsSelectedForFunding = specification.IsSelectedForFunding,
-		        Status = Enum.GetName(typeof(PublishStatus), specificationVersion.PublishStatus),
-		        Description = specificationVersion.Description,
-		        FundingStreamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray(),
-		        FundingStreamNames = specificationVersion.FundingStreams.Select(s => s.Name).ToArray(),
-		        FundingPeriodId = specificationVersion.FundingPeriod.Id,
-		        FundingPeriodName = specificationVersion.FundingPeriod.Name,
-		        LastUpdatedDate = DateTimeOffset.Now,
-		        DataDefinitionRelationshipIds = specificationVersion.DataDefinitionRelationshipIds.ToArraySafe(),
-		        PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt
-	        };
+            return new SpecificationIndex
+            {
+                Id = specification.Id,
+                Name = specification.Name,
+                IsSelectedForFunding = specification.IsSelectedForFunding,
+                Status = Enum.GetName(typeof(PublishStatus), specificationVersion.PublishStatus),
+                Description = specificationVersion.Description,
+                FundingStreamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray(),
+                FundingStreamNames = specificationVersion.FundingStreams.Select(s => s.Name).ToArray(),
+                FundingPeriodId = specificationVersion.FundingPeriod.Id,
+                FundingPeriodName = specificationVersion.FundingPeriod.Name,
+                LastUpdatedDate = DateTimeOffset.Now,
+                DataDefinitionRelationshipIds = specificationVersion.DataDefinitionRelationshipIds.ToArraySafe(),
+                PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt
+            };
         }
     }
 }

@@ -11,6 +11,9 @@ namespace CalculateFunding.Models.Results
         Number = 0,
 
         [EnumMember(Value = "Funding")]
-        Funding = 10
+        Funding = 10,
+
+        [EnumMember(Value = "Baseline")]
+        Baseline = 20,
     }
 }

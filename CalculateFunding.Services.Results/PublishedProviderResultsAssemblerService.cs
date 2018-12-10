@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -95,7 +94,7 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(providerResults, nameof(providerResults));
             Guard.ArgumentNotNull(author, nameof(author));
             Guard.ArgumentNotNull(specificationCurrentVersion, nameof(specificationCurrentVersion));
-        
+
             string specificationId = specificationCurrentVersion.Id;
 
             IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id);
@@ -106,7 +105,7 @@ namespace CalculateFunding.Services.Results
 
             foreach (ProviderResult providerResult in providerResults)
             {
-                if(providerResult.CalculationResults.IsNullOrEmpty())
+                if (providerResult.CalculationResults.IsNullOrEmpty())
                 {
                     continue;
                 }
@@ -157,7 +156,7 @@ namespace CalculateFunding.Services.Results
 
                     publishedProviderCalculationResults.Add(publishedProviderCalculationResult);
                 }
-                
+
             }
 
             return publishedProviderCalculationResults;
@@ -181,12 +180,12 @@ namespace CalculateFunding.Services.Results
 
                 existingProviderResults[providerResult.ProviderId].TryAdd(providerResult.AllocationLineId, providerResult);
             }
-       
+
             List<Task> allTasks = new List<Task>();
 
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
-            
-            foreach(PublishedProviderResult providerResult in providerResults)
+
+            foreach (PublishedProviderResult providerResult in providerResults)
             {
                 await throttler.WaitAsync();
                 allTasks.Add(
@@ -198,7 +197,7 @@ namespace CalculateFunding.Services.Results
                             {
                                 ConcurrentDictionary<string, PublishedProviderResultExisting> existingResultsForProvider = existingProviderResults[providerResult.ProviderId];
 
-                               
+
                                 if (existingResultsForProvider.TryGetValue(providerResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id, out PublishedProviderResultExisting existingResult))
                                 {
                                     existingResultsForProvider.TryRemove(providerResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id, out var removedExistingResult);
@@ -208,7 +207,7 @@ namespace CalculateFunding.Services.Results
                                         existingProviderResults.TryRemove(providerResult.ProviderId, out var removedProviderResult);
                                     }
 
-                                    providerResult.FundingStreamResult.AllocationLineResult.Current.Version = 
+                                    providerResult.FundingStreamResult.AllocationLineResult.Current.Version =
                                         await _allocationResultsVersionRepository.GetNextVersionNumber(providerResult.FundingStreamResult.AllocationLineResult.Current, existingResult.Version, incrementFromCurrentVersion: true);
 
                                     if (existingResult.Status != AllocationLineStatus.Held)
@@ -290,6 +289,8 @@ namespace CalculateFunding.Services.Results
                     return PublishedCalculationType.Funding;
                 case Models.Calcs.CalculationType.Number:
                     return PublishedCalculationType.Number;
+                case Models.Calcs.CalculationType.Baseline:
+                    return PublishedCalculationType.Baseline;
                 default:
                     throw new InvalidOperationException($"Unknown {typeof(Models.Calcs.CalculationType)}");
             }

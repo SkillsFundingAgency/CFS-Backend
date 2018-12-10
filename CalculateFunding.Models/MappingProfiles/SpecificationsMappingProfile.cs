@@ -1,6 +1,6 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
 using CalculateFunding.Models.Specs;
-using System;
 
 namespace CalculateFunding.Models.MappingProfiles
 {
@@ -19,8 +19,7 @@ namespace CalculateFunding.Models.MappingProfiles
                 .AfterMap((src, dest) => { dest.Id = Guid.NewGuid().ToString(); })
                 .ForMember(m => m.Id, opt => opt.Ignore())
                 .ForMember(m => m.AllocationLine, opt => opt.Ignore())
-                .ForMember(m => m.LastUpdated, opt => opt.Ignore())
-                .ForMember(d => d.CalculationType, opt => opt.ResolveUsing(o => Enum.Parse(typeof(Calcs.CalculationType), o.CalculationType, true)));
+                .ForMember(m => m.LastUpdated, opt => opt.Ignore());
 
             CreateMap<Specification, SpecificationSummary>()
                 .ForMember(m => m.Description, opt => opt.MapFrom(s => s.Current.Description))

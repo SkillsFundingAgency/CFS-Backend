@@ -1,9 +1,7 @@
-﻿using CalculateFunding.Models.Versioning;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using CalculateFunding.Models.Versioning;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs
 {
@@ -41,6 +39,51 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("dataDefinitionRelationshipIds")]
         public IEnumerable<string> DataDefinitionRelationshipIds { get; set; }
+
+        /// <summary>
+        /// Gets all calculations - from top level policies and subpolicies in a flat list
+        /// </summary>
+        /// <returns>IEnumerable of Calculations for the specification</returns>
+        public IEnumerable<Calculation> GetAllCalculations()
+        {
+            List<Calculation> calculations = new List<Calculation>();
+
+            if (Policies != null)
+            {
+                foreach (Policy policy in Policies)
+                {
+                    if (policy != null && policy.Calculations != null)
+                    {
+                        foreach (Calculation calculation in policy.Calculations)
+                        {
+                            if (calculation != null)
+                            {
+                                calculations.Add(calculation);
+                            }
+                        }
+                    }
+
+                    if (policy != null && policy.SubPolicies != null)
+                    {
+                        foreach (Policy subPolicy in policy.SubPolicies)
+                        {
+                            if (subPolicy != null && subPolicy.Calculations != null)
+                            {
+                                foreach (Calculation calculation in subPolicy.Calculations)
+                                {
+                                    if (calculation != null)
+                                    {
+                                        calculations.Add(calculation);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return calculations;
+        }
 
         public override VersionedItem Clone()
         {

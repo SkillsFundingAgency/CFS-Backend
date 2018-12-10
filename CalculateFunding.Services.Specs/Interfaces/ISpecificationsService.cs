@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Specs.Interfaces
 {
@@ -52,6 +52,8 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetCalculationsBySpecificationId(HttpRequest request);
 
+        Task<IActionResult> GetBaselineCalculations(string specificationId, HttpRequest request);
+
         Task AssignDataDefinitionRelationship(Message message);
 
         Task<IActionResult> ReIndex();
@@ -70,7 +72,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> SelectSpecificationForFunding(HttpRequest request);
 
-	    Task<IActionResult> RefreshPublishedResults(HttpRequest request);
+        Task<IActionResult> RefreshPublishedResults(HttpRequest request);
 
         Task<IActionResult> GetFundingPeriodById(HttpRequest request);
 

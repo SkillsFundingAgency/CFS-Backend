@@ -22,9 +22,9 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
 
             using (var scope = IocConfig.Build(config).CreateScope())
             {
-                var calculationService = scope.ServiceProvider.GetService<ICalculationService>();
-                var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                var logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
+                ICalculationService calculationService = scope.ServiceProvider.GetService<ICalculationService>();
+                ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
+                Serilog.ILogger logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
                 ICacheProvider cacheProvider = scope.ServiceProvider.GetService<ICacheProvider>();
 
                 try
@@ -37,7 +37,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
                     logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.CreateDraftCalculation}");
                     throw;
                 }
-                
+
             }
         }
 
