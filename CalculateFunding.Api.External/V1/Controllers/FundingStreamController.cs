@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CalculateFunding.Api.External.Swagger.OperationFilters;
+using CalculateFunding.Api.External.V1.Interfaces;
 using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Api.External.V1.Models.Examples;
+using CalculateFunding.Services.Core.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Examples;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System.Threading.Tasks;
-using CalculateFunding.Api.External.V1.Interfaces;
-using CalculateFunding.Services.Core.Helpers;
 
 namespace CalculateFunding.Api.External.V1.Controllers
 {
@@ -45,7 +45,7 @@ namespace CalculateFunding.Api.External.V1.Controllers
         [SwaggerResponseHeader(200, "Last-Modified", "date", "Date the resource was last modified")]
         public async Task<IActionResult> GetFundingStreams()
         {
-            return await _fundingStreamsService.GetFundingStreams(Request);
+            return await _fundingStreamsService.GetFundingStreams();
         }
     }
 }

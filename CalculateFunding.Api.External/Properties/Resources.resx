@@ -815,4 +815,42 @@
 ]</value>
     <comment>sample periods</comment>
   </data>
+  <data name="V2_Sample_FundingStreams" xml:space="preserve">
+    <value>{
+		"id": "PSG",
+		"name": "PE and Sport Premium Grant",
+		"shortName": "PE and Sport",
+		"periodType": {
+			"id": "AY",
+			"name": "Schools Academic Year",
+			"startDay": 1,
+			"startMonth": 8,
+			"endDay": 31,
+			"endMonth": 7
+		},
+		"allocationLines": [
+			{
+				"id": "PSG-001",
+				"name": "Non-maintained Special Schools",
+				"shortName": "NMSS",
+				"fundingRoute": "Provider",
+				"contractRequired": "Y"
+			},
+			{
+				"id": "PSG-002",
+				"name": "Academies",
+				"shortName": "Acad",
+				"fundingRoute": "Provider",
+				"contractRequired": "N"
+			},
+			{
+				"id": "PSG-003",
+				"name": "Maintained Schools",
+				"shortName": "MS",
+				"fundingRoute": "LA",
+				"contractRequired": "N"
+			}
+		]
+	}</value>
+  </data>
 </root>

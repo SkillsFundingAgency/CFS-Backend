@@ -62,7 +62,7 @@ namespace CalculateFunding.Api.External.Swagger
                     In = "header"
                 });
                 c.OperationFilter<AddResponseHeadersFilter>();
-                c.OperationFilter<AddRequiredHeaderParameters>();
+                //c.OperationFilter<AddRequiredHeaderParameters>();
 
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);

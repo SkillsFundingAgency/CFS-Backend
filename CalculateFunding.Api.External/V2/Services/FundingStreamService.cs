@@ -25,9 +25,9 @@ namespace CalculateFunding.Api.External.V2.Services
             _mapper = mapper;
         }
 
-        public async Task<IActionResult> GetFundingStreams(HttpRequest request)
+        public async Task<IActionResult> GetFundingStreams()
         {
-            IActionResult result = await _specService.GetFundingStreams(request);
+            IActionResult result = await _specService.GetFundingStreams();
 
             if (result is OkObjectResult okObjectResult)
             {
@@ -43,6 +43,21 @@ namespace CalculateFunding.Api.External.V2.Services
                 }
             }
             return result;
+        }
+
+        public async Task<IActionResult> GetFundingStream(string fundingStreamId)
+        {
+            IActionResult result = await _specService.GetFundingStreamById(fundingStreamId);
+
+            if (result is OkObjectResult okObjectResult)
+            {
+                V2.Models.FundingStream mappedFundingStream = _mapper.Map<V2.Models.FundingStream>(okObjectResult.Value);
+                return new OkObjectResult(mappedFundingStream);
+            }
+            else
+            {
+                return result;
+            }
         }
     }
 }

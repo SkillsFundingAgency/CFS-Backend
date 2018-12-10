@@ -34,13 +34,8 @@ namespace CalculateFunding.Api.External.V2.Controllers
         [SwaggerOperation("getAllocationById")]
         [SwaggerOperationFilter(typeof(OperationFilter<AllocationModel>))]
         [ProducesResponseType(typeof(AllocationModel), 200)]
-        [ProducesResponseType(304)]
         [ProducesResponseType(401)]
-        [ProducesResponseType(406)]
         [ProducesResponseType(500)]
-        [SwaggerResponseHeader(200, "ETag", "string", "An ETag of the resource")]
-        [SwaggerResponseHeader(200, "Cache-Control", "string", "Caching information for the resource")]
-        [SwaggerResponseHeader(200, "Last-Modified", "date", "Date the resource was last modified")]
         public Task<IActionResult> GetAllocation(string allocationId, int? allocationVersion = null)
         {
             return _allocationsService.GetAllocationByAllocationResultId(allocationId, allocationVersion, Request);
@@ -56,13 +51,8 @@ namespace CalculateFunding.Api.External.V2.Controllers
         [SwaggerOperation("getAllocationAndHistoryById")]
         [SwaggerOperationFilter(typeof(OperationFilter<AllocationWithHistoryModel>))]
         [ProducesResponseType(typeof(AllocationModel), 200)]
-        [ProducesResponseType(304)]
         [ProducesResponseType(401)]
-        [ProducesResponseType(406)]
         [ProducesResponseType(500)]
-        [SwaggerResponseHeader(200, "ETag", "string", "An ETag of the resource")]
-        [SwaggerResponseHeader(200, "Cache-Control", "string", "Caching information for the resource")]
-        [SwaggerResponseHeader(200, "Last-Modified", "date", "Date the resource was last modified")]
         public Task<IActionResult> GetAllocationAndHistory(string allocationId)
         {
             return _allocationsService.GetAllocationAndHistoryByAllocationResultId(allocationId, Request);
