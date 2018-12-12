@@ -1,5 +1,12 @@
-﻿using CalculateFunding.Common.FeatureToggles;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Messages;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Results.Interfaces;
@@ -9,11 +16,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -40,7 +42,7 @@ namespace CalculateFunding.Services.Results.Services
             PublishedResultsService service = CreateResultsService(logger: logger);
 
             ProviderProfilingRequestModel requestModel = CreateProviderProfilingRequestModel();
-            var json = JsonConvert.SerializeObject(requestModel);
+            string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
@@ -79,7 +81,7 @@ namespace CalculateFunding.Services.Results.Services
             PublishedResultsService service = CreateResultsService(logger: logger, specificationsRepository: specificationsRepository);
 
             IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
-            var json = JsonConvert.SerializeObject(requestModel);
+            string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = "spec1";
@@ -97,7 +99,7 @@ namespace CalculateFunding.Services.Results.Services
         {
             // Arrange
             string resultId = "result1";
- 
+
             ILogger logger = Substitute.For<ILogger>();
             IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
             publishedProviderResultsRepository
@@ -115,12 +117,12 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(specification);
 
             PublishedResultsService service = CreateResultsService(
-                logger: logger, 
+                logger: logger,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository);
 
             IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
-            var json = JsonConvert.SerializeObject(requestModel);
+            string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = specificationId;
@@ -142,17 +144,17 @@ namespace CalculateFunding.Services.Results.Services
                 ProviderId = "prov1",
                 FundingPeriod = new Models.Specs.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp1", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) },
                 FundingStreamResult = new PublishedFundingStreamResult
+                {
+                    AllocationLineResult = new PublishedAllocationLineResult
                     {
-                        AllocationLineResult = new PublishedAllocationLineResult
-                        {
-                               AllocationLine = new Models.Specs.AllocationLine { Id = "al-1" },
-                               Current = new PublishedAllocationLineResultVersion { Value = 100 }
-                        },
-                        FundingStreamPeriod = "fundingperiod",
-                        DistributionPeriod = "dist1"
+                        AllocationLine = new Models.Specs.AllocationLine { Id = "al-1" },
+                        Current = new PublishedAllocationLineResultVersion { Value = 100 }
                     },
-                   
-                    
+                    FundingStreamPeriod = "fundingperiod",
+                    DistributionPeriod = "dist1"
+                },
+
+
                 SpecificationId = "spec1"
             };
             IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
@@ -178,12 +180,12 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(specification);
 
             PublishedResultsService service = CreateResultsService(
-                logger: logger, 
-                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                logger: logger,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
                 providerProfilingRepository: providerProfilingRepository,
                 specificationsRepository: specificationsRepository);
-           
-            var json = JsonConvert.SerializeObject(requestModel);
+
+            string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = specificationId;
@@ -250,12 +252,12 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(specification);
 
             PublishedResultsService service = CreateResultsService(
-                logger: logger, 
-                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                logger: logger,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
                 providerProfilingRepository: providerProfilingRepository,
                 specificationsRepository: specificationsRepository);
 
-            var json = JsonConvert.SerializeObject(requestModel);
+            string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = specificationId;
@@ -323,10 +325,10 @@ namespace CalculateFunding.Services.Results.Services
                 .IsAllocationLineMajorMinorVersioningEnabled()
                 .Returns(true);
 
-            PublishedResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository, 
+            PublishedResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
                 providerProfilingRepository: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository, featureToggle: featureToggler);
 
-            var json = JsonConvert.SerializeObject(requestModel);
+            string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = specificationId;
@@ -340,7 +342,7 @@ namespace CalculateFunding.Services.Results.Services
             await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(savedResults => toBeSavedResults.SequenceEqual(savedResults)));
             await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 1 && m.First().MajorVersion == 1 && m.First().MinorVersion == 1));
             await providerProfilingRepository.Received(1).GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>
-                m.AllocationValueByDistributionPeriod.First().AllocationValue == 50                  
+                m.AllocationValueByDistributionPeriod.First().AllocationValue == 50
             ));
         }
 
@@ -397,7 +399,7 @@ namespace CalculateFunding.Services.Results.Services
             PublishedResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
                 providerProfilingRepository: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository, featureToggle: featureToggle);
 
-            var json = JsonConvert.SerializeObject(requestModel);
+            string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = specificationId;
@@ -421,12 +423,12 @@ namespace CalculateFunding.Services.Results.Services
             // Arrange
             IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
 
-            foreach(PublishedProviderResult result in results)
+            foreach (PublishedProviderResult result in results)
             {
                 result.SpecificationId = specificationId;
                 result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
             }
-            
+
             ProviderProfilingResponseModel profileResponse1 = new ProviderProfilingResponseModel
             {
                 DeliveryProfilePeriods = new List<ProfilingPeriod>
@@ -464,7 +466,7 @@ namespace CalculateFunding.Services.Results.Services
             providerProfilingRepository
                 .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
                 .Returns(profileResponse1, profileResponse2, profileResponse3);
-            
+
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
                 .GetCurrentSpecificationById(Arg.Is(specificationId))
@@ -487,7 +489,7 @@ namespace CalculateFunding.Services.Results.Services
             PublishedResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
                 providerProfilingRepository: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository);
 
-            var json = JsonConvert.SerializeObject(requestModel);
+            string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = specificationId;
@@ -500,7 +502,7 @@ namespace CalculateFunding.Services.Results.Services
             results.ElementAt(1).ProfilingPeriods.Should().NotBeNullOrEmpty();
             results.ElementAt(2).ProfilingPeriods.Should().NotBeNullOrEmpty();
             IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { results.ElementAt(0), results.ElementAt(1), results.ElementAt(2) };
-            
+
             await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(m => m.Count() == 3));
             await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 3));
             await providerProfilingRepository.Received(1).GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>
@@ -540,7 +542,7 @@ namespace CalculateFunding.Services.Results.Services
                     new ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 52190.0M, DistributionPeriod = "2018-2019" }
                  }
             };
-  
+
             ILogger logger = Substitute.For<ILogger>();
             IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
             publishedProviderResultsRepository
@@ -574,7 +576,7 @@ namespace CalculateFunding.Services.Results.Services
             PublishedResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
                 providerProfilingRepository: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository);
 
-            var json = JsonConvert.SerializeObject(requestModel);
+            string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = specificationId;

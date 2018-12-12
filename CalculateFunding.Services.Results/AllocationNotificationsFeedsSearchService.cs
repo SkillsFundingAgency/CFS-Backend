@@ -1,5 +1,9 @@
-﻿using CalculateFunding.Models.Health;
-using CalculateFunding.Models.Results;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Search;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
@@ -7,10 +11,6 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Azure.Search.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
 {
@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Results
 
         private IEnumerable<string> DefaultOrderBy = new[] { "dateUpdated desc" };
 
-        public AllocationNotificationsFeedsSearchService (
+        public AllocationNotificationsFeedsSearchService(
             ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationsSearchRepository,
             IResultsResilliencePolicies resiliencePolicies)
         {
@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var searchRepoHealth = await _allocationNotificationsSearchRepository.IsHealthOk();
+            (bool Ok, string Message) searchRepoHealth = await _allocationNotificationsSearchRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<SearchFeed<AllocationNotificationFeedIndex>> GetFeeds(int pageRef, int top = 500, IEnumerable<string> statuses = null)
         {
-            if(pageRef < 1)
+            if (pageRef < 1)
             {
                 throw new ArgumentException("Page ref cannot be less than one", nameof(pageRef));
             }
@@ -74,15 +74,15 @@ namespace CalculateFunding.Services.Results
 
             SearchResults<AllocationNotificationFeedIndex> searchResults = await _allocationNotificationsSearchRepositoryPolicy.ExecuteAsync(
                 () => _allocationNotificationsSearchRepository.Search("", new SearchParameters
-            {
-                Skip = skip,
-                Top = top,
-                SearchMode = SearchMode.Any,
-                IncludeTotalResultCount = true,
-                Filter = filter.IsNullOrEmpty() ? "" : string.Join(" or ", filter),
-                OrderBy = DefaultOrderBy.ToList(),
-                QueryType = QueryType.Full
-            }));
+                {
+                    Skip = skip,
+                    Top = top,
+                    SearchMode = SearchMode.Any,
+                    IncludeTotalResultCount = true,
+                    Filter = filter.IsNullOrEmpty() ? "" : string.Join(" or ", filter),
+                    OrderBy = DefaultOrderBy.ToList(),
+                    QueryType = QueryType.Full
+                }));
 
             return new SearchFeed<AllocationNotificationFeedIndex>
             {

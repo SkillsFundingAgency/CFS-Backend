@@ -1,8 +1,13 @@
-﻿using AutoMapper;
-using CalculateFunding.Models;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
@@ -17,13 +22,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.ServiceBus;
-using Polly;
 using Serilog;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.Services
 {
@@ -67,8 +66,8 @@ namespace CalculateFunding.Services.TestRunner.Services
         public async Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth testResultsRepoHealth = await ((IHealthChecker)_testResultsRepository).IsHealthOk();
-            var searchRepoHealth = await _searchRepository.IsHealthOk();
-            var cacheHealth = await _cacheProvider.IsHealthOk();
+            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
+            (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -96,11 +95,11 @@ namespace CalculateFunding.Services.TestRunner.Services
 
             IEnumerable<TestScenarioResultIndex> searchIndexItems = _mapper.Map<IEnumerable<TestScenarioResultIndex>>(testResults);
 
-            foreach(TestScenarioResultIndex testScenarioResult in searchIndexItems)
+            foreach (TestScenarioResultIndex testScenarioResult in searchIndexItems)
             {
                 ProviderResult providerResult = providerResults.FirstOrDefault(m => m.Provider.Id == testScenarioResult.ProviderId);
 
-                if(providerResult != null)
+                if (providerResult != null)
                 {
                     testScenarioResult.EstablishmentNumber = providerResult.Provider.EstablishmentNumber;
                     testScenarioResult.UKPRN = providerResult.Provider.UKPRN;
@@ -199,14 +198,16 @@ namespace CalculateFunding.Services.TestRunner.Services
                 searchItems.Add(testScenarioResultIndex);
             }
 
-            for(int i = 0; i < searchItems.Count; i+= 100)
+            for (int i = 0; i < searchItems.Count; i += 100)
             {
                 IEnumerable<TestScenarioResultIndex> partitionedResults = searchItems.Skip(i).Take(100);
 
                 IEnumerable<IndexError> errors = await _searchRepository.Index(partitionedResults);
 
                 if (errors.Any())
+                {
                     return new StatusCodeResult(500);
+                }
             }
 
             return new NoContentResult();
@@ -223,7 +224,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                 throw new InvalidModelException(nameof(SpecificationVersionComparisonModel), new[] { "Null or invalid model provided" });
             }
 
-            if(specificationVersionComparison.Current.Name == specificationVersionComparison.Previous.Name)
+            if (specificationVersionComparison.Current.Name == specificationVersionComparison.Previous.Name)
             {
                 _logger.Information("No changes detected");
                 return;

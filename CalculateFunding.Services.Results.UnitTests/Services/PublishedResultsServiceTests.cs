@@ -1,21 +1,22 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Collections.Generic;
+using AutoMapper;
+using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.UnitTests;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Repositories.Common.Cosmos;
-using CalculateFunding.Models;
-using CalculateFunding.Services.Results.UnitTests;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Interfaces;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using CalculateFunding.Common.FeatureToggles;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -134,7 +135,7 @@ namespace CalculateFunding.Services.Results.Services
         {
             return Substitute.For<IMessengerService>();
         }
-        
+
         static ISpecificationsRepository CreateSpecificationsRepository()
         {
             return Substitute.For<ISpecificationsRepository>();

@@ -1,11 +1,9 @@
-﻿using Microsoft.Azure.Search;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
+using Microsoft.Azure.Search;
+using Newtonsoft.Json;
 
-namespace CalculateFunding.Models.Results
+namespace CalculateFunding.Models.Results.Search
 {
     [SearchIndex()]
     public class AllocationNotificationFeedIndex
