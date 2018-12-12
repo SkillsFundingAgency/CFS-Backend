@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Health;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
@@ -19,203 +19,211 @@ using Serilog;
 
 namespace CalculateFunding.Services.Results
 {
-	public class ResultsSearchService : IResultsSearchService, IHealthChecker
-	{
-		private readonly ILogger _logger;
-		private readonly ISearchRepository<ProviderIndex> _searchRepository;
-		private readonly Policy _resultsSearchRepositoryPolicy;
+    public class ResultsSearchService : IResultsSearchService, IHealthChecker
+    {
+        private readonly ILogger _logger;
+        private readonly ISearchRepository<ProviderIndex> _searchRepository;
+        private readonly Policy _resultsSearchRepositoryPolicy;
 
-		private FacetFilterType[] Facets = {
-			new FacetFilterType("authority"),
-			new FacetFilterType("providerType"),
-			new FacetFilterType("providerSubType")
-		};
+        private FacetFilterType[] Facets = {
+            new FacetFilterType("authority"),
+            new FacetFilterType("providerType"),
+            new FacetFilterType("providerSubType")
+        };
 
-		private IEnumerable<string> DefaultOrderBy = new[] { "name" };
+        private IEnumerable<string> DefaultOrderBy = new[] { "name" };
 
-		public ResultsSearchService(ILogger logger,
-			ISearchRepository<ProviderIndex> searchRepository,
-			IResultsResilliencePolicies resilliencePolicies)
-		{
-			Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
-			Guard.ArgumentNotNull(logger, nameof(logger));
+        public ResultsSearchService(ILogger logger,
+            ISearchRepository<ProviderIndex> searchRepository,
+            IResultsResilliencePolicies resilliencePolicies)
+        {
+            Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
+            Guard.ArgumentNotNull(logger, nameof(logger));
 
-			_logger = logger;
-			_searchRepository = searchRepository;
-			_resultsSearchRepositoryPolicy = resilliencePolicies.ResultsSearchRepository;
-		}
+            _logger = logger;
+            _searchRepository = searchRepository;
+            _resultsSearchRepositoryPolicy = resilliencePolicies.ResultsSearchRepository;
+        }
 
-		public async Task<ServiceHealth> IsHealthOk()
-		{
-			var searchRepoHealth = await _searchRepository.IsHealthOk();
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
 
-			ServiceHealth health = new ServiceHealth()
-			{
-				Name = nameof(ResultsSearchService)
-			};
-			health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(ResultsSearchService)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
 
-			return health;
-		}
+            return health;
+        }
 
-		async public Task<IActionResult> SearchProviders(HttpRequest request)
-		{
-			string json = await request.GetRawBodyStringAsync();
+        async public Task<IActionResult> SearchProviders(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
 
-			SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
+            SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
 
-			if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
-			{
-				_logger.Error("A null or invalid search model was provided for searching providers");
+            if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
+            {
+                _logger.Error("A null or invalid search model was provided for searching providers");
 
-				return new BadRequestObjectResult("An invalid search model was provided");
-			}
+                return new BadRequestObjectResult("An invalid search model was provided");
+            }
 
-			IEnumerable<Task<SearchResults<ProviderIndex>>> searchTasks = BuildSearchTasks(searchModel);
+            IEnumerable<Task<SearchResults<ProviderIndex>>> searchTasks = BuildSearchTasks(searchModel);
 
-			try
-			{
-				await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
-				ProviderSearchResults providerSearchResults = new ProviderSearchResults();
+            try
+            {
+                await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
+                ProviderSearchResults providerSearchResults = new ProviderSearchResults();
 
 
-				foreach (var searchTask in searchTasks)
-					ProcessSearchResults(searchTask.Result, searchModel, providerSearchResults);
+                foreach (Task<SearchResults<ProviderIndex>> searchTask in searchTasks)
+                {
+                    ProcessSearchResults(searchTask.Result, searchModel, providerSearchResults);
+                }
 
-				return new OkObjectResult(providerSearchResults);
-			}
-			catch (FailedToQuerySearchException exception)
-			{
-				_logger.Error(exception, $"Failed to query search with term: {searchModel.SearchTerm}");
+                return new OkObjectResult(providerSearchResults);
+            }
+            catch (FailedToQuerySearchException exception)
+            {
+                _logger.Error(exception, $"Failed to query search with term: {searchModel.SearchTerm}");
 
-				return new StatusCodeResult(500);
-			}
-		}
+                return new StatusCodeResult(500);
+            }
+        }
 
-		public Task<IActionResult> GetProviderResults(HttpRequest httpContextRequest)
-		{
-			throw new System.NotImplementedException();
-		}
+        public Task<IActionResult> GetProviderResults(HttpRequest httpContextRequest)
+        {
+            throw new System.NotImplementedException();
+        }
 
-		IDictionary<string, string> BuildFacetDictionary(SearchModel searchModel)
-		{
-			if (searchModel.Filters == null)
-				searchModel.Filters = new Dictionary<string, string[]>();
+        IDictionary<string, string> BuildFacetDictionary(SearchModel searchModel)
+        {
+            if (searchModel.Filters == null)
+            {
+                searchModel.Filters = new Dictionary<string, string[]>();
+            }
 
-			searchModel.Filters = searchModel.Filters.ToList().Where(m => !m.Value.IsNullOrEmpty())
-				.ToDictionary(m => m.Key, m => m.Value);
+            searchModel.Filters = searchModel.Filters.ToList().Where(m => !m.Value.IsNullOrEmpty())
+                .ToDictionary(m => m.Key, m => m.Value);
 
-			IDictionary<string, string> facetDictionary = new Dictionary<string, string>();
+            IDictionary<string, string> facetDictionary = new Dictionary<string, string>();
 
-			foreach (var facet in Facets)
-			{
-				string filter = "";
-				if (searchModel.Filters.ContainsKey(facet.Name) && searchModel.Filters[facet.Name].AnyWithNullCheck())
-				{
-					if (facet.IsMulti)
-						filter = $"({facet.Name}/any(x: {string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"x eq '{x}'"))}))";
-					else
-						filter = $"({string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"{facet.Name} eq '{x}'"))})";
-				}
-				facetDictionary.Add(facet.Name, filter);
-			}
+            foreach (FacetFilterType facet in Facets)
+            {
+                string filter = "";
+                if (searchModel.Filters.ContainsKey(facet.Name) && searchModel.Filters[facet.Name].AnyWithNullCheck())
+                {
+                    if (facet.IsMulti)
+                    {
+                        filter = $"({facet.Name}/any(x: {string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"x eq '{x}'"))}))";
+                    }
+                    else
+                    {
+                        filter = $"({string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"{facet.Name} eq '{x}'"))})";
+                    }
+                }
+                facetDictionary.Add(facet.Name, filter);
+            }
 
-			return facetDictionary;
-		}
+            return facetDictionary;
+        }
 
-		IEnumerable<Task<SearchResults<ProviderIndex>>> BuildSearchTasks(SearchModel searchModel)
-		{
-			IDictionary<string, string> facetDictionary = BuildFacetDictionary(searchModel);
+        IEnumerable<Task<SearchResults<ProviderIndex>>> BuildSearchTasks(SearchModel searchModel)
+        {
+            IDictionary<string, string> facetDictionary = BuildFacetDictionary(searchModel);
 
-			IEnumerable<Task<SearchResults<ProviderIndex>>> searchTasks = new Task<SearchResults<ProviderIndex>>[0];
+            IEnumerable<Task<SearchResults<ProviderIndex>>> searchTasks = new Task<SearchResults<ProviderIndex>>[0];
 
-			if (searchModel.IncludeFacets)
-			{
-				foreach (var filterPair in facetDictionary)
-				{
-					searchTasks = searchTasks.Concat(new[]
-					{
-						Task.Run(() =>
-						{
-							var s = facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value);
+            if (searchModel.IncludeFacets)
+            {
+                foreach (KeyValuePair<string, string> filterPair in facetDictionary)
+                {
+                    searchTasks = searchTasks.Concat(new[]
+                    {
+                        Task.Run(() =>
+                        {
+                            IEnumerable<string> s = facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value);
 
-							return _resultsSearchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
-							{
-								Facets = new[]{ filterPair.Key },
-								SearchMode = SearchMode.Any,
-								IncludeTotalResultCount = true,
-								Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
-								QueryType = QueryType.Full
-							}));
-						})
-					});
-				}
-			}
+                            return _resultsSearchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
+                            {
+                                Facets = new[]{ filterPair.Key },
+                                SearchMode = SearchMode.Any,
+                                IncludeTotalResultCount = true,
+                                Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
+                                QueryType = QueryType.Full
+                            }));
+                        })
+                    });
+                }
+            }
 
-			searchTasks = searchTasks.Concat(new[]
-			{
-				BuildItemsSearchTask(facetDictionary, searchModel)
-			});
+            searchTasks = searchTasks.Concat(new[]
+            {
+                BuildItemsSearchTask(facetDictionary, searchModel)
+            });
 
-			return searchTasks;
-		}
+            return searchTasks;
+        }
 
-		Task<SearchResults<ProviderIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel)
-		{
-			int skip = (searchModel.PageNumber - 1) * searchModel.Top;
-			return Task.Run(() =>
-			{
-				return _resultsSearchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
-				{
-					Skip = skip,
-					Top = searchModel.Top,
-					SearchMode = SearchMode.Any,
-					IncludeTotalResultCount = true,
-					Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
-					OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
-					QueryType = QueryType.Full
-				}));
-			});
-		}
+        Task<SearchResults<ProviderIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel)
+        {
+            int skip = (searchModel.PageNumber - 1) * searchModel.Top;
+            return Task.Run(() =>
+            {
+                return _resultsSearchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
+                {
+                    Skip = skip,
+                    Top = searchModel.Top,
+                    SearchMode = SearchMode.Any,
+                    IncludeTotalResultCount = true,
+                    Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
+                    OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
+                    QueryType = QueryType.Full
+                }));
+            });
+        }
 
-		void ProcessSearchResults(SearchResults<ProviderIndex> searchResult, SearchModel searchModel, ProviderSearchResults results)
-		{
-			if (!searchResult.Facets.IsNullOrEmpty())
-			{
-				results.Facets = results.Facets.Concat(searchResult.Facets);
-			}
-			else
-			{
-				results.TotalCount = (int)(searchResult?.TotalCount ?? 0);
+        void ProcessSearchResults(SearchResults<ProviderIndex> searchResult, SearchModel searchModel, ProviderSearchResults results)
+        {
+            if (!searchResult.Facets.IsNullOrEmpty())
+            {
+                results.Facets = results.Facets.Concat(searchResult.Facets);
+            }
+            else
+            {
+                results.TotalCount = (int)(searchResult?.TotalCount ?? 0);
 
-				if (!searchModel.CountOnly)
-				{
-					results.Results = searchResult?.Results?.Select(m => new ProviderSearchResult
-					{
-						UKPRN = m.Result.UKPRN,
-						URN = m.Result.URN,
-						UPIN = m.Result.UPIN,
-						Rid = m.Result.Rid,
-						ProviderId = m.Result.ProviderId,
-						EstablishmentNumber = m.Result.EstablishmentNumber,
-						Name = m.Result.Name,
-						Authority = m.Result.Authority,
-						ProviderType = m.Result.ProviderType,
-						ProviderSubType = m.Result.ProviderSubType,
-						OpenDate = m.Result.OpenDate,
-						CloseDate = m.Result.CloseDate,
-						ProviderProfileId = m.Result.ProviderId,
-						NavVendorNo = m.Result.NavVendorNo,
-						CrmAccountId = m.Result.CrmAccountId,
-						LegalName = m.Result.LegalName,
-						LACode = m.Result.LACode,
-						ProviderProfileIdType = m.Result.ProviderIdType,
+                if (!searchModel.CountOnly)
+                {
+                    results.Results = searchResult?.Results?.Select(m => new ProviderSearchResult
+                    {
+                        UKPRN = m.Result.UKPRN,
+                        URN = m.Result.URN,
+                        UPIN = m.Result.UPIN,
+                        Rid = m.Result.Rid,
+                        ProviderId = m.Result.ProviderId,
+                        EstablishmentNumber = m.Result.EstablishmentNumber,
+                        Name = m.Result.Name,
+                        Authority = m.Result.Authority,
+                        ProviderType = m.Result.ProviderType,
+                        ProviderSubType = m.Result.ProviderSubType,
+                        OpenDate = m.Result.OpenDate,
+                        CloseDate = m.Result.CloseDate,
+                        ProviderProfileId = m.Result.ProviderId,
+                        NavVendorNo = m.Result.NavVendorNo,
+                        CrmAccountId = m.Result.CrmAccountId,
+                        LegalName = m.Result.LegalName,
+                        LACode = m.Result.LACode,
+                        ProviderProfileIdType = m.Result.ProviderIdType,
                         Status = m.Result.Status,
                         DfeEstablishmentNumber = m.Result.DfeEstablishmentNumber,
                         PhaseOfEducation = m.Result.PhaseOfEducation
-					});
-				}
-			}
-		}
-	}
+                    });
+                }
+            }
+        }
+    }
 }

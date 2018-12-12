@@ -1,9 +1,7 @@
-﻿using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Search;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Results.Search;
+using CalculateFunding.Models.Search;
 
 namespace CalculateFunding.Services.Results.Interfaces
 {

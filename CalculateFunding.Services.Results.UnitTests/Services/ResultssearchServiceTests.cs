@@ -1,5 +1,9 @@
-﻿using CalculateFunding.Models;
-using CalculateFunding.Models.Results;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Models;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.UnitTests;
@@ -11,10 +15,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -703,7 +703,7 @@ namespace CalculateFunding.Services.Results.Services
             IResultsResilliencePolicies resiliencePolicies = null)
         {
             return new ResultsSearchService(
-                logger ?? CreateLogger(), 
+                logger ?? CreateLogger(),
                 searchRepository ?? CreateSearchRepository(),
                 resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies());
         }

@@ -6,7 +6,7 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
@@ -34,27 +34,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-using System;
-using System.Security.Claims;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Core.Caching;
-using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.ApplicationInsights;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Services.Core.ServiceBus;
-using System.Linq;
-using CalculateFunding.Models.Users;
-using Microsoft.Azure.ServiceBus;
-using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Services.Core.Services;
-using CalculateFunding.Models;
-using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Services.Core.Interfaces.Proxies.External;
-using CalculateFunding.Services.Core.Proxies.External;
-using CalculateFunding.Common.FeatureToggles;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -82,7 +61,8 @@ namespace CalculateFunding.Services.Core.Extensions
         public static IServiceCollection AddCalcsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder
-                .AddSingleton<ICalcsApiClientProxy, CalcsApiProxy>((ctx)=> {
+                .AddSingleton<ICalcsApiClientProxy, CalcsApiProxy>((ctx) =>
+                {
                     ApiOptions apiOptions = new ApiOptions();
 
                     config.Bind("calcsClient", apiOptions);
@@ -99,7 +79,8 @@ namespace CalculateFunding.Services.Core.Extensions
         public static IServiceCollection AddDatasetsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder
-                .AddSingleton<IDatasetsApiClientProxy, DatasetsApiProxy>((ctx) => {
+                .AddSingleton<IDatasetsApiClientProxy, DatasetsApiProxy>((ctx) =>
+                {
                     ApiOptions apiOptions = new ApiOptions();
 
                     config.Bind("datasetsClient", apiOptions);
@@ -116,7 +97,8 @@ namespace CalculateFunding.Services.Core.Extensions
         public static IServiceCollection AddScenariosInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder
-                 .AddSingleton<IScenariosApiClientProxy, ScenariosApiProxy>((ctx) => {
+                 .AddSingleton<IScenariosApiClientProxy, ScenariosApiProxy>((ctx) =>
+                 {
                      ApiOptions apiOptions = new ApiOptions();
 
                      config.Bind("scenariosClient", apiOptions);
@@ -133,7 +115,8 @@ namespace CalculateFunding.Services.Core.Extensions
         public static IServiceCollection AddSpecificationsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder
-                 .AddSingleton<ISpecificationsApiClientProxy, SpecificationsApiProxy>((ctx) => {
+                 .AddSingleton<ISpecificationsApiClientProxy, SpecificationsApiProxy>((ctx) =>
+                 {
                      ApiOptions apiOptions = new ApiOptions();
 
                      config.Bind("specificationsClient", apiOptions);
@@ -150,7 +133,8 @@ namespace CalculateFunding.Services.Core.Extensions
         public static IServiceCollection AddProviderProfileServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder
-                 .AddSingleton<IProviderProfilingApiProxy, ProviderProfilingApiProxy>((ctx) => {
+                 .AddSingleton<IProviderProfilingApiProxy, ProviderProfilingApiProxy>((ctx) =>
+                 {
                      ExternalApiOptions apiOptions = new ExternalApiOptions();
 
                      config.Bind("providerProfilingClient", apiOptions);
@@ -174,7 +158,8 @@ namespace CalculateFunding.Services.Core.Extensions
         public static IServiceCollection AddResultsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder
-                 .AddSingleton<IResultsApiClientProxy, ResultsApiProxy>((ctx) => {
+                 .AddSingleton<IResultsApiClientProxy, ResultsApiProxy>((ctx) =>
+                 {
                      ApiOptions apiOptions = new ApiOptions();
 
                      config.Bind("resultsClient", apiOptions);
@@ -191,7 +176,8 @@ namespace CalculateFunding.Services.Core.Extensions
         public static IServiceCollection AddJobsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder
-                 .AddSingleton<IJobsApiClientProxy, JobsApiProxy>((ctx) => {
+                 .AddSingleton<IJobsApiClientProxy, JobsApiProxy>((ctx) =>
+                 {
                      ApiOptions apiOptions = new ApiOptions();
 
                      config.Bind("jobsClient", apiOptions);
@@ -262,7 +248,8 @@ namespace CalculateFunding.Services.Core.Extensions
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
                 builder
-                .AddSingleton<IMessengerService, QueueMessengerService>((ctx) => {
+                .AddSingleton<IMessengerService, QueueMessengerService>((ctx) =>
+                {
 
                     return new QueueMessengerService("UseDevelopmentStorage=true");
                 });
@@ -329,7 +316,7 @@ namespace CalculateFunding.Services.Core.Extensions
 
             config.Bind("ApplicationInsightsOptions", appInsightsOptions);
 
-         
+
             string appInsightsKey = appInsightsOptions.InstrumentationKey;
 
             if (string.IsNullOrWhiteSpace(appInsightsKey))
@@ -357,21 +344,27 @@ namespace CalculateFunding.Services.Core.Extensions
         {
             ICorrelationIdProvider correlationIdProvider = serviceProvider.GetService<ICorrelationIdProvider>();
 
-            var correlationId = request.GetCorrelationId();
+            string correlationId = request.GetCorrelationId();
 
             correlationIdProvider.SetCorrelationId(correlationId);
 
             if (!request.HttpContext.Response.Headers.ContainsKey("sfa-correlationId"))
+            {
                 request.HttpContext.Response.Headers.Add("sfa-correlationId", correlationId);
+            }
 
             string userId = "unknown";
             string username = "unknown";
 
             if (request.HttpContext.Request.Headers.ContainsKey("sfa-userid"))
+            {
                 userId = request.HttpContext.Request.Headers["sfa-userid"];
+            }
 
             if (request.HttpContext.Request.Headers.ContainsKey("sfa-username"))
+            {
                 username = request.HttpContext.Request.Headers["sfa-username"];
+            }
 
             request.HttpContext.User = new ClaimsPrincipal(new[]
             {

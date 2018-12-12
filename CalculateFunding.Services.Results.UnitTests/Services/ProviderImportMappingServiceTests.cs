@@ -1,9 +1,8 @@
-﻿using CalculateFunding.Models.Results;
+﻿using System;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Services.Results.Services
 {

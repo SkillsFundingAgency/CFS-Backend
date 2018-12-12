@@ -8,6 +8,7 @@ using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.External.AtomItems;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Search;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;

@@ -1,18 +1,18 @@
-﻿using CalculateFunding.Services.Results.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using NSubstitute;
-using CalculateFunding.Models.Results;
 using System.Linq;
-using Serilog;
-using Microsoft.AspNetCore.Mvc;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Results.Interfaces;
+using FluentAssertions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
+using Serilog;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is("spec-1"))
                 .Returns(specification);
 
-            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository, 
+            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
                 allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository);
 
             //Act
@@ -117,7 +117,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is("spec-1"))
                 .Returns(specification);
 
-            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository, 
+            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
                 allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository);
 
             //Act
@@ -139,7 +139,7 @@ namespace CalculateFunding.Services.Results.Services
         {
             //Arrange
             IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
-            foreach(PublishedProviderResult result in results)
+            foreach (PublishedProviderResult result in results)
             {
                 result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
                 result.ProfilingPeriods = new[] { new ProfilingPeriod() };

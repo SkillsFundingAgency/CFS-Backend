@@ -7,6 +7,7 @@ using CalculateFunding.Api.External.V2.Interfaces;
 using CalculateFunding.Api.External.V2.Models;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Search;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;

@@ -7,16 +7,20 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Messages;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
@@ -28,8 +32,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Common.FeatureToggles;
 
 namespace CalculateFunding.Services.Results
 {
@@ -39,7 +41,6 @@ namespace CalculateFunding.Services.Results
         private readonly ITelemetry _telemetry;
         private readonly ICalculationResultsRepository _resultsRepository;
         private readonly IMapper _mapper;
-        private readonly ISearchRepository<ProviderIndex> _searchRepository;
         private readonly Polly.Policy _resultsRepositoryPolicy;
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly Polly.Policy _specificationsRepositoryPolicy;
@@ -177,7 +178,7 @@ namespace CalculateFunding.Services.Results
         {
 
             ServiceHealth providerRepoHealth = await ((IHealthChecker)_publishedProviderResultsRepository).IsHealthOk();
-            var cacheHealth = await _cacheProvider.IsHealthOk();
+            (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -475,7 +476,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IActionResult> GetPublishedProviderResultsBySpecificationId(HttpRequest request)
         {
-            var specificationId = GetParameter(request, "specificationId");
+            string specificationId = GetParameter(request, "specificationId");
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -498,9 +499,9 @@ namespace CalculateFunding.Services.Results
         public async Task<IActionResult> GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(HttpRequest request)
         {
 
-            var specificationId = GetParameter(request, "specificationId");
-            var fundingPeriodId = GetParameter(request, "fundingPeriodId");
-            var fundingStreamId = GetParameter(request, "fundingStreamId");
+            string specificationId = GetParameter(request, "specificationId");
+            string fundingPeriodId = GetParameter(request, "fundingPeriodId");
+            string fundingStreamId = GetParameter(request, "fundingStreamId");
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -536,7 +537,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IActionResult> GetConfirmationDetailsForApprovePublishProviderResults(HttpRequest request)
         {
-            var specificationId = GetParameter(request, "specificationId");
+            string specificationId = GetParameter(request, "specificationId");
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -572,7 +573,7 @@ namespace CalculateFunding.Services.Results
                 FundingPeriod = publishedProviderResults.Select(r => r.FundingPeriod.Name).FirstOrDefault()
             };
 
-            var fundingStreams = publishedProviderResults.Select(r => r.FundingStreamResult).GroupBy(r => r.FundingStream.Name);
+            IEnumerable<IGrouping<string, PublishedFundingStreamResult>> fundingStreams = publishedProviderResults.Select(r => r.FundingStreamResult).GroupBy(r => r.FundingStream.Name);
             decimal totalFundingAmount = 0;
             foreach (IGrouping<string, PublishedFundingStreamResult> fundingStream in fundingStreams)
             {
@@ -606,7 +607,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IActionResult> UpdatePublishedAllocationLineResultsStatus(HttpRequest request)
         {
-            var specificationId = GetParameter(request, "specificationId");
+            string specificationId = GetParameter(request, "specificationId");
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -655,7 +656,7 @@ namespace CalculateFunding.Services.Results
 
         private static string GetParameter(HttpRequest request, string name)
         {
-            if (request.Query.TryGetValue(name, out var parameter))
+            if (request.Query.TryGetValue(name, out Microsoft.Extensions.Primitives.StringValues parameter))
             {
                 return parameter.FirstOrDefault();
             }
@@ -720,7 +721,7 @@ namespace CalculateFunding.Services.Results
                 {
                     ProviderId = providerResult.ProviderId,
                     ProviderName = providerResult.FundingStreamResult.AllocationLineResult.Current.Provider?.Name,
-					ProviderType = providerResult.FundingStreamResult.AllocationLineResult.Current.Provider?.ProviderType
+                    ProviderType = providerResult.FundingStreamResult.AllocationLineResult.Current.Provider?.ProviderType
                 };
 
                 if (!results.Any(m => m.ProviderId == providerResultGroup.Key))
@@ -1008,7 +1009,7 @@ namespace CalculateFunding.Services.Results
 
             SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(specificationId));
 
-            if(specification == null)
+            if (specification == null)
             {
                 _logger.Error($"Unable to locate a specification with id {specificationId}");
             }
@@ -1025,7 +1026,7 @@ namespace CalculateFunding.Services.Results
 
             List<Task> allTasks = new List<Task>(publishedProviderResults.Count());
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 5);
-            foreach(PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
                 await throttler.WaitAsync();
                 allTasks.Add(

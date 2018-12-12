@@ -6,6 +6,8 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Messages;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Constants;
@@ -418,7 +420,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(publishedProviderResults);
 
             PublishedResultsService resultsService = CreateResultsService(
-                publishedProviderResultsRepository: resultsProviderRepository, 
+                publishedProviderResultsRepository: resultsProviderRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository);
 
@@ -691,8 +693,8 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(specification);
 
             PublishedResultsService resultsService = CreateResultsService(
-                publishedProviderResultsRepository: resultsProviderRepository, 
-                allocationNotificationFeedSearchRepository: searchRepository, 
+                publishedProviderResultsRepository: resultsProviderRepository,
+                allocationNotificationFeedSearchRepository: searchRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository);
 
@@ -834,7 +836,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(specification);
 
             PublishedResultsService resultsService = CreateResultsService(
-                publishedProviderResultsRepository: resultsProviderRepository, 
+                publishedProviderResultsRepository: resultsProviderRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository);
 
@@ -959,7 +961,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(specification);
 
             PublishedResultsService resultsService = CreateResultsService(
-                publishedProviderResultsRepository: resultsProviderRepository, 
+                publishedProviderResultsRepository: resultsProviderRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository);
 
@@ -1087,8 +1089,8 @@ namespace CalculateFunding.Services.Results.Services
             IMessengerService messengerService = CreateMessengerService();
 
             PublishedResultsService resultsService = CreateResultsService(
-                publishedProviderResultsRepository: resultsProviderRepository, 
-                specificationsRepository: specificationsRepository, 
+                publishedProviderResultsRepository: resultsProviderRepository,
+                specificationsRepository: specificationsRepository,
                 messengerService: messengerService,
                 publishedProviderResultsVersionRepository: versionRepository);
 

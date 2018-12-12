@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.Azure.Search;
 using Newtonsoft.Json;
 
-namespace CalculateFunding.Models.Results
+namespace CalculateFunding.Models.Results.Search
 {
     [SearchIndex()]
     public class TestScenarioResultIndex

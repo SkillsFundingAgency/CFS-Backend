@@ -1,17 +1,16 @@
-﻿using CalculateFunding.Models.Results;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Cosmos.Interfaces;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calculator.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calculator
 {

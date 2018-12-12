@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Services.Results.Interfaces;
 
 namespace CalculateFunding.Services.Results

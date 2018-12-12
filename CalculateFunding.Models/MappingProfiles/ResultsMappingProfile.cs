@@ -1,6 +1,7 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
 using CalculateFunding.Models.Results;
-using System;
+using CalculateFunding.Models.Results.Search;
 
 namespace CalculateFunding.Models.MappingProfiles
 {

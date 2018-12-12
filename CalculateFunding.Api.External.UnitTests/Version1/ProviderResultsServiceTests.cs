@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Api.External.V1.Services;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Search;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;

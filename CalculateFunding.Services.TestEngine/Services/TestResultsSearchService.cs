@@ -1,6 +1,9 @@
-﻿using CalculateFunding.Models;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Health;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
@@ -13,9 +16,6 @@ using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
 using Polly;
 using Serilog;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.Services
 {
@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.TestRunner.Services
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var searchRepoHealth = await _searchRepository.IsHealthOk();
+            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -98,8 +98,10 @@ namespace CalculateFunding.Services.TestRunner.Services
 
             TestScenarioSearchResults results = new TestScenarioSearchResults();
 
-            foreach (var searchTask in searchTasks)
+            foreach (Task<SearchResults<TestScenarioResultIndex>> searchTask in searchTasks)
+            {
                 ProcessSearchResults(searchTask.Result, results);
+            }
 
             return results;
         }
@@ -107,30 +109,35 @@ namespace CalculateFunding.Services.TestRunner.Services
         IDictionary<string, string> BuildFacetDictionary(SearchModel searchModel)
         {
             if (searchModel.Filters == null)
+            {
                 searchModel.Filters = new Dictionary<string, string[]>();
+            }
 
             searchModel.Filters = searchModel.Filters.ToList().Where(m => !m.Value.IsNullOrEmpty())
                 .ToDictionary(m => m.Key, m => m.Value);
 
             IDictionary<string, string> facetDictionary = new Dictionary<string, string>();
 
-            foreach (var facet in Facets)
+            foreach (FacetFilterType facet in Facets)
             {
                 string filter = "";
                 if (searchModel.Filters.ContainsKey(facet.Name) && searchModel.Filters[facet.Name].AnyWithNullCheck())
                 {
                     if (facet.IsMulti)
+                    {
                         filter = $"({facet.Name}/any(x: {string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"x eq '{x}'"))}))";
+                    }
                     else
+                    {
                         filter = $"({string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"{facet.Name} eq '{x}'"))})";
-
+                    }
                 }
 
-                if(searchModel.OverrideFacetFields.Any() && (searchModel.OverrideFacetFields.Contains(facet.Name) || searchModel.Filters.ContainsKey(facet.Name)))
+                if (searchModel.OverrideFacetFields.Any() && (searchModel.OverrideFacetFields.Contains(facet.Name) || searchModel.Filters.ContainsKey(facet.Name)))
                 {
                     facetDictionary.Add(facet.Name, filter);
                 }
-                else if(!searchModel.OverrideFacetFields.Any())
+                else if (!searchModel.OverrideFacetFields.Any())
                 {
                     facetDictionary.Add(facet.Name, filter);
                 }
@@ -147,13 +154,13 @@ namespace CalculateFunding.Services.TestRunner.Services
 
             if (searchModel.IncludeFacets)
             {
-                foreach (var filterPair in facetDictionary)
+                foreach (KeyValuePair<string, string> filterPair in facetDictionary)
                 {
                     searchTasks = searchTasks.Concat(new[]
                     {
                         Task.Run(() =>
                         {
-                            var s = facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value);
+                            IEnumerable<string> s = facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value);
 
                             return _searchRepositoryPolicy.ExecuteAsync(()=> _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
                             {

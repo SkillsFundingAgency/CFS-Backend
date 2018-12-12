@@ -4,7 +4,7 @@ using Microsoft.Azure.Search;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace CalculateFunding.Models.Results
+namespace CalculateFunding.Models.Results.Search
 {
     [SearchIndex()]
     public class ProviderIndex

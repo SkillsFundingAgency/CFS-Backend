@@ -4,28 +4,23 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using CalculateFunding.Models;
 using CalculateFunding.Models.Aggregations;
-using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
-using CalculateFunding.Services.Results.ResultModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -48,13 +43,10 @@ namespace CalculateFunding.Services.Results
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly Polly.Policy _resultsSearchRepositoryPolicy;
         private readonly Polly.Policy _specificationsRepositoryPolicy;
-        private readonly IPublishedProviderResultsAssemblerService _publishedProviderResultsAssemblerService;
-        private readonly IPublishedProviderResultsRepository _publishedProviderResultsRepository;
-        private readonly IPublishedProviderCalculationResultsRepository _publishedProviderCalculationResultsRepository;
         private readonly IProviderImportMappingService _providerImportMappingService;
         private readonly ICacheProvider _cacheProvider;
         private readonly IMessengerService _messengerService;
-      
+
         public ResultsService(ILogger logger,
             ICalculationResultsRepository resultsRepository,
             IMapper mapper,
@@ -99,9 +91,9 @@ namespace CalculateFunding.Services.Results
         public async Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_resultsRepository).IsHealthOk();
-            var searchRepoHealth = await _searchRepository.IsHealthOk();
+            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
             ServiceHealth providerSourceDatasetRepoHealth = await ((IHealthChecker)_providerSourceDatasetRepository).IsHealthOk();
-            var calcSearchRepoHealth = await _calculationProviderResultsSearchRepository.IsHealthOk();
+            (bool Ok, string Message) calcSearchRepoHealth = await _calculationProviderResultsSearchRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -162,7 +154,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IActionResult> GetProviderById(HttpRequest request)
         {
-            var providerId = GetParameter(request, "providerId");
+            string providerId = GetParameter(request, "providerId");
 
             if (string.IsNullOrWhiteSpace(providerId))
             {
@@ -182,8 +174,8 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IActionResult> GetProviderResults(HttpRequest request)
         {
-            var providerId = GetParameter(request, "providerId");
-            var specificationId = GetParameter(request, "specificationId");
+            string providerId = GetParameter(request, "providerId");
+            string specificationId = GetParameter(request, "specificationId");
 
             if (string.IsNullOrWhiteSpace(providerId))
             {
@@ -213,7 +205,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IActionResult> GetProviderResultsBySpecificationId(HttpRequest request)
         {
-            var specificationId = GetParameter(request, "specificationId");
+            string specificationId = GetParameter(request, "specificationId");
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -244,7 +236,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IActionResult> GetProviderSpecifications(HttpRequest request)
         {
-            var providerId = GetParameter(request, "providerId");
+            string providerId = GetParameter(request, "providerId");
             if (string.IsNullOrWhiteSpace(providerId))
             {
                 _logger.Error("No provider Id was provided to GetProviderSpecifications");
@@ -324,7 +316,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IActionResult> GetProviderSourceDatasetsByProviderIdAndSpecificationId(HttpRequest request)
         {
-            var specificationId = GetParameter(request, "specificationId");
+            string specificationId = GetParameter(request, "specificationId");
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -332,7 +324,7 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            var providerId = GetParameter(request, "providerId");
+            string providerId = GetParameter(request, "providerId");
 
             if (string.IsNullOrWhiteSpace(providerId))
             {
@@ -347,7 +339,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IActionResult> GetScopedProviderIdsBySpecificationId(HttpRequest request)
         {
-            var specificationId = GetParameter(request, "specificationId");
+            string specificationId = GetParameter(request, "specificationId");
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -515,7 +507,7 @@ namespace CalculateFunding.Services.Results
 
         private static string GetParameter(HttpRequest request, string name)
         {
-            if (request.Query.TryGetValue(name, out var parameter))
+            if (request.Query.TryGetValue(name, out Microsoft.Extensions.Primitives.StringValues parameter))
             {
                 return parameter.FirstOrDefault();
             }

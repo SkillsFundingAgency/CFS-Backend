@@ -1,5 +1,5 @@
 ﻿using System;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine;
@@ -25,14 +25,16 @@ namespace CalculateFunding.Functions.CalcEngine
         public static IServiceProvider Build(IConfigurationRoot config)
         {
             if (_serviceProvider == null)
+            {
                 _serviceProvider = BuildServiceProvider(config);
+            }
 
             return _serviceProvider;
         }
 
         static public IServiceProvider BuildServiceProvider(IConfigurationRoot config)
         {
-            var serviceProvider = new ServiceCollection();
+            ServiceCollection serviceProvider = new ServiceCollection();
 
             RegisterComponents(serviceProvider, config);
 

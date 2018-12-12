@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
 
 namespace CalculateFunding.Services.Results.Interfaces
 {

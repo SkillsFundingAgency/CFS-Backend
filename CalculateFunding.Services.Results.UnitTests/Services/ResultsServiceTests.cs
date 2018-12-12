@@ -1,33 +1,33 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.UnitTests;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using Newtonsoft.Json;
-using System.IO;
-using CalculateFunding.Services.Core.Interfaces.Logging;
-using Microsoft.Azure.ServiceBus;
-using CalculateFunding.Repositories.Common.Cosmos;
-using CalculateFunding.Models;
-using CalculateFunding.Services.Results.UnitTests;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Interfaces;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -686,9 +686,9 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(specificationSummary);
 
             ResultsService resultsService = CreateResultsService(
-                resultsRepository: calculationResultsRepository, 
-                calculationProviderResultsSearchRepository: searchRepository, 
-                specificationsRepository : specificationsRepository,
+                resultsRepository: calculationResultsRepository,
+                calculationProviderResultsSearchRepository: searchRepository,
+                specificationsRepository: specificationsRepository,
                 logger: logger);
 
             //Act
@@ -736,9 +736,9 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(specificationSummary);
 
             ResultsService resultsService = CreateResultsService(
-                resultsRepository: calculationResultsRepository, 
+                resultsRepository: calculationResultsRepository,
                 calculationProviderResultsSearchRepository: searchRepository,
-                specificationsRepository :  specificationsRepository);
+                specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexCalculationProviderResults();
@@ -1084,7 +1084,7 @@ namespace CalculateFunding.Services.Results.Services
             mappingService
                .Map(Arg.Any<MasterProviderModel>())
                .Returns(new ProviderIndex());
- 
+
 
             ResultsService resultsService = CreateResultsService(searchRepository: searchRepository, providerImportMappingService: mappingService);
 

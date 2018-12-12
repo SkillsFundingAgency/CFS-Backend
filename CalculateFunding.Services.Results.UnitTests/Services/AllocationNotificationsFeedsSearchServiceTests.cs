@@ -1,17 +1,15 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using NSubstitute;
-using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Results.Interfaces;
-using System.Threading.Tasks;
-using FluentAssertions;
-using CalculateFunding.Models.Search;
-using CalculateFunding.Services.Results.UnitTests;
-using Microsoft.Azure.Search.Models;
 using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Results.Search;
+using CalculateFunding.Models.Search;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Results.UnitTests;
+using FluentAssertions;
+using Microsoft.Azure.Search.Models;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -179,7 +177,7 @@ namespace CalculateFunding.Services.Results.Services
             searchRepository
                 .Search(Arg.Is(""), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
-            
+
 
             AllocationNotificationsFeedsSearchService searchService = CreateSearchService(searchRepository);
 

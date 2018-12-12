@@ -1,8 +1,15 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
@@ -15,12 +22,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.UnitTests
 {
@@ -189,12 +190,12 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 .Received(1)
                 .TrackEvent(
                 Arg.Is("UpdateTestScenario"),
-                Arg.Is<IDictionary<string, string>>(p => 
+                Arg.Is<IDictionary<string, string>>(p =>
                     p.ContainsKey("SpecificationId") &&
                     p["SpecificationId"] == testScenarioResult.Specification.Id
                 ),
                 Arg.Is<IDictionary<string, double>>(
-                    m=>m.ContainsKey("update-testscenario-elapsedMilliseconds") &&
+                    m => m.ContainsKey("update-testscenario-elapsedMilliseconds") &&
                     m.ContainsKey("update-testscenario-recordsUpdated") &&
                     m["update-testscenario-elapsedMilliseconds"] > 0 &&
                     m["update-testscenario-recordsUpdated"] == 1
@@ -406,7 +407,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             logger
                 .Received(1)
-                .Error($"The following errors occcurred while updating test results for specification id: {specificationId}, an error") ;
+                .Error($"The following errors occcurred while updating test results for specification id: {specificationId}, an error");
         }
 
         private TestResultsService CreateTestResultsService(
