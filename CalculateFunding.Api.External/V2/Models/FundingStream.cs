@@ -33,5 +33,10 @@ namespace CalculateFunding.Api.External.V2.Models
         /// The list of associated allocation lines for the funding stream
         /// </summary>
         public List<AllocationLine> AllocationLines { get; set; }
+
+        /// <summary>
+        /// A flag to indicate whether financial envelopes are required
+        /// </summary>
+        public bool RequireFinancialEnvelopes { get; set; }
     }
 }

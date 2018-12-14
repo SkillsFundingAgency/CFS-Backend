@@ -19,5 +19,8 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("periodType")]
         public PeriodType PeriodType { get; set; }
+
+        [JsonProperty("requireFinancialEnvelopes")]
+        public bool RequireFinancialEnvelopes { get; set; }
     }
 }
