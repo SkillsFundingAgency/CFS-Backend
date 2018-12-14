@@ -404,6 +404,12 @@
         "description": "AAD Client Id for the Jobs Api"
       }
     },
+    "profilingApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Profiling Api"
+      }
+    },
     "signalRSkuName": {
       "type": "string",
       "allowedValues": [
@@ -457,6 +463,7 @@
     "specsApiAppName": "[concat('app-', parameters('environmentKey'), '-specs')]",
     "calcsApiAppName": "[concat('app-', parameters('environmentKey'), '-calcs')]",
     "jobsApiAppName": "[concat('app-', parameters('environmentKey'), '-jobs')]",
+    "profilingApiAppName": "[concat('app-', parameters('environmentKey'), '-profiling')]",
     "calcEngineApiAppName": "[concat('app-', parameters('environmentKey'), '-calcengine')]",
     "testEngineApiAppName": "[concat('app-', parameters('environmentKey'), '-testengine')]",
     "scenariosApiAppName": "[concat('app-', parameters('environmentKey'), '-scenarios')]",
@@ -3354,6 +3361,81 @@
             {
               "name": "apiKeyMiddleware:apiKey",
               "value": "[parameters('ApiKeyJobs')]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "apiVersion": "2016-08-01",
+      "type": "Microsoft.Web/sites",
+      "name": "[variables('profilingApiAppName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+        "[variables('applicationInsightsName')]",
+        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
+      ],
+      "resources": [
+        {
+          "name": "authSettings",
+          "type": "config",
+          "apiVersion": "2018-02-01",
+          "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('profilingApiAppName'))]" ],
+          "properties": {
+            "enabled": "[parameters('enablePlatformAuth')]",
+            "unauthenticatedClientAction": 0,
+            "tokenStoreEnabled": true,
+            "defaultProvider": 0,
+            "clientId": "[parameters('profilingApiAadClientId')]",
+            "issuer": "[parameters('aadAuthIssuer')]",
+            "allowedAudiences": null,
+            "isAadAutoProvisioned": false
+          }
+        }
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
+        "siteConfig": {
+          "alwaysOn": true,
+          "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
+          "appSettings": [
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "ApplicationInsightsOptions:InstrumentationKey",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "CosmosDbSettings:ConnectionString",
+              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+            },
+            {
+              "name": "CosmosDbSettings:DatabaseName",
+              "value": "calculate-funding"
+            },
+            {
+              "name": "CosmosDbSettings:CollectionName",
+              "value": "profiling"
+            },
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "GMT Standard Time"
+            },
+            {
+              "name": "WEBSITE_RUN_FROM_PACKAGE",
+              "value": "1"
             }
           ]
         }
