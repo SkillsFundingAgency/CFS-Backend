@@ -8,6 +8,7 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Calculator
@@ -180,7 +181,7 @@ namespace CalculateFunding.Services.Calculator
             {
                 if (!calcsToProcess.IsNullOrEmpty())
                 {
-                    if (!calcsToProcess.Contains(executeMethod.Item2.Calculation.Name))
+                    if (!calcsToProcess.Contains(VisualBasicTypeGenerator.GenerateIdentifier(executeMethod.Item2.Calculation.Name)))
                     {
                         continue;
                     }

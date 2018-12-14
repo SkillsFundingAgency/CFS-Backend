@@ -182,13 +182,13 @@ namespace CalculateFunding.Services.Calculator
 
             //Assert
             calcResults.Any().Should().BeTrue();
-            calcResults.Count().Should().Be(9);
+            calcResults.Count().Should().Be(10);
             calcResults.ElementAt(4).Value.Should().NotBeNull();
-            calcResults.ElementAt(4).Value.Should().Be(2001);
+            calcResults.ElementAt(4).Value.Should().Be(4003);
         }
 
         [TestMethod]
-        public void Execute_GivenAssemblyWithCalcAggregationAndListOfOneCalcToProcess_ExecutesEnsuresOnluOneResultResult()
+        public void Execute_GivenAssemblyWithCalcAggregationAndListOfOneCalcToProcess_ExecutesEnsuresOnlyOneResultResult()
         {
             //Arrange
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.test-assembly-with-calc-aggregation.txt");
@@ -223,6 +223,59 @@ namespace CalculateFunding.Services.Calculator
             //Assert
             calcResults.Any().Should().BeTrue();
             calcResults.Count().Should().Be(1);
+        }
+
+        [TestMethod]
+        public void Execute_GivenAssemblyWithCalcAggregationAndListOfOneCalcToProcess_ExecutesAndEnsuresCalcNamesWithSpaceIsNotIgnored()
+        {
+            //Arrange
+            Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.test-assembly-with-calc-aggregation.txt");
+
+            AllocationModel allocationModel = new AllocationFactory().CreateAllocationModel(assembly) as AllocationModel;
+
+            IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
+            sourceDatasets.First().DataDefinition.Name = "PE and Sport premium";
+
+            IEnumerable<CalculationAggregation> aggregations = new[]
+            {
+                new CalculationAggregation
+                {
+                    SpecificationId = "spec-id",
+                    Values = new[]
+                    {
+                        new AggregateValue
+                        {
+                            FieldDefinitionName = "ABCalc1112001",
+                            AggregatedType = AggregatedType.Sum,
+                            Value = 2001
+                        }
+                    }
+                },
+                new CalculationAggregation
+                {
+                    SpecificationId = "spec-id",
+                    Values = new[]
+                    {
+                        new AggregateValue
+                        {
+                            FieldDefinitionName = "AnotherCalcToTest",
+                            AggregatedType = AggregatedType.Sum,
+                            Value = 2001
+                        }
+                    }
+                }
+            };
+
+            ProviderSummary providerSummary = CreateProviderSummary();
+
+            //Act
+            IEnumerable<CalculationResult> calcResults = allocationModel.Execute(sourceDatasets.ToList(), providerSummary, aggregations, new[] { "ABCalc1112001", "AnotherCalcToTest" });
+
+            //Assert
+            calcResults.Any().Should().BeTrue();
+            calcResults.Count().Should().Be(2);
+            calcResults.First().Calculation.Name.Should().Be("ABCalc1112001");
+            calcResults.ElementAt(1).Calculation.Name.Should().Be("Another Calc To Test");
         }
 
         [TestMethod]

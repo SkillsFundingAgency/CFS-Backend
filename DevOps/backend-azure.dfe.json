@@ -3482,10 +3482,10 @@
     {
       "type": "Microsoft.SignalRService/SignalR",
       "sku": {
-          "name": "[parameters('signalRSkuName')]",
-          "tier": "[parameters('signalRTier')]",
-          "capacity": "[parameters('signalRCapacity')]",
-          "size": "DS2"
+        "name": "[parameters('signalRSkuName')]",
+        "tier": "[parameters('signalRTier')]",
+        "capacity": "[parameters('signalRCapacity')]",
+        "size": "DS2"
       },
       "name": "[variables('signalRName')]",
       "apiVersion": "[providers('Microsoft.SignalRService', 'SignalR').apiVersions[0]]",
