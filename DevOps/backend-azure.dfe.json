@@ -322,6 +322,13 @@
         "description": "Feature toggle to enable the job service"
       }
     },
+    "AggregateOverCalculationsEnabled": {
+      "defaultValue": false,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable aggregating over calculations"
+      }
+    },
     "storageFirewallEnabled": {
       "type": "bool",
       "metadata": {
@@ -413,32 +420,32 @@
     "signalRSkuName": {
       "type": "string",
       "allowedValues": [
-          "Free_DS2",
-          "Basic_DS2"
+        "Free_DS2",
+        "Basic_DS2"
       ],
       "defaultValue": "Free_DS2",
       "metadata": {
-          "description": "SignalR Service Sku"
+        "description": "SignalR Service Sku"
       }
     },
     "signalRTier": {
       "type": "string",
       "allowedValues": [
-          "Free",
-          "Basic",
-          "Premium"
+        "Free",
+        "Basic",
+        "Premium"
       ],
       "defaultValue": "Free",
       "metadata": {
-          "description": "SignalR Service Tier"
+        "description": "SignalR Service Tier"
       }
     },
     "signalRCapacity": {
-        "type": "int",
-        "defaultValue": "1",
-        "metadata": {
-            "description": "Number of instances for the SignalR Service"
-        }
+      "type": "int",
+      "defaultValue": "1",
+      "metadata": {
+        "description": "Number of instances for the SignalR Service"
+      }
     }
   },
   "variables": {
@@ -773,6 +780,29 @@
                 "maxDeliveryCount": 10,
                 "status": "Active",
                 "enableBatchedOperations": true
+              },
+              "resources": []
+            },
+            {
+              "apiVersion": "2017-04-01",
+              "name": "calculation-aggregations-job-completed",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "job-notifications"
+              ],
+              "properties": {
+                "lockDuration": "PT5M",
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P14D",
+                "deadLetteringOnMessageExpiration": false,
+                "deadLetteringOnFilterEvaluationExceptions": true,
+                "maxDeliveryCount": 10,
+                "status": "Active",
+                "enableBatchedOperations": true,
+                "filterType": "SqlFilter",
+                "sqlFilter": {
+                  "sqlExpression": "user.jobType = 'CreateInstructGenerateAggregationsAllocationJob'"
+                }
               },
               "resources": []
             },
@@ -2586,6 +2616,10 @@
             {
               "name": "features:jobServiceEnabled",
               "value": "[parameters('EnableJobService')]"
+            },
+            {
+              "name": "features:aggregateOverCalculationsEnabled",
+              "value": "[parameters('AggregateOverCalculationsEnabled')]"
             }
           ]
         }
@@ -2841,6 +2875,10 @@
             {
               "name": "apiKeyMiddleware:apiKey",
               "value": "[parameters('ApiKeyTestEngine')]"
+            },
+            {
+              "name": "features:aggregateOverCalculationsEnabled",
+              "value": "[parameters('AggregateOverCalculationsEnabled')]"
             }
           ]
         }

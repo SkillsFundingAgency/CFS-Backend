@@ -896,7 +896,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = CalculationId,
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
-                SpecificationId = SpecificationId
+                SpecificationId = SpecificationId,
+                Name = "TestFunction"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -945,11 +946,38 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
 
-            ICompilerFactory compilerFactory = new CompilerFactory(new Compiler.Languages.CSharpCompiler(logger), new Compiler.Languages.VisualBasicCompiler(logger));
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
+            {
+                { "TestFunction", model.SourceCode }
+            };
 
+            Build compilerOutput = new Build
+            {
+                Success = true
+            };
+
+            ICompiler compiler = Substitute.For<ICompiler>();
+            compiler
+                .GetCalulationFunctions(Arg.Any<List<SourceFile>>())
+                .Returns(sourceCodes);
+
+            compiler
+                .GenerateCode(Arg.Any<List<SourceFile>>())
+                .Returns(compilerOutput);
+
+            ICompilerFactory compilerFactory = Substitute.For<ICompilerFactory>();
+            compilerFactory
+                .GetCompiler(Arg.Any<List<SourceFile>>())
+                .Returns(compiler);
+
+          
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsAggregateSupportInCalculationsEnabled()
+                .Returns(true);
+
+            featureToggle
+                .IsAggregateOverCalculationsEnabled()
                 .Returns(true);
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
@@ -1098,7 +1126,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndAggregateFunctionsUsedButNotContainedInAggregateFields_ReturnsCompileError()
         {
             //Arrange
-            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nDim summedUp = Sum(whatever) as Decimal\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nDim summedUp = Sum(Datasets.whatever) as Decimal\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
 
             PreviewRequest model = new PreviewRequest
             {
@@ -1223,14 +1251,14 @@ namespace CalculateFunding.Services.Calcs.Services
               .First()
               .Message
               .Should()
-              .Be("whatever is not an aggretable field");
+              .Be("Datasets.whatever is not an aggretable field");
         }
 
         [TestMethod]
         public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndMultipleAggregateFunctionsUsedWithSameParameterButNotContinedInAggregateFields_ReturnsCompileErrorWithOneMessage()
         {
             //Arrange
-            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nDim average = Avg(whatever) as Decimal\nDim summedUp = Sum(whatever) as Decimal\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nDim average = Avg(Datasets.whatever) as Decimal\nDim summedUp = Sum(Datasets.whatever) as Decimal\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
 
             PreviewRequest model = new PreviewRequest
             {
@@ -1362,14 +1390,14 @@ namespace CalculateFunding.Services.Calcs.Services
               .First()
               .Message
               .Should()
-              .Be("whatever is not an aggretable field");
+              .Be("Datasets.whatever is not an aggretable field");
         }
 
         [TestMethod]
         public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndMultipleAggregateFunctionsUsedWithDiffrentSameParametersButNotContinedInAggregateFields_ReturnsCompileErrorWithOneMessage()
         {
             //Arrange
-            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nDim average = Avg(whatever1) as Decimal\nDim summedUp = Sum(whatever2) as Decimal\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nDim average = Avg(Datasets.whatever1) as Decimal\nDim summedUp = Sum(Datasets.whatever2) as Decimal\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
 
             PreviewRequest model = new PreviewRequest
             {
@@ -1503,7 +1531,7 @@ namespace CalculateFunding.Services.Calcs.Services
               .First()
               .Message
               .Should()
-              .Be("whatever1 is not an aggretable field");
+              .Be("Datasets.whatever1 is not an aggretable field");
 
             previewResponse
               .CompilerOutput
@@ -1511,7 +1539,7 @@ namespace CalculateFunding.Services.Calcs.Services
               .ElementAt(1)
               .Message
               .Should()
-              .Be("whatever2 is not an aggretable field");
+              .Be("Datasets.whatever2 is not an aggretable field");
 
             await
                 cacheProvider
@@ -1523,7 +1551,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndAggregateFunctionsUsedAndFieldsInCacheButNotContainedInAggregateFields_ReturnsCompileErrorDoesNotFetchFieldsFromDatabase()
         {
             //Arrange
-            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nDim summedUp = Sum(whatever) as Decimal\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nDim summedUp = Sum(Datasets.whatever) as Decimal\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
 
             PreviewRequest model = new PreviewRequest
             {
@@ -1650,13 +1678,416 @@ namespace CalculateFunding.Services.Calcs.Services
               .First()
               .Message
               .Should()
-              .Be("whatever is not an aggretable field");
+              .Be("Datasets.whatever is not an aggretable field");
 
             await
                 datasetRepository
                 .DidNotReceive()
                 .GetDatasetSchemaRelationshipModelsForSpecificationId(Arg.Any<string>());
 
+        }
+
+        [TestMethod]
+        public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndCalculationAggregateFunctionsFound_CompilesCodeAndReturnsOk()
+        {
+            //Arrange
+            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nIf E1.ProviderType = \"goodbye\" Then\nReturn Sum(Calc1)\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = stringCompareCode,
+                SpecificationId = SpecificationId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                BuildProjectId = BuildProjectId,
+                Current = new CalculationVersion(),
+                SpecificationId = SpecificationId,
+                Name = "TestFunction"
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject();
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
+                new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
+                new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
+            };
+
+            sourceFileGenerator
+                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
+                .Returns(sourceFiles);
+
+            Build build = new Build
+            {
+                Success = true,
+                SourceFiles = sourceFiles
+            };
+
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
+
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
+            {
+                { "TestFunction", model.SourceCode },
+                { "Calc1", "return 1" }
+            };
+
+            ICompiler compiler = Substitute.For<ICompiler>();
+            compiler
+                .GenerateCode(Arg.Any<List<SourceFile>>())
+                .Returns(build);
+
+            compiler
+                .GetCalulationFunctions(Arg.Any<List<SourceFile>>())
+                .Returns(sourceCodes);
+
+            ICompilerFactory compilerFactory = CreateCompilerFactory();
+            compilerFactory
+                .GetCompiler(Arg.Any<List<SourceFile>>())
+                .Returns(compiler);
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAggregateOverCalculationsEnabled()
+                .Returns(true);
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
+                datasetRepository: datasetRepository, featureToggle: featureToggle);
+
+            //Act
+            IActionResult result = await service.Compile(request);
+
+            //Assert
+            OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+
+            PreviewResponse previewResponse = okResult.Value.Should().BeOfType<PreviewResponse>().Subject;
+
+            previewResponse
+                .Calculation
+                .Current
+                .SourceCode
+                .Should()
+                .Be(stringCompareCode);
+
+            previewResponse
+                .CompilerOutput
+                .Success
+                .Should()
+                .BeTrue();
+        }
+
+        [TestMethod]
+        public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndCalculationAggregateFunctionsFoundButAlreadyInAnAggregate_ReturnsCompilerError()
+        {
+            //Arrange
+            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nIf E1.ProviderType = \"goodbye\" Then\nReturn Sum(Calc1)\nElse Return \"no\"\nEnd If\nEnd Function\nPublic Function Calc1 As String\nIf E1.ProviderType = \"goodbye\" Then\nReturn Sum(Calc2)\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = stringCompareCode,
+                SpecificationId = SpecificationId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                BuildProjectId = BuildProjectId,
+                Current = new CalculationVersion(),
+                SpecificationId = SpecificationId,
+                Name = "TestFunction"
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject();
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
+                new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
+                new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
+            };
+
+            sourceFileGenerator
+                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
+                .Returns(sourceFiles);
+
+            Build build = new Build
+            {
+                Success = true,
+                SourceFiles = sourceFiles,
+                CompilerMessages = new List<CompilerMessage>()
+            };
+
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
+
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
+            {
+                { "TestFunction", model.SourceCode },
+                { "Calc1", "return 1" },
+                { "Calc2", "Avg(TestFunction)" }
+            };
+
+            ICompiler compiler = Substitute.For<ICompiler>();
+            compiler
+                .GenerateCode(Arg.Any<List<SourceFile>>())
+                .Returns(build);
+
+            compiler
+                .GetCalulationFunctions(Arg.Any<List<SourceFile>>())
+                .Returns(sourceCodes);
+
+            ICompilerFactory compilerFactory = CreateCompilerFactory();
+            compilerFactory
+                .GetCompiler(Arg.Any<List<SourceFile>>())
+                .Returns(compiler);
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAggregateOverCalculationsEnabled()
+                .Returns(true);
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
+                datasetRepository: datasetRepository, featureToggle: featureToggle);
+
+            //Act
+            IActionResult result = await service.Compile(request);
+
+            //Assert
+            OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+
+            PreviewResponse previewResponse = okResult.Value.Should().BeOfType<PreviewResponse>().Subject;
+
+            previewResponse
+                .Calculation
+                .Current
+                .SourceCode
+                .Should()
+                .Be(stringCompareCode);
+
+            previewResponse
+                .CompilerOutput
+                .CompilerMessages
+                .Count()
+                .Should()
+                .Be(1);
+
+            previewResponse
+               .CompilerOutput
+               .CompilerMessages
+               .First()
+               .Message
+               .Should()
+               .Be($"TestFunction is already referenced in an aggregation that would cause nesting");
+        }
+
+        [TestMethod]
+        public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndCalculationAggregateFunctionsFoundButFoundNestedAggregate_ReturnsCompilerError()
+        {
+            //Arrange
+            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nIf E1.ProviderType = \"goodbye\" Then\nReturn Sum(Calc1)\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = stringCompareCode,
+                SpecificationId = SpecificationId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                BuildProjectId = BuildProjectId,
+                Current = new CalculationVersion(),
+                SpecificationId = SpecificationId,
+                Name = "Calc2"
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject();
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
+                new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
+                new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
+            };
+
+            sourceFileGenerator
+                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
+                .Returns(sourceFiles);
+
+            Build build = new Build
+            {
+                Success = true,
+                SourceFiles = sourceFiles,
+                CompilerMessages = new List<CompilerMessage>()
+            };
+
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
+
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
+            {
+                { "TestFunction", "return 1" },
+                { "Calc1", "return Avg(TestFunction)" },
+                { "Calc2", "return Avg(Calc1)" }
+            };
+
+            ICompiler compiler = Substitute.For<ICompiler>();
+            compiler
+                .GenerateCode(Arg.Any<List<SourceFile>>())
+                .Returns(build);
+
+            compiler
+                .GetCalulationFunctions(Arg.Any<List<SourceFile>>())
+                .Returns(sourceCodes);
+
+            ICompilerFactory compilerFactory = CreateCompilerFactory();
+            compilerFactory
+                .GetCompiler(Arg.Any<List<SourceFile>>())
+                .Returns(compiler);
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAggregateOverCalculationsEnabled()
+                .Returns(true);
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
+                datasetRepository: datasetRepository, featureToggle: featureToggle);
+
+            //Act
+            IActionResult result = await service.Compile(request);
+
+            //Assert
+            OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+
+            PreviewResponse previewResponse = okResult.Value.Should().BeOfType<PreviewResponse>().Subject;
+
+            previewResponse
+                .Calculation
+                .Current
+                .SourceCode
+                .Should()
+                .Be(stringCompareCode);
+
+            previewResponse
+                .CompilerOutput
+                .CompilerMessages
+                .Count()
+                .Should()
+                .Be(1);
+
+            previewResponse
+               .CompilerOutput
+               .CompilerMessages
+               .First()
+               .Message
+               .Should()
+               .Be($"Calc2 cannot reference another calc that is being aggregated");
         }
 
         static PreviewService CreateService(ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,

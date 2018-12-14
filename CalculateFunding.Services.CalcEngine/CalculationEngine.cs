@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Results;
@@ -71,20 +72,27 @@ namespace CalculateFunding.Services.Calculator
         }
 
         public ProviderResult CalculateProviderResults(IAllocationModel model, BuildProject buildProject, IEnumerable<CalculationSummaryModel> calculations, 
-            ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets, IEnumerable<DatasetAggregations> datasetAggregations = null)
+            ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets, IEnumerable<CalculationAggregation> aggregationValues = null, IEnumerable<string> calcsToProcess = null)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
             IEnumerable<CalculationResult> calculationResults = null;
 
-            if (datasetAggregations != null)
+            if (aggregationValues != null)
             {
-                calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, datasetAggregations).ToArray();
+                if (!calcsToProcess.IsNullOrEmpty())
+                {
+                    calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, aggregationValues, calcsToProcess).ToArray();
+                }
+                else
+                {
+                    calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, aggregationValues).ToArray();
+                }
             }
             else
             {
-                calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider).ToArray();
+                calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, calcsToProcess: calcsToProcess).ToArray();
             }
 
             var providerCalResults = calculationResults.ToDictionary(x => x.Calculation?.Id);

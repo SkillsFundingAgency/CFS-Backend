@@ -2,9 +2,11 @@
 using System.Threading.Tasks;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Functions.DebugQueue
 {
@@ -51,9 +53,17 @@ namespace CalculateFunding.Functions.DebugQueue
         {
             Message message = Helpers.ConvertToMessage<JobNotification>(item);
 
+            JobNotification jobNotification = message.GetPayloadAsInstanceOf<JobNotification>();
             try
             {
-                await Jobs.ServiceBus.OnJobCompletion.Run(message);
+                if (jobNotification.CompletionStatus == CompletionStatus.Succeeded && jobNotification.JobType == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob)
+                {
+                    await Functions.Calcs.ServiceBus.OnCalculationAggregationsJobCompleted.Run(message);
+                }
+                else
+                {
+                    await Jobs.ServiceBus.OnJobCompletion.Run(message);
+                }
             }
             catch (Exception ex)
             {

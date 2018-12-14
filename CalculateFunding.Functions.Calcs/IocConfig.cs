@@ -104,6 +104,9 @@ namespace CalculateFunding.Functions.Calcs
                .AddSingleton<IJobsRepository, JobsRepository>();
 
             builder
+              .AddSingleton<IJobService, JobService>();
+
+            builder
                 .AddSingleton<CSharpCompiler>()
                 .AddSingleton<VisualBasicCompiler>()
                 .AddSingleton<VisualBasicSourceFileGenerator>();

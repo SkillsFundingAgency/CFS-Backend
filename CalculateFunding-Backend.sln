@@ -193,7 +193,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.N
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Notifications.UnitTests", "CalculateFunding.Services.Notifications.UnitTests\CalculateFunding.Services.Notifications.UnitTests.csproj", "{E9A8E411-39CE-4741-B6B3-8BA22B1F5663}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.Notifications.UnitTests", "CalculateFunding.Functions.Notifications.UnitTests\CalculateFunding.Functions.Notifications.UnitTests.csproj", "{FEB0355A-EF5D-46C1-8DA4-E1714798D5F6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Notifications.UnitTests", "CalculateFunding.Functions.Notifications.UnitTests\CalculateFunding.Functions.Notifications.UnitTests.csproj", "{FEB0355A-EF5D-46C1-8DA4-E1714798D5F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.Compiler.UnitTests", "CalculateFunding.Services.Compiler.UnitTests\CalculateFunding.Services.Compiler.UnitTests.csproj", "{2724FC8D-3E8C-44D4-AA43-AD46B88700F0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -827,6 +829,14 @@ Global
 		{FEB0355A-EF5D-46C1-8DA4-E1714798D5F6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FEB0355A-EF5D-46C1-8DA4-E1714798D5F6}.Release|x64.ActiveCfg = Release|Any CPU
 		{FEB0355A-EF5D-46C1-8DA4-E1714798D5F6}.Release|x64.Build.0 = Release|Any CPU
+		{2724FC8D-3E8C-44D4-AA43-AD46B88700F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2724FC8D-3E8C-44D4-AA43-AD46B88700F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2724FC8D-3E8C-44D4-AA43-AD46B88700F0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2724FC8D-3E8C-44D4-AA43-AD46B88700F0}.Debug|x64.Build.0 = Debug|Any CPU
+		{2724FC8D-3E8C-44D4-AA43-AD46B88700F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2724FC8D-3E8C-44D4-AA43-AD46B88700F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2724FC8D-3E8C-44D4-AA43-AD46B88700F0}.Release|x64.ActiveCfg = Release|Any CPU
+		{2724FC8D-3E8C-44D4-AA43-AD46B88700F0}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -915,6 +925,7 @@ Global
 		{CAF82B17-966B-4D34-9543-559EC8DF6839} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
 		{E9A8E411-39CE-4741-B6B3-8BA22B1F5663} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
 		{FEB0355A-EF5D-46C1-8DA4-E1714798D5F6} = {D0291231-03FB-445B-9A51-A1E30A91AB2B}
+		{2724FC8D-3E8C-44D4-AA43-AD46B88700F0} = {42CC12ED-881F-4113-AFA0-742962C1DBD8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2FA36A0A-CA20-41CF-9BC2-FA6545720009}

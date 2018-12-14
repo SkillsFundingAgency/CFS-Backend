@@ -4,12 +4,15 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Constants;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -167,7 +170,7 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDataset>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
                 {
 
@@ -196,7 +199,7 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
-                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>());
+                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
 
             await
             calculationEngineServiceTestsHelper
@@ -222,6 +225,8 @@ namespace CalculateFunding.Services.Calculator
 
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
 
+            Dictionary<string, List<decimal>> cachedCalculationAggregates = new Dictionary<string, List<decimal>>();
+
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
             mockAllocationModel
                 .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
@@ -231,6 +236,11 @@ namespace CalculateFunding.Services.Calculator
                 .MockCacheProvider
                 .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
                 .Returns(providerSummaries);
+
+            calculationEngineServiceTestsHelper
+              .MockCacheProvider
+              .GetAsync<Dictionary<string, List<decimal>>>($"{CacheKeys.CalculationAggregations}{specificationId}")
+              .Returns(cachedCalculationAggregates);
 
             calculationEngineServiceTestsHelper
                 .MockCalculationRepository
@@ -263,7 +273,7 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Is(datasetAggregations))
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
                 {});
 
@@ -296,7 +306,7 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
-                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Is(datasetAggregations));
+                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
 
             await
             calculationEngineServiceTestsHelper
@@ -358,7 +368,7 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDataset>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
                 {
 
@@ -386,7 +396,7 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
-                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Is((IEnumerable<DatasetAggregations>)null));
+                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
 
             //Assert
             await
@@ -400,10 +410,22 @@ namespace CalculateFunding.Services.Calculator
         public async Task GenerateAllocations_GivenIsJobServiceEnabledSwitcheOnButJobIdMisingFromMessage_LogsErrorDoesNotAddJoblog()
         {
             //Arrange
+            const string cacheKey = "Cache-key";
+            const string specificationId = "spec1";
+            const int partitionIndex = 0;
+            const int partitionSize = 100;
+
             CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
                 new CalculationEngineServiceTestsHelper();
 
             Message message = new Message();
+            IDictionary<string, object> messageUserProperties = message.UserProperties;
+
+            messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
+            messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
+            messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-id", specificationId);
+            messageUserProperties.Add("ignore-save-provider-results", "true");
 
             calculationEngineServiceTestsHelper
                 .FeatureToggle
@@ -490,7 +512,7 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
-                    Arg.Any<IEnumerable<ProviderSourceDataset>>())
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
                 {
 
@@ -519,7 +541,7 @@ namespace CalculateFunding.Services.Calculator
                 .MockCalculationEngine
                 .Received(providerSummaries.Count)
                 .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
-                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Is((IEnumerable<DatasetAggregations>)null));
+                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>());
 
             //Assert
             await
@@ -544,6 +566,11 @@ namespace CalculateFunding.Services.Calculator
         public async Task GenerateAllocations_GivenIsJobServiceEnabledSwitcheOnAndMessgeCompletionStatusAlredaySet_LogsDoesntUpdateJobLog()
         {
             //Arrange
+            const string cacheKey = "Cache-key";
+            const string specificationId = "spec1";
+            const int partitionIndex = 0;
+            const int partitionSize = 100;
+            const int stop = partitionIndex + partitionSize - 1;
             const string jobId = "job-id-1";
 
             CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
@@ -572,6 +599,11 @@ namespace CalculateFunding.Services.Calculator
             Message message = new Message();
             IDictionary<string, object> messageUserProperties = message.UserProperties;
 
+            messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
+            messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
+            messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-id", specificationId);
+            messageUserProperties.Add("ignore-save-provider-results", "true");
             messageUserProperties.Add("jobId", jobId);
 
             //Act
@@ -594,6 +626,10 @@ namespace CalculateFunding.Services.Calculator
         public async Task GenerateAllocations_GivenIsJobServiceEnabledSwitcheOnButJobNotFound_LogsAnThrowsException()
         {
             //Arrange
+            const string cacheKey = "Cache-key";
+            const string specificationId = "spec1";
+            const int partitionIndex = 0;
+            const int partitionSize = 100;
             const string jobId = "job-id-1";
 
             CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
@@ -616,6 +652,11 @@ namespace CalculateFunding.Services.Calculator
             Message message = new Message();
             IDictionary<string, object> messageUserProperties = message.UserProperties;
 
+            messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
+            messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
+            messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-id", specificationId);
+            messageUserProperties.Add("ignore-save-provider-results", "true");
             messageUserProperties.Add("jobId", jobId);
 
             //Act
@@ -640,6 +681,295 @@ namespace CalculateFunding.Services.Calculator
                 .Received(1)
                 .Error(Arg.Is($"Could not find the parent job with job id: '{jobId}'"));
         }
+
+        [TestMethod]
+        public async Task GenerateAllocations_GivenIsJobServiceEnabledAndJobIsGenerateCalculationAggregationsJob_EnsuresAggregationsCreatedAndCached()
+        {
+            //Arrange
+            const string cacheKey = "Cache-key";
+            const string specificationId = "spec1";
+            const int partitionIndex = 0;
+            const int partitionSize = 100;
+            const int stop = partitionIndex + partitionSize - 1;
+            const string jobId = "job-id-1";
+
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            BuildProject buildProject = CreateBuildProject();
+
+            JobViewModel jobViewModel = new JobViewModel
+            {
+                Id = jobId,
+                JobDefinitionId = JobConstants.DefinitionNames.GenerateCalculationAggregationsJob
+            };
+
+            Dictionary<string, List<decimal>> cachedCalculationAggregates = new Dictionary<string, List<decimal>>
+            {
+                { "Calc1", new List<decimal>() },
+                { "Calc2", new List<decimal>() },
+                { "Calc3", new List<decimal>() }
+            };
+
+            IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
+
+            IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
+            mockAllocationModel
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Returns(new List<CalculationResult>());
+
+            calculationEngineServiceTestsHelper
+                .MockCacheProvider
+                .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
+                .Returns(providerSummaries);
+
+            calculationEngineServiceTestsHelper
+               .MockCacheProvider
+               .GetAsync<Dictionary<string, List<decimal>>>($"{CacheKeys.CalculationAggregations}{specificationId}")
+               .Returns(cachedCalculationAggregates);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetBuildProjectBySpecificationId(Arg.Any<string>())
+                .Returns(buildProject);
+
+            calculationEngineServiceTestsHelper
+                .FeatureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            calculationEngineServiceTestsHelper
+                .MockJobsRepository
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobViewModel);
+
+            IList<CalculationSummaryModel> calculationSummaryModelsReturn = CreateDummyCalculationSummaryModels();
+            calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetCalculationSummariesForSpecification(specificationId)
+                .Returns(calculationSummaryModelsReturn);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .GenerateAllocationModel(Arg.Any<Assembly>())
+                .Returns(mockAllocationModel);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                    Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>(), Arg.Any<IEnumerable<string>>())
+                    .Returns(new ProviderResult
+                    {
+                        CalculationResults = new List<CalculationResult>
+                        {
+                            new CalculationResult { Value = 10, Calculation = new Models.Reference { Name = "Calc1" } },
+                            new CalculationResult { Value = 20, Calculation = new Models.Reference { Name = "Calc2" } },
+                            new CalculationResult { Value = 30, Calculation = new Models.Reference { Name = "Calc3" } }
+                        }
+                    });
+
+            calculationEngineServiceTestsHelper
+                .MockEngineSettings
+                .ProviderBatchSize = 3;
+
+            calculationEngineServiceTestsHelper
+                .FeatureToggle
+                .IsAggregateSupportInCalculationsEnabled()
+                .Returns(true);
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            Message message = new Message();
+            IDictionary<string, object> messageUserProperties = message.UserProperties;
+
+            messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
+            messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
+            messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-id", specificationId);
+            messageUserProperties.Add("ignore-save-provider-results", "true");
+            messageUserProperties.Add("jobId", jobId);
+            messageUserProperties.Add("batch-count", "7");
+            messageUserProperties.Add("calculations-to-aggregate", "Calc1,Calc2,Calc3");
+
+
+            //Act
+            await service.GenerateAllocations(message);
+
+            //Assert
+            calculationEngineServiceTestsHelper
+               .MockCalculationEngine
+               .Received(providerSummaries.Count)
+               .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                   Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>(),
+                   Arg.Is<IEnumerable<string>>(m => m.ElementAt(0) == "Calc1" && m.ElementAt(1) == "Calc2" && m.ElementAt(2) == "Calc3"));
+
+            await
+                calculationEngineServiceTestsHelper
+                    .MockCacheProvider
+                    .Received()
+                    .SetAsync<Dictionary<string, List<decimal>>>(Arg.Any<string>(),
+                        Arg.Is<Dictionary<string, List<decimal>>>(
+                            m => m.Count == 3 && 
+                                 m["Calc1"].Count == 20 &&
+                                 m["Calc2"].Count == 20 &&
+                                 m["Calc3"].Count == 20
+                        ));
+
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .Received()
+                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m => m.CompletedSuccessfully == true));
+        }
+
+        [TestMethod]
+        public async Task GenerateAllocations_GivenIsJobServiceEnabledSwitcheOnAndCachedAggregateValuesExist_EnsuresAllocationModelCalledWithCachecdAggregates()
+        {
+            //Arrange
+            const string cacheKey = "Cache-key";
+            const string specificationId = "spec1";
+            const int partitionIndex = 0;
+            const int partitionSize = 100;
+            const int stop = partitionIndex + partitionSize - 1;
+            const string jobId = "job-id-1";
+
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            Dictionary<string, List<decimal>> cachedCalculationAggregates = new Dictionary<string, List<decimal>>
+            {
+                { "Calc1", new List<decimal>{ 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10 } },
+                { "Calc2", new List<decimal>{ 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20 } },
+                { "Calc3", new List<decimal>{ 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30 } }
+            };
+
+            BuildProject buildProject = CreateBuildProject();
+
+            JobViewModel jobViewModel = new JobViewModel
+            {
+                Id = jobId
+            };
+
+            IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
+
+            IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
+            mockAllocationModel
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Returns(new List<CalculationResult>());
+
+            calculationEngineServiceTestsHelper
+                .MockCacheProvider
+                .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
+                .Returns(providerSummaries);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetBuildProjectBySpecificationId(Arg.Any<string>())
+                .Returns(buildProject);
+
+            calculationEngineServiceTestsHelper
+             .MockCacheProvider
+             .GetAsync<Dictionary<string, List<decimal>>>($"{CacheKeys.CalculationAggregations}{specificationId}_1")
+             .Returns(cachedCalculationAggregates);
+
+            calculationEngineServiceTestsHelper
+                .FeatureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            calculationEngineServiceTestsHelper
+                .FeatureToggle
+                .IsAggregateSupportInCalculationsEnabled()
+                .Returns(true);
+
+            calculationEngineServiceTestsHelper
+                .MockJobsRepository
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobViewModel);
+
+            IList<CalculationSummaryModel> calculationSummaryModelsReturn = CreateDummyCalculationSummaryModels();
+            calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetCalculationSummariesForSpecification(specificationId)
+                .Returns(calculationSummaryModelsReturn);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .GenerateAllocationModel(Arg.Any<Assembly>())
+                .Returns(mockAllocationModel);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                    Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>(), Arg.Any<IEnumerable<string>>())
+                .Returns(new ProviderResult()
+                {
+
+                });
+
+            calculationEngineServiceTestsHelper
+                .MockEngineSettings
+                .ProviderBatchSize = 3;
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            Message message = new Message();
+            IDictionary<string, object> messageUserProperties = message.UserProperties;
+
+            messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
+            messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
+            messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-id", specificationId);
+            messageUserProperties.Add("ignore-save-provider-results", "true");
+            messageUserProperties.Add("jobId", jobId);
+            messageUserProperties.Add("batch-count", "1");
+            messageUserProperties.Add("batch-number", "1");
+            messageUserProperties.Add("calculations-to-aggregate", "Calc1,Calc2,Calc3");
+
+            //Act
+            await service.GenerateAllocations(message);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .Received(providerSummaries.Count)
+                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                    Arg.Any<ProviderSummary>(), Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Is<IEnumerable<CalculationAggregation>>(m =>
+                        m.Count() == 3 &&
+                        m.ElementAt(0).Values.ElementAt(0).Value == 200 &&
+                        m.ElementAt(0).Values.ElementAt(1).Value == 10 &&
+                        m.ElementAt(0).Values.ElementAt(2).Value == 10 &&
+                        m.ElementAt(0).Values.ElementAt(3).Value == 10 &&
+                        m.ElementAt(1).Values.ElementAt(0).Value == 400 &&
+                        m.ElementAt(1).Values.ElementAt(1).Value == 20 &&
+                        m.ElementAt(1).Values.ElementAt(2).Value == 20 &&
+                        m.ElementAt(1).Values.ElementAt(3).Value == 20 &&
+                        m.ElementAt(2).Values.ElementAt(0).Value == 600 &&
+                        m.ElementAt(2).Values.ElementAt(1).Value == 30 &&
+                        m.ElementAt(2).Values.ElementAt(2).Value == 30 &&
+                        m.ElementAt(2).Values.ElementAt(3).Value == 30
+                    ), null);
+
+            //Assert
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .Received(1)
+                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m => m.CompletedSuccessfully == null));
+
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsRepository
+                    .Received(1)
+                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(
+                        m => m.CompletedSuccessfully.Value &&
+                             m.ItemsSucceeded == 20 &&
+                             m.ItemsFailed == 0 &&
+                             m.ItemsProcessed == 20 &&
+                             m.Outcome == "20 provider results were generated successfully from 20 providers"));
+        }
+
 
         [TestMethod]
         public async Task UpdateDeadLetteredJobLog_GivenMessageButNoJobId_LogsAnErrorAndDoesNotUpdadeJobLog()

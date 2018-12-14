@@ -522,7 +522,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IJobsRepository jobsRepository = CreateJobsRepository();
             jobsRepository
                 .CreateJob(Arg.Any<JobCreateModel>())
-                .Returns(new Job { Id = "job-id-1" });
+                .Returns(new Job { Id = "job-id-1", JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob });
 
             CalculationService service = CreateCalculationService(
                 calculationsRepository, 
@@ -687,6 +687,126 @@ namespace CalculateFunding.Services.Calcs.Services
             logger
                 .Received(1)
                 .Error(Arg.Any<Exception>(), Arg.Is($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'"));
+        }
+
+        [TestMethod]
+        public async Task UpdateCalculationsForSpecification_GivenModelHasChangedPolicyNameAndJobFeatureToggledIsOnAndSourceCodeContainsCalculationAggregate_SavesChangesEnsuresGenerateAggregationsJobCreated()
+        {
+            // Arrange
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            const string specificationId = "spec-id";
+
+            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
+            {
+                Id = specificationId,
+                Current = new Models.Specs.SpecificationVersion
+                {
+                    FundingPeriod = new Reference { Id = "fp1" },
+                    Name = "any-name",
+                    Policies = new[] { new Models.Specs.Policy { Id = "pol-id", Name = "policy2" } }
+                },
+                Previous = new Models.Specs.SpecificationVersion
+                {
+                    FundingPeriod = new Reference { Id = "fp1" },
+                    Policies = new[] { new Models.Specs.Policy { Id = "pol-id", Name = "policy1" } }
+                }
+            };
+
+            string json = JsonConvert.SerializeObject(specificationVersionComparison);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties.Add("user-id", UserId);
+            message.UserProperties.Add("user-name", Username);
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<Calculation> calcs = new[]
+            {
+                new Calculation
+                {
+                    SpecificationId =  "spec-id",
+                    Name = "any name",
+                    Id = "any-id",
+                    CalculationSpecification = new Reference("any name", "any-id"),
+                    FundingPeriod = new Reference("18/19", "2018/2019"),
+                    CalculationType = CalculationType.Number,
+                    FundingStream = new Reference("fp1","fs1-111"),
+                    Current = new CalculationVersion
+                    {
+                        Author = new Reference(UserId, Username),
+                        Date = DateTimeOffset.Now,
+                        PublishStatus = PublishStatus.Draft,
+                        SourceCode = "return Min(calc1)",
+                        Version = 1
+                    },
+                    Policies = new List<Reference>{ new Reference { Id = "pol-id", Name = "policy1"} }
+                }
+            };
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = "build-project-1",
+                SpecificationId = specificationId
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(calcs);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1", JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob });
+
+            CalculationService service = CreateCalculationService(
+                calculationsRepository,
+                logger,
+                buildProjectsRepository: buildProjectsRepository,
+                searchRepository: searchRepository,
+                featureToggle: featureToggle,
+                jobsRepository: jobsRepository,
+                messengerService: messengerService);
+
+            // Act
+            await service.UpdateCalculationsForSpecification(message);
+
+            // Assert
+            await
+                messengerService
+                    .DidNotReceive()
+                    .SendToQueue<string>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>());
+
+            await
+                 jobsRepository
+                     .Received(1)
+                     .CreateJob(Arg.Is<JobCreateModel>(
+                         m =>
+                             m.InvokerUserDisplayName == Username &&
+                             m.InvokerUserId == UserId &&
+                             m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob &&
+                             m.Properties["specification-id"] == specificationId &&
+                             m.Trigger.EntityId == specificationId &&
+                             m.Trigger.EntityType == nameof(Models.Specs.Specification) &&
+                             m.Trigger.Message == $"Updating calculations for specification: '{specificationId}'"
+                         ));
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"New job of type '{JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob}' created with id: 'job-id-1'"));
         }
     }
 }

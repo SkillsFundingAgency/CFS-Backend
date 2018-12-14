@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Datasets;
+﻿using CalculateFunding.Models.Aggregations;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using FluentAssertions;
@@ -76,18 +77,17 @@ namespace CalculateFunding.Services.Calculator
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
             sourceDatasets.First().DataDefinition.Name = "PE and Sport premium AB Test";
 
-            IEnumerable<DatasetAggregations> aggregations = new[]
+            IEnumerable<CalculationAggregation> aggregations = new[]
             {
-                new DatasetAggregations
+                new CalculationAggregation
                 {
-                    DatasetRelationshipId = "relationship-id",
                     SpecificationId = "spec-id",
-                    Fields = new[]
+                    Values = new[]
                     {
-                        new AggregatedField
+                        new AggregateValue
                         {
                             FieldDefinitionName = "Datasets.ABPESportsAggregated2910003.FullTimeNumberOfPupilsInYearGroup1SoleRegistrations",
-                            FieldType = AggregatedFieldType.Sum,
+                            AggregatedType = AggregatedType.Sum,
                             Value = 9033
                         }
                     }
@@ -117,18 +117,17 @@ namespace CalculateFunding.Services.Calculator
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
             sourceDatasets.First().DataDefinition.Name = "PE and Sport premium AB Test";
 
-            IEnumerable<DatasetAggregations> aggregations = new[]
+            IEnumerable<CalculationAggregation> aggregations = new[]
             {
-                new DatasetAggregations
+                new CalculationAggregation
                 {
-                    DatasetRelationshipId = "relationship-id",
                     SpecificationId = "spec-id",
-                    Fields = new[]
+                    Values = new[]
                     {
-                        new AggregatedField
+                        new AggregateValue
                         {
                             FieldDefinitionName = "Whatever",
-                            FieldType = AggregatedFieldType.Sum,
+                            AggregatedType = AggregatedType.Sum,
                             Value = 9033
                         }
                     }
@@ -146,6 +145,84 @@ namespace CalculateFunding.Services.Calculator
             calcResults.ElementAt(0).Value.Should().BeNull();
             calcResults.ElementAt(0).Exception.Should().NotBeNull();
             calcResults.ElementAt(0).Exception.InnerException.Message.Should().Be("Datasets.ABPESportsAggregated2910003.FullTimeNumberOfPupilsInYearGroup1SoleRegistrations does not have an aggregated value");
+        }
+
+        [TestMethod]
+        public void Execute_GivenAssemblyWithCalcAggregation_ExecutesEnsuresResult()
+        {
+            //Arrange
+            Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.test-assembly-with-calc-aggregation.txt");
+
+            AllocationModel allocationModel = new AllocationFactory().CreateAllocationModel(assembly) as AllocationModel;
+
+            IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
+            sourceDatasets.First().DataDefinition.Name = "PE and Sport premium";
+
+            IEnumerable<CalculationAggregation> aggregations = new[]
+            {
+                new CalculationAggregation
+                {
+                    SpecificationId = "spec-id",
+                    Values = new[]
+                    {
+                        new AggregateValue
+                        {
+                            FieldDefinitionName = "ABCalc1112001",
+                            AggregatedType = AggregatedType.Sum,
+                            Value = 2001
+                        }
+                    }
+                }
+            };
+
+            ProviderSummary providerSummary = CreateProviderSummary();
+
+            //Act
+            IEnumerable<CalculationResult> calcResults = allocationModel.Execute(sourceDatasets.ToList(), providerSummary, aggregations);
+
+            //Assert
+            calcResults.Any().Should().BeTrue();
+            calcResults.Count().Should().Be(9);
+            calcResults.ElementAt(4).Value.Should().NotBeNull();
+            calcResults.ElementAt(4).Value.Should().Be(2001);
+        }
+
+        [TestMethod]
+        public void Execute_GivenAssemblyWithCalcAggregationAndListOfOneCalcToProcess_ExecutesEnsuresOnluOneResultResult()
+        {
+            //Arrange
+            Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.test-assembly-with-calc-aggregation.txt");
+
+            AllocationModel allocationModel = new AllocationFactory().CreateAllocationModel(assembly) as AllocationModel;
+
+            IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
+            sourceDatasets.First().DataDefinition.Name = "PE and Sport premium";
+
+            IEnumerable<CalculationAggregation> aggregations = new[]
+            {
+                new CalculationAggregation
+                {
+                    SpecificationId = "spec-id",
+                    Values = new[]
+                    {
+                        new AggregateValue
+                        {
+                            FieldDefinitionName = "ABCalc1112001",
+                            AggregatedType = AggregatedType.Sum,
+                            Value = 2001
+                        }
+                    }
+                }
+            };
+
+            ProviderSummary providerSummary = CreateProviderSummary();
+
+            //Act
+            IEnumerable<CalculationResult> calcResults = allocationModel.Execute(sourceDatasets.ToList(), providerSummary, aggregations, new[] { "ABCalc1112001" });
+
+            //Assert
+            calcResults.Any().Should().BeTrue();
+            calcResults.Count().Should().Be(1);
         }
 
         [TestMethod]

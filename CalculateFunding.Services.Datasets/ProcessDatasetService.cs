@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
@@ -8,6 +9,7 @@ using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -212,9 +214,13 @@ namespace CalculateFunding.Services.Datasets
                         };
                         string correlationId = message.GetCorrelationId();
 
-                        Job job = await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", specificationId, userId, userName, trigger, correlationId);
+                        IEnumerable<CalculationCurrentVersion> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(specificationId);
 
-                        _logger.Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'");
+                        bool generateCalculationAggregations = allCalculations.IsNullOrEmpty() ? false : SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.SourceCode));
+
+                        Job job = await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", specificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
+
+                        _logger.Information($"New job of type '{job.JobDefinitionId}' created with id: '{job.Id}'");
                     }
                     catch (Exception ex)
                     {
@@ -300,28 +306,28 @@ namespace CalculateFunding.Services.Datasets
                             new AggregatedField
                             {
                                 FieldDefinitionName = identifierName,
-                                FieldType = AggregatedFieldType.Sum,
+                                FieldType = AggregatedType.Sum,
                                 Value = sum
                             },
 
                             new AggregatedField
                             {
                                 FieldDefinitionName = identifierName,
-                                FieldType = AggregatedFieldType.Average,
+                                FieldType = AggregatedType.Average,
                                 Value = average
                             },
 
                             new AggregatedField
                             {
                                 FieldDefinitionName = identifierName,
-                                FieldType = AggregatedFieldType.Min,
+                                FieldType = AggregatedType.Min,
                                 Value = min
                             },
 
                             new AggregatedField
                             {
                                 FieldDefinitionName = identifierName,
-                                FieldType = AggregatedFieldType.Max,
+                                FieldType = AggregatedType.Max,
                                 Value = max
                             }
                         };
@@ -575,7 +581,7 @@ namespace CalculateFunding.Services.Datasets
                     await _datasetsAggregationsRepository.CreateDatasetAggregations(datasetAggregations);
                 }
 
-                await _cacheProvider.RemoveAsync<IEnumerable<DatasetAggregations>>($"{CacheKeys.DatasetAggregationsForSpecification}{specificationId}");
+                await _cacheProvider.RemoveAsync<List<CalculationAggregation>>($"{CacheKeys.DatasetAggregationsForSpecification}{specificationId}");
             }
 
             await PopulateProviderSummariesForSpecification(specificationId, providerSummaries);
@@ -691,13 +697,13 @@ namespace CalculateFunding.Services.Datasets
             return Convert.ToBase64String(plainTextBytes);
         }
 
-        private async Task<Job> SendInstructAllocationsToJobService(string providerCacheKey, string specificationId, string userId, string userName, Trigger trigger, string correlationId)
+        private async Task<Job> SendInstructAllocationsToJobService(string providerCacheKey, string specificationId, string userId, string userName, Trigger trigger, string correlationId, bool generateCalculationAggregations)
         {
             JobCreateModel job = new JobCreateModel
             {
                 InvokerUserDisplayName = userName,
                 InvokerUserId = userId,
-                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob,
+                JobDefinitionId = generateCalculationAggregations ? JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob : JobConstants.DefinitionNames.CreateInstructAllocationJob,
                 SpecificationId = specificationId,
                 Properties = new Dictionary<string, string>
                 {

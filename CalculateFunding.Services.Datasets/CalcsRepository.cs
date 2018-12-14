@@ -4,6 +4,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Datasets.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets
@@ -14,6 +15,8 @@ namespace CalculateFunding.Services.Datasets
 
         const string updateRelationshipsUrl = "calcs/update-buildproject-relationships?specificationId=";
 
+        const string calculationsUrl = "calcs/current-calculations-for-specification?specificationId=";
+
         private readonly ICalcsApiClientProxy _apiClient;
 
         public CalcsRepository(ICalcsApiClientProxy apiClient)
@@ -23,17 +26,17 @@ namespace CalculateFunding.Services.Datasets
             _apiClient = apiClient;
         }
 
-        public Task<BuildProject> GetBuildProjectBySpecificationId(string specificationId)
+        public async Task<BuildProject> GetBuildProjectBySpecificationId(string specificationId)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
                 throw new ArgumentNullException(nameof(specificationId));
 
             string url = $"{buildProjectsUrl}{specificationId}";
 
-            return _apiClient.GetAsync<BuildProject>(url);
+            return await _apiClient.GetAsync<BuildProject>(url);
         }
 
-        public Task<BuildProject> UpdateBuildProjectRelationships(string specificationId, DatasetRelationshipSummary datasetRelationshipSummary)
+        public async Task<BuildProject> UpdateBuildProjectRelationships(string specificationId, DatasetRelationshipSummary datasetRelationshipSummary)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
                 throw new ArgumentNullException(nameof(specificationId));
@@ -42,7 +45,17 @@ namespace CalculateFunding.Services.Datasets
 
             string url = $"{updateRelationshipsUrl}{specificationId}";
 
-            return _apiClient.PostAsync<BuildProject, DatasetRelationshipSummary>(url, datasetRelationshipSummary);
+            return await _apiClient.PostAsync<BuildProject, DatasetRelationshipSummary>(url, datasetRelationshipSummary);
+        }
+
+        public async Task<IEnumerable<CalculationCurrentVersion>> GetCurrentCalculationsBySpecificationId(string specificationId)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
+                throw new ArgumentNullException(nameof(specificationId));
+
+            string url = $"{calculationsUrl}{specificationId}";
+
+            return await _apiClient.GetAsync<IEnumerable<CalculationCurrentVersion>>(url);
         }
     }
 }

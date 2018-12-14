@@ -1,5 +1,5 @@
 ﻿using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Users;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets.Interfaces
@@ -9,5 +9,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<BuildProject> GetBuildProjectBySpecificationId(string specificationId);
 
         Task<BuildProject> UpdateBuildProjectRelationships(string specificationId, DatasetRelationshipSummary datasetRelationshipSummary);
+
+        Task<IEnumerable<CalculationCurrentVersion>> GetCurrentCalculationsBySpecificationId(string specificationId);
     }
 }

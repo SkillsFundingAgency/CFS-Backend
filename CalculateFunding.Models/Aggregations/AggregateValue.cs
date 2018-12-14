@@ -1,12 +1,14 @@
-﻿using CalculateFunding.Models.Aggregations;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace CalculateFunding.Models.Datasets
+namespace CalculateFunding.Models.Aggregations
 {
-    public class AggregatedField
+    public class AggregateValue
     {
         [JsonProperty("fieldType")]
-        public AggregatedType FieldType { get; set; }
+        public AggregatedType AggregatedType { get; set; }
 
         [JsonProperty("value")]
         public decimal? Value { get; set; }
@@ -19,7 +21,7 @@ namespace CalculateFunding.Models.Datasets
         {
             get
             {
-                return $"{FieldDefinitionName}_{FieldType.ToString()}";
+                return $"{FieldDefinitionName}_{AggregatedType.ToString()}";
             }
         }
     }

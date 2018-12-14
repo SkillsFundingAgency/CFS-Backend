@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
@@ -104,7 +105,7 @@ namespace CalculateFunding.Services.Calculator
 
         private Dictionary<string, Type> DatasetTypes { get; }
 
-        public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary, IEnumerable<DatasetAggregations> datasetAggregations = null)
+        public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary, IEnumerable<CalculationAggregation> aggregationValues = null, IEnumerable<string> calcsToProcess = null)
         {
             var datasetNamesUsed = new HashSet<string>();
             foreach (var dataset in datasets)
@@ -141,7 +142,8 @@ namespace CalculateFunding.Services.Calculator
             object provider = PopulateProvider(providerSummary, providerSetter);
             providerSetter.SetValue(_instance, provider);
 
-            if (datasetAggregations != null)
+
+            if (aggregationValues != null)
             {
                 PropertyInfo aggregationsSetter = _instance.GetType().GetProperty("Aggregations");
 
@@ -153,11 +155,11 @@ namespace CalculateFunding.Services.Calculator
 
                     MethodInfo add = data.GetType().GetMethod("Add", new[] { typeof(String), typeof(Decimal) });
 
-                    foreach (DatasetAggregations aggregations in datasetAggregations)
+                    foreach (CalculationAggregation aggregations in aggregationValues)
                     {
-                        foreach (AggregatedField aggregatedField in aggregations.Fields)
+                        foreach (AggregateValue aggregatedValue in aggregations.Values)
                         {
-                            add.Invoke(data, new object[] { aggregatedField.FieldReference, aggregatedField.Value.HasValue ? aggregatedField.Value.Value : 0 });
+                            add.Invoke(data, new object[] { aggregatedValue.FieldReference, aggregatedValue.Value.HasValue ? aggregatedValue.Value.Value : 0 });
                         }
                     }
 
@@ -176,6 +178,13 @@ namespace CalculateFunding.Services.Calculator
 
             foreach (var executeMethod in _methods)
             {
+                if (!calcsToProcess.IsNullOrEmpty())
+                {
+                    if (!calcsToProcess.Contains(executeMethod.Item2.Calculation.Name))
+                    {
+                        continue;
+                    }
+                }
                 var result = executeMethod.Item2;
                 try
                 {

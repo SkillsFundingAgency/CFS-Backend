@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 
@@ -9,6 +10,13 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
 {
     public class ReflectionCodeMetadataGenerator : ICodeMetadataGeneratorService
     {
+        private readonly IFeatureToggle _featureToggle;
+
+        public ReflectionCodeMetadataGenerator(IFeatureToggle featureToggle)
+        {
+            _featureToggle = featureToggle;
+        }
+
         public IEnumerable<TypeInformation> GetTypeInformation(byte[] rawAssembly)
         {
             if (rawAssembly == null || rawAssembly.Length == 0)
@@ -71,11 +79,18 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
 
                                 string entityId = null;
 
+                                bool isCustom = false;
+
                                 var calculationAttribute = methodInfo.CustomAttributes.Where(c => c.AttributeType.Name == "CalculationAttribute").FirstOrDefault();
 
                                 if (calculationAttribute != null)
                                 {
                                     entityId = calculationAttribute.NamedArguments.Where(a => a.MemberName == "Id").FirstOrDefault().TypedValue.Value?.ToString();
+
+                                    if (_featureToggle.IsAggregateOverCalculationsEnabled())
+                                    {
+                                        isCustom = true;
+                                    }
                                 }
 
                                 MethodInformation methodInformation = new MethodInformation()
@@ -84,6 +99,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                                     ReturnType = ConvertTypeName(methodInfo.ReturnType),
                                     Parameters = parameters,
                                     EntityId = entityId,
+                                    IsCustom = isCustom
                                 };
 
                                 if (string.IsNullOrWhiteSpace(methodInformation.FriendlyName))

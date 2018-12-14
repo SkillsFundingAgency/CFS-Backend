@@ -2190,6 +2190,304 @@ namespace CalculateFunding.Services.Calcs.Services
                     .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
         }
 
+        [TestMethod]
+        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenThousandProvidersAndIsJobServiceEnabledOnAndIsAggregationJobAndOneAggregatedCalcsFound_CreatesTenJobs()
+        {
+            //Arrange
+            string parentJobId = "job-id-1";
+
+            string specificationId = "test-spec1";
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+            message.UserProperties.Add("jobId", "job-id-1");
+            message.UserProperties.Add("specification-id", specificationId);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(true);
+
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(10000);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJob);
+
+            jobsRepository
+                .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
+                .Returns(CreateJobs());
+
+            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new[]
+                {
+                    new Models.Calcs.Calculation
+                    {
+                        Name = "Calc 1",
+                        Current = new CalculationVersion
+                        {
+                            SourceCode = "return Sum(Calc2)"
+                        }
+                    },
+                    new Models.Calcs.Calculation
+                    {
+                        Name = "Calc 2",
+                        Current = new CalculationVersion
+                        {
+                            SourceCode = "return 1000"
+                        }
+                    }
+                });
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
+                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
+                messengerService: messengerService, featureToggle: featureToggle, jobsRepository: jobsRepository, calculationsRepository: calculationsRepository);
+
+            //Act
+            await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            await
+                providerResultsRepository
+                    .DidNotReceive()
+                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
+
+            await
+                jobsRepository
+                    .Received(1)
+                    .CreateJobs(Arg.Is<IEnumerable<JobCreateModel>>(
+                            m => m.Count() == 10 &&
+                            m.Count(p => p.SpecificationId == specificationId) == 10 &&
+                            m.Count(p => p.ParentJobId == parentJobId) == 10 &&
+                            m.Count(p => p.InvokerUserDisplayName == parentJob.InvokerUserDisplayName) == 10 &&
+                            m.Count(p => p.InvokerUserId == parentJob.InvokerUserId) == 10 &&
+                            m.Count(p => p.CorrelationId == parentJob.CorrelationId) == 10 &&
+                            m.Count(p => p.Trigger.EntityId == parentJob.Id) == 10 &&
+                            m.Count(p => p.Trigger.EntityType == nameof(Job)) == 10 &&
+                            m.Count(p => p.Trigger.Message == $"Triggered by parent job with id: '{parentJob.Id}") == 10 &&
+                            m.Count(p => p.Properties["calculations-to-aggregate"] == "Calc2") == 10 &&
+                            m.ElementAt(0).Properties["batch-number"] == "1" &&
+                            m.ElementAt(1).Properties["batch-number"] == "2" &&
+                            m.ElementAt(2).Properties["batch-number"] == "3" &&
+                            m.ElementAt(3).Properties["batch-number"] == "4" &&
+                            m.ElementAt(4).Properties["batch-number"] == "5" &&
+                            m.ElementAt(5).Properties["batch-number"] == "6" &&
+                            m.ElementAt(6).Properties["batch-number"] == "7" &&
+                            m.ElementAt(7).Properties["batch-number"] == "8" &&
+                            m.ElementAt(8).Properties["batch-number"] == "9" &&
+                            m.ElementAt(9).Properties["batch-number"] == "10"
+                        ));
+            await
+                messengerService
+                    .DidNotReceive()
+                    .SendToQueue<string>(Arg.Is(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>());
+
+            logger
+                .Received(1)
+                .Information($"10 child jobs were created for parent id: '{parentJobId}'");
+
+            await
+                jobsRepository
+                    .Received(1)
+                    .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
+        }
+
+        [TestMethod]
+        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenThousandProvidersAndIsJobServiceEnabledOnAndIsAggregationJobAndTwoAggregatedCalcsFound_CreatesTenJobs()
+        {
+            //Arrange
+            string parentJobId = "job-id-1";
+
+            string specificationId = "test-spec1";
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+            message.UserProperties.Add("jobId", "job-id-1");
+            message.UserProperties.Add("specification-id", specificationId);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(true);
+
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(10000);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJob);
+
+            jobsRepository
+                .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
+                .Returns(CreateJobs());
+
+            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new[]
+                {
+                    new Models.Calcs.Calculation
+                    {
+                        Name = "Calc 1",
+                        Current = new CalculationVersion
+                        {
+                            SourceCode = "return Sum(Calc2)"
+                        }
+                    },
+                    new Models.Calcs.Calculation
+                    {
+                        Name = "Calc 2",
+                        Current = new CalculationVersion
+                        {
+                            SourceCode = "return 1000"
+                        }
+                    },
+                    new Models.Calcs.Calculation
+                    {
+                        Name = "Calc 3",
+                        Current = new CalculationVersion
+                        {
+                            SourceCode = "return Sum(Calc4)"
+                        }
+                    },
+                    new Models.Calcs.Calculation
+                    {
+                        Name = "Calc 4",
+                        Current = new CalculationVersion
+                        {
+                            SourceCode = "return 1000"
+                        }
+                    }
+                });
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
+                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
+                messengerService: messengerService, featureToggle: featureToggle, jobsRepository: jobsRepository, calculationsRepository: calculationsRepository);
+
+            //Act
+            await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            await
+                providerResultsRepository
+                    .DidNotReceive()
+                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
+
+            await
+                jobsRepository
+                    .Received(1)
+                    .CreateJobs(Arg.Is<IEnumerable<JobCreateModel>>(
+                            m => m.Count() == 10 &&
+                            m.Count(p => p.SpecificationId == specificationId) == 10 &&
+                            m.Count(p => p.ParentJobId == parentJobId) == 10 &&
+                            m.Count(p => p.InvokerUserDisplayName == parentJob.InvokerUserDisplayName) == 10 &&
+                            m.Count(p => p.InvokerUserId == parentJob.InvokerUserId) == 10 &&
+                            m.Count(p => p.CorrelationId == parentJob.CorrelationId) == 10 &&
+                            m.Count(p => p.Trigger.EntityId == parentJob.Id) == 10 &&
+                            m.Count(p => p.Trigger.EntityType == nameof(Job)) == 10 &&
+                            m.Count(p => p.Trigger.Message == $"Triggered by parent job with id: '{parentJob.Id}") == 10 &&
+                            m.Count(p => p.Properties["calculations-to-aggregate"] == "Calc2,Calc4") == 10 &&
+                            m.ElementAt(0).Properties["batch-number"] == "1" &&
+                            m.ElementAt(1).Properties["batch-number"] == "2" &&
+                            m.ElementAt(2).Properties["batch-number"] == "3" &&
+                            m.ElementAt(3).Properties["batch-number"] == "4" &&
+                            m.ElementAt(4).Properties["batch-number"] == "5" &&
+                            m.ElementAt(5).Properties["batch-number"] == "6" &&
+                            m.ElementAt(6).Properties["batch-number"] == "7" &&
+                            m.ElementAt(7).Properties["batch-number"] == "8" &&
+                            m.ElementAt(8).Properties["batch-number"] == "9" &&
+                            m.ElementAt(9).Properties["batch-number"] == "10"
+                        ));
+            await
+                messengerService
+                    .DidNotReceive()
+                    .SendToQueue<string>(Arg.Is(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>());
+
+            logger
+                .Received(1)
+                .Information($"10 child jobs were created for parent id: '{parentJobId}'");
+
+            await
+                jobsRepository
+                    .Received(1)
+                    .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
+        }
+
         private IEnumerable<Job> CreateJobs(int count = 10)
         {
             IList<Job> jobs = new List<Job>();

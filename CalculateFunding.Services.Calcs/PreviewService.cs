@@ -5,6 +5,7 @@ using CalculateFunding.Models.Health;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.CodeGeneration;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Core.Caching;
@@ -114,7 +115,7 @@ namespace CalculateFunding.Services.Calcs
 
             if (_featureToggle.IsAggregateSupportInCalculationsEnabled())
             {
-                Build build = await CheckValidAggregations(calculation, previewRequest);
+                Build build = await CheckDatasetValidAggregations(calculation, previewRequest);
 
                 if (build != null && build.CompilerMessages.Any(m => m.Severity == Models.Calcs.Severity.Error))
                 {
@@ -126,12 +127,20 @@ namespace CalculateFunding.Services.Calcs
 
                     return new OkObjectResult(response);
                 }
+
             }
 
-            return GenerateAndCompile(buildProject, calculation, calculations);
+            if (_featureToggle.IsAggregateOverCalculationsEnabled())
+            {
+                return GenerateAndCompile(buildProject, calculation, calculations, previewRequest);
+            }
+            else
+            {
+                return GenerateAndCompile(buildProject, calculation, calculations);
+            }
         }
 
-        private IActionResult GenerateAndCompile(BuildProject buildProject, Calculation calculationToPreview, IEnumerable<Calculation> calculations)
+        private IActionResult GenerateAndCompile(BuildProject buildProject, Calculation calculationToPreview, IEnumerable<Calculation> calculations, PreviewRequest previewRequest = null)
         {
             ISourceFileGenerator sourceFileGenerator = _sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
 
@@ -156,7 +165,39 @@ namespace CalculateFunding.Services.Calcs
             Build compilerOutput = compiler.GenerateCode(sourceFiles.ToList());
 
             if (compilerOutput.Success)
+            {
                 _logger.Information($"Build compiled succesfully for calculation id {calculationToPreview.Id}");
+
+                if (_featureToggle.IsAggregateOverCalculationsEnabled())
+                {
+                    string calculationIdentifier = VisualBasicTypeGenerator.GenerateIdentifier(calculationToPreview.Name);
+
+                    IDictionary<string, string> functions = compiler.GetCalulationFunctions(compilerOutput.SourceFiles);
+
+                    if (!functions.ContainsKey(calculationIdentifier))
+                    {
+                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} is not an aggregatable field", Severity = Models.Calcs.Severity.Error });
+                    }
+                    else
+                    {
+                        if (previewRequest != null)
+                        {
+                            if (SourceCodeHelpers.GetCalculationAggregateFunctionParameters(previewRequest.SourceCode).Any())
+                            {
+                                if (SourceCodeHelpers.IsCalcReferencedInAnAggregate(functions, calculationIdentifier))
+                                {
+                                    compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} is already referenced in an aggregation that would cause nesting", Severity = Models.Calcs.Severity.Error });
+                                }
+                                else if (SourceCodeHelpers.CheckSourceForExistingCalculationAggregates(functions, previewRequest.SourceCode))
+                                {
+                                    compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} cannot reference another calc that is being aggregated", Severity = Models.Calcs.Severity.Error });
+                                }
+                            }
+                        }
+                    }
+                   
+                }
+            }
             else
             {
                 _logger.Information($"Build did not compile succesfully for calculation id {calculationToPreview.Id}");
@@ -171,11 +212,11 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(response);
         }
 
-        private async Task<Build> CheckValidAggregations(Calculation calculation, PreviewRequest previewRequest)
+        private async Task<Build> CheckDatasetValidAggregations(Calculation calculation, PreviewRequest previewRequest)
         {
             Build build = null;
 
-            IEnumerable<string> aggregateParameters = SourceCodeHelpers.GetAggregateFunctionParameter(previewRequest.SourceCode);
+            IEnumerable<string> aggregateParameters = SourceCodeHelpers.GetDatasetAggregateFunctionParameters(previewRequest.SourceCode);
 
             if (aggregateParameters.IsNullOrEmpty())
             {

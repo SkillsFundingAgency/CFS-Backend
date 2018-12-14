@@ -145,6 +145,8 @@ namespace CalculateFunding.Functions.TestEngine
 
             builder.AddPolicySettings(config);
 
+            builder.AddFeatureToggling(config);
+
             builder.AddSingleton<ITestRunnerResiliencePolicies>((ctx) =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();

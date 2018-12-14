@@ -50,5 +50,7 @@
         public static string DatasetAggregationsForSpecification { get; set; } = "dataset-aggregations-for-specification:";
 
         public static string JobDefinitions { get; set; } = "job-definitions";
+
+        public static string CalculationAggregations { get; set; } = "calculation-aggregations:";
     }
 }

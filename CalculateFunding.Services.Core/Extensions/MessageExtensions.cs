@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Core.Extensions
         {
             string correlationId = Guid.NewGuid().ToString();
            
-            if (message.UserProperties.ContainsKey("sfa-correlationId"))
+            if (message.UserProperties.ContainsKey("sfa-correlationId") && message.UserProperties["sfa-correlationId"] != null)
             {
                 correlationId = message.UserProperties["sfa-correlationId"].ToString();
             }

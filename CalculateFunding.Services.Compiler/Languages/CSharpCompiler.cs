@@ -35,5 +35,9 @@ namespace CalculateFunding.Services.Compiler.Languages
             return result;
         }
 
+        protected override IDictionary<string, string> GetCalulationFunctions(IEnumerable<SourceFile> sourceFiles)
+        {
+            return new Dictionary<string, string>();
+        }
     }
 }

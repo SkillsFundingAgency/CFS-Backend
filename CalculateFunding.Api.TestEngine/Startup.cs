@@ -180,6 +180,8 @@ namespace CalculateFunding.Api.TestRunner
 
             builder.AddHttpContextAccessor();
 
+            builder.AddFeatureToggling(Configuration);
+
             builder.AddSingleton<ITestRunnerResiliencePolicies>((ctx) =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();

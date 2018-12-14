@@ -529,9 +529,11 @@ namespace CalculateFunding.Services.Calcs
                         Message = $"Updating calculations for specification: '{specificationId}'"
                     };
 
-                    Job job = await SendInstructAllocationsToJobService(specificationId, userId, userName, trigger, correlationId);
+                    bool generateCalculationAggregations = SourceCodeHelpers.HasCalculationAggregateFunctionParameters(calculations.Select(m => m.Current.SourceCode));
 
-                    _logger.Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'");
+                    Job job = await SendInstructAllocationsToJobService(specificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
+
+                    _logger.Information($"New job of type '{job.JobDefinitionId}' created with id: '{job.Id}'");
                 }
                 catch (Exception ex)
                 {
@@ -779,7 +781,13 @@ namespace CalculateFunding.Services.Calcs
 
                     string correlationId = request.GetCorrelationId();
 
-                    Job job = await SendInstructAllocationsToJobService(result.BuildProject.SpecificationId, userId, userName, trigger, correlationId);
+                   
+
+                    IEnumerable<Calculation> allCalculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(calculation.SpecificationId));
+
+                    bool generateCalculationAggregations = allCalculations.IsNullOrEmpty() ? false : SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.Current.SourceCode));
+
+                    Job job = await SendInstructAllocationsToJobService(result.BuildProject.SpecificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
 
                     _logger.Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'");
                 }
@@ -1270,13 +1278,13 @@ namespace CalculateFunding.Services.Calcs
                 properties));
         }
 
-        private async Task<Job> SendInstructAllocationsToJobService(string specificationId, string userId, string userName, Trigger trigger, string correlationId)
+        private async Task<Job> SendInstructAllocationsToJobService(string specificationId, string userId, string userName, Trigger trigger, string correlationId, bool generateAggregations = false)
         {
             JobCreateModel job = new JobCreateModel
             {
                 InvokerUserDisplayName = userName,
                 InvokerUserId = userId,
-                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob,
+                JobDefinitionId = generateAggregations ? JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob : JobConstants.DefinitionNames.CreateInstructAllocationJob,
                 SpecificationId = specificationId,
                 Properties = new Dictionary<string, string>
                 {

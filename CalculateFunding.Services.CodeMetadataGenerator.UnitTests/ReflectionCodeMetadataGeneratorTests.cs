@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 
 namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
 {
@@ -265,10 +267,16 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
 
 
         [TestMethod]
-        public void GetTypeInformation_WhenListDatasetsThenCalculationDetailsShouldBeReturned()
+        public void GetTypeInformation_WhenFeatureToggleIsOn_SetsIsCustomToTrue()
         {
             // Arrange
-            ICodeMetadataGeneratorService generator = GetCodeGenerator();
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAggregateOverCalculationsEnabled()
+                .Returns(true);
+
+            ICodeMetadataGeneratorService generator = GetCodeGenerator(featureToggle);
+
             byte[] assembly = GetCalculationClassWithListDescriptionsExampleAssembly();
 
             // Act
@@ -293,6 +301,45 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
             firstCalculation.Name.Should().Be("ABHighNeedsCalc002");
             firstCalculation.FriendlyName.Should().Be("AB High Needs Calc 002");
             firstCalculation.Description.Should().Be("test");
+            firstCalculation.IsCustom.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void GetTypeInformation_WhenFeatureToggleIsNotOn_SetsIsCustomToFalse()
+        {
+            // Arrange
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsAggregateOverCalculationsEnabled()
+                .Returns(false);
+
+            ICodeMetadataGeneratorService generator = GetCodeGenerator(featureToggle);
+
+            byte[] assembly = GetCalculationClassWithListDescriptionsExampleAssembly();
+
+            // Act
+            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+
+            // Assert
+            result.Should().NotBeNull("Result should not be null");
+
+            result.Should().ContainSingle(c => c.Name == "Calculations");
+
+            TypeInformation datasetType = result.Where(e => e.Name == "Calculations").FirstOrDefault();
+            datasetType.Name.Should().Be("Calculations");
+            datasetType.Description.Should().BeNull();
+            datasetType.Type.Should().Be("Calculations");
+
+            List<MethodInformation> methods = new List<MethodInformation>(datasetType.Methods);
+
+            methods.Should().HaveCount(9, "Calculations should contain expected number of methods");
+
+            MethodInformation firstCalculation = methods.Where(m => m.Name == "ABHighNeedsCalc002").SingleOrDefault();
+            firstCalculation.Should().NotBeNull("firstCalculation should not be null");
+            firstCalculation.Name.Should().Be("ABHighNeedsCalc002");
+            firstCalculation.FriendlyName.Should().Be("AB High Needs Calc 002");
+            firstCalculation.Description.Should().Be("test");
+            firstCalculation.IsCustom.Should().BeFalse();
         }
 
         [TestMethod]
@@ -348,9 +395,14 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
             result.FirstOrDefault(m => m.Name == "If-Then-ElseIf-Then").Should().NotBeNull();
         }
 
-        private ICodeMetadataGeneratorService GetCodeGenerator()
+        private static ICodeMetadataGeneratorService GetCodeGenerator(IFeatureToggle featureToggle = null)
         {
-            return new ReflectionCodeMetadataGenerator();
+            return new ReflectionCodeMetadataGenerator(featureToggle ?? CreateFeatureToggle());
+        }
+
+        private static IFeatureToggle CreateFeatureToggle()
+        {
+            return Substitute.For<IFeatureToggle>();
         }
 
         private byte[] GetEmptyDatasetExampleAssembly()

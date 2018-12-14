@@ -7,6 +7,10 @@
             public const string CreateAllocationJob = "CreateAllocationJob";
 
             public const string CreateInstructAllocationJob = "CreateInstructAllocationJob";
+
+            public const string GenerateCalculationAggregationsJob = "GenerateCalculationAggregationsJob";
+
+            public const string CreateInstructGenerateAggregationsAllocationJob = "CreateInstructGenerateAggregationsAllocationJob";
         }
 
         public static class NotificationChannels

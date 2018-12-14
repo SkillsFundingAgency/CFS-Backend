@@ -7,12 +7,14 @@
 
   <ItemGroup>
     <None Remove="Resources\test-assembly-with-aggregation.txt" />
+    <None Remove="Resources\test-assembly-with-calc-aggregation.txt" />
     <None Remove="Resources\test-assembly-with-stackoverflow.txt" />
     <None Remove="Resources\test-assembly.txt" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\test-assembly-with-aggregation.txt" />
+    <EmbeddedResource Include="Resources\test-assembly-with-calc-aggregation.txt" />
     <EmbeddedResource Include="Resources\test-assembly-with-stackoverflow.txt" />
     <EmbeddedResource Include="Resources\test-assembly.txt" />
   </ItemGroup>

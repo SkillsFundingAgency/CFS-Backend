@@ -63,6 +63,8 @@
             public const string UpdateJobsOnCompletion = "on-job-completion";
 
             public const string JobNotificationsToSignalR = "notifications-to-signalr";
+
+            public const string CreateInstructAllocationsJob = "calculation-aggregations-job-completed";
         }
     }
 }

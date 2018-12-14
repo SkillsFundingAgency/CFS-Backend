@@ -12,6 +12,7 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.CodeGeneration;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Core.Caching;
@@ -527,8 +528,35 @@ namespace CalculateFunding.Services.Calcs
             return compiler.GenerateCode(sourceFiles?.ToList());
         }
 
-        private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(JobViewModel parentJob, IEnumerable<IDictionary<string,string>> jobProperties)
+        private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(JobViewModel parentJob, IEnumerable<IDictionary<string, string>> jobProperties)
         {
+            HashSet<string> calculationsToAggregate = new HashSet<string>();
+
+            if (parentJob.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob)
+            {
+               
+                IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(parentJob.SpecificationId);
+
+                foreach (Models.Calcs.Calculation calculation in calculations)
+                {
+                    IEnumerable<string> aggregateParameters = SourceCodeHelpers.GetCalculationAggregateFunctionParameters(calculation.Current.SourceCode);
+                    if (aggregateParameters.IsNullOrEmpty())
+                    {
+                        continue;
+                    }
+
+                    foreach (string aggregateParameter in aggregateParameters)
+                    {
+                        Models.Calcs.Calculation referencedCalculation = calculations.FirstOrDefault(m => string.Equals(CalculationTypeGenerator.GenerateIdentifier(m.Name.Trim()), aggregateParameter.Trim(), StringComparison.InvariantCultureIgnoreCase));
+
+                        if (referencedCalculation != null)
+                        {
+                            calculationsToAggregate.Add(aggregateParameter);
+                        }
+                    }
+                }
+            }
+
             IList<JobCreateModel> jobCreateModels = new List<JobCreateModel>();
 
             Trigger trigger = new Trigger
@@ -538,13 +566,21 @@ namespace CalculateFunding.Services.Calcs
                 Message = $"Triggered by parent job with id: '{parentJob.Id}"
             };
 
-            foreach(IDictionary<string, string> properties in jobProperties)
+            int batchNumber = 1;
+            int batchCount = jobProperties.Count();
+            string calcsToAggregate = string.Join(",", calculationsToAggregate);
+
+            foreach (IDictionary<string, string> properties in jobProperties)
             {
+                properties.Add("batch-number", batchNumber.ToString());
+                properties.Add("batch-count", batchCount.ToString());
+                properties.Add("calculations-to-aggregate", calcsToAggregate);
+
                 JobCreateModel jobCreateModel = new JobCreateModel
                 {
                     InvokerUserDisplayName = parentJob.InvokerUserDisplayName,
                     InvokerUserId = parentJob.InvokerUserId,
-                    JobDefinitionId = JobConstants.DefinitionNames.CreateAllocationJob,
+                    JobDefinitionId = parentJob.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob ? JobConstants.DefinitionNames.CreateAllocationJob : JobConstants.DefinitionNames.GenerateCalculationAggregationsJob,
                     SpecificationId = parentJob.SpecificationId,
                     Properties = properties,
                     ParentJobId = parentJob.Id,
@@ -552,10 +588,13 @@ namespace CalculateFunding.Services.Calcs
                     CorrelationId = parentJob.CorrelationId
                 };
 
+                batchNumber++;
+
                 jobCreateModels.Add(jobCreateModel);
             }
 
             return await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.CreateJobs(jobCreateModels));
         }
     }
+    
 }

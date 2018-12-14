@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Jobs
 
             IList<ValidationResult> validationResults = new List<ValidationResult>();
 
-            Reference user = request.GetUser();
+            Reference user = request?.GetUser();
 
             //ensure all jobs in batch have the correct job definition
             foreach (JobCreateModel jobCreateModel in jobs)
@@ -114,7 +114,7 @@ namespace CalculateFunding.Services.Jobs
 
                 if (!jobCreateModel.Properties.ContainsKey("sfa-correlationId"))
                 {
-                    jobCreateModel.Properties.Add("sfa-correlationId", request.GetCorrelationId());
+                    jobCreateModel.Properties.Add("sfa-correlationId", request?.GetCorrelationId());
                 }
 
                 CreateJobValidationModel createJobValidationModel = new CreateJobValidationModel
@@ -143,11 +143,10 @@ namespace CalculateFunding.Services.Jobs
 
                 JobDefinition jobDefinition = jobDefinitions.First(m => m.Id == job.JobDefinitionId);
 
-
                 if (string.IsNullOrWhiteSpace(job.InvokerUserId) || string.IsNullOrWhiteSpace(job.InvokerUserDisplayName))
                 {
-                    job.InvokerUserId = user.Id;
-                    job.InvokerUserDisplayName = user.Name;
+                    job.InvokerUserId = user?.Id;
+                    job.InvokerUserDisplayName = user?.Name;
                 }
 
                 Job newJobResult = await CreateJob(job);
