@@ -41,7 +41,6 @@ namespace CalculateFunding.Functions.Notifications
                 {
                     correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
                     await notificationService.OnNotificationEvent(message, signalRMessages);
-
                 }
                 catch (Exception exception)
                 {

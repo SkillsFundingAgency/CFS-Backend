@@ -8,15 +8,9 @@ namespace CalculateFunding.Models.Jobs
     /// </summary>
     public class JobNotification
     {
-        /// <summary>
-        /// Required - randomly generated GUID for this job ID
-        /// </summary>
-        [JsonProperty("jobid")]
+        [JsonProperty("jobId")]
         public string JobId { get; set; }
 
-        /// <summary>
-        /// Required Job Type (from list of known jobs)
-        /// </summary>
         [JsonProperty("jobType")]
         public string JobType { get; set; }
 
@@ -41,7 +35,7 @@ namespace CalculateFunding.Models.Jobs
         [JsonProperty("overallItemsProcessed")]
         public int? OverallItemsProcessed { get; set; }
 
-        [JsonProperty("overallitemsSucceeded")]
+        [JsonProperty("overallItemsSucceeded")]
         public int? OverallItemsSucceeded { get; set; }
 
         [JsonProperty("overallItemsFailed")]

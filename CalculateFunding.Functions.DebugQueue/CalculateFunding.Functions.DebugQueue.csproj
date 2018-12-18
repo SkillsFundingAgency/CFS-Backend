@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.SignalRService" Version="1.0.0-preview1-10025" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="3.0.1" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Host.Storage" Version="3.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.1.1" />
@@ -32,6 +33,7 @@
     <ProjectReference Include="..\CalculateFunding.Functions.Calcs\CalculateFunding.Functions.Calcs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Datasets\CalculateFunding.Functions.Datasets.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Jobs\CalculateFunding.Functions.Jobs.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Functions.Notifications\CalculateFunding.Functions.Notifications.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Results\CalculateFunding.Functions.Results.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Scenarios\CalculateFunding.Functions.Scenarios.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Specs\CalculateFunding.Functions.Specs.csproj" />

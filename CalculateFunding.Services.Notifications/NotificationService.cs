@@ -13,20 +13,20 @@ namespace CalculateFunding.Services.Notifications
 {
     public class NotificationService : INotificationService
     {
-            public async Task OnNotificationEvent(Message message, IAsyncCollector<SignalRMessage> signalRMessages)
+        public async Task OnNotificationEvent(Message message, IAsyncCollector<SignalRMessage> signalRMessages)
+        {
+            Guard.ArgumentNotNull(message, nameof(message));
+            Guard.ArgumentNotNull(signalRMessages, nameof(signalRMessages));
+
+            JobNotification jobNotification = message.GetPayloadAsInstanceOf<JobNotification>();
+
+            if (jobNotification == null)
             {
-                Guard.ArgumentNotNull(message, nameof(message));
-                Guard.ArgumentNotNull(signalRMessages, nameof(signalRMessages));
+                throw new InvalidOperationException("Job notificiation was null");
+            }
 
-                JobNotification jobNotification = message.GetPayloadAsInstanceOf<JobNotification>();
-
-                if (jobNotification == null)
-                {
-                    throw new InvalidOperationException("Job notificiation was null");
-                }
-
-                // Send to all notifications channel
-                await signalRMessages.AddAsync(
+            // Send to all notifications channel
+            await signalRMessages.AddAsync(
                     new SignalRMessage
                     {
                         Target = JobConstants.NotificationsTargetFunction,
@@ -34,29 +34,29 @@ namespace CalculateFunding.Services.Notifications
                         Arguments = new[] { jobNotification }
                     });
 
-                if (!string.IsNullOrWhiteSpace(jobNotification.SpecificationId))
-                {
-                    // Send to individual specifications group
-                    await signalRMessages.AddAsync(
-                        new SignalRMessage
-                        {
-                            Target = JobConstants.NotificationsTargetFunction,
-                            GroupName = $"{JobConstants.NotificationChannels.SpecificationPrefix}{jobNotification.SpecificationId}",
-                            Arguments = new[] { jobNotification }
-                        });
-                }
-
-                if (string.IsNullOrWhiteSpace(jobNotification.ParentJobId))
-                {
-                    // Send to parent jobs only group
-                    await signalRMessages.AddAsync(
-                        new SignalRMessage
-                        {
-                            Target = JobConstants.NotificationsTargetFunction,
-                            GroupName = JobConstants.NotificationChannels.ParentJobs,
-                            Arguments = new[] { jobNotification }
-                        });
-                }
+            if (!string.IsNullOrWhiteSpace(jobNotification.SpecificationId))
+            {
+                // Send to individual specifications group
+                await signalRMessages.AddAsync(
+                    new SignalRMessage
+                    {
+                        Target = JobConstants.NotificationsTargetFunction,
+                        GroupName = $"{JobConstants.NotificationChannels.SpecificationPrefix}{jobNotification.SpecificationId}",
+                        Arguments = new[] { jobNotification }
+                    });
             }
+
+            if (string.IsNullOrWhiteSpace(jobNotification.ParentJobId))
+            {
+                // Send to parent jobs only group
+                await signalRMessages.AddAsync(
+                    new SignalRMessage
+                    {
+                        Target = JobConstants.NotificationsTargetFunction,
+                        GroupName = JobConstants.NotificationChannels.ParentJobs,
+                        Arguments = new[] { jobNotification }
+                    });
+            }
+        }
     }
 }

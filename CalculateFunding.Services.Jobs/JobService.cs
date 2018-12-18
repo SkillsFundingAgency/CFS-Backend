@@ -125,16 +125,14 @@ namespace CalculateFunding.Services.Jobs
                 allJobs = allJobs.Where(j => j.ParentJobId == null);
             }
 
-            allJobs = allJobs.OrderByDescending(j => j.LastUpdated);
-
             int totalItems = allJobs.Count();
 
             // Limit the query to end of the requested page
             const int pageSize = 50;
             allJobs = allJobs.Take(pageNumber * pageSize);
 
-            // Need to do actual page selection in memory as Cosmos doesn't support Skip
-            IEnumerable<Job> executedJobs = allJobs.AsEnumerable();
+            // Need to do actual page selection in memory as Cosmos doesn't support Skip or ordering by date
+            IEnumerable<Job> executedJobs = allJobs.AsEnumerable().OrderByDescending(j => j.LastUpdated);
 
             executedJobs = executedJobs.Skip((pageNumber - 1) * pageSize).Take(pageSize);
             System.Diagnostics.Debug.WriteLine("Executed Jobs: {0}", executedJobs.Count());
@@ -151,6 +149,32 @@ namespace CalculateFunding.Services.Jobs
             };
 
             return new OkObjectResult(jobQueryResponse);
+        }
+
+        public IActionResult GetLatestJob(string specificationId, string jobTypes)
+        {
+            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
+
+            IQueryable<Job> allJobs = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetJobs().Where(j => j.SpecificationId == specificationId));
+
+            if (!string.IsNullOrEmpty(jobTypes))
+            {
+                string[] splitJobTypes = jobTypes.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+
+                allJobs = allJobs.Where(j => splitJobTypes.Contains(j.JobDefinitionId));
+            }
+
+            // Have to order by date in memory as server doesn't support this, hence the .ToList() call
+            Job lastJob = allJobs.ToList().OrderByDescending(j => j.LastUpdated).FirstOrDefault();
+
+            if (lastJob == null)
+            {
+                return new NotFoundResult();
+            }
+            else
+            {
+                return new OkObjectResult(_mapper.Map<JobSummary>(lastJob));
+            }
         }
 
         public Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate, HttpRequest request)
